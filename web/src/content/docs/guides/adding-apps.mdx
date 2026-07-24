@@ -6,8 +6,14 @@ description: The whole decision tree — a GUI app with its own launcher key, a 
 import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
 
 Sooner or later you'll want Slack, or Discord, or `ripgrep`, or that one obscure
-CLI you saw on a blog. Good news: you almost never touch the rice to do it. You
-edit **one file** — your host config — and rebuild.
+CLI you saw on a blog. Good news: you almost never touch the rice to do it.
+
+The quickest route is **Install App** in pounce: search Homebrew, choose whether
+the app belongs in your launcher roster or should only be installed, and pounce
+writes a small Nix module plus rebuilds. It is declarative, not a hidden
+imperative install.
+
+Prefer to write it yourself? Edit your host config and rebuild:
 
 ```sh
 haus edit       # opens ~/.config/nix/hosts/<hostname>/default.nix
@@ -15,8 +21,15 @@ haus edit       # opens ~/.config/nix/hosts/<hostname>/default.nix
 haus rebuild    # build, then switch
 ```
 
-Everything you declare there *merges* with what the rice already ships — no
-overriding, no conflicts. The only question is **which line** to add.
+Everything you declare there *merges* with what the rice and pounce-generated
+package modules already declare. The only question is **which option** to use.
+
+<Aside type="tip" title="One Nix model, two doors">
+Manual entries and **Install App** use the same options. Pounce writes one file
+per selection under `hosts/&lt;hostname&gt;/packages/`; `mkNebelhaus`
+auto-imports that directory. You can inspect, edit, move, or delete those files
+like any other Nix module—there is no separate `roster.json`.
+</Aside>
 
 ## Which line do I add?
 
@@ -44,17 +57,21 @@ overriding, no conflicts. The only question is **which line** to add.
 
 ## A GUI app with a launcher key (the roster)
 
-This is the nebelhaus-native way to add an app you actually work in. One entry
-in `nebelhaus.prowl.apps` wires up *everything at once*: a Caps-Lock letter to
+This is the nebelhaus-native way to add an app you actually work in. One keyed
+entry in `nebelhaus.apps` wires up *everything at once*: a Caps-Lock letter to
 launch/focus it, a workspace it lives on, a pill in the bar, the auto-tiling
 rule, a row in the cheatsheet — and it installs the app for you.
 
 ```nix
-nebelhaus.prowl.apps = [
-  { key = "s"; name = "Slack"; workspace = "S";
-    appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
-    label = "Slack"; cask = "slack"; }
-];
+nebelhaus.apps.slack = {
+  key = "s";
+  name = "Slack";
+  workspace = "S";
+  appId = "com.tinyspeck.slackmacgap";
+  barIcon = ":slack:";
+  label = "Slack";
+  cask = "slack";
+};
 ```
 
 Rebuild, and tapping <kbd>⇪</kbd> then <kbd>S</kbd> launches Slack onto
@@ -143,8 +160,14 @@ For anything already on the machine — Safari, Music, an app you installed by h
 roster entry with `cask = null`:
 
 ```nix
-{ key = "m"; name = "Music"; workspace = "M";
-  appId = "com.apple.Music"; barIcon = ":apple_music:"; cask = null; }
+nebelhaus.apps.music = {
+  key = "m";
+  name = "Music";
+  workspace = "M";
+  appId = "com.apple.Music";
+  barIcon = ":apple_music:";
+  cask = null;
+};
 ```
 
 ---

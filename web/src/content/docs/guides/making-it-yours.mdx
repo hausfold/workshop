@@ -51,9 +51,10 @@ terminal is always <kbd>⇪</kbd> <kbd>T</kbd>, the browser is always
 launched if it isn't running, focused if it is, and it lands on *its* workspace
 every time. Your hands stop negotiating with the window manager.
 
-That whole scheme comes from **one list** — `nebelhaus.prowl.apps`, the roster —
+That whole scheme comes from **one keyed map** — `nebelhaus.apps`, the roster —
 so the launcher key, the workspace, the bar pill, and the auto-tiling rule can
-never drift out of sync. A few things worth internalizing:
+never drift out of sync. Keyed entries also compose cleanly across your host
+file and pounce-generated package modules. A few things worth internalizing:
 
 - **Letters are apps, digits are scratch.** Workspaces `1`–`4` are generic
   scratch space; letters (`T`, `B`, `S`…) belong to specific apps.
@@ -103,7 +104,7 @@ More on each in [The shell](/guides/the-shell/).
 ### Apps, tiling & the launcher
 
 ```nix
-nebelhaus.prowl.apps = [ /* your roster — see Adding apps */ ];
+nebelhaus.apps.slack = { /* one keyed roster entry — see Adding apps */ };
 nebelhaus.prowl.enable = true;    # false: no tiling, no Caps-Lock remap
 nebelhaus.pounce.enable = true;   # false: no ⌘Space palette
 nebelhaus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant across rebuilds

@@ -70,6 +70,44 @@ When `true`, makes `hearth.editor` the default opener for `.json`/`.md`/`.ts`/`.
 nebelhaus.hearth.editor = "nvim";
 ```
 
+## nebelhaus.apps
+
+### `nebelhaus.apps.<id>`
+
+`attrsOf submodule` · default Ghostty + Zen
+
+The composable source of truth for launcher letters, workspace assignment, bar
+pills, the pounce cheatsheet, and optional Homebrew installation. The
+attribute name is a stable id you choose; separate Nix modules can add or
+override different apps without replacing a shared list.
+
+Each app has these fields:
+
+- **`enable`** — `bool` — Include this app; set `false` to disable a default or imported entry.
+- **`order`** — `int` — Roster order; lower comes first.
+- **`key`** — `str` — Leader letter (unique across the roster).
+- **`name`** — `str` — macOS app name (used by `open -a`).
+- **`workspace`** — `str` / `null` — AeroSpace workspace letter; `null` = launcher-only.
+- **`appId`** — `str` / `null` — Bundle id for auto-assigning windows. Find it with `osascript -e 'id of app "…"'`.
+- **`barIcon`** — `str` / `null` — SketchyBar app-font ligature; `null` uses the workspace letter.
+- **`label`** — `str` / `null` — Cheatsheet caption; `null` uses `name`.
+- **`cask`** — `str` / `null` — Homebrew cask to install; `null` if already installed.
+
+```nix
+nebelhaus.apps.slack = {
+  key = "s";
+  name = "Slack";
+  workspace = "S";
+  appId = "com.tinyspeck.slackmacgap";
+  barIcon = ":slack:";
+  label = "Slack";
+  cask = "slack";
+};
+```
+
+Pounce **Install App** writes the exact same option in one auto-imported module
+per package under `hosts/<hostname>/packages/`.
+
 ## nebelhaus.prowl
 
 Tiling and the Caps-Lock launcher. See [Window management](/guides/window-management/).
@@ -78,29 +116,6 @@ Tiling and the Caps-Lock launcher. See [Window management](/guides/window-manage
 `bool` · default `true`
 
 Toggle AeroSpace tiling, the Caps-Lock launcher, and window-management keybinds.
-
-### `nebelhaus.prowl.apps`
-`listOf submodule` · default terminal + browser
-
-The single source of truth for the launcher letters, workspace assignment, and bar pills.
-
-Each entry in `nebelhaus.prowl.apps` is a submodule with these fields:
-
-- **`key`** — `str` — Leader letter (unique across the roster).
-- **`name`** — `str` — macOS app name (used by `open -a`).
-- **`workspace`** — `str` / `null` — AeroSpace workspace letter; `null` = launcher-only.
-- **`appId`** — `str` / `null` — Bundle id for auto-assigning windows. `null` skips it. Find with `osascript -e 'id of app "…"'`.
-- **`barIcon`** — `str` / `null` — SketchyBar app-font ligature (e.g. `:slack:`); `null` uses the workspace letter.
-- **`label`** — `str` / `null` — Cheatsheet caption; `null` uses `name`.
-- **`cask`** — `str` / `null` — Homebrew cask to install; `null` if already installed.
-
-```nix
-nebelhaus.prowl.apps = [
-  { key = "s"; name = "Slack"; workspace = "S";
-    appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
-    label = "Slack"; cask = "slack"; }
-];
-```
 
 ## nebelhaus.sill
 
@@ -256,11 +271,15 @@ Contents of `~/.claude/CLAUDE.md` (cross-project context for Claude Code). The r
   nebelhaus.theme.accent = "sapphire";
   nebelhaus.hearth.editor = "nvim";
 
-  # Your app roster (merged with the rice defaults)
-  nebelhaus.prowl.apps = [
-    { key = "s"; name = "Slack"; workspace = "S";
-      appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:"; cask = "slack"; }
-  ];
+  # Your app roster (composed with the rice defaults)
+  nebelhaus.apps.slack = {
+    key = "s";
+    name = "Slack";
+    workspace = "S";
+    appId = "com.tinyspeck.slackmacgap";
+    barIcon = ":slack:";
+    cask = "slack";
+  };
 
   # Extra apps with no launcher key
   homebrew.casks = [ "discord" ];
