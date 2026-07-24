@@ -38,6 +38,23 @@ nebelhaus.git.email = "ada@example.com";
 nebelhaus.git.signingKey = "6F7BD6F43A7C1420";
 ```
 
+### `nebelhaus.git.shellAliases`
+`attrsOf (nullOr str)` · default `{}`
+
+Per-host additions and overrides for Hearth's built-in Git shell aliases — the
+compact, framework-independent set (`g`, `gst`, `gco`, `gcb`, `gp`, `gpf`,
+`grbi`, `gwt`, …) that replaced oh-my-zsh's `git` plugin. Values are shell
+command strings; set one to `null` to drop a built-in. Touches only the Git
+shortcuts and needs no plugin manager.
+
+```nix
+nebelhaus.git.shellAliases = {
+  gst = "git status --short --branch"; # replace a built-in
+  gsync = "git pull --rebase --autostash"; # add one
+  gco = null; # remove one
+};
+```
+
 ## nebelhaus.theme
 
 ### `nebelhaus.theme.accent`
@@ -83,6 +100,38 @@ nebelhaus.hearth.editor = "nvim";
 nebelhaus.hearth.obsidianVaults = [
   "Library/Mobile Documents/iCloud~md~obsidian/Documents/notes"
 ];
+```
+
+## nebelhaus.snippets
+
+Text expansion via [espanso](https://espanso.org): type a short trigger and it's
+replaced inline, in any app — browsers, Messages, and the terminal, where macOS's
+own text replacement can't reach.
+
+### `nebelhaus.snippets.enable`
+`bool` · default `false`
+
+Off by default. Turning it on installs the **signed** `Espanso.app` cask (not a
+nix-store binary) and needs a one-time macOS Accessibility grant the first time it
+runs — System Settings → Privacy & Security → Accessibility → enable Espanso. The
+signed bundle keeps that grant across reboots and nixpkgs bumps, so you grant it
+once rather than on every rebuild.
+
+### `nebelhaus.snippets.matches`
+`listOf { trigger; replace; }` · default `[]`
+
+The expansion table — one `{ trigger; replace; }` per snippet. For dynamic matches
+(dates, shell output, forms), drop a hand-written `.yml` in
+`~/.config/espanso/match/` — espanso loads every file in that directory.
+
+```nix
+nebelhaus.snippets = {
+  enable = true;
+  matches = [
+    { trigger = "@@"; replace = "ada@example.com"; }
+    { trigger = "##"; replace = "+1 555 0100"; }
+  ];
+};
 ```
 
 ## nebelhaus.prowl
