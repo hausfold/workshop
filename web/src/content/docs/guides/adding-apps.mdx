@@ -22,7 +22,11 @@ Or let Pounce make the edit: open **Install App**, choose where to search
 (Homebrew, the Mac App Store, or the flake's pinned Nixpkgs), then pick the
 result. Homebrew and Nix choices are written to `installs.json` and applied with
 `haus rebuild`; a Homebrew cask or App Store app can also be added to the tiling
-roster, including its launcher key and optional workspace.
+roster, including its launcher key and optional workspace. For a workspace app,
+Pounce checks the pinned
+[SketchyBar App Font mapping](https://github.com/kvndrsslr/sketchybar-app-font)
+and writes the verified `barIcon` ligature too. If upstream has no match, the
+pill keeps its workspace letter rather than guessing an icon.
 
 <Aside type="note" title="Why App Store installs open a terminal">
 Pounce runs `mas get` visibly before any roster rebuild. App Store downloads can
