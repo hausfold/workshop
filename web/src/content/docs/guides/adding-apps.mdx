@@ -18,6 +18,34 @@ haus rebuild    # build, then switch
 Everything you declare there *merges* with what the rice already ships — no
 overriding, no conflicts. The only question is **which line** to add.
 
+Or let Pounce make the edit: open **Install App**, choose where to search
+(Homebrew, the Mac App Store, or the flake's pinned Nixpkgs), then pick the
+result. Homebrew and Nix choices are written to `installs.json` and applied with
+`haus rebuild`; a Homebrew cask or App Store app can also be added to the tiling
+roster, including its launcher key and optional workspace.
+
+<Aside type="note" title="Why App Store installs open a terminal">
+Pounce runs `mas get` visibly before any roster rebuild. App Store downloads can
+ask for an Apple Account, Touch ID, or sudo, and hiding that inside
+`darwin-rebuild` can look like a hung activation. If `mas` cannot acquire the
+app, Pounce opens its App Store page instead.
+</Aside>
+
+To enable Pounce's machine-editable lanes, keep the two data files at your flake
+root and point the host at them:
+
+```nix
+nebelhaus.prowl.rosterFile = ../../roster.json;
+nebelhaus.homebrew.installsFile = ../../installs.json;
+```
+
+```json
+{ "casks": [], "brews": [], "nixpkgs": [] }
+```
+
+That is `installs.json`; `roster.json` starts as `[]`. Add both files to Git once; Pounce stages and
+commits only these files after a successful rebuild.
+
 ## Which line do I add?
 
 <CardGrid>
@@ -119,22 +147,19 @@ See [Making it yours](/guides/making-it-yours/#homebrew-behaviour) for the
 
 ## App Store apps
 
-Some apps only live in the Mac App Store. You can still declare them — nix-darwin
-drives the App Store through [`mas`](https://github.com/mas-cli/mas) via
-`homebrew.masApps`, an `App Name → numeric id` map:
+Some apps only live in the Mac App Store. The smooth path is **Pounce → Install
+App → Mac App Store**: type a search, choose the Mac-compatible result, then
+install it alone or give it a roster key and workspace. Pounce already knows the
+result's numeric App Store id and bundle id.
 
-```nix
-homebrew.masApps = {
-  "Things" = 904280696;
-  "Xcode" = 497799835;
-};
-```
+This path uses [`mas get`](https://github.com/mas-cli/mas) in a visible floating
+terminal. You need to be signed into the App Store, and a download may ask for
+Touch ID or your Apple Account. Paid apps must already have been purchased; if
+the CLI cannot acquire one, Pounce opens the App Store page for you.
 
-The id is the number in the App Store URL (`…/id497799835`). You need to be
-**signed into the App Store** for these to install, and if the first rebuild
-reports `mas` is missing, add it once with `homebrew.brews = [ "mas" ];`.
-Declaring them this way means they come back on a [new Mac](/guides/new-mac/)
-like everything else.
+Unlike Homebrew and Nix choices, App Store acquisition is not written into
+`installs.json`: it is an Apple Account operation, not part of the Nix
+generation. A roster entry is still declarative after the app is acquired.
 
 ## Already-installed apps
 
@@ -151,9 +176,11 @@ roster entry with `cask = null`:
 
 ## A CLI tool you want to keep
 
-Command-line tools come from **nixpkgs**, not Homebrew — which means they're
-declarative, reproducible, and roll back cleanly. Personal tools go in your
-host file's home-manager block:
+Command-line tools normally come from **nixpkgs**, which makes them declarative,
+reproducible, and roll-backable. **Pounce → Install App → Nix packages** searches
+the exact Nixpkgs revision pinned by your flake and adds the chosen attribute to
+`installs.json`. If you prefer to keep the list in Nix source, personal tools go
+in your host file's home-manager block:
 
 ```nix
 home-manager.users.${username} = {

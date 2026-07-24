@@ -234,6 +234,20 @@ cask stays on the version brew first installed until you bump it. Turn both
 this and `autoUpdate` on (ideally per-host) to keep casks like trill tracking
 upstream latest; see [Keeping casks current](/guides/making-it-yours/#homebrew-behaviour).
 
+### `nebelhaus.homebrew.installsFile`
+`path | null` · default `null`
+
+Optional machine-editable JSON used by Pounce's **Install App** command:
+
+```json
+{ "casks": ["obsidian"], "brews": ["wget"], "nixpkgs": ["ripgrep"] }
+```
+
+Homebrew casks and formulae merge into their corresponding nix-darwin lists;
+Nixpkgs attribute paths merge into `environment.systemPackages`. The file must
+be tracked by the consumer flake's Git repository so Nix can read it. See
+[Adding apps & tools](/guides/adding-apps/).
+
 ## nebelhaus.claude
 
 ### `nebelhaus.claude.globalMd`
