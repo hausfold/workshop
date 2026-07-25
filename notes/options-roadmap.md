@@ -16,7 +16,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 | Claim | Reality |
 |---|---|
 | "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](nebelhaus/modules/options.nix) — but 13 of those are the `sill.items` pill bools and 5 are `hush.slack.*`. The *shape* surface is more like 25. |
-| "rice sets ~19 macOS defaults" | ✅ 19 keys in [`den/default.nix:144-183`](nebelhaus/modules/den/default.nix:144). nix-darwin types several hundred. |
+| "rice sets ~19 macOS defaults" | ✅ 19 keys in [`den/default.nix:144-183`](nebelhaus/modules/den/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
 | "replace `prowl.apps` with a general app registry" | ⚠️ **Already done.** It's `nebelhaus.apps` — `attrsOf` a submodule, merges across modules, has `enable`/`order`/`cask`. Don't rebuild it; **extend** it (§3.4). |
 | "add `haus plan` / `capture` / `diff` / `undo`" | ⚠️ **Partly exists in the installer.** `bootstrap.sh` has a read-only preflight audit, `NEBELHAUS_KEEP=dock,keyboard,finder` current-value capture, and cask adoption. The job is *promoting* those into `haus`, not greenfield. |
 | "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `den`+`theme`+`hearth`+`collar`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt`, `zscratch`, and a git-alias vocabulary. |
@@ -108,34 +108,39 @@ is 389 hand-written lines. At 5× the surface it rots within a month.
 
 ---
 
-## 4. Spikes to run **before** designing the accessibility tree
+## 4. Spikes — ✅ RUN 2026-07-25, results in [`macos-settings-matrix.md`](macos-settings-matrix.md)
 
-The earlier brainstorm designed a beautiful `nebelhaus.accessibility.*` tree and
-waved at "Tahoe-era permission quirks". That hand-wave is the difference between
-a shippable large-print rice and a broken one. **Run these first — they decide
-what the options can even be.**
+Run on macOS 26.6 with an `NSWorkspace` effective-state probe (a plist read only
+proves the *file* changed). Every domain exported before and byte-compared
+after — zero net change to the machine.
 
-- [ ] **`com.apple.universalaccess` writability.** Does `defaults write` on it
-      actually take effect on Tahoe 26, or is it TCC/SIP-gated and silently
-      dropped? Test each of: `mouseDriverCursorSize`, `increaseContrast`,
-      `reduceTransparency`, `reduceMotion`, `closeViewScrollWheelToggle`.
-      Some are already typed by nix-darwin (`system.defaults.universalaccess`) —
-      **typed ≠ working.**
-- [ ] **Does anything need a logout/reboot to apply?** Record per key.
-- [ ] **Display scaling.** There is no supported declarative "make everything
-      bigger" on macOS. Verify `displayplacer` can set a HiDPI "looks-like"
-      mode reproducibly, and how stable its display IDs are across
-      reboot/dock/undock. If unstable, `ui.scale` must fan out to *app* sizes
-      only and say so honestly.
-- [ ] **Bold text / Increase Contrast** — do these need a Dock/WindowServer
-      restart, and does that lose window state?
-- [ ] **Which knobs are outright impossible declaratively** (Voice Control,
-      Zoom hotkeys, Switch Control)? Those become `haus doctor` checklist items
-      with a System Settings deep link, not options.
+**They invalidated part of §5.12 and §5.2, and de-risked §5.10.**
 
-**Deliverable of the spike:** a `notes/macos-settings-matrix.md` table of
-`domain · key · typed-by-nix-darwin? · works-on-26? · restart-needed ·
-reversible?`. Everything in §5 depends on it.
+- [x] **`com.apple.universalaccess` writability** → ❌ **hard-locked on 26.6.**
+      `Could not write domain`. Control: `dock`/`finder`/`screencapture`/
+      `Accessibility` all accept the identical write from the same shell, so
+      it's the domain, not a sandbox. **All 5 of nix-darwin's
+      `system.defaults.universalaccess.*` options are in that domain.**
+- [x] **Is there another backend?** → `com.apple.Accessibility` *is* writable and
+      holds the modern keys — but writes are a **silent no-op**: plist flips,
+      `NSWorkspace` effective state does not. Worst possible failure mode for a
+      shared rice: it reports success and does nothing.
+- [x] **Restart behaviour** → nix-darwin restarts **only Dock**, only when a
+      `dock` option changed, and never calls `activateSettings`. Finder /
+      WindowManager / ControlCenter changes silently wait for a logout. **The
+      rice must own a restart map.**
+- [x] **Display scaling** → ✅ **de-risked.** `displayplacer` isn't even in
+      nixpkgs, but public CoreGraphics covers it: a **persistent display UUID**
+      exists (`CGDisplayCreateUUIDFromDisplayID`), 9 distinct HiDPI "looks-like"
+      modes are enumerable, and `CGDisplaySetDisplayMode` is public API. A ~40-line
+      Swift helper replaces the Homebrew dependency. Stable-ID risk retired.
+- [x] **Typed surface** → **193** keys, not "several hundred".
+- [ ] **One unknown left (needs the main checkout):** nix-darwin writes via
+      `launchctl asuser <uid> sudo --user=<u>`. The `sudo --user=` half fails;
+      the root-spawned wrapper couldn't be tested here (passwordless sudo is
+      scoped to `darwin-rebuild`). Decisive test: one
+      `system.defaults.universalaccess.reduceMotion = true;` + `haus rebuild` +
+      probe. Either outcome is worth an upstream nix-darwin issue.
 
 ---
 
@@ -181,21 +186,23 @@ nebelhaus.ui = {
   scale = 1.35;            # 1.0 = today
   density = "spacious";    # compact | comfortable | spacious
   motion = "reduced";      # full | reduced | none
-  transparency = "reduced";
-  cursorScale = 2.0;
 };
 ```
 
-Fans out to: Dock icon size · Finder icon/sidebar size · macOS cursor size ·
-Sill height/padding/font/icon size · Pounce window width, row height, result
-count · Ghostty font size + line height · zellij bar density · prowl gaps and
-borders · wallpaper contrast.
+Fans out to: Dock icon size · Finder icon/sidebar size · Sill height/padding/
+font/icon size · Pounce window width, row height, result count · Ghostty font
+size + line height · zellij bar density · prowl gaps and borders · wallpaper
+contrast.
 
 - [ ] Every consumer reads `ui.*` through `mkDefault` so a host can still pin one number
-- [ ] **Honest scope line:** on macOS this changes *nebelhaus's own* UI reliably;
-      system-wide text size is only reachable via display resolution (see spike)
-- [ ] `motion = "none"` must also kill prowl's animations and Sill's transitions,
-      not just set `NSGlobalDomain` reduce-motion
+- [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
+      Sill's transitions directly. The macOS reduce-motion knob is locked
+      (§4), so there is nothing to delegate to.
+- [ ] ~~`cursorScale`~~ **cut** — `mouseDriverCursorSize` is in the locked
+      `universalaccess` domain. Cursor size is `haus doctor` checklist only.
+- [ ] **Honest scope line:** this changes *nebelhaus's own* UI reliably and Dock/
+      Finder sizes reliably. System-wide text size is reachable **only** via
+      display mode (§5.10) — macOS 26's per-app `FontSizeCategory` is locked.
 
 ### 5.3 `nebelhaus.fonts` · S · risk L
 **Cheapest big win in the doc, and nobody has asked for it because it's
@@ -352,15 +359,23 @@ break timer · storage pressure · NAS reachability · world clocks.
 - [ ] Pounce command packs, with the *dev* commands moved into an opt-in pack
 - [ ] Commands declare: mutates state? needs confirm? needs network/permission?
 
-### 5.10 `nebelhaus.displays` — docked vs laptop · L · risk H
-Gated hard on the `displayplacer` spike. Don't expose `1920×1200`; expose intent:
+### 5.10 `nebelhaus.displays` — **promoted: this is now the large-print rice** · M · risk M
+The spike de-risked this and the accessibility spike gutted its alternative, so
+it moves up sharply. It is the **only** working path to "make everything bigger"
+on macOS 26. Don't expose `1920×1200`; expose intent:
 
 ```nix
-nebelhaus.displays.internal.uiScale = "larger-text";  # default | more-space | larger-text
-nebelhaus.displays.profiles.docked = { … };
+nebelhaus.displays.internal.uiScale = "larger-text";
+# more-space | default | larger-text | largest-text
 ```
 
-- [ ] Only worth building if display IDs prove stable across dock/undock/reboot
+- [x] Persistent display UUID exists → key profiles by UUID, not index
+- [x] `CGDisplaySetDisplayMode` is public API → ship a small Swift helper,
+      **no `displayplacer` / Homebrew dependency** (it isn't in nixpkgs anyway)
+- [ ] Helper must dedupe modes by point size (they repeat ~6× across refresh
+      rate × colour depth) and prefer the highest refresh
+- [ ] Still untested: *applying* a mode, and multi-display arrangement (only one
+      display was attached). Test on the dock before designing `profiles.docked`
 
 ### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M
 Before strangers' configs run arbitrary `defaults write` and activation scripts:
@@ -375,22 +390,23 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
 - [ ] `haus doctor` grows a permission checklist with System Settings deep links
 - [ ] Restart/logout/reboot annotations from the §4 matrix
 
-### 5.12 Accessibility as capabilities · M · risk H (gated on §4)
-Primitives, not an "old people" preset. Marketing can be playful; the option
-names should be respectful and reusable — someone with one working hand and
-someone using a Mac from the couch want the same `motor.*` knobs.
+### 5.12 Accessibility — ⚠️ **mostly unbuildable; demoted to a doctor checklist** · S
+The §4 spike killed the option-tree version of this. Vision and motor knobs route
+through either a **locked** domain (`universalaccess`) or a **silently no-op**
+one (`Accessibility`). The original design would have shipped options that report
+success and change nothing — strictly worse than having no option at all.
 
-```nix
-nebelhaus.accessibility = {
-  vision  = { boldText; increaseContrast; colorFilter; zoom.followsFocus; };
-  motor   = { fullKeyboardAccess; stickyKeys; slowKeys; };
-  hearing = { monoAudio; flashAlerts; captions; };
-  cognitive = { reduceDistractions; confirmDestructiveActions; };
-};
-```
-Every knob gets a backend designation from §4: `typed` (nix-darwin) ·
-`defaults-write` (verified) · `script` · `manual` (doctor checklist only).
-**No pretending.**
+- [ ] **Do not** add options that write `com.apple.Accessibility`
+- [ ] `haus doctor --accessibility`: detect current effective state via the
+      `NSWorkspace` probe, and for anything unset print what it does plus a
+      `x-apple.systempreferences:` deep link. Guidance, not false control.
+- [ ] Revisit only if the main-checkout `darwin-rebuild` test (§4) shows the
+      root-spawned write punches through
+
+**The large-print rice does not need this.** It's built from display mode
+(§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast theme flavor
+(§5.1), and Dock/Finder sizes — all of which are ours or verified-writable. The
+spike shifted *how* to build it, not *whether*.
 
 ### 5.13 Authorable tour steps · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves
@@ -417,18 +433,23 @@ difference between downloading someone's config and *learning* it.
 **Phase 1 — structure (blocks everything else)**
 - [ ] §3.1 split options · §3.2 `developer.enable` · §3.3 presets-as-format · §3.4 generated docs
 
-**Phase 2 — know what's possible**
-- [ ] §4 spikes → `notes/macos-settings-matrix.md`
+**Phase 2 — know what's possible** ✅ **done 2026-07-25**
+- [x] §4 spikes → [`macos-settings-matrix.md`](macos-settings-matrix.md)
+- [ ] the one leftover: `universalaccess` via real `darwin-rebuild` (main checkout)
 
-**Phase 3 — the expression layer**
-- [ ] §5.1 theme flavors · §5.2 `ui.*` tokens · §5.5 `keys.*` · §5.4 apps v2 + workspaces
+**Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
+everything macOS can't veto)*
+- [ ] §5.1 theme flavors · §5.2 `ui.*` tokens · §5.3 fonts · §5.5 `keys.*` · §5.4 apps v2 + workspaces
+- [ ] §5.10 displays — **promoted from Phase 5**; the only working "make it bigger" lever
 
 **Phase 4 — the non-dev Mac**
 - [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups
+- [ ] the restart map (§4) — nix-darwin only restarts Dock, so this is ours
 
 **Phase 5 — trust and breadth**
-- [ ] §5.11 plan/capture/diff/revert · §5.12 accessibility · §5.8 scenes · §5.13 tour steps
-- [ ] §5.10 displays (only if the spike says yes)
+- [ ] §5.11 plan/capture/diff/revert — **`diff` must compare effective state, not
+      plists**; a plist-only diff would have called both no-op writes "applied"
+- [ ] §5.8 scenes · §5.13 tour steps · §5.12 accessibility doctor checklist
 
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
