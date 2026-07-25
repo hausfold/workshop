@@ -244,5 +244,7 @@ personal anything → `~/.config/nix`**. When in doubt, start here and read
 ## roadmap
 
 - **nebelhaus tui options program** — A custom install script that people can `curl` and pipe into bash. It will spawn a (ts/bun/node) TUI allowing people to input information and choose preferences for their rice (like favorite IDE, accent color, etc.). These answers will template `nebelhaus.*` options into the generated host file.
-- **Screenshots** — `assets/hero.png` in the rice is still a placeholder
-  (pounce's `assets/demo.webp` hero is shot); for a rice, the screenshot *is* the pitch.
+- **The one hero shot** — media is marketing-only here (docs stay text; shots
+  rot as the rice moves — see [`assets/SHOTLIST.md`](./assets/SHOTLIST.md)), and
+  the rice's `assets/hero.png` is the single placeholder still worth capturing:
+  for a rice, that one clean-desktop shot *is* the pitch.
