@@ -135,12 +135,17 @@ after — zero net change to the machine.
       modes are enumerable, and `CGDisplaySetDisplayMode` is public API. A ~40-line
       Swift helper replaces the Homebrew dependency. Stable-ID risk retired.
 - [x] **Typed surface** → **193** keys, not "several hundred".
-- [ ] **One unknown left (needs the main checkout):** nix-darwin writes via
-      `launchctl asuser <uid> sudo --user=<u>`. The `sudo --user=` half fails;
-      the root-spawned wrapper couldn't be tested here (passwordless sudo is
-      scoped to `darwin-rebuild`). Decisive test: one
-      `system.defaults.universalaccess.reduceMotion = true;` + `haus rebuild` +
-      probe. Either outcome is worth an upstream nix-darwin issue.
+- [x] **Does root punch through?** → ❌ **No.** Confirmed by a real `haus rebuild`:
+      the exact `launchctl asuser … sudo --user=…` shape, run from root inside
+      activation, still gets `Could not write domain` / exit 1. TCC here is not
+      euid-bypassable.
+- [x] **And it's a landmine, not just a dud.** That write is emitted *unguarded*
+      into an activation script running under `set -e`, at line 559 of 877. So
+      setting any of the five options **aborts activation** and skips every later
+      step — including all launchd daemon/agent setup. A user would get a
+      half-activated Mac with no obvious cause.
+      → **nebelhaus should assert against those five options**, and this is worth
+      an upstream nix-darwin issue (minimum fix: `|| true` on the writes).
 
 ---
 
@@ -435,7 +440,11 @@ difference between downloading someone's config and *learning* it.
 
 **Phase 2 — know what's possible** ✅ **done 2026-07-25**
 - [x] §4 spikes → [`macos-settings-matrix.md`](macos-settings-matrix.md)
-- [ ] the one leftover: `universalaccess` via real `darwin-rebuild` (main checkout)
+- [x] `universalaccess` confirmed dead via a real `darwin-rebuild` — fails as
+      root, and aborts activation when set
+- [ ] **Ship the guardrail now, ahead of everything else:** an assertion against
+      `system.defaults.universalaccess.*` being set. It's a few lines, and it
+      protects against a half-activated Mac. Also file the upstream issue.
 
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
 everything macOS can't veto)*
