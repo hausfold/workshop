@@ -67,26 +67,61 @@ succeeds, the plist shows the right value, a `diff`-style check would report
 "applied", and the Mac behaves exactly as before. Any accessibility option built
 on this domain would ship a lie.
 
-### The one honest unknown
+### ✅ RESOLVED — it fails as root too, and it takes activation down with it
 
-nix-darwin writes user defaults as:
+Measured 2026-07-25 by a real `haus rebuild` on this machine. nix-darwin writes
+user defaults as:
 
 ```
 launchctl asuser "$(id -u -- ada)" sudo --user=ada -- defaults write com.apple.universalaccess …
 ```
 
-I tested `sudo --user=$USER -- defaults write …` (failed, same refusal) but
-**could not test the root-spawned `launchctl asuser` wrapper** — passwordless
-sudo here is scoped to `darwin-rebuild`, so I can't get root for an arbitrary
-command. TCC protection normally isn't bypassed by euid, so I expect it fails
-too, but that is *belief, not measurement*.
+Running **that exact command shape, from root, inside activation**:
 
-- [ ] **Decisive test (main checkout, not a worktree):** put one
-      `system.defaults.universalaccess.reduceMotion = true;` in a host file, run
-      `haus rebuild`, then check the effective state with the probe in
-      `notes/probes/`. If activation errors → nix-darwin is broken on 26 and it's
-      worth an upstream issue. If it silently succeeds-but-does-nothing → worse,
-      and worth an upstream issue anyway.
+```
+SPIKE universalaccess: writing junk key as root via launchctl asuser…
+defaults[23171]: Could not write domain com.apple.universalaccess; exiting
+SPIKE RESULT: WRITE FAILED (exit 1) — domain locked even as root
+```
+
+**TCC on this domain is not euid-bypassable.** All five
+`system.defaults.universalaccess.*` options are dead on macOS 26.6.
+
+#### …and the failure mode is worse than "does nothing"
+
+The generated write is **unguarded**, in an activation script that starts with
+`set -e`:
+
+```
+line   5: set -e
+line 559: launchctl asuser … defaults write com.apple.universalaccess reduceMotion '…'
+line 877: (end of script)
+```
+
+`defaults` exits **1**. So setting any one of those five options makes
+`darwin-rebuild switch` **abort at line 559 and skip the remaining 318 lines** —
+which include the `SLSMenuBarUseBlurredAppearance` write (Sill's opaque menu
+bar), the Dock restart, and **every launchd daemon and user-agent setup step**
+(`awake`, `aerospace`, `hush-watcher`, pounce, sketchybar…).
+
+Had we naively backed `nebelhaus.accessibility.motion = "reduced"` with that
+option, a user setting it would get a half-activated Mac and no clear reason
+why. **This is a landmine, not a limitation.**
+
+> **How this was measured safely.** Not by setting the option — that would have
+> caused exactly the aborted activation described above. Instead a
+> `system.activationScripts.postActivation` hook replicated the identical command
+> in the identical context (root, `launchctl asuser` + `sudo --user=`), on a junk
+> key, wrapped in `if/else` so it could not abort, cleaning up after itself. Host
+> config reverted and rebuilt to a clean generation afterward; verified zero
+> residue in `/run/current-system/activate` and in the domain.
+
+- [ ] **File upstream against nix-darwin**: `system.defaults.universalaccess.*`
+      is unsettable on macOS 26 *and* breaks activation when used. Minimum fix is
+      `|| true` on the generated writes; better is dropping/flagging the domain.
+- [ ] Until that lands, nebelhaus should **assert** against those five options
+      being set, with an error explaining why — cheaper than a support thread
+      about a half-activated Mac.
 
 ---
 
