@@ -479,7 +479,7 @@ them without breaking main mid-ripple.
 ## 8. Naming (optional, low stakes)
 
 The family speaks cat-and-house (`nebelung`, `pounce`, `prowl`, `sill`, `den`,
-`hearth`, `collar`, `hush`, `trill`, `morsel`, `haus`, `wt`). New rooms could
+`hearth`, `collar`, `hush`, `trill`, `perch`, `haus`, `wt`). New rooms could
 keep it:
 
 | Room | Candidate | Why |
