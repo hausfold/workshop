@@ -4,9 +4,6 @@ description: The SketchyBar status bar — workspace pills, weather, media, and 
 ---
 
 import { Aside } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
-import barCloseup from '../../../assets/stills/S3.png';
-import weatherPopover from '../../../assets/stills/S4.png';
 
 **sill** replaces the macOS menu bar with
 [SketchyBar](https://github.com/FelixKratz/SketchyBar) — a fully scriptable
@@ -31,12 +28,8 @@ workspace is highlighted. The front app's title sits alongside.
 Any of these five can be switched off individually — see
 [Toggling bar items](#toggling-bar-items) below.
 
-<Image src={barCloseup} alt="the bar in its resting state, cropped close — workspace pills and the front-app name on the left, then Wi-Fi, weather, battery, and a clock on the right" />
-
 The pills react live: switch workspaces and the highlight follows; tap the
 Caps-Lock leader and the whole bar flips into launcher letter-mode.
-
-![the bar in its resting state — workspace pills and front app on the left, weather, battery, and clock on the right; tap ⇪ and the pills become letter hints](/media/tap-caps.webp?v=2)
 
 ## The weather popover
 
@@ -44,8 +37,6 @@ Click the weather pill and a popover blooms open with the full picture:
 location, condition, current and feels-like temperature, sunrise/sunset, wind,
 humidity, UV, an hourly strip, and a three-day forecast. It's one of the bar's
 nicer flourishes and a good demo of what SketchyBar can do.
-
-<Image src={weatherPopover} alt="the weather popover open below the bar — location, condition, current and feels-like temperature, sunrise and sunset, wind, humidity, UV, an hourly strip, and a three-day forecast" />
 
 ## Toggling bar items
 
