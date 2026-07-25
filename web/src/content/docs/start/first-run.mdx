@@ -93,11 +93,15 @@ A few first tweaks people reach for:
   # Prefer a different editor
   nebelhaus.hearth.editor = "nvim";
 
-  # Add your apps to the launcher + workspace roster
-  nebelhaus.prowl.apps = [
-    { key = "s"; name = "Slack"; workspace = "S";
-      appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:"; cask = "slack"; }
-  ];
+  # Add an app to the launcher + workspace roster
+  nebelhaus.apps.slack = {
+    key = "s";
+    name = "Slack";
+    workspace = "S";
+    appId = "com.tinyspeck.slackmacgap";
+    barIcon = ":slack:";
+    cask = "slack";
+  };
 
   # Or just install casks without giving them a launcher key
   homebrew.casks = [ "discord" ];

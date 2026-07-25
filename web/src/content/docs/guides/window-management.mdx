@@ -98,17 +98,20 @@ For the less-frequent structural operations:
 ## Your app roster
 
 The launcher letters, workspace assignments, and the bar's workspace pills all
-come from **one list**: `nebelhaus.prowl.apps`. Out of the box it's just a
-terminal (`T`) and a browser (`B`). Add your own:
+come from **one keyed app map**: `nebelhaus.apps`. Out of the box it's just a
+terminal (`T`) and a browser (`B`). Entries compose across modules, so add only
+your own:
 
 ```nix
-nebelhaus.prowl.apps = [
-  { key = "s"; name = "Slack"; workspace = "S";
-    appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
-    label = "Slack"; cask = "slack"; }
-  { key = "d"; name = "Discord"; workspace = "D";
-    appId = "com.hnc.Discord"; barIcon = ":discord:"; cask = "discord"; }
-];
+nebelhaus.apps.slack = {
+  key = "s"; name = "Slack"; workspace = "S";
+  appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
+  label = "Slack"; cask = "slack";
+};
+nebelhaus.apps.discord = {
+  key = "d"; name = "Discord"; workspace = "D";
+  appId = "com.hnc.Discord"; barIcon = ":discord:"; cask = "discord";
+};
 ```
 
 Each field:
@@ -125,6 +128,8 @@ Each field:
   letter.
 - **`label`** — the cheatsheet caption; `null` uses `name`.
 - **`cask`** — a Homebrew cask to install it; `null` if it's already installed.
+- **`enable`** — set `false` to disable a default or imported app by id.
+- **`order`** — lower numbers appear earlier in the roster.
 
 Rebuild with `haus rebuild` and your new letters, workspaces, and bar pills all
 appear together.
