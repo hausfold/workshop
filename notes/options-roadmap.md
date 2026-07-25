@@ -135,17 +135,22 @@ after — zero net change to the machine.
       modes are enumerable, and `CGDisplaySetDisplayMode` is public API. A ~40-line
       Swift helper replaces the Homebrew dependency. Stable-ID risk retired.
 - [x] **Typed surface** → **193** keys, not "several hundred".
-- [x] **Does root punch through?** → ❌ **No.** Confirmed by a real `haus rebuild`:
-      the exact `launchctl asuser … sudo --user=…` shape, run from root inside
-      activation, still gets `Could not write domain` / exit 1. TCC here is not
-      euid-bypassable.
-- [x] **And it's a landmine, not just a dud.** That write is emitted *unguarded*
+- [x] **Does root punch through?** → ⚠️ **The question was wrong.** A real
+      `haus rebuild` did fail from root — but it's **Full Disk Access on the app
+      responsible for the rebuild**, not euid, that gates the domain. Every
+      command in the spike ran under Claude.app, which lacks FDA, so the whole
+      chain lacked it. An earlier revision of this doc concluded "locked even as
+      root"; **that was wrong** and is retracted in the matrix.
+      → The positive case (works *with* FDA) rests on upstream reports, **not**
+      on my own measurement. Still open.
+- [x] **The blast radius holds regardless.** That write is emitted *unguarded*
       into an activation script running under `set -e`, at line 559 of 877. So
-      setting any of the five options **aborts activation** and skips every later
-      step — including all launchd daemon/agent setup. A user would get a
-      half-activated Mac with no obvious cause.
-      → **nebelhaus should assert against those five options**, and this is worth
-      an upstream nix-darwin issue (minimum fix: `|| true` on the writes).
+      *whenever it fails* — missing FDA being the common way — activation
+      **aborts** and skips every later step, including all launchd daemon/agent
+      setup. The symptom lands nowhere near the cause.
+      → nebelhaus **warns** (nebelhaus#89 — a warning, not an assertion: with FDA
+      these work, so blocking would be wrong), and it's reported on
+      [nix-darwin#1049](https://github.com/nix-darwin/nix-darwin/issues/1049).
 
 ---
 
@@ -442,9 +447,12 @@ difference between downloading someone's config and *learning* it.
 - [x] §4 spikes → [`macos-settings-matrix.md`](macos-settings-matrix.md)
 - [x] `universalaccess` confirmed dead via a real `darwin-rebuild` — fails as
       root, and aborts activation when set
-- [ ] **Ship the guardrail now, ahead of everything else:** an assertion against
-      `system.defaults.universalaccess.*` being set. It's a few lines, and it
-      protects against a half-activated Mac. Also file the upstream issue.
+- [x] Guardrail shipped: nebelhaus **warns** when `system.defaults.universalaccess.*`
+      is set (nebelhaus#89), and it's reported upstream on nix-darwin#1049.
+- [ ] **Settle the positive case:** grant Ghostty Full Disk Access, set one
+      option, rebuild *from Ghostty*, probe. Until then the true status of those
+      five options is genuinely unknown — and §5.12 shouldn't be finalised on a
+      guess in either direction.
 
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
 everything macOS can't veto)*
