@@ -32,10 +32,22 @@ Git `user.email` for commits.
 
 GPG key id for signing commits/tags. Empty disables signing. Key material lives outside Nix (`gpg-agent` + `pinentry-mac`).
 
+### `nebelhaus.git.shellAliases`
+`attrsOf (nullOr str)` · default `{}`
+
+Per-host additions and overrides for Hearth's
+[built-in Git shell aliases](/guides/the-shell/#git-aliases). A command string
+adds or replaces an alias; `null` removes a built-in alias.
+
 ```nix
 nebelhaus.git.name = "Ada Lovelace";
 nebelhaus.git.email = "ada@example.com";
 nebelhaus.git.signingKey = "6F7BD6F43A7C1420";
+nebelhaus.git.shellAliases = {
+  gst = "git status --short --branch";
+  gsync = "git pull --rebase --autostash";
+  gco = null;
+};
 ```
 
 ## nebelhaus.theme
