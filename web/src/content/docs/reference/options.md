@@ -36,30 +36,16 @@ GPG key id for signing commits/tags. Empty disables signing. Key material lives 
 `attrsOf (nullOr str)` · default `{}`
 
 Per-host additions and overrides for Hearth's
-[built-in Git shell aliases](/guides/the-shell/#git-aliases). A command string
-adds or replaces an alias; `null` removes a built-in alias.
+[built-in Git shell aliases](/guides/the-shell/#git-aliases) — the compact,
+framework-independent set (`g`, `gst`, `gco`, `gcb`, `gp`, `gpf`, `grbi`,
+`gwt`, …) that replaced oh-my-zsh's `git` plugin. A command string adds or
+replaces an alias; `null` removes a built-in. Touches only the Git shortcuts and
+needs no plugin manager.
 
 ```nix
 nebelhaus.git.name = "Ada Lovelace";
 nebelhaus.git.email = "ada@example.com";
 nebelhaus.git.signingKey = "6F7BD6F43A7C1420";
-nebelhaus.git.shellAliases = {
-  gst = "git status --short --branch";
-  gsync = "git pull --rebase --autostash";
-  gco = null;
-};
-```
-
-### `nebelhaus.git.shellAliases`
-`attrsOf (nullOr str)` · default `{}`
-
-Per-host additions and overrides for Hearth's built-in Git shell aliases — the
-compact, framework-independent set (`g`, `gst`, `gco`, `gcb`, `gp`, `gpf`,
-`grbi`, `gwt`, …) that replaced oh-my-zsh's `git` plugin. Values are shell
-command strings; set one to `null` to drop a built-in. Touches only the Git
-shortcuts and needs no plugin manager.
-
-```nix
 nebelhaus.git.shellAliases = {
   gst = "git status --short --branch"; # replace a built-in
   gsync = "git pull --rebase --autostash"; # add one
@@ -331,20 +317,6 @@ Upgrade outdated packages on every rebuild. Off for reproducibility — so a
 cask stays on the version brew first installed until you bump it. Turn both
 this and `autoUpdate` on (ideally per-host) to keep your casks tracking
 upstream latest; see [Keeping casks current](/guides/making-it-yours/#homebrew-behaviour).
-
-### `nebelhaus.homebrew.installsFile`
-`path | null` · default `null`
-
-Optional machine-editable JSON used by Pounce's **Install App** command:
-
-```json
-{ "casks": ["obsidian"], "brews": ["wget"], "nixpkgs": ["ripgrep"] }
-```
-
-Homebrew casks and formulae merge into their corresponding nix-darwin lists;
-Nixpkgs attribute paths merge into `environment.systemPackages`. The file must
-be tracked by the consumer flake's Git repository so Nix can read it. See
-[Adding apps & tools](/guides/adding-apps/).
 
 ## nebelhaus.claude
 
