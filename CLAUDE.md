@@ -16,6 +16,7 @@ CLAUDE.md with the deep rules.
 | colors / palette / how a tool is themed | `./nebelung` |
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
 | the trill Messages client (UI, providers over `chat.db`) | `./trill` |
+| the morsel notch file shelf (UI, staging, drag/drop) | `./morsel` |
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
 | the org's GitHub front page | `./.github` (the `nebelhaus/.github` repo; `bench clone` maps the alias `org-profile` to it) |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
@@ -138,7 +139,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/nebelhaus/.git` (the workshop), your tree holds ONLY the workshop's
 own files (`README.md`, `CLAUDE.md`, `bench`, `assets`, `web/`). The family
-sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `.github/`,
+sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `morsel/`, `.github/`,
 `homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
@@ -173,7 +174,7 @@ preferred.)
 
 Not a worktree, not a cloud session — this is where most work happens, and the
 worktree/cloud restrictions above do **not** apply here. The child repos
-(`nebelhaus`, `nebelung`, `pounce`, `trill`, `.github`, `homebrew-tap`) are
+(`nebelhaus`, `nebelung`, `pounce`, `trill`, `morsel`, `.github`, `homebrew-tap`) are
 `.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
 full, independent repo I own solo, and from the main checkout you drive it
 end-to-end:

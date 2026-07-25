@@ -16,7 +16,7 @@ of them painted in [nebelung](/reference/palette/) colours.
 |---|---|---|
 | Terminal | [Ghostty](https://ghostty.org) | font size 19, title bar hidden, auto-attaches to zellij |
 | Multiplexer | [zellij](https://zellij.dev) | custom tab bar + status bar, grid/spiral/columns layouts |
-| Shell | zsh | a compact set of git aliases, fzf-tab, history-substring search |
+| Shell | zsh | framework-free, fzf-tab, sensible history, declarative Git aliases |
 | Prompt | [starship](https://starship.rs) | nebelung-tinted |
 | File manager | [yazi](https://yazi-rs.github.io) | markdown & code previews, image previews via chafa |
 | Editor | [helix](https://helix-editor.com) | the default `$EDITOR`, nebelung theme |
@@ -26,6 +26,37 @@ Plus a themed toolbelt: `bat` (aliased over `cat`), `lsd` (over `ls`), `lazygit`
 (`lg`), `claude` (`c`), `delta` for git diffs, `fzf`, `fd`, `jq`, `gh`, `glow`,
 `fastfetch`, and `nix-index` + `comma` so you can run any nixpkgs command on
 demand.
+
+### Git aliases
+
+Hearth uses plain zsh—no shell framework—and supplies a finite set of Git
+shortcuts directly. The names follow the broadly used Oh My Zsh-style
+vocabulary where conventions agree, while deliberately avoiding ambiguous
+shortcuts such as `gl`, `gr`, and `gs`, whose meanings differ between popular
+alias sets.
+
+| Area | Aliases |
+|---|---|
+| Add | `ga`, `gaa`, `gapa` |
+| Branch / checkout / clone | `gb`, `gba`, `gbd`, `gbD`, `gbm`, `gco`, `gcb`, `gcl`, `gsw`, `gswc` |
+| Commit / cherry-pick | `gc`, `gca`, `gcam`, `gcmsg`, `gcn`, `gcp`, `gcpa`, `gcpc` |
+| Diff / log | `gd`, `gds`, `gdw`, `glo`, `glog`, `gloga` |
+| Fetch / merge | `gf`, `gfa`, `gfo`, `gm`, `gma`, `gmc`, `gmff` |
+| Pull / push | `gpl`, `gpr`, `gp`, `gpf`, `gpsup` |
+| Rebase / repository | `grb`, `grba`, `grbc`, `grbi`, `grbs`, `grt`, `grv` |
+| Status / stash | `gst`, `gss`, `gsb`, `gsta`, `gstl`, `gstp`, `gsts` |
+| Tag / worktree | `gt`, `gwt`, `gwta`, `gwtl`, `gwtr` |
+
+`g` itself is `git`. Add, replace, or remove shortcuts per host with
+`nebelhaus.git.shellAliases`:
+
+```nix
+nebelhaus.git.shellAliases = {
+  gst = "git status --short --branch"; # replace
+  gsync = "git pull --rebase --autostash"; # add
+  gco = null; # remove
+};
+```
 
 ## Ghostty opens into zellij
 

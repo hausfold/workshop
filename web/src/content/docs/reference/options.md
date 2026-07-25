@@ -32,10 +32,22 @@ Git `user.email` for commits.
 
 GPG key id for signing commits/tags. Empty disables signing. Key material lives outside Nix (`gpg-agent` + `pinentry-mac`).
 
+### `nebelhaus.git.shellAliases`
+`attrsOf (nullOr str)` · default `{}`
+
+Per-host additions and overrides for Hearth's
+[built-in Git shell aliases](/guides/the-shell/#git-aliases). A command string
+adds or replaces an alias; `null` removes a built-in alias.
+
 ```nix
 nebelhaus.git.name = "Ada Lovelace";
 nebelhaus.git.email = "ada@example.com";
 nebelhaus.git.signingKey = "6F7BD6F43A7C1420";
+nebelhaus.git.shellAliases = {
+  gst = "git status --short --branch";
+  gsync = "git pull --rebase --autostash";
+  gco = null;
+};
 ```
 
 ### `nebelhaus.git.shellAliases`
@@ -81,7 +93,12 @@ The one editor the rice uses everywhere: `$EDITOR` / `$VISUAL` **and** what ever
 ### `nebelhaus.hearth.hijackFileAssociations`
 `bool` · default `false`
 
-When `true`, makes `hearth.editor` the default opener for `.json`/`.md`/`.ts`/`.nix`/… via `duti`. Opt-in; changes double-click behaviour.
+When `true`, makes `hearth.editor` the default opener for ~80 text/code extensions (`.json`/`.md`/`.ts`/`.nix`/`.rs`/`.go`/`.kdl`/…), so opening or clicking one launches it in a zellij tab. The opener declares the types itself (not just `duti`), so extensions nothing else on the machine claims still bind. Opt-in — silently rewriting file associations is jarring — and changes double-click behaviour. Extensionless executables (like `bench`) are **not** covered: macOS gates that handler behind an interactive dialog; set it once by hand with `duti -s org.nebelhaus.editoropen public.unix-executable all`.
+
+### `nebelhaus.hearth.zellijStartLocked`
+`bool` · default `true`
+
+Boot zellij into **Locked** input mode instead of Normal, so its single-key submode leaders (pane, tab, resize, …) stay inert until you unlock with `Ctrl-g` — a stray keystroke can't jump you into a submode. The `Super`-prefixed launchers stay live while locked (see [keybindings](/reference/keybindings/#terminal--zellij-hearth)); the bar's bottom-right quick-hint only shows in Locked mode. Set `false` for zellij's own Normal default.
 
 ### `nebelhaus.hearth.obsidianVaults`
 `listOf str` · default `[]`
@@ -134,6 +151,44 @@ nebelhaus.snippets = {
 };
 ```
 
+## nebelhaus.apps
+
+### `nebelhaus.apps.<id>`
+
+`attrsOf submodule` · default Ghostty + Zen
+
+The composable source of truth for launcher letters, workspace assignment, bar
+pills, the pounce cheatsheet, and optional Homebrew installation. The
+attribute name is a stable id you choose; separate Nix modules can add or
+override different apps without replacing a shared list.
+
+Each app has these fields:
+
+- **`enable`** — `bool` — Include this app; set `false` to disable a default or imported entry.
+- **`order`** — `int` — Roster order; lower comes first.
+- **`key`** — `str` — Leader letter (unique across the roster).
+- **`name`** — `str` — macOS app name (used by `open -a`).
+- **`workspace`** — `str` / `null` — AeroSpace workspace letter; `null` = launcher-only.
+- **`appId`** — `str` / `null` — Bundle id for auto-assigning windows. Find it with `osascript -e 'id of app "…"'`.
+- **`barIcon`** — `str` / `null` — SketchyBar app-font ligature; `null` uses the workspace letter.
+- **`label`** — `str` / `null` — Cheatsheet caption; `null` uses `name`.
+- **`cask`** — `str` / `null` — Homebrew cask to install; `null` if already installed.
+
+```nix
+nebelhaus.apps.slack = {
+  key = "s";
+  name = "Slack";
+  workspace = "S";
+  appId = "com.tinyspeck.slackmacgap";
+  barIcon = ":slack:";
+  label = "Slack";
+  cask = "slack";
+};
+```
+
+Pounce **Install App** writes the exact same option in one auto-imported module
+per package under `hosts/<hostname>/packages/`.
+
 ## nebelhaus.prowl
 
 Tiling and the Caps-Lock launcher. See [Window management](/guides/window-management/).
@@ -142,29 +197,6 @@ Tiling and the Caps-Lock launcher. See [Window management](/guides/window-manage
 `bool` · default `true`
 
 Toggle AeroSpace tiling, the Caps-Lock launcher, and window-management keybinds.
-
-### `nebelhaus.prowl.apps`
-`listOf submodule` · default terminal + browser
-
-The single source of truth for the launcher letters, workspace assignment, and bar pills.
-
-Each entry in `nebelhaus.prowl.apps` is a submodule with these fields:
-
-- **`key`** — `str` — Leader letter (unique across the roster).
-- **`name`** — `str` — macOS app name (used by `open -a`).
-- **`workspace`** — `str` / `null` — AeroSpace workspace letter; `null` = launcher-only.
-- **`appId`** — `str` / `null` — Bundle id for auto-assigning windows. `null` skips it. Find with `osascript -e 'id of app "…"'`.
-- **`barIcon`** — `str` / `null` — SketchyBar app-font ligature (e.g. `:slack:`); `null` uses the workspace letter.
-- **`label`** — `str` / `null` — Cheatsheet caption; `null` uses `name`.
-- **`cask`** — `str` / `null` — Homebrew cask to install; `null` if already installed.
-
-```nix
-nebelhaus.prowl.apps = [
-  { key = "s"; name = "Slack"; workspace = "S";
-    appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
-    label = "Slack"; cask = "slack"; }
-];
-```
 
 ## nebelhaus.sill
 
@@ -254,8 +286,10 @@ Extra scripts run on every hush/unhush, each called with `on` or `off`. Paths ar
 ## nebelhaus.trill
 
 The [Trill](https://github.com/nebelhaus/trill) Messages client — a native
-iMessage/SMS/RCS client that reads `chat.db` read-only. Installed as a Homebrew
-cask from the nebelhaus tap. See the [Trill guide](/guides/trill/).
+iMessage/SMS/RCS client that reads `chat.db` read-only. Installed through Nix via
+the `trill` flake input (like pounce, it rides the flake-lock chain), copied to a
+fixed `/Applications/Trill.app` on activation so its Full Disk Access grant
+survives version bumps — no Homebrew cask. See the [Trill guide](/guides/trill/).
 
 ### `nebelhaus.trill.enable`
 `bool` · default `true`
@@ -295,7 +329,7 @@ Run `brew update` before every activation. Off for reproducibility.
 
 Upgrade outdated packages on every rebuild. Off for reproducibility — so a
 cask stays on the version brew first installed until you bump it. Turn both
-this and `autoUpdate` on (ideally per-host) to keep casks like trill tracking
+this and `autoUpdate` on (ideally per-host) to keep your casks tracking
 upstream latest; see [Keeping casks current](/guides/making-it-yours/#homebrew-behaviour).
 
 ### `nebelhaus.homebrew.installsFile`
@@ -334,11 +368,15 @@ Contents of `~/.claude/CLAUDE.md` (cross-project context for Claude Code). The r
   nebelhaus.theme.accent = "sapphire";
   nebelhaus.hearth.editor = "nvim";
 
-  # Your app roster (merged with the rice defaults)
-  nebelhaus.prowl.apps = [
-    { key = "s"; name = "Slack"; workspace = "S";
-      appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:"; cask = "slack"; }
-  ];
+  # Your app roster (composed with the rice defaults)
+  nebelhaus.apps.slack = {
+    key = "s";
+    name = "Slack";
+    workspace = "S";
+    appId = "com.tinyspeck.slackmacgap";
+    barIcon = ":slack:";
+    cask = "slack";
+  };
 
   # Extra apps with no launcher key
   homebrew.casks = [ "discord" ];

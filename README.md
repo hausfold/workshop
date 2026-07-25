@@ -25,6 +25,7 @@ repo; this folder itself is a small repo holding this README, a `CLAUDE.md`, the
 | 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colors — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
 | 🐾 [**pounce**](https://github.com/nebelhaus/pounce) | the command palette — a native Swift launcher + its generic command scripts | the palette app or a built-in command changes |
 | 🐦 [**trill**](https://github.com/nebelhaus/trill) | the Messages client — a native SwiftUI iMessage/SMS/RCS reader over `chat.db` | the messages app UI or its providers change |
+| 🐈 [**morsel**](https://github.com/nebelhaus/morsel) | the notch shelf — a native temporary staging tray for files, Photos, links, and text | the shelf UI or drag/drop pipeline changes |
 | 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) | the rice — nix-darwin modules for macOS defaults, tiling, bar, shell, security | anything about *how the system behaves* |
 | 🐙 [**org-profile**](https://github.com/nebelhaus/.github) | the org's front page on GitHub | the pitch changes |
 | 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every `bench release` |

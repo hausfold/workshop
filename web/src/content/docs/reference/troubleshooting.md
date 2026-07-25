@@ -35,6 +35,20 @@ Set `nebelhaus.pounce.signingIdentity` so this grant survives rebuilds — see
 [Pounce config](/reference/pounce/). If ⌘Space still opens **Spotlight**, log
 out and back in once so the symbolic-hotkey reassignment takes.
 
+**Palette opens, but slowly?** An external hotkey tool — skhd, AeroSpace, Raycast —
+bound to the same key grabs it with an event tap *ahead* of pounce, so every summon
+spawns a fresh client instead of hitting the daemon's fast in-process path.
+Registration still reports success and the palette still opens, which is what makes
+this one so hard to spot. One command names the culprit:
+
+```sh
+pounce doctor
+```
+
+It combines the daemon's live hotkey self-report with outside-in probes — a macOS
+system-shortcut clash, running external hotkey daemons, and their configs scanned
+for a binding on pounce's key — and tells you what to unbind.
+
 ## Windows won't tile / AeroSpace isn't running
 
 This is almost always the **cold-boot GUI race**: an agent launched before the
