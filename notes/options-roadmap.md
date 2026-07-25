@@ -141,8 +141,13 @@ after — zero net change to the machine.
       command in the spike ran under Claude.app, which lacks FDA, so the whole
       chain lacked it. An earlier revision of this doc concluded "locked even as
       root"; **that was wrong** and is retracted in the matrix.
-      → The positive case (works *with* FDA) rests on upstream reports, **not**
-      on my own measurement. Still open.
+      → ✅ **Positive case now measured** (Ghostty + FDA, 2026-07-25):
+      `reduceMotion` **writes and takes effect** — `motion_reduced=true`. So
+      `system.defaults.universalaccess.*` is real on 26, gated on FDA.
+      → ⚠️ **Asymmetry that matters here:** the grant is on the *responsible
+      app*. Ghostty has FDA; Claude Code does not. Set one of these and Julien's
+      own rebuilds work while **every agent rebuild aborts activation partway** —
+      "works on my machine" in the most literal sense.
 - [x] **The blast radius holds regardless.** That write is emitted *unguarded*
       into an activation script running under `set -e`, at line 559 of 877. So
       *whenever it fails* — missing FDA being the common way — activation
@@ -400,23 +405,32 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
 - [ ] `haus doctor` grows a permission checklist with System Settings deep links
 - [ ] Restart/logout/reboot annotations from the §4 matrix
 
-### 5.12 Accessibility — ⚠️ **mostly unbuildable; demoted to a doctor checklist** · S
-The §4 spike killed the option-tree version of this. Vision and motor knobs route
-through either a **locked** domain (`universalaccess`) or a **silently no-op**
-one (`Accessibility`). The original design would have shipped options that report
-success and change nothing — strictly worse than having no option at all.
+### 5.12 Accessibility — ✅ **back on the table, with an FDA caveat** · M
+Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
+**if the app invoking the rebuild holds Full Disk Access**. So the option tree is
+viable, but the caveat is load-bearing and has to be designed *into* it.
 
-- [ ] **Do not** add options that write `com.apple.Accessibility`
-- [ ] `haus doctor --accessibility`: detect current effective state via the
-      `NSWorkspace` probe, and for anything unset print what it does plus a
-      `x-apple.systempreferences:` deep link. Guidance, not false control.
-- [ ] Revisit only if the main-checkout `darwin-rebuild` test (§4) shows the
-      root-spawned write punches through
+- [ ] Model these as **`reachability = "needs-fda"`** options (§5.6's designation
+      scheme), not as ordinary settings. A rice that silently behaves differently
+      on two machines is exactly the failure a shared-rice format must not have.
+- [ ] `haus doctor` should **detect** FDA (strict read of an FDA-gated path — no
+      `ls` fallback, that bug cost a whole spike) and say plainly whether the
+      accessibility half of the current config can apply at all.
+- [ ] **Do not** add options that write `com.apple.Accessibility` — that domain
+      writes and does nothing. Still true, still the worst failure mode.
+- [ ] ⚠️ **Agent asymmetry:** Claude Code lacks FDA, Ghostty has it. Any of these
+      options set in a host makes agent-driven `haus rebuild` abort activation
+      while manual rebuilds succeed. Whatever `haus doctor` says, this needs to be
+      impossible to hit by accident — it's the sharpest edge in the whole set.
+- [ ] Sweep the untested keys before designing: **`increaseContrast`** and
+      **`FontSizeCategory`** are the ones worth having (`notes/probes/accessibility-sweep.sh`).
 
-**The large-print rice does not need this.** It's built from display mode
-(§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast theme flavor
-(§5.1), and Dock/Finder sizes — all of which are ours or verified-writable. The
-spike shifted *how* to build it, not *whether*.
+**But the large-print rice still shouldn't be built on it.** Display mode
+(§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast flavor (§5.1) and
+Dock/Finder sizes work for everyone, unconditionally. Treat `universalaccess` as
+a **bonus layer** that sharpens the result when FDA happens to be granted — never
+as the foundation. That ranking survived all three revisions of this finding,
+which is the main argument for it.
 
 ### 5.13 Authorable tour steps · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves

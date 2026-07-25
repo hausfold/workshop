@@ -15,11 +15,38 @@ change to this machine** (verified: `diff` of before/after is empty).
 
 ---
 
-## Headline: the accessibility plan in the roadmap does not survive contact
+## Headline: `universalaccess` works — but only from an FDA-holding app
+
+**✅ SETTLED 2026-07-25.** Run from Ghostty with Full Disk Access granted
+(`notes/probes/universalaccess-fda-test.sh`):
+
+```
+2. Q1 — does a write SUCCEED?          ✓ WRITE SUCCEEDED and read back.
+3. Q2 — does the value TAKE EFFECT?
+     before: motion_reduced=false
+     plist:  reduceMotion=1
+     after:  motion_reduced=true       ✓
+```
+
+So `system.defaults.universalaccess.*` **is real on macOS 26** — it writes *and*
+macOS honours it — **conditional on the app that invokes the rebuild holding
+FDA.** Both of this file's earlier conclusions ("locked even as root", then
+"unproven") are now superseded; the history is kept below because the wrong one
+briefly drove a rice change.
+
+> **⚠️ The asymmetry that matters for this machine.** The grant is on the
+> *responsible app*, so **an agent-driven `haus rebuild` and your own terminal
+> rebuild are not equivalent.** Ghostty has FDA; Claude Code (running under
+> Claude.app) does not. If a host ever sets one of these five options, Julien's
+> own rebuilds succeed and every agent rebuild **aborts activation partway** —
+> skipping all launchd setup — for a config that "works on my machine". That is
+> the single most likely way this bites here.
+
+### The original failure, and why it misled
 
 **`com.apple.universalaccess` refuses writes from a process without Full Disk
-Access** — which is every process in this spike. Not "flaky", not "needs a
-restart": a hard refusal, exit 1.
+Access** — which was every process in the original spike. Not "flaky", not "needs
+a restart": a hard refusal, exit 1.
 
 ```
 $ defaults write com.apple.universalaccess nebelhausProbe -int 42
@@ -33,22 +60,32 @@ protection is **domain-specific** — but see the correction below: that control
 proves it isn't a blanket sandbox, *not* that the domain is unconditionally
 locked. FDA is the gate.
 
-### What that costs
+### Status per key
 
-All **five** of nix-darwin's `system.defaults.universalaccess.*` options live in
-that domain, so all five are unreachable **without FDA on the invoking app**:
+`reduceMotion` is **proven** end-to-end. The rest share its domain, so they are
+expected to behave identically — but "expected" is exactly the word that got
+this file wrong twice, so they're marked untested until swept:
 
-| nix-darwin option | Rice use it was wanted for | Status on 26.6 |
+| key | Rice use | With FDA |
 |---|---|---|
-| `mouseDriverCursorSize` | `ui.cursorScale` — large-print rice | ⚠️ needs FDA |
-| `reduceMotion` | `ui.motion` | ⚠️ needs FDA |
-| `reduceTransparency` | `ui.transparency` | ⚠️ needs FDA |
-| `closeViewScrollWheelToggle` | scroll-to-zoom | ⚠️ needs FDA |
-| `closeViewZoomFollowsFocus` | zoom follows focus | ⚠️ needs FDA |
+| `reduceMotion` | `ui.motion` | ✅ **writes + takes effect (proven)** |
+| `reduceTransparency` | `ui.transparency` | ◻️ expected; NSWorkspace can verify |
+| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ expected; no oracle, visual check |
+| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ expected; no oracle |
+| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ expected; no oracle |
 
-Same domain, so same caveat: **`FontSizeCategory`** — macOS 26's per-app text
-size (Messages, Notes, Finder, Mail, Calendar, Books, News, Stocks, Weather,
-plus a `global` key). That is *the* system "larger text" mechanism on 26.
+Two more in the same domain, **not** typed by nix-darwin, and both are levers the
+roadmap actually wants — reachable via `CustomUserPreferences` if they hold up:
+
+| key | Why it matters | With FDA |
+|---|---|---|
+| `increaseContrast` | the high-contrast rice (§5.1) | ◻️ untested; NSWorkspace can verify |
+| `FontSizeCategory` | macOS 26 per-app text size — *the* system "larger text" mechanism | ◻️ untested; no oracle |
+
+- [ ] Run `notes/probes/accessibility-sweep.sh` from an FDA terminal to fill in
+      the ◻️ rows. `increaseContrast` and `FontSizeCategory` are the two worth
+      caring about — they're the system-level half of the large-print rice, and
+      right now the roadmap assumes they're unreachable.
 
 **Design consequence either way:** an option that works only when the user has
 granted FDA to whatever terminal they happen to rebuild from is not a solid
