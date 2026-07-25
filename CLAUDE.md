@@ -127,7 +127,10 @@ points outside your toplevel):
   all landed and nothing ≥3/5 needs my attention (don't wait on CI unless that's
   the point), `/ship` may close this pane with
   `zellij action close-pane -p "$ZELLIJ_PANE_ID"` (target the pane id, not
-  whatever's focused); closing reaps the merged branch via the `wt` hook.
+  whatever's focused) — but reap the merged worktree first with
+  `( cd "$main" && wt reap )`: the `close-pane` kill bypasses the `wt` remove
+  hook (it only fires on Claude's own graceful teardown), so a bare close leaves
+  the landed checkout behind.
 - When done, push the branch, open the PR, and — if I didn't say ship — tell me
   the PR link. The worktree dies with the pane; the branch + PR survive until
   merged (and `bench status` nags about the branch).
