@@ -68,6 +68,7 @@ pounce --camera                   # live camera preview
 pounce --cheatsheet [path]        # cheatsheet overlay
 
 # housekeeping
+pounce doctor                     # diagnose a dead/slow hotkey (see Troubleshooting)
 pounce --help                     # every flag, from the binary itself
 pounce --version
 pounce --daemon                   # run the resident daemon (launchd uses this)

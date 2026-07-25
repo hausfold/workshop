@@ -76,7 +76,12 @@ The one editor the rice uses everywhere: `$EDITOR` / `$VISUAL` **and** what ever
 ### `nebelhaus.hearth.hijackFileAssociations`
 `bool` · default `false`
 
-When `true`, makes `hearth.editor` the default opener for `.json`/`.md`/`.ts`/`.nix`/… via `duti`. Opt-in; changes double-click behaviour.
+When `true`, makes `hearth.editor` the default opener for ~80 text/code extensions (`.json`/`.md`/`.ts`/`.nix`/`.rs`/`.go`/`.kdl`/…), so opening or clicking one launches it in a zellij tab. The opener declares the types itself (not just `duti`), so extensions nothing else on the machine claims still bind. Opt-in — silently rewriting file associations is jarring — and changes double-click behaviour. Extensionless executables (like `bench`) are **not** covered: macOS gates that handler behind an interactive dialog; set it once by hand with `duti -s org.nebelhaus.editoropen public.unix-executable all`.
+
+### `nebelhaus.hearth.zellijStartLocked`
+`bool` · default `true`
+
+Boot zellij into **Locked** input mode instead of Normal, so its single-key submode leaders (pane, tab, resize, …) stay inert until you unlock with `Ctrl-g` — a stray keystroke can't jump you into a submode. The `Super`-prefixed launchers stay live while locked (see [keybindings](/reference/keybindings/#terminal--zellij-hearth)); the bar's bottom-right quick-hint only shows in Locked mode. Set `false` for zellij's own Normal default.
 
 ### `nebelhaus.hearth.obsidianVaults`
 `listOf str` · default `[]`
@@ -232,8 +237,10 @@ Extra scripts run on every hush/unhush, each called with `on` or `off`. Paths ar
 ## nebelhaus.trill
 
 The [Trill](https://github.com/nebelhaus/trill) Messages client — a native
-iMessage/SMS/RCS client that reads `chat.db` read-only. Installed as a Homebrew
-cask from the nebelhaus tap. See the [Trill guide](/guides/trill/).
+iMessage/SMS/RCS client that reads `chat.db` read-only. Installed through Nix via
+the `trill` flake input (like pounce, it rides the flake-lock chain), copied to a
+fixed `/Applications/Trill.app` on activation so its Full Disk Access grant
+survives version bumps — no Homebrew cask. See the [Trill guide](/guides/trill/).
 
 ### `nebelhaus.trill.enable`
 `bool` · default `true`
@@ -273,7 +280,7 @@ Run `brew update` before every activation. Off for reproducibility.
 
 Upgrade outdated packages on every rebuild. Off for reproducibility — so a
 cask stays on the version brew first installed until you bump it. Turn both
-this and `autoUpdate` on (ideally per-host) to keep casks like trill tracking
+this and `autoUpdate` on (ideally per-host) to keep your casks tracking
 upstream latest; see [Keeping casks current](/guides/making-it-yours/#homebrew-behaviour).
 
 ### `nebelhaus.homebrew.installsFile`

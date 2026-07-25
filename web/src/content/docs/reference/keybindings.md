@@ -68,6 +68,11 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `Super C` | Spawn an isolated Claude agent (own worktree) |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
 
+**Locked by default.** zellij boots in **Locked** input mode, so its single-key
+submode leaders (pane, tab, resize) stay inert until you press `Ctrl g` — a stray
+keystroke can't drop you into a submode. The `Super`-prefixed launchers above work
+regardless of the lock. Flip it with [`nebelhaus.hearth.zellijStartLocked`](/reference/options/#nebelhaushearthzellijstartlocked).
+
 **Clickable links** work across two modifiers. `⌥`-click a file path (or a
 visible URL / bare domain) in the terminal to open it — a path opens a new tab
 `cd`'d there, a link opens in the browser. `⌘`-click opens any web link,
