@@ -444,8 +444,14 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       all-Apple list (Mail, Messages, Notes, Calendar, Finder, Reminders,
       Books, News, Stocks, Weather, Journal, Magnifier). With `AX1` live, a
       non-participant still reports 13pt body text.
-      → Wire it as a **nicety for the Apple apps a non-dev Mac lives in** —
-      genuinely the "Sunday Mac" audience — **not** as the large-print lever.
+      → ❌ **And it is not declarable at all.** Writing it lands in the plist but
+      posts no change notification: running apps never re-read it, and System
+      Settings renders a desynced view of its own rows. Only dragging the slider
+      by hand works. An option backed by this ships a Mac where Settings says
+      20 pt, every app renders 13 pt, and the pane looks broken. **Don't wire it.**
+      → **Heuristic:** in this domain the **scalar** keys work and notify; the
+      **structured** (dict) one lands and lies. Treat dict-valued accessibility
+      keys as GUI-only until proven otherwise.
 
 **But the large-print rice still shouldn't be built on it.** Display mode
 (§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast flavor (§5.1) and

@@ -140,11 +140,16 @@ cat <<'EOF'
   text. So this is a nicety for Mail/Messages/Notes/Calendar, NOT a system-wide
   "make everything bigger".
 
-  Still open: does *writing* this key take effect, or does only the System
-  Settings path work? To find out — set Text size back to Default, then from an
-  FDA terminal:
-      defaults write com.apple.universalaccess FontSizeCategory -dict-add global AX1
-  and see whether Notes/Mail actually change.
+  RESOLVED — and the answer is do not write this key. Tested: the write lands
+  in the plist correctly, but posts no change notification. Running apps never
+  re-read it (Notes stayed at default size), and System Settings renders a
+  desynced view of its own per-app rows — several show "Default", one blank —
+  which LOOKS like corruption but isn't; the plist is intact and reopening
+  Settings shows the true values. Only dragging the slider by hand works.
+
+  Heuristic from this domain: the SCALAR keys (section A) write, notify, and
+  take effect. The one STRUCTURED key lands and lies. Treat dict-valued
+  accessibility keys as GUI-only.
 EOF
 
 say "Done — the domain is restored on exit. Record results in macos-settings-matrix.md."

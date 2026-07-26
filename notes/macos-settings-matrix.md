@@ -132,10 +132,47 @@ is genuinely the "Sunday Mac" audience. It is **not** the system-level half of
 the large-print rice. That half remains display scaling (§5.10) plus the rice's
 own font sizes (§5.3).
 
-- [ ] Open question: does *writing* it take effect, or does only the System
-      Settings path work? Needs an FDA terminal: set Text size back to Default,
-      then `defaults write com.apple.universalaccess FontSizeCategory -dict-add
-      global AX1` and see whether Notes/Mail actually change.
+**3. Writing it lands but posts no change notification — do not ship this.** ❌
+
+Tested directly: Text size set back to Default, every app set to "Use Preferred
+Reading Size", Notes open, then from an FDA terminal:
+
+```
+defaults write com.apple.universalaccess FontSizeCategory -dict-add global AX1
+```
+
+Result:
+
+| | |
+|---|---|
+| plist | ✅ correct — `global = AX1`, all 13 apps `UseGlobal`, nothing lost |
+| System Settings **value** | ✅ shows 20 pt |
+| **Notes (running app)** | ❌ **text does not change** |
+| System Settings **per-app rows** | ❌ render wrong — several show `Default`, one blank |
+| after dragging the slider by hand | ✅ everything reconciles and follows |
+
+So the write is *stored* but no change notification is posted. Running apps
+never re-read it, and System Settings — if open — renders a desynced view of a
+plist that is actually fine. The rows looking "corrupted" is a **display**
+artifact; quitting and reopening System Settings shows the true values. (Data
+verified against the original snapshot: no entries lost, four *gained* as macOS
+registered more participants.)
+
+**This is the third and worst member of the write-that-lies family**, after
+`com.apple.Accessibility` (writes, no effect). A nebelhaus option backed by this
+would produce a Mac where System Settings claims 20 pt, every app renders 13 pt,
+and the settings pane looks broken — and the user would rightly blame the rice.
+
+**Heuristic worth carrying forward:** in this domain the keys that work are
+**scalar** (`reduceMotion`, `reduceTransparency`, `increaseContrast`,
+`differentiateWithoutColor` — all bools, all notify correctly). The one that
+fails is the **structured** one. Treat dict-valued accessibility keys as
+GUI-only until proven otherwise.
+
+- [ ] Only avenue left, untested: find the Darwin notification the slider posts
+      and fire it after the write. `com.apple.accessibility.cache.ax` did not
+      work for the other keys, so this is a long shot — and even if found, it
+      would make the option depend on an undocumented notification name.
 - [ ] Confirm the ◻️ rows by eye — is the cursor visibly bigger at `3.0`, does
       `^`+scroll zoom? Cheap, and it's the difference between "persists" and
       "works".
