@@ -1,0 +1,295 @@
+---
+title: Leaving nebelhaus
+description: Remove one room, roll back a generation, or take down the whole house — cleanly, in the smallest move that solves the problem.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+nebelhaus is opinionated, not possessive.
+
+You can remove one room, return to an earlier generation, uninstall the
+macOS system layer, or remove Nix entirely. These are different operations
+of very different sizes. Start with the smallest one that solves the problem.
+
+<Aside type="caution" title="Before changing anything, keep your config">
+`~/.config/nix` is your machine-specific configuration, not disposable
+generated state. Archive it before you remove anything:
+
+```sh
+cp -R ~/.config/nix ~/.config/nix.nebelhaus-archive
+```
+
+A git remote is better if the config contains no secrets. Either way, inspect
+it before sharing or backing it up somewhere public.
+</Aside>
+
+## Choose your exit
+
+| What you want | Use this path |
+|---|---|
+| Undo the most recent rebuild | [Roll back one generation](#roll-back-one-generation) |
+| Stop using tiling, the bar, Pounce, or Hush | [Remove one room](#remove-one-room) |
+| Remove the nix-darwin-managed system but keep Nix | [Take down the system layer](#take-down-the-system-layer) |
+| Remove Nix itself | [Remove Determinate Nix](#remove-determinate-nix) |
+| Remove standalone Homebrew Pounce | [Remove standalone Pounce](#remove-standalone-pounce) |
+
+## Roll back one generation
+
+Every successful switch creates a generation. Return to the previous one with:
+
+```sh
+haus rollback
+```
+
+List the available generations or choose a specific one:
+
+```sh
+haus generations
+haus rollback <generation-number>
+```
+
+Rollback restores Nix-managed packages, agents, shell configuration, and paths
+from that generation. See [the haus CLI](/reference/haus/) for the full command
+set.
+
+It does **not** reliably restore every macOS preference changed by a prior
+activation. Dock, keyboard, Finder, menu-bar, wallpaper, Spotlight,
+file-association, and similar settings may need to be changed back in System
+Settings, or declared with the values you want in your config.
+
+## Remove one room
+
+The visible rooms can be disabled independently in your host file:
+
+```sh
+haus edit
+```
+
+```nix
+{
+  nebelhaus.prowl.enable = false;
+  nebelhaus.sill.enable = false;
+  nebelhaus.pounce.enable = false;
+  nebelhaus.hush.enable = false;
+}
+```
+
+Apply the change:
+
+```sh
+haus rebuild
+```
+
+This keeps the base nebelhaus system and your Nix configuration. It only
+disables the selected rooms:
+
+- `prowl` — AeroSpace tiling, Caps-Lock launcher, and window-management bindings
+- `sill` — SketchyBar and the custom top bar
+- `pounce` — the Pounce daemon, palette hotkey, and Accessibility-dependent features
+- `hush` — the Hush CLI, palette command, and status item
+
+After rebuilding, verify the macOS controls those rooms used — especially Caps
+Lock, the native menu bar, Spotlight's shortcut, and Accessibility permissions —
+are set the way you want. See [nebelhaus.\* options](/reference/options/) for
+what each toggle governs.
+
+## Take down the system layer
+
+This removes nix-darwin's system integration while leaving the Nix installation
+available for other projects.
+
+Run nix-darwin's current uninstaller:
+
+```sh
+sudo nix --extra-experimental-features "nix-command flakes" \
+  run nix-darwin#darwin-uninstaller
+```
+
+If that cannot run, try the locally installed copy:
+
+```sh
+sudo darwin-uninstaller
+```
+
+Read the plan before confirming. The uninstaller is expected to remove
+nix-darwin-managed system links, static files, and launchd services, then
+restore the underlying Nix daemon supplied by the installer.
+
+Restart the Mac after it completes. A restart is not a personality flaw.
+
+### Keep or archive your config
+
+The uninstaller does not make `~/.config/nix` useless. Keep it if you might
+return, move it out of the active path, or delete it only after inspecting it.
+
+A reversible archive:
+
+```sh
+mv ~/.config/nix ~/.config/nix.nebelhaus-archive
+```
+
+## Restore replaced dotfiles
+
+nebelhaus configures Home Manager to preserve a conflicting file with the suffix
+`.backup` before replacing it.
+
+Common examples include:
+
+```text
+~/.zshrc.backup
+~/.zshenv.backup
+~/.config/starship.toml.backup
+~/.config/git/config.backup
+```
+
+There may also be backups inside managed configuration directories. Find them
+before restoring anything:
+
+```sh
+find "$HOME" -maxdepth 5 -name '*.backup' -print
+```
+
+Inspect each backup, confirm the Nix-managed target is gone, then move it back
+manually. For example:
+
+```sh
+ls -l ~/.zshrc ~/.zshrc.backup
+mv ~/.zshrc.backup ~/.zshrc
+```
+
+<Aside type="caution">
+Do not overwrite a new file blindly. The backup belongs to the version that
+existed at the first conflict, which may not be the version you want today.
+</Aside>
+
+## Homebrew applications
+
+By default, nebelhaus uses Homebrew cleanup mode `none`. It does not remove apps
+simply because they are absent from the current configuration.
+
+Review the packages declared in your archived host file and compare them with
+what Homebrew currently owns:
+
+```sh
+brew list --formula
+brew list --cask
+```
+
+Remove only the applications you no longer want:
+
+```sh
+brew uninstall <formula>
+brew uninstall --cask <cask>
+```
+
+Use `--zap` only when you also intend to remove the application's related data:
+
+```sh
+brew uninstall --cask --zap <cask>
+```
+
+nebelhaus deliberately does not guess which applications are still yours. That
+would be an exciting policy in all the wrong ways.
+
+## Remove standalone Pounce
+
+This section is for Pounce installed directly through Homebrew, not Pounce
+managed as a nebelhaus room. (Removing the room is just
+`nebelhaus.pounce.enable = false;` above.)
+
+Stop its service, uninstall it, and optionally remove the tap if you use nothing
+else from it:
+
+```sh
+brew services stop pounce
+brew uninstall pounce
+brew untap nebelhaus/tap
+```
+
+Your personal commands and configuration live under `~/.config/pounce`. Keep
+them, archive them, or remove them separately after inspection:
+
+```sh
+mv ~/.config/pounce ~/.config/pounce.archive
+```
+
+Then open **System Settings → Privacy & Security → Accessibility** and remove or
+disable Pounce if it remains listed.
+
+## Remove Determinate Nix
+
+<Aside type="danger">
+Only do this after removing nix-darwin. Removing Nix affects **every**
+Nix-managed project and tool on the Mac, not only nebelhaus.
+</Aside>
+
+The Determinate installer provides its own uninstaller:
+
+```sh
+sudo /nix/nix-installer uninstall
+```
+
+Read the uninstall plan before confirming. When it finishes, restart the Mac.
+
+If the command fails, stop and use Determinate's current macOS uninstall
+troubleshooting guide rather than manually deleting random pieces of `/nix`.
+
+## macOS settings to verify
+
+Nix generations and uninstallers cannot promise to reconstruct every preference
+that existed before installation. Check these after leaving:
+
+- Dock autohide and orientation
+- key repeat and press-and-hold behaviour
+- Finder extensions, hidden files, path bar, status bar, and view style
+- native menu-bar visibility
+- Caps Lock behaviour
+- Spotlight's `⌘Space` shortcut
+- wallpaper
+- file associations, if `nebelhaus.hearth.hijackFileAssociations` was enabled
+- Pounce Accessibility access
+- Touch ID for `sudo`
+
+The bootstrap attempts to create a local APFS snapshot before installation.
+Treat restoring that snapshot as a coarse recovery operation: it may also revert
+unrelated changes made after the snapshot. Prefer targeted restoration unless
+the machine genuinely needs the wider rewind.
+
+## Verify the house is down
+
+After restarting, check the pieces relevant to the path you chose:
+
+```sh
+command -v haus || echo "haus is no longer on PATH"
+command -v darwin-rebuild || echo "darwin-rebuild is no longer on PATH"
+brew services list | grep -i pounce || true
+launchctl list | grep -Ei 'nebelhaus|pounce|aerospace|sketchybar' || true
+```
+
+A matching AeroSpace or SketchyBar process is not automatically residue; you may
+have installed it independently. The question is whether nebelhaus still manages
+it.
+
+If you removed Nix entirely:
+
+```sh
+command -v nix || echo "nix is no longer on PATH"
+test ! -e /nix && echo "/nix is gone"
+```
+
+## Report an incomplete departure
+
+A departure bug is a launch blocker. Open an issue on
+[github.com/nebelhaus](https://github.com/nebelhaus) with:
+
+- Mac model and macOS version
+- whether Nix existed before nebelhaus
+- the removal path you followed
+- the exact command and output
+- what remained afterward
+- relevant screenshots or logs, with secrets and identity information removed
+
+<Aside type="caution">
+Do not include tokens, private keys, secret values, or unredacted personal
+files in an issue.
+</Aside>
