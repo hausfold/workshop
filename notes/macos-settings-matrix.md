@@ -60,32 +60,122 @@ protection is **domain-specific** — but see the correction below: that control
 proves it isn't a blanket sandbox, *not* that the domain is unconditionally
 locked. FDA is the gate.
 
-### Status per key
+### Status per key — swept 2026-07-25 (Ghostty + FDA)
 
-`reduceMotion` is **proven** end-to-end. The rest share its domain, so they are
-expected to behave identically — but "expected" is exactly the word that got
-this file wrong twice, so they're marked untested until swept:
+Full sweep run twice, byte-identical results, clean restore both times.
 
-| key | Rice use | With FDA |
+**Proven end-to-end** — write lands *and* `NSWorkspace` confirms macOS honours it:
+
+| key | Rice use | nix-darwin typed? |
 |---|---|---|
-| `reduceMotion` | `ui.motion` | ✅ **writes + takes effect (proven)** |
-| `reduceTransparency` | `ui.transparency` | ◻️ expected; NSWorkspace can verify |
-| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ expected; no oracle, visual check |
-| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ expected; no oracle |
-| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ expected; no oracle |
+| `reduceMotion` | `ui.motion` | ✅ yes |
+| `reduceTransparency` | `ui.transparency` | ✅ yes |
+| **`increaseContrast`** | **the high-contrast rice (§5.1)** | ❌ **no → `CustomUserPreferences`** |
+| **`differentiateWithoutColor`** | colour-blind safe mode | ❌ **no → `CustomUserPreferences`** |
 
-Two more in the same domain, **not** typed by nix-darwin, and both are levers the
-roadmap actually wants — reachable via `CustomUserPreferences` if they hold up:
+> The two untyped ones are the finding. `increaseContrast` is the OS-level
+> high-contrast lever, it works today, and it needs no upstream change — just
+> `system.defaults.CustomUserPreferences."com.apple.universalaccess"`, which
+> routes through the same `launchctl asuser` path (so: same FDA gate).
 
-| key | Why it matters | With FDA |
+**Writes and persists, effect NOT verified** — no programmatic oracle exists, and
+the visual check wasn't reported back, so these stop at "the plist holds it":
+
+| key | Rice use | Status |
 |---|---|---|
-| `increaseContrast` | the high-contrast rice (§5.1) | ◻️ untested; NSWorkspace can verify |
-| `FontSizeCategory` | macOS 26 per-app text size — *the* system "larger text" mechanism | ◻️ untested; no oracle |
+| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ persists (`3.0`); effect unconfirmed |
+| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ persists; effect unconfirmed |
+| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ persists; effect unconfirmed |
 
-- [ ] Run `notes/probes/accessibility-sweep.sh` from an FDA terminal to fill in
-      the ◻️ rows. `increaseContrast` and `FontSizeCategory` are the two worth
-      caring about — they're the system-level half of the large-print rice, and
-      right now the roadmap assumes they're unreachable.
+**`FontSizeCategory` — real, but far narrower than hoped.** ⚠️
+
+Two corrections here, in order.
+
+**1. The vocabulary is `DEFAULT` / `AX1`…, not size words.** The sweep originally
+wrote `global = LARGE`, the key changed, and it printed "✓ accepted" — worthless
+evidence, since `defaults -dict-add` stores *any* string. Setting Text size in
+System Settings ▸ Accessibility ▸ Display and reading back showed what macOS
+itself writes:
+
+```
+global = AX1;      # was DEFAULT; System Settings showed "Text size — 20 pt"
+version = "3.0";
+```
+
+`AX1` is Apple's Dynamic Type accessibility step. `LARGE` would have been stored
+and ignored — exactly the illusion this file keeps having to warn about. Reads of
+this domain are **not** FDA-gated (only writes are), so discovery is cheap.
+
+**2. It does not scale the system — only apps that adopted Dynamic Type.** The
+dict enumerates its participants, and it is a short, all-Apple list:
+
+```
+com.apple.MobileSMS · Notes · Mail · finder · iCal · reminders · journal
+iBooksX · news · stocks · weather · Magnifier · AccessibilityReader
+```
+
+With `global = AX1` live, a non-participating process still reports the default:
+
+```
+$ swift -e 'import AppKit; print(NSFont.preferredFont(forTextStyle: .body).pointSize)'
+13.0        # not 20
+```
+
+So this is **not** a general "make everything bigger" lever. It will not touch
+Ghostty, Zen, Slack, or anything third-party. (Caveat: a CLI process is weak
+evidence about *app* behaviour on its own — but combined with the explicit
+per-bundle-ID list, the shape is clear.)
+
+**Consequence:** `FontSizeCategory` is worth wiring as a *nicety* for the Apple
+apps a non-dev Mac actually lives in (Mail, Messages, Notes, Calendar) — which
+is genuinely the "Sunday Mac" audience. It is **not** the system-level half of
+the large-print rice. That half remains display scaling (§5.10) plus the rice's
+own font sizes (§5.3).
+
+**3. Writing it lands but posts no change notification — do not ship this.** ❌
+
+Tested directly: Text size set back to Default, every app set to "Use Preferred
+Reading Size", Notes open, then from an FDA terminal:
+
+```
+defaults write com.apple.universalaccess FontSizeCategory -dict-add global AX1
+```
+
+Result:
+
+| | |
+|---|---|
+| plist | ✅ correct — `global = AX1`, all 13 apps `UseGlobal`, nothing lost |
+| System Settings **value** | ✅ shows 20 pt |
+| **Notes (running app)** | ❌ **text does not change** |
+| System Settings **per-app rows** | ❌ render wrong — several show `Default`, one blank |
+| after dragging the slider by hand | ✅ everything reconciles and follows |
+
+So the write is *stored* but no change notification is posted. Running apps
+never re-read it, and System Settings — if open — renders a desynced view of a
+plist that is actually fine. The rows looking "corrupted" is a **display**
+artifact; quitting and reopening System Settings shows the true values. (Data
+verified against the original snapshot: no entries lost, four *gained* as macOS
+registered more participants.)
+
+**This is the third and worst member of the write-that-lies family**, after
+`com.apple.Accessibility` (writes, no effect). A nebelhaus option backed by this
+would produce a Mac where System Settings claims 20 pt, every app renders 13 pt,
+and the settings pane looks broken — and the user would rightly blame the rice.
+
+**Heuristic worth carrying forward:** in this domain the keys that work are
+**scalar** (`reduceMotion`, `reduceTransparency`, `increaseContrast`,
+`differentiateWithoutColor` — all bools, all notify correctly). The one that
+fails is the **structured** one. Treat dict-valued accessibility keys as
+GUI-only until proven otherwise.
+
+- [ ] Only avenue left, untested: find the Darwin notification the slider posts
+      and fire it after the write. `com.apple.accessibility.cache.ax` did not
+      work for the other keys, so this is a long shot — and even if found, it
+      would make the option depend on an undocumented notification name.
+- [ ] Confirm the ◻️ rows by eye — is the cursor visibly bigger at `3.0`, does
+      `^`+scroll zoom? Cheap, and it's the difference between "persists" and
+      "works".
 
 **Design consequence either way:** an option that works only when the user has
 granted FDA to whatever terminal they happen to rebuild from is not a solid

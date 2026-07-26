@@ -191,6 +191,14 @@ nebelhaus.theme = {
 - [ ] rice: honest scope — which tools follow `flavor` vs bake their own
       (the existing `theme.accent` description already models this honesty well)
 - [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it)
+- [ ] ✅ **Pair `contrast = "high"` with the OS lever.** The sweep proved
+      `increaseContrast` (and `differentiateWithoutColor`) write *and take
+      effect* — and neither is typed by nix-darwin, so they're reachable today
+      via `system.defaults.CustomUserPreferences."com.apple.universalaccess"`,
+      no upstream change needed. That makes a high-contrast rice cover *native*
+      apps too, not just the tools nebelung themes — the missing half.
+      Carries the FDA caveat (§5.12), so it must degrade cleanly: the palette
+      side works for everyone, the OS side sharpens it when FDA is granted.
 
 ### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
@@ -422,8 +430,28 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       options set in a host makes agent-driven `haus rebuild` abort activation
       while manual rebuilds succeed. Whatever `haus doctor` says, this needs to be
       impossible to hit by accident — it's the sharpest edge in the whole set.
-- [ ] Sweep the untested keys before designing: **`increaseContrast`** and
-      **`FontSizeCategory`** are the ones worth having (`notes/probes/accessibility-sweep.sh`).
+- [x] Swept 2026-07-25. **`increaseContrast` and `differentiateWithoutColor`
+      write and take effect**, and neither is nix-darwin-typed → reach them via
+      `CustomUserPreferences`. `increaseContrast` is the OS-level half of the
+      high-contrast rice (§5.1), available with no upstream change.
+- [ ] `mouseDriverCursorSize` / `closeView*` persist but their **effect is
+      unconfirmed** — no oracle exists, so they need an eyeball before
+      `ui.cursorScale` comes back.
+- [x] **`FontSizeCategory` resolved, and it's narrower than hoped.** Real
+      vocabulary is `DEFAULT` / `AX1`… (read back after setting Text size in
+      System Settings — my earlier `LARGE` guess would have been stored and
+      ignored). But it only affects apps that adopted Dynamic Type — a short
+      all-Apple list (Mail, Messages, Notes, Calendar, Finder, Reminders,
+      Books, News, Stocks, Weather, Journal, Magnifier). With `AX1` live, a
+      non-participant still reports 13pt body text.
+      → ❌ **And it is not declarable at all.** Writing it lands in the plist but
+      posts no change notification: running apps never re-read it, and System
+      Settings renders a desynced view of its own rows. Only dragging the slider
+      by hand works. An option backed by this ships a Mac where Settings says
+      20 pt, every app renders 13 pt, and the pane looks broken. **Don't wire it.**
+      → **Heuristic:** in this domain the **scalar** keys work and notify; the
+      **structured** (dict) one lands and lies. Treat dict-valued accessibility
+      keys as GUI-only until proven otherwise.
 
 **But the large-print rice still shouldn't be built on it.** Display mode
 (§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast flavor (§5.1) and

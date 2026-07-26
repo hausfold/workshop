@@ -115,20 +115,41 @@ for row in "${writeonly[@]}"; do
 done
 
 # ---- FontSizeCategory: the large-print lever ------------------------------
-say "C. FontSizeCategory — macOS 26 per-app text size (the 'larger text' lever)"
-printf '  current: %s\n' "$(defaults read "$dom" FontSizeCategory 2>/dev/null | tr -d '\n' | cut -c1-160)"
-if out=$(defaults write "$dom" FontSizeCategory -dict-add global -string LARGE 2>&1); then
-  now="$(defaults read "$dom" FontSizeCategory 2>/dev/null | grep -c 'global = LARGE')"
-  if [ "$now" = 1 ]; then
-    printf '  ✓ accepted global = LARGE\n'
-    printf '  → check by eye: open Notes or Messages — is body text larger?\n'
-    printf '    (if yes, this is the system-level half of the large-print rice)\n'
-    swift -e 'import Foundation; Thread.sleep(forTimeInterval: 10)' 2>/dev/null
-  else
-    printf '  ⚠️  write reported ok but the key did not change\n'
-  fi
-else
-  printf '  ✗ refused: %s\n' "$out"
-fi
+# READ ONLY, deliberately. An earlier version of this script wrote
+# `global = LARGE` and reported "✓ accepted" — which was worthless evidence:
+# `defaults -dict-add` stores ANY string, so a made-up token looks exactly like
+# a real one. `LARGE` was a guess, never read off Apple. Writing a bogus value
+# here risks the same illusion com.apple.Accessibility already produced: a plist
+# that looks applied and changes nothing.
+#
+# The vocabulary is small (the shipped value is `global = DEFAULT`) and the way
+# to learn it is to let macOS write it, then read it back.
+say "C. FontSizeCategory — macOS 26 per-app text size (read-only)"
+printf '  current value:\n'
+defaults read "$dom" FontSizeCategory 2>/dev/null | sed 's/^/    /'
+cat <<'EOF'
+
+  Vocabulary (resolved 2026-07-25 by setting Text size in System Settings and
+  reading back): `DEFAULT`, then Apple's Dynamic Type steps `AX1`… — NOT size
+  words. An earlier version of this script wrote `LARGE`; that would have been
+  stored and silently ignored.
+
+  Scope (also resolved): this only affects apps that adopted Dynamic Type — the
+  per-bundle-ID list above is the whole participant set, and it is all Apple.
+  With `global = AX1` live, a non-participant still reports default 13pt body
+  text. So this is a nicety for Mail/Messages/Notes/Calendar, NOT a system-wide
+  "make everything bigger".
+
+  RESOLVED — and the answer is do not write this key. Tested: the write lands
+  in the plist correctly, but posts no change notification. Running apps never
+  re-read it (Notes stayed at default size), and System Settings renders a
+  desynced view of its own per-app rows — several show "Default", one blank —
+  which LOOKS like corruption but isn't; the plist is intact and reopening
+  Settings shows the true values. Only dragging the slider by hand works.
+
+  Heuristic from this domain: the SCALAR keys (section A) write, notify, and
+  take effect. The one STRUCTURED key lands and lies. Treat dict-valued
+  accessibility keys as GUI-only.
+EOF
 
 say "Done — the domain is restored on exit. Record results in macos-settings-matrix.md."
