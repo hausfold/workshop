@@ -135,17 +135,27 @@ after — zero net change to the machine.
       modes are enumerable, and `CGDisplaySetDisplayMode` is public API. A ~40-line
       Swift helper replaces the Homebrew dependency. Stable-ID risk retired.
 - [x] **Typed surface** → **193** keys, not "several hundred".
-- [x] **Does root punch through?** → ❌ **No.** Confirmed by a real `haus rebuild`:
-      the exact `launchctl asuser … sudo --user=…` shape, run from root inside
-      activation, still gets `Could not write domain` / exit 1. TCC here is not
-      euid-bypassable.
-- [x] **And it's a landmine, not just a dud.** That write is emitted *unguarded*
+- [x] **Does root punch through?** → ⚠️ **The question was wrong.** A real
+      `haus rebuild` did fail from root — but it's **Full Disk Access on the app
+      responsible for the rebuild**, not euid, that gates the domain. Every
+      command in the spike ran under Claude.app, which lacks FDA, so the whole
+      chain lacked it. An earlier revision of this doc concluded "locked even as
+      root"; **that was wrong** and is retracted in the matrix.
+      → ✅ **Positive case now measured** (Ghostty + FDA, 2026-07-25):
+      `reduceMotion` **writes and takes effect** — `motion_reduced=true`. So
+      `system.defaults.universalaccess.*` is real on 26, gated on FDA.
+      → ⚠️ **Asymmetry that matters here:** the grant is on the *responsible
+      app*. Ghostty has FDA; Claude Code does not. Set one of these and Julien's
+      own rebuilds work while **every agent rebuild aborts activation partway** —
+      "works on my machine" in the most literal sense.
+- [x] **The blast radius holds regardless.** That write is emitted *unguarded*
       into an activation script running under `set -e`, at line 559 of 877. So
-      setting any of the five options **aborts activation** and skips every later
-      step — including all launchd daemon/agent setup. A user would get a
-      half-activated Mac with no obvious cause.
-      → **nebelhaus should assert against those five options**, and this is worth
-      an upstream nix-darwin issue (minimum fix: `|| true` on the writes).
+      *whenever it fails* — missing FDA being the common way — activation
+      **aborts** and skips every later step, including all launchd daemon/agent
+      setup. The symptom lands nowhere near the cause.
+      → nebelhaus **warns** (nebelhaus#89 — a warning, not an assertion: with FDA
+      these work, so blocking would be wrong), and it's reported on
+      [nix-darwin#1049](https://github.com/nix-darwin/nix-darwin/issues/1049).
 
 ---
 
@@ -181,6 +191,14 @@ nebelhaus.theme = {
 - [ ] rice: honest scope — which tools follow `flavor` vs bake their own
       (the existing `theme.accent` description already models this honesty well)
 - [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it)
+- [ ] ✅ **Pair `contrast = "high"` with the OS lever.** The sweep proved
+      `increaseContrast` (and `differentiateWithoutColor`) write *and take
+      effect* — and neither is typed by nix-darwin, so they're reachable today
+      via `system.defaults.CustomUserPreferences."com.apple.universalaccess"`,
+      no upstream change needed. That makes a high-contrast rice cover *native*
+      apps too, not just the tools nebelung themes — the missing half.
+      Carries the FDA caveat (§5.12), so it must degrade cleanly: the palette
+      side works for everyone, the OS side sharpens it when FDA is granted.
 
 ### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
@@ -395,23 +413,52 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
 - [ ] `haus doctor` grows a permission checklist with System Settings deep links
 - [ ] Restart/logout/reboot annotations from the §4 matrix
 
-### 5.12 Accessibility — ⚠️ **mostly unbuildable; demoted to a doctor checklist** · S
-The §4 spike killed the option-tree version of this. Vision and motor knobs route
-through either a **locked** domain (`universalaccess`) or a **silently no-op**
-one (`Accessibility`). The original design would have shipped options that report
-success and change nothing — strictly worse than having no option at all.
+### 5.12 Accessibility — ✅ **back on the table, with an FDA caveat** · M
+Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
+**if the app invoking the rebuild holds Full Disk Access**. So the option tree is
+viable, but the caveat is load-bearing and has to be designed *into* it.
 
-- [ ] **Do not** add options that write `com.apple.Accessibility`
-- [ ] `haus doctor --accessibility`: detect current effective state via the
-      `NSWorkspace` probe, and for anything unset print what it does plus a
-      `x-apple.systempreferences:` deep link. Guidance, not false control.
-- [ ] Revisit only if the main-checkout `darwin-rebuild` test (§4) shows the
-      root-spawned write punches through
+- [ ] Model these as **`reachability = "needs-fda"`** options (§5.6's designation
+      scheme), not as ordinary settings. A rice that silently behaves differently
+      on two machines is exactly the failure a shared-rice format must not have.
+- [ ] `haus doctor` should **detect** FDA (strict read of an FDA-gated path — no
+      `ls` fallback, that bug cost a whole spike) and say plainly whether the
+      accessibility half of the current config can apply at all.
+- [ ] **Do not** add options that write `com.apple.Accessibility` — that domain
+      writes and does nothing. Still true, still the worst failure mode.
+- [ ] ⚠️ **Agent asymmetry:** Claude Code lacks FDA, Ghostty has it. Any of these
+      options set in a host makes agent-driven `haus rebuild` abort activation
+      while manual rebuilds succeed. Whatever `haus doctor` says, this needs to be
+      impossible to hit by accident — it's the sharpest edge in the whole set.
+- [x] Swept 2026-07-25. **`increaseContrast` and `differentiateWithoutColor`
+      write and take effect**, and neither is nix-darwin-typed → reach them via
+      `CustomUserPreferences`. `increaseContrast` is the OS-level half of the
+      high-contrast rice (§5.1), available with no upstream change.
+- [ ] `mouseDriverCursorSize` / `closeView*` persist but their **effect is
+      unconfirmed** — no oracle exists, so they need an eyeball before
+      `ui.cursorScale` comes back.
+- [x] **`FontSizeCategory` resolved, and it's narrower than hoped.** Real
+      vocabulary is `DEFAULT` / `AX1`… (read back after setting Text size in
+      System Settings — my earlier `LARGE` guess would have been stored and
+      ignored). But it only affects apps that adopted Dynamic Type — a short
+      all-Apple list (Mail, Messages, Notes, Calendar, Finder, Reminders,
+      Books, News, Stocks, Weather, Journal, Magnifier). With `AX1` live, a
+      non-participant still reports 13pt body text.
+      → ❌ **And it is not declarable at all.** Writing it lands in the plist but
+      posts no change notification: running apps never re-read it, and System
+      Settings renders a desynced view of its own rows. Only dragging the slider
+      by hand works. An option backed by this ships a Mac where Settings says
+      20 pt, every app renders 13 pt, and the pane looks broken. **Don't wire it.**
+      → **Heuristic:** in this domain the **scalar** keys work and notify; the
+      **structured** (dict) one lands and lies. Treat dict-valued accessibility
+      keys as GUI-only until proven otherwise.
 
-**The large-print rice does not need this.** It's built from display mode
-(§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast theme flavor
-(§5.1), and Dock/Finder sizes — all of which are ours or verified-writable. The
-spike shifted *how* to build it, not *whether*.
+**But the large-print rice still shouldn't be built on it.** Display mode
+(§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast flavor (§5.1) and
+Dock/Finder sizes work for everyone, unconditionally. Treat `universalaccess` as
+a **bonus layer** that sharpens the result when FDA happens to be granted — never
+as the foundation. That ranking survived all three revisions of this finding,
+which is the main argument for it.
 
 ### 5.13 Authorable tour steps · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves
@@ -442,9 +489,12 @@ difference between downloading someone's config and *learning* it.
 - [x] §4 spikes → [`macos-settings-matrix.md`](macos-settings-matrix.md)
 - [x] `universalaccess` confirmed dead via a real `darwin-rebuild` — fails as
       root, and aborts activation when set
-- [ ] **Ship the guardrail now, ahead of everything else:** an assertion against
-      `system.defaults.universalaccess.*` being set. It's a few lines, and it
-      protects against a half-activated Mac. Also file the upstream issue.
+- [x] Guardrail shipped: nebelhaus **warns** when `system.defaults.universalaccess.*`
+      is set (nebelhaus#89), and it's reported upstream on nix-darwin#1049.
+- [ ] **Settle the positive case:** grant Ghostty Full Disk Access, set one
+      option, rebuild *from Ghostty*, probe. Until then the true status of those
+      five options is genuinely unknown — and §5.12 shouldn't be finalised on a
+      guess in either direction.
 
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
 everything macOS can't veto)*
@@ -488,7 +538,7 @@ them without breaking main mid-ripple.
 ## 8. Naming (optional, low stakes)
 
 The family speaks cat-and-house (`nebelung`, `pounce`, `prowl`, `sill`, `den`,
-`hearth`, `collar`, `hush`, `trill`, `morsel`, `haus`, `wt`). New rooms could
+`hearth`, `collar`, `hush`, `trill`, `perch`, `haus`, `wt`). New rooms could
 keep it:
 
 | Room | Candidate | Why |

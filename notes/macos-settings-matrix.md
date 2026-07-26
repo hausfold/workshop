@@ -15,10 +15,38 @@ change to this machine** (verified: `diff` of before/after is empty).
 
 ---
 
-## Headline: the accessibility plan in the roadmap does not survive contact
+## Headline: `universalaccess` works — but only from an FDA-holding app
 
-**`com.apple.universalaccess` is not writable on macOS 26.6.** Not "flaky", not
-"needs a restart" — a hard refusal:
+**✅ SETTLED 2026-07-25.** Run from Ghostty with Full Disk Access granted
+(`notes/probes/universalaccess-fda-test.sh`):
+
+```
+2. Q1 — does a write SUCCEED?          ✓ WRITE SUCCEEDED and read back.
+3. Q2 — does the value TAKE EFFECT?
+     before: motion_reduced=false
+     plist:  reduceMotion=1
+     after:  motion_reduced=true       ✓
+```
+
+So `system.defaults.universalaccess.*` **is real on macOS 26** — it writes *and*
+macOS honours it — **conditional on the app that invokes the rebuild holding
+FDA.** Both of this file's earlier conclusions ("locked even as root", then
+"unproven") are now superseded; the history is kept below because the wrong one
+briefly drove a rice change.
+
+> **⚠️ The asymmetry that matters for this machine.** The grant is on the
+> *responsible app*, so **an agent-driven `haus rebuild` and your own terminal
+> rebuild are not equivalent.** Ghostty has FDA; Claude Code (running under
+> Claude.app) does not. If a host ever sets one of these five options, Julien's
+> own rebuilds succeed and every agent rebuild **aborts activation partway** —
+> skipping all launchd setup — for a config that "works on my machine". That is
+> the single most likely way this bites here.
+
+### The original failure, and why it misled
+
+**`com.apple.universalaccess` refuses writes from a process without Full Disk
+Access** — which was every process in the original spike. Not "flaky", not "needs
+a restart": a hard refusal, exit 1.
 
 ```
 $ defaults write com.apple.universalaccess nebelhausProbe -int 42
@@ -27,26 +55,133 @@ Could not write domain com.apple.universalaccess; exiting
 
 **Control (same shell, same moment):** `com.apple.dock`, `com.apple.finder`,
 `com.apple.screencapture`, `com.apple.Accessibility`, `com.apple.TimeMachine`
-and a junk domain all accepted the identical write and read back `42`. So this
-is domain-specific protection, **not** a sandboxed shell.
+and a junk domain all accepted the identical write and read back `42`. So the
+protection is **domain-specific** — but see the correction below: that control
+proves it isn't a blanket sandbox, *not* that the domain is unconditionally
+locked. FDA is the gate.
 
-### What that costs
+### Status per key — swept 2026-07-25 (Ghostty + FDA)
 
-All **five** of nix-darwin's `system.defaults.universalaccess.*` options live in
-that locked domain:
+Full sweep run twice, byte-identical results, clean restore both times.
 
-| nix-darwin option | Rice use it was wanted for | Status on 26.6 |
+**Proven end-to-end** — write lands *and* `NSWorkspace` confirms macOS honours it:
+
+| key | Rice use | nix-darwin typed? |
 |---|---|---|
-| `mouseDriverCursorSize` | `ui.cursorScale` — large-print rice | ❌ locked |
-| `reduceMotion` | `ui.motion` | ❌ locked |
-| `reduceTransparency` | `ui.transparency` | ❌ locked |
-| `closeViewScrollWheelToggle` | scroll-to-zoom | ❌ locked |
-| `closeViewZoomFollowsFocus` | zoom follows focus | ❌ locked |
+| `reduceMotion` | `ui.motion` | ✅ yes |
+| `reduceTransparency` | `ui.transparency` | ✅ yes |
+| **`increaseContrast`** | **the high-contrast rice (§5.1)** | ❌ **no → `CustomUserPreferences`** |
+| **`differentiateWithoutColor`** | colour-blind safe mode | ❌ **no → `CustomUserPreferences`** |
 
-Also locked, and worth knowing: **`FontSizeCategory`** — macOS 26's per-app text
-size (Messages, Notes, Finder, Mail, Calendar, Books, News, Stocks, Weather,
-plus a `global` key). That is *the* system "larger text" mechanism on 26, and
-it is unreachable via `defaults`.
+> The two untyped ones are the finding. `increaseContrast` is the OS-level
+> high-contrast lever, it works today, and it needs no upstream change — just
+> `system.defaults.CustomUserPreferences."com.apple.universalaccess"`, which
+> routes through the same `launchctl asuser` path (so: same FDA gate).
+
+**Writes and persists, effect NOT verified** — no programmatic oracle exists, and
+the visual check wasn't reported back, so these stop at "the plist holds it":
+
+| key | Rice use | Status |
+|---|---|---|
+| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ persists (`3.0`); effect unconfirmed |
+| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ persists; effect unconfirmed |
+| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ persists; effect unconfirmed |
+
+**`FontSizeCategory` — real, but far narrower than hoped.** ⚠️
+
+Two corrections here, in order.
+
+**1. The vocabulary is `DEFAULT` / `AX1`…, not size words.** The sweep originally
+wrote `global = LARGE`, the key changed, and it printed "✓ accepted" — worthless
+evidence, since `defaults -dict-add` stores *any* string. Setting Text size in
+System Settings ▸ Accessibility ▸ Display and reading back showed what macOS
+itself writes:
+
+```
+global = AX1;      # was DEFAULT; System Settings showed "Text size — 20 pt"
+version = "3.0";
+```
+
+`AX1` is Apple's Dynamic Type accessibility step. `LARGE` would have been stored
+and ignored — exactly the illusion this file keeps having to warn about. Reads of
+this domain are **not** FDA-gated (only writes are), so discovery is cheap.
+
+**2. It does not scale the system — only apps that adopted Dynamic Type.** The
+dict enumerates its participants, and it is a short, all-Apple list:
+
+```
+com.apple.MobileSMS · Notes · Mail · finder · iCal · reminders · journal
+iBooksX · news · stocks · weather · Magnifier · AccessibilityReader
+```
+
+With `global = AX1` live, a non-participating process still reports the default:
+
+```
+$ swift -e 'import AppKit; print(NSFont.preferredFont(forTextStyle: .body).pointSize)'
+13.0        # not 20
+```
+
+So this is **not** a general "make everything bigger" lever. It will not touch
+Ghostty, Zen, Slack, or anything third-party. (Caveat: a CLI process is weak
+evidence about *app* behaviour on its own — but combined with the explicit
+per-bundle-ID list, the shape is clear.)
+
+**Consequence:** `FontSizeCategory` is worth wiring as a *nicety* for the Apple
+apps a non-dev Mac actually lives in (Mail, Messages, Notes, Calendar) — which
+is genuinely the "Sunday Mac" audience. It is **not** the system-level half of
+the large-print rice. That half remains display scaling (§5.10) plus the rice's
+own font sizes (§5.3).
+
+**3. Writing it lands but posts no change notification — do not ship this.** ❌
+
+Tested directly: Text size set back to Default, every app set to "Use Preferred
+Reading Size", Notes open, then from an FDA terminal:
+
+```
+defaults write com.apple.universalaccess FontSizeCategory -dict-add global AX1
+```
+
+Result:
+
+| | |
+|---|---|
+| plist | ✅ correct — `global = AX1`, all 13 apps `UseGlobal`, nothing lost |
+| System Settings **value** | ✅ shows 20 pt |
+| **Notes (running app)** | ❌ **text does not change** |
+| System Settings **per-app rows** | ❌ render wrong — several show `Default`, one blank |
+| after dragging the slider by hand | ✅ everything reconciles and follows |
+
+So the write is *stored* but no change notification is posted. Running apps
+never re-read it, and System Settings — if open — renders a desynced view of a
+plist that is actually fine. The rows looking "corrupted" is a **display**
+artifact; quitting and reopening System Settings shows the true values. (Data
+verified against the original snapshot: no entries lost, four *gained* as macOS
+registered more participants.)
+
+**This is the third and worst member of the write-that-lies family**, after
+`com.apple.Accessibility` (writes, no effect). A nebelhaus option backed by this
+would produce a Mac where System Settings claims 20 pt, every app renders 13 pt,
+and the settings pane looks broken — and the user would rightly blame the rice.
+
+**Heuristic worth carrying forward:** in this domain the keys that work are
+**scalar** (`reduceMotion`, `reduceTransparency`, `increaseContrast`,
+`differentiateWithoutColor` — all bools, all notify correctly). The one that
+fails is the **structured** one. Treat dict-valued accessibility keys as
+GUI-only until proven otherwise.
+
+- [ ] Only avenue left, untested: find the Darwin notification the slider posts
+      and fire it after the write. `com.apple.accessibility.cache.ax` did not
+      work for the other keys, so this is a long shot — and even if found, it
+      would make the option depend on an undocumented notification name.
+- [ ] Confirm the ◻️ rows by eye — is the cursor visibly bigger at `3.0`, does
+      `^`+scroll zoom? Cheap, and it's the difference between "persists" and
+      "works".
+
+**Design consequence either way:** an option that works only when the user has
+granted FDA to whatever terminal they happen to rebuild from is not a solid
+foundation for a *shared* rice — the same config silently behaves differently on
+two machines. So the ranking below still holds: build the large-print rice out
+of things the rice fully controls, and treat these as a bonus, not a base.
 
 ### The nastier finding: `com.apple.Accessibility` is a silent no-op
 
@@ -67,10 +202,13 @@ succeeds, the plist shows the right value, a `diff`-style check would report
 "applied", and the Mac behaves exactly as before. Any accessibility option built
 on this domain would ship a lie.
 
-### ✅ RESOLVED — it fails as root too, and it takes activation down with it
+### ⚠️ CORRECTED — it's Full Disk Access, not an unconditional lock
 
-Measured 2026-07-25 by a real `haus rebuild` on this machine. nix-darwin writes
-user defaults as:
+**An earlier revision of this file said "locked even as root". That was wrong.**
+Keeping the retraction visible because the wrong version briefly drove a rice
+change (a hard assertion) that would have blocked working configs.
+
+Measured 2026-07-25 by a real `haus rebuild`. nix-darwin writes user defaults as:
 
 ```
 launchctl asuser "$(id -u -- ada)" sudo --user=ada -- defaults write com.apple.universalaccess …
@@ -79,13 +217,42 @@ launchctl asuser "$(id -u -- ada)" sudo --user=ada -- defaults write com.apple.u
 Running **that exact command shape, from root, inside activation**:
 
 ```
-SPIKE universalaccess: writing junk key as root via launchctl asuser…
-defaults[23171]: Could not write domain com.apple.universalaccess; exiting
 SPIKE RESULT: WRITE FAILED (exit 1) — domain locked even as root
 ```
 
-**TCC on this domain is not euid-bypassable.** All five
-`system.defaults.universalaccess.*` options are dead on macOS 26.6.
+The observation is real; the *conclusion* was not. `com.apple.universalaccess`
+is TCC-protected, and the grant that matters is **Full Disk Access on the app
+responsible for the rebuild** — the terminal you invoke `darwin-rebuild` from,
+not the euid it runs as. Every command in this spike ran under Claude.app,
+which does **not** hold FDA (verified: every FDA-gated read is denied). So the
+whole chain lacked FDA and the refusal is fully explained by the documented TCC
+requirement.
+
+[nix-darwin#1049](https://github.com/nix-darwin/nix-darwin/issues/1049) and
+[#705](https://github.com/nix-darwin/nix-darwin/issues/705) report the same
+failure, with several people confirming FDA on the terminal fixes it — and one
+noting that on Tahoe a *stale* grant must be removed and re-added with (+).
+
+**Not verified from this session:** the positive case. I can't grant myself FDA,
+so "it works with FDA" rests on those upstream reports, not on my own
+measurement.
+
+- [ ] Confirm the positive case: grant Ghostty FDA, set one option, rebuild from
+      Ghostty, and check with `notes/probes/`. **Only then** is the true status
+      of these five options settled.
+
+#### The methodological lesson
+
+The control I ran (other domains accept the same write from the same shell)
+proved the failure was *domain-specific*. I read that as "the domain is locked",
+when it only ever supported "this domain needs something the others don't". A
+control that rules out one confounder doesn't rule out all of them — and the
+missing check here was cheap: read an FDA-gated path and see.
+
+An early version of that check was itself buggy — `head -c 16 "$p" || ls "$p"`
+reports "readable" for any file that merely *exists*, because `ls` succeeds on a
+stat. It briefly showed FDA as present. Strict read-only probing (no `ls`
+fallback) showed every FDA-gated read denied.
 
 #### …and the failure mode is worse than "does nothing"
 
@@ -98,15 +265,21 @@ line 559: launchctl asuser … defaults write com.apple.universalaccess reduceMo
 line 877: (end of script)
 ```
 
-`defaults` exits **1**. So setting any one of those five options makes
-`darwin-rebuild switch` **abort at line 559 and skip the remaining 318 lines** —
-which include the `SLSMenuBarUseBlurredAppearance` write (Sill's opaque menu
-bar), the Dock restart, and **every launchd daemon and user-agent setup step**
-(`awake`, `aerospace`, `hush-watcher`, pounce, sketchybar…).
+`defaults` exits **1**. So *whenever that write fails* — for any reason, FDA
+being the common one — `darwin-rebuild switch` **aborts at line 559 and skips
+the remaining 318 lines**, which include the `SLSMenuBarUseBlurredAppearance`
+write (Sill's opaque menu bar), the Dock restart, and **every launchd daemon and
+user-agent setup step** (`awake`, `aerospace`, `hush-watcher`, pounce,
+sketchybar…).
+
+**This part survives the correction above** — it's the consequence of the write
+failing, not a claim about *why* it fails. It's also what makes the upstream
+reports so confusing: the symptom (launchd services missing, bar wrong) appears
+nowhere near the cause, and nothing tells you the run stopped early.
 
 Had we naively backed `nebelhaus.accessibility.motion = "reduced"` with that
-option, a user setting it would get a half-activated Mac and no clear reason
-why. **This is a landmine, not a limitation.**
+option, a user without FDA would get a half-activated Mac and no clear reason
+why.
 
 > **How this was measured safely.** Not by setting the option — that would have
 > caused exactly the aborted activation described above. Instead a
@@ -116,12 +289,14 @@ why. **This is a landmine, not a limitation.**
 > config reverted and rebuilt to a clean generation afterward; verified zero
 > residue in `/run/current-system/activate` and in the domain.
 
-- [ ] **File upstream against nix-darwin**: `system.defaults.universalaccess.*`
-      is unsettable on macOS 26 *and* breaks activation when used. Minimum fix is
-      `|| true` on the generated writes; better is dropping/flagging the domain.
-- [ ] Until that lands, nebelhaus should **assert** against those five options
-      being set, with an error explaining why — cheaper than a support thread
-      about a half-activated Mac.
+- [x] **Upstream**: reported on
+      [nix-darwin#1049](https://github.com/nix-darwin/nix-darwin/issues/1049) —
+      the FDA requirement is already known there; what wasn't is *why* it half-
+      breaks the machine. Minimum fix is `|| true` on the generated writes (or a
+      warning at eval time) so a missing grant costs you the setting, not the
+      rest of activation.
+- [x] nebelhaus **warns** when those five are set — nebelhaus#89. A warning, not
+      an assertion: with FDA they work, so blocking would be wrong.
 
 ---
 
