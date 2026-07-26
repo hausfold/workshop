@@ -33,9 +33,10 @@ like any other Nix module—there is no separate `roster.json`.
 
 Or let Pounce make the edit: open **Install App**, choose where to search
 (Homebrew, the Mac App Store, or the flake's pinned Nixpkgs), then pick the
-result. Homebrew and Nix choices are written to `installs.json` and applied with
-`haus rebuild`; a Homebrew cask or App Store app can also be added to the tiling
-roster, including its launcher key and optional workspace. For a workspace app,
+result. Each choice is written as a small Nix module under
+`hosts/<hostname>/packages/` and applied with `haus rebuild`; a Homebrew cask or
+App Store app can also be added to the tiling roster, including its launcher key
+and optional workspace. For a workspace app,
 Pounce checks the pinned
 [SketchyBar App Font mapping](https://github.com/kvndrsslr/sketchybar-app-font)
 and writes the verified `barIcon` ligature too. If upstream has no match, the
@@ -48,20 +49,9 @@ ask for an Apple Account, Touch ID, or sudo, and hiding that inside
 app, Pounce opens its App Store page instead.
 </Aside>
 
-To enable Pounce's machine-editable lanes, keep the two data files at your flake
-root and point the host at them:
-
-```nix
-nebelhaus.prowl.rosterFile = ../../roster.json;
-nebelhaus.homebrew.installsFile = ../../installs.json;
-```
-
-```json
-{ "casks": [], "brews": [], "nixpkgs": [] }
-```
-
-That is `installs.json`; `roster.json` starts as `[]`. Add both files to Git once; Pounce stages and
-commits only these files after a successful rebuild.
+There's nothing to set up first — no data files, no options to point at. Each
+selection lands as its own Nix module under `hosts/<hostname>/packages/`, and
+Pounce stages and commits just that file after a successful rebuild.
 
 ## Which line do I add?
 
@@ -178,9 +168,9 @@ terminal. You need to be signed into the App Store, and a download may ask for
 Touch ID or your Apple Account. Paid apps must already have been purchased; if
 the CLI cannot acquire one, Pounce opens the App Store page for you.
 
-Unlike Homebrew and Nix choices, App Store acquisition is not written into
-`installs.json`: it is an Apple Account operation, not part of the Nix
-generation. A roster entry is still declarative after the app is acquired.
+Unlike Homebrew and Nix choices, App Store acquisition itself isn't captured in
+a Nix module: it is an Apple Account operation, not part of the Nix generation.
+A roster entry is still declarative after the app is acquired.
 
 ## Already-installed apps
 
@@ -205,8 +195,10 @@ nebelhaus.apps.music = {
 
 Command-line tools normally come from **nixpkgs**, which makes them declarative,
 reproducible, and roll-backable. **Pounce → Install App → Nix packages** searches
-the exact Nixpkgs revision pinned by your flake and adds the chosen attribute to
-`installs.json`. If you prefer to keep the list in Nix source, personal tools go
+the exact Nixpkgs revision pinned by your flake and writes a module under
+`hosts/<hostname>/packages/` that adds the chosen attribute to
+`environment.systemPackages`. If you prefer to keep the list in Nix source,
+personal tools go
 in your host file's home-manager block:
 
 ```nix
