@@ -87,6 +87,7 @@ export default defineConfig({
             { label: 'Theming & accents (nebelung)', slug: 'guides/theming' },
             { label: 'Keeping in sync (haus)', slug: 'guides/staying-in-sync' },
             { label: 'Moving to a new Mac', slug: 'guides/new-mac' },
+            { label: 'Leaving nebelhaus', slug: 'guides/leaving' },
           ],
         },
         {

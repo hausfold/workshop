@@ -150,6 +150,9 @@ haus generations    # see what you can roll back to
 activate — you just see the build fail. For macOS **settings** (not packages),
 the APFS/Time-Machine snapshot the installer took is the coarser rewind.
 
+Want to go further than one generation — disable a room, or remove nebelhaus
+entirely? [Leaving nebelhaus](/guides/leaving/) walks each exit, smallest first.
+
 ## The installer refuses to run — "expects Determinate Nix"
 
 nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/) and
