@@ -39,3 +39,21 @@ without FDA, since that can only reproduce the original refusal.
 To grant FDA: System Settings ▸ Privacy & Security ▸ Full Disk Access ▸ (+), add
 the terminal, then fully quit and reopen it. On macOS 26 a *stale* grant often
 has to be removed and re-added with (+) before it takes.
+
+## `accessibility-sweep.sh`
+
+The follow-up to the settled question. `universalaccess-fda-test.sh` proved the
+*mechanism* on one key; this fills in the rest of the family, including the two
+that aren't typed by nix-darwin and are the point of the exercise:
+
+- **`increaseContrast`** — the high-contrast lever
+- **`FontSizeCategory`** — macOS 26's per-app text size ("larger text")
+
+```sh
+./notes/probes/accessibility-sweep.sh   # from an FDA terminal
+```
+
+It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
+effect) from keys with none (persistence only — it pauses ~10s so you can look).
+That split is deliberate: "the write succeeded" was never sufficient evidence
+here, since `com.apple.Accessibility` writes succeed and change nothing.
