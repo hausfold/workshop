@@ -39,11 +39,32 @@ if (!rice || !existsSync(rice)) {
 }
 
 // ---- pull the option metadata out of the rice -------------------------------
-const outPath = execFileSync(
-  'nix',
-  ['build', '--no-link', '--print-out-paths', `${resolve(rice)}#options-json`],
-  { encoding: 'utf8' },
-).trim();
+// The rice must expose `options-json` (nebelhaus#93). It won't on an older
+// checkout, and nix's own error for that is a wall of attribute-path guesses
+// wrapped in a Node stack trace — so translate it into the one sentence that
+// actually helps. This fired for real the first time CI ran, when the rice's
+// main hadn't landed the output yet.
+let outPath;
+try {
+  outPath = execFileSync(
+    'nix',
+    ['build', '--no-link', '--print-out-paths', `${resolve(rice)}#options-json`],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  ).trim();
+} catch (err) {
+  const stderr = err.stderr?.toString() ?? '';
+  if (stderr.includes('does not provide attribute')) {
+    console.error(
+      `The rice checkout at ${rice} has no \`options-json\` flake output.\n\n` +
+        'That output is what this page is rendered from. Either the checkout predates\n' +
+        'nebelhaus#93, or it is not the nebelhaus rice at all. Update it (CI pulls\n' +
+        "nebelhaus/nebelhaus main) and re-run.\n",
+    );
+  } else {
+    console.error(`\`nix build ${rice}#options-json\` failed:\n\n${stderr}`);
+  }
+  process.exit(1);
+}
 const raw = JSON.parse(readFileSync(join(outPath, 'share/doc/nixos/options.json'), 'utf8'));
 
 const options = Object.entries(raw)
