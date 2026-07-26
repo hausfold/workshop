@@ -87,21 +87,55 @@ the visual check wasn't reported back, so these stop at "the plist holds it":
 | `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ persists; effect unconfirmed |
 | `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ persists; effect unconfirmed |
 
-**`FontSizeCategory` — accepted, but that is not evidence.** ⚠️
+**`FontSizeCategory` — real, but far narrower than hoped.** ⚠️
 
-The sweep wrote `global = LARGE` and the key changed. That proves nothing:
-`defaults -dict-add` accepts *any* string, so a bogus value is stored just as
-happily as a real one. The observed pre-existing value was `global = DEFAULT`,
-which tells us the vocabulary is a small token set — and `LARGE` was my guess,
-not something read off Apple.
+Two corrections here, in order.
 
-This is the same trap as `com.apple.Accessibility`: a write that looks applied
-and isn't. Treat it as **unknown**, not working.
+**1. The vocabulary is `DEFAULT` / `AX1`…, not size words.** The sweep originally
+wrote `global = LARGE`, the key changed, and it printed "✓ accepted" — worthless
+evidence, since `defaults -dict-add` stores *any* string. Setting Text size in
+System Settings ▸ Accessibility ▸ Display and reading back showed what macOS
+itself writes:
 
-- [ ] **Discover the real vocabulary instead of guessing it:** set the text size
-      in System Settings ▸ Accessibility ▸ Display (and a per-app size), then
-      `defaults read com.apple.universalaccess FontSizeCategory` and see what
-      macOS itself wrote. Let the OS name its own values.
+```
+global = AX1;      # was DEFAULT; System Settings showed "Text size — 20 pt"
+version = "3.0";
+```
+
+`AX1` is Apple's Dynamic Type accessibility step. `LARGE` would have been stored
+and ignored — exactly the illusion this file keeps having to warn about. Reads of
+this domain are **not** FDA-gated (only writes are), so discovery is cheap.
+
+**2. It does not scale the system — only apps that adopted Dynamic Type.** The
+dict enumerates its participants, and it is a short, all-Apple list:
+
+```
+com.apple.MobileSMS · Notes · Mail · finder · iCal · reminders · journal
+iBooksX · news · stocks · weather · Magnifier · AccessibilityReader
+```
+
+With `global = AX1` live, a non-participating process still reports the default:
+
+```
+$ swift -e 'import AppKit; print(NSFont.preferredFont(forTextStyle: .body).pointSize)'
+13.0        # not 20
+```
+
+So this is **not** a general "make everything bigger" lever. It will not touch
+Ghostty, Zen, Slack, or anything third-party. (Caveat: a CLI process is weak
+evidence about *app* behaviour on its own — but combined with the explicit
+per-bundle-ID list, the shape is clear.)
+
+**Consequence:** `FontSizeCategory` is worth wiring as a *nicety* for the Apple
+apps a non-dev Mac actually lives in (Mail, Messages, Notes, Calendar) — which
+is genuinely the "Sunday Mac" audience. It is **not** the system-level half of
+the large-print rice. That half remains display scaling (§5.10) plus the rice's
+own font sizes (§5.3).
+
+- [ ] Open question: does *writing* it take effect, or does only the System
+      Settings path work? Needs an FDA terminal: set Text size back to Default,
+      then `defaults write com.apple.universalaccess FontSizeCategory -dict-add
+      global AX1` and see whether Notes/Mail actually change.
 - [ ] Confirm the ◻️ rows by eye — is the cursor visibly bigger at `3.0`, does
       `^`+scroll zoom? Cheap, and it's the difference between "persists" and
       "works".

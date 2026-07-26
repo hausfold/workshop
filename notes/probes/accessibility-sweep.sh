@@ -129,18 +129,22 @@ printf '  current value:\n'
 defaults read "$dom" FontSizeCategory 2>/dev/null | sed 's/^/    /'
 cat <<'EOF'
 
-  This is the system "larger text" mechanism on 26 — the one lever that could
-  give the large-print rice a system-level half. But its valid tokens are
-  undocumented here, so this script will NOT guess at them.
+  Vocabulary (resolved 2026-07-25 by setting Text size in System Settings and
+  reading back): `DEFAULT`, then Apple's Dynamic Type steps `AX1`… — NOT size
+  words. An earlier version of this script wrote `LARGE`; that would have been
+  stored and silently ignored.
 
-  To learn them (2 minutes, no scripting):
-    1. System Settings ▸ Accessibility ▸ Display — raise the text size.
-       Optionally set a per-app size for Notes or Messages too.
-    2. Re-run this script (or: defaults read com.apple.universalaccess FontSizeCategory)
-    3. Diff against the value above — whatever macOS wrote IS the vocabulary.
+  Scope (also resolved): this only affects apps that adopted Dynamic Type — the
+  per-bundle-ID list above is the whole participant set, and it is all Apple.
+  With `global = AX1` live, a non-participant still reports default 13pt body
+  text. So this is a nicety for Mail/Messages/Notes/Calendar, NOT a system-wide
+  "make everything bigger".
 
-  Record it in macos-settings-matrix.md. Only then is a FontSizeCategory-backed
-  option worth designing.
+  Still open: does *writing* this key take effect, or does only the System
+  Settings path work? To find out — set Text size back to Default, then from an
+  FDA terminal:
+      defaults write com.apple.universalaccess FontSizeCategory -dict-add global AX1
+  and see whether Notes/Mail actually change.
 EOF
 
 say "Done — the domain is restored on exit. Record results in macos-settings-matrix.md."

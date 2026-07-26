@@ -437,10 +437,15 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
 - [ ] `mouseDriverCursorSize` / `closeView*` persist but their **effect is
       unconfirmed** — no oracle exists, so they need an eyeball before
       `ui.cursorScale` comes back.
-- [ ] **`FontSizeCategory` is unknown, not working.** The sweep's `global =
-      LARGE` was accepted, but `-dict-add` stores any string — that's the
-      `com.apple.Accessibility` trap again. Learn the real tokens by setting the
-      size in System Settings and reading back what macOS wrote.
+- [x] **`FontSizeCategory` resolved, and it's narrower than hoped.** Real
+      vocabulary is `DEFAULT` / `AX1`… (read back after setting Text size in
+      System Settings — my earlier `LARGE` guess would have been stored and
+      ignored). But it only affects apps that adopted Dynamic Type — a short
+      all-Apple list (Mail, Messages, Notes, Calendar, Finder, Reminders,
+      Books, News, Stocks, Weather, Journal, Magnifier). With `AX1` live, a
+      non-participant still reports 13pt body text.
+      → Wire it as a **nicety for the Apple apps a non-dev Mac lives in** —
+      genuinely the "Sunday Mac" audience — **not** as the large-print lever.
 
 **But the large-print rice still shouldn't be built on it.** Display mode
 (§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast flavor (§5.1) and
