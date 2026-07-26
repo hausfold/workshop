@@ -1,0 +1,41 @@
+# Options reference drift tripwire — fails when reference/options.md no longer
+# matches the rice's module system.
+#
+# Unlike the keybindings tripwire next door, the fix here is mechanical: the
+# page is GENERATED, so red means "re-run the generator and commit", not "write
+# some prose". The rice is the single source of truth for every option's type,
+# default, example and description.
+#
+# Runs weekly (drift comes from RICE pushes, which can't trigger this repo's
+# CI), on demand, and whenever the generator or the page itself changes.
+name: options drift
+
+on:
+  schedule:
+    - cron: '30 9 * * 1' # Monday morning, after the keybindings check
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'web/scripts/gen-options.mjs'
+      - 'web/src/content/docs/reference/options.md'
+      - '.github/workflows/options-drift.yml'
+  pull_request:
+    paths:
+      - 'web/scripts/gen-options.mjs'
+      - 'web/src/content/docs/reference/options.md'
+      - '.github/workflows/options-drift.yml'
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: nebelhaus/nebelhaus
+          path: .rice
+      - uses: DeterminateSystems/nix-installer-action@main
+      # Evaluates only the rice's per-room options files — no darwin system, so
+      # this builds fine on Linux. That property is why the generator can run
+      # here at all; see the comment on `options-json` in the rice's flake.
+      - run: node web/scripts/gen-options.mjs --rice .rice --check
