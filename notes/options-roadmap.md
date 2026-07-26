@@ -2,12 +2,22 @@
 
 Working doc. The end goal: people publish **nebelhaus configs** of wildly
 different kinds — a large-print Mac for a parent, a writer's machine, a
-mouse-first creative setup — by changing `nebelhaus.*` and nothing else. Today
-the option surface can't express any of those.
+mouse-first creative setup — by changing `nebelhaus.*` and nothing else. When
+this was written the option surface could express none of them; `everyday` now
+works, and the rest are tracked against the readiness test in §6.
 
 This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
+
+> **Status, 2026-07-26.** §3 (structure) and §4 (spikes) are **done**; §3's four
+> items landed as nebelhaus#92/#96/#98/#93 + workshop#81, and the macOS spikes
+> settled in the matrix. Also shipped from §5: fonts (#91) and the two working
+> accessibility keys (#90).
+>
+> The live edge is **Phase 3, the expression layer** — theme flavors, `ui.*`
+> tokens, `keys.*`, and apps v2. Those are what a `large-print` preset needs,
+> and `large-print` is the next entry on the readiness test at the end of §6.
 
 ---
 
@@ -55,15 +65,16 @@ to the second?*
 Adding 60 options on top of today's structure makes the next refactor 3× worse.
 These four are cheap now and expensive later.
 
-### 3.1 Split `options.nix` per room · S · risk L
+### 3.1 Split `options.nix` per room · ✅ **DONE** (nebelhaus#92)
 656 lines in one file for every room. Move to `modules/<room>/options.nix`,
 keep `modules/options.nix` as the cross-cutting/identity file. Purely
 mechanical, no behaviour change. **Do this first or everything else compounds.**
 
-- [ ] `modules/{den,hearth,prowl,sill,pounce,hush,theme,trill,secrets,snippets}/options.nix`
-- [ ] `modules/options.nix` keeps `apps`, `git`, `claude`, cross-cutting tokens
+- [x] `modules/{den,hearth,prowl,sill,pounce,hush,theme,trill,secrets,snippets}/options.nix`
+- [x] `modules/options.nix` keeps `apps` + `developer` (752 → 122 lines). `git`/`claude` went to hearth, which owns them.
+- [x] Verified as a pure move: the example host's derivation is byte-identical and all 39 leaf option paths are unchanged.
 
-### 3.2 Make `developer` a real pack, not the foundation · M · risk M
+### 3.2 Make `developer` a real pack, not the foundation · ✅ **DONE** (nebelhaus#96)
 The single highest-leverage change in this doc. Today "minimal" is a lie.
 
 ```nix
@@ -77,34 +88,40 @@ nebelhaus.developer = {
 };
 ```
 
-- [ ] Audit hearth: which of its 1186 lines are *shell* vs *dev*
-- [ ] Gate `home.packages` ([`hearth:224`](nebelhaus/modules/hearth/default.nix:224)) and `environment.systemPackages` ([`den:25`](nebelhaus/modules/den/default.nix:25))
-- [ ] `haus` / `awake` / theme stay unconditional (they're the *product*)
-- [ ] Prove it: a host with `developer.enable = false` installs zero dev tools
+- [x] Audited hearth and den; gated packages, `programs.*`, aliases, the fnm hook, Claude settings and nix-index
+- [x] Gated `home.packages` and `environment.systemPackages`
+- [x] `haus` / `awake` / `mas` / theme stay unconditional (they're the *product*)
+- [x] Proved by measurement: `developer.enable = false` drops 16 system + 17 home packages.
+      **Not literally zero** — `gh`/`blueutil`/`switchaudio-osx` remain as pounce
+      command-plugin deps, which is correct while pounce is on.
 
 **Non-obvious consequence:** with dev off, `hearth.editor = "hx"` is the wrong
 default and Ghostty may not even be wanted. Decide what a non-dev nebelhaus
 *terminal story* is (probably: no terminal at all, and `haus` reached only via
 pounce).
 
-### 3.3 Presets become the community format, from day one · M · risk M
+### 3.3 Presets become the community format, from day one · ✅ **DONE** (nebelhaus#98)
 The earlier plan put "define the community rice format" at step 9. Invert it.
 Make the repo's own presets use the exact mechanism a stranger's rice would —
 otherwise you'll build eight layers and discover the format can't express them.
 
-- [ ] `presets/{full,minimal,everyday,large-print}.nix` — each sets **only** `nebelhaus.*`
-- [ ] `bootstrap.sh` picks a preset file instead of flipping three bools inline
-- [ ] CI check: each preset evals, and touches no option outside `nebelhaus.*`
-      → **that check *is* the data-only trust boundary**, built for free
-- [ ] `nebelhaus.lib.checkRice` exposed so third parties can self-test
+- [x] `presets/{full,minimal,everyday}.nix` — each sets **only** `nebelhaus.*`.
+      `large-print` deferred: it needs §5.1/§5.2/§5.3, which don't exist yet.
+- [x] `bootstrap.sh` offers Everyday and emits `extraModules = [ nebelhaus.presets.X ]` —
+      the same line a person writes to import a rice found online. "Custom" emits none.
+- [x] `nix flake check` runs `checkRice` over every preset **and** evaluates a real
+      system with each — trust half and usefulness half
+- [x] `nebelhaus.lib.checkRice` exposed, with `presets/README.md` defining the format
 
-### 3.4 Generate the options reference · S · risk L
+### 3.4 Generate the options reference · ✅ **DONE** (nebelhaus#93 + workshop#81)
 [`web/src/content/docs/reference/options.md`](web/src/content/docs/reference/options.md)
 is 389 hand-written lines. At 5× the surface it rots within a month.
 
-- [ ] `nixosOptionsDoc` → markdown → `web/src/content/docs/reference/options.md`
-- [ ] Keep the hand-written *narrative* guides; generate only the reference
-- [ ] CI fails if the generated page is stale
+- [x] `nix build .#options-json` → `web/scripts/gen-options.mjs` → the page
+- [x] Narrative guides stay hand-written; only the reference is generated
+- [x] `options-drift.yml` fails if the page is stale.
+- [x] Found on the way: the old page documented `git.shellAliases` **twice** with
+      two different descriptions, and covered 33 of 71 options.
 
 ---
 
@@ -477,13 +494,25 @@ difference between downloading someone's config and *learning* it.
 ## 6. Phasing
 
 **Phase 0 — ship this week, no architecture required**
+- [x] `nebelhaus.fonts` (§5.3) — nebelhaus#91. Turned up a real bug on the way:
+      sill named `Hack Nerd Font` in seven places and **nothing installed it**,
+      so every fresh install had been drawing tofu across the whole bar.
 - [ ] Publish one shareable **app pack** `.nix` (only sets `nebelhaus.apps.*`) and
-      a short guide. Proves the community loop end-to-end with today's code.
+      a short guide. Now cheaper than when this was written — `presets/README.md`
+      already defines the data-only format an app pack would use.
 - [ ] Hot corners + screenshot settings (§5.6) — typed, reversible, instantly felt
-- [ ] `nebelhaus.fonts` (§5.3)
 
-**Phase 1 — structure (blocks everything else)**
-- [ ] §3.1 split options · §3.2 `developer.enable` · §3.3 presets-as-format · §3.4 generated docs
+**Phase 1 — structure (blocks everything else)** ✅ **done 2026-07-26**
+- [x] §3.1 split options (nebelhaus#92) — 752 → 122 lines, byte-identical derivation
+- [x] §3.2 `developer.enable` (nebelhaus#96) — "minimal" is no longer a lie
+- [x] §3.3 presets-as-format (nebelhaus#98) — `checkRice` + `nix flake check`
+- [x] §3.4 generated docs (nebelhaus#93 + workshop#81) — page rendered from the module system
+
+  Worth recording: **§3.1 paid for §3.4 immediately.** Splitting options into
+  pure `{ lib, ... }` modules is what let the docs generator evaluate them
+  standalone on Linux CI, with no darwin system. That dependency wasn't
+  predicted here — it's now a comment in the flake, because it's load-bearing
+  and its failure mode (docs CI breaks) points nowhere near its cause.
 
 **Phase 2 — know what's possible** ✅ **done 2026-07-25**
 - [x] §4 spikes → [`macos-settings-matrix.md`](macos-settings-matrix.md)
@@ -491,14 +520,19 @@ difference between downloading someone's config and *learning* it.
       root, and aborts activation when set
 - [x] Guardrail shipped: nebelhaus **warns** when `system.defaults.universalaccess.*`
       is set (nebelhaus#89), and it's reported upstream on nix-darwin#1049.
-- [ ] **Settle the positive case:** grant Ghostty Full Disk Access, set one
-      option, rebuild *from Ghostty*, probe. Until then the true status of those
-      five options is genuinely unknown — and §5.12 shouldn't be finalised on a
-      guess in either direction.
+- [x] **Positive case settled** (Ghostty + FDA): `reduceMotion` writes *and*
+      takes effect. The sweep then proved `reduceTransparency`,
+      `increaseContrast` and `differentiateWithoutColor` too — the last two
+      aren't nix-darwin-typed, so they ship via `CustomUserPreferences`
+      (nebelhaus#90) and give §5.1 an OS-level high-contrast lever.
+- [x] `FontSizeCategory` resolved and **rejected**: writes land but post no
+      change notification, so apps never re-read them and System Settings
+      renders a desynced view. Third member of the write-that-lies family.
 
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
 everything macOS can't veto)*
-- [ ] §5.1 theme flavors · §5.2 `ui.*` tokens · §5.3 fonts · §5.5 `keys.*` · §5.4 apps v2 + workspaces
+- [ ] §5.1 theme flavors · §5.2 `ui.*` tokens · §5.5 `keys.*` · §5.4 apps v2 + workspaces
+- [x] §5.3 fonts (nebelhaus#91)
 - [ ] §5.10 displays — **promoted from Phase 5**; the only working "make it bigger" lever
 
 **Phase 4 — the non-dev Mac**
@@ -513,7 +547,12 @@ everything macOS can't veto)*
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
 writer/creative setup — each expressible **without reaching around
-`nebelhaus.*` even once.** If any needs a raw `system.defaults` or a
+`nebelhaus.*` even once.**
+
+Scoreboard: `full` and `everyday` now exist and pass (`nix flake check` proves
+they touch nothing outside `nebelhaus.*`). `large-print` is the next one, and it
+is blocked on §5.1/§5.2/§5.3 — deliberately not faked with a `system.defaults`
+escape hatch, because doing so would make the test meaningless. If any needs a raw `system.defaults` or a
 hand-written activation script, the model isn't ready.
 
 ---
