@@ -191,6 +191,14 @@ nebelhaus.theme = {
 - [ ] rice: honest scope — which tools follow `flavor` vs bake their own
       (the existing `theme.accent` description already models this honesty well)
 - [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it)
+- [ ] ✅ **Pair `contrast = "high"` with the OS lever.** The sweep proved
+      `increaseContrast` (and `differentiateWithoutColor`) write *and take
+      effect* — and neither is typed by nix-darwin, so they're reachable today
+      via `system.defaults.CustomUserPreferences."com.apple.universalaccess"`,
+      no upstream change needed. That makes a high-contrast rice cover *native*
+      apps too, not just the tools nebelung themes — the missing half.
+      Carries the FDA caveat (§5.12), so it must degrade cleanly: the palette
+      side works for everyone, the OS side sharpens it when FDA is granted.
 
 ### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
@@ -422,8 +430,17 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       options set in a host makes agent-driven `haus rebuild` abort activation
       while manual rebuilds succeed. Whatever `haus doctor` says, this needs to be
       impossible to hit by accident — it's the sharpest edge in the whole set.
-- [ ] Sweep the untested keys before designing: **`increaseContrast`** and
-      **`FontSizeCategory`** are the ones worth having (`notes/probes/accessibility-sweep.sh`).
+- [x] Swept 2026-07-25. **`increaseContrast` and `differentiateWithoutColor`
+      write and take effect**, and neither is nix-darwin-typed → reach them via
+      `CustomUserPreferences`. `increaseContrast` is the OS-level half of the
+      high-contrast rice (§5.1), available with no upstream change.
+- [ ] `mouseDriverCursorSize` / `closeView*` persist but their **effect is
+      unconfirmed** — no oracle exists, so they need an eyeball before
+      `ui.cursorScale` comes back.
+- [ ] **`FontSizeCategory` is unknown, not working.** The sweep's `global =
+      LARGE` was accepted, but `-dict-add` stores any string — that's the
+      `com.apple.Accessibility` trap again. Learn the real tokens by setting the
+      size in System Settings and reading back what macOS wrote.
 
 **But the large-print rice still shouldn't be built on it.** Display mode
 (§5.10), fonts (§5.3), `ui.*` tokens (§5.2), a high-contrast flavor (§5.1) and

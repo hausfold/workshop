@@ -115,20 +115,32 @@ for row in "${writeonly[@]}"; do
 done
 
 # ---- FontSizeCategory: the large-print lever ------------------------------
-say "C. FontSizeCategory — macOS 26 per-app text size (the 'larger text' lever)"
-printf '  current: %s\n' "$(defaults read "$dom" FontSizeCategory 2>/dev/null | tr -d '\n' | cut -c1-160)"
-if out=$(defaults write "$dom" FontSizeCategory -dict-add global -string LARGE 2>&1); then
-  now="$(defaults read "$dom" FontSizeCategory 2>/dev/null | grep -c 'global = LARGE')"
-  if [ "$now" = 1 ]; then
-    printf '  ✓ accepted global = LARGE\n'
-    printf '  → check by eye: open Notes or Messages — is body text larger?\n'
-    printf '    (if yes, this is the system-level half of the large-print rice)\n'
-    swift -e 'import Foundation; Thread.sleep(forTimeInterval: 10)' 2>/dev/null
-  else
-    printf '  ⚠️  write reported ok but the key did not change\n'
-  fi
-else
-  printf '  ✗ refused: %s\n' "$out"
-fi
+# READ ONLY, deliberately. An earlier version of this script wrote
+# `global = LARGE` and reported "✓ accepted" — which was worthless evidence:
+# `defaults -dict-add` stores ANY string, so a made-up token looks exactly like
+# a real one. `LARGE` was a guess, never read off Apple. Writing a bogus value
+# here risks the same illusion com.apple.Accessibility already produced: a plist
+# that looks applied and changes nothing.
+#
+# The vocabulary is small (the shipped value is `global = DEFAULT`) and the way
+# to learn it is to let macOS write it, then read it back.
+say "C. FontSizeCategory — macOS 26 per-app text size (read-only)"
+printf '  current value:\n'
+defaults read "$dom" FontSizeCategory 2>/dev/null | sed 's/^/    /'
+cat <<'EOF'
+
+  This is the system "larger text" mechanism on 26 — the one lever that could
+  give the large-print rice a system-level half. But its valid tokens are
+  undocumented here, so this script will NOT guess at them.
+
+  To learn them (2 minutes, no scripting):
+    1. System Settings ▸ Accessibility ▸ Display — raise the text size.
+       Optionally set a per-app size for Notes or Messages too.
+    2. Re-run this script (or: defaults read com.apple.universalaccess FontSizeCategory)
+    3. Diff against the value above — whatever macOS wrote IS the vocabulary.
+
+  Record it in macos-settings-matrix.md. Only then is a FontSizeCategory-backed
+  option worth designing.
+EOF
 
 say "Done — the domain is restored on exit. Record results in macos-settings-matrix.md."

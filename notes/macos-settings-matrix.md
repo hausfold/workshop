@@ -60,32 +60,51 @@ protection is **domain-specific** — but see the correction below: that control
 proves it isn't a blanket sandbox, *not* that the domain is unconditionally
 locked. FDA is the gate.
 
-### Status per key
+### Status per key — swept 2026-07-25 (Ghostty + FDA)
 
-`reduceMotion` is **proven** end-to-end. The rest share its domain, so they are
-expected to behave identically — but "expected" is exactly the word that got
-this file wrong twice, so they're marked untested until swept:
+Full sweep run twice, byte-identical results, clean restore both times.
 
-| key | Rice use | With FDA |
+**Proven end-to-end** — write lands *and* `NSWorkspace` confirms macOS honours it:
+
+| key | Rice use | nix-darwin typed? |
 |---|---|---|
-| `reduceMotion` | `ui.motion` | ✅ **writes + takes effect (proven)** |
-| `reduceTransparency` | `ui.transparency` | ◻️ expected; NSWorkspace can verify |
-| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ expected; no oracle, visual check |
-| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ expected; no oracle |
-| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ expected; no oracle |
+| `reduceMotion` | `ui.motion` | ✅ yes |
+| `reduceTransparency` | `ui.transparency` | ✅ yes |
+| **`increaseContrast`** | **the high-contrast rice (§5.1)** | ❌ **no → `CustomUserPreferences`** |
+| **`differentiateWithoutColor`** | colour-blind safe mode | ❌ **no → `CustomUserPreferences`** |
 
-Two more in the same domain, **not** typed by nix-darwin, and both are levers the
-roadmap actually wants — reachable via `CustomUserPreferences` if they hold up:
+> The two untyped ones are the finding. `increaseContrast` is the OS-level
+> high-contrast lever, it works today, and it needs no upstream change — just
+> `system.defaults.CustomUserPreferences."com.apple.universalaccess"`, which
+> routes through the same `launchctl asuser` path (so: same FDA gate).
 
-| key | Why it matters | With FDA |
+**Writes and persists, effect NOT verified** — no programmatic oracle exists, and
+the visual check wasn't reported back, so these stop at "the plist holds it":
+
+| key | Rice use | Status |
 |---|---|---|
-| `increaseContrast` | the high-contrast rice (§5.1) | ◻️ untested; NSWorkspace can verify |
-| `FontSizeCategory` | macOS 26 per-app text size — *the* system "larger text" mechanism | ◻️ untested; no oracle |
+| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ persists (`3.0`); effect unconfirmed |
+| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ persists; effect unconfirmed |
+| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ persists; effect unconfirmed |
 
-- [ ] Run `notes/probes/accessibility-sweep.sh` from an FDA terminal to fill in
-      the ◻️ rows. `increaseContrast` and `FontSizeCategory` are the two worth
-      caring about — they're the system-level half of the large-print rice, and
-      right now the roadmap assumes they're unreachable.
+**`FontSizeCategory` — accepted, but that is not evidence.** ⚠️
+
+The sweep wrote `global = LARGE` and the key changed. That proves nothing:
+`defaults -dict-add` accepts *any* string, so a bogus value is stored just as
+happily as a real one. The observed pre-existing value was `global = DEFAULT`,
+which tells us the vocabulary is a small token set — and `LARGE` was my guess,
+not something read off Apple.
+
+This is the same trap as `com.apple.Accessibility`: a write that looks applied
+and isn't. Treat it as **unknown**, not working.
+
+- [ ] **Discover the real vocabulary instead of guessing it:** set the text size
+      in System Settings ▸ Accessibility ▸ Display (and a per-app size), then
+      `defaults read com.apple.universalaccess FontSizeCategory` and see what
+      macOS itself wrote. Let the OS name its own values.
+- [ ] Confirm the ◻️ rows by eye — is the cursor visibly bigger at `3.0`, does
+      `^`+scroll zoom? Cheap, and it's the difference between "persists" and
+      "works".
 
 **Design consequence either way:** an option that works only when the user has
 granted FDA to whatever terminal they happen to rebuild from is not a solid
