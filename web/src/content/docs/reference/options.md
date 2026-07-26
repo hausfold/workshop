@@ -7,8 +7,8 @@ tableOfContents:
 
 These are the `nebelhaus.*` options you set in your host file at
 `~/.config/nix/hosts/<hostname>/default.nix`. They're defined in the rice's
-`modules/options.nix`. Everything here is optional unless noted; the defaults
-are a complete, working system.
+per-room `modules/*/options.nix` files. Everything here is optional unless
+noted; the defaults are a complete, working system.
 
 Apply changes with `haus rebuild`. Each option below lists its **type** and
 **default** on the line under its name.
@@ -81,6 +81,38 @@ enum · default `"none"`
 
 The desktop wallpaper, applied at each rebuild. One of `none`, `orbits`, `constellation`, `flow`, `bold`. The first three are hand-made with the palette baked in; `bold` is generated from your `theme.accent`, so it follows the accent. `none` leaves your current wallpaper alone — changing the desktop is personal, so nothing moves unless you ask (the install interview offers the choice).
 
+## nebelhaus.accessibility
+
+Two macOS system accessibility toggles the rice can set for you — the
+system-level companions to a high-contrast or colour-blind-friendly theme,
+reaching the native apps your `theme.accent` can't restyle. Both default to
+`null`, which leaves whatever you have untouched; these are personal settings,
+so the rice never picks a value.
+
+### `nebelhaus.accessibility.increaseContrast`
+`bool | null` · default `null`
+
+macOS's **Increase contrast** — stronger borders and less reliance on colour
+alone to convey state, across native apps.
+
+### `nebelhaus.accessibility.differentiateWithoutColor`
+`bool | null` · default `null`
+
+macOS's **Differentiate without colour** — native UI adds shapes and text where
+it would otherwise lean on hue alone. Pair it with a rice tuned for colour-blind
+readability.
+
+These are the only two keys in `com.apple.universalaccess` measured to actually
+take effect on macOS 26, which is why the rice exposes them by name rather than
+the whole domain. Reaching them the raw way — `system.defaults.universalaccess.*` —
+is a trap the rice now warns about: that domain is TCC-protected, so the write
+fails unless the app that ran the rebuild holds **Full Disk Access**, and
+nix-darwin emits it unguarded under `set -e`, aborting the rest of activation
+(the Dock restart, every launchd agent). `nebelhaus.accessibility` runs the same
+write guarded — no grant, it logs and moves on. One consequence of that TCC
+rule: an agent-driven `haus rebuild` runs under a different app than your
+terminal, so it may skip the write while a rebuild you launch yourself applies it.
+
 ## nebelhaus.hearth
 
 The shell and terminal layer. See [The shell](/guides/the-shell/).
@@ -117,6 +149,45 @@ nebelhaus.hearth.editor = "nvim";
 nebelhaus.hearth.obsidianVaults = [
   "Library/Mobile Documents/iCloud~md~obsidian/Documents/notes"
 ];
+```
+
+## nebelhaus.fonts
+
+The terminal font — Ghostty's family and size, and the package the rice installs
+for it. Scoped to the terminal on purpose: the bar (sill) keeps its own Hack
+Nerd Font at its own tuned sizes, since the pill geometry is built around them.
+
+### `nebelhaus.fonts.mono.name`
+`str` · default `"JetBrainsMono Nerd Font Mono"`
+
+The font family, as Ghostty's `font-family` names it. Use a **Nerd Font**
+patched build — starship's prompt, lsd's icons and yazi draw with glyphs a stock
+font renders as tofu. Change this and set `package` too; the rice can only
+install a font it's been given.
+
+### `nebelhaus.fonts.mono.size`
+`int` · default `19`
+
+Terminal font size in points — the single most useful knob for a larger-text
+machine, since it moves everything the rice actually lives in. Any size is safe
+now (prowl's tiling used to leave a gap under zellij's status bar at sizes that
+didn't divide the window height, since fixed with balanced padding); 19 is the
+tuned starting point.
+
+### `nebelhaus.fonts.mono.package`
+`package | null` · default `null`
+
+The package providing `name`. `null` installs the rice's own JetBrains Mono Nerd
+Font. Set it whenever you change `name`, or the family won't exist on the machine
+and Ghostty falls back silently — the rice warns if it spots `name` changed
+without a matching `package`.
+
+```nix
+nebelhaus.fonts.mono = {
+  name = "Berkeley Mono";
+  size = 22;
+  package = pkgs.berkeley-mono;
+};
 ```
 
 ## nebelhaus.snippets
