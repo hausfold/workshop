@@ -5,7 +5,7 @@ description: The repos that make up nebelhaus, what each one owns, and how they 
 
 nebelhaus is not one repo — it's a small family, each piece owning one job and
 usable on its own. The rice ([nebelhaus](https://github.com/nebelhaus/nebelhaus))
-ties them together, but pounce, trill, and nebelung stand alone too.
+ties them together, but pounce, trill, perch, and nebelung stand alone too.
 
 ## The repos
 
@@ -14,6 +14,7 @@ ties them together, but pounce, trill, and nebelung stand alone too.
 | 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
 | 🐾 [**pounce**](https://github.com/nebelhaus/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
 | 🐦 [**trill**](https://github.com/nebelhaus/trill) | the messages — a native iMessage/SMS/RCS client reading `chat.db` read-only | you want to change the Messages client |
+| 🐈 [**perch**](https://github.com/nebelhaus/perch) | the shelf — a native notch file tray that stages dropped files and drags them out as one group | you want to change the file shelf |
 | 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
 | 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every release |
 | 🧰 [**workshop**](https://github.com/nebelhaus/workshop) | every repo checked out side-by-side + the `bench` dev CLI | you're hacking on the family itself |
@@ -40,10 +41,12 @@ can't shadow each other. `haus` knows only *your machine*; `bench` knows only
 `PATH` whether or not you ever contribute — `wt` especially is worth knowing for
 **anyone** who runs Claude Code, nebelhaus contributor or not.
 
-## The three rooms, standalone
+## The rooms, standalone
 
 - **[pounce](/guides/pounce/)** installs from Homebrew (`brew install pounce`)
   with zero Nix. It's a general command palette; the rice just wires it up.
+- **[perch](https://github.com/nebelhaus/perch)** is a plain menu-bar app — the
+  notch file shelf — that needs none of the rest of the family to run.
 - **[nebelung](/reference/palette/)** is a plain colour system. Any tool —
   Ghostty, bat, lazygit, Slack, Zen — can consume its rendered themes without
   touching the rest.

@@ -144,7 +144,7 @@ it's tested, so a bug found later is recoverable from `gh pr view` alone.
 ./bench pull && ./bench rebuild
 ```
 
-**Releasing** — three repos are releasable (pounce, trill, nebelhaus), each with a real audience:
+**Releasing** — four repos are releasable (pounce, trill, perch, nebelhaus), each with a real audience:
 
 Versions are **date-based** (CalVer): a release is stamped with the day it's
 cut — `2026.07.18`, or `2026.07.18-1`, `-2`, … for a second release the same
@@ -157,6 +157,8 @@ it into the repo's version source, commits, and tags it.
                             # CI publishes the release + bumps the homebrew formula
 ./bench release trill       # date-stamps VERSION + tags v<date> — CI bumps the
                             # homebrew cask AND the rice's flake pin (nix/release.nix)
+./bench release perch       # same shape as trill: date-stamps VERSION + tags
+                            # v<date> — CI bumps the cask AND the rice's flake pin
 ./bench release nebelhaus   # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
 ```
