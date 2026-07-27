@@ -180,14 +180,14 @@ after — zero net change to the machine.
 
 Ranked by *(unlocks a genuinely different rice) ÷ (effort)*.
 
-### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M
+### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M · ◐ **contrast half shipped**
 **★ Biggest miss in the earlier brainstorm.** `theme.accent` is an enum of 14
 Catppuccin Mocha names; the base palette is always Nebelung grey-dark
 ([`options.nix:335`](nebelhaus/modules/options.nix:335)). So:
 
 - There is **no light mode** anywhere in the rice.
 - There is **no high-contrast mode** — the root requirement for the
-  "old people" rice that started this whole thread.
+  "old people" rice that started this whole thread. **(✅ shipped — see boxes.)**
 - A community rice cannot ship its own colours at all.
 
 Nebelung is whiskers-based, so it can render *any* palette — the ceiling is
@@ -203,10 +203,14 @@ nebelhaus.theme = {
 };
 ```
 
-- [ ] nebelung: parameterize the flavor, not just the accent
-- [ ] nebelung: a contrast-boost transform with a contrast-ratio assertion in CI
-- [ ] rice: honest scope — which tools follow `flavor` vs bake their own
-      (the existing `theme.accent` description already models this honesty well)
+- [ ] nebelung: parameterize the flavor, not just the accent — ◐ **partial**: the
+      high-contrast **variant** shipped (`palette/nebelung-high-contrast.json`, rendered
+      across ~20 tools), but `flavor` proper (latte / light) is still open.
+- [x] nebelung: a contrast-boost transform with a contrast-ratio assertion in CI
+      — **nebelung#11**: OKLCH neutral-ramp transform + `test/palette.test.mjs`.
+- [x] rice: honest scope — which tools follow `flavor` vs bake their own
+      — **rice#103**: `theme.contrast = normal | high`; the option description names what
+      it recolours (Ghostty/bat/…/Zen) vs what bakes its own (pounce, macOS).
 - [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it)
 - [ ] ✅ **Pair `contrast = "high"` with the OS lever.** The sweep proved
       `increaseContrast` (and `differentiateWithoutColor`) write *and take
