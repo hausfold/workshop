@@ -3,21 +3,29 @@
 Working doc. The end goal: people publish **nebelhaus configs** of wildly
 different kinds — a large-print Mac for a parent, a writer's machine, a
 mouse-first creative setup — by changing `nebelhaus.*` and nothing else. When
-this was written the option surface could express none of them; `everyday` now
-works, and the rest are tracked against the readiness test in §6.
+this was written the option surface could express none of them; `full`,
+`everyday` and `large-print` now all pass the readiness test in §6, and what's
+left is tracked against it there. (Passing is not finishing — §6 records the two
+limits `large-print` exposed, which are the most useful findings in this doc.)
 
 This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
-> **Status, 2026-07-26.** §3 (structure) and §4 (spikes) are **done**; §3's four
+> **Status, 2026-07-27.** §3 (structure) and §4 (spikes) are **done**; §3's four
 > items landed as nebelhaus#92/#96/#98/#93 + workshop#81, and the macOS spikes
 > settled in the matrix. Also shipped from §5: fonts (#91) and the two working
 > accessibility keys (#90).
 >
-> The live edge is **Phase 3, the expression layer** — theme flavors, `ui.*`
-> tokens, `keys.*`, and apps v2. Those are what a `large-print` preset needs,
-> and `large-print` is the next entry on the readiness test at the end of §6.
+> **Phase 3 is now mostly done.** `ui.scale` (§5.2) and fonts (§5.3) landed
+> earlier; the contrast axis landed as nebelung#11 + nebelhaus#103; and light mode
+> (§5.1's other half) plus `keys.*` (§5.5) are open as **nebelung#12 +
+> nebelhaus#108**, which also ships `presets/large-print.nix`.
+>
+> **The readiness test now passes for `large-print`** — see §6's scoreboard, and
+> read the two limits it turned up before celebrating. What's left in Phase 3 is
+> **§5.4 apps v2** (the schema migration, deliberately last) and **§5.10 displays**,
+> which is the only lever for the one thing `large-print` still can't do.
 
 ---
 
@@ -180,15 +188,17 @@ after — zero net change to the machine.
 
 Ranked by *(unlocks a genuinely different rice) ÷ (effort)*.
 
-### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M · ◐ **contrast half shipped**
+### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M · ✅ **flavor + contrast shipped**
 **★ Biggest miss in the earlier brainstorm.** `theme.accent` is an enum of 14
 Catppuccin Mocha names; the base palette is always Nebelung grey-dark
 ([`options.nix:335`](nebelhaus/modules/options.nix:335)). So:
 
-- There is **no light mode** anywhere in the rice.
+- ~~There is **no light mode** anywhere in the rice.~~ **(✅ shipped — nebelung#12
+  + nebelhaus#108: `theme.flavor = "latte"`.)**
 - There is **no high-contrast mode** — the root requirement for the
   "old people" rice that started this whole thread. **(✅ shipped — see boxes.)**
-- A community rice cannot ship its own colours at all.
+- A community rice cannot ship its own colours at all. **(still true: `palette`
+  for `flavor = "custom"` is not built. A rice can pick a flavor, not supply one.)**
 
 Nebelung is whiskers-based, so it can render *any* palette — the ceiling is
 the option surface, not the renderer.
@@ -203,15 +213,66 @@ nebelhaus.theme = {
 };
 ```
 
-- [ ] nebelung: parameterize the flavor, not just the accent — ◐ **partial**: the
-      high-contrast **variant** shipped (`palette/nebelung-high-contrast.json`, rendered
-      across ~20 tools), but `flavor` proper (latte / light) is still open.
+- [x] nebelung: parameterize the flavor, not just the accent — **nebelung#12**.
+      Four variants now: the flavor axis (mocha = dark, latte = light) crossed with
+      contrast. Light mode is a different **source palette**, not a transform of the
+      dark one, which is what the "point the same two rules at Latte" framing buys —
+      and there's a test that fails if anyone later reimplements it as an inverted
+      ramp. Plain latte lands at 7.0:1 for body text on its own, so
+      `contrast = "high"` (9.9:1) is a sharpening rather than a rescue.
+
+      Two findings worth keeping, both now asserted rather than commented:
+      **(a)** each variant has to render as **its own catppuccin flavor**
+      (`whiskers -f latte`) — templates branch on `flavor.dark` (Ghostty's ANSI
+      0/7/8/15, Kitty's tab colours, Zen's `prefers-color-scheme`, delta's
+      `light = true`) and name their output after it, so a latte palette rendered
+      `-f mocha` emits light colours wearing dark-mode structure under mocha's
+      filenames. **(b)** the two contrast boosts **must differ**: a boost pushes the
+      ramp out from its midpoint, and Mocha has ~0.2 of OKLCH headroom below `base`
+      where Latte has ~0.04 above its, so Mocha's 0.35 melts Latte's
+      base/mantle/crust into one white. Mutation-checked — forcing them equal fails
+      the ramp-collapse test.
+- [x] rice: the flavor is in the **paths**, not just the colours — **nebelhaus#108**.
+      whiskers names its output after the rendered flavor, so `latte` moves ghostty,
+      bat, lsd, yazi, zen and zsh-syntax-highlighting filenames as well as hexes.
+      The subtlest one: delta's single gitconfig carries **all four** flavor
+      sections and only the rendered one holds Nebelung colours, so `features` must
+      name the same flavor as the include's root or delta silently themes itself
+      stock. Selection is factored into `modules/lib/nebelung.nix` (it had been
+      duplicated in hearth/sill/theme; a second axis would have made that six
+      blocks) and `nix flake check`'s new `theme-variants` pins the
+      flavor/contrast → variant/subdir table as a golden file, because that rule
+      mirrors nebelung's `variantDir` across a repo boundary and its failure mode is
+      **silent** — a wrong subdir is just a store path that doesn't exist, found at
+      activation rather than eval.
 - [x] nebelung: a contrast-boost transform with a contrast-ratio assertion in CI
       — **nebelung#11**: OKLCH neutral-ramp transform + `test/palette.test.mjs`.
 - [x] rice: honest scope — which tools follow `flavor` vs bake their own
       — **rice#103**: `theme.contrast = normal | high`; the option description names what
       it recolours (Ghostty/bat/…/Zen) vs what bakes its own (pounce, macOS).
-- [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it)
+- [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it).
+      **Cheaper than it was**, now that both palettes exist — and there's a concrete
+      starting point: ghostty's config used to read
+      `theme = dark:nebelung,light:Catppuccin Latte`, i.e. it already followed macOS
+      appearance, and fell back to **stock** Catppuccin in light mode. So a Mac
+      running light appearance never actually got the Nebelung palette. #108 made it
+      a single `theme = nebelung` decided by `theme.flavor`, since it was also the
+      only tool in hearth that could switch on appearance at all; `scheme = "auto"`
+      is what would legitimately bring the split back, with Nebelung on both sides.
+- [ ] **macOS's own Light/Dark is NOT flipped by `flavor`, and can't be, one way.**
+      Turning dark mode on is one typed setting
+      (`NSGlobalDomain.AppleInterfaceStyle = "Dark"`); turning it **off** means
+      DELETING a default rather than writing one, and nix-darwin skips null-valued
+      keys rather than removing them. So there is no symmetric declarative lever and
+      the rice leaves system appearance alone in both directions — a latte rice on a
+      dark macOS looks half-done. Fixing it means an activation-script
+      `defaults delete -g` plus the restart map (§4), i.e. it belongs with Phase 4,
+      not here. Documented in the option so it isn't discovered as a bug.
+- [ ] `flavor = "custom"` + `theme.palette` — the "a community rice ships its own
+      colours" half. Untouched: a rice can pick a flavor, not supply one. Note the
+      **format** wrinkle before designing it — a data-only preset can hold an attrs
+      of hexes fine, but nebelung renders ports in a derivation, so a custom palette
+      either re-renders at rebuild time or is limited to the Nix-injected tools.
 - [ ] ✅ **Pair `contrast = "high"` with the OS lever.** The sweep proved
       `increaseContrast` (and `differentiateWithoutColor`) write *and take
       effect* — and neither is typed by nix-darwin, so they're reachable today
@@ -221,7 +282,7 @@ nebelhaus.theme = {
       Carries the FDA caveat (§5.12), so it must degrade cleanly: the palette
       side works for everyone, the OS side sharpens it when FDA is granted.
 
-### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M
+### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped**
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
 every room, so a rice says "spacious" once instead of tuning nine numbers.
 
@@ -238,7 +299,19 @@ font/icon size · Pounce window width, row height, result count · Ghostty font
 size + line height · zellij bar density · prowl gaps and borders · wallpaper
 contrast.
 
-- [ ] Every consumer reads `ui.*` through `mkDefault` so a host can still pin one number
+- [x] Every consumer reads `ui.*` through `mkDefault` so a host can still pin one
+      number — verified end to end while writing `large-print`: `ui.scale = 1.4`
+      resolves `fonts.mono.size` to 27, and pinning the font size afterwards wins.
+- [ ] **The fan-out is still THREE targets, not nine**: terminal font size, Dock
+      `tilesize`, prowl gaps. `density` and `motion` don't exist yet. The two
+      absences that matter most for `large-print` are deliberate-but-unfinished
+      rather than decided: **sill's bar** and **pounce's palette window** are sized
+      by geometry tuned to the macOS menu-bar band and to their own layouts, so a
+      multiplier breaks alignment instead of enlarging — they each need a sizing
+      pass. On a non-dev Mac the palette is *how you launch things*, so pounce is
+      the higher-value one.
+- [ ] Finder icon/sidebar size — typed and writable per the matrix, still unwired.
+      Note it needs the restart map (§4): nix-darwin restarts only Dock.
 - [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
       Sill's transitions directly. The macOS reduce-motion knob is locked
       (§4), so there is nothing to delegate to.
@@ -261,8 +334,19 @@ nebelhaus.fonts = {
 };
 ```
 
-- [ ] Assert the mono font is a Nerd Font (or warn loudly) — starship/lsd/yazi tofu otherwise
-- [ ] `ui.scale` multiplies `fonts.*.size` by default
+- [x] Assert the mono font is a Nerd Font (or warn loudly) — starship/lsd/yazi tofu
+      otherwise. Shipped as a warning when `name` is set without `package`.
+- [x] `ui.scale` multiplies `fonts.*.size` by default
+- [ ] ⚠️ **`sans` never landed, and the reason now matters.** The example in the
+      block above — Atkinson Hyperlegible for a large-print machine — is **not
+      expressible as a preset at all**, because `fonts.mono.package` takes a
+      `types.package` and reaching `pkgs` is exactly what a data-only rice forbids
+      (§3.3). So a shared rice can make the existing font bigger but cannot change
+      the family. This is the sharpest limit the readiness test has found, and it's
+      a *format* limit rather than a missing option: the fix is a way to name a
+      package without evaluating one (a string resolved against `pkgs` by the
+      module, with the obvious injection question to answer first), not another
+      `types.package` option.
 
 ### 5.4 `nebelhaus.apps` v2 — install sources + a real workspace model · M · risk M
 The registry is good. Two concrete gaps:
@@ -294,7 +378,7 @@ existing hosts don't break.
 - [ ] Non-app installables the registry can't express: fonts, browser extensions,
       Quick Look / Finder / Share extensions, printers, network shares, VSTs
 
-### 5.5 `nebelhaus.keys` — the keymap is currently closed · M · risk M
+### 5.5 `nebelhaus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (nebelhaus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This
 single-handedly makes **mouse-first**, **one-handed**, and **non-QWERTY /
 international layout** rices impossible — a real accessibility *and*
@@ -309,11 +393,42 @@ nebelhaus.keys = {
 };
 ```
 
-- [ ] Split `prowl.enable` into `prowl.tiling.enable` / `prowl.launcher.enable` /
-      `prowl.capsRemap.enable` — today they're one switch
-- [ ] Assertion on duplicate leader letters *and* cross-room conflicts
-      (currently a duplicate `apps.*.key` silently loses)
-- [ ] Ship the generated cheatsheet from the same data (it already half-does this)
+- [x] `keys.{leader,palette,windowNav}` shipped, resolved once in
+      `modules/lib/keys.nix`, with `"none"` a real value on all three. `windowNav`
+      is a **modifier vocabulary** rather than a bind-per-action: what people need
+      to move is the modifier, not the letters, and one value moves all fifteen main-mode
+      chords plus service-mode entry. `bindings` (per-action overrides) is still
+      open — it needs an action vocabulary first, and none of the motivating cases
+      needed it.
+- [ ] ~~Split `prowl.enable` into `prowl.tiling.enable` / `prowl.launcher.enable` /
+      `prowl.capsRemap.enable`~~ — **superseded, not done.** `keys.leader = "none"`
+      is capsRemap-off + launcher-off and `keys.windowNav = "none"` is
+      tiling-chords-off, which covers every case that motivated the split, from the
+      keymap side rather than by multiplying room switches. Revisit only if someone
+      wants AeroSpace to *stop tiling* while keeping its launcher.
+- [x] Assertion on duplicate leader letters *and* cross-room conflicts. The
+      cross-room one was the real gap: `keys.leader` is prowl's AeroSpace chord and
+      `keys.palette` is pounce's in-process hotkey, so **nothing compared them** and
+      a clash is silent — whoever registers first wins. `leader = "alt-space"` with
+      `palette = "alt-space"` is the reachable case; asserted, and pinned in
+      `nix flake check`'s new `keymap` golden table.
+- [x] Ship the generated cheatsheet from the same data — the modifier was the LAST
+      part of a `wm-bindings.nix` row still written twice ("⌥ hjkl" as a caption
+      beside `alt-h` as a chord, in a table whose entire purpose is that those can't
+      drift). Both now come from the resolved keymap, and `"none"` empties the
+      cheatsheet page along with the bindings so it never advertises an unbound key.
+      The first-run tour's prompts follow too, via the generated `tour_config.sh`.
+- [ ] **Non-QWERTY is addressed but not TESTED.** `windowNav = "ctrl-alt"` exists
+      precisely because ⌥+letter types accented characters on many layouts, but
+      nobody has run the rice on such a layout. The launch-mode LETTERS
+      (`apps.*.key`) are still assumed to be where QWERTY puts them, which is the
+      next thing an international rice would hit.
+- [ ] **Found, not fixed** (predates this, and it's a product call): the shipped
+      `everyday` preset sets `prowl.enable = false` with `tour.enable = true`, and
+      three of the tour's four steps wait on AeroSpace mode events that can then
+      never fire — so that tour hangs at step 1. #108 warns about the equivalent new
+      combination (`tour.enable` + `keys.leader = "none"`) and leaves the preset
+      alone.
 
 ### 5.6 Curate macOS settings into behaviour groups · M · risk M (gated on §4)
 Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
@@ -400,6 +515,10 @@ mic/camera-in-use · VPN state · Bluetooth device battery · next reminder ·
 break timer · storage pressure · NAS reachability · world clocks.
 
 - [ ] `sill.items` becomes sugar over `sill.widgets` (bundled widgets pre-declared)
+- [ ] While here: pounce has **no option for its own window sizing** (`windowMode`
+      is written straight into `config.json` by the rice), which is why `ui.scale`
+      can't reach the palette (§5.2). On a non-dev Mac the palette is how you launch
+      things, so this is the highest-value missing knob for `large-print`.
 - [ ] Pounce command packs, with the *dev* commands moved into an opt-in pack
 - [ ] Commands declare: mutates state? needs confirm? needs network/permission?
 
@@ -534,10 +653,22 @@ difference between downloading someone's config and *learning* it.
       renders a desynced view. Third member of the write-that-lies family.
 
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
-everything macOS can't veto)*
-- [ ] §5.1 theme flavors · §5.2 `ui.*` tokens · §5.5 `keys.*` · §5.4 apps v2 + workspaces
+everything macOS can't veto)* — **mostly done 2026-07-27**
 - [x] §5.3 fonts (nebelhaus#91)
-- [ ] §5.10 displays — **promoted from Phase 5**; the only working "make it bigger" lever
+- [x] §5.2 `ui.scale` — shipped, but the fan-out is three targets, not nine
+      (`density`/`motion` unbuilt; sill + pounce need their own sizing pass)
+- [x] §5.1 theme: **contrast** (nebelung#11 + nebelhaus#103) and **flavor / light
+      mode** (nebelung#12 + nebelhaus#108). `scheme = "auto"` and
+      `flavor = "custom"` remain.
+- [x] §5.5 `keys.*` (nebelhaus#108) — leader / palette / windowNav, each with a real
+      `"none"`. Per-action `bindings` deferred; it wants an action vocabulary first.
+- [ ] §5.4 apps v2 + workspaces — **the last one, deliberately.** It's a schema
+      migration needing back-compat (`apps.*.workspace` desugaring into
+      `workspaces`), so it's the one item here that can break a live host, and it's
+      worth doing after the option surface stopped moving around it. Nothing else in
+      Phase 3 blocks on it.
+- [ ] §5.10 displays — **promoted from Phase 5**; the only working "make it bigger"
+      lever, and now the single biggest gap in `large-print` (see the readiness test)
 
 **Phase 4 — the non-dev Mac**
 - [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups
@@ -553,11 +684,39 @@ today's developer rice, `large-print` + `everyday`, and a mouse-first
 writer/creative setup — each expressible **without reaching around
 `nebelhaus.*` even once.**
 
-Scoreboard: `full` and `everyday` now exist and pass (`nix flake check` proves
-they touch nothing outside `nebelhaus.*`). `large-print` is the next one, and it
-is blocked on §5.1/§5.2/§5.3 — deliberately not faked with a `system.defaults`
-escape hatch, because doing so would make the test meaningless. If any needs a raw `system.defaults` or a
-hand-written activation script, the model isn't ready.
+Scoreboard, 2026-07-27: **all three now exist and pass.** `full`, `everyday` and
+`large-print` are data-only (`nix flake check` proves they touch nothing outside
+`nebelhaus.*`), and none needed a `system.defaults` escape hatch or a
+hand-written activation script — which was the whole point of not faking it.
+
+`presets/large-print.nix` is three options (`ui.scale`, `theme.contrast`,
+`accessibility.increaseContrast`) and it is a **layer, not a whole rice**: it
+describes seeing, not the person, so `[ everyday large-print ]` composes with
+nothing lost either way (measured: stock `1.0 / 19pt` → large-print `1.4 / 27pt /
+contrast high` → stacked, plus developer off, prowl off, pounce on). That layer
+shape needed no new mechanism, and it's a better answer than a monolithic preset:
+had large-print been forced to restate `everyday`, the surface still couldn't
+separate "a Mac for someone who doesn't write code" from "a Mac you can read".
+
+**Passing is not the same as finished, and the test's real value was the two
+limits it exposed:**
+
+1. **A shared rice cannot change the font family.** `fonts.mono.package` takes a
+   `types.package`, and reaching `pkgs` is precisely what data-only forbids — so
+   §5.3's own motivating example (Atkinson Hyperlegible for a large-print machine)
+   is unexpressible as a preset. This is a **format** limit, not a missing option,
+   and it generalises: any option typed as a package, derivation or path-to-store
+   is invisible to the community format. Worth auditing the whole surface for
+   others before publishing it.
+2. **There is still no system-wide text size**, so "large print" means "large
+   inside nebelhaus" — the terminal, the Dock, the gaps. macOS's own lever is
+   display resolution (§5.10), which is why displays moved up. Until then the
+   preset says so in its own comment rather than implying more than it does.
+
+So the honest reading: the option surface can now *express* all three reference
+rices, and `large-print` is the one whose expression is thinner than its name
+promises. Next-most-valuable work is §5.10 (the missing half of large-print) and
+pounce/sill sizing (§5.2/§5.9), not §5.4.
 
 ---
 
@@ -576,9 +735,67 @@ Breaking option renames (e.g. `apps.*.workspace` → `workspaces`) couple a
 consumer lock-bump and a config edit into one PR — `bench ship` can't split
 them without breaking main mid-ripple.
 
+**Ordering, learned on §5.1.** A rice change that consumes a new nebelung output
+can't carry its own lock bump — the bump isn't computable until nebelung's PR
+lands. The way to keep the rice PR independently reviewable is to make the
+**default path** need nothing new: `modules/lib/nebelung.nix` re-derives the
+variant-subdir rule rather than reading nebelung's `variants` output, so
+`flavor = "mocha"` still evaluates against the old lock and CI stays green, while
+`flavor = "latte"` throws a message naming `nix flake update nebelung`. The cost
+is one rule mirrored across the repo boundary; the mitigation is that both sides
+hold it in exactly one place and `nix flake check`'s `theme-variants` pins the
+table, because that mirror's failure mode is silent (a wrong subdir is a store
+path that doesn't exist, discovered at activation).
+
 ---
 
-## 8. Naming (optional, low stakes)
+## 8. What a cloud session can actually verify here
+
+Recorded because §5.1/§5.5 were done from Claude Code on the web, and the house
+rule is to *diff derivations rather than assert no-change* — which needs some
+care when a full `nix eval` is off the table.
+
+**Doesn't work** (as the workshop CLAUDE.md says): a darwin evaluation, `bench
+try`, `nix flake check`, or nebelung's `nix build`. nixpkgs, nix-darwin,
+home-manager and catppuccin all resolve through the session's GitHub gate and
+only nebelhaus-org repos are in scope.
+
+**Does work, and was enough for real proofs:**
+
+- **nixpkgs via the channel tarball.** `https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz`
+  is not GitHub, so it fetches, and `cache.nixos.org` is reachable. That gives
+  `pkgs`/`lib`, `nixfmt`, `shellcheck` and `runCommand` — everything except the
+  darwin module set.
+- **The options surface, diffed as a derivation.** `packages.<linux>.options-json`
+  evaluates only the per-room `options.nix` files (that's why §3.1 mattered), so it
+  can be built standalone before and after a change and every leaf's type +
+  default compared. "Exactly four new options and nothing else moved" is a diff,
+  not a claim.
+- **The generated artifacts, diffed.** `aerospace.toml` and the pounce cheatsheet
+  are pure functions of a few config values, so a harness can call the real tables
+  and render both revisions. That's what proved the §5.5 refactor byte-identical at
+  the default keymap — and it earned its keep by catching two bugs a patch read
+  wouldn't have: token names written in `aerospace.toml`'s own **prose** (the
+  substitution is blind to comments, so generated bindings landed mid-sentence),
+  and a stray blank line from a newline-terminated token above a blank template
+  line.
+- **nebelung end to end.** `node --test` runs natively, and `whiskers` builds from
+  crates.io (`index.crates.io` bypasses the proxy). Version 2.9.0 reproduces the
+  committed `dist/` byte-for-byte, which is what makes "the latte variants are a
+  pure addition" a `git status` observation rather than an assertion.
+- **New checks written to be Linux-capable on purpose.** `theme-variants` and
+  `keymap` are pure `lib`, like `options-json`, so they run in this environment AND
+  in the docs repo's Linux CI. Anything needing a darwin system stays guarded
+  behind `optionalAttrs isDarwin`.
+
+**One trap.** `nixfmt` from the tarball is 1.4.0 and the repo is formatted with an
+older one — 137 lines of churn on `flake.nix` at `HEAD` alone. Running it would
+bury a change in reformatting, so: check new files for cleanliness, match the
+surrounding style by hand, and don't reformat existing ones.
+
+---
+
+## 9. Naming (optional, low stakes)
 
 The family speaks cat-and-house (`nebelung`, `pounce`, `prowl`, `sill`, `den`,
 `hearth`, `collar`, `hush`, `trill`, `perch`, `haus`, `wt`). New rooms could
