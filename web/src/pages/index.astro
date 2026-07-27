@@ -1,6 +1,6 @@
 ---
 // nebelhaus.com — the landing page. Fully custom (not the Starlight layout).
-// Pounce and Trill reuse the same nav, feature rail, cards, and panel language
+// Pounce, Trill, and Perch reuse the same nav, feature rail, cards, and panel language
 // through ProductLanding.astro while keeping the rice's page a little fuller.
 import FamilyNav from '../components/FamilyNav.astro';
 const desc =
@@ -53,6 +53,15 @@ const family = [
       'a fast, keyboard-first iMessage, SMS & RCS client. Reads chat.db read-only — it changes nothing.',
     href: '/trill/',
     accent: '#8db4f3',
+  },
+  {
+    name: 'perch',
+    logo: '/logos/perch.png',
+    tagline: 'the shelf',
+    blurb:
+      'a native temporary file shelf that grows out of your MacBook notch. Drop now, drag elsewhere later.',
+    href: '/perch/',
+    accent: '#b5bff8',
   },
 ];
 
@@ -187,7 +196,7 @@ const features = [
 
       <section class="family">
         <div class="section-head">
-          <h2>Four rooms, one house</h2>
+          <h2>Five rooms, one house</h2>
           <p>Each piece also stands on its own. Take the whole rice, or just the parts you like.</p>
         </div>
         <div class="family-grid">
@@ -612,7 +621,7 @@ const features = [
 
       .family-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 1rem;
       }
 
@@ -627,6 +636,11 @@ const features = [
         border-radius: 11px;
         color: var(--text);
         transition: border-color 0.15s, background 0.15s;
+        grid-column: span 2;
+      }
+
+      .room:nth-child(n + 4) {
+        grid-column: span 3;
       }
 
       .room:hover {
@@ -665,6 +679,21 @@ const features = [
         color: var(--accent);
         font-size: 0.9rem;
         font-weight: 600;
+      }
+
+      @media (max-width: 800px) {
+        .family-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .room,
+        .room:nth-child(n + 4) {
+          grid-column: auto;
+        }
+
+        .room:last-child:nth-child(odd) {
+          grid-column: 1 / -1;
+        }
       }
 
       /* ---- horizontal feature rail ---- */
