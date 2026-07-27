@@ -100,9 +100,12 @@ points outside your toplevel):
   activates: `cmd_ship` operates on the *main* checkouts, so it ripples
   merged/released upstream work downstream — it does **not** push your unmerged
   `worktree-*` branch. Use it for the downstream lock ripple (e.g. after a
-  release moved an upstream repo's HEAD). Still off-limits from a worktree:
-  `bench try switch` / `darwin-rebuild switch` (activation) and `bench release`
-  (always gated).
+  release moved an upstream repo's HEAD). Mid-development, `bench try switch` /
+  `darwin-rebuild switch` stay off-limits from a worktree (they'd activate
+  unmerged branch code) — but at the END of `/ship`, once the PR has merged into
+  `main`, you activate directly by `cd`-ing to the main checkout: `cd "$main" &&
+  bench try switch` (no pane spawned; see the ship skill's Step 7). `bench
+  release` is always gated.
 - **Land your work through a PR — never a direct push or a local `git merge`
   into `main`.** When the branch is ready: push it and open a PR (`gh pr
   create`) against `main` — give it a **What / Why / Verify / Watch-out** body
@@ -125,12 +128,12 @@ points outside your toplevel):
   hand-creates child-repo worktrees for out-of-repo work, and those aren't
   auto-reaped, so merge their PRs too and `git worktree remove` them. When it's
   all landed and nothing ≥3/5 needs my attention (don't wait on CI unless that's
-  the point), `/ship` may close this pane with
-  `zellij action close-pane -p "$ZELLIJ_PANE_ID"` (target the pane id, not
-  whatever's focused) — but reap the merged worktree first with
-  `( cd "$main" && wt reap )`: the `close-pane` kill bypasses the `wt` remove
-  hook (it only fires on Claude's own graceful teardown), so a bare close leaves
-  the landed checkout behind.
+  the point), `/ship` activates the shipped change for me — `cd "$main" && bench
+  try switch` (activation is passwordless; testing-in-prod is house style) — then
+  stops and reports. It does **not** close this pane and does **not** spawn a new
+  one — leave the pane exactly where it is; I close panes myself. The now-merged
+  worktree is **not** reaped here (you're still sitting in it) — it's cleaned up
+  when I close the pane, or by a later `wt reap`.
 - When done, push the branch, open the PR, and — if I didn't say ship — tell me
   the PR link. The worktree dies with the pane; the branch + PR survive until
   merged (and `bench status` nags about the branch).

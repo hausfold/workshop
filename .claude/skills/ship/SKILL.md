@@ -3,14 +3,14 @@ name: ship
 description: >-
   Finish a piece of work in the nebelhaus family and land it: commit stragglers, verify
   with `bench try`, open a PR and merge it, clean up every worktree the session spun up,
-  ripple the flake locks with `bench ship` — then, if nothing important is left to flag,
-  close the pane. Use when I say /ship, "ship it", "land this", or want to wrap up a change
-  across the nebelung → pounce → nebelhaus → config chain. Worktree-aware: invoking /ship
-  is the go-ahead to merge the PR; only `try switch` (activation) and `bench release` stay
-  main-checkout-only.
+  ripple the flake locks with `bench ship`, then activate on the main checkout with
+  `bench try switch`. Use when I say /ship, "ship it", "land this", or want to wrap up a
+  change across the nebelung → pounce → nebelhaus → config chain. Worktree-aware: invoking
+  /ship is the go-ahead to merge the PR and activate on main (by `cd`-ing there); `bench
+  release` stays gated. Never opens or closes a zellij pane.
 ---
 
-# Ship (nebelhaus workshop): verify → PR → merge → clean up → ripple → close
+# Ship (nebelhaus workshop): verify → PR → merge → clean up → ripple → activate
 
 The nebelhaus repos form a chain of pinned flake inputs
 (`nebelung → pounce → nebelhaus → ~/.config/nix`). A commit is invisible downstream until
@@ -18,7 +18,8 @@ each downstream `flake.lock` is bumped — `bench ship` does that ripple. Never 
 `bench` lives at the workshop root and is available as `bench`; run it from anywhere.
 
 End-state: the work is merged **through a PR**, the locks are rippled, every worktree this
-session created is gone, and — if there's nothing worth my attention — the pane is closed.
+session created (except the one I'm in) is reaped, and the change is activated on main. Then
+`/ship` stops and leaves me where I am — it never opens or closes a zellij pane.
 
 ## Why a PR, and why /ship merges it
 
@@ -92,10 +93,9 @@ other context.
 Not mergeable (conflicts / non-fast-forward)? `git fetch origin && git rebase origin/main`,
 push, retry. On conflicts you can't cleanly resolve, **stop and show them** — never
 force-push `main`. On the current worktree's own branch the *local* delete may be skipped
-because you're standing on it — fine, Step 7's `wt reap` deletes the merged branch (and
-removes the checkout) as the pane closes. Don't rely on the `wt` remove hook for this: it
-only fires on Claude's own graceful teardown, and a `close-pane` kill bypasses it — which is
-exactly how merged worktrees used to pile up.
+because you're standing on it — fine, leave it: the merged branch + checkout are reaped when
+I close this pane myself (the `wt` remove hook fires on Claude's graceful teardown) or by a
+later `wt reap`. `/ship` no longer closes the pane, so there's nothing to race here.
 
 ## Step 4 — clean up every worktree this session spun up
 
@@ -131,15 +131,16 @@ never activating. Size it to the change: small (bugfix/typo/config/theme/docs) �
 big (feature/refactor/anything a user could feel break) — you'll already have paused before
 merging, so confirm it's approved before you ripple.
 
-## Step 6 — activation rides the landing pane; release stays gated
+## Step 6 — activation happens on main directly; release stays gated
 
 - **Activation** (`bench try switch` → `darwin-rebuild switch`) is what makes the shipped
-  change live. A worktree can't run it in place — but you **no longer surface it as a
-  follow-up and stay open.** Step 7 spawns a main-checkout *landing pane* that runs
-  `bench try switch` for me as it closes this one (activation is passwordless and
-  testing-in-prod is house style, so "you need to rebuild to see it" is not news worth
-  halting on). Only flag an activation when it's genuinely *risky* — something a user could
-  feel break, or a change that's hard to roll back.
+  change live. A worktree can't run it *in place*, but you **no longer surface it as a
+  follow-up and stay open** — Step 7 does it for me by `cd`-ing to the main checkout and
+  running `bench try switch` there directly (the PR has merged, so main holds the work;
+  activation is passwordless and testing-in-prod is house style, so "you need to rebuild to
+  see it" is not news worth halting on). **No pane is spawned, and this pane is not closed.**
+  Only flag an activation when it's genuinely *risky* — something a user could feel break, or
+  a change that's hard to roll back.
 - **Release** (`bench release <repo>`: stamps today's CalVer date → tag → CI publishes →
   bumps `homebrew-tap`; releasable repos are pounce, trill, nebelhaus) is **always gated.**
   Never run it unprompted — but if this ship touched user-facing behavior in a tagged repo,
@@ -147,12 +148,12 @@ merging, so confirm it's approved before you ripple.
 
 ## Step 7 — report, land the verify-list, then settle-or-surface
 
-Print the report, then a bottom-anchored **verify-list**, then decide whether to close.
+Print the report, then a bottom-anchored **verify-list**, then activate (or surface a blocker).
 
-**1. Report** — closing the pane wipes the screen, so print it first: which repos shipped
-and their new SHAs, what `bench try` verified, which PRs merged, which worktrees you removed.
+**1. Report** — print it first so it's not lost to scroll: which repos shipped and their new
+SHAs, what `bench try` verified, which PRs merged, which worktrees you removed.
 
-**2. The verify-list — ALWAYS the last thing in the thread**, so it survives a pane close
+**2. The verify-list — ALWAYS the last thing in the thread**, so it's easy to find later
 and is my test checklist. A single session often opens more than one PR (a workshop PR plus
 child-repo PRs) — list **every** one, oldest first:
 
@@ -162,7 +163,7 @@ child-repo PRs) — list **every** one, oldest first:
 - [pounce#35](https://github.com/nebelhaus/pounce/pull/35) — <one line: what changed> · **check:** <1–3 concrete, observable steps>
 - [nebelung#12](https://github.com/nebelhaus/nebelung/pull/12) — <what changed> · **check:** <steps>
 
-Activate (idempotent, skip if the landing pane already did): `bench try switch`
+Activate (idempotent; /ship already ran this on main — re-run if needed): `bench try switch`
 ```
 
 Rules for the list: each entry is a `[repo#N](url)` markdown link — repo-qualified, never
@@ -179,46 +180,24 @@ is the reliable copy.
 
 - **Something genuinely ≥ ~3/5** — a broken build you worked around, a decision I owe you, a
   *risky* activation (something a user could feel break), a release worth proposing —
-  **surface it and stop. Don't close.** Routine activation is NOT this; it rides the landing
-  pane below.
-- **Otherwise it's settled — close this pane, spawning a main-checkout landing pane first
-  whenever this is the last real pane in *its own tab*.** I keep ~1 tab per repo, so a tab
-  emptying = that repo's work is done: land me in main there, running the activation, so I
-  come back to the change already going live (this also covers the naked-terminal case —
-  the last pane in the *only* tab — as a subset, since we always spawn before closing it):
+  **surface it and stop.** Routine activation is NOT this; just do it (below).
+- **Otherwise it's settled — activate the change, then stop and leave the pane alone.**
+  Activation is a main-checkout job, so `cd` there and run it directly — the PR has merged, so
+  `main` now holds the work. Do **not** spawn a landing pane, and do **not** close this pane:
+  I open and close my own panes.
 
   ```bash
-  common_dir="$(git rev-parse --path-format=absolute --git-common-dir)"
-  main="$(dirname "$common_dir")"
-  if [ -n "$ZELLIJ_PANE_ID" ]; then
-    # real panes in THIS tab only: the focus=true block, stopping before swap_tiled_layout
-    panes=$(zellij action dump-layout \
-              | awk '/^    tab[ ].*focus=true/{f=1} f{print} f&&/^    }[[:space:]]*$/{exit}' \
-              | grep -E '^[[:space:]]+pane' | grep -vcE 'borderless=true|split_direction=')
-    if [ "${panes:-0}" -le 1 ]; then
-      # last real pane in this tab → land me in main running the activation, shell after
-      zellij action new-pane --cwd "$main" --name activate -- zsh -ic 'bench try switch; exec zsh'
-    fi
-    ( cd "$main" && wt reap ) || true                           # reap THIS now-merged worktree (+ any other landed ones) — do NOT trust the hook to fire on the kill below
-    zellij action close-pane -p "$ZELLIJ_PANE_ID"               # target the id, not the focused pane
-  fi
+  main="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+  ( cd "$main" && bench try switch )      # activate the merged change on main
   ```
 
-  The `wt reap` runs from `$main` (not the worktree), so `wt`'s "never reap the pane you're
-  standing in" guard doesn't skip this worktree — it's merged and clean now, so it gets swept.
-  Only landed, clean checkouts are touched; unmerged or dirty worktrees (other live agents)
-  are always left. This is the belt to the hook's suspenders: `close-pane` SIGKILLs the
-  process, which does not reliably run the `WorktreeRemove` hook, so we reap explicitly here.
-
-  The count is **per-tab, not per-session**: with sibling panes still open *in this tab*
-  don't spawn — just close, the tab lives on. But when this tab's last pane closes, spawn and
-  auto-activate **even if other tabs still have live agents** — that's deliberate. Activation
-  surfacing per-repo is what I want; if two tabs empty near-simultaneously and their
-  `bench try switch` runs race, I'd rather see that race and fix it than have it hidden
-  behind a per-session guard. When the shipped change needs no activation at all (docs, a
-  lock-only ripple), still spawn the landing pane but drop the command — use `-- zsh` so I
-  land in main instead of a bare terminal. The `wt reap` above (not the remove hook) is what
-  reaps the merged branch; don't wait on CI unless CI is what this thread was about.
+  When the shipped change needs no activation at all (docs, a lock-only ripple), skip the
+  `bench try switch` — there's nothing to make live. Either way, **don't touch the pane.**
+  The now-merged worktree you're sitting in is left exactly as-is — reaping it would pull the
+  checkout out from under this live pane — and gets cleaned up when I close the pane myself
+  (the `wt` remove hook), or by a later `wt reap`. (Other landed worktrees this session
+  spawned were already swept in Step 4, which runs from the worktree cwd so its guard keeps
+  *this* one.) Don't wait on CI unless CI is what this thread was about.
 
 ## The whole lifecycle (for context)
 
