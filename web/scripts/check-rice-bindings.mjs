@@ -61,14 +61,39 @@ function readWmBindings() {
     return JSON.parse(readFileSync(out, 'utf8'));
   } catch (err) {
     if (!(err.stderr?.toString() ?? '').includes('does not provide attribute')) throw err;
-    // Pre-wm-bindings-json rice: the table was still plain data.
-    return JSON.parse(
-      execFileSync(
-        'nix',
-        ['eval', '--json', '--file', join(rice, 'modules/prowl/wm-bindings.nix')],
-        { encoding: 'utf8' },
-      ),
-    );
+    // Pre-wm-bindings-json rice: the table was still plain data. Only reachable
+    // on a checkout older than that output.
+    try {
+      return JSON.parse(
+        execFileSync(
+          'nix',
+          ['eval', '--json', '--file', join(rice, 'modules/prowl/wm-bindings.nix')],
+          { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+        ),
+      );
+    } catch (fallbackErr) {
+      // The in-between state: the rice made wm-bindings.nix a FUNCTION of
+      // nebelhaus.keys.* but hasn't landed the output that resolves it. Nix's own
+      // message ("cannot convert a function to JSON") names neither repo, and this
+      // runs on a cron, so translate it into the sentence that helps. Same
+      // courtesy gen-options.mjs extends for a missing options-json.
+      if ((fallbackErr.stderr?.toString() ?? '').includes('cannot convert a function to JSON')) {
+        console.error(
+          [
+            `The rice checkout at ${rice} has a FUNCTION-form wm-bindings.nix but no`,
+            '`wm-bindings-json` flake output, so neither way of reading the binding',
+            'table works.',
+            '',
+            'That is a transient state ACROSS two repos: the rice parameterised the',
+            'table on nebelhaus.keys.*, and the output that resolves it lands',
+            'separately. Merge the rice PR adding `wm-bindings-json` and re-run.',
+            '',
+          ].join('\n'),
+        );
+        process.exit(1);
+      }
+      throw fallbackErr;
+    }
   }
 }
 const wmBindings = readWmBindings();
