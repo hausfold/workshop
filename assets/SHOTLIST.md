@@ -21,16 +21,19 @@ If a shot isn't in the survivor table below, it isn't wired into anything.
 
 ## The survivor set (this is the whole list)
 
-Five assets carry the family. Each earns its slot by what it's worth to a
+Four assets carry the family. Each earns its slot by what it's worth to a
 stranger seeing it cold — the highest-reach, most-shareable moment of its repo.
 
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
 | 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README · `pounce.astro` landing | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
 | 2 | **Rice hero desktop** | `nebelhaus/assets/hero.png` | rice README · org README · landing poster | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(Still a placeholder — the one shot genuinely worth capturing.)* |
-| 3 | **Nebelung swatch-cascade** | `nebelung/assets/swatch-cascade.webp` | nebelung README | The "change one word, repaint everything" hook — a palette product's whole promise in one loop. |
-| 4 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
-| 5 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
+| 3 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
+| 4 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
+
+*(Nebelung's README now leads with its evergreen wordmark banner — an exempt
+graphic per the policy above, not a survivor-table hero; the old
+`swatch-cascade.webp` marketing loop was retired.)*
 
 ## Everything else is delisted
 
