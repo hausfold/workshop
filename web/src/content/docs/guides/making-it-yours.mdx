@@ -164,13 +164,57 @@ Three rooms are opt-*out*; the rest are load-bearing:
 
 | Room | Option | Off means |
 |---|---|---|
-| prowl (tiling) | `nebelhaus.prowl.enable = false` | No AeroSpace, no Caps-Lock leader |
+| prowl (tiling) | `nebelhaus.prowl.enable = false` | No AeroSpace, no leader key |
 | sill (bar) | `nebelhaus.sill.enable = false` | The native menu bar stays |
 | pounce (launcher) | `nebelhaus.pounce.enable = false` | ⌘Space stays Spotlight |
+
+If what you actually want is the tiler **without** its keyboard claims, don't turn
+the room off — set `nebelhaus.keys.leader = "none"` and
+`nebelhaus.keys.windowNav = "none"` instead. prowl keeps tiling and Caps-Lock stays
+Caps-Lock. See [rebinding](/guides/window-management/#not-fond-of-these-keys).
 
 **den** (system + Homebrew), **hearth** (shell), and **collar** (Touch ID sudo)
 are always on — they're the foundation the rest sits on. Turn any of the three
 optional rooms off and the others keep working; the rice degrades gracefully.
+
+## Presets: start from someone else's rice
+
+A **preset** is a data-only rice — a file whose only top-level key is
+`nebelhaus`. No `pkgs`, no `lib`, no activation scripts, so it can't reach outside
+the option surface and you can read one in a minute and know the worst it can do.
+Import one alongside your host file:
+
+```nix
+darwinConfigurations.myhost = nebelhaus.mkNebelhaus {
+  username = "ada";
+  hostname = "myhost";
+  host = ./hosts/myhost;
+  extraModules = [ nebelhaus.presets.everyday ];
+};
+```
+
+Your host file is imported *after*, so anything you set there still wins.
+
+| Preset | For |
+|---|---|
+| `full` | the whole rice: bar, tiling, palette, developer pack. The default. |
+| `minimal` | just the themed shell — no bar, no tiling, no palette. Still a developer machine. |
+| `everyday` | the inverse: a Mac for someone who doesn't write code. No developer pack, no Caps-Lock remap. |
+| `large-print` | bigger and sharper — one UI scale, the high-contrast palette, macOS's own contrast lift. |
+
+The first three are whole rices; pick one. **`large-print` is a layer** — it
+describes seeing rather than the person, so it stacks:
+
+```nix
+extraModules = [ nebelhaus.presets.everyday nebelhaus.presets.large-print ];
+```
+
+It sets `ui.scale = 1.4`, which moves the terminal font, the Dock icons and the
+tiling gaps together — pin any single one afterwards and yours wins. Two honest
+limits: it can't scale the menu bar or the Pounce window (both are sized by
+geometry a multiplier would break, not enlarge), and macOS has no working
+declarative lever for **system-wide** text size, so third-party apps don't follow.
+For those, System Settings ▸ Displays ▸ "Larger Text".
 
 ## Overriding macOS defaults
 

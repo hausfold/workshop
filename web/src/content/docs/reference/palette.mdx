@@ -13,13 +13,39 @@ export const Swatch = ({ hex, name }) => (
   </div>
 );
 
-**nebelung** is a silver-mist Catppuccin variant — Mocha with the blue pulled out
-of the neutral ramp and the accents calmed (chroma ×0.9), keeping perceptual
-lightness identical. The result is a low-contrast, fog-grey scheme named for a
-cat breed the colour of high fog. Grey is the point.
+**nebelung** is a silver-mist Catppuccin variant — the blue pulled out of the
+neutral ramp and the accents calmed (chroma ×0.9), keeping perceptual lightness
+identical. The result is a fog-grey scheme named for a cat breed the colour of
+high fog. Grey is the point.
 
 The source of truth is `palette/nebelung.hex.json` in the
 [nebelung repo](https://github.com/nebelhaus/nebelung).
+
+## The four variants
+
+Those two rules never mention "dark", so they work in either polarity: applied to
+Catppuccin **Latte** instead of Mocha they give the same theme as a light one.
+Crossed with a contrast axis, that's four palettes — picked in the rice with
+[`theme.flavor` and `theme.contrast`](/guides/theming/#light-mode):
+
+| Variant | Source | Rendered under | text on base |
+|---|---|---|---|
+| `nebelung` | Mocha | *(the tree root)* | 11.3:1 |
+| `nebelung-high-contrast` | Mocha | `high-contrast/` | 19.9:1 |
+| `nebelung-latte` | Latte | `latte/` | 7.0:1 |
+| `nebelung-latte-high-contrast` | Latte | `latte-high-contrast/` | 9.9:1 |
+
+Every variant keeps its flavor's accents unchanged — contrast is a property of the
+**neutrals** only, so a high-contrast rice is the same theme read more easily
+rather than a different one. Each ratio is asserted in nebelung's CI, and there's
+a test that all twelve ramp steps stay distinct, because a boost pushed too far
+clamps two of them into the same colour and silently costs a level of hierarchy.
+
+Each variant also renders as its own Catppuccin flavor, so its files are named
+after it — Ghostty's light theme is
+`latte/ghostty/themes/catppuccin-latte.conf`. The swatches below are the default
+variant; view any of them in the
+[interactive preview](https://htmlpreview.github.io/?https://github.com/nebelhaus/nebelung/blob/main/preview/nebelung-latte.html).
 
 ## The neutral ramp
 
