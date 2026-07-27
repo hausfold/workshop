@@ -219,6 +219,25 @@ home-manager.users.${username} = {
 Keep `~/.secrets/*` out of git. Your host repo can be private; the rice never
 needs to know who you are.
 
+<Aside type="tip" title="Publishing it instead? Put gitleaks in front">
+If you'd rather share your host repo than keep it private, add a
+[gitleaks](https://github.com/gitleaks/gitleaks) pre-commit hook so a stray key
+never gets to *be* a commit:
+
+```sh
+cd ~/.config/nix
+printf '#!/bin/sh\nexec gitleaks git --pre-commit --staged --redact --verbose\n' \
+  > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+Add `gitleaks` to `home.packages` so the hook has something to run. It exits
+non-zero on a hit and stops the commit; `git commit --no-verify` overrides it
+when you're sure. Scan the history you already have *before* you flip the repo
+public — plain `gitleaks git` walks every commit, and deleting the line later
+doesn't unpublish the key, so rotate anything it finds.
+</Aside>
+
 <Aside type="tip" title="Wrong repo?">
 Changing a *color*? That's the [nebelung](/reference/palette/) palette, a
 different repo. Changing the rice's *shared* behaviour for everyone (not just
