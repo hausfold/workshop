@@ -349,13 +349,13 @@ pkgs.nerd-fonts.fira-code
 
 ### `nebelhaus.fonts.mono.size`
 
-`positive integer, meaning >0` · default `19`
+`positive integer, meaning >0` · default `19, scaled by nebelhaus.ui.scale`
 
 Terminal font size in points. The single most useful knob for a
 larger-text machine, since it moves everything the rice actually
 lives in.
 
-19 is the default for a reason worth knowing: the Ghostty window is
+19 (at ui.scale = 1.0) is the base for a reason worth knowing: the Ghostty window is
 tiled to a fixed pixel height by prowl, and sizes that don't divide
 that height evenly used to leave a gap under zellij's status bar.
 That's since been fixed properly (window-padding-balance +
@@ -696,6 +696,29 @@ The weather pill and its click-to-open forecast popover.
 `boolean` · default `true`
 
 The Wi-Fi status pill.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.sill.position`
+
+`one of "top", "bottom", "auto"` · default `"top"`
+
+Where the bar sits. `top` and `bottom` pin it there. `auto` flips it
+at runtime — `bottom` whenever an external display is attached (docked
+with the lid open, or clamshell), `top` on the built-in display alone —
+driven by a `display_change` hook, so the bar moves the moment you dock
+or undock, without a rebuild.
+
+The bar's height/pill offsets are tuned for the notch, which only
+exists at the top of the built-in display; at `bottom` there's no notch
+to tuck under, so `auto` conveniently keeps the notch case (`top`) on
+the notched screen and the plain case (`bottom`) on the external.
+
+Example:
+
+```nix
+"auto"
+```
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -1159,6 +1182,135 @@ Example:
 
 ```nix
 "S"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.developer
+### `nebelhaus.developer.agents.enable`
+
+`boolean` · default `config.nebelhaus.developer.enable`
+
+Coding-agent tooling: `wt` (Claude Code agent worktrees), `zscratch`,
+the agent-worktree statusline, opencode, and the Claude Code settings
+and hooks hearth writes.
+
+Off is right for any machine not running coding agents — it's a large
+surface a non-developer never sees.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.developer.enable`
+
+`boolean` · default `true`
+
+The developer pack: the CLI toolbelt, Git tooling, coding-agent
+tooling, and language runtimes. On (the default) is the rice as it
+has always been.
+
+`false` is what makes a non-developer nebelhaus possible — it strips
+those tools rather than merely hiding them. What remains is the
+product: `haus`, `awake`, the theme, the terminal, the bar, the tiler
+and the palette.
+
+The sub-options below each default to THIS value, so turning it off
+turns everything off and you can then re-enable one piece:
+
+  nebelhaus.developer.enable = false;
+  nebelhaus.developer.git.enable = true;  # …but keep git
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.developer.git.enable`
+
+`boolean` · default `config.nebelhaus.developer.enable`
+
+Git and its surroundings: the shell alias vocabulary, the themed git
+config, delta (diff pager), lazygit, `gh`, and gnupg for commit
+signing. Off drops all of them, and `nebelhaus.git.*` then has
+nothing to configure.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.developer.languages`
+
+`list of value "node" (singular enum)` · default `[ "node" ] when developer.enable is true, else [ ]`
+
+Language runtimes to install. Currently only "node" (bun + fnm, with
+fnm's `--use-on-cd` shell hook).
+
+Deliberately a list rather than one bool per language, so adding
+"rust" or "python" later doesn't change this option's shape.
+
+Example:
+
+```nix
+[ ]
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.developer.toolbelt.enable`
+
+`boolean` · default `config.nebelhaus.developer.enable`
+
+The terminal toolbelt: bat, fzf, fd, yazi, zoxide, lsd, glow, jq,
+tree, chafa, ttyd and fastfetch — the themed replacements for cat,
+find, ls and friends that the rice's shell is built around.
+
+Off leaves a plain shell. The prompt (starship) and the colour scheme
+stay: these are the *tools*, not the appearance.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.perch
+### `nebelhaus.perch.enable`
+
+`boolean` · default `true`
+
+The perch notch file shelf, installed via the perch flake (copied to /Applications).
+
+<small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
+
+## nebelhaus.ui
+### `nebelhaus.ui.scale`
+
+`integer or floating point number between 0.5 and 3.0 (both inclusive)` · default `1.0`
+
+One number for "make the interface bigger". 1.0 is the rice as tuned;
+1.35 is a comfortable large-print setting; below 1.0 tightens things up.
+
+It sets the DEFAULT of the sizes it drives, so anything you pin by hand
+still wins:
+
+  nebelhaus.ui.scale = 1.5;          # everything grows
+  nebelhaus.fonts.mono.size = 18;    # …except the terminal, pinned here
+
+What it currently moves:
+
+  - the terminal font size (nebelhaus.fonts.mono.size)
+  - the Dock icon size (system.defaults.dock.tilesize)
+  - prowl's window gaps
+
+What it deliberately does NOT move:
+
+  - Sill's menu bar. Its height is tuned to sit inside the macOS
+    menu-bar band so the hover-reveal covers it exactly; scaling that
+    linearly breaks the alignment rather than making it bigger. The bar
+    needs its own sizing pass, not a multiplier.
+  - anything outside nebelhaus. macOS has no system-wide UI scale, so
+    third-party apps follow only a display-resolution change.
+
+Example:
+
+```nix
+1.35
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
