@@ -49,12 +49,12 @@ nebelhaus.mkNebelhaus {
 ```
 
 It composes the rooms — `den`, `theme`, `hearth`, `prowl`, `sill`, `collar`,
-`pounce`, `trill`, `hush`, `secrets` — and layers in home-manager, the
+`pounce`, `trill`, `perch`, `hush`, `secrets` — and layers in home-manager, the
 [nebelung](/reference/palette/) theme, and the [pounce](/guides/pounce/) app.
 Most rooms are also exported individually under `darwinModules` (`den`,
 `hearth`, `prowl`, `sill`, `collar`, `pounce`, `hush`, `secrets`, and `default`
-for all of them) if you'd rather cherry-pick; `theme` and `trill` ride along
-only with the full house.
+for all of them) if you'd rather cherry-pick; `theme`, `trill`, and `perch` ride
+along only with the full house.
 
 ## The inputs
 
@@ -67,6 +67,7 @@ The rice flake pulls together:
 - `nebelung` — the silver-mist palette (a family input)
 - `pounce` — the launcher app (a family input)
 - `trill` — the Messages client (a family input; tracks trill *releases*, not `main`)
+- `perch` — the notch file shelf (a family input; tracks perch *releases*, not `main`)
 - `nix-index-database` — for `nix-index` + `comma`
 
 ## Why pins mean "nothing changes until you say so"

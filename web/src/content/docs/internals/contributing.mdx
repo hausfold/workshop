@@ -34,6 +34,7 @@ Each change belongs to exactly one repo. Start in the right one:
 | colours / palette / how a tool is themed | `nebelung` |
 | the launcher app or a generic command | `pounce` |
 | the Messages client (trill) | `trill` |
+| the notch file shelf (perch) | `perch` |
 | macOS defaults, tiling, bar, shell, Touch ID | `nebelhaus` |
 | your own machine's apps / identity / secrets | `~/.config/nix` |
 
@@ -152,10 +153,10 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
    rest open.
 6. **ship** — `./bench ship` pushes upstream→downstream, rippling every
    `flake.lock` in dependency order.
-7. **release** — `./bench release <repo>`; CI does the rest. Three repos are
-   releasable: **pounce** (GitHub release + Homebrew formula bump), **trill**
-   (Homebrew cask bump + the rice's flake pin), and **nebelhaus** (the tag becomes
-   what `nebelhaus.com/init.sh` serves to new installs).
+7. **release** — `./bench release <repo>`; CI does the rest. Four repos are
+   releasable: **pounce** (GitHub release + Homebrew formula bump), **trill** and
+   **perch** (Homebrew cask bump + the rice's flake pin), and **nebelhaus** (the
+   tag becomes what `nebelhaus.com/init.sh` serves to new installs).
 
 <Aside type="note" title="Releases ride tags">
 Versions are date-based (CalVer). `bench release <repo>` stamps today's date —
