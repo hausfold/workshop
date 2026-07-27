@@ -108,7 +108,6 @@ const canonical = `https://nebelhaus.com/${product}`;
 
     <main>
       <section class="hero">
-        <img class="hero-mark" src={`${logo}?v=2`} alt="" width="78" height="78" />
         <p class="eyebrow">{eyebrow}</p>
         <h1>{titleLead}<br /><span class="accent-text">{titleAccent}</span></h1>
         <p class="lede">{lede}</p>
@@ -302,14 +301,6 @@ const canonical = `https://nebelhaus.com/${product}`;
       .hero {
         padding: 3.65rem 0 5.5rem;
         text-align: center;
-      }
-
-      .hero-mark {
-        display: block;
-        margin: 0 auto 1rem;
-        border-radius: 18px;
-        object-fit: contain;
-        filter: drop-shadow(0 12px 32px color-mix(in srgb, var(--product-accent) 16%, transparent));
       }
 
       .eyebrow,
@@ -718,11 +709,6 @@ const canonical = `https://nebelhaus.com/${product}`;
 
         .hero {
           padding: 2.9rem 0 4.5rem;
-        }
-
-        .hero-mark {
-          width: 64px;
-          height: 64px;
         }
 
         .eyebrow {
