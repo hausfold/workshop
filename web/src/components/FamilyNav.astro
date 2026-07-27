@@ -1,6 +1,6 @@
 ---
 interface Props {
-  active: 'nebelhaus' | 'pounce' | 'trill';
+  active: 'nebelhaus' | 'pounce' | 'trill' | 'perch';
   productName?: string;
   productLogo?: string;
   guideHref?: string;
@@ -36,6 +36,10 @@ const assetV = '2';
     <a href="/trill/" aria-current={active === 'trill' ? 'page' : undefined}>
       <span class="switcher-dot trill"></span>
       <span>trill</span>
+    </a>
+    <a href="/perch/" aria-current={active === 'perch' ? 'page' : undefined}>
+      <span class="switcher-dot perch"></span>
+      <span>perch</span>
     </a>
   </nav>
 
@@ -128,6 +132,10 @@ const assetV = '2';
     background: var(--blue);
   }
 
+  .switcher-dot.perch {
+    background: var(--lavender);
+  }
+
   .family-links {
     display: flex;
     justify-content: flex-end;
@@ -166,8 +174,8 @@ const assetV = '2';
 
   @media (max-width: 430px) {
     .family-switcher a {
-      padding-inline: 0.58rem;
-      font-size: 0.68rem;
+      padding-inline: 0.48rem;
+      font-size: 0.66rem;
     }
 
     .family-links .install-link {
