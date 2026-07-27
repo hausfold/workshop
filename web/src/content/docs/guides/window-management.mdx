@@ -31,6 +31,36 @@ the arrow keys are all macOS text-navigation, so arrow-focus lives behind the
 Caps-Lock leader (tap ⇪, then arrow) where nothing collides. No Vim keys
 required — but `⌥H/J/K/L` is there for the hands that want it.
 
+### Not fond of these keys?
+
+Both halves of that vocabulary are options, so none of the above is baked in:
+
+```nix
+nebelhaus.keys.leader    = "caps";       # caps | alt-space | none
+nebelhaus.keys.windowNav = "alt";        # alt | ctrl-alt | cmd-alt | none
+nebelhaus.keys.palette   = "cmd-space";  # cmd-space | alt-space | ctrl-space | none
+```
+
+Three reasons people change them, in rough order of how often:
+
+- **Keep Caps-Lock.** `leader = "alt-space"` gives you the launcher without
+  remapping anything. (The remap is re-applied at each rebuild and doesn't
+  survive a reboot, so moving off `"caps"` ends it — at the latest, at next boot.)
+- **A non-US keyboard layout.** On many layouts `⌥`+letter is how you type
+  accented characters, so a window manager owning `⌥` makes the keyboard unusable.
+  `windowNav = "ctrl-alt"` moves every chord in one go — and the cheatsheet's
+  captions move with them, because both come from the same table.
+- **Mouse-first.** `leader = "none"` with `windowNav = "none"` leaves the keyboard
+  entirely alone: prowl still tiles, but claims no chords. Reach apps through
+  [Pounce](/guides/pounce/) instead.
+
+`palette = "none"` hands ⌘Space back to Spotlight — and only that value takes
+Spotlight's shortcut away in the first place.
+
+Whatever you pick, the in-system cheatsheet (tap the leader, then `/`) and the
+first-run tour describe the keys you actually have, not these defaults.
+
+
 ## Everyday tiling — main mode
 
 | Keys | Action |

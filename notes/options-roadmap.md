@@ -250,6 +250,12 @@ nebelhaus.theme = {
 - [x] rice: honest scope — which tools follow `flavor` vs bake their own
       — **rice#103**: `theme.contrast = normal | high`; the option description names what
       it recolours (Ghostty/bat/…/Zen) vs what bakes its own (pounce, macOS).
+- [x] ✅ **Felt on the real machine, 2026-07-27: 19.9:1 reads CRISP, not harsh.**
+      That was the one open question a ratio couldn't answer, and it's the answer
+      the high-contrast axis needed before anything could be built on it — so
+      `large-print` shipping with `contrast = "high"` is now a felt choice rather
+      than a measured guess. Worth recording because the doubt was reasonable:
+      AAA-on-paper palettes routinely read as glare.
 - [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it).
       **Cheaper than it was**, now that both palettes exist — and there's a concrete
       starting point: ghostty's config used to read
@@ -669,6 +675,37 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       Phase 3 blocks on it.
 - [ ] §5.10 displays — **promoted from Phase 5**; the only working "make it bigger"
       lever, and now the single biggest gap in `large-print` (see the readiness test)
+
+**Phase 3.5 — the docs debt Phase 3 created** *(found while shipping it, 2026-07-27)*
+
+Every user-facing option family needs a hand-written guide; only
+`reference/options.md` is generated. Landing four option families at once made
+that visible, and turned up two things that were already broken:
+
+- [x] `reference/options.md` regenerated — it was **already stale from #103**, so
+      `options-drift.yml` was red before this phase even started. `theme.contrast`
+      had never reached the page.
+- [x] `guides/theming.mdx` gains contrast + light mode; it still described nebelung
+      as "low-contrast" and documented neither. Same phrase corrected in
+      `start/what-is-nebelhaus.md` and `reference/palette.mdx`.
+- [x] `guides/window-management.mdx` + `reference/keybindings.md` say the keymap is
+      configurable, and that `⇪`/`⌥` in the tables mean "the leader" and "the nav
+      modifier" on a rice that moved them.
+- [x] ⚠️ **The keybinding tripwire was BROKEN by #108** and nothing in the rice
+      could have caught it: `web/scripts/check-rice-bindings.mjs` did
+      `nix eval --json --file modules/prowl/wm-bindings.nix`, which stopped working
+      the moment that file became a function ("cannot convert a function to JSON").
+      It runs on a weekly cron, so it would have surfaced as a mystery Monday
+      failure in a different repo. Fixed by exposing `wm-bindings-json` from the
+      rice's flake — the same seam `options-json` already uses, and the general
+      lesson: **when the docs repo reads the rice's internals directly, a rice
+      refactor is a cross-repo break with no local signal.** Worth auditing for
+      other direct reads.
+- [ ] **Presets are undocumented on the site entirely** — a whole shipped feature
+      (#98) with no guide. Partly covered now by a section in
+      `guides/making-it-yours.mdx`, but the community-format story (`checkRice`,
+      publishing one, the data-only boundary) deserves its own page before anyone
+      is invited to publish a rice.
 
 **Phase 4 — the non-dev Mac**
 - [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups

@@ -1,18 +1,28 @@
 ---
 title: Theming & accents (nebelung)
-description: One silver-mist palette across every app, and how to swap the accent colour that tints the whole system.
+description: One silver-mist palette across every app — swapping the accent, raising the contrast, and switching to light mode.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 The whole system shares one palette: **[nebelung](/reference/palette/)**, a
-silver-mist Catppuccin variant. It's Mocha with the blue pulled out of the greys
-and the accents calmed down — a low-contrast, fog-grey scheme for people who find
-most dark themes too loud. Grey is the point.
+silver-mist Catppuccin variant. It's Catppuccin with the blue pulled out of the
+greys and the accents calmed down — a fog-grey scheme for people who find most
+dark themes too loud. Grey is the point.
 
 nebelung renders that one palette onto **20+ tools** — Ghostty, zellij, starship,
 bat, delta, lazygit, fzf, yazi, helix, btop, Slack, the Zen browser, and more —
 so the terminal, editor, git, and browser all speak the same colours.
+
+Three knobs, in the order most people reach for them:
+
+| Option | What it changes |
+|---|---|
+| [`theme.accent`](#swapping-the-accent) | the one hue that tints highlights |
+| [`theme.contrast`](#contrast) | how far text separates from its background |
+| [`theme.flavor`](#light-mode) | dark or light |
+
+They compose, and all three take effect on the next `haus rebuild`.
 
 ## Swapping the accent
 
@@ -44,6 +54,71 @@ can also switch it between `nebelung` and stock `mocha` in its own
 [config](/reference/pounce/#config-file).
 </Aside>
 
+## Contrast
+
+The default greys are deliberately soft. If text doesn't separate enough from its
+background — a bright room, a glossy screen, or just eyes that prefer more edge:
+
+```nix
+nebelhaus.theme.contrast = "high";
+```
+
+Same hues, same accents; the neutral ramp is pulled apart in OKLCH so every step
+gains separation. Body text goes from **11.3:1** to **19.9:1** against the
+background, which is measured in nebelung's CI rather than eyeballed — and having
+now been looked at on a real screen, it reads crisp rather than harsh.
+
+<Aside type="caution" title="What it reaches, and what it doesn't">
+This recolours everything the rice colours — Ghostty, bat, delta, lsd, yazi,
+zellij, glow, starship, lazygit, the bar, Zen, Obsidian. It does **not** touch
+native macOS apps, which have their own switch:
+
+```nix
+nebelhaus.accessibility.increaseContrast = true;
+```
+
+The two are complementary, and a genuinely high-contrast Mac wants both. That
+one needs Full Disk Access on whatever you rebuild from — see its
+[option reference](/reference/options/#nebelhausaccessibilityincreasecontrast).
+</Aside>
+
+## Light mode
+
+```nix
+nebelhaus.theme.flavor = "latte";
+```
+
+Light mode is **not** the dark palette inverted. nebelung is "Catppuccin with the
+blue stripped out", and that recipe says nothing about dark — so it's applied to
+Catppuccin **Latte** instead of Mocha to get the same theme in the other
+polarity: the same warm-grey neutral ramp, the same calmed accents, read the
+other way up.
+
+Because it's a real re-render rather than a recolour, tools take their light-mode
+branches properly — terminal ANSI black/white swap around, the Zen browser
+switches its `prefers-color-scheme` block, delta marks itself `light = true`.
+
+Light mode lands at **7.0:1** for body text on its own, so it's legible before
+you reach for contrast. The two axes compose:
+
+| | `contrast = "normal"` | `contrast = "high"` |
+|---|---|---|
+| `flavor = "mocha"` | 11.3:1 | 19.9:1 |
+| `flavor = "latte"` | 7.0:1 | 9.9:1 |
+
+<Aside type="caution" title="macOS's own appearance doesn't follow">
+The rice leaves **System Settings ▸ Appearance** alone, in both directions, so a
+light rice on a dark Mac looks half-finished. Set macOS's own Light/Dark by hand
+to match. (This isn't laziness: turning dark mode *on* is one declarative
+setting, but turning it *off* means deleting a default rather than writing one,
+which nix-darwin has no way to express.)
+
+Two other things keep their dark palette: **Pounce**, which bakes colours into
+its binary at build time, and the three hand-made
+[wallpapers](/reference/options/#nebelhausthemewallpaper), whose pixels are
+already coloured. `wallpaper = "bold"` is generated and follows your accent.
+</Aside>
+
 ## Obsidian vaults
 
 Obsidian keeps themes and appearance settings **inside each vault**, so the rice
@@ -60,7 +135,9 @@ Then `haus rebuild`. For every listed vault, Hearth:
 
 - copies the generated full Nebelung theme into
   `.obsidian/themes/Nebelung/`;
-- selects Nebelung's dark appearance; and
+- selects Nebelung's appearance (dark today, regardless of
+  `theme.flavor` — Obsidian is one of the places light mode does not yet
+  reach); and
 - disables the obsolete `nebelung` CSS snippet if it was enabled.
 
 The rest of `appearance.json` is merged and preserved. A path is skipped with a
@@ -97,8 +174,9 @@ of nebelhaus. Two ways:
 ## Tuning the palette itself
 
 Want a different fog? The palette is computed in
-[OKLCH](https://oklch.com/) space from three knobs in nebelung's
-`scripts/generate-palette.mjs` — the grey's hue and chroma, and how much the
-accents are calmed — then rebuilt with `./build.sh`. That's a nebelung-repo
+[OKLCH](https://oklch.com/) space from a handful of knobs in nebelung's
+`scripts/generate-palette.mjs` — the grey's hue and chroma, how much the accents
+are calmed, which Catppuccin flavor to strip, and how far to push the contrast —
+then rebuilt with `./build.sh`. That's a nebelung-repo
 change rather than a host-file one; the [palette reference](/reference/palette/#tuning-the-palette)
 covers the details.

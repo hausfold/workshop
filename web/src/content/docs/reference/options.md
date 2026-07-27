@@ -262,10 +262,11 @@ Colour and wallpaper.
 
 `one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"mauve"`
 
-The accent colour, a Catppuccin Mocha name (the Nebelung palette is a
-grey-tinted Mocha). It recolours the tools nebelhaus injects colours
-into — lazygit, fzf, yazi, and the Zen browser — via the matching
-Nebelung per-accent ports.
+The accent colour, by Catppuccin name (the Nebelung palette is a
+grey-tinted Catppuccin, so the fourteen names are the same in both
+flavors — the hue you pick follows nebelhaus.theme.flavor). It recolours
+the tools nebelhaus injects colours into — lazygit, fzf, yazi, and the Zen
+browser — via the matching Nebelung per-accent ports.
 
 Honest scope: this moves the accent on those tools, NOT literally
 everything. Single-file dotfiles that bake the palette at their own
@@ -277,6 +278,91 @@ Example:
 
 ```nix
 "sapphire"
+```
+
+<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+
+### `nebelhaus.theme.contrast`
+
+`one of "normal", "high"` · default `"normal"`
+
+How far the interface separates from its background.
+
+"high" swaps in the Nebelung high-contrast palette: the same hues and
+the same accents, with the neutral ramp pulled apart in OKLCH so text
+and background separate further at every step. Measured rather than
+eyeballed — body text goes from 11.3:1 to 19.9:1 against the base,
+clearing WCAG AAA (nebelung's own CI asserts it).
+
+Composes with `flavor`, and the boost is tuned per flavor rather than
+shared: light mode has far less room above its background before the ramp
+clips to white, so latte goes 7.0:1 → 9.9:1 where mocha goes 11.3 → 19.9.
+Both keep all twelve ramp steps distinct, which is the property nebelung's
+tests actually assert.
+
+Honest scope. This recolours what the rice injects colours into:
+Ghostty, bat, delta, lsd, yazi, zellij, glow, starship, lazygit, the
+bar, Zen and Obsidian. It does NOT reach:
+
+  - pounce, which bakes the palette into its binary at build time, so
+    its colours follow the pounce build rather than this option;
+  - macOS itself. For system-wide contrast see
+    nebelhaus.accessibility.increaseContrast — a separate, FDA-gated
+    setting. The two are complementary, and a genuinely high-contrast
+    machine wants both.
+
+Example:
+
+```nix
+"high"
+```
+
+<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+
+### `nebelhaus.theme.flavor`
+
+`one of "mocha", "latte"` · default `"mocha"`
+
+Light or dark. "mocha" (the default) is the rice as it has always been;
+"latte" is light mode.
+
+Not an inversion of the dark palette — a different SOURCE palette. Nebelung
+is "Catppuccin with the blue stripped out", and those rules say nothing
+about dark, so they apply to Catppuccin Latte just as well: same warm-grey
+neutral ramp, same calmed accents, the other polarity. Light mode lands at
+7.0:1 for body text on its own, so it's legible before you reach for
+contrast = "high" (which takes it to 9.9:1).
+
+It composes with `contrast`: the two axes give four palettes, and nebelung's
+CI measures each one's contrast ratio rather than eyeballing it.
+
+Honest scope, in two parts.
+
+What follows it: every tool the rice injects colours into or points at a
+rendered theme — Ghostty, bat, delta, lsd, yazi, fzf, glow, starship,
+lazygit, helix, zellij, opencode, the bar, Zen and Obsidian. These are
+genuinely re-rendered for the flavor, not recoloured in place: whiskers
+takes different branches for a light flavor (terminal ANSI 0/7/8/15 swap,
+Zen switches its prefers-color-scheme block, delta sets `light = true`).
+
+What does NOT follow it:
+
+  - macOS's own Light/Dark appearance. Turning ON dark mode is one typed
+    setting, but turning it OFF means DELETING a default rather than
+    writing one, which nix-darwin has no way to express — so the rice
+    leaves system appearance alone in both directions and you set it in
+    System Settings ▸ Appearance. A latte rice on a dark macOS looks
+    half-done, and that half is currently yours.
+  - pounce, which bakes the palette into its binary at build time, so its
+    colours follow the pounce build rather than this option.
+  - the desktop wallpaper (nebelhaus.theme.wallpaper). The three hand-made
+    looks have the dark palette baked in; only "bold" is generated, and it
+    follows theme.accent rather than the flavor.
+
+Example:
+
+```nix
+"latte"
 ```
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
@@ -547,7 +633,12 @@ Tiling window management and the Caps-Lock leader launcher.
 
 `boolean` · default `true`
 
-AeroSpace tiling window management + the Caps-Lock leader launcher.
+AeroSpace tiling window management + the leader-key launcher.
+
+This is the room switch: off drops AeroSpace, its launch agent, the
+wake-time window re-sort and the key remap entirely. To keep the tiler but
+leave the keyboard alone, use nebelhaus.keys.leader = "none" and
+nebelhaus.keys.windowNav = "none" instead of turning the room off.
 
 <small>Declared in [`modules/prowl/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/prowl/options.nix).</small>
 
@@ -1266,6 +1357,91 @@ find, ls and friends that the rice's shell is built around.
 
 Off leaves a plain shell. The prompt (starship) and the colour scheme
 stay: these are the *tools*, not the appearance.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.keys
+### `nebelhaus.keys.leader`
+
+`one of "caps", "alt-space", "none"` · default `"caps"`
+
+What enters the launcher/leader mode — tap it, then a letter opens an
+app, a digit focuses a workspace, an arrow navigates, `-`/`=` resizes.
+
+  - "caps" (default): Caps Lock. AeroSpace can't bind Caps Lock itself,
+    so the rice remaps it to F18 with hidutil and binds that.
+  - "alt-space": the leader without giving up Caps Lock. No remap at all.
+  - "none": no leader. Caps Lock stays Caps Lock, launch mode is
+    unreachable, and nothing is remapped — the setting for a mouse-first
+    rice, or for a Mac you are handing to someone else. What the leader
+    fronted is still reachable: apps through the palette, window moves
+    through `windowNav`.
+
+The remap is re-applied at every activation and does not survive a
+reboot, so moving off "caps" ends it — at the latest, at next boot.
+
+Only meaningful with nebelhaus.prowl.enable (AeroSpace owns the modes).
+
+Example:
+
+```nix
+"none"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.keys.palette`
+
+`one of "cmd-space", "alt-space", "ctrl-space", "none"` · default `"cmd-space"`
+
+What opens the pounce command palette. Registered in-process by the
+daemon, so it's near-instant and doesn't go through AeroSpace.
+
+"cmd-space" (default) is the one value that also DISABLES Spotlight's
+own ⌘Space, because the two can't share it. Every other value leaves
+Spotlight alone — including "none", which hands the palette's job back
+to Spotlight entirely. That's a fix as much as an option: the rice used
+to take Spotlight's ⌘Space away unconditionally, even where nothing
+claimed it.
+
+Only meaningful with nebelhaus.pounce.enable.
+
+Example:
+
+```nix
+"none"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.keys.windowNav`
+
+`one of "alt", "ctrl-alt", "cmd-alt", "none"` · default `"alt"`
+
+The modifier vocabulary for prowl's window chords — one setting rather
+than a bind-per-action, because what people need to move is the
+modifier, not the letters. It drives focus (`<mod>` + hjkl), layouts
+(`<mod>` + `/` `,`), fullscreen, workspace back-and-forth, moving a
+window to a workspace (`<mod>⇧` + 1-4 or an app's letter), and entering
+service mode (`<mod>⇧;`).
+
+"alt" (default) is ⌥. The alternatives are for **non-US keyboard
+layouts**, where ⌥+letter types accented characters — a rice that owns
+⌥+letter is unusable on those, which is the concrete reason this option
+exists.
+
+"none" drops the modifier chords entirely: no focus/layout/move chords,
+no service mode. Combined with `leader = "none"` that's a rice where the
+tiler tiles and the keyboard is left alone — mouse-first. The cheatsheet
+follows, so it never advertises a key that does nothing.
+
+Only meaningful with nebelhaus.prowl.enable.
+
+Example:
+
+```nix
+"ctrl-alt"
+```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 

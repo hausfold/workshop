@@ -9,6 +9,14 @@ generated from your actual app roster.
 
 Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `⇪` Caps-Lock.
 
+These are the **defaults**. The three keys everything else hangs off are options
+— `nebelhaus.keys.leader` (what `⇪` is), `nebelhaus.keys.windowNav` (what `⌥` is)
+and `nebelhaus.keys.palette` (what opens Pounce) — so on a rice that has changed
+them, read `⇪` and `⌥` below as "the leader" and "the nav modifier". Any of the
+three can be `"none"`, which removes its bindings rather than moving them. See
+[rebinding](/guides/window-management/#not-fond-of-these-keys); your own live
+cheatsheet always reflects the keys you actually have.
+
 ## Tiling — main mode (prowl)
 
 | Keys | Action |

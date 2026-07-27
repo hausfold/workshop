@@ -19,8 +19,9 @@ all — because the entire system is described in text and pinned to exact commi
 > reproducible · nix-native.
 
 Grey is the point. The default palette — [nebelung](/reference/palette/) — is a
-low-contrast, muted dark theme for people who find most themes too loud, named
-for a cat breed the colour of high fog.
+muted dark theme for people who find most themes too loud, named for a cat breed
+the colour of high fog. It also comes in a **light** mode and a
+**high-contrast** one, if soft grey isn't what your eyes want.
 
 ## Who it's for
 

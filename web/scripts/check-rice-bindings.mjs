@@ -7,8 +7,9 @@
 // they have drifted before (⌥1–4 lived in the docs long after the rice moved
 // workspace focus to the caps leader).
 //
-// This script snapshots the rice's binding surface (the wm-bindings table,
-// plus the launch/resize mode keys from aerospace.toml) into
+// This script snapshots the rice's binding surface (the wm-bindings table, via
+// the rice's `wm-bindings-json` output, plus the launch/resize mode keys read
+// out of aerospace.toml) into
 // web/src/data/rice-bindings.json. CI re-derives the snapshot from the rice's
 // current main and fails on any difference — the failure is the signal that a
 // human must update the docs (reference/keybindings.md, and usually
@@ -23,7 +24,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -38,12 +39,39 @@ if (!rice) {
   process.exit(2);
 }
 
-// The static chord table — pure data, evaluated without fetching anything.
-const wmBindings = JSON.parse(
-  execFileSync('nix', ['eval', '--json', '--file', join(rice, 'modules/prowl/wm-bindings.nix')], {
-    encoding: 'utf8',
-  }),
-);
+// The static chord table, resolved for the rice's DEFAULT keymap.
+//
+// Read from the rice's `wm-bindings-json` flake output rather than by eval'ing
+// modules/prowl/wm-bindings.nix directly. That direct eval worked while the file
+// was plain data, and broke the moment the rice made it a FUNCTION of
+// nebelhaus.keys.* ("cannot convert a function to JSON") — a change in the rice
+// silently breaking a script here, on a weekly cron. Same seam as
+// gen-options.mjs and the same reason: this repo shouldn't know how the rice
+// builds the table, only what it resolves to.
+//
+// The fallback keeps this working against a rice checkout OLDER than the output
+// (and lets the two repos land in either order).
+function readWmBindings() {
+  try {
+    const out = execFileSync(
+      'nix',
+      ['build', '--no-link', '--print-out-paths', `${resolve(rice)}#wm-bindings-json`],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim();
+    return JSON.parse(readFileSync(out, 'utf8'));
+  } catch (err) {
+    if (!(err.stderr?.toString() ?? '').includes('does not provide attribute')) throw err;
+    // Pre-wm-bindings-json rice: the table was still plain data.
+    return JSON.parse(
+      execFileSync(
+        'nix',
+        ['eval', '--json', '--file', join(rice, 'modules/prowl/wm-bindings.nix')],
+        { encoding: 'utf8' },
+      ),
+    );
+  }
+}
+const wmBindings = readWmBindings();
 
 // The mode keys that live in aerospace.toml rather than the table. Keys only:
 // commands carry @HOME@/@BIN@ noise that would churn the snapshot for free.
