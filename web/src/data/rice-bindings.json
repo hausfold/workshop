@@ -54,25 +54,6 @@
     {
       "items": [
         {
-          "action": "Move to workspace 1-4",
-          "binds": {
-            "alt-shift-1": "move-node-to-workspace 1",
-            "alt-shift-2": "move-node-to-workspace 2",
-            "alt-shift-3": "move-node-to-workspace 3",
-            "alt-shift-4": "move-node-to-workspace 4"
-          },
-          "keys": "⌥ ⇧ 1-4"
-        },
-        {
-          "action": "Move to app workspace",
-          "keys": "⌥ ⇧ [Letter]"
-        }
-      ],
-      "title": "Workspaces"
-    },
-    {
-      "items": [
-        {
           "action": "Flatten tree",
           "binds": {
             "r": [
@@ -173,6 +154,10 @@
     "2",
     "3",
     "4",
+    "shift-1",
+    "shift-2",
+    "shift-3",
+    "shift-4",
     "v",
     "e",
     "z",

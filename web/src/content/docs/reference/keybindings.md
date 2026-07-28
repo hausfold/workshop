@@ -25,8 +25,6 @@ cheatsheet always reflects the keys you actually have.
 | `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
 | `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
 | `⌥F` | Toggle fullscreen |
-| `⌥⇧1`–`⌥⇧4` | Move window to workspace 1–4 |
-| `⌥⇧<app-key>` | Throw window to that app's workspace |
 | `⌥Tab` | Previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move workspace to next monitor |
 | `⌥⇧;` | Enter service mode |
@@ -38,6 +36,8 @@ cheatsheet always reflects the keys you actually have.
 |---|---|
 | `<app-key>` | Launch / focus that app (`T` terminal, `B` browser by default) |
 | `1`–`4` | Focus workspace 1–4 |
+| `⇧1`–`⇧4` | Throw the focused window to workspace 1–4 (focus stays put) |
+| `⇧<app-key>` | Throw the focused window to that app's workspace |
 | `←↓↑→` | Focus tiled window; drops into **navigate mode** (arrows repeat, `⇧`+arrow *moves* the window, `Esc`/`Return` exits) |
 | `-` / `=` | Enter resize mode (shrink / grow) |
 | `V` | Clipboard history (Pounce) |
