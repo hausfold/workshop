@@ -73,7 +73,8 @@ cheatsheet always reflects the keys you actually have.
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt <` / `Alt >` | Cycle swap layouts (grid → spiral → columns) |
-| `Super C` | Spawn an isolated Claude agent (own worktree) |
+| `Super C` | Spawn an isolated Claude agent (own worktree) in a new pane |
+| `Super ⇧C` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
 
 **Locked by default.** zellij boots in **Locked** input mode, so its single-key
@@ -103,6 +104,8 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 
 ## Ghostty note
 
-Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`, and `⌘C`
-so zellij owns them — the same keys work whether or not you're multiplexed.
+Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`,
+`⌘C` and `⌘⇧C` so zellij owns them — the same keys work whether or not you're
+multiplexed. (`⌘⇧C` is unbound pre-emptively: Ghostty claims nothing there
+today, and the unbind keeps it that way if a future release does.)
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.

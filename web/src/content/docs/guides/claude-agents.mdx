@@ -35,7 +35,13 @@ Claude Code session in an **isolated git worktree**:
 - so any number of agents can hack in parallel without ever touching each
   other's branch — or yours.
 
-`Ctrl Alt Shift c` is the in-place variant: the one agent per tab that's allowed
+**`Super ⇧c` (⌘⇧C)** spawns exactly the same isolated agent, but **in place of
+the focused pane** instead of splitting a new one beside it — for when the tab is
+already as subdivided as you want it and the pane you're looking at has done its
+job. The pane it replaces is only *suspended*, never killed: quit the agent and
+your shell comes back, focused, scrollback intact.
+
+`Ctrl Alt Shift c` is the resident variant: the one agent per tab that's allowed
 to edit the checkout you're actually looking at.
 
 <Aside type="tip" title="Closing a pane never loses work">
