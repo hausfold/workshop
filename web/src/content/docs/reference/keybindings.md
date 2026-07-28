@@ -36,8 +36,8 @@ cheatsheet always reflects the keys you actually have.
 |---|---|
 | `<app-key>` | Launch / focus that app (`T` terminal, `B` browser by default) |
 | `1`–`4` | Focus workspace 1–4 |
-| `⇧1`–`⇧4` | Throw the focused window to workspace 1–4 (focus stays put) |
-| `⇧<app-key>` | Throw the focused window to that app's workspace |
+| `⇧1`–`⇧4` | Throw the focused window to workspace 1–4 and follow it there |
+| `⇧<app-key>` | Throw the focused window to that app's workspace and follow it there |
 | `←↓↑→` | Focus tiled window; drops into **navigate mode** (arrows repeat, `⇧`+arrow *moves* the window, `Esc`/`Return` exits) |
 | `-` / `=` | Enter resize mode (shrink / grow) |
 | `V` | Clipboard history (Pounce) |
