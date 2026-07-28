@@ -19,7 +19,7 @@
 #                  untouched, then merge only the PRs that pass
 #   bench ship      push everything in dependency order, rippling lock updates
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
-#   bench pull      fast-forward every repo
+#   bench pull [repo…]  fast-forward every repo, or just the named ones
 #   bench clone     fetch any family repo missing from this directory
 #   bench docs-since   commits in every repo since the docs were last
 #                  reconciled (--mark records new watermarks) — the input
@@ -356,7 +356,7 @@ cmd_status() {
   done
   [ "$any_dirty"  = 1 ] && hint "dirty: commit in that repo (bench ship refuses a dirty tree)"
   [ "$any_ahead"  = 1 ] && hint "↑ unpushed: bench ship (pushes, then ripples the locks downstream)"
-  [ "$any_behind" = 1 ] && hint "↓ behind origin: git -C <repo> pull --ff-only"
+  [ "$any_behind" = 1 ] && hint "↓ behind origin: bench pull <repo> (or bare bench pull for all)"
 
   # Agent worktrees + their branches — only speak up if any exist.
   local wt_lines=""
@@ -706,7 +706,23 @@ cmd_pull() {
   # want a fresh local checkout: `bench status` diffs them, and a stale
   # homebrew-tap clone hides cask/formula bumps CI already pushed (the
   # "released but not installed" trap). Superset of cmd_ship's repo set.
-  for name in workshop "${FAMILY[@]}" org-profile homebrew-tap consumer; do
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap consumer)
+  # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
+  # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
+  if [ "$#" -gt 0 ]; then
+    local a; local -a want=()
+    for a in "$@"; do
+      if printf '%s\n' "${repos[@]}" | grep -qx "$a"; then
+        want+=("$a")
+      else
+        warn "unknown repo '$a' — pullable: ${repos[*]}"
+      fi
+    done
+    [ "${#want[@]}" -gt 0 ] || die "nothing to pull."
+    repos=("${want[@]}")
+  fi
+  local name
+  for name in "${repos[@]}"; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     say "pulling ${name}…"
@@ -931,7 +947,7 @@ case "${1:-status}" in
   try-batch) shift; cmd_try_batch "$@" ;;
   ship)    cmd_ship ;;
   rebuild) cmd_rebuild ;;
-  pull)    cmd_pull ;;
+  pull)    shift; cmd_pull "$@" ;;
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
   release) cmd_release "${2:-}" ;;
