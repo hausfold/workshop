@@ -1,0 +1,161 @@
+---
+title: Changing your Mac with an agent
+description: Your machine is declarative, so an AI agent can reconfigure it safely — the nebelhaus skill, the build-then-switch loop, and the one thing it will refuse to do.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+Ask an agent to set up a normal Mac and it will `brew install` things, write
+dotfiles, and click through System Settings on your behalf. On a nebelhaus
+machine most of that would be silently undone by the next rebuild — and you'd
+have no record of what changed.
+
+Declarative config flips that. Every change is text in one file, `haus rebuild`
+**builds before it switches** so a broken edit never reaches the running system,
+and `haus rollback` undoes an applied one atomically. That makes yours the rare
+machine an agent can reconfigure without it being reckless.
+
+The missing half was knowledge. So the rice ships it.
+
+## What's installed
+
+Every rebuild writes a Claude Code **skill** to `~/.claude/skills/nebelhaus`:
+
+| File | What it is |
+|---|---|
+| `SKILL.md` | The loop, the boundaries, the traps. |
+| `references/options.md` | Every `nebelhaus.*` option — **generated from the exact rice revision you're pinned to**. |
+| `references/this-machine.md` | Your host: hostname, host-file path, which rooms are on, your theme and keys, your app roster and its taken leader keys. |
+| `references/recipes.md` | Worked examples for the common asks. |
+| `consumer-CLAUDE.md` | A starter `CLAUDE.md` for your config repo (see below). |
+
+The option reference being *generated* is the point. A hand-written cheatsheet
+goes stale the first time an option is added, and a confidently-wrong option name
+costs you a failed build. This one can only ever describe options that exist on
+your revision — and `haus update` regenerates it along with the rice.
+
+<Aside type="tip" title="Check it's there">
+`haus doctor` has an **Agents** section that reports whether the skill is
+installed, whether your config repo has a `CLAUDE.md`, and whether the app you're
+running from can write macOS's protected settings.
+</Aside>
+
+## The loop it follows
+
+<Steps>
+
+1. **Orient** — read `this-machine.md` and your host file, and check `haus status`.
+
+2. **Find the option** — grep the generated reference. If it isn't listed, it
+   doesn't exist on your revision, and the agent should say so rather than guess.
+
+3. **Edit `~/.config/nix/hosts/<hostname>/default.nix`** — the one file you own.
+
+4. **Apply with `haus rebuild`** — the build gates the switch.
+
+5. **Verify, or `haus rollback`.**
+
+</Steps>
+
+## What to ask for
+
+Ordinary requests, in your own words:
+
+- *"Install Slack and give it its own workspace"* → an entry in
+  [`nebelhaus.apps`](/reference/options/#nebelhausapps), with the leader key,
+  the workspace, the bar pill and the Homebrew cask all following from it.
+- *"Everything's too small"* → [`nebelhaus.ui.scale`](/reference/options/#nebelhausuiscale).
+- *"Switch to light mode"* → [`nebelhaus.theme.flavor`](/reference/options/#nebelhausthemeflavor).
+- *"Hide the weather in the bar"* → the matching `nebelhaus.sill.items.*` toggle.
+- *"Bind a key to open my notes"* → `nebelhaus.keys.leaderExtras`.
+
+The skill tells the agent to prefer a `nebelhaus.*` option over a raw nix-darwin
+setting, and to say so when nothing covers what you asked — because that's a gap
+in the rice, not something to bolt onto your machine.
+
+## What it won't do
+
+- **Touch identity or secrets** without asking — git identity, signing keys,
+  `nebelhaus.secrets.*`.
+- **Edit the rice, `flake.lock`, or anything in `/nix/store`.** Pulling a newer
+  rice is `haus update`, not a hand edit.
+- **Uninstall apps behind your back.** Removing an app from your config stops
+  nebelhaus *managing* it; the app stays on disk until you
+  `brew uninstall --zap` it.
+
+## The one rebuild it will refuse
+
+If your host file sets `system.defaults.universalaccess.*` directly, `haus
+rebuild` refuses to run from an agent session that can't write it, and tells you
+to run the same command yourself.
+
+That domain is TCC-protected: macOS only lets an app holding **Full Disk Access**
+write it, and the grant belongs to the app your session runs under — a terminal
+you've granted it to, versus a desktop app or a cloud session that you haven't.
+nix-darwin emits that write unguarded into an activation script running under
+`set -e`, so a refusal aborts activation partway and skips everything after it,
+including every background service the rice installs. Your bar, tiling and
+palette come back dead, with the symptom nowhere near the cause.
+
+Refusing is the kinder failure. Nothing is changed, and your edit is still on
+disk.
+
+<Aside type="note" title="Reaching those settings safely">
+[`nebelhaus.accessibility.*`](/reference/options/#nebelhausaccessibility) reaches
+the useful keys in that domain with a **guarded** write: without the grant you
+lose the setting and nothing else. For contrast specifically,
+[`nebelhaus.theme.contrast`](/reference/options/#nebelhausthemecontrast) is the
+rice's own palette axis and always applies.
+</Aside>
+
+## What a rollback doesn't undo
+
+`haus rollback` rewinds everything Nix manages, instantly. It does **not** rewind
+macOS system settings a rebuild wrote (Dock, keyboard, Finder), and it does not
+rewind Homebrew casks — those live outside Nix generations entirely. A good agent
+says which kind of change it's about to make.
+
+## A CLAUDE.md for your config
+
+`~/.config/nix` is your own git repo — your machine in text. Dropping a
+`CLAUDE.md` in it orients any agent you open there, whether or not it found the
+skill. A starter ships inside the skill; nothing writes it for you, because it's
+your repo and you should own the file:
+
+```sh
+cp ~/.claude/skills/nebelhaus/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
+```
+
+## Other tools, and before you've installed
+
+The skill is Claude Code's format, and it only exists on a machine that has
+already switched in at least once. For everything else — a different AI tool, or
+someone asking about nebelhaus before they own it — this site publishes itself in
+machine-readable form:
+
+- **[nebelhaus.com/llms.txt](https://nebelhaus.com/llms.txt)** — a table of
+  contents with one-line descriptions, for a tool that fetches selectively.
+- **[nebelhaus.com/llms-full.txt](https://nebelhaus.com/llms-full.txt)** — every
+  page inlined, for one that would rather read the lot.
+
+Both describe the **latest** rice. On an installed machine, prefer the skill:
+it's generated from the revision you actually have. For installing in the first
+place, see [Installing with an agent](/start/install/#installing-with-an-agent).
+
+## Turning it off
+
+```nix
+nebelhaus.claude.skill = false;
+```
+
+A machine that never runs an agent otherwise just carries an unread markdown
+file — the option exists so `~/.claude/skills` stays yours if you'd rather manage
+it by hand.
+
+<Aside type="caution" title="It's still your machine">
+An agent that can rebuild your Mac can change how your Mac behaves. The safety
+here is real but it is *recovery*, not prevention: the build gates the switch and
+the rollback is atomic, so mistakes are cheap — they aren't impossible. Read the
+diff before you say yes, exactly as you would for any other change to your
+config.
+</Aside>

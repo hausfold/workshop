@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { sidebar } from './src/lib/sidebar.js';
 
 // https://astro.build/config
 export default defineConfig({
@@ -60,55 +61,8 @@ export default defineConfig({
           attrs: { name: 'twitter:image', content: 'https://nebelhaus.com/social/og.png' },
         },
       ],
-      sidebar: [
-        {
-          label: 'Start here',
-          items: [
-            { label: 'What is nebelhaus?', slug: 'start/what-is-nebelhaus' },
-            { label: 'Install', slug: 'start/install' },
-            { label: 'First run', slug: 'start/first-run' },
-            { label: 'The family', slug: 'start/the-family' },
-          ],
-        },
-        {
-          label: 'Guides',
-          items: [
-            { label: 'Making it yours', slug: 'guides/making-it-yours' },
-            { label: 'Adding apps & tools', slug: 'guides/adding-apps' },
-            { label: 'Window management (prowl)', slug: 'guides/window-management' },
-            { label: 'The bar (sill)', slug: 'guides/the-bar' },
-            { label: 'The shell (hearth)', slug: 'guides/the-shell' },
-            { label: 'Claude Code agents (wt)', slug: 'guides/claude-agents' },
-            { label: 'Touch ID for sudo (collar)', slug: 'guides/touch-id' },
-            { label: 'Focus & DND (hush)', slug: 'guides/hush' },
-            { label: 'Pounce — the launcher', slug: 'guides/pounce' },
-            { label: 'Writing pounce commands', slug: 'guides/pounce-commands' },
-            { label: 'Messages (trill)', slug: 'guides/trill' },
-            { label: 'Theming & accents (nebelung)', slug: 'guides/theming' },
-            { label: 'Keeping in sync (haus)', slug: 'guides/staying-in-sync' },
-            { label: 'Moving to a new Mac', slug: 'guides/new-mac' },
-            { label: 'Leaving nebelhaus', slug: 'guides/leaving' },
-          ],
-        },
-        {
-          label: 'Reference',
-          items: [
-            { label: 'nebelhaus.* options', slug: 'reference/options' },
-            { label: 'Keybindings cheatsheet', slug: 'reference/keybindings' },
-            { label: 'Pounce config & CLI', slug: 'reference/pounce' },
-            { label: 'The nebelung palette', slug: 'reference/palette' },
-            { label: 'The haus CLI', slug: 'reference/haus' },
-            { label: 'Troubleshooting', slug: 'reference/troubleshooting' },
-          ],
-        },
-        {
-          label: 'Under the hood',
-          items: [
-            { label: 'How the flakes fit together', slug: 'internals/flakes' },
-            { label: 'Contributing & worktrees', slug: 'internals/contributing' },
-          ],
-        },
-      ],
+      // Shared with /llms.txt — see src/lib/sidebar.js.
+      sidebar,
     }),
   ],
 });
