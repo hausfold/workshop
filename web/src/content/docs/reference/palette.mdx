@@ -4,12 +4,20 @@ description: Every colour in the silver-mist palette, with hex values, plus how 
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import { RAMP, ACCENTS, hex } from '../../../lib/palette.js';
 
-export const Swatch = ({ hex, name }) => (
+export const NOTES = { mauve: 'the family default' };
+
+{/* The chip paints itself with the live CSS variable and the label prints the
+    value parsed out of palette.css, so neither can drift from the stylesheet.
+    Nothing on this page states a hex. */}
+export const Swatch = ({ name }) => (
   <div style="display:flex;align-items:center;gap:.6rem;padding:.35rem 0;">
-    <span style={`display:inline-block;width:1.6rem;height:1.6rem;border-radius:6px;background:${hex};box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);flex:none;`}></span>
-    <code style="min-width:6.5rem;">{hex}</code>
-    <span style="color:var(--sl-color-gray-2);">{name}</span>
+    <span style={`display:inline-block;width:1.6rem;height:1.6rem;border-radius:6px;background:var(--neb-${name});box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);flex:none;`}></span>
+    <code style="min-width:6.5rem;">{hex(name)}</code>
+    <span style="color:var(--sl-color-gray-2);">
+      {NOTES[name] ? `${name} — ${NOTES[name]}` : name}
+    </span>
   </div>
 );
 
@@ -51,38 +59,14 @@ variant; view any of them in the
 
 Twelve steps from near-black to soft white — the bones of the theme.
 
-<Swatch hex="#d7d7d7" name="text" />
-<Swatch hex="#c3c3c3" name="subtext1" />
-<Swatch hex="#aeaeae" name="subtext0" />
-<Swatch hex="#9a9a9a" name="overlay2" />
-<Swatch hex="#858585" name="overlay1" />
-<Swatch hex="#717171" name="overlay0" />
-<Swatch hex="#5c5c5c" name="surface2" />
-<Swatch hex="#494949" name="surface1" />
-<Swatch hex="#343434" name="surface0" />
-<Swatch hex="#202020" name="base" />
-<Swatch hex="#191919" name="mantle" />
-<Swatch hex="#121212" name="crust" />
+<div>{RAMP.map((name) => <Swatch key={name} name={name} />)}</div>
 
 ## The accents
 
 Fourteen calmed accents. **mauve** is the family default; set another with
 [`nebelhaus.theme.accent`](/reference/options/#nebelhaustheme).
 
-<Swatch hex="#f3e1dd" name="rosewater" />
-<Swatch hex="#efcece" name="flamingo" />
-<Swatch hex="#f2c4e5" name="pink" />
-<Swatch hex="#c9a8f1" name="mauve — the default" />
-<Swatch hex="#ed8fa9" name="red" />
-<Swatch hex="#e6a3ad" name="maroon" />
-<Swatch hex="#f5b58e" name="peach" />
-<Swatch hex="#f7e2b5" name="yellow" />
-<Swatch hex="#abe1a6" name="green" />
-<Swatch hex="#9be0d5" name="teal" />
-<Swatch hex="#91dbe8" name="sky" />
-<Swatch hex="#7dc6e7" name="sapphire" />
-<Swatch hex="#8db4f3" name="blue" />
-<Swatch hex="#b5bff8" name="lavender" />
+<div>{ACCENTS.map((name) => <Swatch key={name} name={name} />)}</div>
 
 ## Using it in your own tools
 
