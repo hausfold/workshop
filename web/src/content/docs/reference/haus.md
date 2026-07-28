@@ -20,8 +20,16 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus generations` | List the generations you can roll back to. |
 | `haus status` | Show the current generation and how stale the pinned rice is. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
-| `haus doctor` | Health check: Determinate Nix, Xcode CLT, the GUI login agents, and Homebrew cask drift (casks installed that no rebuild will manage). |
+| `haus doctor` | Health check: Determinate Nix, Xcode CLT, the GUI login agents, Homebrew cask drift (casks installed that no rebuild will manage), and whether an [agent](/guides/ai-agent/) can change this machine. |
 | `haus btm` | On macOS 26 Tahoe+, check whether Background Task Management is blocking the nix login agents, and print the one-time fix. A no-op on earlier macOS. See [Troubleshooting](/reference/troubleshooting/#after-a-macos-upgrade-all-my-agents-are-dead-macos-26-tahoe). |
+
+### One thing `haus rebuild` refuses
+
+If your host file sets `system.defaults.universalaccess.*`, `haus rebuild`
+refuses to run from an AI agent session that lacks Full Disk Access — that write
+would abort activation partway and skip every background service the rice
+installs. Run the same command yourself instead. See [Changing your Mac with an
+agent](/guides/ai-agent/#the-one-rebuild-it-will-refuse).
 
 ## Typical sessions
 
