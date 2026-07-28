@@ -68,7 +68,8 @@
   /* ---- Type ---- */
   --neb-font-sans:
     ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto,
-    Helvetica, Arial, sans-serif;
+    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Noto Color Emoji';
   --neb-font-mono:
     ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
     monospace;
