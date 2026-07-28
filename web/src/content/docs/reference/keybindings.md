@@ -106,3 +106,10 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`, and `⌘C`
 so zellij owns them — the same keys work whether or not you're multiplexed.
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
+
+`⌘D` and `⌘⇧D` are unbound too, but nothing takes them over: they do **nothing**.
+Ghostty's defaults there are its own `new_split:right` / `new_split:down`, which
+nest a second terminal surface *inside* the one zellij is driving — invisible to
+the multiplexer, so its layout, status bar and pane keys would apply to only half
+the window. Since `⌘D` is muscle memory from other terminals, it's an easy
+accident; use `Super P` for a pane instead.
