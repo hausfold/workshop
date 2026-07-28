@@ -256,6 +256,10 @@ nebelhaus.theme = {
       `large-print` shipping with `contrast = "high"` is now a felt choice rather
       than a measured guess. Worth recording because the doubt was reasonable:
       AAA-on-paper palettes routinely read as glare.
+- [x] ✅ **Latte felt on the real machine, 2026-07-28: reads great.** Flipped
+      `theme.flavor = "latte"` on mbp with macOS appearance set to Light, one
+      `bench try switch`, and the whole hearth/sill/Zen surface came over — so light
+      mode is a felt option now, not just a rendered one.
 - [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it).
       **Cheaper than it was**, now that both palettes exist — and there's a concrete
       starting point: ghostty's config used to read
