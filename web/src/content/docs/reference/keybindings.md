@@ -109,3 +109,10 @@ Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `
 multiplexed. (`⌘⇧C` is unbound pre-emptively: Ghostty claims nothing there
 today, and the unbind keeps it that way if a future release does.)
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
+
+`⌘D` and `⌘⇧D` are unbound too, but nothing takes them over: they do **nothing**.
+Ghostty's defaults there are its own `new_split:right` / `new_split:down`, which
+nest a second terminal surface *inside* the one zellij is driving — invisible to
+the multiplexer, so its layout, status bar and pane keys would apply to only half
+the window. Since `⌘D` is muscle memory from other terminals, it's an easy
+accident; use `Super P` for a pane instead.
