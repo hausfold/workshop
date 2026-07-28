@@ -241,10 +241,10 @@ Roster order; lower values appear first. Ties are sorted by app id.
 `null or string` · default `null`
 
 The AeroSpace workspace this app owns — its window auto-moves
-here, it gets a SketchyBar pill, and ⌥⇧<key> throws a window to
-it. null makes the app "launcher-only": the leader still opens
-it in the current workspace, but it claims no workspace, pill,
-or auto-assign rule (e.g. Passwords).
+here, it gets a SketchyBar pill, and the leader then ⇧<key>
+throws a window to it. null makes the app "launcher-only": the
+leader still opens it in the current workspace, but it claims no
+workspace, pill, or auto-assign rule (e.g. Passwords).
 
 Example:
 
@@ -1264,10 +1264,10 @@ Roster order; lower values appear first. Ties are sorted by app id.
 `null or string` · default `null`
 
 The AeroSpace workspace this app owns — its window auto-moves
-here, it gets a SketchyBar pill, and ⌥⇧<key> throws a window to
-it. null makes the app "launcher-only": the leader still opens
-it in the current workspace, but it claims no workspace, pill,
-or auto-assign rule (e.g. Passwords).
+here, it gets a SketchyBar pill, and the leader then ⇧<key>
+throws a window to it. null makes the app "launcher-only": the
+leader still opens it in the current workspace, but it claims no
+workspace, pill, or auto-assign rule (e.g. Passwords).
 
 Example:
 
@@ -1366,7 +1366,8 @@ stay: these are the *tools*, not the appearance.
 `one of "caps", "alt-space", "none"` · default `"caps"`
 
 What enters the launcher/leader mode — tap it, then a letter opens an
-app, a digit focuses a workspace, an arrow navigates, `-`/`=` resizes.
+app, a digit focuses a workspace, ⇧+either throws the focused window
+to that workspace, an arrow navigates, `-`/`=` resizes.
 
   - "caps" (default): Caps Lock. AeroSpace can't bind Caps Lock itself,
     so the rice remaps it to F18 with hidutil and binds that.
@@ -1375,7 +1376,9 @@ app, a digit focuses a workspace, an arrow navigates, `-`/`=` resizes.
     unreachable, and nothing is remapped — the setting for a mouse-first
     rice, or for a Mac you are handing to someone else. What the leader
     fronted is still reachable: apps through the palette, window moves
-    through `windowNav`.
+    through service mode's join-with and the palette's own commands.
+    Workspace focus and the workspace throws go away with it — they
+    live only in launch mode.
 
 The remap is re-applied at every activation and does not survive a
 reboot, so moving off "caps" ends it — at the latest, at next boot.
@@ -1386,6 +1389,85 @@ Example:
 
 ```nix
 "none"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.keys.leaderExtras`
+
+`list of (submodule)` · default `[ ]`
+
+Extra launch-mode (leader) bindings beyond the app roster: tap the leader,
+then `key`, to run `command`. Use it for leader actions that aren't
+"launch an app" — a script, an AppleScript, opening a URL.
+
+Only meaningful with nebelhaus.prowl.enable and keys.leader != "none"
+(with no leader there is no launch mode to bind into).
+
+Example:
+
+```nix
+[
+  {
+    key = "enter";
+    command = "osascript -e 'tell application \"Things3\" to show quick entry panel'";
+    caption = "Things Quick Entry";
+  }
+]
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.keys.leaderExtras.*.caption`
+
+`null or string` · default `null`
+
+The Launch Mode cheatsheet caption for this action. null falls back
+to the raw command, which is rarely what you want — set it.
+
+Example:
+
+```nix
+"Things Quick Entry"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.keys.leaderExtras.*.command`
+
+`string` · no default
+
+The shell command run when the leader is followed by `key`; launch
+mode exits afterward. It's written verbatim into a small `/bin/sh`
+script that AeroSpace execs, so ordinary shell rules apply — `$HOME`
+resolves, and single quotes (an `osascript -e '…'`, say) are safe,
+which they would not be inlined into AeroSpace's own config.
+
+Example:
+
+```nix
+"osascript -e 'tell application \"Things3\" to show quick entry panel'"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.keys.leaderExtras.*.key`
+
+`string` · no default
+
+The AeroSpace key name pressed after the leader (e.g. "enter",
+"space", "period", or a letter). Must not collide with a roster
+app's key or a built-in launch-mode key (the digits 1-4, the
+arrows, `-`/`=`, `v`/`e`/`z`, `,`, `` ` ``, `/`, esc) — nor with
+the workspace throws, which are ⇧ + any of those digits or a
+roster letter ("shift-1", "shift-b", …). An assertion in
+modules/prowl catches a clash rather than letting one binding
+silently shadow another.
+
+Example:
+
+```nix
+"enter"
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
@@ -1422,16 +1504,28 @@ The modifier vocabulary for prowl's window chords — one setting rather
 than a bind-per-action, because what people need to move is the
 modifier, not the letters. It drives focus (`<mod>` + hjkl), layouts
 (`<mod>` + `/` `,`), fullscreen, workspace back-and-forth, moving a
-window to a workspace (`<mod>⇧` + 1-4 or an app's letter), and entering
-service mode (`<mod>⇧;`).
+workspace to the next monitor (`<mod>⇧⇥`), and entering service mode
+(`<mod>⇧;`). Anything that names a workspace — focusing one, or
+throwing the focused window there — hangs off `leader` instead, not
+this option.
 
 "alt" (default) is ⌥. The alternatives are for **non-US keyboard
 layouts**, where ⌥+letter types accented characters — a rice that owns
 ⌥+letter is unusable on those, which is the concrete reason this option
 exists.
 
-"none" drops the modifier chords entirely: no focus/layout/move chords,
-no service mode. Combined with `leader = "none"` that's a rice where the
+Whatever you pick, AeroSpace claims those chords **globally**, so they
+stop reaching whatever owned them inside a terminal. The surface is
+small now that the workspace throws moved to the leader: only hjkl,
+`/` `,`, `f`, `⇥`, `⇧⇥` and `⇧;`, none of which a roster letter can
+land on. (Under "ctrl-alt" that used to bite — the throws were `⌃⌥⇧` +
+an app's roster letter, so an app on `c` silently ate hearth's zellij
+`Ctrl Alt Shift c` in-place-agent bind. That collision is gone.)
+Nothing on a stock macOS collides either: the only ⌃⌥ system hotkeys
+are input-source switching (⌃⌥Space, off by default) and hyper-F13.
+
+"none" drops the modifier chords entirely: no focus/layout chords, no
+service mode. Combined with `leader = "none"` that's a rice where the
 tiler tiles and the keyboard is left alone — mouse-first. The cheatsheet
 follows, so it never advertises a key that does nothing.
 
