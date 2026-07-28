@@ -77,9 +77,30 @@ OVERRIDABLE=(nebelung pounce trill perch nebelhaus)
 declare -gA BATCH_SRC=()  # repo → integration-worktree checkout it should build against
 BATCH_SCRATCH=""          # the mktemp dir holding those worktrees
 
-say()  { printf '\033[38;5;103m🌫  %s\033[0m\n' "$*"; }
-warn() { printf '\033[38;5;179m⚠  %s\033[0m\n' "$*"; }
-die()  { printf '\033[38;5;167m✗  %s\033[0m\n' "$*" >&2; exit 1; }
+# ── Palette ──────────────────────────────────────────────────────────────────
+# Colour is a courtesy, never load-bearing. Every escape is gated: emitted only
+# when stdout is a TTY (so `bench status | less`, CI logs, and the bats harness
+# all stay plain) and when NO_COLOR is unset (https://no-color.org); set
+# CLICOLOR_FORCE=1 to force it back on through a pipe. When off, every C_* var is
+# the empty string, so the exact same printf lines fall back to clean text — and
+# alignment is preserved because we only ever colour AROUND pre-padded fields,
+# never inside a %-Ns width (an escape counted as width would shear the columns).
+# The hues stay in the muted, fog-toned 256-colour range the family already uses.
+if { [ -t 1 ] || [ -n "${CLICOLOR_FORCE:-}" ]; } && [ -z "${NO_COLOR:-}" ]; then
+  C_OFF=$'\033[0m'
+  C_FOG=$'\033[38;5;103m'   # primary accent — the fog itself
+  C_OK=$'\033[38;5;108m'    # sage — current / healthy
+  C_WARN=$'\033[38;5;179m'  # amber — stale / wants attention
+  C_ERR=$'\033[38;5;167m'   # rose — failure
+  C_MUT=$'\033[38;5;245m'   # muted grey — secondary detail
+  C_REPO=$'\033[38;5;110m'  # soft blue — repo names
+else
+  C_OFF=; C_FOG=; C_OK=; C_WARN=; C_ERR=; C_MUT=; C_REPO=
+fi
+
+say()  { printf '%s🌫  %s%s\n' "$C_FOG" "$*" "$C_OFF"; }
+warn() { printf '%s⚠  %s%s\n' "$C_WARN" "$*" "$C_OFF"; }
+die()  { printf '%s✗  %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; exit 1; }
 
 repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + workshop elsewhere
   case "$1" in
@@ -306,10 +327,11 @@ unmerged_agent_branches() { # worktree-* branches not merged into the current HE
 
 cmd_status() {
   say "repos"
-  printf '  %-12s %-8s %-7s %s\n' "repo" "branch" "dirty" "vs origin"
+  printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
   for name in "${FAMILY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
-    [ -d "$dir/.git" ] || { printf '  %-12s (missing — bench clone)\n' "$name"; continue; }
+    [ -d "$dir/.git" ] || { printf '  %s%-12s%s %s(missing — bench clone)%s\n' \
+      "$C_REPO" "$name" "$C_OFF" "$C_MUT" "$C_OFF"; continue; }
     local branch dirty ahead behind
     branch="$(git -C "$dir" branch --show-current)"
     dirty="$(git -C "$dir" status --porcelain | wc -l | tr -d ' ')"
@@ -317,7 +339,17 @@ cmd_status() {
     git -C "$dir" fetch -q --tags 2>/dev/null || true
     ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
     behind="$(git -C "$dir" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
-    printf '  %-12s %-8s %-7s ↑%s ↓%s\n' "$name" "$branch" "$dirty" "$ahead" "$behind"
+    # Pre-pad each cell, THEN wrap in colour, so widths hold with or without ANSI.
+    # Clean tree → sage dot; dirty → amber count. Unpushed (↑) / behind (↓) glow
+    # amber only when non-zero, so a synced repo reads as a quiet row of zeros.
+    local repo_c dirty_c; printf -v repo_c '%-12s' "$name"; printf -v dirty_c '%-7s' "$dirty"
+    local dcol="$C_OK"; [ "$dirty" = "·" ] || dcol="$C_WARN"
+    local acol="$C_MUT"; [ "$ahead"  = "0" ] || acol="$C_WARN"
+    local bcol="$C_MUT"; [ "$behind" = "0" ] || bcol="$C_WARN"
+    printf '  %s%s%s %-8s %s%s%s %s↑%s%s %s↓%s%s\n' \
+      "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
+      "$dcol" "$dirty_c" "$C_OFF" \
+      "$acol" "$ahead" "$C_OFF" "$bcol" "$behind" "$C_OFF"
   done
 
   # Agent worktrees + their branches — only speak up if any exist.
@@ -327,24 +359,30 @@ cmd_status() {
     while IFS= read -r wt; do
       [ -n "$wt" ] || continue
       branch="$(git -C "$wt" branch --show-current 2>/dev/null || echo '?')"
+      local dcol; dcol="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && printf '%s' "$C_WARN" || printf '%s' "$C_MUT")"
       dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
-      wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$branch" "$dirty" "$wt")"$'\n'
+      local repo_c dirty_c; printf -v repo_c '%-12s' "$name"; printf -v dirty_c '%-6s' "$dirty"
+      wt_lines+="$(printf '  %s%s%s %-24s %s%s%s %s%s%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
+        "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$wt" "$C_OFF")"$'\n'
     done <<<"$(list_worktrees "$name")"
     local b
     for b in $(unmerged_agent_branches "$name"); do
       # branches whose worktree is gone but whose commits aren't merged yet
       if ! git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b"; then
-        wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$b" "·" "(parked — 'wt ${b#worktree-}' to resume, or open a PR / delete)")"$'\n'
+        local repo_c; printf -v repo_c '%-12s' "$name"
+        wt_lines+="$(printf '  %s%s%s %-24s %s·      %s%s(parked — '\''wt %s'\'' to resume, or open a PR / delete)%s' \
+          "$C_REPO" "$repo_c" "$C_OFF" "$b" "$C_MUT" "$C_OFF" "$C_MUT" "${b#worktree-}" "$C_OFF")"$'\n'
       fi
     done
   done
   if [ -n "$wt_lines" ]; then
     echo
     say "agent worktrees (isolated Claude checkouts; open a PR to land — never push to main)"
-    printf '  %-12s %-24s %-6s %s\n' "repo" "branch" "dirty" "where"
+    printf '  %s%-12s %-24s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
     printf '%s' "$wt_lines"
     # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
-    printf '  \033[38;5;103m↳ landed ones linger if a pane was killed without the remove hook — sweep them with `wt reap`\033[0m\n'
+    printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `wt reap`%s\n' "$C_MUT" "$C_OFF"
   fi
 
   echo
@@ -358,9 +396,12 @@ cmd_status() {
     label="$holder → $input"
     [ "$holder" = "consumer" ] && label="you → $input"
     if [ "$have" = "$want" ]; then
-      printf '  ✓ %-22s current (%s)\n' "$label" "${have:0:7}"
+      printf '  %s✓%s %-22s %scurrent%s (%s%s%s)\n' \
+        "$C_OK" "$C_OFF" "$label" "$C_MUT" "$C_OFF" "$C_MUT" "${have:0:7}" "$C_OFF"
     else
-      printf '  ⚠ %-22s STALE: locked %s, local %s\n' "$label" "${have:0:7}" "${want:0:7}"
+      printf '  %s⚠%s %-22s %sSTALE%s: locked %s%s%s, local %s%s%s\n' \
+        "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
+        "$C_MUT" "${have:0:7}" "$C_OFF" "$C_OK" "${want:0:7}" "$C_OFF"
       stale=1
     fi
   done
@@ -379,18 +420,20 @@ cmd_status() {
     esac
     tag="$(latest_tag "$name")"
     if [ -z "$tag" ]; then
-      printf '  ⚠ %-22s no release yet — %s falls back to main\n' "$name" "$audience"
+      printf '  %s⚠%s %-22s no release yet — %s falls back to main\n' \
+        "$C_WARN" "$C_OFF" "$name" "$audience"
       rel_stale=1
       continue
     fi
     behind="$(commits_since "$name" "$tag")"
     if [ "$behind" = "0" ]; then
-      printf '  ✓ %-22s %s is current with main\n' "$name" "$tag"
+      printf '  %s✓%s %-22s %s%s%s is current with main\n' \
+        "$C_OK" "$C_OFF" "$name" "$C_OK" "$tag" "$C_OFF"
     else
-      printf '  ⚠ %-22s %s is %s commit(s) behind main — %s get the old one\n' \
-        "$name" "$tag" "$behind" "$audience"
+      printf '  %s⚠%s %-22s %s%s%s is %s%s%s commit(s) behind main — %s get the old one\n' \
+        "$C_WARN" "$C_OFF" "$name" "$C_MUT" "$tag" "$C_OFF" "$C_WARN" "$behind" "$C_OFF" "$audience"
       # release date-stamps the version itself; nothing to bump by hand first.
-      printf '      cut a dated release: bench release %s\n' "$name"
+      printf '      %scut a dated release: bench release %s%s\n' "$C_MUT" "$name" "$C_OFF"
       rel_stale=1
     fi
   done
@@ -522,8 +565,9 @@ cmd_try_batch() {
         continue
       fi
       if git -C "$wtdir" merge --no-edit "origin/$head" >/dev/null 2>&1; then
-        checklist+=("$(printf '  [ ] %-10s #%-4s %s' "$repo" "$num" "$title")")
-        checklist+=("$(printf '                  %s' "$url")")
+        checklist+=("$(printf '  %s[ ]%s %s%-10s%s #%-4s %s' \
+          "$C_WARN" "$C_OFF" "$C_REPO" "$repo" "$C_OFF" "$num" "$title")")
+        checklist+=("$(printf '                  %s%s%s' "$C_MUT" "$url" "$C_OFF")")
         included=$((included + 1))
       else
         git -C "$wtdir" merge --abort 2>/dev/null || true
@@ -810,14 +854,16 @@ cmd_docs_since() {
     # day, forever. The skill stamps each of its commits with a Docs-Sync
     # trailer precisely so they can be filtered back out here.
     local skip_own=(--invert-grep --grep='^Docs-Sync: ')
+    # The C_* vars are empty when colour is off, so the format degrades to the
+    # old plain '  %h %ad %s' — no escapes leak into a piped/redirected sweep.
     local log; log="$(git -C "$dir" log --no-merges "${skip_own[@]}" \
-      --format='  %h %ad %s' --date=short "$range" 2>/dev/null)"
+      --format="  ${C_MUT}%h %ad${C_OFF} %s" --date=short "$range" 2>/dev/null)"
     [ -n "$log" ] || continue
 
     any=1
     say "$name  ($(printf '%s\n' "$log" | grep -c .) commits)"
     printf '%s\n' "$log"
-    printf '  \033[38;5;245mfiles:\033[0m %s\n\n' \
+    printf '  %sfiles:%s %s\n\n' "$C_MUT" "$C_OFF" \
       "$(git -C "$dir" diff --name-only "$range" 2>/dev/null | head -40 | tr '\n' ' ')"
   done
 
