@@ -129,6 +129,52 @@ previous generation. Homebrew apps are **never** deleted by the rice — remove
 them yourself with `brew uninstall --zap <cask>` if you want to.
 </Aside>
 
+## Installing with an agent
+
+You can hand most of this to an AI agent. The site publishes a machine-readable
+index at **[nebelhaus.com/llms.txt](https://nebelhaus.com/llms.txt)** (and the
+whole corpus at [llms-full.txt](https://nebelhaus.com/llms-full.txt)), so any
+tool that can fetch a URL can read the real documentation instead of guessing
+from whatever it remembers about Nix.
+
+Paste something like this:
+
+```text
+Read https://nebelhaus.com/llms.txt and then the install page it links to.
+I want to install nebelhaus on this Mac.
+
+Do the parts you can: run the bootstrap with NEBELHAUS_DRY_RUN=1 first and show
+me the config it would write, then run it for real, then run the `nix build`.
+Stop and hand back to me for anything needing sudo — I'll run those myself.
+```
+
+**What an agent can and can't do here**, which is worth being explicit about:
+
+| Step | Who |
+|---|---|
+| Read the docs, choose options, dry-run the bootstrap | agent |
+| Run the bootstrap (scaffold `~/.config/nix`) | agent |
+| Review the generated host file with you | agent |
+| `nix build .#darwinConfigurations.<host>.system` | agent |
+| Install Determinate Nix · the first `darwin-rebuild switch` | **you** |
+
+The last row is the real boundary: both need `sudo`, and Touch ID for sudo
+([collar](/guides/touch-id/)) doesn't exist until *after* that first switch — so
+they want an interactive password prompt an agent pane can't answer. Everything
+up to "the build succeeded" is fair game, and a failed build activates nothing.
+
+<Aside type="tip" title="After the first switch it gets easier">
+Once the house stands, the rice installs a Claude Code skill whose option
+reference is generated from the exact revision you're pinned to — so "install
+Slack" or "make everything bigger" becomes an edit plus `haus rebuild`, with no
+docs to fetch. See [Changing your Mac with an agent](/guides/ai-agent/).
+</Aside>
+
+Prefer the non-interactive variables above when an agent drives the bootstrap:
+the interview is a [gum](https://github.com/charmbracelet/gum) TUI, and a tool
+driving it blind is how you end up with someone else's git identity in your
+config.
+
 ## Just want one piece?
 
 You don't have to take the whole rice:
