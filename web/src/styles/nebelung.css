@@ -1,44 +1,13 @@
 /* nebelung.css — the Starlight docs, in the same room as the landing page.
-   Flat neutral planes do the structural work; Nebelung accents carry meaning. */
+   Flat neutral planes do the structural work; Nebelung accents carry meaning.
+
+   The ramp, the accents, and the type stacks live in palette.css — shared with
+   the landing pages so a colour can't be right here and stale there. This file
+   maps them onto Starlight's --sl-* contract. */
+
+@import './palette.css';
 
 :root {
-  /* ---- Nebelung neutral ramp (light → dark) ---- */
-  --neb-text: #d7d7d7;
-  --neb-subtext1: #c3c3c3;
-  --neb-subtext0: #aeaeae;
-  --neb-overlay2: #9a9a9a;
-  --neb-overlay1: #858585;
-  --neb-overlay0: #717171;
-  --neb-surface2: #5c5c5c;
-  --neb-surface1: #494949;
-  --neb-surface0: #343434;
-  --neb-base: #202020;
-  --neb-mantle: #191919;
-  --neb-crust: #121212;
-
-  /* ---- Nebelung accents ---- */
-  --neb-rosewater: #f3e1dd;
-  --neb-flamingo: #efcece;
-  --neb-pink: #f2c4e5;
-  --neb-mauve: #c9a8f1;
-  --neb-red: #ed8fa9;
-  --neb-maroon: #e6a3ad;
-  --neb-peach: #f5b58e;
-  --neb-yellow: #f7e2b5;
-  --neb-green: #abe1a6;
-  --neb-teal: #9be0d5;
-  --neb-sky: #91dbe8;
-  --neb-sapphire: #7dc6e7;
-  --neb-blue: #8db4f3;
-  --neb-lavender: #b5bff8;
-
-  --neb-font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto,
-    Helvetica, Arial, sans-serif;
-  --neb-font-mono:
-    ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
-    monospace;
-
   --sl-text-code: 0.9em;
   --sl-nav-height: 4rem;
   --sl-sidebar-width: 18rem;

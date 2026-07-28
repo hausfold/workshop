@@ -1,5 +1,6 @@
 ---
 import FamilyNav from '../components/FamilyNav.astro';
+import '../styles/landing-tokens.css';
 
 interface Feature {
   category: string;
@@ -227,29 +228,8 @@ const canonical = `https://nebelhaus.com/${product}`;
     </script>
 
     <style is:global>
-      :root {
-        --base: #202020;
-        --mantle: #191919;
-        --crust: #121212;
-        --surface0: #343434;
-        --surface1: #494949;
-        --surface2: #5c5c5c;
-        --text: #d7d7d7;
-        --subtext1: #c3c3c3;
-        --subtext0: #aeaeae;
-        --overlay1: #858585;
-        --pink: #f2c4e5;
-        --mauve: #c9a8f1;
-        --peach: #f5b58e;
-        --teal: #9be0d5;
-        --green: #abe1a6;
-        --blue: #8db4f3;
-        --lavender: #b5bff8;
-        --font: ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI',
-          Roboto, Helvetica, Arial, sans-serif;
-        --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo,
-          Consolas, monospace;
-      }
+      /* The palette comes from landing-tokens.css (imported above), which maps
+         the bare names used below onto palette.css. Don't restate hexes here. */
 
       * {
         box-sizing: border-box;

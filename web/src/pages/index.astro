@@ -3,10 +3,11 @@
 // Pounce, Trill, and Perch reuse the same nav, feature rail, cards, and panel language
 // through ProductLanding.astro while keeping the rice's page a little fuller.
 import FamilyNav from '../components/FamilyNav.astro';
+import '../styles/landing-tokens.css';
 const desc =
   'An opinionated macOS, raised in the fog. Silver-grey, keyboard-first, reproducible, Nix-native. One curl and one Nix flake raise the whole house.';
 const install = 'curl -fsSL https://nebelhaus.com/init.sh | bash';
-const productAccent = '#f2c4e5';
+const productAccent = 'var(--neb-product-rice)';
 
 // One-time cache-bust for the logo images. The Instagram/Facebook in-app
 // browsers cached broken/partial image entries during the "no CSS" era and don't
@@ -25,7 +26,7 @@ const family = [
     blurb:
       'nix-darwin modules for tiling, a status bar, the shell, and Touch ID sudo — the whole system as text.',
     href: 'https://github.com/nebelhaus/nebelhaus',
-    accent: '#f2c4e5',
+    accent: 'var(--neb-pink)',
   },
   {
     name: 'pounce',
@@ -34,7 +35,7 @@ const family = [
     blurb:
       'a native, keyboard-first command palette. Summon, aim, pounce. Every command is just a file.',
     href: '/pounce/',
-    accent: '#f5b58e',
+    accent: 'var(--neb-peach)',
   },
   {
     name: 'nebelung',
@@ -43,7 +44,7 @@ const family = [
     blurb:
       'a silver-mist Catppuccin variant, whiskered onto every app you own. Grey is the point.',
     href: 'https://github.com/nebelhaus/nebelung',
-    accent: '#c9a8f1',
+    accent: 'var(--neb-mauve)',
   },
   {
     name: 'trill',
@@ -52,7 +53,7 @@ const family = [
     blurb:
       'a fast, keyboard-first iMessage, SMS & RCS client. Reads chat.db read-only — it changes nothing.',
     href: '/trill/',
-    accent: '#8db4f3',
+    accent: 'var(--neb-blue)',
   },
   {
     name: 'perch',
@@ -61,7 +62,7 @@ const family = [
     blurb:
       'a native temporary file shelf that grows out of your MacBook notch. Drop now, drag elsewhere later.',
     href: '/perch/',
-    accent: '#abe1a6',
+    accent: 'var(--neb-green)',
   },
 ];
 
@@ -71,70 +72,70 @@ const features = [
     title: 'Fresh-Mac defaults',
     blurb:
       'Dock, Finder, keyboard, trackpad, fonts, Homebrew, and core tools are already declared.',
-    accent: '#f2c4e5',
+    accent: 'var(--neb-pink)',
   },
   {
     category: 'windows',
     title: 'Tiling that sticks',
     blurb:
       'AeroSpace layout, hotkeys, boot agents, and a wake-time window re-sort come wired in.',
-    accent: '#c9a8f1',
+    accent: 'var(--neb-mauve)',
   },
   {
     category: 'pounce',
     title: 'Apps + actions',
     blurb:
       'Pounce puts installed apps and your own shell-script commands behind ⌘Space.',
-    accent: '#f5b58e',
+    accent: 'var(--neb-peach)',
   },
   {
     category: 'pounce',
     title: 'Clipboard history',
     blurb:
       'Search recent copies and paste them back without adding another menu-bar utility.',
-    accent: '#9be0d5',
+    accent: 'var(--neb-teal)',
   },
   {
     category: 'pounce',
     title: 'Quick answers',
     blurb:
       'Math, units, time zones, and optional currency conversion answer inside the palette.',
-    accent: '#abe1a6',
+    accent: 'var(--neb-green)',
   },
   {
     category: 'pounce',
     title: 'A real window switcher',
     blurb:
       '⌘Tab moves by recent window across workspaces; hold and type to fuzzy-filter.',
-    accent: '#91dbe8',
+    accent: 'var(--neb-sky)',
   },
   {
     category: 'shell',
     title: 'Terminal, finished',
     blurb:
       'Ghostty, zellij, Helix, Yazi, Starship, bat, delta, fzf, and zoxide share one theme.',
-    accent: '#8db4f3',
+    accent: 'var(--neb-blue)',
   },
   {
     category: 'security',
     title: 'Touch ID sudo',
     blurb:
       'Authenticate with a finger at the prompt — including from inside zellij or tmux.',
-    accent: '#b5bff8',
+    accent: 'var(--neb-lavender)',
   },
   {
     category: 'recovery',
     title: 'Doctor + rollback',
     blurb:
       'Inspect drift, diagnose common failures, or step back a complete system generation.',
-    accent: '#f7e2b5',
+    accent: 'var(--neb-yellow)',
   },
   {
     category: 'focus',
     title: 'One-key quiet',
     blurb:
       'Focus mode, optional Slack status, and your own shell hooks move together.',
-    accent: '#efcece',
+    accent: 'var(--neb-flamingo)',
   },
 ];
 ---
@@ -308,29 +309,8 @@ const features = [
     </script>
 
     <style is:global>
-      :root {
-        --base: #202020;
-        --mantle: #191919;
-        --crust: #121212;
-        --surface0: #343434;
-        --surface1: #494949;
-        --surface2: #5c5c5c;
-        --text: #d7d7d7;
-        --subtext1: #c3c3c3;
-        --subtext0: #aeaeae;
-        --overlay1: #858585;
-        --pink: #f2c4e5;
-        --mauve: #c9a8f1;
-        --peach: #f5b58e;
-        --teal: #9be0d5;
-        --green: #abe1a6;
-        --blue: #8db4f3;
-        --lavender: #b5bff8;
-        --font: ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI',
-          Roboto, Helvetica, Arial, sans-serif;
-        --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo,
-          Consolas, monospace;
-      }
+      /* The palette comes from landing-tokens.css (imported above), which maps
+         the bare names used below onto palette.css. Don't restate hexes here. */
 
       * {
         box-sizing: border-box;
@@ -579,7 +559,7 @@ const features = [
       }
 
       .btn-primary:hover {
-        background: #f6d0eb;
+        background: var(--neb-product-rice-hover);
         color: var(--crust);
       }
 

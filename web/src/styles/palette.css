@@ -1,0 +1,75 @@
+/* palette.css — the nebelung palette, once.
+ *
+ * THE single source of truth for every colour on nebelhaus.com. Three surfaces
+ * import it: nebelung.css (the Starlight docs), and landing-tokens.css (the
+ * standalone landing + product pages, via their own bare-name aliases).
+ *
+ * Before this file the values lived in three places — nebelung.css plus a
+ * hand-copied :root block in each of index.astro and ProductLanding.astro — and
+ * they drifted: perch moved to green everywhere except the family nav's dot,
+ * which kept lavender because that one hex lived somewhere nobody thought to
+ * grep. Add colours here and nowhere else.
+ *
+ * These values mirror the nebelung flake (github.com/nebelhaus/nebelung). That
+ * repo generates them via OKLCH colour math and is authoritative; this file is a
+ * hand-kept copy because the site is built by Astro, not Nix. If the palette is
+ * ever retuned upstream, re-copy the ramp and accents here in one edit.
+ */
+
+:root {
+  /* ---- Nebelung neutral ramp (light → dark) ---- */
+  --neb-text: #d7d7d7;
+  --neb-subtext1: #c3c3c3;
+  --neb-subtext0: #aeaeae;
+  --neb-overlay2: #9a9a9a;
+  --neb-overlay1: #858585;
+  --neb-overlay0: #717171;
+  --neb-surface2: #5c5c5c;
+  --neb-surface1: #494949;
+  --neb-surface0: #343434;
+  --neb-base: #202020;
+  --neb-mantle: #191919;
+  --neb-crust: #121212;
+
+  /* ---- Nebelung accents (14, chroma ×0.9 against true grey) ---- */
+  --neb-rosewater: #f3e1dd;
+  --neb-flamingo: #efcece;
+  --neb-pink: #f2c4e5;
+  --neb-mauve: #c9a8f1;
+  --neb-red: #ed8fa9;
+  --neb-maroon: #e6a3ad;
+  --neb-peach: #f5b58e;
+  --neb-yellow: #f7e2b5;
+  --neb-green: #abe1a6;
+  --neb-teal: #9be0d5;
+  --neb-sky: #91dbe8;
+  --neb-sapphire: #7dc6e7;
+  --neb-blue: #8db4f3;
+  --neb-lavender: #b5bff8;
+
+  /* ---- Per-product identity ----
+   * Which accent each family member wears. The nav dot, the product page's
+   * accent, its feature rail, and the homepage card all read from these, so a
+   * product can't change colour on one surface and not the others.
+   */
+  --neb-product-rice: var(--neb-pink);
+  --neb-product-pounce: var(--neb-peach);
+  --neb-product-trill: var(--neb-blue);
+  --neb-product-perch: var(--neb-green);
+
+  /* Hover tints are one step lighter than each product's accent. Hand-picked —
+   * they are not nebelung palette members, so they live here rather than being
+   * derived, and they are the one thing to update alongside a product accent. */
+  --neb-product-rice-hover: #f6d0eb;
+  --neb-product-pounce-hover: #f8c8aa;
+  --neb-product-trill-hover: #a8c7f7;
+  --neb-product-perch-hover: #c4ecbf;
+
+  /* ---- Type ---- */
+  --neb-font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --neb-font-mono:
+    ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
+    monospace;
+}
