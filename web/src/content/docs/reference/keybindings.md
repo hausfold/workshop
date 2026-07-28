@@ -66,6 +66,7 @@ cheatsheet always reflects the keys you actually have.
 |---|---|
 | `Super P` | New pane (inherits cwd; hops to the main checkout inside a worktree) |
 | `Super ⇧P` | New pane, stay here (inherits cwd, no worktree hop) |
+| `Super D` / `Super ⇧D` | Split the focused pane right / down (same cwd rules as `Super P`) |
 | `Super T` | New tab at `$HOME` (born named `~`) |
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
