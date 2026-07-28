@@ -120,20 +120,24 @@ const assetV = '2';
     border-radius: 50%;
   }
 
+  /* Each dot reads the SAME var as its product's accent (palette.css), so a
+     product can't change colour on its own page and keep the old one here —
+     which is exactly how perch's dot stayed lavender after perch went green. */
+
   .switcher-dot.rice {
-    background: var(--pink);
+    background: var(--neb-product-rice);
   }
 
   .switcher-dot.pounce {
-    background: var(--peach);
+    background: var(--neb-product-pounce);
   }
 
   .switcher-dot.trill {
-    background: var(--blue);
+    background: var(--neb-product-trill);
   }
 
   .switcher-dot.perch {
-    background: var(--green);
+    background: var(--neb-product-perch);
   }
 
   .family-links {

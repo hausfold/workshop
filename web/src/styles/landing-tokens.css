@@ -1,0 +1,50 @@
+/* landing-tokens.css — palette.css, under the bare names the landing pages use.
+ *
+ * index.astro and ProductLanding.astro are standalone pages: Starlight's
+ * customCss (nebelung.css) never reaches them, which is why each used to carry
+ * its own hand-copied :root block of hexes. They address colours without the
+ * --neb- prefix (var(--base), var(--pink)), so this file maps the bare names
+ * onto the canonical ones instead of restating any value.
+ *
+ * Import this, not palette.css, from a landing page — it pulls palette.css in.
+ * The docs deliberately do NOT get these aliases; nebelung.css imports
+ * palette.css directly, so bare --text / --base never enter Starlight's scope.
+ */
+
+@import './palette.css';
+
+:root {
+  /* neutral ramp */
+  --text: var(--neb-text);
+  --subtext1: var(--neb-subtext1);
+  --subtext0: var(--neb-subtext0);
+  --overlay2: var(--neb-overlay2);
+  --overlay1: var(--neb-overlay1);
+  --overlay0: var(--neb-overlay0);
+  --surface2: var(--neb-surface2);
+  --surface1: var(--neb-surface1);
+  --surface0: var(--neb-surface0);
+  --base: var(--neb-base);
+  --mantle: var(--neb-mantle);
+  --crust: var(--neb-crust);
+
+  /* accents — all 14, so reaching for one that wasn't used before just works */
+  --rosewater: var(--neb-rosewater);
+  --flamingo: var(--neb-flamingo);
+  --pink: var(--neb-pink);
+  --mauve: var(--neb-mauve);
+  --red: var(--neb-red);
+  --maroon: var(--neb-maroon);
+  --peach: var(--neb-peach);
+  --yellow: var(--neb-yellow);
+  --green: var(--neb-green);
+  --teal: var(--neb-teal);
+  --sky: var(--neb-sky);
+  --sapphire: var(--neb-sapphire);
+  --blue: var(--neb-blue);
+  --lavender: var(--neb-lavender);
+
+  /* type */
+  --font: var(--neb-font-sans);
+  --mono: var(--neb-font-mono);
+}
