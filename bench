@@ -101,6 +101,8 @@ fi
 say()  { printf '%s🌫  %s%s\n' "$C_FOG" "$*" "$C_OFF"; }
 warn() { printf '%s⚠  %s%s\n' "$C_WARN" "$*" "$C_OFF"; }
 die()  { printf '%s✗  %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; exit 1; }
+# in-section fix nudge — what to run / be aware of, right under what wants it.
+hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
 
 repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + workshop elsewhere
   case "$1" in
@@ -328,6 +330,7 @@ unmerged_agent_branches() { # worktree-* branches not merged into the current HE
 cmd_status() {
   say "repos"
   printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
+  local any_dirty=0 any_ahead=0 any_behind=0
   for name in "${FAMILY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || { printf '  %s%-12s%s %s(missing — bench clone)%s\n' \
@@ -343,14 +346,17 @@ cmd_status() {
     # Clean tree → sage dot; dirty → amber count. Unpushed (↑) / behind (↓) glow
     # amber only when non-zero, so a synced repo reads as a quiet row of zeros.
     local repo_c dirty_c; printf -v repo_c '%-12s' "$name"; printf -v dirty_c '%-7s' "$dirty"
-    local dcol="$C_OK"; [ "$dirty" = "·" ] || dcol="$C_WARN"
-    local acol="$C_MUT"; [ "$ahead"  = "0" ] || acol="$C_WARN"
-    local bcol="$C_MUT"; [ "$behind" = "0" ] || bcol="$C_WARN"
+    local dcol="$C_OK"; [ "$dirty" = "·" ] || { dcol="$C_WARN"; any_dirty=1; }
+    local acol="$C_MUT"; [ "$ahead"  = "0" ] || { acol="$C_WARN"; any_ahead=1; }
+    local bcol="$C_MUT"; [ "$behind" = "0" ] || { bcol="$C_WARN"; any_behind=1; }
     printf '  %s%s%s %-8s %s%s%s %s↑%s%s %s↓%s%s\n' \
       "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
       "$dcol" "$dirty_c" "$C_OFF" \
       "$acol" "$ahead" "$C_OFF" "$bcol" "$behind" "$C_OFF"
   done
+  [ "$any_dirty"  = 1 ] && hint "dirty: commit in that repo (bench ship refuses a dirty tree)"
+  [ "$any_ahead"  = 1 ] && hint "↑ unpushed: bench ship (pushes, then ripples the locks downstream)"
+  [ "$any_behind" = 1 ] && hint "↓ behind origin: git -C <repo> pull --ff-only"
 
   # Agent worktrees + their branches — only speak up if any exist.
   local wt_lines=""
@@ -405,6 +411,7 @@ cmd_status() {
       stale=1
     fi
   done
+  [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
@@ -422,6 +429,7 @@ cmd_status() {
     if [ -z "$tag" ]; then
       printf '  %s⚠%s %-22s no release yet — %s falls back to main\n' \
         "$C_WARN" "$C_OFF" "$name" "$audience"
+      printf '      %scut the first dated release: bench release %s%s\n' "$C_MUT" "$name" "$C_OFF"
       rel_stale=1
       continue
     fi
@@ -440,10 +448,9 @@ cmd_status() {
 
   echo
   if [ "$stale" = "1" ]; then
-    warn "stale edges above. If the upstream work is committed: bench ship."
-    warn "To test it on this machine without pushing anything: bench try"
+    warn "stale lock edges above — see the ↳ fix under that section."
   elif [ "$rel_stale" = "1" ]; then
-    warn "locks are current, but a release is behind — ship is done, releasing is the last mile."
+    warn "locks are current, but a release is behind — ship is done, releasing is the last mile (↳ above)."
   else
     say "everything is current. The fog is even."
   fi
