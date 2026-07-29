@@ -30,19 +30,19 @@ describe('product landing demos', () => {
 
   it('uses the flat orthographic frame and matches its screen geometry', () => {
     expect(component).toContain('src="/media/macbook-pro-orthographic.svg"');
-    expect(component).toContain('aspect-ratio: 1648 / 1158');
-    expect(frame).toContain('viewBox="0 0 1648 1158"');
+    expect(component).toContain('aspect-ratio: 1648 / 1128');
+    expect(frame).toContain('viewBox="0 0 1648 1128"');
   });
 
   it('draws the notch in bezel grey rather than as a black hole', () => {
-    const notch = frame.match(/<path\s+d="M701 34V68[\s\S]*?\/>/);
+    const notch = frame.match(/<path\s+d="M701 29H947[\s\S]*?\/>/);
     expect(notch).not.toBeNull();
     expect(notch[0]).toContain('fill="#343434"');
   });
 
   it('reads as a laptop base, not a keyboard deck or a tablet', () => {
     expect(frame).not.toMatch(/stroke-dasharray/);
-    expect(frame).toContain('M698 1057Q824 1108 950 1057Z');
+    expect(frame).toContain('M700 1057Q824 1093 948 1057');
   });
 
   it('keeps every preview animated and reduced-motion safe', () => {

@@ -1,11 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1648 1158" role="presentation" data-frame="orthographic">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1648 1128" role="presentation" data-frame="orthographic">
   <!-- Flat front elevation of a 14-inch MacBook Pro: lid straight up, so what
-       you see below it is the FRONT EDGE of the base, not the keyboard deck.
-       No keys, no trackpad, no perspective — the laptop reads from the
-       overhang, the finger slot, and the notch alone. -->
+       sits under it is the FRONT EDGE of the base, not the keyboard deck.
+       No keys, no trackpad, no perspective — a slim lip with the finger slot
+       is the whole difference between a laptop and a tablet. Lid and base are
+       flush and share one seam line; the base steps out by 10 units so the
+       silhouette breaks. -->
   <defs>
     <mask id="screen-cutout" maskUnits="userSpaceOnUse">
-      <rect width="1648" height="1158" fill="#fff"/>
+      <rect width="1648" height="1128" fill="#fff"/>
       <path
         d="M88 34H1560Q1590 34 1590 64V1021Q1590 1029 1582 1029H66Q58 1029 58 1021V64Q58 34 88 34Z"
         fill="#000"
@@ -14,25 +16,25 @@
   </defs>
 
   <path
-    d="M3 1042H1645V1120Q1645 1145 1620 1145H28Q3 1145 3 1120Z"
+    d="M17 1057H1631V1103Q1631 1121 1613 1121H35Q17 1121 17 1103Z"
     fill="#2a2a2a"
     stroke="#5c5c5c"
     stroke-width="3"
   />
   <path
-    d="M698 1057Q824 1108 950 1057Z"
-    fill="#1d1d1d"
-    stroke="#4a4a4a"
-    stroke-width="2"
+    d="M700 1057Q824 1093 948 1057"
+    fill="#232323"
+    stroke="#4d4d4d"
+    stroke-width="2.5"
   />
 
   <path
-    d="M88 3H1560Q1621 3 1621 64V1046Q1621 1057 1610 1057H38Q27 1057 27 1046V64Q27 3 88 3Z"
+    d="M88 3H1560Q1621 3 1621 64V1057H27V64Q27 3 88 3Z"
     fill="#343434"
     mask="url(#screen-cutout)"
   />
   <path
-    d="M88 4.5H1560Q1619.5 4.5 1619.5 64V1044.5Q1619.5 1055.5 1608.5 1055.5H39.5Q28.5 1055.5 28.5 1044.5V64Q28.5 4.5 88 4.5Z"
+    d="M88 4.5H1560Q1619.5 4.5 1619.5 64V1055.5H28.5V64Q28.5 4.5 88 4.5Z"
     fill="none"
     stroke="#5c5c5c"
     stroke-width="3"
@@ -44,11 +46,16 @@
     stroke-width="7"
   />
 
+  <!-- Notch: bezel dipping into the panel. The fill runs up past the panel's
+       black edge so that edge doesn't survive as a bar across the notch. -->
   <path
-    d="M701 34V68Q701 93 726 93H922Q947 93 947 68V34"
+    d="M701 29H947V68Q947 93 922 93H726Q701 93 701 68Z"
     fill="#343434"
+  />
+  <path
+    d="M701 33V68Q701 93 726 93H922Q947 93 947 68V33"
+    fill="none"
     stroke="#121212"
     stroke-width="7"
-    stroke-linejoin="round"
   />
 </svg>
