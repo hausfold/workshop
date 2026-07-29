@@ -43,7 +43,7 @@ const content = {
                 <div
                   class="pounce-demo"
                   role="img"
-                  aria-label="Pounce summoned over a desktop: a recent-items list of apps, built-in commands, and a System Settings deep link morphs into Slack search results, then a second summon finds the Claude app"
+                  aria-label="Pounce summoned over a desktop: a recent-items list of apps, built-in commands, and a System Settings deep link filters into Slack search results as you type, a second summon finds the Claude app, and a third converts 200 CAD to USD inline"
                 >
                   <div class="desktop-bar" aria-hidden="true">
                     <span class="bar-group">
@@ -59,13 +59,13 @@ const content = {
                   <div class="pounce-palette scene-recency" aria-hidden="true">
                     <div class="palette-field">
                       <i class="glass" />
-                      <b />
+                      <b>sla</b>
                       <i class="caret" />
                     </div>
                     <div class="palette-rows">
                       <div class="palette-row selected">
                         <span class="row-icon app-a" />
-                        <b>Obsidian</b>
+                        <b>Zen</b>
                         <em>Application</em>
                       </div>
                       <div class="palette-row">
@@ -148,6 +148,23 @@ const content = {
                     <footer>
                       <span>Open<kbd>↵</kbd></span>
                       <span>Reveal in Finder<kbd>⌘↵</kbd></span>
+                    </footer>
+                  </div>
+                  <div class="pounce-palette scene-convert" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>200 cad to usd</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row answer">
+                        <span class="row-icon mark-coin">$</span>
+                        <b>141.77 USD</b>
+                        <em>200 CAD → US Dollar · ECB 2026-07-28</em>
+                      </div>
+                    </div>
+                    <footer>
+                      <span>Copy Answer<kbd>↵</kbd></span>
                     </footer>
                   </div>
                 </div>
@@ -367,12 +384,14 @@ const content = {
   }
 
   /* Sill, roughly: pills either side, not a macOS menu bar. */
+  /* Sits clear of the bezel's inner edge and corner radius — flush against
+     the top it reads as a collision with the frame. */
   .desktop-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 6.6%;
-    padding: 0.7% 2.2% 0;
+    height: 8%;
+    padding: 1.6% 2.8% 0;
   }
 
   .bar-group {
@@ -397,10 +416,12 @@ const content = {
     color: var(--mauve);
   }
 
-  /* One 10s clock, two summons. The first opens onto the recency list — no
-     query — then "slack" types and the SAME palette snaps to its results
-     (really a twin palette swapped in with no summon motion, the way a live
-     list re-renders). ↵ closes it; a fresh summon types "claude". */
+  /* One 14s clock, three summons. The first opens onto the recency list;
+     typing "sla" filters it into the Slack results (a twin palette swapped
+     in on the SAME frame — no fade overlap, or the stack visibly flashes)
+     and the last two chars land after the swap, the way a live list chases
+     the query. Then a fresh summon types "claude", and a third converts
+     currency inline. */
   .pounce-palette {
     position: absolute;
     top: 19%;
@@ -416,15 +437,19 @@ const content = {
   }
 
   .scene-recency {
-    animation: recency-summons 10s ease-out infinite;
+    animation: recency-summons 14s ease-out infinite;
   }
 
   .scene-slack {
-    animation: slack-appears 10s ease-out infinite;
+    animation: slack-appears 14s ease-out infinite;
   }
 
   .scene-claude {
-    animation: palette-summons 10s ease-out infinite;
+    animation: palette-summons 14s ease-out infinite;
+  }
+
+  .scene-convert {
+    animation: convert-summons 14s ease-out infinite;
   }
 
   .palette-field {
@@ -466,16 +491,20 @@ const content = {
     white-space: nowrap;
   }
 
-  .scene-recency .palette-field .caret {
-    margin-left: 0;
+  .scene-recency .palette-field b {
+    animation: types-sla 14s steps(1, end) infinite;
   }
 
   .scene-slack .palette-field b {
-    animation: types-slack 10s steps(1, end) infinite;
+    animation: types-slack 14s steps(1, end) infinite;
   }
 
   .scene-claude .palette-field b {
-    animation: types-claude 10s steps(1, end) infinite;
+    animation: types-claude 14s steps(1, end) infinite;
+  }
+
+  .scene-convert .palette-field b {
+    animation: types-convert 14s linear infinite;
   }
 
   .palette-field .caret {
@@ -521,32 +550,66 @@ const content = {
   }
 
   .scene-recency .palette-row {
-    animation: rows-bloom 10s ease-out infinite;
+    animation: rows-bloom 14s ease-out infinite;
   }
 
   .scene-slack .palette-row {
-    animation: rows-snap 10s linear infinite;
+    animation: rows-snap 14s linear infinite;
   }
 
   .scene-claude .palette-row {
-    animation: rows-bloom-late 10s ease-out infinite;
+    animation: rows-bloom-late 14s ease-out infinite;
   }
 
-  .palette-row.selected {
+  .scene-convert .palette-row {
+    animation: answer-pops 14s ease-out infinite;
+  }
+
+  .palette-row.selected,
+  .palette-row.answer {
     background: color-mix(in srgb, var(--mauve) 26%, transparent);
   }
 
   /* The ↵ reads as a brightness blip on the selected row, just before close. */
   .scene-slack .palette-row.selected {
     animation:
-      rows-snap 10s linear infinite,
-      actioned-mid 10s linear infinite;
+      rows-snap 14s linear infinite,
+      actioned-a 14s linear infinite;
   }
 
   .scene-claude .palette-row.selected {
     animation:
-      rows-bloom-late 10s ease-out infinite,
-      actioned-late 10s linear infinite;
+      rows-bloom-late 14s ease-out infinite,
+      actioned-b 14s linear infinite;
+  }
+
+  .scene-convert .palette-row.answer {
+    animation:
+      answer-pops 14s ease-out infinite,
+      actioned-c 14s linear infinite;
+  }
+
+  /* The calculator answer is a card, not a row: big value, provenance under
+     it, the coin spanning both lines. */
+  .palette-row.answer {
+    grid-template-columns: auto 1fr;
+    gap: 0.35em 1em;
+    padding: 0.9em 1.1em;
+  }
+
+  .palette-row.answer .row-icon {
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  .palette-row.answer b {
+    font-size: 1.65em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .palette-row.answer em {
+    color: var(--subtext0);
   }
 
   .palette-row b,
@@ -693,6 +756,26 @@ const content = {
 
   .row-icon.mark-link::after {
     inset: 32% 16% 32% 40%;
+  }
+
+  /* The converter's coin: a $ in a ring on a mauve chip. */
+  .row-icon.mark-coin {
+    display: grid;
+    width: 2.6em;
+    height: 2.6em;
+    place-items: center;
+    background: color-mix(in srgb, var(--mauve) 30%, transparent);
+    color: var(--mauve);
+    font-size: 1em;
+    font-weight: 650;
+  }
+
+  .row-icon.mark-coin::after {
+    position: absolute;
+    inset: 21%;
+    border: 1.5px solid var(--mauve);
+    border-radius: 50%;
+    content: '';
   }
 
   .row-icon.mark-ring::after {
@@ -1184,102 +1267,138 @@ const content = {
     animation: item-lifts 5.5s 0.4s ease-in-out infinite;
   }
 
-  /* The 10s clock: summon at 0 (recency list up by 0.2s), "slack" typed at
-     2.6–3.3s while the twin palette swaps in, ↵ at ~4.5s, closed by 5s.
-     Second summon at 6s, "claude" typed by 7s, ↵ at ~8.7s, gone by 9.1s;
-     the last 0.9s is empty desktop so the loop can breathe. */
+  /* The 14s clock, in seconds: summon at 0, recency list up by 0.2. Typing
+     starts at 2.2 — s, l, a — and at 2.62 the list snaps to the Slack
+     results ON the same frame the recency palette drops (disjoint keyframes,
+     no crossfade); c and k land at 2.7 and 2.85. ↵ at 4.3, closed by 4.8.
+     Summon 2 at 5.6 types "claude" by 6.6, rows blooming mid-word; ↵ at 8,
+     gone by 8.6. Summon 3 at 9.2 types the conversion by 10.7, the answer
+     card pops at 10.8; ↵ copies at 12.4, gone by 13. The last second is
+     empty desktop so the loop can breathe. */
   @keyframes recency-summons {
     0% {
       opacity: 0;
       transform: translate(-50%, -8px) scale(0.97);
     }
-    2%, 25.8% {
+    1.4%, 18.7% {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
     }
-    26.2%, 100% {
+    18.75%, 100% {
       opacity: 0;
       transform: translate(-50%, 0) scale(1);
     }
   }
 
   @keyframes slack-appears {
-    0%, 25.9% {
+    0%, 18.65% {
       opacity: 0;
       transform: translate(-50%, 0) scale(1);
     }
-    26.3%, 46.5% {
+    18.7%, 32.9% {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
     }
-    49.5%, 100% {
+    34.3%, 100% {
       opacity: 0;
       transform: translate(-50%, -4px) scale(0.99);
     }
   }
 
   @keyframes palette-summons {
-    0%, 60% {
+    0%, 40% {
       opacity: 0;
       transform: translate(-50%, -8px) scale(0.97);
     }
-    62%, 88% {
+    41.4%, 60% {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
     }
-    91%, 100% {
+    61.4%, 100% {
       opacity: 0;
       transform: translate(-50%, -4px) scale(0.99);
     }
   }
 
-  @keyframes types-slack {
-    0%, 27.5% {
+  @keyframes convert-summons {
+    0%, 65.7% {
+      opacity: 0;
+      transform: translate(-50%, -8px) scale(0.97);
+    }
+    67.1%, 91.4% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    92.9%, 100% {
+      opacity: 0;
+      transform: translate(-50%, -4px) scale(0.99);
+    }
+  }
+
+  @keyframes types-sla {
+    0%, 15.7% {
       width: 0;
     }
-    28.5% {
+    16.8% {
       width: 1ch;
     }
-    29.5% {
+    17.9% {
       width: 2ch;
     }
-    30.5% {
+    18.6%, 100% {
       width: 3ch;
     }
-    31.5% {
+  }
+
+  /* Picks up mid-word at the swap: sla → slac → slack. */
+  @keyframes types-slack {
+    0%, 19.2% {
+      width: 3ch;
+    }
+    19.9% {
       width: 4ch;
     }
-    32.5%, 100% {
+    20.7%, 100% {
       width: 5ch;
     }
   }
 
   @keyframes types-claude {
-    0%, 63.5% {
+    0%, 42.1% {
       width: 0;
     }
-    64.5% {
+    42.9% {
       width: 1ch;
     }
-    65.5% {
+    43.6% {
       width: 2ch;
     }
-    66.5% {
+    44.3% {
       width: 3ch;
     }
-    67.5% {
+    45% {
       width: 4ch;
     }
-    68.5% {
+    45.7% {
       width: 5ch;
     }
-    69.5%, 100% {
+    46.4%, 100% {
       width: 6ch;
     }
   }
 
+  @keyframes types-convert {
+    0%, 68.6% {
+      width: 0;
+      animation-timing-function: steps(14, end);
+    }
+    76.4%, 100% {
+      width: 14ch;
+    }
+  }
+
   @keyframes rows-bloom {
-    0%, 0.8% {
+    0%, 0.7% {
       opacity: 0;
       transform: translateY(5px);
     }
@@ -1291,45 +1410,70 @@ const content = {
 
   /* No slide for the slack rows — a live list re-render snaps. */
   @keyframes rows-snap {
-    0%, 26.1% {
+    0%, 18.65% {
       opacity: 0;
     }
-    26.5%, 100% {
+    18.7%, 100% {
       opacity: 1;
     }
   }
 
+  /* The claude rows land while the word is still being typed — results
+     chase the query, they don't wait for it. */
   @keyframes rows-bloom-late {
-    0%, 60.5% {
+    0%, 43% {
       opacity: 0;
       transform: translateY(5px);
     }
-    63.5%, 100% {
+    46%, 100% {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
-  @keyframes actioned-mid {
-    0%, 43% {
+  @keyframes answer-pops {
+    0%, 76.8% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    78.2%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes actioned-a {
+    0%, 30% {
       filter: brightness(1);
     }
-    44.5% {
+    31% {
       filter: brightness(1.45);
     }
-    46%, 100% {
+    32.1%, 100% {
       filter: brightness(1);
     }
   }
 
-  @keyframes actioned-late {
-    0%, 85% {
+  @keyframes actioned-b {
+    0%, 56.4% {
       filter: brightness(1);
     }
-    86.5% {
+    57.5% {
       filter: brightness(1.45);
     }
-    88%, 100% {
+    58.6%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes actioned-c {
+    0%, 88% {
+      filter: brightness(1);
+    }
+    89% {
+      filter: brightness(1.45);
+    }
+    90.3%, 100% {
       filter: brightness(1);
     }
   }
@@ -1426,6 +1570,11 @@ const content = {
 
     .palette-field b {
       width: auto;
+    }
+
+    /* The still frame is a freshly opened palette: recency list, no query. */
+    .scene-recency .palette-field b {
+      width: 0;
     }
 
     .bubble.incoming,
