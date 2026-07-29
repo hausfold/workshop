@@ -13,7 +13,7 @@ re-read each time the palette opens (no daemon restart needed).
 
 ```jsonc
 {
-  "theme": "nebelung",       // "nebelung" (default) or "mocha" (stock Catppuccin)
+  "theme": "nebelung",       // "nebelung" (default), "mocha", or a themes/ file
   "windowMode": "default",   // "default" (720px) or "compact" (600px, tighter)
   "hotkey": {
     "enabled": true,         // register the global hotkey in-process
@@ -36,7 +36,7 @@ re-read each time the palette opens (no daemon restart needed).
 
 | Key | Values | Default |
 |---|---|---|
-| `theme` | `"nebelung"` \| `"mocha"` | `"nebelung"` |
+| `theme` | `"nebelung"` \| `"mocha"` \| a `themes/` file name | `"nebelung"` |
 | `windowMode` | `"default"` \| `"compact"` | `"default"` |
 | `hotkey.enabled` | `true` \| `false` | `true` |
 | `hotkey.key` | key name | `"space"` |
@@ -51,6 +51,22 @@ re-read each time the palette opens (no daemon restart needed).
 
 Setting `hotkey.enabled` to `false` frees the hotkey so an external launcher
 (skhd, AeroSpace) can bind a key to `pounce-palette` instead.
+
+Any `theme` value that isn't a built-in resolves to
+`~/.config/pounce/themes/<name>.json` — a flat catppuccin-style
+`name → "#hex"` map ([nebelung's](https://github.com/nebelhaus/nebelung)
+`palette/*.hex.json` files verbatim), re-read on each open like the config
+itself. That's how the rice's `theme.flavor` / `theme.contrast` reach Pounce
+without a rebuild, and it works the same on a Homebrew install:
+
+```sh
+mkdir -p ~/.config/pounce/themes
+curl -fsSLo ~/.config/pounce/themes/nebelung-latte.json \
+  https://raw.githubusercontent.com/nebelhaus/nebelung/main/palette/nebelung-latte.hex.json
+# config.json:  "theme": "nebelung-latte"
+```
+
+An unknown name or malformed file falls back to the built-in nebelung palette.
 
 ## CLI
 
