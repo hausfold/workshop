@@ -7,6 +7,8 @@ One Cloudflare Worker serves all of `nebelhaus.com`:
 | `/` | the landing page | `src/pages/index.astro` (custom Astro page) |
 | `/start`, `/guides`, `/reference`, `/internals` | the docs | Astro **Starlight** (`src/content/docs/`) |
 | `/init.sh` | the install one-liner | `worker.js` (proxies the rice's `bootstrap.sh`) |
+| `/download/<app>` | 302 to the latest notarized macOS release artifact (pounce, trill, perch) | `worker.js` |
+| `/api/release/<app>` | JSON release metadata (tag, asset, size) the landing pages label their download button with | `worker.js` |
 
 ```sh
 curl -fsSL https://nebelhaus.com/init.sh | bash
@@ -14,8 +16,8 @@ curl -fsSL https://nebelhaus.com/init.sh | bash
 
 The site is a static [Astro](https://astro.build) build (Starlight for docs, a
 hand-rolled landing page). It's served by Cloudflare's `[assets]` binding.
-`worker.js` only handles `/init.sh`; everything else is a static asset. 404s
-render Starlight's own 404 page.
+`worker.js` handles `/init.sh`, `/download/*`, and `/api/release/*`; everything
+else is a static asset. 404s render Starlight's own 404 page.
 
 ## Develop
 

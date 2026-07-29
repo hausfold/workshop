@@ -114,6 +114,26 @@ const canonical = `https://nebelhaus.com/${product}`;
         <h1>{titleLead}<br /><span class="accent-text">{titleAccent}</span></h1>
         <p class="lede">{lede}</p>
 
+        <div class="hero-cta">
+          <a class="download-cta" href={`/download/${product}`} data-release-cta>
+            <span class="dl-action">
+              <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2.2v8.1M4.6 7l3.4 3.4L11.4 7M2.6 13.4h10.8" />
+              </svg>
+              Download for macOS
+            </span>
+            <span class="dl-meta" data-release-meta>signed &amp; notarized · apple silicon</span>
+          </a>
+          <a class="brew-cta" href="#install">
+            <span class="dl-action"><span class="prompt">$</span>&nbsp;brew install</span>
+            <span class="dl-meta">prefer the command line? ↓</span>
+          </a>
+        </div>
+      </section>
+
+      <ProductDemo product={product} />
+
+      <section class="install-section" id="install" aria-label="Install with Homebrew">
         <div class="install">
           <p class="install-label">install standalone with homebrew</p>
           <div class="install-row">
@@ -142,8 +162,6 @@ const canonical = `https://nebelhaus.com/${product}`;
           </a>
         </div>
       </section>
-
-      <ProductDemo product={product} />
 
       <section class="features" aria-labelledby="feature-title">
         <div class="feature-head">
@@ -220,6 +238,22 @@ const canonical = `https://nebelhaus.com/${product}`;
         }
       });
 
+      // The worker's release API (cached at the edge) turns the download button
+      // into a receipt for the actual artifact. Fetch failure — including local
+      // builds where the worker routes don't exist — keeps the static line.
+      const releaseMeta = document.querySelector('[data-release-meta]');
+      const productName = document.body.dataset.product;
+      if (releaseMeta && productName) {
+        fetch(`/api/release/${productName}`)
+          .then((response) => (response.ok ? response.json() : null))
+          .then((release) => {
+            if (!release?.tag) return;
+            const size = release.size ? ` · ${(release.size / 1048576).toFixed(1)} MB` : '';
+            releaseMeta.textContent = `${release.tag}${size} · signed & notarized`;
+          })
+          .catch(() => {});
+      }
+
       const rail = document.querySelector('[data-feature-rail]');
       document.querySelectorAll('[data-scroll]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -282,8 +316,85 @@ const canonical = `https://nebelhaus.com/${product}`;
       }
 
       .hero {
-        padding: 3.65rem 0 5.5rem;
+        padding: 3.65rem 0 3.1rem;
         text-align: center;
+      }
+
+      /* Two doors, one row: the notarized artifact is the headline act, the
+         brew chip mirrors its two-line shape so neither reads as an afterthought. */
+      .hero-cta {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+      }
+
+      .download-cta,
+      .brew-cta {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.28rem;
+        min-width: 232px;
+        padding: 0.85rem 1.5rem;
+        border-radius: 10px;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      .download-cta {
+        background: var(--product-accent);
+        border: 1px solid var(--product-accent);
+        color: var(--crust);
+        box-shadow: 0 12px 40px color-mix(in srgb, var(--product-accent) 22%, transparent);
+      }
+
+      .download-cta:hover {
+        background: var(--product-accent-hover);
+        border-color: var(--product-accent-hover);
+        color: var(--crust);
+      }
+
+      .brew-cta {
+        background: var(--crust);
+        border: 1px solid var(--surface1);
+        color: var(--text);
+      }
+
+      .brew-cta:hover {
+        border-color: var(--surface2);
+        color: var(--text);
+      }
+
+      .dl-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.98rem;
+        font-weight: 650;
+      }
+
+      .brew-cta .dl-action {
+        font-family: var(--mono);
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+
+      .brew-cta .prompt {
+        color: var(--mauve);
+      }
+
+      .dl-meta {
+        font-family: var(--mono);
+        font-size: 0.67rem;
+        letter-spacing: 0.04em;
+        opacity: 0.78;
+      }
+
+      .brew-cta .dl-meta {
+        color: var(--overlay1);
+        opacity: 1;
       }
 
       .eyebrow,
@@ -315,6 +426,12 @@ const canonical = `https://nebelhaus.com/${product}`;
         color: var(--subtext0);
         font-family: var(--mono);
         font-size: 0.97rem;
+      }
+
+      .install-section {
+        margin: 0 0 5.5rem;
+        scroll-margin-top: 2rem;
+        text-align: center;
       }
 
       .install {
@@ -691,7 +808,12 @@ const canonical = `https://nebelhaus.com/${product}`;
         }
 
         .hero {
-          padding: 2.9rem 0 4.5rem;
+          padding: 2.9rem 0 2.3rem;
+        }
+
+        .download-cta,
+        .brew-cta {
+          flex: 1 1 100%;
         }
 
         .eyebrow {

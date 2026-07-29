@@ -25,14 +25,6 @@ const content = {
 ---
 
 <section class="product-demo" aria-labelledby={`${product}-demo-title`} data-product-demo={product}>
-  <div class="demo-heading">
-    <div>
-      <p class="demo-label">{content.label}</p>
-      <h2 id={`${product}-demo-title`}>{content.title}</h2>
-    </div>
-    <p>{content.copy}</p>
-  </div>
-
   <div class="demo-viewport">
     <div class="demo-stage">
       <figure class="macbook">
@@ -250,6 +242,14 @@ const content = {
       </figure>
     </div>
   </div>
+
+  <div class="demo-heading">
+    <div>
+      <p class="demo-label">{content.label}</p>
+      <h2 id={`${product}-demo-title`}>{content.title}</h2>
+    </div>
+    <p>{content.copy}</p>
+  </div>
 </section>
 
 <style>
@@ -257,12 +257,14 @@ const content = {
     margin: 0 0 6.5rem;
   }
 
+  /* The device leads; this reads as its caption, so it sits below and a size
+     down from the hero's h1. */
   .demo-heading {
     display: grid;
     grid-template-columns: 1.08fr 0.92fr;
     align-items: end;
     gap: 3rem;
-    margin: 0 0 1.8rem;
+    margin: 2.2rem 0 0;
   }
 
   .demo-label {
@@ -277,9 +279,9 @@ const content = {
   .demo-heading h2 {
     max-width: 680px;
     margin: 0;
-    font-size: clamp(1.9rem, 4.2vw, 3rem);
+    font-size: clamp(1.55rem, 3.2vw, 2.2rem);
     letter-spacing: -0.03em;
-    line-height: 1.08;
+    line-height: 1.12;
   }
 
   .demo-heading > p {
@@ -1552,7 +1554,7 @@ const content = {
     }
 
     .demo-heading {
-      margin-bottom: 0.9rem;
+      margin-top: 1.4rem;
     }
 
     .demo-viewport {

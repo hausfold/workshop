@@ -163,6 +163,79 @@ describe('serveInitScript upstream handling', () => {
   });
 });
 
+describe('/download and /api/release', () => {
+  const PONCE_RELEASE = {
+    tag_name: 'v2026.07.29',
+    published_at: '2026-07-29T00:00:00Z',
+    assets: [
+      { name: 'pounce-v2026.07.29-macos.tar.gz', size: 701478, browser_download_url: 'https://github.com/nebelhaus/pounce/releases/download/v2026.07.29/pounce-v2026.07.29-macos.tar.gz' },
+    ],
+  };
+
+  it('302s /download/<app> to the latest macOS asset', async () => {
+    globalThis.fetch = makeFetch([
+      { match: 'api.github.com/repos/nebelhaus/pounce/releases/latest', json: PONCE_RELEASE },
+    ]);
+    const res = await worker.fetch(req('/download/pounce'), {});
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe(PONCE_RELEASE.assets[0].browser_download_url);
+  });
+
+  it('picks the -macos asset over other assets', async () => {
+    globalThis.fetch = makeFetch([
+      {
+        match: 'api.github.com/repos/nebelhaus/trill/releases/latest',
+        json: {
+          tag_name: 'v1',
+          assets: [
+            { name: 'checksums.txt', size: 10, browser_download_url: 'https://example.com/checksums.txt' },
+            { name: 'trill-v1-macos.zip', size: 99, browser_download_url: 'https://example.com/trill-v1-macos.zip' },
+          ],
+        },
+      },
+    ]);
+    const res = await worker.fetch(req('/download/trill'), {});
+    expect(res.headers.get('location')).toBe('https://example.com/trill-v1-macos.zip');
+  });
+
+  it('falls back to the releases page when the API is down', async () => {
+    globalThis.fetch = makeFetch([{ match: 'api.github.com', throws: true }]);
+    const res = await worker.fetch(req('/download/perch'), {});
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe('https://github.com/nebelhaus/perch/releases/latest');
+  });
+
+  it('serves release metadata as JSON and caches it', async () => {
+    globalThis.fetch = makeFetch([
+      { match: 'api.github.com/repos/nebelhaus/pounce/releases/latest', json: PONCE_RELEASE },
+    ]);
+    const res = await worker.fetch(req('/api/release/pounce'), {});
+    expect(res.status).toBe(200);
+    const meta = await res.json();
+    expect(meta.tag).toBe('v2026.07.29');
+    expect(meta.size).toBe(701478);
+    expect(globalThis.caches._store.has('https://nebelhaus.com/__release/pounce')).toBe(true);
+
+    // Second hit is served from cache — no API call.
+    globalThis.fetch = makeFetch([]);
+    const cached = await worker.fetch(req('/api/release/pounce'), {});
+    expect((await cached.json()).tag).toBe('v2026.07.29');
+  });
+
+  it('returns 502 JSON when metadata is unavailable', async () => {
+    globalThis.fetch = makeFetch([{ match: 'api.github.com', status: 403, body: 'rate limited' }]);
+    const res = await worker.fetch(req('/api/release/pounce'), {});
+    expect(res.status).toBe(502);
+  });
+
+  it('does not treat unknown apps as downloadable', async () => {
+    globalThis.fetch = makeFetch([]);
+    const res = await worker.fetch(req('/download/nebelhaus'), {});
+    expect(res.status).toBe(404); // falls through to the assets/404 path
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('router', () => {
   it('delegates non-init requests to the ASSETS binding', async () => {
     const assets = { fetch: vi.fn(async () => new Response('site', { status: 200 })) };
