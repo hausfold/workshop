@@ -94,10 +94,6 @@ const content = {
                         <em>Search &amp; paste emoji</em>
                       </div>
                     </div>
-                    <footer>
-                      <span>Open<kbd>↵</kbd></span>
-                      <span>Reveal in Finder<kbd>⌘↵</kbd></span>
-                    </footer>
                   </div>
                   <div class="pounce-palette scene-slack" aria-hidden="true">
                     <div class="palette-field">
@@ -122,10 +118,6 @@ const content = {
                         <em>Install from Homebrew, the Mac App Store, or Nixpkgs</em>
                       </div>
                     </div>
-                    <footer>
-                      <span>Open<kbd>↵</kbd></span>
-                      <span>Reveal in Finder<kbd>⌘↵</kbd></span>
-                    </footer>
                   </div>
                   <div class="pounce-palette scene-claude" aria-hidden="true">
                     <div class="palette-field">
@@ -145,10 +137,6 @@ const content = {
                         <em>Open a URL from the focused pane's Claude transcript</em>
                       </div>
                     </div>
-                    <footer>
-                      <span>Open<kbd>↵</kbd></span>
-                      <span>Reveal in Finder<kbd>⌘↵</kbd></span>
-                    </footer>
                   </div>
                   <div class="pounce-palette scene-convert" aria-hidden="true">
                     <div class="palette-field">
@@ -157,15 +145,14 @@ const content = {
                       <i class="caret" />
                     </div>
                     <div class="palette-rows">
-                      <div class="palette-row answer">
-                        <span class="row-icon mark-coin">$</span>
-                        <b>141.77 USD</b>
-                        <em>200 CAD → US Dollar · ECB 2026-07-28</em>
+                      <div class="answer-well">
+                        <div class="palette-row answer">
+                          <span class="row-icon mark-coin">$</span>
+                          <b>141.77 USD</b>
+                          <em>200 CAD → US Dollar · ECB 2026-07-28</em>
+                        </div>
                       </div>
                     </div>
-                    <footer>
-                      <span>Copy Answer<kbd>↵</kbd></span>
-                    </footer>
                   </div>
                 </div>
               ) : product === 'trill' ? (
@@ -374,8 +361,8 @@ const content = {
     align-content: start;
     overflow: hidden;
     background:
-      radial-gradient(95% 72% at 50% 6%, color-mix(in srgb, var(--mauve) 9%, transparent), transparent 62%),
-      radial-gradient(circle at 68% 78%, transparent 0 16%, color-mix(in srgb, var(--mauve) 26%, transparent) 16.1% 16.4%, transparent 16.5% 27%, color-mix(in srgb, var(--sapphire) 22%, transparent) 27.1% 27.4%, transparent 27.5% 39%, color-mix(in srgb, var(--surface2) 40%, transparent) 39.1% 39.4%, transparent 39.5%),
+      radial-gradient(95% 72% at 50% 6%, color-mix(in srgb, var(--product-accent, var(--peach)) 6%, transparent), transparent 62%),
+      radial-gradient(circle at 68% 78%, transparent 0 16%, color-mix(in srgb, var(--product-accent, var(--peach)) 16%, transparent) 16.1% 16.4%, transparent 16.5% 27%, color-mix(in srgb, var(--surface2) 34%, transparent) 27.1% 27.4%, transparent 27.5% 39%, color-mix(in srgb, var(--surface2) 44%, transparent) 39.1% 39.4%, transparent 39.5%),
       var(--crust);
     color: var(--text);
     font-family: var(--font);
@@ -402,18 +389,19 @@ const content = {
 
   .pill {
     padding: 0.32em 0.62em;
-    background: color-mix(in srgb, var(--surface0) 62%, transparent);
+    background: color-mix(in srgb, var(--surface0) 78%, transparent);
     border-radius: 0.8em;
-    color: var(--overlay1);
+    color: var(--subtext0);
     font-family: var(--mono);
     font-size: 0.72em;
     font-style: normal;
+    font-weight: 500;
     white-space: nowrap;
   }
 
   .pill.accent {
-    background: color-mix(in srgb, var(--mauve) 24%, transparent);
-    color: var(--mauve);
+    background: color-mix(in srgb, var(--product-accent, var(--peach)) 24%, transparent);
+    color: var(--product-accent, var(--peach));
   }
 
   /* One 14s clock, three summons. The first opens onto the recency list;
@@ -567,7 +555,7 @@ const content = {
 
   .palette-row.selected,
   .palette-row.answer {
-    background: color-mix(in srgb, var(--mauve) 26%, transparent);
+    background: color-mix(in srgb, var(--product-accent, var(--mauve)) 17%, transparent);
   }
 
   /* The ↵ reads as a brightness blip on the selected row, just before close. */
@@ -758,14 +746,14 @@ const content = {
     inset: 32% 16% 32% 40%;
   }
 
-  /* The converter's coin: a $ in a ring on a mauve chip. */
+  /* The converter's coin: a $ in a ring on an accent chip. */
   .row-icon.mark-coin {
     display: grid;
     width: 2.6em;
     height: 2.6em;
     place-items: center;
-    background: color-mix(in srgb, var(--mauve) 30%, transparent);
-    color: var(--mauve);
+    background: color-mix(in srgb, var(--product-accent, var(--mauve)) 26%, transparent);
+    color: var(--product-accent, var(--mauve));
     font-size: 1em;
     font-weight: 650;
   }
@@ -773,7 +761,7 @@ const content = {
   .row-icon.mark-coin::after {
     position: absolute;
     inset: 21%;
-    border: 1.5px solid var(--mauve);
+    border: 1.5px solid var(--product-accent, var(--mauve));
     border-radius: 50%;
     content: '';
   }
@@ -786,28 +774,30 @@ const content = {
     content: '';
   }
 
-  .pounce-palette footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.6em;
-    padding: 0.95em 1.65em;
-    border-top: 1px solid var(--surface0);
-    color: var(--overlay1);
-    font-size: 0.84em;
+  /* No hint footer here — the list just ends, so it gets a touch more
+     breathing room at the bottom than between rows. */
+  .palette-rows {
+    padding-bottom: 0.75em;
   }
 
-  .pounce-palette footer kbd {
-    display: inline-grid;
-    min-width: 1.9em;
-    height: 1.55em;
-    margin-left: 0.6em;
-    place-items: center;
-    background: var(--surface0);
-    border-radius: 5px;
-    color: var(--subtext0);
-    font-family: var(--mono);
-    font-size: 0.9em;
-    vertical-align: middle;
+  /* The converter opens as a bare input; the well under it holds no track
+     until the query completes, then 0fr→1fr grows the palette around the
+     answer (the row's padding is clipped by the well while collapsed). */
+  .scene-convert .palette-rows {
+    display: grid;
+    grid-template-rows: 0fr;
+    padding-block: 0;
+    animation: answer-grows 14s ease-out infinite;
+  }
+
+  .scene-convert .palette-field {
+    border-bottom-color: transparent;
+    animation: field-divides 14s linear infinite;
+  }
+
+  .answer-well {
+    min-height: 0;
+    overflow: hidden;
   }
 
   /* Trill's code-native preview: real layout language, synthetic data. */
@@ -1431,12 +1421,32 @@ const content = {
     }
   }
 
+  @keyframes answer-grows {
+    0%, 76.4% {
+      grid-template-rows: 0fr;
+      padding-block: 0;
+    }
+    78%, 100% {
+      grid-template-rows: 1fr;
+      padding-block: 0.55em 0.75em;
+    }
+  }
+
+  @keyframes field-divides {
+    0%, 76.9% {
+      border-bottom-color: transparent;
+    }
+    77%, 100% {
+      border-bottom-color: var(--surface0);
+    }
+  }
+
   @keyframes answer-pops {
-    0%, 76.8% {
+    0%, 77.3% {
       opacity: 0;
       transform: translateY(5px);
     }
-    78.2%, 100% {
+    78.8%, 100% {
       opacity: 1;
       transform: translateY(0);
     }
