@@ -1,0 +1,1192 @@
+---
+interface DemoMedia {
+  src: string;
+  alt: string;
+  type?: 'image' | 'video';
+  poster?: string;
+}
+
+interface Props {
+  product: 'pounce' | 'trill' | 'perch';
+  media?: DemoMedia;
+}
+
+const { product, media } = Astro.props;
+
+const content = {
+  pounce: {
+    label: '⌘ space to done',
+    title: 'Thought to action, before the thought leaves.',
+    copy: 'Summon it, type what you mean, and get back to the work. No dashboard. No ceremony.',
+    focus: 0.5,
+  },
+  trill: {
+    label: 'your inbox at working speed',
+    title: 'A conversation, not a control room.',
+    copy: 'Triage the thread, find the thing, write the reply. Your messages stay local and close to the keyboard.',
+    focus: 0.66,
+  },
+  perch: {
+    label: 'the notch earns its keep',
+    title: 'A temporary shelf that moves at your speed.',
+    copy: 'Flick something up, keep working, then carry it where it belongs. The original never moves.',
+    focus: 0.5,
+  },
+}[product];
+---
+
+<section class="product-demo" aria-labelledby={`${product}-demo-title`} data-product-demo={product}>
+  <div class="demo-heading">
+    <div>
+      <p class="demo-label">{content.label}</p>
+      <h2 id={`${product}-demo-title`}>{content.title}</h2>
+    </div>
+    <p>{content.copy}</p>
+  </div>
+
+  <div class="demo-viewport">
+    <div class="demo-stage" data-demo-stage>
+      <figure class="macbook" data-demo-shell>
+        <div class="macbook-lid">
+          <div class="macbook-camera" aria-hidden="true"><span></span></div>
+          <div class="macbook-screen">
+            {
+              media?.type === 'video' ? (
+                <video
+                  class="demo-media"
+                  data-demo-video
+                  aria-label={media.alt}
+                  poster={media.poster}
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                >
+                  <source src={media.src} />
+                </video>
+              ) : media ? (
+                <img
+                  class="demo-media"
+                  src={media.src}
+                  alt={media.alt}
+                  width="880"
+                  height="572"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : product === 'trill' ? (
+                <div class="trill-demo" role="img" aria-label="Trill showing a fast, local Messages inbox">
+                  <div class="trill-sidebar" aria-hidden="true">
+                    <div class="window-tools"><i></i><i></i><i></i></div>
+                    <div class="trill-search">⌕&nbsp;&nbsp;Search everything</div>
+                    <div class="inbox-label"><span>inbox</span><b>12</b></div>
+                    <div class="chat-row">
+                      <span class="avatar mauve">JM</span>
+                      <span><b>Jo</b><small>landing demo is looking sharp</small></span>
+                      <time>now</time>
+                    </div>
+                    <div class="chat-row selected">
+                      <span class="avatar blue">AK</span>
+                      <span><b>Alex</b><small>Can you send the build?</small></span>
+                      <time>9:41</time>
+                    </div>
+                    <div class="chat-row">
+                      <span class="avatar green">ops</span>
+                      <span><b>Backend</b><small>deploy finished cleanly</small></span>
+                      <time>9:32</time>
+                    </div>
+                    <div class="chat-row dim">
+                      <span class="avatar peach">M</span>
+                      <span><b>Mom</b><small>Photo</small></span>
+                      <time>Tue</time>
+                    </div>
+                  </div>
+                  <div class="trill-thread" aria-hidden="true">
+                    <header>
+                      <span class="avatar blue">AK</span>
+                      <span><b>Alex</b><small>iMessage · local</small></span>
+                      <em>⌘ K</em>
+                    </header>
+                    <div class="message-space">
+                      <div class="day">today 9:41</div>
+                      <p class="bubble received">Can you send the build?</p>
+                      <p class="bubble sent">Already there — check Releases.</p>
+                      <p class="bubble received incoming">Perfect. That was fast.</p>
+                    </div>
+                    <footer><span>Message Alex…</span><b>↑</b></footer>
+                  </div>
+                  <aside class="trill-detail" aria-hidden="true">
+                    <span class="avatar blue">AK</span>
+                    <h3>Alex Kim</h3>
+                    <p>needs reply · 2 links · 4 files</p>
+                    <div><b>local notes</b><span>release follow-up</span></div>
+                    <div><b>shared today</b><span>v2026.07.29</span></div>
+                  </aside>
+                </div>
+              ) : (
+                <div class="perch-demo" role="img" aria-label="Perch opening a temporary file shelf from the MacBook notch">
+                  <div class="desktop-menu" aria-hidden="true">
+                    <span>⌁ &nbsp; Finder &nbsp; File &nbsp; Edit &nbsp; View</span>
+                    <span>◔ &nbsp; 100% &nbsp; Wed Jul 29 &nbsp; 9:41</span>
+                  </div>
+                  <div class="desktop-window" aria-hidden="true">
+                    <header><i></i><i></i><i></i><span>release</span></header>
+                    <aside>
+                      <b>Favorites</b>
+                      <span>⌂ &nbsp; AirDrop</span>
+                      <span>▣ &nbsp; Applications</span>
+                      <span>⌁ &nbsp; Downloads</span>
+                    </aside>
+                    <div class="desktop-main">
+                      <div class="file-card"><i class="folder"></i><span>build</span></div>
+                      <div class="file-card"><i class="document"></i><span>notes.md</span></div>
+                      <div class="file-card"><i class="image"></i><span>hero.png</span></div>
+                    </div>
+                  </div>
+                  <div class="perch-notch" aria-hidden="true"></div>
+                  <div class="perch-shelf" aria-hidden="true">
+                    <header><span>3 things waiting</span><b>copy-only</b></header>
+                    <div class="shelf-items">
+                      <div class="shelf-item"><i class="folder"></i><span>build</span></div>
+                      <div class="shelf-item"><i class="document"></i><span>notes.md</span></div>
+                      <div class="shelf-item lifted"><i class="image"></i><span>hero.png</span></div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+          </div>
+        </div>
+        <div class="macbook-deck" aria-hidden="true"><span></span></div>
+        <figcaption>
+          <span><i></i>{media ? 'real product capture' : 'live product sketch'}</span>
+          <span>tap to focus · esc to close</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <button class="focus-demo" type="button" data-demo-expand aria-haspopup="dialog">
+    <span>Focus the demo</span>
+    <kbd>↗</kbd>
+  </button>
+
+  <dialog
+    class="demo-dialog"
+    data-demo-dialog
+    data-focus={content.focus}
+    aria-label={`${product} product demo`}
+  >
+    <div class="demo-dialog-bar">
+      <span><i></i>{product}.app / performance preview</span>
+      <div>
+        <button type="button" class="demo-fit" data-demo-fit>Zoom in</button>
+        <button type="button" class="demo-close" data-demo-close aria-label="Close demo">×</button>
+      </div>
+    </div>
+    <div class="demo-dialog-mount" data-demo-mount></div>
+  </dialog>
+</section>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+  document.querySelectorAll('[data-product-demo]').forEach((component) => {
+    const stage = component.querySelector('[data-demo-stage]');
+    const shell = component.querySelector('[data-demo-shell]');
+    const expand = component.querySelector('[data-demo-expand]');
+    const dialog = component.querySelector('[data-demo-dialog]');
+    const mount = component.querySelector('[data-demo-mount]');
+    const close = component.querySelector('[data-demo-close]');
+    const fit = component.querySelector('[data-demo-fit]');
+    const video = component.querySelector('[data-demo-video]');
+
+    if (!(stage instanceof HTMLElement) || !(shell instanceof HTMLElement)) return;
+    if (!(dialog instanceof HTMLDialogElement) || !(mount instanceof HTMLElement)) return;
+
+    const home = shell.parentElement;
+    const anchor = document.createComment('product-demo-home');
+    home?.insertBefore(anchor, shell);
+
+    const resetTilt = () => {
+      shell.style.setProperty('--tilt-x', '0deg');
+      shell.style.setProperty('--tilt-y', '0deg');
+    };
+
+    stage.addEventListener('pointermove', (event) => {
+      if (!finePointer.matches || reduceMotion.matches || dialog.open) return;
+      const bounds = stage.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+      shell.style.setProperty('--tilt-x', `${(-y * 1.4).toFixed(2)}deg`);
+      shell.style.setProperty('--tilt-y', `${(x * 1.8).toFixed(2)}deg`);
+    });
+    stage.addEventListener('pointerleave', resetTilt);
+
+    const setZoom = (zoomed) => {
+      dialog.classList.toggle('is-zoomed', zoomed);
+      if (fit instanceof HTMLButtonElement) {
+        fit.textContent = zoomed ? 'Fit whole demo' : 'Zoom in';
+        fit.setAttribute('aria-pressed', String(zoomed));
+      }
+      requestAnimationFrame(() => {
+        if (!zoomed) {
+          mount.scrollLeft = 0;
+          return;
+        }
+        const focus = Number(dialog.dataset.focus ?? 0.5);
+        mount.scrollLeft = Math.max(0, (mount.scrollWidth - mount.clientWidth) * focus);
+      });
+    };
+
+    const restore = () => {
+      anchor.parentNode?.insertBefore(shell, anchor.nextSibling);
+      document.documentElement.classList.remove('demo-is-open');
+      setZoom(false);
+      resetTilt();
+      if (expand instanceof HTMLButtonElement) expand.focus();
+    };
+
+    const openDemo = () => {
+      if (dialog.open) return;
+      mount.append(shell);
+      document.documentElement.classList.add('demo-is-open');
+      dialog.showModal();
+      setZoom(window.matchMedia('(max-width: 700px)').matches);
+      if (close instanceof HTMLButtonElement) close.focus();
+    };
+
+    expand?.addEventListener('click', openDemo);
+    shell.addEventListener('click', openDemo);
+    close?.addEventListener('click', () => dialog.close());
+    fit?.addEventListener('click', () => setZoom(!dialog.classList.contains('is-zoomed')));
+    dialog.addEventListener('close', restore);
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    if (video instanceof HTMLVideoElement) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting && !reduceMotion.matches) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        },
+        { rootMargin: '160px 0px', threshold: 0.2 },
+      );
+      observer.observe(video);
+    }
+  });
+</script>
+
+<style>
+  .product-demo {
+    margin: 0 0 6.5rem;
+  }
+
+  .demo-heading {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    align-items: end;
+    gap: 3rem;
+    margin: 0 0 1.8rem;
+  }
+
+  .demo-label {
+    margin: 0 0 0.7rem;
+    color: var(--product-accent);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.055em;
+    text-transform: lowercase;
+  }
+
+  .demo-heading h2 {
+    max-width: 680px;
+    margin: 0;
+    font-size: clamp(1.9rem, 4.2vw, 3rem);
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+  }
+
+  .demo-heading > p {
+    max-width: 470px;
+    margin: 0 0 0.25rem;
+    color: var(--subtext0);
+    font-size: 0.94rem;
+  }
+
+  .demo-viewport {
+    padding: 1.4rem 0 1.1rem;
+    overflow: clip;
+  }
+
+  .demo-stage {
+    display: grid;
+    min-height: 520px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--product-accent) 18%, var(--surface0));
+    border-radius: 13px;
+    background:
+      linear-gradient(color-mix(in srgb, var(--surface0) 18%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--surface0) 18%, transparent) 1px, transparent 1px),
+      radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--product-accent) 9%, transparent), transparent 53%),
+      color-mix(in srgb, var(--mantle) 83%, transparent);
+    background-size: 32px 32px, 32px 32px, auto, auto;
+    box-shadow: inset 0 1px color-mix(in srgb, var(--text) 4%, transparent);
+    perspective: 1600px;
+  }
+
+  .macbook {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    width: min(880px, calc(100% - 4rem));
+    margin: 0;
+    cursor: zoom-in;
+    transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    transform-style: preserve-3d;
+    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .macbook-lid {
+    position: relative;
+    padding: 10px 10px 12px;
+    background: linear-gradient(150deg, var(--surface2), var(--surface0) 18%, var(--crust) 82%);
+    border: 1px solid var(--surface2);
+    border-bottom-color: var(--overlay0);
+    border-radius: 25px 25px 7px 7px;
+    box-shadow:
+      0 31px 55px rgba(0, 0, 0, 0.32),
+      0 4px 11px rgba(0, 0, 0, 0.48),
+      inset 0 1px color-mix(in srgb, var(--text) 18%, transparent);
+  }
+
+  .macbook-screen {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--crust);
+    border: 1px solid #050505;
+    border-radius: 16px 16px 4px 4px;
+    isolation: isolate;
+  }
+
+  .macbook-camera {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    z-index: 5;
+    width: 11.6%;
+    height: 22px;
+    background: #050505;
+    border-radius: 0 0 8px 8px;
+    transform: translateX(-50%);
+  }
+
+  .macbook-camera span {
+    position: absolute;
+    top: 6px;
+    right: 16%;
+    width: 5px;
+    height: 5px;
+    background: #111a1b;
+    border: 1px solid #26302f;
+    border-radius: 50%;
+  }
+
+  .macbook-deck {
+    position: relative;
+    left: -4%;
+    width: 108%;
+    height: 19px;
+    background: linear-gradient(180deg, var(--overlay0), var(--surface1) 32%, var(--surface0) 76%, var(--crust));
+    border-top: 1px solid var(--overlay1);
+    border-radius: 2px 2px 18px 18px;
+    box-shadow: 0 14px 24px rgba(0, 0, 0, 0.34);
+    clip-path: polygon(4% 0, 96% 0, 100% 61%, 98.5% 100%, 1.5% 100%, 0 61%);
+  }
+
+  .macbook-deck span {
+    position: absolute;
+    top: 0;
+    left: 43%;
+    width: 14%;
+    height: 5px;
+    background: var(--surface0);
+    border-radius: 0 0 8px 8px;
+    box-shadow: inset 0 1px var(--crust);
+  }
+
+  .macbook figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1rem 0 0;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.035em;
+  }
+
+  .macbook figcaption span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .macbook figcaption i,
+  .demo-dialog-bar > span i {
+    width: 0.46rem;
+    height: 0.46rem;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 12%, transparent);
+  }
+
+  .demo-media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .focus-demo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.35rem 0 0 auto;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--subtext0);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.73rem;
+  }
+
+  .focus-demo:hover {
+    color: var(--product-accent);
+  }
+
+  .focus-demo kbd {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    background: var(--mantle);
+    border: 1px solid var(--surface1);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    box-shadow: inset 0 -2px var(--crust);
+  }
+
+  .demo-dialog {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--base) 97%, transparent);
+    border: 0;
+    color: var(--text);
+  }
+
+  .demo-dialog::backdrop {
+    background: rgba(8, 8, 8, 0.82);
+    backdrop-filter: blur(7px);
+  }
+
+  .demo-dialog-bar {
+    display: flex;
+    position: relative;
+    z-index: 2;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    padding: 0 1.1rem 0 1.25rem;
+    background: color-mix(in srgb, var(--mantle) 94%, transparent);
+    border-bottom: 1px solid var(--surface0);
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+  }
+
+  .demo-dialog-bar > span {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .demo-dialog-bar > div {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .demo-fit,
+  .demo-close {
+    min-height: 34px;
+    background: var(--crust);
+    border: 1px solid var(--surface1);
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--mono);
+  }
+
+  .demo-fit {
+    display: none;
+    padding: 0 0.8rem;
+    font-size: 0.68rem;
+  }
+
+  .demo-close {
+    width: 34px;
+    padding: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .demo-dialog-mount {
+    display: grid;
+    height: calc(100dvh - 58px);
+    padding: 2rem;
+    overflow: auto;
+    place-items: center;
+    scrollbar-color: var(--surface2) var(--mantle);
+  }
+
+  .demo-dialog .macbook {
+    width: min(1180px, calc(100vw - 4rem));
+    max-width: none;
+    cursor: default;
+    transform: none;
+    will-change: auto;
+  }
+
+  .demo-dialog .macbook figcaption {
+    margin-inline: 0.25rem;
+  }
+
+  :global(html.demo-is-open) {
+    overflow: hidden;
+  }
+
+  /* Trill's code-native preview: real layout language, synthetic data. */
+  .trill-demo {
+    display: grid;
+    grid-template-columns: 29% 48% 23%;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--base);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 0.92vw, 12px);
+    text-align: left;
+  }
+
+  .trill-sidebar {
+    padding: 3.7% 3.6% 2%;
+    background: var(--mantle);
+    border-right: 1px solid var(--surface0);
+  }
+
+  .window-tools {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 9%;
+  }
+
+  .window-tools i {
+    width: 7px;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 50%;
+  }
+
+  .trill-search {
+    padding: 5% 6%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 7px;
+    color: var(--overlay1);
+    font-family: var(--mono);
+  }
+
+  .inbox-label {
+    display: flex;
+    justify-content: space-between;
+    padding: 9% 3% 3%;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+
+  .inbox-label b {
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  .chat-row {
+    display: grid;
+    grid-template-columns: 27px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0;
+    padding: 5% 4%;
+    border-radius: 7px;
+  }
+
+  .chat-row.selected {
+    background: var(--surface0);
+  }
+
+  .chat-row.dim {
+    opacity: 0.62;
+  }
+
+  .chat-row > span:nth-child(2),
+  .trill-thread header > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .chat-row b,
+  .chat-row small,
+  .trill-thread header b,
+  .trill-thread header small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-row small,
+  .chat-row time,
+  .trill-thread header small {
+    color: var(--overlay1);
+    font-size: 0.8em;
+  }
+
+  .avatar {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--crust);
+    font-size: 0.66em;
+    font-weight: 750;
+  }
+
+  .avatar.blue {
+    background: var(--blue);
+  }
+
+  .avatar.mauve {
+    background: var(--mauve);
+  }
+
+  .avatar.green {
+    background: var(--green);
+  }
+
+  .avatar.peach {
+    background: var(--peach);
+  }
+
+  .trill-thread {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-width: 0;
+    background: var(--base);
+  }
+
+  .trill-thread header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 12%;
+    padding: 2% 4%;
+    background: color-mix(in srgb, var(--mantle) 72%, transparent);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .trill-thread header em {
+    margin-left: auto;
+    padding: 2px 6px;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 4px;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.74em;
+    font-style: normal;
+  }
+
+  .message-space {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 6%;
+  }
+
+  .day {
+    margin: 0 auto 6%;
+    color: var(--overlay0);
+    font-family: var(--mono);
+    font-size: 0.7em;
+  }
+
+  .bubble {
+    max-width: 72%;
+    margin: 1.2% 0;
+    padding: 3.2% 4%;
+    border-radius: 12px;
+    line-height: 1.35;
+  }
+
+  .bubble.received {
+    align-self: flex-start;
+    background: var(--surface0);
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble.sent {
+    align-self: flex-end;
+    background: var(--blue);
+    border-bottom-right-radius: 4px;
+    color: var(--crust);
+  }
+
+  .bubble.incoming {
+    animation: message-arrives 5s 1.5s ease-in-out infinite;
+  }
+
+  .trill-thread footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 4% 4%;
+    padding: 2.4% 2.6% 2.4% 4%;
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    border-radius: 9px;
+    color: var(--overlay1);
+  }
+
+  .trill-thread footer b {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    place-items: center;
+    background: var(--blue);
+    border-radius: 5px;
+    color: var(--crust);
+  }
+
+  .trill-detail {
+    padding: 17% 8% 4%;
+    background: var(--mantle);
+    border-left: 1px solid var(--surface0);
+    text-align: center;
+  }
+
+  .trill-detail > .avatar {
+    width: 44px;
+    height: 44px;
+    margin: auto;
+  }
+
+  .trill-detail h3 {
+    margin: 5% 0 0;
+    font-size: 1.1em;
+  }
+
+  .trill-detail > p {
+    margin: 2% 0 12%;
+    color: var(--overlay1);
+    font-size: 0.75em;
+  }
+
+  .trill-detail div {
+    margin: 5% 0;
+    padding: 7%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 7px;
+    text-align: left;
+  }
+
+  .trill-detail div b,
+  .trill-detail div span {
+    display: block;
+  }
+
+  .trill-detail div b {
+    margin-bottom: 3%;
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 0.68em;
+  }
+
+  .trill-detail div span {
+    color: var(--subtext0);
+    font-size: 0.78em;
+  }
+
+  /* Perch's code-native preview uses only transforms and opacity to animate. */
+  .perch-demo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 74% 72%, color-mix(in srgb, var(--green) 14%, transparent), transparent 19%),
+      radial-gradient(circle at 77% 70%, transparent 0 12%, color-mix(in srgb, var(--surface2) 48%, transparent) 12.2% 12.5%, transparent 12.7% 19%, color-mix(in srgb, var(--surface2) 33%, transparent) 19.2% 19.5%, transparent 19.7%),
+      var(--crust);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 0.9vw, 12px);
+    text-align: left;
+  }
+
+  .desktop-menu {
+    display: flex;
+    position: absolute;
+    inset: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    height: 5.8%;
+    padding: 0 1.6%;
+    background: rgba(28, 28, 28, 0.88);
+    color: var(--subtext0);
+    font-size: 0.76em;
+  }
+
+  .desktop-window {
+    display: grid;
+    position: absolute;
+    top: 16%;
+    left: 13%;
+    width: 60%;
+    height: 67%;
+    grid-template-columns: 27% 73%;
+    grid-template-rows: 12% 88%;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--base) 94%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  }
+
+  .desktop-window header {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 5px;
+    padding: 0 2.3%;
+    background: var(--mantle);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .desktop-window header i {
+    width: 7px;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 50%;
+  }
+
+  .desktop-window header span {
+    margin: auto;
+    color: var(--subtext0);
+    font-size: 0.78em;
+  }
+
+  .desktop-window aside {
+    display: flex;
+    flex-direction: column;
+    gap: 8%;
+    padding: 10%;
+    background: color-mix(in srgb, var(--mantle) 92%, transparent);
+    border-right: 1px solid var(--surface0);
+    color: var(--subtext0);
+    font-size: 0.8em;
+  }
+
+  .desktop-window aside b {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.8em;
+    text-transform: uppercase;
+  }
+
+  .desktop-window .desktop-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 8%;
+    padding: 10%;
+  }
+
+  .file-card,
+  .shelf-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: var(--subtext0);
+    font-size: 0.74em;
+  }
+
+  .file-card i,
+  .shelf-item i {
+    display: block;
+    position: relative;
+    width: 30px;
+    height: 25px;
+    border-radius: 3px;
+  }
+
+  i.folder {
+    background: var(--green);
+  }
+
+  i.folder::before {
+    position: absolute;
+    top: -4px;
+    left: 2px;
+    width: 13px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 3px 3px 0 0;
+    content: '';
+  }
+
+  i.document {
+    background: var(--surface2);
+    border: 1px solid var(--overlay1);
+  }
+
+  i.document::after {
+    position: absolute;
+    inset: 6px 5px;
+    background: repeating-linear-gradient(var(--subtext0) 0 1px, transparent 1px 4px);
+    content: '';
+    opacity: 0.75;
+  }
+
+  i.image {
+    background:
+      linear-gradient(150deg, transparent 45%, var(--green) 46% 68%, transparent 69%),
+      linear-gradient(45deg, transparent 45%, var(--teal) 46% 74%, transparent 75%),
+      var(--surface1);
+    border: 1px solid var(--overlay0);
+  }
+
+  .perch-notch {
+    position: absolute;
+    top: 5.7%;
+    left: 50%;
+    z-index: 3;
+    width: 14%;
+    height: 5%;
+    background: #050505;
+    border-radius: 0 0 8px 8px;
+    transform: translateX(-50%);
+  }
+
+  .perch-shelf {
+    position: absolute;
+    top: 5.7%;
+    left: 50%;
+    z-index: 2;
+    width: 45%;
+    padding: 3.7% 2.3% 2.4%;
+    background: color-mix(in srgb, var(--mantle) 97%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 0 0 13px 13px;
+    box-shadow: 0 17px 40px rgba(0, 0, 0, 0.48);
+    transform: translate(-50%, -84%) scaleX(0.35);
+    transform-origin: top;
+    animation: shelf-opens 5.5s 0.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .perch-shelf header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 4%;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.72em;
+  }
+
+  .perch-shelf header b {
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .shelf-items {
+    display: flex;
+    justify-content: center;
+    gap: 13%;
+    padding: 6%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 8px;
+  }
+
+  .shelf-item.lifted {
+    animation: item-lifts 5.5s 0.4s ease-in-out infinite;
+  }
+
+  @keyframes message-arrives {
+    0%, 22% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    35%, 90% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes shelf-opens {
+    0%, 12% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    29%, 84% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+  }
+
+  @keyframes item-lifts {
+    0%, 40%, 72%, 100% {
+      transform: translate(0);
+    }
+    51%, 61% {
+      transform: translate(14px, -13px) rotate(4deg);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .demo-heading {
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+
+    .demo-heading > p {
+      max-width: 590px;
+    }
+
+    .demo-stage {
+      min-height: 450px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .product-demo {
+      margin-bottom: 5rem;
+    }
+
+    .demo-heading {
+      margin-bottom: 0.9rem;
+    }
+
+    .demo-viewport {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      padding-block: 0.8rem;
+    }
+
+    .demo-stage {
+      min-height: 390px;
+      border-right: 0;
+      border-left: 0;
+      border-radius: 0;
+    }
+
+    .macbook {
+      width: 148vw;
+      max-width: none;
+    }
+
+    [data-product-demo='trill'] .macbook {
+      transform: translateX(-8vw);
+    }
+
+    .macbook figcaption {
+      padding-inline: calc((148vw - 100vw) / 2 + 1rem);
+    }
+
+    [data-product-demo='trill'] .macbook figcaption {
+      transform: translateX(8vw);
+    }
+
+    .focus-demo {
+      margin-right: 0.1rem;
+    }
+
+    .demo-fit {
+      display: block;
+    }
+
+    .demo-dialog-mount {
+      display: flex;
+      align-items: center;
+      padding: 1rem 0.5rem;
+    }
+
+    .demo-dialog .macbook {
+      flex: 0 0 auto;
+      width: calc(100vw - 1rem);
+      transform: none;
+    }
+
+    .demo-dialog.is-zoomed .macbook {
+      width: 156vw;
+    }
+
+    .demo-dialog .macbook figcaption {
+      padding-inline: 0.25rem;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .macbook {
+      transition: none;
+      will-change: auto;
+    }
+
+    .bubble.incoming,
+    .perch-shelf,
+    .shelf-item.lifted {
+      animation: none;
+    }
+
+    .bubble.incoming {
+      opacity: 1;
+    }
+
+    .perch-shelf {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+  }
+</style>

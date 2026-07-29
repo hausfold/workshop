@@ -1,5 +1,6 @@
 ---
 import FamilyNav from '../components/FamilyNav.astro';
+import ProductDemo from '../components/ProductDemo.astro';
 import '../styles/landing-tokens.css';
 
 interface Feature {
@@ -20,6 +21,12 @@ interface Props {
   lede: string;
   description: string;
   socialImage?: string;
+  demoMedia?: {
+    src: string;
+    alt: string;
+    type?: 'image' | 'video';
+    poster?: string;
+  };
   install: string;
   installMarkup: {
     command: string;
@@ -54,6 +61,7 @@ const {
   lede,
   description,
   socialImage = 'https://nebelhaus.com/social/og.png',
+  demoMedia,
   install,
   installMarkup,
   standaloneCopy,
@@ -141,6 +149,8 @@ const canonical = `https://nebelhaus.com/${product}`;
           </a>
         </div>
       </section>
+
+      <ProductDemo product={product} media={demoMedia} />
 
       <section class="features" aria-labelledby="feature-title">
         <div class="feature-head">

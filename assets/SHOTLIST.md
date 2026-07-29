@@ -21,15 +21,17 @@ If a shot isn't in the survivor table below, it isn't wired into anything.
 
 ## The survivor set (this is the whole list)
 
-Four assets carry the family. Each earns its slot by what it's worth to a
+Six assets carry the family. Each earns its slot by what it's worth to a
 stranger seeing it cold — the highest-reach, most-shareable moment of its repo.
 
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
-| 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README · `pounce.astro` landing | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
+| 1 | **Pounce demo** | `pounce/assets/demo.webp` · mirrored to `web/public/media/pounce-demo.webp` | pounce README · `pounce.astro` landing | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
 | 2 | **Rice hero desktop** | `nebelhaus/assets/hero.png` | rice README · org README · landing poster | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(Still a placeholder — the one shot genuinely worth capturing.)* |
 | 3 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
 | 4 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
+| 5 | **Trill live sketch** | `web/src/components/ProductDemo.astro` | `trill.astro` landing | A code-native, synthetic inbox loop communicates the real triage shape without message privacy risk or a screenshot that rots. |
+| 6 | **Perch live sketch** | `web/src/components/ProductDemo.astro` | `perch.astro` landing | A code-native shelf loop shows the notch interaction without adding a video payload; it can later yield to one real capture in the same slot. |
 
 *(Nebelung's README now leads with its evergreen wordmark banner — an exempt
 graphic per the policy above, not a survivor-table hero; the old
@@ -47,11 +49,11 @@ nothing, owed to no one:
 - `web/public/media/theming.webp`, `web/public/media/tap-caps.webp` (retired demo loops)
 
 Nothing here is deleted — but nothing here is an obligation either. Don't reshoot
-to "fill in" the set; the set is the five above.
+to "fill in" the set; the set is the six above.
 
 ## If you ever shoot a new marketing asset
 
-1. It has to displace something, or it's a sixth hero — and there is no sixth.
+1. It has to displace something, or it's a seventh hero — and there is no seventh.
 2. Host it under `web/public/media/<name>` (the one stable public URL, so any
    README *or* the docs site can hotlink the same file).
 3. Add a row here and name the single surface it serves. If you can't name one, don't shoot it.
