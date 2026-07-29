@@ -7,8 +7,8 @@ One Cloudflare Worker serves all of `nebelhaus.com`:
 | `/` | the landing page | `src/pages/index.astro` (custom Astro page) |
 | `/start`, `/guides`, `/reference`, `/internals` | the docs | Astro **Starlight** (`src/content/docs/`) |
 | `/init.sh` | the install one-liner | `worker.js` (proxies the rice's `bootstrap.sh`) |
-| `/download/<app>` | 302 to the latest notarized macOS release artifact (pounce, trill, perch) | `worker.js` |
-| `/api/release/<app>` | JSON release metadata (tag, asset, size) the landing pages label their download button with | `worker.js` |
+| `/download/<app>` | 302 to the latest notarized macOS release artifact (pounce, trill, perch; only trill + perch show it as a landing button — pounce's tarball still assumes Homebrew lays it out) | `worker.js` |
+| `/api/release/<app>` | JSON release metadata (tag, asset, size) for the latest notarized artifact | `worker.js` |
 
 ```sh
 curl -fsSL https://nebelhaus.com/init.sh | bash
