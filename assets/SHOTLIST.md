@@ -26,7 +26,7 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
-| 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README · `pounce.astro` landing | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
+| 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
 | 2 | **Rice hero desktop** | `nebelhaus/assets/hero.png` | rice README · org README · landing poster | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(Still a placeholder — the one shot genuinely worth capturing.)* |
 | 3 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
 | 4 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
@@ -34,6 +34,11 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 *(Nebelung's README now leads with its evergreen wordmark banner — an exempt
 graphic per the policy above, not a survivor-table hero; the old
 `swatch-cascade.webp` marketing loop was retired.)*
+
+*(The pounce/trill/perch landings show the app **in code**, not in a capture:
+`web/src/components/ProductDemo.astro` draws each UI in HTML/CSS inside an SVG
+MacBook. Those aren't survivor-table assets — nothing was shot, nothing rots,
+and no byte ships. Don't "fix" them by pointing a landing at a video.)*
 
 ## Everything else is delisted
 

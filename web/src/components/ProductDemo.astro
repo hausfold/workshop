@@ -1,0 +1,1046 @@
+---
+interface Props {
+  product: 'pounce' | 'trill' | 'perch';
+}
+
+const { product } = Astro.props;
+
+const content = {
+  pounce: {
+    label: '⌘ space to done',
+    title: 'Thought to action, before the thought leaves.',
+    copy: 'Summon it, type what you mean, and get back to the work. No dashboard. No ceremony.',
+  },
+  trill: {
+    label: 'your inbox at working speed',
+    title: 'A conversation, not a control room.',
+    copy: 'Triage the thread, find the thing, write the reply. Your messages stay local and close to the keyboard.',
+  },
+  perch: {
+    label: 'the notch earns its keep',
+    title: 'A temporary shelf that moves at your speed.',
+    copy: 'Flick something up, keep working, then carry it where it belongs. The original never moves.',
+  },
+}[product];
+---
+
+<section class="product-demo" aria-labelledby={`${product}-demo-title`} data-product-demo={product}>
+  <div class="demo-heading">
+    <div>
+      <p class="demo-label">{content.label}</p>
+      <h2 id={`${product}-demo-title`}>{content.title}</h2>
+    </div>
+    <p>{content.copy}</p>
+  </div>
+
+  <div class="demo-viewport">
+    <div class="demo-stage">
+      <figure class="macbook">
+        <div class="macbook-render">
+          <div class="macbook-screen">
+            {
+              product === 'pounce' ? (
+                <div
+                  class="pounce-demo"
+                  role="img"
+                  aria-label="Pounce summoned over a desktop, filtering apps and commands as you type"
+                >
+                  <div class="desktop-bar" aria-hidden="true">
+                    <span>◆&nbsp;&nbsp;1&nbsp;&nbsp;·&nbsp;&nbsp;pounce</span>
+                    <span>15%&nbsp;&nbsp;·&nbsp;&nbsp;25°&nbsp;&nbsp;·&nbsp;&nbsp;Thu Jul 09&nbsp;&nbsp;9:41</span>
+                  </div>
+                  <div class="pounce-palette" aria-hidden="true">
+                    <div class="palette-field">
+                      <span class="palette-query">
+                        <i class="glass">⌕</i>
+                        <b>saf</b>
+                        <i class="caret" />
+                      </span>
+                      <span class="palette-hint">Search apps &amp; actions…</span>
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row selected">
+                        <span class="row-icon mauve">S</span>
+                        <span>
+                          <b>Safari</b>
+                          <small>Open application</small>
+                        </span>
+                        <em>↵ Open</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon">▤</span>
+                        <span>
+                          <b>Safari — New Private Window</b>
+                          <small>Command · ~/.config/pounce/commands</small>
+                        </span>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon">⏏</span>
+                        <span>
+                          <b>Safe Eject</b>
+                          <small>Command · built-in</small>
+                        </span>
+                      </div>
+                    </div>
+                    <footer>
+                      <span>3 results</span>
+                      <span>↵ Open&nbsp;&nbsp;&nbsp;⌘↵ Reveal in Finder</span>
+                    </footer>
+                  </div>
+                </div>
+              ) : product === 'trill' ? (
+                <div class="trill-demo" role="img" aria-label="Trill showing a fast, local Messages inbox">
+                  <div class="trill-sidebar" aria-hidden="true">
+                    <div class="window-tools"><i /><i /><i /></div>
+                    <div class="trill-search">⌕&nbsp;&nbsp;Search everything</div>
+                    <div class="inbox-label"><span>inbox</span><b>12</b></div>
+                    <div class="chat-row">
+                      <span class="avatar mauve">JM</span>
+                      <span><b>Jo</b><small>landing demo is looking sharp</small></span>
+                      <time>now</time>
+                    </div>
+                    <div class="chat-row selected">
+                      <span class="avatar blue">AK</span>
+                      <span><b>Alex</b><small>Can you send the build?</small></span>
+                      <time>9:41</time>
+                    </div>
+                    <div class="chat-row">
+                      <span class="avatar green">ops</span>
+                      <span><b>Backend</b><small>deploy finished cleanly</small></span>
+                      <time>9:32</time>
+                    </div>
+                    <div class="chat-row dim">
+                      <span class="avatar peach">M</span>
+                      <span><b>Mom</b><small>Photo</small></span>
+                      <time>Tue</time>
+                    </div>
+                  </div>
+                  <div class="trill-thread" aria-hidden="true">
+                    <header>
+                      <span class="avatar blue">AK</span>
+                      <span><b>Alex</b><small>iMessage · local</small></span>
+                      <em>⌘ K</em>
+                    </header>
+                    <div class="message-space">
+                      <div class="day">today 9:41</div>
+                      <p class="bubble received">Can you send the build?</p>
+                      <p class="bubble sent">Already there — check Releases.</p>
+                      <p class="bubble received incoming">Perfect. That was fast.</p>
+                    </div>
+                    <footer><span>Message Alex…</span><b>↑</b></footer>
+                  </div>
+                  <aside class="trill-detail" aria-hidden="true">
+                    <span class="avatar blue">AK</span>
+                    <h3>Alex Kim</h3>
+                    <p>needs reply · 2 links · 4 files</p>
+                    <div><b>local notes</b><span>release follow-up</span></div>
+                    <div><b>shared today</b><span>v2026.07.29</span></div>
+                  </aside>
+                </div>
+              ) : (
+                <div class="perch-demo" role="img" aria-label="Perch opening a temporary file shelf from the MacBook notch">
+                  <div class="desktop-menu" aria-hidden="true">
+                    <span>⌁ &nbsp; Finder &nbsp; File &nbsp; Edit &nbsp; View</span>
+                    <span>◔ &nbsp; 100% &nbsp; Wed Jul 29 &nbsp; 9:41</span>
+                  </div>
+                  <div class="desktop-window" aria-hidden="true">
+                    <header><i /><i /><i /><span>release</span></header>
+                    <aside>
+                      <b>Favorites</b>
+                      <span>⌂ &nbsp; AirDrop</span>
+                      <span>▣ &nbsp; Applications</span>
+                      <span>⌁ &nbsp; Downloads</span>
+                    </aside>
+                    <div class="desktop-main">
+                      <div class="file-card"><i class="folder" /><span>build</span></div>
+                      <div class="file-card"><i class="document" /><span>notes.md</span></div>
+                      <div class="file-card"><i class="image" /><span>hero.png</span></div>
+                    </div>
+                  </div>
+                  <div class="perch-shelf" aria-hidden="true">
+                    <header><span>3 things waiting</span><b>copy-only</b></header>
+                    <div class="shelf-items">
+                      <div class="shelf-item"><i class="folder" /><span>build</span></div>
+                      <div class="shelf-item"><i class="document" /><span>notes.md</span></div>
+                      <div class="shelf-item lifted"><i class="image" /><span>hero.png</span></div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+          </div>
+          <img
+            class="macbook-frame"
+            src="/media/macbook-pro-orthographic.svg"
+            alt=""
+            width="1648"
+            height="1158"
+            loading="lazy"
+            decoding="async"
+            aria-hidden="true"
+          />
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .product-demo {
+    margin: 0 0 6.5rem;
+  }
+
+  .demo-heading {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    align-items: end;
+    gap: 3rem;
+    margin: 0 0 1.8rem;
+  }
+
+  .demo-label {
+    margin: 0 0 0.7rem;
+    color: var(--product-accent);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.055em;
+    text-transform: lowercase;
+  }
+
+  .demo-heading h2 {
+    max-width: 680px;
+    margin: 0;
+    font-size: clamp(1.9rem, 4.2vw, 3rem);
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+  }
+
+  .demo-heading > p {
+    max-width: 470px;
+    margin: 0 0 0.25rem;
+    color: var(--subtext0);
+    font-size: 0.94rem;
+  }
+
+  .demo-viewport {
+    padding: 0.5rem 0 0;
+    overflow: clip;
+  }
+
+  .demo-stage {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+  }
+
+  .macbook {
+    position: relative;
+    width: min(960px, calc(100% - 1rem));
+    margin: 0;
+  }
+
+  /* Geometry mirrors macbook-pro-orthographic.svg's 1648 × 1158 viewBox:
+     the panel cutout is x 58–1590, y 34–1029. */
+  .macbook-render {
+    position: relative;
+    aspect-ratio: 1648 / 1158;
+  }
+
+  .macbook-screen {
+    position: absolute;
+    top: 2.936%;
+    left: 3.519%;
+    z-index: 1;
+    width: 92.961%;
+    height: 85.924%;
+    overflow: hidden;
+    background: var(--crust);
+    border-radius: 1.96% 1.96% 0.52% 0.52%;
+    isolation: isolate;
+  }
+
+  .macbook-frame {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Pounce's code-native preview: the real palette chrome, synthetic results. */
+  .pounce-demo {
+    display: grid;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    align-content: start;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 68% 78%, transparent 0 16%, color-mix(in srgb, var(--mauve) 26%, transparent) 16.1% 16.4%, transparent 16.5% 27%, color-mix(in srgb, var(--sapphire) 22%, transparent) 27.1% 27.4%, transparent 27.5% 39%, color-mix(in srgb, var(--surface2) 40%, transparent) 39.1% 39.4%, transparent 39.5%),
+      var(--crust);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 0.92vw, 12px);
+    text-align: left;
+  }
+
+  .desktop-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 6.4%;
+    padding: 0.6% 2.6% 0;
+    color: var(--overlay0);
+    font-family: var(--mono);
+    font-size: 0.74em;
+  }
+
+  .pounce-palette {
+    position: absolute;
+    top: 21%;
+    left: 50%;
+    width: 68%;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--mantle) 97%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 12px;
+    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.52);
+    transform: translate(-50%, 0);
+    animation: palette-summons 6.5s ease-in-out infinite;
+  }
+
+  .palette-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3.4% 3.2%;
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .palette-query {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    font-family: var(--mono);
+    font-size: 1.16em;
+  }
+
+  .palette-query .glass {
+    color: var(--overlay0);
+    font-size: 0.82em;
+    font-style: normal;
+  }
+
+  .palette-query b {
+    display: inline-block;
+    overflow: hidden;
+    font-weight: 500;
+    white-space: nowrap;
+    animation: palette-types 6.5s steps(1, end) infinite;
+  }
+
+  .palette-query .caret {
+    width: 0.5em;
+    height: 1.15em;
+    margin-left: -0.35em;
+    background: var(--product-accent, var(--peach));
+    animation: caret-blinks 1.1s steps(2, jump-none) infinite;
+  }
+
+  .palette-hint {
+    color: var(--overlay0);
+    font-family: var(--mono);
+    font-size: 0.82em;
+  }
+
+  .palette-row {
+    display: grid;
+    position: relative;
+    grid-template-columns: 2.6em 1fr auto;
+    align-items: center;
+    gap: 3%;
+    padding: 2.6% 3.2%;
+    animation: palette-result 6.5s ease-out infinite;
+  }
+
+  .palette-row:nth-child(2) {
+    animation-delay: 0.07s;
+  }
+
+  .palette-row:nth-child(3) {
+    animation-delay: 0.14s;
+  }
+
+  .palette-row.selected {
+    background: color-mix(in srgb, var(--surface0) 74%, transparent);
+    box-shadow: inset 2px 0 var(--product-accent, var(--mauve));
+  }
+
+  .palette-row > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .palette-row b,
+  .palette-row small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .palette-row b {
+    font-weight: 550;
+  }
+
+  .palette-row small {
+    color: var(--overlay1);
+    font-size: 0.78em;
+  }
+
+  .row-icon {
+    display: grid;
+    width: 2.6em;
+    height: 2.6em;
+    place-items: center;
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    border-radius: 7px;
+    color: var(--subtext0);
+    font-size: 0.9em;
+  }
+
+  .row-icon.mauve {
+    color: var(--mauve);
+  }
+
+  .palette-row em {
+    padding: 0.35em 0.7em;
+    border: 1px solid color-mix(in srgb, var(--product-accent, var(--mauve)) 55%, var(--surface1));
+    border-radius: 6px;
+    color: var(--product-accent, var(--mauve));
+    font-family: var(--mono);
+    font-size: 0.74em;
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .pounce-palette footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 2.4% 3.2%;
+    border-top: 1px solid var(--surface0);
+    color: var(--overlay0);
+    font-family: var(--mono);
+    font-size: 0.74em;
+  }
+
+  /* Trill's code-native preview: real layout language, synthetic data. */
+  /* Trill runs full-screen, so it starts below the notch the way macOS puts a
+     full-screen app below it — otherwise the notch bites the thread header. */
+  .trill-demo {
+    display: grid;
+    position: absolute;
+    grid-template-columns: 29% 48% 23%;
+    inset: 7% 0 0;
+    overflow: hidden;
+    background: var(--base);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 0.92vw, 12px);
+    text-align: left;
+  }
+
+  .trill-sidebar {
+    padding: 3.7% 3.6% 2%;
+    background: var(--mantle);
+    border-right: 1px solid var(--surface0);
+  }
+
+  .window-tools {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 9%;
+  }
+
+  .window-tools i {
+    width: 7px;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 50%;
+  }
+
+  .trill-search {
+    padding: 5% 6%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 7px;
+    color: var(--overlay1);
+    font-family: var(--mono);
+  }
+
+  .inbox-label {
+    display: flex;
+    justify-content: space-between;
+    padding: 9% 3% 3%;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+
+  .inbox-label b {
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  .chat-row {
+    display: grid;
+    grid-template-columns: 27px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0;
+    padding: 5% 4%;
+    border-radius: 7px;
+  }
+
+  .chat-row.selected {
+    background: var(--surface0);
+  }
+
+  .chat-row.dim {
+    opacity: 0.62;
+  }
+
+  .chat-row > span:nth-child(2),
+  .trill-thread header > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .chat-row b,
+  .chat-row small,
+  .trill-thread header b,
+  .trill-thread header small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-row small,
+  .chat-row time,
+  .trill-thread header small {
+    color: var(--overlay1);
+    font-size: 0.8em;
+  }
+
+  .avatar {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--crust);
+    font-size: 0.66em;
+    font-weight: 750;
+  }
+
+  .avatar.blue {
+    background: var(--blue);
+  }
+
+  .avatar.mauve {
+    background: var(--mauve);
+  }
+
+  .avatar.green {
+    background: var(--green);
+  }
+
+  .avatar.peach {
+    background: var(--peach);
+  }
+
+  .trill-thread {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-width: 0;
+    background: var(--base);
+  }
+
+  .trill-thread header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 12%;
+    padding: 2% 4%;
+    background: color-mix(in srgb, var(--mantle) 72%, transparent);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .trill-thread header em {
+    margin-left: auto;
+    padding: 2px 6px;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 4px;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.74em;
+    font-style: normal;
+  }
+
+  .message-space {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 6%;
+  }
+
+  .day {
+    margin: 0 auto 6%;
+    color: var(--overlay0);
+    font-family: var(--mono);
+    font-size: 0.7em;
+  }
+
+  .bubble {
+    max-width: 72%;
+    margin: 1.2% 0;
+    padding: 3.2% 4%;
+    border-radius: 12px;
+    line-height: 1.35;
+  }
+
+  .bubble.received {
+    align-self: flex-start;
+    background: var(--surface0);
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble.sent {
+    align-self: flex-end;
+    background: var(--blue);
+    border-bottom-right-radius: 4px;
+    color: var(--crust);
+  }
+
+  .bubble.incoming {
+    animation: message-arrives 5s 1.5s ease-in-out infinite;
+  }
+
+  .trill-thread footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 4% 4%;
+    padding: 2.4% 2.6% 2.4% 4%;
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    border-radius: 9px;
+    color: var(--overlay1);
+  }
+
+  .trill-thread footer b {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    place-items: center;
+    background: var(--blue);
+    border-radius: 5px;
+    color: var(--crust);
+  }
+
+  .trill-detail {
+    padding: 17% 8% 4%;
+    background: var(--mantle);
+    border-left: 1px solid var(--surface0);
+    text-align: center;
+  }
+
+  .trill-detail > .avatar {
+    width: 44px;
+    height: 44px;
+    margin: auto;
+  }
+
+  .trill-detail h3 {
+    margin: 5% 0 0;
+    font-size: 1.1em;
+  }
+
+  .trill-detail > p {
+    margin: 2% 0 12%;
+    color: var(--overlay1);
+    font-size: 0.75em;
+  }
+
+  .trill-detail div {
+    margin: 5% 0;
+    padding: 7%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 7px;
+    text-align: left;
+  }
+
+  .trill-detail div b,
+  .trill-detail div span {
+    display: block;
+  }
+
+  .trill-detail div b {
+    margin-bottom: 3%;
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 0.68em;
+  }
+
+  .trill-detail div span {
+    color: var(--subtext0);
+    font-size: 0.78em;
+  }
+
+  /* Perch's code-native preview uses only transforms and opacity to animate. */
+  .perch-demo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 74% 72%, color-mix(in srgb, var(--green) 14%, transparent), transparent 19%),
+      radial-gradient(circle at 77% 70%, transparent 0 12%, color-mix(in srgb, var(--surface2) 48%, transparent) 12.2% 12.5%, transparent 12.7% 19%, color-mix(in srgb, var(--surface2) 33%, transparent) 19.2% 19.5%, transparent 19.7%),
+      var(--crust);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 0.9vw, 12px);
+    text-align: left;
+  }
+
+  .desktop-menu {
+    display: flex;
+    position: absolute;
+    inset: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    height: 5.8%;
+    padding: 0 1.6%;
+    background: rgba(28, 28, 28, 0.88);
+    color: var(--subtext0);
+    font-size: 0.76em;
+  }
+
+  .desktop-window {
+    display: grid;
+    position: absolute;
+    top: 16%;
+    left: 13%;
+    width: 60%;
+    height: 67%;
+    grid-template-columns: 27% 73%;
+    grid-template-rows: 12% 88%;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--base) 94%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  }
+
+  .desktop-window header {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 5px;
+    padding: 0 2.3%;
+    background: var(--mantle);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .desktop-window header i {
+    width: 7px;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 50%;
+  }
+
+  .desktop-window header span {
+    margin: auto;
+    color: var(--subtext0);
+    font-size: 0.78em;
+  }
+
+  .desktop-window aside {
+    display: flex;
+    flex-direction: column;
+    gap: 8%;
+    padding: 10%;
+    background: color-mix(in srgb, var(--mantle) 92%, transparent);
+    border-right: 1px solid var(--surface0);
+    color: var(--subtext0);
+    font-size: 0.8em;
+  }
+
+  .desktop-window aside b {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.8em;
+    text-transform: uppercase;
+  }
+
+  .desktop-window .desktop-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 8%;
+    padding: 10%;
+  }
+
+  .file-card,
+  .shelf-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: var(--subtext0);
+    font-size: 0.74em;
+  }
+
+  .file-card i,
+  .shelf-item i {
+    display: block;
+    position: relative;
+    width: 30px;
+    height: 25px;
+    border-radius: 3px;
+  }
+
+  i.folder {
+    background: var(--green);
+  }
+
+  i.folder::before {
+    position: absolute;
+    top: -4px;
+    left: 2px;
+    width: 13px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 3px 3px 0 0;
+    content: '';
+  }
+
+  i.document {
+    background: var(--surface2);
+    border: 1px solid var(--overlay1);
+  }
+
+  i.document::after {
+    position: absolute;
+    inset: 6px 5px;
+    background: repeating-linear-gradient(var(--subtext0) 0 1px, transparent 1px 4px);
+    content: '';
+    opacity: 0.75;
+  }
+
+  i.image {
+    background:
+      linear-gradient(150deg, transparent 45%, var(--green) 46% 68%, transparent 69%),
+      linear-gradient(45deg, transparent 45%, var(--teal) 46% 74%, transparent 75%),
+      var(--surface1);
+    border: 1px solid var(--overlay0);
+  }
+
+  .perch-shelf {
+    position: absolute;
+    top: 5.7%;
+    left: 50%;
+    z-index: 2;
+    width: 45%;
+    padding: 3.7% 2.3% 2.4%;
+    background: color-mix(in srgb, var(--mantle) 97%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 0 0 13px 13px;
+    box-shadow: 0 17px 40px rgba(0, 0, 0, 0.48);
+    transform: translate(-50%, -84%) scaleX(0.35);
+    transform-origin: top;
+    animation: shelf-opens 5.5s 0.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .perch-shelf header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 4%;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.72em;
+  }
+
+  .perch-shelf header b {
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .shelf-items {
+    display: flex;
+    justify-content: center;
+    gap: 13%;
+    padding: 6%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 8px;
+  }
+
+  .shelf-item.lifted {
+    animation: item-lifts 5.5s 0.4s ease-in-out infinite;
+  }
+
+  @keyframes palette-summons {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -6px) scale(0.985);
+    }
+    5%, 94% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -6px) scale(0.985);
+    }
+  }
+
+  @keyframes palette-types {
+    0%, 4% {
+      width: 0;
+    }
+    8% {
+      width: 1ch;
+    }
+    12% {
+      width: 2ch;
+    }
+    16%, 100% {
+      width: 3ch;
+    }
+  }
+
+  /* The rows bloom in with the palette, not after the query — pounce filters
+     as you type, so an empty result box would be a lie and a dead beat. */
+  @keyframes palette-result {
+    0%, 2% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    9%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes caret-blinks {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.1;
+    }
+  }
+
+  @keyframes message-arrives {
+    0%, 22% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    35%, 90% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes shelf-opens {
+    0%, 12% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    29%, 84% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+  }
+
+  @keyframes item-lifts {
+    0%, 40%, 72%, 100% {
+      transform: translate(0);
+    }
+    51%, 61% {
+      transform: translate(14px, -13px) rotate(4deg);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .demo-heading {
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+
+    .demo-heading > p {
+      max-width: 590px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .product-demo {
+      margin-bottom: 5rem;
+    }
+
+    .demo-heading {
+      margin-bottom: 0.9rem;
+    }
+
+    .demo-viewport {
+      padding-block: 0.25rem;
+    }
+
+    /* The device stays whole on phones. It used to bleed past both edges for
+       legibility, which only worked because a focus dialog could show the
+       rest; without that escape hatch a crop is just a crop. */
+    .macbook {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pounce-palette,
+    .palette-query b,
+    .palette-query .caret,
+    .palette-row,
+    .bubble.incoming,
+    .perch-shelf,
+    .shelf-item.lifted {
+      animation: none;
+    }
+
+    .palette-query b {
+      width: auto;
+    }
+
+    .bubble.incoming,
+    .palette-row {
+      opacity: 1;
+    }
+
+    .perch-shelf {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+  }
+</style>

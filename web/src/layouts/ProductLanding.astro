@@ -1,5 +1,6 @@
 ---
 import FamilyNav from '../components/FamilyNav.astro';
+import ProductDemo from '../components/ProductDemo.astro';
 import '../styles/landing-tokens.css';
 
 interface Feature {
@@ -141,6 +142,8 @@ const canonical = `https://nebelhaus.com/${product}`;
           </a>
         </div>
       </section>
+
+      <ProductDemo product={product} />
 
       <section class="features" aria-labelledby="feature-title">
         <div class="feature-head">
