@@ -63,5 +63,30 @@ a rice read as *designed*, not *dumped*. Before capturing #1–#5:
 
 - Flat fog-grey wallpaper near `base #202020`; default `mauve #c9a8f1` accent.
 - Clean clock (**9:41**), a fog-appropriate weather city, neutral clipboard/tabs, fresh git state.
-- Default gaps (inner `10px` / outer `20px`); KeyCastr bottom-center for any video.
+- Default gaps (inner `10px` / outer `20px`); keep any necessary KeyCastr cue small and bottom-center.
 - Record on the retina display, 60fps, export @2x; bump Ghostty to ~22px for video legibility.
+
+## Child-product performance capture brief
+
+Each product landing gets one **8–10 second seamless loop**, not a feature tour.
+Record the 14-inch panel at `3024×1964`, then export a silent `1512×982` H.264
+MP4 with `faststart` and a WebP poster. Aim for **1.5–2.5 MB** per loop. Keep the
+payoff inside the center 70% of the frame so the inline mobile crop still tells
+the story; the focus view can reveal the whole screen.
+
+- **Pounce — command to useful result.** Idle desktop; `⌘Space`; type `ports`;
+  choose the local `:3000` process; run “open localhost”; land on a tiny local
+  health page; return to the identical idle frame. This sells native speed and
+  the backend bias in one move.
+- **Trill — triage without dashboarding.** Start in a synthetic “needs reply”
+  inbox; `⌘K`; search `alex build`; open the result; send
+  `Shipped — v0.4.2.`; return to the original inbox. Use fictional names and
+  content only.
+- **Perch — collect, carry, disappear.** Start with three files centered in
+  Finder; drag them to the notch; let the shelf bloom; drag the stack into a
+  project folder; show the originals still in place; let the shelf close back
+  into the notch.
+
+Use one clean cursor and no permanent keystroke overlay—the interaction should
+explain itself. Hold the first and last idle frame for roughly 0.4 seconds so
+the loop has no visible jump.

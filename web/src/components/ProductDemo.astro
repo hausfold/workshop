@@ -142,7 +142,6 @@ const content = {
                       <div class="file-card"><i class="image"></i><span>hero.png</span></div>
                     </div>
                   </div>
-                  <div class="perch-notch" aria-hidden="true"></div>
                   <div class="perch-shelf" aria-hidden="true">
                     <header><span>3 things waiting</span><b>copy-only</b></header>
                     <div class="shelf-items">
@@ -155,13 +154,12 @@ const content = {
               )
             }
           </div>
-          <div class="macbook-notch" aria-hidden="true"></div>
           <img
             class="macbook-frame"
-            src="/media/macbook-pro-frame.webp"
+            src="/media/macbook-pro-screen.svg"
             alt=""
-            width="1536"
-            height="1024"
+            width="1600"
+            height="1060"
             loading="lazy"
             decoding="async"
             aria-hidden="true"
@@ -351,45 +349,22 @@ const content = {
     will-change: transform;
   }
 
-  .macbook::before {
-    position: absolute;
-    right: 8%;
-    bottom: 4.8%;
-    left: 8%;
-    z-index: -1;
-    height: 8%;
-    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.48), transparent 70%);
-    content: '';
-  }
-
   .macbook-render {
     position: relative;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 1600 / 1060;
   }
 
   .macbook-screen {
     position: absolute;
-    top: 9.55%;
-    left: 15.72%;
+    top: 3.21%;
+    left: 2.125%;
     z-index: 1;
-    width: 68.55%;
-    height: 69.55%;
+    width: 95.75%;
+    height: 93.87%;
     overflow: hidden;
     background: var(--crust);
-    border-radius: 1.1% 1.1% 0 0;
+    border-radius: 1.9%;
     isolation: isolate;
-  }
-
-  .macbook-notch {
-    position: absolute;
-    top: 9.45%;
-    left: 50%;
-    z-index: 4;
-    width: 8.05%;
-    height: 5.25%;
-    background: #020202;
-    border-radius: 0 0 10px 10px;
-    transform: translateX(-50%);
   }
 
   .macbook-frame {
@@ -950,18 +925,6 @@ const content = {
     border: 1px solid var(--overlay0);
   }
 
-  .perch-notch {
-    position: absolute;
-    top: 5.7%;
-    left: 50%;
-    z-index: 3;
-    width: 14%;
-    height: 5%;
-    background: #050505;
-    border-radius: 0 0 8px 8px;
-    transform: translateX(-50%);
-  }
-
   .perch-shelf {
     position: absolute;
     top: 5.7%;
@@ -1072,12 +1035,12 @@ const content = {
     }
 
     .macbook {
-      width: 142vw;
+      width: 132vw;
       max-width: none;
     }
 
     [data-product-demo='trill'] .macbook {
-      transform: translateX(-8vw);
+      transform: translateX(-6vw);
     }
 
     .focus-demo {
@@ -1101,7 +1064,7 @@ const content = {
     }
 
     .demo-dialog.is-zoomed .macbook {
-      width: 156vw;
+      width: 148vw;
     }
 
   }

@@ -31,8 +31,10 @@ describe('product landing demos', () => {
     expect(component).toContain('@media (prefers-reduced-motion: reduce)');
   });
 
-  it('uses the rendered Pro chassis without boxing the showcase in', () => {
-    expect(component).toContain('src="/media/macbook-pro-frame.webp"');
+  it('uses a flat screen-only Pro frame without boxing the showcase in', () => {
+    expect(component).toContain('src="/media/macbook-pro-screen.svg"');
+    expect(component).not.toContain('src="/media/macbook-pro-frame.webp"');
+    expect(component).not.toContain('class="macbook-notch"');
     expect(component).toContain('{product}.app / performance');
     expect(component).not.toContain('{product}.app / performance preview');
     expect(component).not.toMatch(/background-size:\s*32px 32px/);
