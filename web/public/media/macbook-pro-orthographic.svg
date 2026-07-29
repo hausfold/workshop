@@ -15,16 +15,23 @@
     </mask>
   </defs>
 
+  <!-- Base: the fill closes the shape but the stroke skips the top edge — the
+       lid's own bottom line already draws the seam, and stacking a second
+       stroke there read as one thick cheap band. -->
   <path
     d="M17 1057H1631V1103Q1631 1121 1613 1121H35Q17 1121 17 1103Z"
     fill="#2a2a2a"
-    stroke="#5c5c5c"
+  />
+  <path
+    d="M17 1057V1103Q17 1121 35 1121H1613Q1631 1121 1631 1103V1057"
+    fill="none"
+    stroke="#464646"
     stroke-width="3"
   />
   <path
     d="M700 1057Q824 1093 948 1057"
     fill="#232323"
-    stroke="#4d4d4d"
+    stroke="#3c3c3c"
     stroke-width="2.5"
   />
 
@@ -36,14 +43,14 @@
   <path
     d="M88 4.5H1560Q1619.5 4.5 1619.5 64V1055.5H28.5V64Q28.5 4.5 88 4.5Z"
     fill="none"
-    stroke="#5c5c5c"
+    stroke="#464646"
     stroke-width="3"
   />
   <path
     d="M88 34H1560Q1590 34 1590 64V1021Q1590 1029 1582 1029H66Q58 1029 58 1021V64Q58 34 88 34Z"
     fill="none"
-    stroke="#121212"
-    stroke-width="7"
+    stroke="#1f1f1f"
+    stroke-width="3"
   />
 
   <!-- Notch: bezel dipping into the panel. The fill runs up past the panel's
@@ -55,7 +62,7 @@
   <path
     d="M701 33V68Q701 93 726 93H922Q947 93 947 68V33"
     fill="none"
-    stroke="#121212"
-    stroke-width="7"
+    stroke="#1f1f1f"
+    stroke-width="3"
   />
 </svg>

@@ -43,7 +43,7 @@ const content = {
                 <div
                   class="pounce-demo"
                   role="img"
-                  aria-label="Pounce summoned over a desktop three times — launching an app, filtering to Slack, and running a Wi-Fi command next to its System Settings deep link"
+                  aria-label="Pounce summoned over a desktop: a recent-items list of apps, built-in commands, and a System Settings deep link morphs into Slack search results, then a second summon finds the Claude app"
                 >
                   <div class="desktop-bar" aria-hidden="true">
                     <span class="bar-group">
@@ -56,10 +56,10 @@ const content = {
                       <i class="pill">Wed Jul 29&nbsp;&nbsp;9:41</i>
                     </span>
                   </div>
-                  <div class="pounce-palette scene-obs" aria-hidden="true">
+                  <div class="pounce-palette scene-recency" aria-hidden="true">
                     <div class="palette-field">
                       <i class="glass" />
-                      <b>obs</b>
+                      <b />
                       <i class="caret" />
                     </div>
                     <div class="palette-rows">
@@ -70,23 +70,28 @@ const content = {
                       </div>
                       <div class="palette-row">
                         <span class="row-icon app-b" />
-                        <b>OrbStack</b>
+                        <b>trill</b>
                         <em>Application</em>
                       </div>
                       <div class="palette-row">
-                        <span class="row-icon mark-star" />
-                        <b>Nix Config</b>
-                        <em>Open in editor</em>
+                        <span class="row-icon mark-clip" />
+                        <b>Clipboard History</b>
+                        <em>Browse &amp; paste recent copies</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-search" />
+                        <b>Find Files</b>
+                        <em>Search files &amp; folders by name</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-slider" />
+                        <b>Displays</b>
+                        <em>System Settings</em>
                       </div>
                       <div class="palette-row">
                         <span class="row-icon mark-ring" />
                         <b>Emoji</b>
                         <em>Search &amp; paste emoji</em>
-                      </div>
-                      <div class="palette-row">
-                        <span class="row-icon mark-frame" />
-                        <b>Screenshots</b>
-                        <em>Browse recent captures</em>
                       </div>
                     </div>
                     <footer>
@@ -106,33 +111,43 @@ const content = {
                         <b>Slack</b>
                         <em>Application</em>
                       </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-moon" />
+                        <b>Toggle Hush</b>
+                        <em>Focus/DND + Slack status, one switch</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-tray" />
+                        <b>Install App</b>
+                        <em>Install from Homebrew, the Mac App Store, or Nixpkgs</em>
+                      </div>
                     </div>
                     <footer>
                       <span>Open<kbd>↵</kbd></span>
                       <span>Reveal in Finder<kbd>⌘↵</kbd></span>
                     </footer>
                   </div>
-                  <div class="pounce-palette scene-wifi" aria-hidden="true">
+                  <div class="pounce-palette scene-claude" aria-hidden="true">
                     <div class="palette-field">
                       <i class="glass" />
-                      <b>wifi</b>
+                      <b>claude</b>
                       <i class="caret" />
                     </div>
                     <div class="palette-rows">
                       <div class="palette-row selected">
-                        <span class="row-icon mark-wave" />
-                        <b>Wi-Fi</b>
-                        <em>Turn Wi-Fi off</em>
+                        <span class="row-icon app-d" />
+                        <b>Claude</b>
+                        <em>Application</em>
                       </div>
                       <div class="palette-row">
-                        <span class="row-icon mark-slider" />
-                        <b>Wi-Fi</b>
-                        <em>System Settings</em>
+                        <span class="row-icon mark-link" />
+                        <b>Links</b>
+                        <em>Open a URL from the focused pane's Claude transcript</em>
                       </div>
                     </div>
                     <footer>
-                      <span>Run<kbd>↵</kbd></span>
-                      <span>Open Settings<kbd>⌘↵</kbd></span>
+                      <span>Open<kbd>↵</kbd></span>
+                      <span>Reveal in Finder<kbd>⌘↵</kbd></span>
                     </footer>
                   </div>
                 </div>
@@ -382,10 +397,10 @@ const content = {
     color: var(--mauve);
   }
 
-  /* Three beats on one 13.2s clock: launch an app, filter down to one hit,
-     then a built-in command beside its System Settings deep link. Every scene
-     is a whole palette, phase-shifted with --d — real pounce closes on ↵, so
-     each beat gets a fresh summon and the height change between beats is free. */
+  /* One 10s clock, two summons. The first opens onto the recency list — no
+     query — then "slack" types and the SAME palette snaps to its results
+     (really a twin palette swapped in with no summon motion, the way a live
+     list re-renders). ↵ closes it; a fresh summon types "claude". */
   .pounce-palette {
     position: absolute;
     top: 19%;
@@ -397,16 +412,19 @@ const content = {
     border-radius: 13px;
     box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
     opacity: 0;
-    transform: translate(-50%, -8px) scale(0.97);
-    animation: palette-summons 13.2s ease-out var(--d, 0s) infinite;
+    transform: translate(-50%, 0) scale(1);
+  }
+
+  .scene-recency {
+    animation: recency-summons 10s ease-out infinite;
   }
 
   .scene-slack {
-    --d: 4.4s;
+    animation: slack-appears 10s ease-out infinite;
   }
 
-  .scene-wifi {
-    --d: 8.8s;
+  .scene-claude {
+    animation: palette-summons 10s ease-out infinite;
   }
 
   .palette-field {
@@ -446,15 +464,18 @@ const content = {
     overflow: hidden;
     font-weight: 400;
     white-space: nowrap;
-    animation: types-3 13.2s steps(1, end) var(--d, 0s) infinite;
+  }
+
+  .scene-recency .palette-field .caret {
+    margin-left: 0;
   }
 
   .scene-slack .palette-field b {
-    animation-name: types-5;
+    animation: types-slack 10s steps(1, end) infinite;
   }
 
-  .scene-wifi .palette-field b {
-    animation-name: types-4;
+  .scene-claude .palette-field b {
+    animation: types-claude 10s steps(1, end) infinite;
   }
 
   .palette-field .caret {
@@ -477,30 +498,55 @@ const content = {
     padding: 0.62em 1.1em;
     border-radius: 8px;
     opacity: 0;
-    animation: palette-result 13.2s ease-out var(--d, 0s) infinite;
   }
 
   .palette-row:nth-child(2) {
-    animation-delay: calc(var(--d, 0s) + 0.05s);
+    animation-delay: 0.05s;
   }
 
   .palette-row:nth-child(3) {
-    animation-delay: calc(var(--d, 0s) + 0.1s);
+    animation-delay: 0.1s;
   }
 
   .palette-row:nth-child(4) {
-    animation-delay: calc(var(--d, 0s) + 0.15s);
+    animation-delay: 0.15s;
   }
 
   .palette-row:nth-child(5) {
-    animation-delay: calc(var(--d, 0s) + 0.2s);
+    animation-delay: 0.2s;
+  }
+
+  .palette-row:nth-child(6) {
+    animation-delay: 0.25s;
+  }
+
+  .scene-recency .palette-row {
+    animation: rows-bloom 10s ease-out infinite;
+  }
+
+  .scene-slack .palette-row {
+    animation: rows-snap 10s linear infinite;
+  }
+
+  .scene-claude .palette-row {
+    animation: rows-bloom-late 10s ease-out infinite;
   }
 
   .palette-row.selected {
     background: color-mix(in srgb, var(--mauve) 26%, transparent);
+  }
+
+  /* The ↵ reads as a brightness blip on the selected row, just before close. */
+  .scene-slack .palette-row.selected {
     animation:
-      palette-result 13.2s ease-out var(--d, 0s) infinite,
-      row-actioned 13.2s linear var(--d, 0s) infinite;
+      rows-snap 10s linear infinite,
+      actioned-mid 10s linear infinite;
+  }
+
+  .scene-claude .palette-row.selected {
+    animation:
+      rows-bloom-late 10s ease-out infinite,
+      actioned-late 10s linear infinite;
   }
 
   .palette-row b,
@@ -544,31 +590,11 @@ const content = {
   }
 
   .row-icon.app-c {
+    background: linear-gradient(155deg, var(--teal), color-mix(in srgb, var(--teal) 45%, var(--crust)));
+  }
+
+  .row-icon.app-d {
     background: linear-gradient(155deg, var(--peach), color-mix(in srgb, var(--peach) 45%, var(--crust)));
-  }
-
-  /* Two top-arcs and a dot: a Wi-Fi fan without any glyph. */
-  .row-icon.mark-wave {
-    background:
-      radial-gradient(circle 1.5px at 50% 66%, var(--overlay1) 97%, transparent),
-      var(--surface1);
-  }
-
-  .row-icon.mark-wave::before,
-  .row-icon.mark-wave::after {
-    position: absolute;
-    border: 1.5px solid transparent;
-    border-top-color: var(--overlay1);
-    border-radius: 50%;
-    content: '';
-  }
-
-  .row-icon.mark-wave::before {
-    inset: 22% 22% 12%;
-  }
-
-  .row-icon.mark-wave::after {
-    inset: 38% 36% 24%;
   }
 
   /* System Settings as sliders: two rails, two knobs. */
@@ -581,45 +607,100 @@ const content = {
       var(--surface1);
   }
 
-  .row-icon.mark-ring::after,
-  .row-icon.mark-frame::after {
+  /* Clipboard: a board with its clip sitting proud of the top edge. */
+  .row-icon.mark-clip::before {
     position: absolute;
-    inset: 30%;
+    inset: 26% 30%;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 2px;
     content: '';
   }
 
-  /* Three bars at 60° apart — a snowflake for the Nix row, without a glyph
-     that might resolve to an emoji on someone else's machine. */
-  .row-icon.mark-star {
+  .row-icon.mark-clip::after {
+    position: absolute;
+    top: 18%;
+    left: 38%;
+    width: 24%;
+    height: 14%;
+    background: var(--surface1);
+    border: 1.5px solid var(--overlay1);
+    border-radius: 2px;
+    content: '';
+  }
+
+  /* Find Files: the same magnifier as the query field, in miniature. */
+  .row-icon.mark-search::before {
+    position: absolute;
+    inset: 26% 36% 36% 26%;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 50%;
+    content: '';
+  }
+
+  .row-icon.mark-search::after {
+    position: absolute;
+    right: 24%;
+    bottom: 27%;
+    width: 20%;
+    height: 1.5px;
+    background: var(--overlay1);
+    border-radius: 1px;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  /* A crescent for Hush: a moon disc with a bite of icon-background. */
+  .row-icon.mark-moon {
     background:
-      linear-gradient(var(--overlay1) 0 100%) center / 1.5px 42% no-repeat,
+      radial-gradient(circle at 62% 38%, var(--surface1) 0 24%, transparent 25%),
+      radial-gradient(circle at 48% 52%, var(--overlay1) 0 27%, transparent 28%),
       var(--surface1);
   }
 
-  .row-icon.mark-star::before,
-  .row-icon.mark-star::after {
+  /* Install App: an arrow dropping into a tray. */
+  .row-icon.mark-tray::before {
     position: absolute;
-    inset: 29% calc(50% - 0.75px);
+    top: 24%;
+    left: calc(50% - 0.75px);
+    width: 1.5px;
+    height: 26%;
     background: var(--overlay1);
     content: '';
   }
 
-  .row-icon.mark-star::before {
-    transform: rotate(60deg);
+  .row-icon.mark-tray::after {
+    position: absolute;
+    inset: 52% 28% 26%;
+    border: 1.5px solid var(--overlay1);
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    content: '';
   }
 
-  .row-icon.mark-star::after {
-    transform: rotate(-60deg);
+  /* Links: two chain plates on the diagonal. */
+  .row-icon.mark-link::before,
+  .row-icon.mark-link::after {
+    position: absolute;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 40%;
+    content: '';
+    transform: rotate(-45deg);
+  }
+
+  .row-icon.mark-link::before {
+    inset: 32% 40% 32% 16%;
+  }
+
+  .row-icon.mark-link::after {
+    inset: 32% 16% 32% 40%;
   }
 
   .row-icon.mark-ring::after {
+    position: absolute;
+    inset: 30%;
     border: 1.5px solid var(--overlay1);
     border-radius: 50%;
-  }
-
-  .row-icon.mark-frame::after {
-    border: 1.5px solid var(--overlay1);
-    border-radius: 2px;
+    content: '';
   }
 
   .pounce-palette footer {
@@ -1103,100 +1184,152 @@ const content = {
     animation: item-lifts 5.5s 0.4s ease-in-out infinite;
   }
 
-  /* ⌘Space is instant, so the summon is too: up in ~0.15s, typed by ~1s, a
-     brightness blip on the selected row plays the ↵, and the palette is gone
-     by 4.15s of its 4.4s beat. One scene's beat is 0–33.3% of the shared
-     13.2s clock; the other two ride the same keyframes via --d. */
-  @keyframes palette-summons {
+  /* The 10s clock: summon at 0 (recency list up by 0.2s), "slack" typed at
+     2.6–3.3s while the twin palette swaps in, ↵ at ~4.5s, closed by 5s.
+     Second summon at 6s, "claude" typed by 7s, ↵ at ~8.7s, gone by 9.1s;
+     the last 0.9s is empty desktop so the loop can breathe. */
+  @keyframes recency-summons {
     0% {
       opacity: 0;
       transform: translate(-50%, -8px) scale(0.97);
     }
-    1.4%, 29.2% {
+    2%, 25.8% {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
     }
-    31.4%, 100% {
+    26.2%, 100% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
+  @keyframes slack-appears {
+    0%, 25.9% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(1);
+    }
+    26.3%, 46.5% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    49.5%, 100% {
       opacity: 0;
       transform: translate(-50%, -4px) scale(0.99);
     }
   }
 
-  @keyframes types-3 {
-    0%, 4.2% {
-      width: 0;
+  @keyframes palette-summons {
+    0%, 60% {
+      opacity: 0;
+      transform: translate(-50%, -8px) scale(0.97);
     }
-    5.1% {
-      width: 1ch;
+    62%, 88% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
     }
-    6% {
-      width: 2ch;
-    }
-    6.9%, 100% {
-      width: 3ch;
-    }
-  }
-
-  @keyframes types-4 {
-    0%, 4.2% {
-      width: 0;
-    }
-    5.1% {
-      width: 1ch;
-    }
-    6% {
-      width: 2ch;
-    }
-    6.9% {
-      width: 3ch;
-    }
-    7.8%, 100% {
-      width: 4ch;
+    91%, 100% {
+      opacity: 0;
+      transform: translate(-50%, -4px) scale(0.99);
     }
   }
 
-  @keyframes types-5 {
-    0%, 4.2% {
+  @keyframes types-slack {
+    0%, 27.5% {
       width: 0;
     }
-    5.1% {
+    28.5% {
       width: 1ch;
     }
-    6% {
+    29.5% {
       width: 2ch;
     }
-    6.9% {
+    30.5% {
       width: 3ch;
     }
-    7.8% {
+    31.5% {
       width: 4ch;
     }
-    8.7%, 100% {
+    32.5%, 100% {
       width: 5ch;
     }
   }
 
-  /* The rows bloom in with the palette, not after the query — pounce filters
-     as you type, so an empty result box would be a lie and a dead beat. */
-  @keyframes palette-result {
-    0%, 1.9% {
+  @keyframes types-claude {
+    0%, 63.5% {
+      width: 0;
+    }
+    64.5% {
+      width: 1ch;
+    }
+    65.5% {
+      width: 2ch;
+    }
+    66.5% {
+      width: 3ch;
+    }
+    67.5% {
+      width: 4ch;
+    }
+    68.5% {
+      width: 5ch;
+    }
+    69.5%, 100% {
+      width: 6ch;
+    }
+  }
+
+  @keyframes rows-bloom {
+    0%, 0.8% {
       opacity: 0;
       transform: translateY(5px);
     }
-    5.7%, 100% {
+    3.6%, 100% {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
-  @keyframes row-actioned {
-    0%, 26% {
+  /* No slide for the slack rows — a live list re-render snaps. */
+  @keyframes rows-snap {
+    0%, 26.1% {
+      opacity: 0;
+    }
+    26.5%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes rows-bloom-late {
+    0%, 60.5% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    63.5%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes actioned-mid {
+    0%, 43% {
       filter: brightness(1);
     }
-    27.2% {
+    44.5% {
       filter: brightness(1.45);
     }
-    28.6%, 100% {
+    46%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes actioned-late {
+    0%, 85% {
+      filter: brightness(1);
+    }
+    86.5% {
+      filter: brightness(1.45);
+    }
+    88%, 100% {
       filter: brightness(1);
     }
   }
@@ -1300,8 +1433,8 @@ const content = {
       opacity: 1;
     }
 
-    /* Only the first beat survives as a still; the other two stay hidden. */
-    .scene-obs {
+    /* Only the recency beat survives as a still; the other two stay hidden. */
+    .scene-recency {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
     }
