@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1240" role="presentation" data-frame="orthographic">
+  <defs>
+    <mask id="screen-cutout" maskUnits="userSpaceOnUse">
+      <rect width="1600" height="1240" fill="#fff"/>
+      <path
+        d="M64 34H1536Q1566 34 1566 64V1021Q1566 1029 1558 1029H42Q34 1029 34 1021V64Q34 34 64 34Z"
+        fill="#000"
+      />
+    </mask>
+  </defs>
+
+  <path
+    d="M64 3H1536Q1597 3 1597 64V1046Q1597 1057 1586 1057H14Q3 1057 3 1046V64Q3 3 64 3Z"
+    fill="#343434"
+    mask="url(#screen-cutout)"
+  />
+  <path
+    d="M64 4.5H1536Q1595.5 4.5 1595.5 64V1044.5Q1595.5 1055.5 1584.5 1055.5H15.5Q4.5 1055.5 4.5 1044.5V64Q4.5 4.5 64 4.5Z"
+    fill="none"
+    stroke="#5c5c5c"
+    stroke-width="3"
+  />
+  <path
+    d="M64 34H1536Q1566 34 1566 64V1021Q1566 1029 1558 1029H42Q34 1029 34 1021V64Q34 34 64 34Z"
+    fill="none"
+    stroke="#121212"
+    stroke-width="7"
+  />
+  <path
+    d="M677 31H923V68C923 82 912 93 898 93H702C688 93 677 82 677 68Z"
+    fill="#121212"
+  />
+  <path
+    d="M677 31H923"
+    fill="none"
+    stroke="#494949"
+    stroke-width="2"
+  />
+
+  <rect x="532" y="1023" width="536" height="52" rx="22" fill="#121212"/>
+  <path
+    d="M17 1038H1583Q1597 1038 1597 1052V1192Q1597 1218 1571 1218H29Q3 1218 3 1192V1052Q3 1038 17 1038Z"
+    fill="#2a2a2a"
+    stroke="#5c5c5c"
+    stroke-width="3"
+  />
+  <path d="M18 1040H1582" fill="none" stroke="#717171" stroke-width="3"/>
+
+  <rect
+    x="205"
+    y="1065"
+    width="1190"
+    height="88"
+    rx="12"
+    fill="#202020"
+    stroke="#494949"
+    stroke-width="2"
+  />
+  <path
+    d="M244 1084H1356M244 1108H1356M276 1132H1324"
+    fill="none"
+    stroke="#494949"
+    stroke-width="11"
+    stroke-linecap="round"
+    stroke-dasharray="48 18"
+  />
+  <rect
+    x="650"
+    y="1169"
+    width="300"
+    height="38"
+    rx="10"
+    fill="#202020"
+    stroke="#494949"
+    stroke-width="2"
+  />
+  <path
+    d="M46 1217H1554V1225Q1554 1237 1542 1237H58Q46 1237 46 1225Z"
+    fill="#121212"
+    stroke="#494949"
+    stroke-width="2"
+  />
+</svg>

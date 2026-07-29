@@ -31,8 +31,9 @@ describe('product landing demos', () => {
     expect(component).toContain('@media (prefers-reduced-motion: reduce)');
   });
 
-  it('uses a flat screen-only Pro frame without boxing the showcase in', () => {
-    expect(component).toContain('src="/media/macbook-pro-screen.svg"');
+  it('uses a flat orthographic Pro frame without boxing the showcase in', () => {
+    expect(component).toContain('src="/media/macbook-pro-orthographic.svg"');
+    expect(component).not.toContain('src="/media/macbook-pro-screen.svg"');
     expect(component).not.toContain('src="/media/macbook-pro-frame.webp"');
     expect(component).not.toContain('class="macbook-notch"');
     expect(component).toContain('{product}.app / performance');
@@ -42,5 +43,6 @@ describe('product landing demos', () => {
 
   it('does not pull in a 3D or animation runtime', () => {
     expect(component).not.toMatch(/three(?:\.js)?|webgl|canvas/i);
+    expect(component).not.toMatch(/perspective|rotateX|rotateY|preserve-3d/i);
   });
 });
