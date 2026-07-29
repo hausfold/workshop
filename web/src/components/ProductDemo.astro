@@ -43,7 +43,7 @@ const content = {
                 <div
                   class="pounce-demo"
                   role="img"
-                  aria-label="Pounce summoned over a desktop, filtering apps and commands as you type"
+                  aria-label="Pounce summoned over a desktop three times — launching an app, filtering to Slack, and running a Wi-Fi command next to its System Settings deep link"
                 >
                   <div class="desktop-bar" aria-hidden="true">
                     <span class="bar-group">
@@ -53,10 +53,10 @@ const content = {
                     <span class="bar-group">
                       <i class="pill">15%</i>
                       <i class="pill">25°</i>
-                      <i class="pill">Thu Jul 09&nbsp;&nbsp;9:41</i>
+                      <i class="pill">Wed Jul 29&nbsp;&nbsp;9:41</i>
                     </span>
                   </div>
-                  <div class="pounce-palette" aria-hidden="true">
+                  <div class="pounce-palette scene-obs" aria-hidden="true">
                     <div class="palette-field">
                       <i class="glass" />
                       <b>obs</b>
@@ -85,13 +85,54 @@ const content = {
                       </div>
                       <div class="palette-row">
                         <span class="row-icon mark-frame" />
-                        <b>Screenshot</b>
+                        <b>Screenshots</b>
+                        <em>Browse recent captures</em>
+                      </div>
+                    </div>
+                    <footer>
+                      <span>Open<kbd>↵</kbd></span>
+                      <span>Reveal in Finder<kbd>⌘↵</kbd></span>
+                    </footer>
+                  </div>
+                  <div class="pounce-palette scene-slack" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>slack</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row selected">
+                        <span class="row-icon app-c" />
+                        <b>Slack</b>
                         <em>Application</em>
                       </div>
                     </div>
                     <footer>
                       <span>Open<kbd>↵</kbd></span>
                       <span>Reveal in Finder<kbd>⌘↵</kbd></span>
+                    </footer>
+                  </div>
+                  <div class="pounce-palette scene-wifi" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>wifi</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row selected">
+                        <span class="row-icon mark-wave" />
+                        <b>Wi-Fi</b>
+                        <em>Turn Wi-Fi off</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-slider" />
+                        <b>Wi-Fi</b>
+                        <em>System Settings</em>
+                      </div>
+                    </div>
+                    <footer>
+                      <span>Run<kbd>↵</kbd></span>
+                      <span>Open Settings<kbd>⌘↵</kbd></span>
                     </footer>
                   </div>
                 </div>
@@ -230,7 +271,7 @@ const content = {
   }
 
   .demo-viewport {
-    padding: 0.5rem 0 0;
+    padding: 0.5rem 0 0.9rem;
     overflow: clip;
   }
 
@@ -248,11 +289,24 @@ const content = {
     margin: 0;
   }
 
+  /* Grounding on a near-black page: a shadow would vanish, so the laptop
+     sits in a faint pool of its own accent light instead. */
+  .macbook::after {
+    position: absolute;
+    right: 7%;
+    bottom: -2.6%;
+    left: 7%;
+    height: 5%;
+    background: radial-gradient(50% 100% at 50% 0, color-mix(in srgb, var(--product-accent, var(--mauve)) 17%, transparent), transparent 74%);
+    content: '';
+  }
+
   /* Geometry mirrors macbook-pro-orthographic.svg's 1648 × 1158 viewBox:
      the panel cutout is x 58–1590, y 34–1029. */
   .macbook-render {
     position: relative;
     aspect-ratio: 1648 / 1128;
+    container-type: inline-size;
   }
 
   .macbook-screen {
@@ -288,11 +342,12 @@ const content = {
     align-content: start;
     overflow: hidden;
     background:
+      radial-gradient(95% 72% at 50% 6%, color-mix(in srgb, var(--mauve) 9%, transparent), transparent 62%),
       radial-gradient(circle at 68% 78%, transparent 0 16%, color-mix(in srgb, var(--mauve) 26%, transparent) 16.1% 16.4%, transparent 16.5% 27%, color-mix(in srgb, var(--sapphire) 22%, transparent) 27.1% 27.4%, transparent 27.5% 39%, color-mix(in srgb, var(--surface2) 40%, transparent) 39.1% 39.4%, transparent 39.5%),
       var(--crust);
     color: var(--text);
     font-family: var(--font);
-    font-size: clamp(7px, 0.92vw, 12px);
+    font-size: clamp(7px, 1.25cqw, 12px);
     text-align: left;
   }
 
@@ -327,6 +382,10 @@ const content = {
     color: var(--mauve);
   }
 
+  /* Three beats on one 13.2s clock: launch an app, filter down to one hit,
+     then a built-in command beside its System Settings deep link. Every scene
+     is a whole palette, phase-shifted with --d — real pounce closes on ↵, so
+     each beat gets a fresh summon and the height change between beats is free. */
   .pounce-palette {
     position: absolute;
     top: 19%;
@@ -337,8 +396,17 @@ const content = {
     border: 1px solid var(--surface0);
     border-radius: 13px;
     box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
-    transform: translate(-50%, 0);
-    animation: palette-summons 4.4s ease-out infinite;
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.97);
+    animation: palette-summons 13.2s ease-out var(--d, 0s) infinite;
+  }
+
+  .scene-slack {
+    --d: 4.4s;
+  }
+
+  .scene-wifi {
+    --d: 8.8s;
   }
 
   .palette-field {
@@ -374,10 +442,19 @@ const content = {
 
   .palette-field b {
     display: inline-block;
+    width: 0;
     overflow: hidden;
     font-weight: 400;
     white-space: nowrap;
-    animation: palette-types 4.4s steps(1, end) infinite;
+    animation: types-3 13.2s steps(1, end) var(--d, 0s) infinite;
+  }
+
+  .scene-slack .palette-field b {
+    animation-name: types-5;
+  }
+
+  .scene-wifi .palette-field b {
+    animation-name: types-4;
   }
 
   .palette-field .caret {
@@ -399,27 +476,31 @@ const content = {
     gap: 0.9em;
     padding: 0.62em 1.1em;
     border-radius: 8px;
-    animation: palette-result 4.4s ease-out infinite;
+    opacity: 0;
+    animation: palette-result 13.2s ease-out var(--d, 0s) infinite;
   }
 
   .palette-row:nth-child(2) {
-    animation-delay: 0.04s;
+    animation-delay: calc(var(--d, 0s) + 0.05s);
   }
 
   .palette-row:nth-child(3) {
-    animation-delay: 0.08s;
+    animation-delay: calc(var(--d, 0s) + 0.1s);
   }
 
   .palette-row:nth-child(4) {
-    animation-delay: 0.12s;
+    animation-delay: calc(var(--d, 0s) + 0.15s);
   }
 
   .palette-row:nth-child(5) {
-    animation-delay: 0.16s;
+    animation-delay: calc(var(--d, 0s) + 0.2s);
   }
 
   .palette-row.selected {
     background: color-mix(in srgb, var(--mauve) 26%, transparent);
+    animation:
+      palette-result 13.2s ease-out var(--d, 0s) infinite,
+      row-actioned 13.2s linear var(--d, 0s) infinite;
   }
 
   .palette-row b,
@@ -460,6 +541,44 @@ const content = {
 
   .row-icon.app-b {
     background: linear-gradient(155deg, var(--sapphire), color-mix(in srgb, var(--sapphire) 45%, var(--crust)));
+  }
+
+  .row-icon.app-c {
+    background: linear-gradient(155deg, var(--peach), color-mix(in srgb, var(--peach) 45%, var(--crust)));
+  }
+
+  /* Two top-arcs and a dot: a Wi-Fi fan without any glyph. */
+  .row-icon.mark-wave {
+    background:
+      radial-gradient(circle 1.5px at 50% 66%, var(--overlay1) 97%, transparent),
+      var(--surface1);
+  }
+
+  .row-icon.mark-wave::before,
+  .row-icon.mark-wave::after {
+    position: absolute;
+    border: 1.5px solid transparent;
+    border-top-color: var(--overlay1);
+    border-radius: 50%;
+    content: '';
+  }
+
+  .row-icon.mark-wave::before {
+    inset: 22% 22% 12%;
+  }
+
+  .row-icon.mark-wave::after {
+    inset: 38% 36% 24%;
+  }
+
+  /* System Settings as sliders: two rails, two knobs. */
+  .row-icon.mark-slider {
+    background:
+      radial-gradient(circle 1.7px at 38% 38%, var(--overlay1) 97%, transparent),
+      radial-gradient(circle 1.7px at 64% 62%, var(--overlay1) 97%, transparent),
+      linear-gradient(var(--overlay1) 0 100%) 50% 38% / 44% 1.5px no-repeat,
+      linear-gradient(var(--overlay1) 0 100%) 50% 62% / 44% 1.5px no-repeat,
+      var(--surface1);
   }
 
   .row-icon.mark-ring::after,
@@ -539,7 +658,7 @@ const content = {
     background: var(--base);
     color: var(--text);
     font-family: var(--font);
-    font-size: clamp(7px, 0.92vw, 12px);
+    font-size: clamp(7px, 1.25cqw, 12px);
     text-align: left;
   }
 
@@ -804,7 +923,7 @@ const content = {
       var(--crust);
     color: var(--text);
     font-family: var(--font);
-    font-size: clamp(7px, 0.9vw, 12px);
+    font-size: clamp(7px, 1.25cqw, 12px);
     text-align: left;
   }
 
@@ -984,48 +1103,101 @@ const content = {
     animation: item-lifts 5.5s 0.4s ease-in-out infinite;
   }
 
-  /* ⌘Space is instant, so the summon is too: up in ~0.15s, typed by ~0.9s,
-     then it just sits there being useful until the loop resets. */
+  /* ⌘Space is instant, so the summon is too: up in ~0.15s, typed by ~1s, a
+     brightness blip on the selected row plays the ↵, and the palette is gone
+     by 4.15s of its 4.4s beat. One scene's beat is 0–33.3% of the shared
+     13.2s clock; the other two ride the same keyframes via --d. */
   @keyframes palette-summons {
     0% {
       opacity: 0;
       transform: translate(-50%, -8px) scale(0.97);
     }
-    4%, 93% {
+    1.4%, 29.2% {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
     }
-    100% {
+    31.4%, 100% {
       opacity: 0;
       transform: translate(-50%, -4px) scale(0.99);
     }
   }
 
-  @keyframes palette-types {
-    0%, 6% {
+  @keyframes types-3 {
+    0%, 4.2% {
       width: 0;
     }
-    11% {
+    5.1% {
       width: 1ch;
     }
-    16% {
+    6% {
       width: 2ch;
     }
-    21%, 100% {
+    6.9%, 100% {
       width: 3ch;
+    }
+  }
+
+  @keyframes types-4 {
+    0%, 4.2% {
+      width: 0;
+    }
+    5.1% {
+      width: 1ch;
+    }
+    6% {
+      width: 2ch;
+    }
+    6.9% {
+      width: 3ch;
+    }
+    7.8%, 100% {
+      width: 4ch;
+    }
+  }
+
+  @keyframes types-5 {
+    0%, 4.2% {
+      width: 0;
+    }
+    5.1% {
+      width: 1ch;
+    }
+    6% {
+      width: 2ch;
+    }
+    6.9% {
+      width: 3ch;
+    }
+    7.8% {
+      width: 4ch;
+    }
+    8.7%, 100% {
+      width: 5ch;
     }
   }
 
   /* The rows bloom in with the palette, not after the query — pounce filters
      as you type, so an empty result box would be a lie and a dead beat. */
   @keyframes palette-result {
-    0%, 2% {
+    0%, 1.9% {
       opacity: 0;
       transform: translateY(5px);
     }
-    10%, 100% {
+    5.7%, 100% {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes row-actioned {
+    0%, 26% {
+      filter: brightness(1);
+    }
+    27.2% {
+      filter: brightness(1.45);
+    }
+    28.6%, 100% {
+      filter: brightness(1);
     }
   }
 
@@ -1126,6 +1298,12 @@ const content = {
     .bubble.incoming,
     .palette-row {
       opacity: 1;
+    }
+
+    /* Only the first beat survives as a still; the other two stay hidden. */
+    .scene-obs {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
     }
 
     .perch-shelf {
