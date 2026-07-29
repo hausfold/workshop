@@ -106,11 +106,15 @@ Step 3), then let `wt reap` sweep them all at once:
 
 ```bash
 wt reap        # removes every LANDED worktree across all repos: parked ones + clean,
-               # merged live checkouts (dirty / unmerged / the pane you're in are kept)
+               # merged live checkouts that NO pane is sitting in (dirty / unmerged /
+               # occupied — including the pane you're in — are kept and listed)
 ```
 
-`wt reap` is idempotent and safe — it only touches checkouts whose PR has merged and whose
-tree is clean, so it can't drop live work. Fall back to a targeted
+`wt reap` is idempotent: it only touches checkouts whose PR has merged, whose tree is
+clean, and that no live process is cwd'd into — so it can't drop live work *or* yank a
+sibling agent's checkout out from under its open pane (nebelhaus#137; before that fix it
+could, and did). Anything it spares for occupancy is reported as `⏸ kept …`, so a quiet
+run is never a silent skip. Fall back to a targeted
 `git -C <child-repo-main-checkout> worktree remove <path>` only if you need to
 force-remove a child you *know* is clean. `wt` lists every agent worktree across all
 repos — run it after to confirm nothing you created is left. Don't delete worktrees you
