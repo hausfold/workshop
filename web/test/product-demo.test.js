@@ -52,8 +52,10 @@ describe('product landing demos', () => {
     expect(component).toContain('@media (prefers-reduced-motion: reduce)');
   });
 
+  // Matches on real usage, not prose — the earlier version of this test read
+  // the word "three" in a comment as a Three.js import.
   it('does not pull in a 3D or animation runtime', () => {
-    expect(component).not.toMatch(/three(?:\.js)?|webgl|canvas/i);
-    expect(component).not.toMatch(/perspective|rotateX|rotateY|preserve-3d/i);
+    expect(component).not.toMatch(/from ['"]three|require\(['"]three|webglrenderingcontext|getcontext\(|<canvas/i);
+    expect(component).not.toMatch(/perspective\s*[:(]|rotateX\(|rotateY\(|preserve-3d/i);
   });
 });
