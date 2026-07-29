@@ -113,6 +113,37 @@ any other session's, because a just-merged branch looks exactly like a finished
 one while its agent is still sitting in it. Only landed work that nobody is
 standing in gets removed.
 
+## Setting work aside: `wt park`, never `git stash`
+
+`git stash` looks like it belongs to the checkout you're standing in. It doesn't.
+The stash stack lives in the repo's shared `.git` dir, so **every agent worktree
+of a repo — and the main checkout — push and pop the same stack.** Two panes
+stashing at once means either can pop the other's entry into a tree that never
+asked for it, which is a confusing mess at best and lost edits at worst.
+
+So park instead of stashing:
+
+```sh
+wt park "half-done refactor"   # whole dirty tree → one wip: commit on THIS branch
+wt unpark                      # rewind it — changes back, uncommitted
+```
+
+`wt park` commits everything — tracked edits, untracked files, deletions — as a
+single `wip:` commit on the branch only this pane has checked out. It's the same
+thing the pane-close hook does automatically, just on demand. Nothing is shared,
+so no other agent can touch it; it survives a pane close; and `wt` lists it as
+that worktree's last commit. `wt unpark` puts the changes back in the working
+tree, uncommitted, exactly as they were.
+
+<Aside type="caution" title="unpark won't rewrite what you've pushed">
+If the `wip:` commit has already been pushed — it's visible in an open PR —
+`wt unpark` refuses, because rewinding it locally turns a file restore into a
+force-push. It prints the manual escape hatch (`git reset --mixed HEAD^`) and
+leaves the commit alone. Parking on a branch that isn't a `worktree-*` one
+(say, `main`) works, but warns: a `wip:` commit shouldn't drift onto a branch
+you push.
+</Aside>
+
 ## The statusline HUD
 
 The rice points Claude Code's status bar at a small HUD driven off `wt`'s
@@ -154,6 +185,8 @@ Claude Code falls back to its visible scrollback.
 | `wt resume <name>` | The same thing, spelled out |
 | `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
 | `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
+| `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
+| `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
 | `wt create` / `wt remove` | The hooks `Super c` fires — you don't call these by hand |
 
 <Aside type="note" title="Related shell touches">
