@@ -57,13 +57,13 @@ two-step flow — the list swaps in place with no flicker:
 
 ```bash
 #!/bin/bash
-# pounce: name = WiFi
-# pounce: description = Select a network
-# pounce: icon = wifi
+# pounce: name = Brew Services
+# pounce: description = Start or stop a service
+# pounce: icon = cup.and.saucer
 # pounce: submenu = true
 
-network=$(list_networks | pounce -p "WiFi network:")
-[ -n "$network" ] && join_network "$network"
+service=$(list_services | pounce -p "Service:")
+[ -n "$service" ] && toggle_service "$service"
 ```
 
 Anything you can pipe into `pounce` becomes a picker. Which brings us to…
