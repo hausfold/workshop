@@ -9,6 +9,14 @@ interface Feature {
   accent: string;
 }
 
+// Hero-level trust chips. The price and the license are the two things a visitor
+// wants answered before anything else, so every product page states them above
+// the install box — `strong: true` renders the accented pills.
+interface Proof {
+  label: string;
+  strong?: boolean;
+}
+
 interface Props {
   product: 'pounce' | 'trill' | 'perch';
   accent: string;
@@ -20,6 +28,7 @@ interface Props {
   lede: string;
   description: string;
   socialImage?: string;
+  proof?: Proof[];
   install: string;
   installMarkup: {
     command: string;
@@ -54,6 +63,12 @@ const {
   lede,
   description,
   socialImage = 'https://nebelhaus.com/social/og.png',
+  proof = [
+    { label: 'Free', strong: true },
+    { label: 'Open source', strong: true },
+    { label: 'MIT licensed' },
+    { label: 'No account' },
+  ],
   install,
   installMarkup,
   standaloneCopy,
@@ -112,6 +127,14 @@ const canonical = `https://nebelhaus.com/${product}`;
         <p class="eyebrow">{eyebrow}</p>
         <h1>{titleLead}<br /><span class="accent-text">{titleAccent}</span></h1>
         <p class="lede">{lede}</p>
+
+        <ul class="proof" aria-label={`What ${product} costs and how it is licensed`}>
+          {
+            proof.map((item) => (
+              <li class={item.strong ? 'proof-strong' : undefined}>{item.label}</li>
+            ))
+          }
+        </ul>
 
         <div class="install">
           <p class="install-label">install standalone with homebrew</p>
@@ -197,7 +220,7 @@ const canonical = `https://nebelhaus.com/${product}`;
         <nav>
           <a href={guideHref}>Guide</a>
           <a href={repoHref}>GitHub</a>
-          <a href={`${repoHref}/blob/main/LICENSE`}>MIT</a>
+          <a href={`${repoHref}/blob/main/LICENSE`}>MIT license</a>
         </nav>
       </div>
     </footer>
@@ -308,10 +331,39 @@ const canonical = `https://nebelhaus.com/${product}`;
 
       .lede {
         max-width: 690px;
-        margin: 0 auto 2.25rem;
+        margin: 0 auto 1.4rem;
         color: var(--subtext0);
         font-family: var(--mono);
         font-size: 0.97rem;
+      }
+
+      .proof {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.42rem;
+        max-width: 690px;
+        margin: 0 auto 2rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .proof li {
+        padding: 0.3rem 0.68rem;
+        background: color-mix(in srgb, var(--mantle) 86%, transparent);
+        border: 1px solid var(--surface0);
+        border-radius: 999px;
+        color: var(--subtext0);
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        line-height: 1.35;
+      }
+
+      .proof .proof-strong {
+        background: color-mix(in srgb, var(--product-accent) 13%, var(--mantle));
+        border-color: color-mix(in srgb, var(--product-accent) 52%, var(--surface0));
+        color: var(--product-accent);
+        font-weight: 650;
       }
 
       .install {
@@ -692,6 +744,15 @@ const canonical = `https://nebelhaus.com/${product}`;
         }
 
         .eyebrow {
+          font-size: 0.68rem;
+        }
+
+        .proof {
+          gap: 0.34rem;
+        }
+
+        .proof li {
+          padding: 0.26rem 0.56rem;
           font-size: 0.68rem;
         }
 

@@ -52,11 +52,16 @@ const features = [
   accent="var(--neb-product-trill)"
   accentHover="var(--neb-product-trill-hover)"
   logo="/logos/trill.png"
-  eyebrow="native · keyboard-first · local-first · macos"
+  eyebrow="free · open source · native · local-first · macos"
   titleLead="Your Messages,"
   titleAccent="native."
-  lede="A fast, flat iMessage, SMS & RCS client. Your real conversations, without the clutter."
-  description="Trill is a native, keyboard-first iMessage, SMS and RCS client for macOS. It reads chat.db read-only and installs standalone with Homebrew."
+  lede="A fast, flat iMessage, SMS & RCS client. Your real conversations, without the clutter — free, open source, and entirely on your Mac."
+  description="Trill is a free, open-source, native iMessage, SMS and RCS client for macOS. Keyboard-first, reads chat.db read-only, MIT licensed, and installs standalone with Homebrew."
+  proof={[
+    { label: 'Free', strong: true },
+    { label: 'Open source · MIT', strong: true },
+    { label: 'No relay, no cloud, no account' },
+  ]}
   install="brew install --cask nebelhaus/tap/trill"
   installMarkup={{
     command: 'brew install',
