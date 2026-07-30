@@ -49,14 +49,15 @@ The default is `mauve`. Any of the 14 Catppuccin accent names works:
 
 See their exact hex values on the [palette reference](/reference/palette/).
 
-<Aside type="tip" title="Pounce follows too">
-The [Pounce](/guides/pounce/) launcher compiles the default nebelung palette in
-at build time, so its UI matches the rest of the rice out of the box — and it
-loads any other palette at runtime from `~/.config/pounce/themes/`. The rice
-installs every nebelung variant there and points Pounce's
-[config](/reference/pounce/#config-file) at the one `theme.flavor` /
-`theme.contrast` select, so it follows those options like every other tool —
-no rebuild involved.
+<Aside type="tip" title="Pounce and Trill follow too">
+The [Pounce](/guides/pounce/) launcher and the [Trill](/guides/trill/) Messages
+client compile the nebelung variants in, so their UI matches the rest of the rice
+out of the box — and both load any other palette at runtime, from
+`~/.config/pounce/themes/` and `~/.config/trill/themes/`. The rice installs every
+nebelung variant in each and names the one `theme.flavor` / `theme.contrast`
+select, so they follow those options like every other tool — no rebuild involved.
+Trill also exposes the choice in its own **Settings ▸ Theme**, which wins over
+what the rice writes.
 </Aside>
 
 ## Contrast
@@ -118,10 +119,15 @@ to match. (This isn't laziness: turning dark mode *on* is one declarative
 setting, but turning it *off* means deleting a default rather than writing one,
 which nix-darwin has no way to express.)
 
-Two other things keep their dark palette: **Pounce**, which bakes colours into
-its binary at build time, and the three hand-made
-[wallpapers](/reference/options/#nebelhausthemewallpaper), whose pixels are
-already coloured. `wallpaper = "bold"` is generated and follows your accent.
+**Pounce** and **Trill** are the exception in the other direction: both read
+their palette at runtime and follow macOS's Light/Dark themselves, so on a dark
+Mac they stay dark even under `flavor = "latte"`. Pin them to the flavor with
+`nebelhaus.pounce.followSystemAppearance = false` /
+`nebelhaus.trill.followSystemAppearance = false`.
+
+The three hand-made [wallpapers](/reference/options/#nebelhausthemewallpaper) do
+keep their dark palette — their pixels are already coloured. `wallpaper = "bold"`
+is generated and follows your accent.
 </Aside>
 
 ## Obsidian vaults
