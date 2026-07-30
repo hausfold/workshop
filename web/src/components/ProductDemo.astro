@@ -148,30 +148,72 @@ const content = {
                   </div>
                 </div>
               ) : product === 'trill' ? (
-                <div class="trill-demo" role="img" aria-label="Trill showing a fast, local Messages inbox">
+                <div
+                  class="trill-demo"
+                  role="img"
+                  aria-label="Trill working a Messages inbox: a tapback and a live reply arrive, an answer is typed and sent with a five-second undo window, ⇧⌘F searches every conversation with from: and has:link operators, ⇧⌘R filters the sidebar to threads still waiting on you, and ⌘⇧L opens a library of every image, link, and file ever shared"
+                >
                   <div class="trill-sidebar" aria-hidden="true">
                     <div class="window-tools"><i /><i /><i /></div>
                     <div class="trill-search">⌕&nbsp;&nbsp;Search everything</div>
-                    <div class="inbox-label"><span>inbox</span><b>12</b></div>
-                    <div class="chat-row">
-                      <span class="avatar mauve">JM</span>
-                      <span><b>Jo</b><small>landing demo is looking sharp</small></span>
-                      <time>now</time>
-                    </div>
-                    <div class="chat-row selected">
-                      <span class="avatar blue">AK</span>
-                      <span><b>Alex</b><small>Can you send the build?</small></span>
-                      <time>9:41</time>
-                    </div>
-                    <div class="chat-row">
-                      <span class="avatar green">ops</span>
-                      <span><b>Backend</b><small>deploy finished cleanly</small></span>
-                      <time>9:32</time>
-                    </div>
-                    <div class="chat-row dim">
-                      <span class="avatar peach">M</span>
-                      <span><b>Mom</b><small>Photo</small></span>
-                      <time>Tue</time>
+                    <div class="sidebar-lists">
+                      <div class="list-inbox">
+                        <div class="inbox-label"><span>inbox</span><b>12</b></div>
+                        <div class="chat-row">
+                          <span class="avatar mauve">JM</span>
+                          <span><b>Jo</b><small>landing demo is looking sharp</small></span>
+                          <time>now</time>
+                        </div>
+                        <div class="chat-row selected">
+                          <span class="avatar blue">AK</span>
+                          <span>
+                            <b>Alex</b>
+                            <span class="flip">
+                              <small class="preview-a">Can you send the build?</small>
+                              <small class="preview-b">Perfect. That was fast.</small>
+                              <small class="preview-c">glad it landed!</small>
+                            </span>
+                          </span>
+                          <time class="flip stamps">
+                            <i class="stamp-a">9:41</i>
+                            <i class="stamp-b">now</i>
+                          </time>
+                        </div>
+                        <div class="chat-row">
+                          <span class="avatar green">ops</span>
+                          <span><b>Backend</b><small>deploy finished cleanly</small></span>
+                          <time>9:32</time>
+                        </div>
+                        <div class="chat-row dim">
+                          <span class="avatar peach">M</span>
+                          <span><b>Mom</b><small>Photo</small></span>
+                          <time>Tue</time>
+                        </div>
+                      </div>
+                      <div class="list-triage">
+                        <div class="inbox-label">
+                          <span>needs reply</span>
+                          <b class="flip count">
+                            <i class="count-a">3</i>
+                            <i class="count-b">2</i>
+                          </b>
+                        </div>
+                        <div class="chat-row">
+                          <span class="avatar mauve">JM</span>
+                          <span><b>Jo</b><small>landing demo is looking sharp</small></span>
+                          <time>4m</time>
+                        </div>
+                        <div class="chat-row">
+                          <span class="avatar green">ops</span>
+                          <span><b>Backend</b><small>deploy finished cleanly</small></span>
+                          <time>12m</time>
+                        </div>
+                        <div class="chat-row snoozed">
+                          <span class="avatar peach">M</span>
+                          <span><b>Mom</b><small>Photo</small></span>
+                          <em class="snooze">☾ 3h</em>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div class="trill-thread" aria-hidden="true">
@@ -183,18 +225,101 @@ const content = {
                     <div class="message-space">
                       <div class="day">today 9:41</div>
                       <p class="bubble received">Can you send the build?</p>
-                      <p class="bubble sent">Already there — check Releases.</p>
+                      <p class="bubble sent reacted">
+                        Already there — check Releases.
+                        <i class="tapback">!!</i>
+                      </p>
                       <p class="bubble received incoming">Perfect. That was fast.</p>
+                      <p class="bubble sent reply">glad it landed!</p>
+                      <div class="send-meta">
+                        <em class="undo-pill">↩ undo · 5s</em>
+                        <small class="delivered">Delivered</small>
+                      </div>
                     </div>
-                    <footer><span>Message Alex…</span><b>↑</b></footer>
+                    <footer>
+                      <span class="placeholder">Message Alex…</span>
+                      <b class="typed">glad it landed!</b>
+                      <span class="caret-slot"><i class="caret" /></span>
+                      <b class="send-key">↑</b>
+                    </footer>
+                    <div class="search-sheet">
+                      <div class="sheet-field">
+                        <i class="glass">⌕</i>
+                        <b class="query"><i class="op">from:</i>alex&nbsp;<i class="op">has:</i>link</b>
+                        <i class="caret" />
+                      </div>
+                      <div class="sheet-results v1">
+                        <div class="s-row">
+                          <span class="dot" />
+                          <b>Can you send the build?</b>
+                          <em>9:41</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="dot" />
+                          <b>Perfect. That was fast.</b>
+                          <em>9:41</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="dot" />
+                          <b>can we ship thursday?</b>
+                          <em>Mon</em>
+                        </div>
+                      </div>
+                      <div class="sheet-results v2">
+                        <div class="s-row selected">
+                          <span class="chip">github.com</span>
+                          <b>nebelhaus/trill · Releases v2026.07</b>
+                          <em>Tue</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="chip">figma.com</span>
+                          <b>launch page mockups</b>
+                          <em>Jun 12</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="chip">nebelhaus.com</span>
+                          <b>the trill landing draft</b>
+                          <em>May 30</em>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="library-pane">
+                      <header>
+                        <span class="lib-name">Library</span>
+                        <span class="lib-chips"><i class="on">all</i><i>images</i><i>links</i><i>files</i></span>
+                      </header>
+                      <div class="lib-grid">
+                        <div class="lib-tile art-a" />
+                        <div class="lib-tile link sel">
+                          <b>github.com</b>
+                          <small>nebelhaus/trill · Releases</small>
+                        </div>
+                        <div class="lib-tile art-b" />
+                        <div class="lib-tile file">
+                          <i class="document" />
+                          <small>build-2026.07.zip</small>
+                        </div>
+                        <div class="lib-tile art-c" />
+                        <div class="lib-tile link">
+                          <b>figma.com</b>
+                          <small>launch page mockups</small>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <aside class="trill-detail" aria-hidden="true">
                     <span class="avatar blue">AK</span>
                     <h3>Alex Kim</h3>
-                    <p>needs reply · 2 links · 4 files</p>
+                    <p class="flip detail-meta">
+                      <span class="meta-a">needs reply · 2 links · 4 files</span>
+                      <span class="meta-b">replied · 2 links · 4 files</span>
+                    </p>
                     <div><b>local notes</b><span>release follow-up</span></div>
                     <div><b>shared today</b><span>v2026.07.29</span></div>
                   </aside>
+                  <i class="key-cast kc-a" aria-hidden="true">⇧⌘F</i>
+                  <i class="key-cast kc-b" aria-hidden="true">⇧⌘R</i>
+                  <i class="key-cast kc-c" aria-hidden="true">⌘⇧L</i>
                 </div>
               ) : (
                 <div class="perch-demo" role="img" aria-label="Perch opening a temporary file shelf from the MacBook notch">
@@ -826,6 +951,104 @@ const content = {
     border-right: 1px solid var(--surface0);
   }
 
+  /* The inbox list and the ⇧⌘R needs-reply list are twins stacked in one
+     slot, swapped by opacity on the shared clock — a filter application
+     re-renders in place, it doesn't push layout around. */
+  .sidebar-lists {
+    position: relative;
+  }
+
+  .list-triage {
+    position: absolute;
+    inset: 0;
+    background: var(--mantle);
+    opacity: 0;
+    animation: triage-holds 18s linear infinite;
+  }
+
+  .list-triage .inbox-label span,
+  .list-triage .inbox-label b {
+    color: var(--yellow);
+  }
+
+  .list-triage .chat-row {
+    opacity: 0;
+    animation: triage-row-snaps 18s linear infinite;
+  }
+
+  .list-triage .chat-row:nth-child(3) {
+    animation-delay: 0.07s;
+  }
+
+  .list-triage .chat-row.snoozed {
+    animation: snoozed-row 18s linear infinite;
+    animation-delay: 0.14s;
+  }
+
+  .snooze {
+    padding: 0.2em 0.55em;
+    background: color-mix(in srgb, var(--yellow) 14%, transparent);
+    border-radius: 1em;
+    color: var(--yellow);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-style: normal;
+    opacity: 0;
+    animation: snooze-lands 18s ease-out infinite;
+  }
+
+  /* Stacked text swap: every child shares the cell, opacity picks one. */
+  .flip {
+    display: grid;
+  }
+
+  .flip > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .flip i {
+    font-style: normal;
+  }
+
+  time.flip {
+    justify-items: end;
+  }
+
+  .preview-a,
+  .stamp-a {
+    animation: swap-out-incoming 18s linear infinite;
+  }
+
+  .preview-b {
+    opacity: 0;
+    animation: preview-mid 18s linear infinite;
+  }
+
+  .preview-c,
+  .meta-b {
+    opacity: 0;
+    animation: swap-in-replied 18s linear infinite;
+  }
+
+  .stamp-b {
+    opacity: 0;
+    animation: swap-in-incoming 18s linear infinite;
+  }
+
+  .meta-a {
+    animation: swap-out-replied 18s linear infinite;
+  }
+
+  .count-a {
+    animation: count-holds 18s linear infinite;
+  }
+
+  .count-b {
+    opacity: 0;
+    animation: count-ticks 18s linear infinite;
+  }
+
   .window-tools {
     display: flex;
     gap: 4px;
@@ -881,14 +1104,14 @@ const content = {
   }
 
   .chat-row > span:nth-child(2),
-  .trill-thread header > span:nth-child(2) {
+  .trill-thread > header > span:nth-child(2) {
     min-width: 0;
   }
 
   .chat-row b,
   .chat-row small,
-  .trill-thread header b,
-  .trill-thread header small {
+  .trill-thread > header b,
+  .trill-thread > header small {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -897,7 +1120,7 @@ const content = {
 
   .chat-row small,
   .chat-row time,
-  .trill-thread header small {
+  .trill-thread > header small {
     color: var(--overlay1);
     font-size: 0.8em;
   }
@@ -931,12 +1154,13 @@ const content = {
 
   .trill-thread {
     display: grid;
+    position: relative;
     grid-template-rows: auto 1fr auto;
     min-width: 0;
     background: var(--base);
   }
 
-  .trill-thread header {
+  .trill-thread > header {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -946,7 +1170,7 @@ const content = {
     border-bottom: 1px solid var(--surface0);
   }
 
-  .trill-thread header em {
+  .trill-thread > header em {
     margin-left: auto;
     padding: 2px 6px;
     background: var(--crust);
@@ -994,13 +1218,82 @@ const content = {
   }
 
   .bubble.incoming {
-    animation: message-arrives 5s 1.5s ease-in-out infinite;
+    opacity: 0;
+    animation: message-arrives 18s ease-in-out infinite;
   }
 
-  .trill-thread footer {
+  /* Alex reacts before he replies: a tapback chip lands on the sent bubble,
+     overlapping it the way Messages hangs reactions off a corner. */
+  .bubble.reacted {
+    position: relative;
+    margin-top: 3%;
+  }
+
+  .tapback {
+    display: grid;
+    position: absolute;
+    top: -1em;
+    right: -0.45em;
+    padding: 0.18em 0.5em;
+    place-items: center;
+    background: var(--surface1);
+    border: 1px solid var(--surface2);
+    border-radius: 1em;
+    color: var(--text);
+    font-size: 0.78em;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transform: scale(0.4);
+    animation: tapback-pops 18s ease-out infinite;
+  }
+
+  .bubble.reply {
+    opacity: 0;
+    transform: translateY(7px) scale(0.96);
+    animation: reply-pops 18s ease-out infinite;
+  }
+
+  /* Undo-send: the pill owns the five seconds after ↑, then Delivered takes
+     the same slot — they crossfade in one stacked cell under the bubble. */
+  .send-meta {
+    display: grid;
+    align-self: flex-end;
+    justify-items: end;
+    min-height: 1.6em;
+    margin-top: 0.35em;
+  }
+
+  .send-meta > * {
+    grid-area: 1 / 1;
+  }
+
+  .undo-pill {
+    padding: 0.28em 0.65em;
+    background: color-mix(in srgb, var(--blue) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--blue) 45%, transparent);
+    border-radius: 1em;
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 0.72em;
+    font-style: normal;
+    opacity: 0;
+    animation: undo-window 18s linear infinite;
+  }
+
+  .delivered {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    opacity: 0;
+    animation: delivers 18s linear infinite;
+  }
+
+  .trill-thread > footer {
     display: flex;
+    position: relative;
     align-items: center;
-    justify-content: space-between;
     margin: 0 4% 4%;
     padding: 2.4% 2.6% 2.4% 4%;
     background: var(--mantle);
@@ -1009,14 +1302,355 @@ const content = {
     color: var(--overlay1);
   }
 
-  .trill-thread footer b {
+  .trill-thread > footer .placeholder {
+    position: absolute;
+    left: 4%;
+    animation: placeholder-yields 18s linear infinite;
+  }
+
+  .trill-thread > footer .typed {
+    width: 0;
+    overflow: hidden;
+    color: var(--text);
+    font-family: var(--mono);
+    font-weight: 400;
+    white-space: nowrap;
+    animation: types-reply 18s linear infinite;
+  }
+
+  /* The slot gates the caret to the composing window; the caret inside it
+     blinks on its own fast clock — two opacities multiply, they can't share
+     one animation slot. */
+  .caret-slot {
+    opacity: 0;
+    animation: composer-focus 18s linear infinite;
+  }
+
+  .caret-slot .caret,
+  .sheet-field .caret {
+    display: block;
+    width: 2px;
+    height: 1.15em;
+    background: var(--blue);
+    animation: caret-blinks 1.06s steps(2, jump-none) infinite;
+  }
+
+  .trill-thread > footer .send-key {
     display: grid;
     width: 19px;
     height: 19px;
+    margin-left: auto;
     place-items: center;
     background: var(--blue);
     border-radius: 5px;
     color: var(--crust);
+    animation: send-blips 18s linear infinite;
+  }
+
+  /* ⇧⌘F: a search sheet over the thread. Twin result lists stacked in one
+     grid cell — three matches for "from:alex", refined to link rows on the
+     SAME frame " has:link" finishes typing (disjoint keyframes, no fade). */
+  .search-sheet {
+    display: grid;
+    position: absolute;
+    top: 16%;
+    right: 5%;
+    left: 5%;
+    z-index: 3;
+    grid-template-rows: auto auto;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--crust) 97%, transparent);
+    border: 1px solid var(--surface0);
+    border-radius: 10px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+    animation: search-drops 18s ease-out infinite;
+  }
+
+  .sheet-field {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 1em 1.2em;
+    border-bottom: 1px solid var(--surface0);
+    font-family: var(--mono);
+    font-size: 1.05em;
+  }
+
+  .sheet-field .glass {
+    color: var(--overlay1);
+    font-style: normal;
+  }
+
+  .sheet-field .query {
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    font-weight: 400;
+    white-space: nowrap;
+    animation: types-query 18s linear infinite;
+  }
+
+  .query .op {
+    color: var(--lavender);
+    font-style: normal;
+  }
+
+  .search-sheet .sheet-results {
+    grid-area: 2 / 1;
+    padding: 0.45em 0.45em 0.6em;
+    opacity: 0;
+  }
+
+  .sheet-results.v1 {
+    animation: results-first 18s linear infinite;
+  }
+
+  .sheet-results.v2 {
+    animation: results-refine 18s linear infinite;
+  }
+
+  .s-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.7em;
+    padding: 0.55em 0.9em;
+    border-radius: 7px;
+  }
+
+  .s-row.selected {
+    background: color-mix(in srgb, var(--product-accent, var(--blue)) 15%, transparent);
+    animation: search-actioned 18s linear infinite;
+  }
+
+  .s-row b {
+    overflow: hidden;
+    font-size: 0.92em;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .s-row em {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.78em;
+    font-style: normal;
+  }
+
+  .s-row .dot {
+    width: 0.6em;
+    height: 0.6em;
+    background: var(--blue);
+    border-radius: 50%;
+  }
+
+  .s-row .chip {
+    padding: 0.2em 0.5em;
+    background: color-mix(in srgb, var(--lavender) 16%, transparent);
+    border-radius: 5px;
+    color: var(--lavender);
+    font-family: var(--mono);
+    font-size: 0.7em;
+  }
+
+  /* ⌘⇧L: the Universal Library takes over the thread pane — everything
+     shared, every conversation, one grid. */
+  .library-pane {
+    display: grid;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    grid-template-rows: auto 1fr;
+    padding: 4% 5%;
+    background: var(--base);
+    opacity: 0;
+    transform: scale(0.99);
+    animation: library-opens 18s ease-out infinite;
+  }
+
+  .library-pane > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1em;
+  }
+
+  .lib-name {
+    font-size: 1.08em;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  .lib-chips {
+    display: flex;
+    gap: 0.35em;
+  }
+
+  .lib-chips i {
+    padding: 0.28em 0.6em;
+    background: color-mix(in srgb, var(--surface0) 80%, transparent);
+    border-radius: 1em;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.72em;
+    font-style: normal;
+  }
+
+  .lib-chips i.on {
+    background: color-mix(in srgb, var(--teal) 16%, transparent);
+    color: var(--teal);
+  }
+
+  .lib-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-content: start;
+    gap: 0.7em;
+  }
+
+  .lib-tile {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    opacity: 0;
+    transform: translateY(6px);
+    animation: tiles-bloom 18s ease-out infinite;
+  }
+
+  .lib-grid .lib-tile:nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .lib-grid .lib-tile:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .lib-grid .lib-tile:nth-child(4) {
+    animation-delay: 0.18s;
+  }
+
+  .lib-grid .lib-tile:nth-child(5) {
+    animation-delay: 0.24s;
+  }
+
+  .lib-grid .lib-tile:nth-child(6) {
+    animation-delay: 0.3s;
+  }
+
+  /* Photos as CSS art, same trick as perch's image glyph, tile-sized. */
+  .lib-tile.art-a {
+    background:
+      linear-gradient(152deg, transparent 46%, var(--teal) 47% 70%, transparent 71%),
+      linear-gradient(38deg, transparent 50%, var(--green) 51% 78%, transparent 79%),
+      var(--surface0);
+  }
+
+  .lib-tile.art-b {
+    background:
+      radial-gradient(circle at 70% 30%, var(--peach) 0 16%, transparent 17%),
+      linear-gradient(color-mix(in srgb, var(--peach) 22%, var(--surface0)), var(--surface0));
+  }
+
+  .lib-tile.art-c {
+    background:
+      linear-gradient(118deg, color-mix(in srgb, var(--lavender) 38%, var(--surface0)) 0 44%, transparent 45%),
+      linear-gradient(298deg, color-mix(in srgb, var(--blue) 30%, var(--surface0)) 0 30%, transparent 31%),
+      var(--surface0);
+  }
+
+  .lib-tile.link {
+    display: grid;
+    align-content: end;
+    gap: 0.25em;
+    padding: 0.7em 0.8em;
+    background: var(--crust);
+  }
+
+  .lib-tile.link b {
+    overflow: hidden;
+    color: var(--lavender);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lib-tile.link small,
+  .lib-tile.file small {
+    overflow: hidden;
+    color: var(--subtext0);
+    font-size: 0.72em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lib-tile.file {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.55em;
+    background: var(--crust);
+  }
+
+  /* The document glyph's sizing lives on perch's .file-card/.shelf-item
+     selectors, so the library tile sizes it itself. */
+  .lib-tile.file i {
+    display: block;
+    position: relative;
+    width: 2.6em;
+    height: 2.2em;
+    border-radius: 3px;
+  }
+
+  .lib-tile.file small {
+    font-family: var(--mono);
+    font-size: 0.64em;
+  }
+
+  .lib-tile.sel {
+    animation:
+      tiles-bloom 18s ease-out infinite,
+      lib-actioned 18s linear infinite;
+  }
+
+  /* The keystroke drives each beat — trill is keyboard-first, so the
+     shortcut IS the story. One chip per beat, cast over the pane it acts on. */
+  .key-cast {
+    position: absolute;
+    top: 17%;
+    z-index: 4;
+    padding: 0.5em 0.75em;
+    background: color-mix(in srgb, var(--crust) 94%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1.1em;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transform: translateX(-50%) scale(0.86);
+  }
+
+  .kc-a {
+    left: 53%;
+    animation: keycast-search 18s ease-out infinite;
+  }
+
+  .kc-b {
+    left: 14.5%;
+    animation: keycast-triage 18s ease-out infinite;
+  }
+
+  .kc-c {
+    left: 53%;
+    animation: keycast-library 18s ease-out infinite;
   }
 
   .trill-detail {
@@ -1501,17 +2135,426 @@ const content = {
     }
   }
 
+  /* Trill's 18s clock, in seconds: Alex tapbacks the sent bubble at 0.6 and
+     his reply lands at 1.2 — the sidebar preview and timestamp follow on the
+     same frame. The composer focuses at 1.75, types 15 chars by 3.15, and ↑
+     sends at 3.4: the bubble pops with a five-second undo pill that yields
+     to Delivered at 5.0. ⇧⌘F at 5.4 drops global search over the thread —
+     "from:alex" is typed by 6.8 and three matches snap in mid-word; then
+     " has:link" lands by 7.6 and the list refines to link rows on the same
+     frame; ↵ blips the selection at 8.8, closed by 9.7. ⇧⌘R at 9.9 swaps
+     the sidebar to needs-reply — Alex is absent, you just answered him —
+     and Mom's thread snoozes at 11.6, ticking the count 3 → 2; restored by
+     13.1. ⌘⇧L at 13.5 opens the Library over the thread: shared images,
+     links, and files bloom in a grid, one link blips at 15.7, gone by 16.6.
+     The thread's additions fade out around 17.5 so the loop seam lands on
+     the plain thread, invisible. */
+  @keyframes tapback-pops {
+    0%, 3.5% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    4.4% {
+      opacity: 1;
+      transform: scale(1.16);
+    }
+    5.2%, 96.8% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    98.6%, 100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
   @keyframes message-arrives {
-    0%, 22% {
+    0%, 5.8% {
       opacity: 0;
       transform: translateY(8px);
     }
-    35%, 90% {
+    7.4%, 96.8% {
       opacity: 1;
       transform: translateY(0);
     }
-    100% {
+    98.6%, 100% {
       opacity: 0;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes swap-out-incoming {
+    0%, 6.6% {
+      opacity: 1;
+    }
+    7.4%, 98.75% {
+      opacity: 0;
+    }
+    98.85%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes swap-in-incoming {
+    0%, 6.8% {
+      opacity: 0;
+    }
+    7.6%, 98.75% {
+      opacity: 1;
+    }
+    98.85%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes preview-mid {
+    0%, 6.8% {
+      opacity: 0;
+    }
+    7.6%, 20.6% {
+      opacity: 1;
+    }
+    21.4%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes swap-out-replied {
+    0%, 20.8% {
+      opacity: 1;
+    }
+    21.6%, 98.75% {
+      opacity: 0;
+    }
+    98.85%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes swap-in-replied {
+    0%, 21% {
+      opacity: 0;
+    }
+    21.8%, 98.75% {
+      opacity: 1;
+    }
+    98.85%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes composer-focus {
+    0%, 9.3% {
+      opacity: 0;
+    }
+    9.7%, 19.6% {
+      opacity: 1;
+    }
+    20%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes placeholder-yields {
+    0%, 9.4% {
+      opacity: 1;
+    }
+    9.9%, 19.8% {
+      opacity: 0;
+    }
+    20.6%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes types-reply {
+    0%, 10% {
+      width: 0;
+      animation-timing-function: steps(15, end);
+    }
+    17.4%, 18.8% {
+      width: 15ch;
+    }
+    19%, 100% {
+      width: 0;
+    }
+  }
+
+  @keyframes send-blips {
+    0%, 18.6% {
+      filter: brightness(1);
+    }
+    19.2% {
+      filter: brightness(1.5);
+    }
+    20.4%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes reply-pops {
+    0%, 18.9% {
+      opacity: 0;
+      transform: translateY(7px) scale(0.96);
+    }
+    20.2%, 96.8% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    98.6%, 100% {
+      opacity: 0;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes undo-window {
+    0%, 20.1% {
+      opacity: 0;
+    }
+    20.9%, 26% {
+      opacity: 1;
+    }
+    27.2%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes delivers {
+    0%, 26.9% {
+      opacity: 0;
+    }
+    27.7%, 96.8% {
+      opacity: 1;
+    }
+    98.6%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes keycast-search {
+    0%, 29.6% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.86);
+    }
+    30.6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.04);
+    }
+    31.2%, 33.8% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    35%, 100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  @keyframes search-drops {
+    0%, 31.2% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.985);
+    }
+    32.6%, 52.6% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    54%, 100% {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.99);
+    }
+  }
+
+  @keyframes types-query {
+    0%, 34.2% {
+      width: 0;
+      animation-timing-function: steps(9, end);
+    }
+    37.8% {
+      width: 9ch;
+    }
+    39.4% {
+      width: 9ch;
+      animation-timing-function: steps(9, end);
+    }
+    42.4%, 100% {
+      width: 18ch;
+    }
+  }
+
+  @keyframes results-first {
+    0%, 35.9% {
+      opacity: 0;
+    }
+    36.1%, 42.35% {
+      opacity: 1;
+    }
+    42.45%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes results-refine {
+    0%, 42.45% {
+      opacity: 0;
+    }
+    42.55%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes search-actioned {
+    0%, 47.8% {
+      filter: brightness(1);
+    }
+    48.8% {
+      filter: brightness(1.45);
+    }
+    49.9%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes keycast-triage {
+    0%, 54.6% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.86);
+    }
+    55.6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.04);
+    }
+    56.2%, 58.8% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    60%, 100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  @keyframes triage-holds {
+    0%, 56.2% {
+      opacity: 0;
+    }
+    57%, 71.8% {
+      opacity: 1;
+    }
+    73%, 100% {
+      opacity: 0;
+    }
+  }
+
+  /* Filter results snap — a re-render, not a fade. */
+  @keyframes triage-row-snaps {
+    0%, 57.2% {
+      opacity: 0;
+    }
+    57.4%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes snoozed-row {
+    0%, 57.3% {
+      opacity: 0;
+    }
+    57.5%, 63.9% {
+      opacity: 1;
+    }
+    64.7%, 100% {
+      opacity: 0.55;
+    }
+  }
+
+  @keyframes snooze-lands {
+    0%, 63.7% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    64.5% {
+      opacity: 1;
+      transform: scale(1.14);
+    }
+    65.1%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes count-holds {
+    0%, 64.1% {
+      opacity: 1;
+    }
+    64.5%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes count-ticks {
+    0%, 64.3% {
+      opacity: 0;
+    }
+    64.7%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes keycast-library {
+    0%, 74.6% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.86);
+    }
+    75.6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.04);
+    }
+    76.2%, 78.8% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    80%, 100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  @keyframes library-opens {
+    0%, 76.4% {
+      opacity: 0;
+      transform: scale(0.99);
+    }
+    77.8%, 90.8% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    92.2%, 100% {
+      opacity: 0;
+      transform: scale(0.99);
+    }
+  }
+
+  @keyframes tiles-bloom {
+    0%, 77.6% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    79.6%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes lib-actioned {
+    0%, 86.4% {
+      filter: brightness(1);
+    }
+    87.4% {
+      filter: brightness(1.4);
+    }
+    88.6%, 100% {
+      filter: brightness(1);
     }
   }
 
@@ -1576,9 +2619,41 @@ const content = {
     .palette-field b,
     .palette-field .caret,
     .palette-row,
-    .bubble.incoming,
     .perch-shelf,
-    .shelf-item.lifted {
+    .shelf-item.lifted,
+    .list-triage,
+    .list-triage .chat-row,
+    .list-triage .chat-row.snoozed,
+    .snooze,
+    .preview-a,
+    .preview-b,
+    .preview-c,
+    .stamp-a,
+    .stamp-b,
+    .meta-a,
+    .meta-b,
+    .count-a,
+    .count-b,
+    .tapback,
+    .bubble.incoming,
+    .bubble.reply,
+    .undo-pill,
+    .delivered,
+    .trill-thread > footer .placeholder,
+    .trill-thread > footer .typed,
+    .trill-thread > footer .send-key,
+    .caret-slot,
+    .caret-slot .caret,
+    .sheet-field .caret,
+    .search-sheet,
+    .sheet-field .query,
+    .sheet-results.v1,
+    .sheet-results.v2,
+    .s-row.selected,
+    .library-pane,
+    .lib-tile,
+    .lib-tile.sel,
+    .key-cast {
       animation: none;
     }
 
@@ -1600,6 +2675,25 @@ const content = {
     .scene-recency {
       opacity: 1;
       transform: translate(-50%, 0) scale(1);
+    }
+
+    /* Trill's still is the finished conversation: tapback, reply, Delivered,
+       an empty composer — every overlay, keycast, and pill stays hidden. */
+    .tapback,
+    .bubble.incoming,
+    .bubble.reply,
+    .delivered,
+    .preview-c,
+    .stamp-b,
+    .meta-b {
+      opacity: 1;
+      transform: none;
+    }
+
+    .preview-a,
+    .stamp-a,
+    .meta-a {
+      opacity: 0;
     }
 
     .perch-shelf {
