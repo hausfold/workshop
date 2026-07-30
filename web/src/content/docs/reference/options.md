@@ -302,10 +302,10 @@ tests actually assert.
 
 Honest scope. This recolours what the rice injects colours into:
 Ghostty, bat, delta, lsd, yazi, zellij, glow, starship, lazygit, the
-bar, Zen and Obsidian. It does NOT reach:
+bar, pounce and trill (at runtime, via ~/.config/{pounce,trill}/themes/ —
+and unlike `flavor`, contrast reaches both on BOTH halves of their
+light/dark pair), Zen and Obsidian. It does NOT reach:
 
-  - pounce, which bakes the palette into its binary at build time, so
-    its colours follow the pounce build rather than this option;
   - macOS itself. For system-wide contrast see
     nebelhaus.accessibility.increaseContrast — a separate, FDA-gated
     setting. The two are complementary, and a genuinely high-contrast
@@ -340,21 +340,28 @@ Honest scope, in two parts.
 
 What follows it: every tool the rice injects colours into or points at a
 rendered theme — Ghostty, bat, delta, lsd, yazi, fzf, glow, starship,
-lazygit, helix, zellij, opencode, the bar, Zen and Obsidian. These are
-genuinely re-rendered for the flavor, not recoloured in place: whiskers
-takes different branches for a light flavor (terminal ANSI 0/7/8/15 swap,
-Zen switches its prefers-color-scheme block, delta sets `light = true`).
+lazygit, helix, zellij, opencode, the bar, Zen and Obsidian.
+These are genuinely re-rendered for the flavor, not recoloured in place:
+whiskers takes different branches for a light flavor (terminal ANSI
+0/7/8/15 swap, Zen switches its prefers-color-scheme block, delta sets
+`light = true`).
 
 What does NOT follow it:
 
+  - pounce and trill, by default. Both read their palette at runtime and
+    can pick per polarity, so nebelhaus.pounce.followSystemAppearance
+    and nebelhaus.trill.followSystemAppearance (default true) hand that
+    choice to macOS Light/Dark instead: the rice installs every rendered
+    variant into ~/.config/{pounce,trill}/themes/ and writes the
+    dark/light PAIR at your `contrast`. Set either option false to pin
+    that app to this flavor like everything else.
   - macOS's own Light/Dark appearance. Turning ON dark mode is one typed
     setting, but turning it OFF means DELETING a default rather than
     writing one, which nix-darwin has no way to express — so the rice
     leaves system appearance alone in both directions and you set it in
     System Settings ▸ Appearance. A latte rice on a dark macOS looks
-    half-done, and that half is currently yours.
-  - pounce, which bakes the palette into its binary at build time, so its
-    colours follow the pounce build rather than this option.
+    half-done, and that half is currently yours — except in pounce and
+    trill, which read the appearance themselves.
   - the desktop wallpaper (nebelhaus.theme.wallpaper). The three hand-made
     looks have the dark palette baked in; only "bold" is generated, and it
     follows theme.accent rather than the flavor.
@@ -364,6 +371,36 @@ Example:
 ```nix
 "latte"
 ```
+
+<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+
+### `nebelhaus.theme.ports.enable`
+
+`boolean` · default `true`
+
+Theme the apps in your roster (`nebelhaus.apps`) that Nebelung ships a
+port for, without wiring each one by hand.
+
+The rice already themes every tool it installs itself — the shell, the
+terminal, the git stack, Zen, Obsidian. This covers the other direction:
+an app YOU added to the roster that Nebelung happens to have a theme for.
+Add `zed`, `warp` or `xcode` to `nebelhaus.apps` and its Nebelung theme
+lands where that app looks for themes, in the flavor and contrast you
+selected, following them on every rebuild. Matching is by roster id, so
+the entry has to be named after the port (`zed`, not `zed-editor`).
+
+Honest scope, and it is the whole point of the option: this drops the
+theme FILE. Whether that alone makes the theme *active* is the app's
+choice, not ours, and Nebelung records which is which per port. Ghostty
+reads a config key we own, so it just works. Xcode, Warp, OBS and friends
+offer no file interface for picking a theme — the file is put where they
+look, and the one click that selects it stays yours. `haus doctor` lists
+exactly which apps are waiting on that click, so the difference is
+visible rather than something you discover months later.
+
+Ports whose install is a merge into an existing config file, or that need
+a compile step first, are reported but never written: silently
+half-applying someone's config is worse than saying so.
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
@@ -530,8 +567,11 @@ Normal — its single-key submode leaders (pane, tab, resize, …) stay
 inert until you unlock with Ctrl-g, so a stray keystroke can't jump you
 into a submode. The `Super`-prefixed launchers (claude / pane / tab /
 yazi-peek / fullscreen) are bound in `shared` and keep working while
-locked; the bar's bottom-right quick-hint block only shows in Locked
-mode. Set false to start in Normal mode (zellij's own default).
+locked, as do `Alt [` / `Alt ]` (cycle swap layouts) — the rest of
+zellij's `Alt` row stays inert while locked, since those keys are
+readline/vim word motions the pane's app wants. The bar's bottom-right
+quick-hint block only shows in Locked mode. Set false to start in Normal
+mode (zellij's own default).
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
@@ -869,6 +909,26 @@ The pounce command palette daemon (⌘Space) + its rice commands.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
+### `nebelhaus.pounce.followSystemAppearance`
+
+`boolean` · default `true`
+
+Let the palette follow macOS Light/Dark Mode instead of pinning one
+polarity: pounce gets the nebelung variant AND its latte counterpart at
+your nebelhaus.theme.contrast, as its `theme`/`themeLight` pair, and
+picks between them per open (no rebuild, no daemon restart).
+
+Honest scope: this makes pounce the one themed tool that does NOT follow
+nebelhaus.theme.flavor — a flavor pin is a *palette* choice, and asking
+to follow the system says the polarity is macOS's call. The contrast
+axis still applies to both halves. Everything else on the rice keeps
+whatever flavor pins.
+
+false pins pounce to the flavor like every other port, which is exactly
+what it did before this option existed.
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
 ### `nebelhaus.pounce.signingIdentity`
 
 `string` · default `""`
@@ -929,6 +989,28 @@ The Messages client.
 `boolean` · default `true`
 
 The trill Messages client, installed via the trill flake (copied to /Applications).
+
+<small>Declared in [`modules/trill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/trill/options.nix).</small>
+
+### `nebelhaus.trill.followSystemAppearance`
+
+`boolean` · default `true`
+
+Let trill's palette follow macOS Light/Dark Mode instead of pinning one
+polarity: trill gets the nebelung variant AND its latte counterpart at
+your nebelhaus.theme.contrast, and picks between them itself — no
+rebuild, no relaunch.
+
+Same honest scope as the pounce option of the same name: with this on,
+trill does NOT follow nebelhaus.theme.flavor, because asking to follow
+the system says the polarity is macOS's call. The contrast axis still
+applies to both halves. Set it false to pin trill to theme.flavor like
+every other themed tool.
+
+Either way this writes only the DEFAULT: a palette chosen in trill's own
+Settings ▸ Theme wins over what the rice writes, and so does trill's
+appearance preference (Follow macOS / Dark / Light), which lives in its
+settings rather than here.
 
 <small>Declared in [`modules/trill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/trill/options.nix).</small>
 
@@ -1261,7 +1343,8 @@ stay: these are the *tools*, not the appearance.
 
 What enters the launcher/leader mode — tap it, then a letter opens an
 app, a digit focuses a workspace, ⇧+either throws the focused window
-to that workspace, an arrow navigates, `-`/`=` resizes.
+to that workspace and follows it there, an arrow navigates, `-`/`=`
+resizes.
 
   - "caps" (default): Caps Lock. AeroSpace can't bind Caps Lock itself,
     so the rice remaps it to F18 with hidutil and binds that.
