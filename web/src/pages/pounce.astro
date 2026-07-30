@@ -1,48 +1,88 @@
 ---
 import ProductLanding from '../layouts/ProductLanding.astro';
 
+// Every claim on this page is checkable against the docs — the built-in list is
+// /guides/pounce/#built-in-commands, the plugin shelf is the table under it, and
+// the ranking numbers come from #how-ranking-works. Don't add a feature card
+// here that the guide can't back up (this is why Wi-Fi came off the list: the
+// command was dropped in pounce#39).
 const features = [
   {
-    category: 'launch',
-    title: 'Apps + actions',
+    category: 'price',
+    title: 'Free, and actually yours',
     blurb:
-      'Fuzzy-find installed apps and your own commands in one list, ranked around how you work.',
+      'No licence key, no trial timer, no subscription, no account. MIT-licensed on GitHub — read it, fork it, ship your own.',
+    accent: 'var(--neb-green)',
+  },
+  {
+    category: 'launch',
+    title: 'Apps + actions, one list',
+    blurb:
+      'Fuzzy-find every installed app and your own commands together. Type saf, get Safari, hit Return. The hotkey is registered in-process, so the window is already there.',
     accent: 'var(--neb-peach)',
+  },
+  {
+    category: 'answers',
+    title: 'Math, units, time zones',
+    blurb:
+      'Type 2*847, 72 f in c, or 14:00 utc in pst and the answer pins to the top row — Return copies it. Currency conversion rides along, cached so it still answers offline.',
+    accent: 'var(--neb-flamingo)',
   },
   {
     category: 'scripts',
     title: 'Every command is a file',
     blurb:
-      'Drop a shell script into one folder. No plugin API, extension store, account, or restart.',
+      'A shell script in one folder IS a palette command. No plugin API, no extension store, no manifest, no restart — it is there on the next summon.',
     accent: 'var(--neb-pink)',
   },
   {
     category: 'memory',
-    title: 'Clipboard history',
+    title: 'Clipboard history built in',
     blurb:
-      'Search recent copies, keep private apps out, and optionally paste back into the app you left.',
+      'Search your recent copies in a two-pane view, keep password apps out by bundle id, and optionally paste straight back into the app you left.',
     accent: 'var(--neb-teal)',
   },
   {
     category: 'files',
-    title: 'Find it before Finder',
+    title: 'Find it before Finder does',
     blurb:
-      'Search the Spotlight index live; open, reveal, or copy a path without leaving the keyboard.',
+      'Live search over the Spotlight index as you type. Return opens, ⌘Return reveals in Finder, ⌥Return copies the path.',
     accent: 'var(--neb-blue)',
   },
   {
     category: 'built-ins',
     title: 'The useful little things',
     blurb:
-      'Emoji, screenshots, camera, system settings, force quit, ports, clipboard history, and more ship ready.',
+      'Emoji, screenshots, camera, force quit, ports, brew services, lock screen — plus every System Settings pane by name, so "Displays" goes straight there.',
     accent: 'var(--neb-mauve)',
+  },
+  {
+    category: 'windows',
+    title: 'A ⌘Tab that means windows',
+    blurb:
+      'Turn on the MRU window switcher and ⌘⇥ walks your actual windows, newest first, with type-to-filter — not one icon per app. AeroSpace workspaces come along if you run it.',
+    accent: 'var(--neb-sky)',
   },
   {
     category: 'ranking',
     title: 'Learns what you reach for',
     blurb:
-      'Fuzzy quality, frecency, and a boost for freshly installed apps put the likely answer first.',
-    accent: 'var(--neb-green)',
+      'Fuzzy match quality, frecency on a 72-hour half-life, and a boost for freshly installed apps put the answer you meant on the first row.',
+    accent: 'var(--neb-yellow)',
+  },
+  {
+    category: 'plugins',
+    title: 'A shelf, not a store',
+    blurb:
+      'Docker, Tailscale, GitHub, Spotify, SSH hosts, Bluetooth, audio devices, caffeinate — off by default, on in one line, and every one is still just a script.',
+    accent: 'var(--neb-lavender)',
+  },
+  {
+    category: 'unix',
+    title: 'A native picker for anything',
+    blurb:
+      'pounce -p "Pick:" turns any list on stdin into a native picker. dmenu ergonomics in a real Swift window, callable from any script you already have.',
+    accent: 'var(--neb-sapphire)',
   },
 ];
 ---
@@ -52,28 +92,36 @@ const features = [
   accent="var(--neb-product-pounce)"
   accentHover="var(--neb-product-pounce-hover)"
   logo="/logos/pounce-peeking.png"
-  eyebrow="native · keyboard-first · scriptable · macos"
+  eyebrow="free · open source · native · keyboard-first · macos"
   titleLead="The command palette"
   titleAccent="with claws."
-  lede="Summon, aim, pounce. Apps, commands, files, and the useful little things — one hotkey away."
-  description="Pounce is a native, keyboard-first, scriptable command palette for macOS. Install it standalone with Homebrew or get it wired into the nebelhaus rice."
+  lede="Summon, aim, pounce. Apps, commands, files, clipboard, and the useful little things — one hotkey away. Free and open source, with no account to make."
+  description="Pounce is a free, open-source, native command palette for macOS. Apps, your own shell-script commands, clipboard history, file search, emoji, and more behind one hotkey. MIT licensed — install standalone with Homebrew or get it wired into the nebelhaus rice."
+  proof={[
+    { label: 'Free forever', strong: true },
+    { label: 'Open source · MIT', strong: true },
+    { label: 'Native Swift' },
+    { label: 'Signed & notarized by Apple' },
+    { label: 'No account, no telemetry' },
+    { label: 'macOS 14+ · Apple Silicon' },
+  ]}
   install="brew install nebelhaus/tap/pounce"
   installMarkup={{
     command: 'brew install',
     formula: 'nebelhaus/tap/pounce',
   }}
-  standaloneCopy="This installs only Pounce — no Nix or other nebelhaus changes. Then run brew services start pounce to keep ⌘Space ready."
+  standaloneCopy="One brew, nothing else: a prebuilt Pounce.app, signed with our Apple Developer ID and notarized, so it opens without a Gatekeeper fight. No Nix and no other nebelhaus changes — then brew services start pounce keeps ⌘Space ready."
   riceCopy="Pounce is included and wired for you: daemon, ⌘Space, and permission survival all live in the rice."
   riceHref="/start/what-is-nebelhaus/"
   guideHref="/guides/pounce/"
   repoHref="https://github.com/nebelhaus/pounce"
   featuresLabel="one palette, whatever you need"
   featuresTitle="Fast by instinct. Open by design."
-  featuresCopy="A native launcher when you want one, a tiny dmenu-style building block when you do not."
+  featuresCopy="A dozen built-in commands, a shelf of optional plugins, and an extension model that is nothing but files — a native launcher when you want one, a tiny dmenu-style building block when you do not."
   features={features}
-  closerStatus="ready to pounce"
+  closerStatus="free · MIT · yours"
   closerTitle="Make the command you wish existed."
-  closerCopy="A name, a description, an SF Symbol, and a shell script. Put the file in ~/.config/pounce/commands and it appears on the next summon."
+  closerCopy="A name, a description, an SF Symbol, and a shell script. Put the file in ~/.config/pounce/commands and it appears on the next summon — no rebuild, no reload, no API to learn. Nothing is gated behind a paid tier, because there isn't one."
   closerPrimaryLabel="Write a command"
   closerPrimaryHref="/guides/pounce-commands/"
 />

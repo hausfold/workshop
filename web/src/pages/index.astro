@@ -5,7 +5,7 @@
 import FamilyNav from '../components/FamilyNav.astro';
 import '../styles/landing-tokens.css';
 const desc =
-  'An opinionated macOS, raised in the fog. Silver-grey, keyboard-first, reproducible, Nix-native. One curl and one Nix flake raise the whole house.';
+  'An opinionated macOS, raised in the fog. Free and open source: silver-grey, keyboard-first, reproducible, Nix-native. One curl and one Nix flake raise the whole house.';
 const install = 'curl -fsSL https://nebelhaus.com/init.sh | bash';
 const productAccent = 'var(--neb-product-rice)';
 
@@ -168,6 +168,14 @@ const features = [
         <h1>An opinionated macOS,<br /><span class="fogtext">raised in the fog.</span></h1>
         <p class="lede">One command. Your Mac, already sorted.</p>
 
+        <ul class="proof" aria-label="What nebelhaus costs and how it is licensed">
+          <li class="proof-strong">Free forever</li>
+          <li class="proof-strong">Open source · MIT</li>
+          <li>Five tools, no paid tier</li>
+          <li>Nothing to sign up for</li>
+          <li>Reproducible, Nix-native</li>
+        </ul>
+
         <div class="install">
           <div class="install-row">
             <code id="install-cmd" data-command={install} aria-label={install}>
@@ -198,7 +206,10 @@ const features = [
       <section class="family">
         <div class="section-head">
           <h2>Five rooms, one house</h2>
-          <p>Each piece also stands on its own. Take the whole rice, or just the parts you like.</p>
+          <p>
+            Each piece also stands on its own — all five free and MIT-licensed.
+            Take the whole rice, or just the parts you like.
+          </p>
         </div>
         <div class="family-grid">
           {
@@ -435,10 +446,42 @@ const features = [
       }
 
       .lede {
-        margin: 0 auto 2rem;
+        margin: 0 auto 1.35rem;
         color: var(--subtext0);
         font-family: var(--mono);
         font-size: 0.98rem;
+      }
+
+      /* ---- price + licence chips ----
+         The two questions a visitor has before reading anything else, answered
+         above the install line. Same component lives in ProductLanding.astro. */
+      .proof {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.42rem;
+        max-width: 690px;
+        margin: 0 auto 1.9rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .proof li {
+        padding: 0.3rem 0.68rem;
+        background: color-mix(in srgb, var(--mantle) 86%, transparent);
+        border: 1px solid var(--surface0);
+        border-radius: 999px;
+        color: var(--subtext0);
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        line-height: 1.35;
+      }
+
+      .proof .proof-strong {
+        background: color-mix(in srgb, var(--product-accent) 13%, var(--mantle));
+        border-color: color-mix(in srgb, var(--product-accent) 52%, var(--surface0));
+        color: var(--product-accent);
+        font-weight: 650;
       }
 
       /* ---- terminal install line ---- */
@@ -882,6 +925,15 @@ const features = [
         .eyebrow {
           margin-bottom: 1rem;
           font-size: 0.7rem;
+        }
+
+        .proof {
+          gap: 0.34rem;
+        }
+
+        .proof li {
+          padding: 0.26rem 0.56rem;
+          font-size: 0.68rem;
         }
 
         .install-row {
