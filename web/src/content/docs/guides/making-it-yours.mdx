@@ -206,7 +206,7 @@ Your host file is imported *after*, so anything you set there still wins.
 | `full` | the whole rice: bar, tiling, palette, developer pack. The default. |
 | `minimal` | just the themed shell — no bar, no tiling, no palette. Still a developer machine. |
 | `everyday` | the inverse: a Mac for someone who doesn't write code. No developer pack, no Caps-Lock remap. |
-| `large-print` | bigger and sharper — one UI scale, the high-contrast palette, macOS's own contrast lift. |
+| `large-print` | bigger and sharper — the rice UI and whole display, plus the high-contrast palette and macOS's own contrast lift. |
 
 The first three are whole rices; pick one. **`large-print` is a layer** — it
 describes seeing rather than the person, so it stacks:
@@ -215,12 +215,22 @@ describes seeing rather than the person, so it stacks:
 extraModules = [ nebelhaus.presets.everyday nebelhaus.presets.large-print ];
 ```
 
-It sets `ui.scale = 1.4`, which moves the terminal font, the Dock icons and the
-tiling gaps together — pin any single one afterwards and yours wins. Two honest
-limits: it can't scale the menu bar or the Pounce window (both are sized by
-geometry a multiplier would break, not enlarge), and macOS has no working
-declarative lever for **system-wide** text size, so third-party apps don't follow.
-For those, System Settings ▸ Displays ▸ "Larger Text".
+It uses two complementary size controls. `ui.scale = 1.4` moves the terminal
+font, the Dock icons and the tiling gaps together — pin any single one afterwards
+and yours wins. `displays.main.uiScale = "larger-text"` moves the current main
+display one step toward larger text, which makes **everything** bigger, including
+third-party apps the rice knows nothing about. The trade-off is less desktop
+space.
+
+For per-display control, add a UUID-specific setting in your host file; it wins
+over the preset's broad `main` selector. `hausdisp list` prints the persistent
+UUIDs of the displays currently attached.
+
+The remaining size limits are the menu bar and the Pounce window: both use
+geometry tuned to their layouts, so a multiplier would break alignment rather
+than enlarge them. The preset also doesn't change an app's own font preference
+or macOS's separate Dynamic Type text-size setting; display scaling is the
+system-wide lever that works.
 
 ## Overriding macOS defaults
 
