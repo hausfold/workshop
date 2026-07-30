@@ -189,6 +189,11 @@ const content = {
                           <span><b>Mom</b><small>Photo</small></span>
                           <time>Tue</time>
                         </div>
+                        <div class="side-folders">
+                          <div class="side-label">folders</div>
+                          <div class="folder-row"><i class="fld" /><span>work</span><b>4</b></div>
+                          <div class="folder-row"><i class="fld" /><span>family</span><b>2</b></div>
+                        </div>
                       </div>
                       <div class="list-triage">
                         <div class="inbox-label">
@@ -930,13 +935,15 @@ const content = {
   }
 
   /* Trill's code-native preview: real layout language, synthetic data. */
-  /* Trill runs full-screen, so it starts below the notch the way macOS puts a
-     full-screen app below it — otherwise the notch bites the thread header. */
+  /* Full-bleed to the panel edge: the notch (42–58% of the screen, ~6% tall)
+     overlays the thread header's empty middle — the avatar/name sit left of
+     it and the ⌘K chip right of it, so it bites nothing. Starting below the
+     notch instead left a dead black band along the top. */
   .trill-demo {
     display: grid;
     position: absolute;
     grid-template-columns: 29% 48% 23%;
-    inset: 7% 0 0;
+    inset: 0;
     overflow: hidden;
     background: var(--base);
     color: var(--text);
@@ -995,6 +1002,57 @@ const content = {
     font-style: normal;
     opacity: 0;
     animation: snooze-lands 18s ease-out infinite;
+  }
+
+  /* Folders exist and that's the whole pitch — a quiet strip under the
+     inbox, not a beat of its own. */
+  .side-folders {
+    margin-top: 8%;
+    padding-top: 5%;
+    border-top: 1px solid var(--surface0);
+  }
+
+  .side-label {
+    padding: 0 3% 3%;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+
+  .folder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 3.5% 4%;
+    color: var(--subtext0);
+    font-size: 0.92em;
+  }
+
+  .folder-row b {
+    margin-left: auto;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.8em;
+    font-weight: 500;
+  }
+
+  .folder-row .fld {
+    position: relative;
+    width: 1.15em;
+    height: 0.85em;
+    background: var(--surface2);
+    border-radius: 2px;
+  }
+
+  .folder-row .fld::before {
+    position: absolute;
+    top: -0.18em;
+    left: 0.08em;
+    width: 0.45em;
+    height: 0.22em;
+    background: var(--surface2);
+    border-radius: 2px 2px 0 0;
+    content: '';
   }
 
   /* Stacked text swap: every child shares the cell, opacity picks one. */
@@ -1160,12 +1218,15 @@ const content = {
     background: var(--base);
   }
 
+  /* Top padding clears the header row under the notch's ~6% bite — the
+     avatar/name sit left of it, but the subtitle's tail would graze it
+     when vertically centered. */
   .trill-thread > header {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 12%;
-    padding: 2% 4%;
+    min-height: 13%;
+    padding: 4.2% 4% 1.6%;
     background: color-mix(in srgb, var(--mantle) 72%, transparent);
     border-bottom: 1px solid var(--surface0);
   }
@@ -1673,8 +1734,8 @@ const content = {
 
   .trill-detail > p {
     margin: 2% 0 12%;
-    color: var(--overlay1);
-    font-size: 0.75em;
+    color: var(--subtext0);
+    font-size: 0.82em;
   }
 
   .trill-detail div {
@@ -1695,12 +1756,12 @@ const content = {
     margin-bottom: 3%;
     color: var(--blue);
     font-family: var(--mono);
-    font-size: 0.68em;
+    font-size: 0.74em;
   }
 
   .trill-detail div span {
-    color: var(--subtext0);
-    font-size: 0.78em;
+    color: var(--text);
+    font-size: 0.88em;
   }
 
   /* Perch's code-native preview uses only transforms and opacity to animate. */
