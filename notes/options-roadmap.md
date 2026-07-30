@@ -714,7 +714,7 @@ a **bonus layer** that sharpens the result when FDA happens to be granted — ne
 as the foundation. That ranking survived all three revisions of this finding,
 which is the main argument for it.
 
-### 5.13 Authorable tour steps · ✅ **shipped in nebelhaus#156** · S · risk L
+### 5.13 Authorable tour steps · ✅ **shipped in nebelhaus#156** · docs workshop#135/#137 · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves
 of *this* rice. A community rice teaches its own:
 
@@ -731,6 +731,9 @@ non-empty list replaces it. `detect` is deliberately the existing outcome
 vocabulary (`launch`, `workspace`, `navigate`, `resize`, `palette`), so the
 community file remains data-only, and the module warns when a step names a
 signal whose room is disabled.
+
+The hand-written authoring guide shipped in workshop#135; the generated public
+option family followed in workshop#137.
 
 ---
 
@@ -819,7 +822,7 @@ that visible, and turned up two things that were already broken:
       lesson: **when the docs repo reads the rice's internals directly, a rice
       refactor is a cross-repo break with no local signal.** Worth auditing for
       other direct reads.
-- [x] **Presets and community rices have their own guide.**
+- [x] **Presets and community rices have their own guide — workshop#138.**
       `guides/sharing-a-rice.mdx` covers the data-only boundary, `checkRice`,
       composition testing, publishing, and the line between a rice and a power
       module; `guides/making-it-yours.mdx` keeps the shorter consumer story.
@@ -840,7 +843,8 @@ that visible, and turned up two things that were already broken:
 - [ ] §5.11 plan/capture/diff/revert — **`diff` must compare effective state, not
       plists**; a plist-only diff would have called both no-op writes "applied"
 - [ ] §5.8 scenes · §5.12 accessibility doctor checklist
-- [x] §5.13 authorable tour steps — shipped in nebelhaus#156
+- [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
+      workshop#135/#137
 
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
