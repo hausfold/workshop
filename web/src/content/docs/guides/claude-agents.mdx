@@ -144,6 +144,32 @@ leaves the commit alone. Parking on a branch that isn't a `worktree-*` one
 you push.
 </Aside>
 
+## Which tab wants you
+
+Run agents in eight tabs and the question is always the same one: which of them
+is sitting on a permission prompt? The rice answers it in the tab bar itself — a
+paw beside the name of any tab holding an agent pane, coloured by what that agent
+is doing:
+
+| Paw | Means |
+|---|---|
+| **peach** | an agent is blocked on you — a permission prompt, or it's asking a question |
+| **sky** | an agent is mid-turn, working |
+| **green** | the agent finished its turn; nothing is waiting |
+| *(no paw)* | no agent panes in that tab |
+
+A tab with several agents in it shows the most urgent one, so peach always wins:
+the tab that needs you never hides behind a tab that's merely busy. And it's
+*status*, not a notification — a green paw stays green until that agent starts
+another turn or its pane goes away. Looking at it doesn't dismiss it.
+
+This is the same signal as the [`agents` bar pill](/guides/the-bar/), reported by
+the same Claude Code hooks (which is why it's exact rather than guessed — the
+agent says what it's doing, nothing scrapes the screen for it). The pill is for
+when you're out in the GUI; the paw is for when you're already in the terminal.
+Nothing to enable: it lights up as soon as an agent pane reports, and stays
+invisible if you never run one.
+
 ## The statusline HUD
 
 The rice points Claude Code's status bar at a small HUD driven off `wt`'s
