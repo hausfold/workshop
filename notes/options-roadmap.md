@@ -12,20 +12,36 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
-> **Status, 2026-07-27.** §3 (structure) and §4 (spikes) are **done**; §3's four
-> items landed as nebelhaus#92/#96/#98/#93 + workshop#81, and the macOS spikes
-> settled in the matrix. Also shipped from §5: fonts (#91) and the two working
-> accessibility keys (#90).
+> **Status, 2026-07-30.** §3 (structure) and §4 (spikes) are **done**, Phase 3 is
+> mostly done, and all three reference rices pass the readiness test (§6).
 >
-> **Phase 3 is now mostly done.** `ui.scale` (§5.2) and fonts (§5.3) landed
-> earlier; the contrast axis landed as nebelung#11 + nebelhaus#103; and light mode
-> (§5.1's other half) plus `keys.*` (§5.5) are open as **nebelung#12 +
-> nebelhaus#108**, which also ships `presets/large-print.nix`.
+> What moved since the last pass is **pounce**, and it moved somewhere this doc
+> didn't predict. The palette reads its theme from **runtime files** now
+> (pounce#37 + rice#139), follows macOS Light/Dark **by itself** (pounce#42 +
+> rice#142, `pounce.followSystemAppearance`), and has a **per-item settings
+> schema** keyed by frecency key (pounce#43) — which is the action vocabulary
+> §5.5 said `bindings` was waiting for. Two consequences worth carrying: pounce
+> is no longer on the "bakes its own colours" side of §5.1's honest-scope line,
+> and `scheme = "auto"` now has one shipped implementation to copy rather than a
+> design.
 >
-> **The readiness test now passes for `large-print`** — see §6's scoreboard, and
-> read the two limits it turned up before celebrating. What's left in Phase 3 is
-> **§5.4 apps v2** (the schema migration, deliberately last) and **§5.10 displays**,
-> which is the only lever for the one thing `large-print` still can't do.
+> Alongside it, **`theme.ports.enable`** (rice#136 + nebelung#17/#18/#19) themes
+> the apps in your roster from **port metadata** — so §5.6's "each setting carries
+> a reachability designation" idea now ships as data for 53 ports, in a different
+> room than the one that proposed it.
+>
+> **Still open, in this order:** §5.10 displays (the missing half of
+> `large-print`) · the **rice-side** pounce options (§5.9 — pounce built the
+> schema, the rice doesn't generate it yet) · pounce/sill **sizing** (§5.2, which
+> the theming work did *not* touch) · §5.4 apps v2 (the schema migration,
+> deliberately last).
+>
+> **Earlier history.** §3's four items landed as nebelhaus#92/#96/#98/#93 +
+> workshop#81 and the macOS spikes settled in the matrix; fonts (#91), the two
+> working accessibility keys (#90), `ui.scale` (§5.2), the contrast axis
+> (nebelung#11 + rice#103), light mode (nebelung#12 + rice#108) and `keys.*`
+> (#108, which also ships `presets/large-print.nix`) are all in. Read §6's
+> scoreboard and the two limits `large-print` exposed before celebrating.
 
 ---
 
@@ -188,7 +204,7 @@ after — zero net change to the machine.
 
 Ranked by *(unlocks a genuinely different rice) ÷ (effort)*.
 
-### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M · ✅ **flavor + contrast shipped**
+### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M · ✅ **flavor + contrast + roster ports shipped**
 **★ Biggest miss in the earlier brainstorm.** `theme.accent` is an enum of 14
 Catppuccin Mocha names; the base palette is always Nebelung grey-dark
 ([`options.nix:335`](nebelhaus/modules/options.nix:335)). So:
@@ -250,6 +266,11 @@ nebelhaus.theme = {
 - [x] rice: honest scope — which tools follow `flavor` vs bake their own
       — **rice#103**: `theme.contrast = normal | high`; the option description names what
       it recolours (Ghostty/bat/…/Zen) vs what bakes its own (pounce, macOS).
+      **Half-superseded 2026-07-29: pounce came off that list** (see the two boxes
+      below). What's left on the "does not follow" side is macOS's own appearance
+      and the three hand-made wallpapers — a much better place for the line to sit,
+      because both of those are honestly *not ours*, whereas pounce baking its own
+      was only ever a limitation of how it was built.
 - [x] ✅ **Felt on the real machine, 2026-07-27: 19.9:1 reads CRISP, not harsh.**
       That was the one open question a ratio couldn't answer, and it's the answer
       the high-contrast axis needed before anything could be built on it — so
@@ -260,15 +281,49 @@ nebelhaus.theme = {
       `theme.flavor = "latte"` on mbp with macOS appearance set to Light, one
       `bench try switch`, and the whole hearth/sill/Zen surface came over — so light
       mode is a felt option now, not just a rendered one.
-- [ ] `scheme = "auto"` needs a runtime appearance watcher (sill can host it).
-      **Cheaper than it was**, now that both palettes exist — and there's a concrete
-      starting point: ghostty's config used to read
-      `theme = dark:nebelung,light:Catppuccin Latte`, i.e. it already followed macOS
-      appearance, and fell back to **stock** Catppuccin in light mode. So a Mac
-      running light appearance never actually got the Nebelung palette. #108 made it
-      a single `theme = nebelung` decided by `theme.flavor`, since it was also the
-      only tool in hearth that could switch on appearance at all; `scheme = "auto"`
-      is what would legitimately bring the split back, with Nebelung on both sides.
+- [ ] ◐ `scheme = "auto"` — **one consumer shipped it, and it wasn't the one this
+      box expected.** No sill-hosted watcher was needed: pounce#42 + rice#142 give the
+      palette `theme`/`themeLight` and it picks per open, exposed as
+      `nebelhaus.pounce.followSystemAppearance` (default **true**). Three things
+      that generalise:
+      **(a)** the unit that follows appearance is a *tool*, not the rice — anything
+      that can re-read a palette at draw time can opt in on its own, and only tools
+      that can't need a watcher;
+      **(b)** it needed the **runtime-file seam first** (pounce#37 + rice#139 install
+      every rendered variant into `~/.config/pounce/themes/`), so "follow the system"
+      turned out to be a cheap consequence of "stop baking the palette into the
+      binary" — which is the actual reusable move;
+      **(c)** it forced a real product decision into the option: a `flavor` pin is a
+      *palette* choice, but asking to follow the system says the *polarity* is
+      macOS's call, so the two can't both win. The rice resolves it by letting
+      `contrast` reach both halves while `flavor` reaches neither.
+      Still open: **ghostty**, the other tool that can switch on appearance. Its
+      config used to read `theme = dark:nebelung,light:Catppuccin Latte` — i.e. it
+      already followed macOS appearance and fell back to **stock** Catppuccin in
+      light mode, so a Mac on light appearance never got the Nebelung palette. #108
+      collapsed that to a single `theme = nebelung` decided by `theme.flavor`;
+      bringing the split back with Nebelung on both sides is now a two-line change
+      plus the same policy question (c) already answered, so it should reuse
+      `followSystemAppearance`'s shape rather than invent `scheme` as a third axis.
+      **Decide before building:** whether `scheme = "auto"` is a rice-wide option at
+      all, or just the name for "every appearance-capable tool follows the system",
+      which is what shipping it per-tool has quietly made it.
+- [x] `theme.ports.enable` — **roster apps theme themselves, from metadata**
+      (rice#136 + nebelung#17/#18/#19). Nebelung went 21 → 53 ports and now ships
+      `ports.meta.json` describing each one: `dest`, `install`
+      (copy 42 / paste 5 / merge 5 / compile 1), how the theme is *selected*, and a
+      `tier`. The rice reads that and drops the theme file for any app in
+      `nebelhaus.apps` it has a port for, in your flavor+contrast, on every rebuild.
+      Why it matters beyond theming: **this is §5.6's `reachability` designation,
+      shipped as data** — the option promises the *file*, not the *effect*, because
+      the metadata knows Ghostty reads a config key we own while Xcode/Warp/OBS need
+      one human click, and `haus doctor` lists exactly who is waiting on it. Ports
+      whose install is a merge or needs a compile are **reported, never written**.
+      Two lessons: a designation scheme is worth more when it lives with the thing
+      it describes (nebelung, not the rice) than when the consumer maintains a table,
+      and `theme.ports.handled` — rooms declaring what they already wire by hand,
+      with an assertion that every id is a real port — is the pattern to copy for any
+      future "generic pass plus hand-tuned exceptions" option.
 - [ ] **macOS's own Light/Dark is NOT flipped by `flavor`, and can't be, one way.**
       Turning dark mode on is one typed setting
       (`NSGlobalDomain.AppleInterfaceStyle = "Dark"`); turning it **off** means
@@ -320,6 +375,14 @@ contrast.
       multiplier breaks alignment instead of enlarging — they each need a sizing
       pass. On a non-dev Mac the palette is *how you launch things*, so pounce is
       the higher-value one.
+      ⚠️ **Do not read pounce's theming work as progress here.** Colour and size are
+      separate seams and only colour got one: the palette follows `flavor`/`contrast`
+      and macOS appearance now (§5.1), while its geometry is still `windowMode =
+      "compact"` written straight into `config.json` by
+      [`modules/pounce/default.nix:340`](nebelhaus/modules/pounce/default.nix:340) —
+      no option, no `ui.scale` term. Worth stating because "pounce follows the theme"
+      reads like the pounce gap closed, and the `large-print`-relevant half of it
+      didn't move at all.
 - [ ] Finder icon/sidebar size — typed and writable per the matrix, still unwired.
       Note it needs the restart map (§4): nix-darwin restarts only Dock.
 - [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
@@ -410,6 +473,21 @@ nebelhaus.keys = {
       chords plus service-mode entry. `bindings` (per-action overrides) is still
       open — it needs an action vocabulary first, and none of the motivating cases
       needed it.
+      **Update 2026-07-30: half that vocabulary now exists, from pounce.** pounce#43
+      addresses every palette row by its frecency key — `cmd:emoji`,
+      `app:/Applications/Ghostty.app`, `mode:clipboard` — and takes per-item
+      `alias` / `hotkey` / `enabled`, with `hotkey` accepting **leader sequences**
+      (`"opt+space e"`: whitespace separates steps, `+` separates modifiers, the
+      Emacs/VS Code notation). So `bindings` should be designed as *two* namespaces,
+      not one: pounce items already have stable ids, prowl actions still don't.
+      Three constraints that came with it and would otherwise be discovered late:
+      a second step is registered as an ordinary modifier-less global hotkey for
+      ~2s rather than a CGEventTap, so **sequences need no Accessibility grant**
+      (worth preserving — it's why the palette key needs none either);
+      `enabled = false` hides a row but does **not** disarm its hotkey, so an option
+      that means "turn this off" has to say which of the two it does; and
+      `pounce run <item-key>` exists as the escape hatch for keys another tool
+      already owns, which is the honest answer for a rice whose leader is `"none"`.
 - [ ] ~~Split `prowl.enable` into `prowl.tiling.enable` / `prowl.launcher.enable` /
       `prowl.capsRemap.enable`~~ — **superseded, not done.** `keys.leader = "none"`
       is capsRemap-off + launcher-off and `keys.windowNav = "none"` is
@@ -503,9 +581,11 @@ power source, display attach.
 - [ ] Only build the trigger engine *after* one hand-written scene proves useful —
       the declarative half is cheap, the trigger daemon is not
 
-### 5.9 Open up Sill widgets and Pounce commands · M · risk M
-`sill.items` is a closed submodule of 13 bools; Pounce commands are
-script-discovery only, with **no Nix option at all**.
+### 5.9 Open up Sill widgets and Pounce commands · M · risk M · ◐ **pounce built its half**
+`sill.items` is a closed submodule of 13 bools. Pounce commands were
+script-discovery only with **no Nix option at all**; as of pounce#43 the
+*app* has the schema and the **rice** is what's missing — which flips this item
+from "design a surface" to "generate a file", the cheapest it will ever be.
 
 ```nix
 nebelhaus.sill.widgets.backup = {
@@ -528,9 +608,30 @@ break timer · storage pressure · NAS reachability · world clocks.
 - [ ] While here: pounce has **no option for its own window sizing** (`windowMode`
       is written straight into `config.json` by the rice), which is why `ui.scale`
       can't reach the palette (§5.2). On a non-dev Mac the palette is how you launch
-      things, so this is the highest-value missing knob for `large-print`.
-- [ ] Pounce command packs, with the *dev* commands moved into an opt-in pack
+      things, so this is the highest-value missing knob for `large-print`. Still true
+      after the theming work — see the warning in §5.2.
+- [x] **pounce side: `config.json` grew an `items` map** (pounce#43), keyed by the
+      frecency key so commands, apps and built-in modes share **one address space**
+      (`cmd:` / `app:` / `mode:`), each taking `enabled` / `alias` / `hotkey`. The
+      design fork recorded there was *one schema now* vs *a key per stage*, resolved
+      to one **because these ripple into `nebelhaus/modules/pounce` either way** —
+      i.e. the rice-side option was a known consequence, not an afterthought.
+- [ ] **rice side, and it is the next cheap win in this section:**
+      `nebelhaus.pounce.items` (or `commands`) generating that map. Two facts decide
+      its shape: on the rice `config.json` is a **`/nix/store` symlink** (read-only,
+      so Nix is the only writer and there is no overlay/merge problem to solve),
+      while under Homebrew it is a plain writable file that a future settings UI
+      edits — so the rice must generate the *whole* map and never assume it can
+      round-trip user edits. `enabled = false` hiding a row **without** disarming its
+      hotkey is the wrinkle to name in the option description rather than paper over.
+- [ ] Pounce command packs, with the *dev* commands moved into an opt-in pack. Now
+      partly expressible without new mechanism: a pack is a set of `items.*.enabled`
+      values, which is data — so "packs" may reduce to shipping preset fragments
+      (§3.3) rather than a `packs` enum. Decide that before adding the enum.
 - [ ] Commands declare: mutates state? needs confirm? needs network/permission?
+      Unbuilt, and the metadata that *did* ship went to nebelung's ports instead
+      (§5.1) — same idea, other room. Copy that shape: the declaration lives with the
+      command, the consumer reads it.
 
 ### 5.10 `nebelhaus.displays` — **promoted: this is now the large-print rice** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
@@ -668,8 +769,11 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
 - [x] §5.2 `ui.scale` — shipped, but the fan-out is three targets, not nine
       (`density`/`motion` unbuilt; sill + pounce need their own sizing pass)
 - [x] §5.1 theme: **contrast** (nebelung#11 + nebelhaus#103) and **flavor / light
-      mode** (nebelung#12 + nebelhaus#108). `scheme = "auto"` and
-      `flavor = "custom"` remain.
+      mode** (nebelung#12 + nebelhaus#108), then **roster theming from port
+      metadata** (nebelung#17/#18/#19 + nebelhaus#136) and **pounce off the
+      "bakes its own" list** (pounce#37/#42 + nebelhaus#139/#142). `scheme = "auto"`
+      is now *partly* shipped — per-tool rather than rice-wide, which is a design
+      answer as much as progress; `flavor = "custom"` remains untouched.
 - [x] §5.5 `keys.*` (nebelhaus#108) — leader / palette / windowNav, each with a real
       `"none"`. Per-action `bindings` deferred; it wants an action vocabulary first.
 - [ ] §5.4 apps v2 + workspaces — **the last one, deliberately.** It's a schema
@@ -714,6 +818,14 @@ that visible, and turned up two things that were already broken:
 **Phase 4 — the non-dev Mac**
 - [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups
 - [ ] the restart map (§4) — nix-darwin only restarts Dock, so this is ours
+- ◐ **§5.9's pounce half arrived early, from the app side** (pounce#43), because
+  pounce wanted a Raycast-style settings list for its own reasons. That's the second
+  time an app shipped a piece of this roadmap ahead of its phase (the first:
+  nebelung's port metadata, §5.1) — both times because the app needed the data
+  structure anyway and the rice was the *downstream* consumer. So read these phases
+  as an ordering of **rice** work; the family's other repos will keep landing pieces
+  out of order, and the cheap move is to notice and consume them rather than to
+  design the option first.
 
 **Phase 5 — trust and breadth**
 - [ ] §5.11 plan/capture/diff/revert — **`diff` must compare effective state, not
@@ -759,6 +871,17 @@ rices, and `large-print` is the one whose expression is thinner than its name
 promises. Next-most-valuable work is §5.10 (the missing half of large-print) and
 pounce/sill sizing (§5.2/§5.9), not §5.4.
 
+**Re-checked 2026-07-30, and the ranking survives — but the *cheapest* item
+changed.** Everything that landed since (pounce runtime palettes + system
+appearance, `theme.ports`, pounce's `items` schema) improved how the rice *looks*
+and what it can *address*, and none of it touched size, so `large-print` is
+exactly as thin as it was and §5.10 stays first. What did change is that
+`nebelhaus.pounce.items` (§5.9) is now a generator over a schema someone else
+designed and tested, which makes it a smaller job than a sizing pass and the
+right thing to do while §5.10 waits on hardware (the dock, per §5.10's last box).
+The `everyday`/non-dev rice is also the one this helps most: hiding the dev
+commands from the palette is `items.*.enabled` data, not a new mechanism.
+
 ---
 
 ## 7. Repo routing
@@ -787,6 +910,21 @@ is one rule mirrored across the repo boundary; the mitigation is that both sides
 hold it in exactly one place and `nix flake check`'s `theme-variants` pins the
 table, because that mirror's failure mode is silent (a wrong subdir is a store
 path that doesn't exist, discovered at activation).
+
+**The better answer to the same problem, found on §5.1's next PR: ship the rule as
+DATA from the upstream repo.** `theme.ports` needed far more cross-boundary
+knowledge than `variantDir` did — 53 ports × where each theme goes, how it
+installs, whether dropping the file is enough — and mirroring *that* would have
+been unmaintainable. nebelung#19 ships `ports.meta.json` instead and the rice
+reads it, so there is no second copy to drift and a port rename surfaces as an
+eval-time assertion (`theme.ports.handled` checks every id is real) rather than a
+missing store path at activation. The rule of thumb this leaves: **mirror only what
+fits in one expression and can be pinned by a golden test; anything table-shaped
+becomes an output of the repo that owns it.** Phase 3.5's tripwire break is the
+same lesson from the failure side — when a downstream repo reads an upstream's
+internals directly, a refactor upstream is a break with no local signal, so the
+seam should be a declared output (`options-json`, `wm-bindings-json`,
+`ports.meta.json`) every time.
 
 ---
 
