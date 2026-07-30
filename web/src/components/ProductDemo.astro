@@ -327,12 +327,16 @@ const content = {
                   <i class="key-cast kc-c" aria-hidden="true">⌘⇧L</i>
                 </div>
               ) : (
-                <div class="perch-demo" role="img" aria-label="Perch opening a temporary file shelf from the MacBook notch">
+                <div
+                  class="perch-demo"
+                  role="img"
+                  aria-label="Perch staging files in a shelf that grows from the MacBook notch: a photo dragged up from Finder lands as a staged copy while the original stays put, a folder and a note join it, the shelf tucks away while a Mail draft opens, then the whole stack drags out at once — advertised copy-only — and lands as three attachments"
+                >
                   <div class="desktop-menu" aria-hidden="true">
                     <span>⌁ &nbsp; Finder &nbsp; File &nbsp; Edit &nbsp; View</span>
                     <span>◔ &nbsp; 100% &nbsp; Wed Jul 29 &nbsp; 9:41</span>
                   </div>
-                  <div class="desktop-window" aria-hidden="true">
+                  <div class="desktop-window win-finder" aria-hidden="true">
                     <header><i /><i /><i /><span>release</span></header>
                     <aside>
                       <b>Favorites</b>
@@ -341,19 +345,47 @@ const content = {
                       <span>⌁ &nbsp; Downloads</span>
                     </aside>
                     <div class="desktop-main">
-                      <div class="file-card"><i class="folder" /><span>build</span></div>
-                      <div class="file-card"><i class="document" /><span>notes.md</span></div>
-                      <div class="file-card"><i class="image" /><span>hero.png</span></div>
+                      <div class="file-card grab-late"><i class="folder" /><span>build</span></div>
+                      <div class="file-card grab-late"><i class="document" /><span>notes.md</span></div>
+                      <div class="file-card grab-first"><i class="image" /><span>hero.png</span></div>
+                    </div>
+                  </div>
+                  <div class="desktop-window win-mail" aria-hidden="true">
+                    <header><i /><i /><i /><span>New Message</span></header>
+                    <div class="mail-body">
+                      <div class="mail-field"><b>To:</b><span>Jo</span></div>
+                      <div class="mail-field"><b>Subject:</b><span>launch assets</span></div>
+                      <div class="drop-well">
+                        <span class="attach-chip"><i class="dot-image" />hero.png</span>
+                        <span class="attach-chip"><i class="dot-folder" />build</span>
+                        <span class="attach-chip"><i class="dot-doc" />notes.md</span>
+                      </div>
                     </div>
                   </div>
                   <div class="perch-shelf" aria-hidden="true">
-                    <header><span>3 things waiting</span><b>copy-only</b></header>
+                    <header>
+                      <span class="flip shelf-state">
+                        <span class="st-drop">drop to stash</span>
+                        <span class="st-one">1 thing waiting</span>
+                        <span class="st-three">3 things waiting</span>
+                        <span class="st-empty">nothing waiting</span>
+                      </span>
+                      <b>copy-only</b>
+                    </header>
                     <div class="shelf-items">
-                      <div class="shelf-item"><i class="folder" /><span>build</span></div>
-                      <div class="shelf-item"><i class="document" /><span>notes.md</span></div>
-                      <div class="shelf-item lifted"><i class="image" /><span>hero.png</span></div>
+                      <div class="shelf-item it-first"><i class="image" /><span>hero.png</span></div>
+                      <div class="shelf-item it-late"><i class="folder" /><span>build</span></div>
+                      <div class="shelf-item it-late"><i class="document" /><span>notes.md</span></div>
                     </div>
                   </div>
+                  <i class="drag-ghost ghost-up-one" aria-hidden="true"><i class="image" /></i>
+                  <i class="drag-ghost ghost-up-two" aria-hidden="true"><i class="folder" /><i class="document" /></i>
+                  <i class="drag-ghost ghost-out" aria-hidden="true">
+                    <i class="image" /><i class="folder" /><i class="document" />
+                    <b class="ghost-count">3</b>
+                    <em class="copy-pill">copy</em>
+                  </i>
+                  <i class="cursor" aria-hidden="true" />
                 </div>
               )
             }
@@ -1764,7 +1796,8 @@ const content = {
     font-size: 0.88em;
   }
 
-  /* Perch's code-native preview uses only transforms and opacity to animate. */
+  /* Perch's code-native preview: the cursor is the actor the way keystrokes
+     are trill's — every scene change is a drag it performs. */
   .perch-demo {
     position: relative;
     width: 100%;
@@ -1807,6 +1840,109 @@ const content = {
     border: 1px solid var(--surface1);
     border-radius: 9px;
     box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  }
+
+  /* The Finder window and the Mail draft are twins in one slot, snapped on
+     the same frame mid-loop — a Space switch, not a crossfade. */
+  .win-finder {
+    animation: finder-shows 16s linear infinite;
+  }
+
+  .win-mail {
+    grid-template-columns: 1fr;
+    opacity: 0;
+    animation: mail-shows 16s linear infinite;
+  }
+
+  .mail-body {
+    display: grid;
+    align-content: start;
+    gap: 4%;
+    padding: 5% 6%;
+  }
+
+  .mail-field {
+    display: flex;
+    gap: 0.6em;
+    padding-bottom: 3%;
+    border-bottom: 1px solid var(--surface0);
+    font-size: 0.82em;
+  }
+
+  .mail-field b {
+    color: var(--overlay1);
+    font-weight: 500;
+  }
+
+  .mail-field span {
+    color: var(--text);
+  }
+
+  /* The drop target glows while the stack hovers over it, then holds the
+     landed attachment chips. */
+  .drop-well {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.6em;
+    min-height: 34%;
+    margin-top: 2%;
+    padding: 5%;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    animation: well-glows 16s linear infinite;
+  }
+
+  .attach-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.4em 0.7em;
+    background: var(--crust);
+    border: 1px solid var(--surface1);
+    border-radius: 1.2em;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.78em;
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
+    animation: chip-lands 16s ease-out infinite;
+  }
+
+  .attach-chip:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .attach-chip:nth-child(3) {
+    animation-delay: 0.36s;
+  }
+
+  .attach-chip i {
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 2px;
+  }
+
+  .dot-image {
+    background: var(--teal);
+  }
+
+  .dot-folder {
+    background: var(--green);
+  }
+
+  .dot-doc {
+    background: var(--surface2);
+  }
+
+  /* The originals brighten while picked — and stay put when the ghost
+     leaves. That IS the copy-only story. */
+  .file-card.grab-first {
+    animation: card-picked-first 16s linear infinite;
+  }
+
+  .file-card.grab-late {
+    animation: card-picked-late 16s linear infinite;
   }
 
   .desktop-window header {
@@ -1925,7 +2061,7 @@ const content = {
     box-shadow: 0 17px 40px rgba(0, 0, 0, 0.48);
     transform: translate(-50%, -84%) scaleX(0.35);
     transform-origin: top;
-    animation: shelf-opens 5.5s 0.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    animation: shelf-opens 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
 
   .perch-shelf header {
@@ -1942,6 +2078,30 @@ const content = {
     font-weight: 500;
   }
 
+  /* The header narrates the shelf's state — four stacked lines snapped on
+     the frames things land or leave. */
+  .st-one,
+  .st-three,
+  .st-empty {
+    opacity: 0;
+  }
+
+  .st-drop {
+    animation: state-drop 16s steps(1, end) infinite;
+  }
+
+  .st-one {
+    animation: state-one 16s steps(1, end) infinite;
+  }
+
+  .st-three {
+    animation: state-three 16s steps(1, end) infinite;
+  }
+
+  .st-empty {
+    animation: state-empty 16s steps(1, end) infinite;
+  }
+
   .shelf-items {
     display: flex;
     justify-content: center;
@@ -1952,8 +2112,112 @@ const content = {
     border-radius: 8px;
   }
 
-  .shelf-item.lifted {
-    animation: item-lifts 5.5s 0.4s ease-in-out infinite;
+  /* Tiles pop as their ghosts land, dim while the stack is being dragged
+     out, and vanish the frame the destination accepts it. */
+  .shelf-item.it-first {
+    opacity: 0;
+    animation: tile-first 16s ease-out infinite;
+  }
+
+  .shelf-item.it-late {
+    opacity: 0;
+    animation: tile-late 16s ease-out infinite;
+  }
+
+  .shelf-items .shelf-item:nth-child(3) {
+    animation-delay: 0.07s;
+  }
+
+  /* Drag ghosts: the staged copy travelling under the cursor. The stack
+     ghost fans its three tiles and wears the count + the copy pledge. */
+  .drag-ghost {
+    display: flex;
+    position: absolute;
+    z-index: 5;
+    opacity: 0;
+    transform: rotate(-4deg);
+  }
+
+  .drag-ghost > i {
+    display: block;
+    position: relative;
+    width: 2em;
+    height: 1.65em;
+    border-radius: 3px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+  }
+
+  .ghost-up-one {
+    animation: ghost-up-one 16s ease-in-out infinite;
+  }
+
+  .ghost-up-two {
+    animation: ghost-up-two 16s ease-in-out infinite;
+  }
+
+  .ghost-up-two > i:nth-child(2) {
+    margin-top: 0.28em;
+    margin-left: -1.2em;
+  }
+
+  .ghost-out {
+    animation: ghost-out 16s ease-in-out infinite;
+  }
+
+  .ghost-out > i:nth-child(2) {
+    margin-top: 0.3em;
+    margin-left: -1.4em;
+  }
+
+  .ghost-out > i:nth-child(3) {
+    margin-top: 0.6em;
+    margin-left: -1.4em;
+  }
+
+  .ghost-count {
+    display: grid;
+    position: absolute;
+    top: -0.6em;
+    right: -0.6em;
+    width: 1.3em;
+    height: 1.3em;
+    place-items: center;
+    background: var(--green);
+    border-radius: 50%;
+    color: var(--crust);
+    font-size: 0.78em;
+    font-weight: 750;
+  }
+
+  .copy-pill {
+    position: absolute;
+    right: -0.5em;
+    bottom: -1.5em;
+    padding: 0.16em 0.55em;
+    background: color-mix(in srgb, var(--pink) 18%, var(--crust));
+    border: 1px solid color-mix(in srgb, var(--pink) 45%, transparent);
+    border-radius: 1em;
+    color: var(--pink);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-style: normal;
+  }
+
+  /* A drawn macOS arrow — the demo's actor. Parked at the base position so
+     a reduced-motion or frame-0 render isn't a corner artifact. */
+  .cursor {
+    position: absolute;
+    top: 60%;
+    left: 75%;
+    z-index: 6;
+    width: 1.1em;
+    height: 1.55em;
+    background: var(--text);
+    clip-path: polygon(0 0, 0 78%, 22% 63%, 38% 100%, 54% 92%, 37% 58%, 62% 56%);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+    animation:
+      cursor-roams 16s ease-in-out infinite,
+      cursor-clicks 16s linear infinite;
   }
 
   /* The 14s clock, in seconds: summon at 0, recency list up by 0.2. Typing
@@ -2619,27 +2883,322 @@ const content = {
     }
   }
 
+  /* Perch's 16s clock, in seconds: the cursor leaves its park at 0.5, picks
+     hero.png at 1.2 (the card brightens — and stays put), and drags a ghost
+     tile up; nearing the notch the shelf drops open at 2.3 reading "drop to
+     stash", and the tile lands at 2.6 — "1 thing waiting". At 4.6 it grabs
+     build + notes.md together and carries the pair up by 5.8 — tiles pop,
+     "3 things waiting". The shelf tucks away at 7.3 and the Space snaps
+     from Finder to a Mail draft at 7.8. The cursor hovers the notch at 9.7,
+     the shelf re-opens, and at 11.4 it grabs the STACK — three fanned tiles,
+     a count badge, and the copy pledge riding along — dropping into the
+     draft's glowing well at 12.6: chips land one-two-three, the shelf reads
+     "nothing waiting" and tucks away at 14. The last 2s rest on the draft;
+     the Space snaps back to Finder just before the seam. */
   @keyframes shelf-opens {
-    0%, 12% {
+    0%, 12.5% {
       opacity: 0;
       transform: translate(-50%, -84%) scaleX(0.35);
     }
-    29%, 84% {
+    14.5%, 43% {
       opacity: 1;
       transform: translate(-50%, 0) scaleX(1);
     }
-    100% {
+    45.5%, 58.5% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    60.5%, 85% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    87.5%, 100% {
       opacity: 0;
       transform: translate(-50%, -84%) scaleX(0.35);
     }
   }
 
-  @keyframes item-lifts {
-    0%, 40%, 72%, 100% {
-      transform: translate(0);
+  @keyframes finder-shows {
+    0%, 48.7% {
+      opacity: 1;
     }
-    51%, 61% {
-      transform: translate(14px, -13px) rotate(4deg);
+    48.8%, 98.7% {
+      opacity: 0;
+    }
+    98.8%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mail-shows {
+    0%, 48.7% {
+      opacity: 0;
+    }
+    48.8%, 98.7% {
+      opacity: 1;
+    }
+    98.8%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cursor-roams {
+    0%, 3% {
+      top: 60%;
+      left: 75%;
+    }
+    7.5%, 8.5% {
+      top: 32%;
+      left: 53%;
+    }
+    14.5%, 24% {
+      top: 12%;
+      left: 50%;
+    }
+    29%, 30% {
+      top: 32%;
+      left: 40%;
+    }
+    35.5%, 37% {
+      top: 12%;
+      left: 50%;
+    }
+    44%, 57% {
+      top: 55%;
+      left: 66%;
+    }
+    60%, 64% {
+      top: 6.5%;
+      left: 50%;
+    }
+    66%, 71% {
+      top: 13%;
+      left: 50%;
+    }
+    78%, 79% {
+      top: 48%;
+      left: 44%;
+    }
+    86%, 100% {
+      top: 60%;
+      left: 75%;
+    }
+  }
+
+  @keyframes cursor-clicks {
+    0%, 7.4% {
+      transform: scale(1);
+    }
+    7.9%, 14.9% {
+      transform: scale(0.86);
+    }
+    15.4%, 28.9% {
+      transform: scale(1);
+    }
+    29.4%, 35.9% {
+      transform: scale(0.86);
+    }
+    36.4%, 70.9% {
+      transform: scale(1);
+    }
+    71.4%, 78.3% {
+      transform: scale(0.86);
+    }
+    78.8%, 100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes card-picked-first {
+    0%, 6.9% {
+      filter: brightness(1);
+    }
+    7.7%, 15.3% {
+      filter: brightness(1.35);
+    }
+    16.1%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes card-picked-late {
+    0%, 28.3% {
+      filter: brightness(1);
+    }
+    29.1%, 35.8% {
+      filter: brightness(1.35);
+    }
+    36.6%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes ghost-up-one {
+    0%, 8.6% {
+      top: 33%;
+      left: 51%;
+      opacity: 0;
+    }
+    9.6% {
+      opacity: 0.92;
+    }
+    14.9% {
+      top: 10.5%;
+      left: 48.5%;
+      opacity: 0.92;
+    }
+    15.3%, 100% {
+      top: 10.5%;
+      left: 48.5%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes ghost-up-two {
+    0%, 30.2% {
+      top: 33%;
+      left: 38%;
+      opacity: 0;
+    }
+    31.2% {
+      opacity: 0.92;
+    }
+    35.7% {
+      top: 10.5%;
+      left: 48%;
+      opacity: 0.92;
+    }
+    36.3%, 100% {
+      top: 10.5%;
+      left: 48%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes ghost-out {
+    0%, 71.6% {
+      top: 11%;
+      left: 46%;
+      opacity: 0;
+    }
+    72.6% {
+      opacity: 0.95;
+    }
+    78.1% {
+      top: 45%;
+      left: 41%;
+      opacity: 0.95;
+    }
+    78.7%, 100% {
+      top: 45%;
+      left: 41%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-drop {
+    0%, 15.9% {
+      opacity: 1;
+    }
+    16%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-one {
+    0%, 15.9% {
+      opacity: 0;
+    }
+    16%, 36.9% {
+      opacity: 1;
+    }
+    37%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-three {
+    0%, 36.9% {
+      opacity: 0;
+    }
+    37%, 77.9% {
+      opacity: 1;
+    }
+    78%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-empty {
+    0%, 77.9% {
+      opacity: 0;
+    }
+    78%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes tile-first {
+    0%, 15.5% {
+      opacity: 0;
+      transform: translateY(-5px) scale(0.7);
+    }
+    16.6%, 70.9% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    71.7%, 77.8% {
+      opacity: 0.35;
+      transform: translateY(0) scale(1);
+    }
+    78.2%, 100% {
+      opacity: 0;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes tile-late {
+    0%, 36.2% {
+      opacity: 0;
+      transform: translateY(-5px) scale(0.7);
+    }
+    37.3%, 70.9% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    71.7%, 77.8% {
+      opacity: 0.35;
+      transform: translateY(0) scale(1);
+    }
+    78.2%, 100% {
+      opacity: 0;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes well-glows {
+    0%, 72.3% {
+      background: transparent;
+      border-color: transparent;
+    }
+    73.3%, 78.4% {
+      background: color-mix(in srgb, var(--product-accent, var(--green)) 8%, transparent);
+      border-color: color-mix(in srgb, var(--product-accent, var(--green)) 55%, transparent);
+    }
+    79.6%, 100% {
+      background: transparent;
+      border-color: transparent;
+    }
+  }
+
+  @keyframes chip-lands {
+    0%, 79.2% {
+      opacity: 0;
+      transform: translateY(4px) scale(0.9);
+    }
+    80.4%, 100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
   }
 
@@ -2681,7 +3240,24 @@ const content = {
     .palette-field .caret,
     .palette-row,
     .perch-shelf,
-    .shelf-item.lifted,
+    .win-finder,
+    .win-mail,
+    .file-card.grab-first,
+    .file-card.grab-late,
+    .shelf-item.it-first,
+    .shelf-item.it-late,
+    .shelf-state > span,
+    .st-drop,
+    .st-one,
+    .st-three,
+    .st-empty,
+    .attach-chip,
+    .drop-well,
+    .drag-ghost,
+    .ghost-up-one,
+    .ghost-up-two,
+    .ghost-out,
+    .cursor,
     .list-triage,
     .list-triage .chat-row,
     .list-triage .chat-row.snoozed,
@@ -2757,9 +3333,29 @@ const content = {
       opacity: 0;
     }
 
+    /* Perch's still is a loaded shelf over the Finder window: three tiles,
+       "3 things waiting", no cursor, no ghosts, no Mail draft. */
     .perch-shelf {
       opacity: 1;
       transform: translate(-50%, 0) scaleX(1);
+    }
+
+    .shelf-item.it-first,
+    .shelf-item.it-late {
+      opacity: 1;
+      transform: none;
+    }
+
+    .st-drop {
+      opacity: 0;
+    }
+
+    .st-three {
+      opacity: 1;
+    }
+
+    .cursor {
+      opacity: 0;
     }
   }
 </style>
