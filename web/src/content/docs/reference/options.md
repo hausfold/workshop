@@ -906,6 +906,64 @@ the ⌘Space step is dropped when pounce is off. Progress lives in
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
+### `nebelhaus.tour.steps`
+
+`null or (non-empty (list of (submodule)))` · default `null`
+
+A community-authored tour, in order. null keeps the built-in four-move
+nebelhaus tour unchanged; supplying a list replaces it, so a shared rice can
+teach its own workflow without shipping scripts or reaching outside the
+`nebelhaus.*` option surface.
+
+Detection reuses signals the rice already emits. `launch`, `workspace`,
+`navigate` and `resize` need prowl; `palette` needs Pounce and its palette
+binding. The module warns when a chosen detector's room is disabled.
+
+Example:
+
+```nix
+[
+  {
+    detect = "palette";
+    hint = "Press ⌘Space, type tour, then hit ↵";
+  }
+]
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.tour.steps.*.detect`
+
+`one of "launch", "workspace", "navigate", "resize", "palette"` · no default
+
+The existing rice signal that completes this step: entering launch,
+navigate or resize mode; changing workspace; or running the Haus Tour
+command from Pounce (`palette`). The tour observes outcomes, never
+keystrokes. Clicking the pill still skips a step that cannot be
+detected in the current setup.
+
+Example:
+
+```nix
+"palette"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.tour.steps.*.hint`
+
+`string` · no default
+
+The instruction shown in the tour pill for this step.
+
+Example:
+
+```nix
+"Press ⌘Space, type calendar, then hit ↵"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
 ## nebelhaus.pounce
 
 The ⌘Space command palette.

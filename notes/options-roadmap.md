@@ -714,7 +714,7 @@ a **bonus layer** that sharpens the result when FDA happens to be granted — ne
 as the foundation. That ranking survived all three revisions of this finding,
 which is the main argument for it.
 
-### 5.13 Authorable tour steps · ◐ **implemented in nebelhaus#156** · S · risk L
+### 5.13 Authorable tour steps · ✅ **shipped in nebelhaus#156** · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves
 of *this* rice. A community rice teaches its own:
 
@@ -841,7 +841,7 @@ that visible, and turned up two things that were already broken:
 - [ ] §5.11 plan/capture/diff/revert — **`diff` must compare effective state, not
       plists**; a plist-only diff would have called both no-op writes "applied"
 - [ ] §5.8 scenes · §5.12 accessibility doctor checklist
-- ◐ §5.13 authorable tour steps — implemented in nebelhaus#156; awaiting feel-test + merge
+- [x] §5.13 authorable tour steps — shipped in nebelhaus#156
 
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
