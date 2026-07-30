@@ -178,11 +178,14 @@ pounce -i "sf.symbol.name"        # icon for the picker
 pounce -p "Search:" --chain       # picker whose free-text Enter feeds another pounce step
 pounce run cmd:emoji              # run one item by its key (for external binders)
 
-# built-in modes
-pounce --clipboard                # clipboard history
-pounce --emoji                    # emoji picker
-pounce --screenshots              # screenshot browser
-pounce --camera                   # live camera preview
+# built-in windows — items, not flags (`pounce run <item-key>`)
+pounce run mode:clipboard         # clipboard history
+pounce run mode:emoji             # emoji picker
+pounce run mode:screenshots       # screenshot browser
+pounce run mode:camera            # live camera preview
+pounce run mode:filesearch        # file/folder search (Spotlight index)
+pounce run cmd:hush               # any command, by script name without .sh
+pounce run app:/Applications/Ghostty.app
 pounce --cheatsheet [path]        # cheatsheet overlay
 pounce --transform 'tr a-z A-Z'   # rewrite the selected text through a shell filter
 
@@ -206,10 +209,9 @@ pounce --check-bluetooth          # exit 0 / prints true when granted
 | `run <item-key>` | Run one item by the key `items` uses (`cmd:emoji`, `mode:clipboard`, `app:/…`), for binders that own the keystroke |
 | `--launcher` | Apps + commands mode |
 | `--max-empty N` | Rows shown before any query is typed |
-| `--clipboard` / `--emoji` / `--screenshots` / `--camera` | Built-in modes |
-| `--find-files` | Live file/folder search over the Spotlight index |
 | `--cheatsheet [path]` | Overlay a cheatsheet (JSON) |
 | `--transform <filter>` | Pipe the current selection through a shell filter and paste the result back (needs Accessibility) — how **Capitalize** / **Lowercase** work |
+| `run <item-key>` | Run one item: `mode:clipboard` \| `mode:emoji` \| `mode:screenshots` \| `mode:camera` \| `mode:filesearch` \| `mode:launcher`, `cmd:<id>`, `app:<path>`. The built-in windows had a flag each until 2026-07-30 (`--clipboard` and friends); they're items now, so one name works as a palette row, a hotkey target and a CLI argument. Needs the daemon |
 | `--version` | Print the version |
 | `--request-accessibility` / `--check-accessibility` | Manage the Accessibility (TCC) grant |
 | `--request-bluetooth` / `--check-bluetooth` | Manage the Bluetooth (TCC) grant — the bluetooth plugin calls this for you |
