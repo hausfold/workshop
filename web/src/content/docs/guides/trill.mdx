@@ -119,6 +119,29 @@ trill ships an in-app cheat-sheet — press <kbd>⌘/</kbd> any time. The essent
 | <kbd>⌘J</kbd> | Jump to date |
 | <kbd>⌘+</kbd> / <kbd>⌘−</kbd> / <kbd>⌘0</kbd> | Zoom |
 
+## Theme it
+
+trill ships all four [nebelung](/reference/palette/) variants compiled in — dark
+or **latte**, normal or **high contrast** — and picks between them in
+**Settings ▸ Theme**: `Follow macOS`, `Dark`, or `Light`, plus which palette each
+polarity uses. Nothing to rebuild, and it applies the moment you pick it. The
+accent, display density, and zoom live in the same pane.
+
+Anything else is a file. Drop a flat `name → "#hex"` JSON — nebelung's own
+`*.hex.json`, or a stock Catppuccin flavor — into `~/.config/trill/themes/` and it
+appears in those menus:
+
+```sh
+mkdir -p ~/.config/trill/themes
+curl -o ~/.config/trill/themes/my-palette.json https://example.com/palette.json
+```
+
+A file **shadows a built-in of the same name**, so naming yours `nebelung.json`
+replaces trill's idea of nebelung. That's how the rice keeps an installed trill
+current: on nebelhaus it writes every rendered variant there and names the pair
+your [`theme.flavor` / `theme.contrast`](/guides/theming/) select, so trill
+follows the house palette. Your own pick in Settings still wins.
+
 ## Export a conversation (or all of them)
 
 trill exports threads to **Markdown**, plain text, or HTML — a single thread and
