@@ -819,11 +819,10 @@ that visible, and turned up two things that were already broken:
       lesson: **when the docs repo reads the rice's internals directly, a rice
       refactor is a cross-repo break with no local signal.** Worth auditing for
       other direct reads.
-- [ ] **Presets are undocumented on the site entirely** — a whole shipped feature
-      (#98) with no guide. Partly covered now by a section in
-      `guides/making-it-yours.mdx`, but the community-format story (`checkRice`,
-      publishing one, the data-only boundary) deserves its own page before anyone
-      is invited to publish a rice.
+- [x] **Presets and community rices have their own guide.**
+      `guides/sharing-a-rice.mdx` covers the data-only boundary, `checkRice`,
+      composition testing, publishing, and the line between a rice and a power
+      module; `guides/making-it-yours.mdx` keeps the shorter consumer story.
 
 **Phase 4 — the non-dev Mac**
 - [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups

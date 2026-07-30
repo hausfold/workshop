@@ -20,6 +20,7 @@ export const sidebar = [
     label: 'Guides',
     items: [
       { label: 'Making it yours', slug: 'guides/making-it-yours' },
+      { label: 'Sharing a rice', slug: 'guides/sharing-a-rice' },
       { label: 'Changing it with an agent', slug: 'guides/ai-agent' },
       { label: 'Adding apps & tools', slug: 'guides/adding-apps' },
       { label: 'Window management (prowl)', slug: 'guides/window-management' },
