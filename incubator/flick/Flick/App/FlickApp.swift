@@ -25,6 +25,10 @@ enum FlickMain {
     }
 }
 
+/// AppKit-only, so the whole delegate lives on the main actor — the `@objc`
+/// menu selectors touch `AppRuntime` (itself `@MainActor`) and would otherwise
+/// be inferred `nonisolated`.
+@MainActor
 final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     private var runtime: AppRuntime?
     private var inboxWindow: NSWindow?
