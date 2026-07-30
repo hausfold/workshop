@@ -50,10 +50,13 @@ The default is `mauve`. Any of the 14 Catppuccin accent names works:
 See their exact hex values on the [palette reference](/reference/palette/).
 
 <Aside type="tip" title="Pounce follows too">
-The [Pounce](/guides/pounce/) launcher bakes the nebelung palette into its
-binary at build time, so its UI matches the rest of the rice automatically. You
-can also switch it between `nebelung` and stock `mocha` in its own
-[config](/reference/pounce/#config-file).
+The [Pounce](/guides/pounce/) launcher compiles the default nebelung palette in
+at build time, so its UI matches the rest of the rice out of the box — and it
+loads any other palette at runtime from `~/.config/pounce/themes/`. The rice
+installs every nebelung variant there and points Pounce's
+[config](/reference/pounce/#config-file) at the one `theme.flavor` /
+`theme.contrast` select, so it follows those options like every other tool —
+no rebuild involved.
 </Aside>
 
 ## Contrast

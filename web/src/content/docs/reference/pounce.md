@@ -13,7 +13,9 @@ re-read each time the palette opens (no daemon restart needed).
 
 ```jsonc
 {
-  "theme": "nebelung",       // "nebelung" (default) or "mocha" (stock Catppuccin)
+  "theme": "nebelung",       // "nebelung" (default), "mocha", or a themes/ file
+  "themeLight": "nebelung-latte",  // used when macOS is in Light Mode
+  "themeDark": "nebelung",         // used when macOS is in Dark Mode
   "windowMode": "default",   // "default" (720px) or "compact" (600px, tighter)
   "hotkey": {
     "enabled": true,         // register the global hotkey in-process
@@ -26,17 +28,31 @@ re-read each time the palette opens (no daemon restart needed).
     "blacklistBundleIds": ["com.apple.Passwords"],  // never record from these
     "autoPaste": false       // synthesize ⌘V into the prior app (needs Accessibility)
   },
+  "quickAnswers": {
+    "currency": true         // fetch ECB rates so "100 usd in eur" answers inline
+  },
   "fileSearch": {
     "enabled": true,         // the Find Files mode
     "homeOnly": true,        // scope to ~ instead of the whole index
     "maxResults": 60         // rows kept per query
+  },
+  "apps": {
+    "demoteBundleIds": [],   // sink these apps below everything else
+    "hideBundleIds": []      // drop these apps from the list entirely
+  },
+  "windows": {
+    "enabled": false,        // the MRU window switcher (needs Accessibility)
+    "key": "tab",            // hold the modifiers, tap this to walk windows
+    "modifiers": ["cmd"]
   }
 }
 ```
 
 | Key | Values | Default |
 |---|---|---|
-| `theme` | `"nebelung"` \| `"mocha"` | `"nebelung"` |
+| `theme` | `"nebelung"` \| `"mocha"` \| a `themes/` file name | `"nebelung"` |
+| `themeLight` | same values; applies in macOS Light Mode | `"nebelung-latte"` |
+| `themeDark` | same values; applies in macOS Dark Mode | `"nebelung"` |
 | `windowMode` | `"default"` \| `"compact"` | `"default"` |
 | `hotkey.enabled` | `true` \| `false` | `true` |
 | `hotkey.key` | key name | `"space"` |
@@ -45,12 +61,48 @@ re-read each time the palette opens (no daemon restart needed).
 | `clipboard.maxEntries` | number | `200` |
 | `clipboard.blacklistBundleIds` | array of bundle ids | `["com.apple.Passwords"]` |
 | `clipboard.autoPaste` | `true` \| `false` | `false` |
+| `quickAnswers.currency` | `true` \| `false` | `true` |
 | `fileSearch.enabled` | `true` \| `false` | `true` |
 | `fileSearch.homeOnly` | `true` \| `false` | `true` |
 | `fileSearch.maxResults` | number | `60` |
+| `apps.demoteBundleIds` | array of bundle ids | a built-in list of background/helper apps |
+| `apps.hideBundleIds` | array of bundle ids | `[]` |
+| `windows.enabled` | `true` \| `false` | `false` |
+| `windows.key` | key name | `"tab"` |
+| `windows.modifiers` | array of `cmd`/`shift`/`opt`/`ctrl` | `["cmd"]` |
+
+`themeLight` / `themeDark` are resolved per open (like everything else here), so
+flipping macOS appearance shows on the next summon. Either one falls back to
+`theme`, and `theme` alone pins one palette for both modes.
+
+Setting `windows.enabled` turns on the MRU
+[window switcher](/guides/pounce/#a-window-switcher-not-an-app-switcher-opt-in); it needs the
+Accessibility grant to install its event tap, and without the grant stock ⌘Tab
+keeps working.
+
+`quickAnswers.currency` is the one thing in Pounce that touches the network: it
+fetches the ECB daily reference rates from `api.frankfurter.app` (at most every
+12 hours, cached to `~/.local/share/pounce/currency-rates.json`). Set it to
+`false` and Pounce makes no network requests at all.
 
 Setting `hotkey.enabled` to `false` frees the hotkey so an external launcher
 (skhd, AeroSpace) can bind a key to `pounce-palette` instead.
+
+Any `theme` value that isn't a built-in resolves to
+`~/.config/pounce/themes/<name>.json` — a flat catppuccin-style
+`name → "#hex"` map ([nebelung's](https://github.com/nebelhaus/nebelung)
+`palette/*.hex.json` files verbatim), re-read on each open like the config
+itself. That's how the rice's `theme.flavor` / `theme.contrast` reach Pounce
+without a rebuild, and it works the same on a Homebrew install:
+
+```sh
+mkdir -p ~/.config/pounce/themes
+curl -fsSLo ~/.config/pounce/themes/nebelung-latte.json \
+  https://raw.githubusercontent.com/nebelhaus/nebelung/main/palette/nebelung-latte.hex.json
+# config.json:  "theme": "nebelung-latte"
+```
+
+An unknown name or malformed file falls back to the built-in nebelung palette.
 
 ## CLI
 
@@ -66,6 +118,7 @@ pounce --emoji                    # emoji picker
 pounce --screenshots              # screenshot browser
 pounce --camera                   # live camera preview
 pounce --cheatsheet [path]        # cheatsheet overlay
+pounce --transform 'tr a-z A-Z'   # rewrite the selected text through a shell filter
 
 # housekeeping
 pounce doctor                     # diagnose a dead/slow hotkey (see Troubleshooting)
@@ -88,6 +141,7 @@ pounce --check-bluetooth          # exit 0 / prints true when granted
 | `--clipboard` / `--emoji` / `--screenshots` / `--camera` | Built-in modes |
 | `--find-files` | Live file/folder search over the Spotlight index |
 | `--cheatsheet [path]` | Overlay a cheatsheet (JSON) |
+| `--transform <filter>` | Pipe the current selection through a shell filter and paste the result back (needs Accessibility) — how **Capitalize** / **Lowercase** work |
 | `--version` | Print the version |
 | `--request-accessibility` / `--check-accessibility` | Manage the Accessibility (TCC) grant |
 | `--request-bluetooth` / `--check-bluetooth` | Manage the Bluetooth (TCC) grant — the bluetooth plugin calls this for you |

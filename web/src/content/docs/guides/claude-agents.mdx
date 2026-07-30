@@ -104,12 +104,45 @@ owns). For those, sweep on demand:
 
 ```sh
 wt reap               # reap every LANDED worktree now — parked ones, plus
-                      # clean & merged live checkouts
+                      # clean & merged live checkouts no pane is open in
 ```
 
 `wt reap` is deliberately conservative: it leaves anything **dirty**, anything
-**unmerged**, and the pane you're **standing in** — only genuinely-landed work
-is removed.
+**unmerged**, and any checkout a **pane is still open in** — not only yours but
+any other session's, because a just-merged branch looks exactly like a finished
+one while its agent is still sitting in it. Only landed work that nobody is
+standing in gets removed.
+
+## Setting work aside: `wt park`, never `git stash`
+
+`git stash` looks like it belongs to the checkout you're standing in. It doesn't.
+The stash stack lives in the repo's shared `.git` dir, so **every agent worktree
+of a repo — and the main checkout — push and pop the same stack.** Two panes
+stashing at once means either can pop the other's entry into a tree that never
+asked for it, which is a confusing mess at best and lost edits at worst.
+
+So park instead of stashing:
+
+```sh
+wt park "half-done refactor"   # whole dirty tree → one wip: commit on THIS branch
+wt unpark                      # rewind it — changes back, uncommitted
+```
+
+`wt park` commits everything — tracked edits, untracked files, deletions — as a
+single `wip:` commit on the branch only this pane has checked out. It's the same
+thing the pane-close hook does automatically, just on demand. Nothing is shared,
+so no other agent can touch it; it survives a pane close; and `wt` lists it as
+that worktree's last commit. `wt unpark` puts the changes back in the working
+tree, uncommitted, exactly as they were.
+
+<Aside type="caution" title="unpark won't rewrite what you've pushed">
+If the `wip:` commit has already been pushed — it's visible in an open PR —
+`wt unpark` refuses, because rewinding it locally turns a file restore into a
+force-push. It prints the manual escape hatch (`git reset --mixed HEAD^`) and
+leaves the commit alone. Parking on a branch that isn't a `worktree-*` one
+(say, `main`) works, but warns: a `wip:` commit shouldn't drift onto a branch
+you push.
+</Aside>
 
 ## The statusline HUD
 
@@ -130,6 +163,19 @@ The token is one mutually-exclusive slot:
 | `+A -D` | uncommitted line changes, when nothing's committed yet |
 | *(nothing)* | identical to `main` — no news is good news |
 
+## Links — every URL a pane's session saw
+
+The same statusline pass that drives the HUD also notes which Claude transcript
+each pane is running, and Pounce turns that into a command. Summon the palette
+(**⌘Space**), run **Links**, and you get every URL from the focused pane's whole
+Claude Code session — newest first, including links buried in collapsed tool
+output or that scrolled away hours ago. **⏎** opens the pick in your browser.
+
+GitHub PR and issue links come back enriched with their real title and
+open/closed/merged state — a parallel, cached `gh` fetch capped at ~2s, so a slow
+network degrades to plain links rather than a hung palette. A pane not running
+Claude Code falls back to its visible scrollback.
+
 ## Command summary
 
 | Command | What it does |
@@ -137,8 +183,10 @@ The token is one mutually-exclusive slot:
 | `wt` | List every parked/live agent worktree across all repos (self-heals first) |
 | `wt <name>` | Resume one: rebuild its checkout and reopen its Claude chat |
 | `wt resume <name>` | The same thing, spelled out |
-| `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/your own pane) |
+| `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
 | `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
+| `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
+| `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
 | `wt create` / `wt remove` | The hooks `Super c` fires — you don't call these by hand |
 
 <Aside type="note" title="Related shell touches">

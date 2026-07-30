@@ -85,6 +85,14 @@ Run `wt` to list every parked/live agent worktree across **all** repos, and
 `wt <name>` (or `wt <repo>/<name>`) to rebuild a parked checkout and drop back
 into `claude --resume`. This is `wt`'s job, not `bench`'s.
 
+**Setting work aside uses `wt park`, never `git stash`.** The stash stack lives
+in the shared `.git` dir, so every worktree of a repo *and* the main checkout pop
+the same stack — parallel agents clobber each other there. `wt park [label]`
+commits the whole dirty tree as one `wip:` commit on your branch alone (the
+on-demand form of what the remove hook does); `wt unpark` rewinds it, putting the
+changes back uncommitted. It refuses to unpark a wip commit you've already
+pushed.
+
 If YOU are running in a worktree (check: `git rev-parse --git-common-dir`
 points outside your toplevel):
 

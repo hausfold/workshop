@@ -5,14 +5,17 @@ description: A native, keyboard-first command palette for macOS. Summon, aim, po
 
 import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 
-**Pounce** is a native, scriptable command palette for macOS — a fast,
+**Pounce** is a free, open-source, native command palette for macOS — a fast,
 dmenu-style picker you summon with a hotkey. Hit **⌘Space**, fuzzy-type, hit
-**Return**. It launches apps, runs commands, and hosts a handful of built-in
-modes (clipboard, emoji, screenshots, and more).
+**Return**. It launches apps, runs commands, answers quick questions inline, and
+hosts a handful of built-in modes (clipboard, emoji, screenshots, and more).
 
 Its whole personality is one idea: **every command is a file.** Drop a shell
 script in a folder and it's in the palette — no plugin API, no extension store,
 no account.
+
+It's [MIT licensed](https://github.com/nebelhaus/pounce/blob/main/LICENSE) and
+free — every feature on this page, no paid tier.
 
 <Aside type="note" title="Standalone or part of the rice">
 Pounce is a full member of the [family](/start/the-family/) but installs on its
@@ -57,6 +60,10 @@ Spotlight's binding off.)
     Search files and folders by name as you type, over Spotlight's index. ⏎
     opens, ⌘⏎ reveals in Finder, ⌥⏎ copies the path.
   </Card>
+  <Card title="Quick answers" icon="approve-check">
+    Math, unit, time-zone, and currency queries answer inline as a pinned first
+    row — `⏎` copies the result.
+  </Card>
   <Card title="Emoji, screenshots, more" icon="star">
     Built-in modes for an emoji grid, a screenshot browser, a camera peek, and a
     searchable cheatsheet.
@@ -91,19 +98,72 @@ usually already on top:
 3. **Freshly-installed boost** — apps installed in the last week get a temporary
    bump (halving every two days) so new installs are easy to find.
 
+## Quick answers
+
+Some queries are answered **in the palette** instead of being fuzzy-matched
+against apps and commands. The answer pins to the top as its own row, and
+`Return` copies it:
+
+| Type | Get |
+|---|---|
+| `2*847`, `2^10`, `sqrt(9)`, `round(2pi)` | Arithmetic, with the interpretation shown beside it |
+| `100 + 10%`, `20% of 150` | Percentages |
+| `72 f in c`, `1 pound in kg`, `10 km in mi`, `1 gib in mib` | Unit conversion |
+| `100 usd in eur`, `$100 in eur`, `50 euros in yen` | Currency conversion |
+| `14:00 utc in pst`, `2pm utc in tokyo`, `9pm pst in utc` | Time-zone conversion |
+
+There's no trigger prefix — a query that no engine can parse just falls through
+to the normal results, and anything without a digit skips the engines entirely
+(so `safari` and `1password` stay searches). Output follows your locale, so
+`1/4` copies `0,25` on a German Mac.
+
+Currency uses the European Central Bank's daily reference rates (fetched from
+`api.frankfurter.app`, refreshed at most every 12 hours, cached to
+`~/.local/share/pounce/currency-rates.json` so it keeps answering offline). It's
+the only network request Pounce makes; set `quickAnswers.currency` to `false` in
+[config](/reference/pounce/#config-file) to switch it off entirely. Nothing about
+your usage is ever sent anywhere.
+
+## A window switcher, not an app switcher (opt-in)
+
+Pounce ships an **MRU window switcher**: tap the chord to bounce to your last
+window, hold it and keep tapping to walk older ones, or type while holding to
+fuzzy-filter. It moves by *window*, not by app, so two Ghostty windows are two
+rows.
+
+It's **off by default** because it needs the Accessibility grant to install an
+event tap. Turn it on with the `windows` block in
+[config](/reference/pounce/#config-file) (or
+[`nebelhaus.pounce.windowSwitcher`](/reference/options/#nebelhauspouncewindowswitcher)
+in the rice, where it defaults on). If you run AeroSpace, rows carry the
+window's workspace and focusing goes through `aerospace focus --window-id` so a
+window parked elsewhere surfaces properly; without it, everything degrades to
+plain focus.
+
 ## Two-step commands (submenus)
 
-Some commands open a second picker instead of acting immediately — "Wi-Fi" lists
-networks, "Force Quit" lists processes. Pounce swaps the list **in place** with
+Some commands open a second picker instead of acting immediately — "Brew
+Services" lists services, "Force Quit" lists processes. Pounce swaps the list **in place** with
 no window flicker. Any command you write can do this by declaring
 `# pounce: submenu = true`. See [Writing pounce commands](/guides/pounce-commands/).
 
 ## Built-in commands
 
 Out of the box you get: **Activity Monitor**, **Brew Services**, **Camera**,
-**Clipboard History**, **Emoji**, **Find Files**, **Force Quit**, **Lock
-Screen**, **Ports**, **Report Issue**, **System Settings**, **Screenshots**, and
-**Wi-Fi**. Each is just a script you can read, copy, or replace.
+**Capitalize**, **Clipboard History**, **Emoji**, **Find Files**, **Force
+Quit**, **Lock Screen**, **Lowercase**, **Ports**, **Report Issue**,
+**Screenshots**, **System Settings**, and (Homebrew installs) **Update Pounce**.
+Each is just a script you can read, copy, or replace.
+
+**Capitalize** and **Lowercase** rewrite the text you have selected in *any* app
+— they copy the selection, run it through a one-line shell filter, and paste it
+back via `pounce --transform`. Swap `tr` for anything and you have your own text
+action.
+
+**Update Pounce** runs `brew update && brew upgrade pounce && brew services
+restart pounce` in the background and reports via notifications, so a Homebrew
+install updates itself from the palette. (It bails on Nix installs — those
+update through the flake.)
 
 Every System Settings pane is its own command too, so typing "Displays" or
 "Accessibility" jumps straight there instead of dropping you at the front door.
