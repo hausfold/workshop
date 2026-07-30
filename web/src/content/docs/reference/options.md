@@ -724,7 +724,8 @@ The SketchyBar menu bar. When off, the native macOS menu bar is kept
 Which SketchyBar pills to draw, one bool each. The core pills —
 `clock`, `weather`, `media`, `battery`, `wifi` — default true; the extras
 — the readouts `cpu`, `memory`, `volume`, `calendar`, `caffeinate`
-and the personal `agents`, `elgato`, `harvest` — default false. Set
+and the personal `agents`, `claudeUsage`, `elgato`, `harvest` —
+default false. Set
 only what you want to change:
 
   nebelhaus.sill.items = {
@@ -777,6 +778,14 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 `boolean` · default `false`
 
 Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.sill.items.claudeUsage`
+
+`boolean` · default `false`
+
+A gauge pill showing how much of your Claude Code usage you've spent — `<5-hour>·<weekly>` as percentages, coloured by whichever window is closest to biting (green under 50, red at 90). Click for both windows with their reset times. The numbers ride Claude Code's own statusline feed, so nothing is polled and no token is read; the pill stays hidden until a Claude session first reports, and greys out if none has in half an hour.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -926,6 +935,139 @@ whatever flavor pins.
 
 false pins pounce to the flavor like every other port, which is exactly
 what it did before this option existed.
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.items`
+
+`attribute set of (submodule)` · default `{ }`
+
+Per-item palette settings, keyed by the item's own address. One entry is
+one row of the palette: hide it, give it a search shorthand, give it a key.
+
+  "cmd:<id>"                       a command, by script name without .sh
+  "app:/Applications/Foo.app"      an application, by path
+  "mode:<name>"                    a built-in window — launcher, clipboard,
+                                   emoji, screenshots, camera, filesearch
+
+Those keys are pounce's own address space (the same strings its frecency
+store and `pounce run` use), so a key written here is also what you'd type
+to invoke the thing from a script or another tool's binding.
+
+Hotkeys can be a single chord ("opt+e") or a LEADER SEQUENCE — steps
+separated by spaces, modifiers by "+", the notation Emacs and VS Code use:
+
+  hotkey = "opt+space e";          # ⌥Space, then E
+  hotkey = [ "cmd+k" "cmd+c" ];    # the same thing, step by step
+
+Sequences are worth knowing about on a tiling rice: they open a namespace
+that structurally can't collide with the ⌥/⌘ chords prowl already claims,
+and they need no Accessibility grant (pounce grabs the second step as an
+ordinary global hotkey for a couple of seconds rather than tapping events).
+
+Two things this checks at build time, because both fail SILENTLY at
+runtime: a key that names no real item shape (a "mode:" typo binds
+nothing at all), and a chord already claimed by nebelhaus.keys.palette or
+nebelhaus.keys.leader (whoever registers first wins, and it isn't always
+the same one). What it can't check is whether `cmd:<id>` names a command
+that exists — command scripts are discovered at runtime, so pounce warns
+about that itself when the daemon starts, and `pounce doctor` lists any
+binding that failed to arm.
+
+Example:
+
+```nix
+{
+  "app:/Applications/Ghostty.app" = {
+    hotkey = "opt+t";
+  };
+  "cmd:brew-services" = {
+    listed = false;
+  };
+  "cmd:emoji" = {
+    alias = "emo";
+    hotkey = "opt+e";
+  };
+  "mode:clipboard" = {
+    hotkey = "cmd+shift+v";
+  };
+}
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.items.<name>.alias`
+
+`null or string` · default `null`
+
+A search shorthand, matched at a bonus over the item's real name —
+so "emo" can find the Emoji Picker without renaming it.
+
+Example:
+
+```nix
+"emo"
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.items.<name>.caption`
+
+`null or string` · default `null`
+
+How this item reads on the cheatsheet page that lists your item
+hotkeys (⌘Space then ⇥, or the leader's `/`). Only used when the
+item has a `hotkey` — a row without a key has nothing to teach.
+
+Defaults to a name derived from the key, which is right often
+enough to leave alone: `mode:clipboard` becomes "Clipboard
+history", `app:/Applications/Ghostty.app` becomes "Ghostty", and
+`cmd:brew-services` becomes "Brew services". Set this when the
+derived name isn't what the palette actually calls the row — the
+rice can't read a command's own `# pounce: name` header at
+evaluation time, so that one is a guess.
+
+Example:
+
+```nix
+"Clipboard history"
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.items.<name>.hotkey`
+
+`null or string or list of string` · default `null`
+
+A global chord, or a leader sequence, that invokes this item
+directly without opening the palette first. Modifier names follow
+pounce's spelling: cmd/command/super/meta · opt/option/alt ·
+ctrl/control · shift.
+
+Whether the KEY name is one pounce can bind is not checked here
+(that vocabulary lives in the app); a chord it can't register is
+reported by `pounce doctor` rather than silently dropped.
+
+Example:
+
+```nix
+"opt+space e"
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.items.<name>.listed`
+
+`boolean` · default `true`
+
+Whether the item appears in the palette's list.
+
+Named `listed` rather than `enable` because that is precisely what
+it does: false removes the ROW, and a `hotkey` on the same item
+keeps working. It's how you hide a command you only ever want to
+reach by key — or clear the launcher of tools someone else on this
+Mac has no use for, which is the closest thing to a "pack" the
+surface has today. (It writes pounce's own `enabled` key.)
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
@@ -1335,6 +1477,84 @@ Off leaves a plain shell. The prompt (starship) and the colour scheme
 stay: these are the *tools*, not the appearance.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.displays
+### `nebelhaus.displays`
+
+`attribute set of (submodule)` · default `{ }`
+
+Per-display settings, keyed by which screen you mean:
+
+  internal   the built-in panel
+  main       whichever display is currently main
+  <uuid>     a persistent display UUID, for a specific external monitor —
+             run `hausdisp list` to print the UUIDs of what's attached
+
+Default is the empty set, and then nothing about your displays is touched.
+A key naming a display that isn't plugged in right now is skipped with a
+note, not an error, so a `displays.<uuid>` entry for the monitor at the
+office can't fail a rebuild on the train.
+
+Why this option exists at all: display scaling is the only lever macOS 26
+gives us for "make EVERYTHING bigger", system-wide, including apps the rice
+knows nothing about. The accessibility text-size settings that look like the
+obvious answer either live in a preference domain that refuses writes from a
+rebuild, or write a value no running app re-reads — measured, not assumed
+(the workshop's notes/macos-settings-matrix.md records the sweep). So
+`nebelhaus.ui.scale` and `nebelhaus.fonts` make the *rice* bigger, and this
+makes the *Mac* bigger.
+
+Example:
+
+```nix
+{
+  "37D8832A-2D66-02CA-B9F7-8F30A301B230" = {
+    uiScale = "more-space";
+  };
+  internal = {
+    uiScale = "larger-text";
+  };
+}
+```
+
+<small>Declared in [`modules/displays/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/displays/options.nix).</small>
+
+### `nebelhaus.displays.<name>.uiScale`
+
+`null or one of "more-space", "default", "larger-text", "largest-text"` · default `null`
+
+The scaled resolution, as an intent rather than a pixel count — the
+same four positions System Settings ▸ Displays offers, named:
+
+  more-space     the largest resolution the panel offers (smallest UI)
+  default        the panel's own default mode
+  larger-text    between the default and the smallest resolution
+  largest-text   the smallest resolution the panel offers (biggest UI)
+
+Resolved per panel from the modes that panel actually reports, so the
+same value means the same *thing* on a 14" laptop and a 27" monitor
+rather than the same number of pixels. On the 14" MacBook Pro this was
+developed on that resolves to 1800x1169 · 1512x982 · 1147x745 ·
+1024x665.
+
+Applied at each home-manager activation and set permanently, so it
+survives a reboot; re-applying an already-current mode is a no-op, so
+a rebuild doesn't flash your screen. null (the default) leaves the
+display alone.
+
+Honest scope: this is a real, system-wide size change — every app gets
+bigger, not just the rice's own tools — and the cost is desk space,
+because a larger UI means less of it. It also can't run from a rebuild
+with no GUI session attached (over SSH, say); the setting applies at
+the next activation you run while logged in.
+
+Example:
+
+```nix
+"larger-text"
+```
+
+<small>Declared in [`modules/displays/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/displays/options.nix).</small>
 
 ## nebelhaus.keys
 ### `nebelhaus.keys.leader`

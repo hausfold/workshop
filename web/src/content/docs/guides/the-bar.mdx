@@ -87,6 +87,13 @@ awake off
   when one is waiting on you, click for the per-agent list, click a row to jump
   to its pane. Dormant until its Claude Code hooks fire, so it's harmless if you
   don't use agents.
+- **`claudeUsage`** — a gauge pill showing how much of your Claude Code usage
+  you've spent: `<5-hour>·<weekly>` as percentages, coloured by whichever window
+  is closest to biting (green under 50%, amber past 75%, red at 90%). Click it
+  for both windows with their reset times. The numbers arrive on Claude Code's
+  own statusline feed — nothing is polled, no API is called, and no token is
+  read out of your keychain — so the pill stays hidden until a Claude session
+  first reports, and greys out if none has in half an hour.
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
 - **`harvest`** — a [Harvest](https://www.getharvest.com/) time-tracking pill.
   It reads credentials from a file **you** provide at
