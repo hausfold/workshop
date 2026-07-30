@@ -1,0 +1,153 @@
+---
+title: Sharing a rice
+description: Author, validate, and publish a data-only nebelhaus rice that other people can inspect, compose, and trust.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A shared rice is an ordinary `.nix` file that changes only `nebelhaus.*`.
+Keeping that boundary small makes the result easy to inspect, combine with
+other rices, and override from a host file.
+
+## The format
+
+The file evaluates to an attribute set whose only top-level key is
+`nebelhaus`:
+
+```nix
+{
+  nebelhaus = {
+    developer.enable = false;
+    prowl.enable = false;
+    keys.leader = "none";
+
+    theme = {
+      flavor = "latte";
+      accent = "rosewater";
+    };
+
+    sill.items.weather = false;
+
+    tour.steps = [
+      {
+        hint = "Press ⌘Space, type tour, then hit ↵";
+        detect = "palette";
+      }
+    ];
+  };
+}
+```
+
+It is not a module function: there is no `{ pkgs, lib, config, ... }:` header.
+It also does not set `system.defaults`, install packages, or add activation
+scripts. Every setting stays inside the documented
+[`nebelhaus.*` option surface](/reference/options/).
+
+<Aside type="tip" title="Whole rice or layer?">
+A **whole rice** describes a kind of machine or person and usually chooses all
+the big rooms: developer tools, tiling, the bar, and the launcher. A **layer**
+describes one concern, such as larger text, and sets only what that concern
+needs. Layers are easier to compose because they leave unrelated choices alone.
+</Aside>
+
+## Validate the boundary
+
+Run the same structural check as nebelhaus's built-in presets:
+
+```sh
+nix eval --impure --expr \
+  '(builtins.getFlake "github:nebelhaus/nebelhaus").lib.checkRice ./writer.nix'
+```
+
+It prints `true`, or throws with the top-level key that escaped the data-only
+boundary. `checkRice` is the trust-boundary check; it does not prove that every
+option name or value is valid.
+
+For that, import the rice into a real host:
+
+```nix
+extraModules = [ ./rices/writer.nix ];
+```
+
+Then evaluate the configuration before activating it:
+
+```sh
+nix eval .#darwinConfigurations.myhost.system.drvPath
+```
+
+If that succeeds, `haus rebuild` still gives you the usual build-before-apply
+safety.
+
+## Test composition, not just isolation
+
+A useful rice should survive being combined with a layer and then overridden
+by its user:
+
+```nix
+extraModules = [
+  ./rices/writer.nix
+  nebelhaus.presets.large-print
+];
+```
+
+Before publishing, try:
+
+- the rice by itself;
+- the rice plus an unrelated layer;
+- a host value overriding one of the rice's choices;
+- each combination of rooms you turn off.
+
+If the result depends on an exact module order, narrow the rice until ordinary
+Nix merging is enough. Later modules can win conflicts, but order should not be
+the rice's hidden organizing principle.
+
+## Publish something inspectable
+
+The smallest useful repository is deliberately boring:
+
+```text
+writer-rice/
+├── README.md
+├── writer.nix
+└── LICENSE
+```
+
+In the README, say:
+
+- who the rice is for and what it changes;
+- whether it is a whole rice or a layer;
+- which nebelhaus revision you tested;
+- how to import it;
+- what it deliberately does not handle, including required rooms or
+  permissions;
+- whether both `checkRice` and a real host evaluation passed.
+
+For a first release, invite people to review and vendor the `.nix` file. A
+remote flake wrapper can come later if versioned imports become useful; it
+should not hide the data users are being asked to trust.
+
+## What does not belong
+
+Keep these in a private host file or an explicitly more powerful module:
+
+- identity, secrets, tokens, device UUIDs, and personal account names;
+- a personal app roster that reveals more than the rice needs;
+- raw macOS defaults outside `nebelhaus.*`;
+- package or store paths that require `pkgs`;
+- activation hooks and shell commands.
+
+A configuration that genuinely needs `pkgs`, scripts, or arbitrary
+nix-darwin options is a **power module**. That can be useful, but it carries a
+different trust model and should be labelled as one.
+
+## Before you share
+
+- [ ] The file has only a top-level `nebelhaus` key.
+- [ ] `checkRice` prints `true`.
+- [ ] A real host configuration evaluates.
+- [ ] The rice composes with an unrelated layer.
+- [ ] Host overrides still win.
+- [ ] Disabled rooms agree with dependent features, including
+      [`tour.steps`](/guides/making-it-yours/#the-first-run-tour).
+- [ ] The README states the audience, scope, tested revision, and limits.
+- [ ] There is no identity, secret, or device-specific data.
