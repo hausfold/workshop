@@ -126,6 +126,30 @@ nebelhaus.sill.plugins = [ "elgato" ];     # opt-in extras: agents | elgato | ha
 The bar's optional plugins are personal — an Elgato Key Light toggle, a Harvest
 timer, an agents pill — off unless you ask. See [The bar](/guides/the-bar/).
 
+### The first-run tour
+
+The built-in tour teaches nebelhaus's four core moves. A shared rice can replace
+that lap with its own instructions while staying data-only:
+
+```nix
+nebelhaus.tour.steps = [
+  {
+    hint = "Press ⌘Space, type tour, then hit ↵";
+    detect = "palette";
+  }
+  {
+    hint = "Move to another workspace";
+    detect = "workspace";
+  }
+];
+```
+
+Steps run in order and advance from signals the rice already emits — `launch`,
+`workspace`, `navigate`, `resize`, or `palette` — rather than by logging keys.
+The first four need prowl; `palette` needs Pounce. A left-click skips the current
+step, and the module warns during a rebuild if a step depends on a room you
+disabled. Leave `tour.steps` at its default `null` to keep the built-in tour.
+
 ### Homebrew behaviour
 
 ```nix
