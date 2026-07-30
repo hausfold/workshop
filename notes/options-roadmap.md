@@ -714,7 +714,7 @@ a **bonus layer** that sharpens the result when FDA happens to be granted — ne
 as the foundation. That ranking survived all three revisions of this finding,
 which is the main argument for it.
 
-### 5.13 Authorable tour steps · S · risk L
+### 5.13 Authorable tour steps · ◐ **implemented in nebelhaus#156** · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves
 of *this* rice. A community rice teaches its own:
 
@@ -725,6 +725,12 @@ nebelhaus.tour.steps = [
 ```
 The detection signals already exist (the leader-mode scripts). This is the
 difference between downloading someone's config and *learning* it.
+
+nebelhaus#156 kept `steps = null` as the unchanged built-in lap; supplying a
+non-empty list replaces it. `detect` is deliberately the existing outcome
+vocabulary (`launch`, `workspace`, `navigate`, `resize`, `palette`), so the
+community file remains data-only, and the module warns when a step names a
+signal whose room is disabled.
 
 ---
 
@@ -834,7 +840,8 @@ that visible, and turned up two things that were already broken:
 **Phase 5 — trust and breadth**
 - [ ] §5.11 plan/capture/diff/revert — **`diff` must compare effective state, not
       plists**; a plist-only diff would have called both no-op writes "applied"
-- [ ] §5.8 scenes · §5.13 tour steps · §5.12 accessibility doctor checklist
+- [ ] §5.8 scenes · §5.12 accessibility doctor checklist
+- ◐ §5.13 authorable tour steps — implemented in nebelhaus#156; awaiting feel-test + merge
 
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
