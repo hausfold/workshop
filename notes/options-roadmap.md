@@ -30,11 +30,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > a reachability designation" idea now ships as data for 53 ports, in a different
 > room than the one that proposed it.
 >
-> **Still open, in this order:** §5.10 displays (the missing half of
-> `large-print`) · the **rice-side** pounce options (§5.9 — pounce built the
-> schema, the rice doesn't generate it yet) · pounce/sill **sizing** (§5.2, which
-> the theming work did *not* touch) · §5.4 apps v2 (the schema migration,
-> deliberately last).
+> **Still open, in this order:** pounce/sill **sizing** (§5.2, which the theming
+> work did *not* touch) · §5.4 apps v2 (the schema migration, deliberately last).
+> §5.10 displays shipped in rice#147 and the rice-side pounce options in rice#149;
+> displays still wants a docked multi-monitor proof before growing profiles, but
+> that validation no longer blocks `large-print`.
 >
 > **Earlier history.** §3's four items landed as nebelhaus#92/#96/#98/#93 +
 > workshop#81 and the macOS spikes settled in the matrix; fonts (#91), the two
@@ -633,7 +633,7 @@ break timer · storage pressure · NAS reachability · world clocks.
       (§5.1) — same idea, other room. Copy that shape: the declaration lives with the
       command, the consumer reads it.
 
-### 5.10 `nebelhaus.displays` — **promoted: this is now the large-print rice** · M · risk M
+### 5.10 `nebelhaus.displays` — ✅ **shipped in nebelhaus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
 it moves up sharply. It is the **only** working path to "make everything bigger"
 on macOS 26. Don't expose `1920×1200`; expose intent:
@@ -646,10 +646,13 @@ nebelhaus.displays.internal.uiScale = "larger-text";
 - [x] Persistent display UUID exists → key profiles by UUID, not index
 - [x] `CGDisplaySetDisplayMode` is public API → ship a small Swift helper,
       **no `displayplacer` / Homebrew dependency** (it isn't in nixpkgs anyway)
-- [ ] Helper must dedupe modes by point size (they repeat ~6× across refresh
+- [x] Helper dedupes modes by point size (they repeat ~6× across refresh
       rate × colour depth) and prefer the highest refresh
-- [ ] Still untested: *applying* a mode, and multi-display arrangement (only one
-      display was attached). Test on the dock before designing `profiles.docked`
+- [x] Applying a mode is proven end-to-end on the internal panel: `default`
+      (`1512×982`) → `larger-text` (`1147×745`) → `default`, with CoreGraphics
+      reporting the requested mode current after each change (2026-07-30)
+- [ ] Multi-display arrangement is still untested (only one display was attached).
+      Test on the dock before designing `profiles.docked`
 
 ### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M
 Before strangers' configs run arbitrary `defaults write` and activation scripts:
@@ -781,8 +784,9 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       `workspaces`), so it's the one item here that can break a live host, and it's
       worth doing after the option surface stopped moving around it. Nothing else in
       Phase 3 blocks on it.
-- [ ] §5.10 displays — **promoted from Phase 5**; the only working "make it bigger"
-      lever, and now the single biggest gap in `large-print` (see the readiness test)
+- [x] §5.10 displays (nebelhaus#147) — the only working system-wide "make it
+      bigger" lever, now part of `large-print`; docked multi-display validation
+      remains before any `profiles.docked` design
 
 **Phase 3.5 — the docs debt Phase 3 created** *(found while shipping it, 2026-07-27)*
 
@@ -861,26 +865,22 @@ limits it exposed:**
    and it generalises: any option typed as a package, derivation or path-to-store
    is invisible to the community format. Worth auditing the whole surface for
    others before publishing it.
-2. **There is still no system-wide text size**, so "large print" means "large
-   inside nebelhaus" — the terminal, the Dock, the gaps. macOS's own lever is
-   display resolution (§5.10), which is why displays moved up. Until then the
-   preset says so in its own comment rather than implying more than it does.
+2. **There was no system-wide size lever in the preset.** macOS's own workable
+   lever is display resolution (§5.10), not its broken declarative text-size
+   setting. That gap is now closed by `displays.main.uiScale = "larger-text"` in
+   rice#147. It is deliberately coarse — everything grows and desktop space
+   shrinks — but it reaches third-party apps that `ui.scale` cannot.
 
-So the honest reading: the option surface can now *express* all three reference
-rices, and `large-print` is the one whose expression is thinner than its name
-promises. Next-most-valuable work is §5.10 (the missing half of large-print) and
-pounce/sill sizing (§5.2/§5.9), not §5.4.
+So the honest reading now: the option surface can express all three reference
+rices, and `large-print` reaches both the rice and the whole Mac. Its remaining
+visible gaps are pounce/sill sizing (§5.2/§5.9) and the font-package format limit
+above, not §5.4.
 
-**Re-checked 2026-07-30, and the ranking survives — but the *cheapest* item
-changed.** Everything that landed since (pounce runtime palettes + system
-appearance, `theme.ports`, pounce's `items` schema) improved how the rice *looks*
-and what it can *address*, and none of it touched size, so `large-print` is
-exactly as thin as it was and §5.10 stays first. What did change is that
-`nebelhaus.pounce.items` (§5.9) is now a generator over a schema someone else
-designed and tested, which makes it a smaller job than a sizing pass and the
-right thing to do while §5.10 waits on hardware (the dock, per §5.10's last box).
-The `everyday`/non-dev rice is also the one this helps most: hiding the dev
-commands from the palette is `items.*.enabled` data, not a new mechanism.
+**Re-checked 2026-07-30 after rice#147/#149.** Displays and the rice-side pounce
+item generator both landed. That leaves the sizing pass as the next coherent
+piece: the menu bar and palette are the two rice-owned surfaces `large-print`
+still cannot enlarge. The dock is now a validation dependency only for future
+multi-display profiles, not an ordering dependency for the shipped scale option.
 
 ---
 
