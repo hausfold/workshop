@@ -44,6 +44,9 @@ re-read each time the palette opens (no daemon restart needed).
     "enabled": false,        // the MRU window switcher (needs Accessibility)
     "key": "tab",            // hold the modifiers, tap this to walk windows
     "modifiers": ["cmd"]
+  },
+  "items": {                 // per-item enable / alias / hotkey — see below
+    "cmd:emoji": { "alias": "emo", "hotkey": "opt+space e" }
   }
 }
 ```
@@ -70,6 +73,7 @@ re-read each time the palette opens (no daemon restart needed).
 | `windows.enabled` | `true` \| `false` | `false` |
 | `windows.key` | key name | `"tab"` |
 | `windows.modifiers` | array of `cmd`/`shift`/`opt`/`ctrl` | `["cmd"]` |
+| `items` | map of item key → `{ enabled, alias, hotkey }` | `{}` |
 
 `themeLight` / `themeDark` are resolved per open (like everything else here), so
 flipping macOS appearance shows on the next summon. Either one falls back to
@@ -104,6 +108,66 @@ curl -fsSLo ~/.config/pounce/themes/nebelung-latte.json \
 
 An unknown name or malformed file falls back to the built-in nebelung palette.
 
+## Per-item settings (`items`)
+
+One map covers what you'd otherwise want three keys for — hide a row, give it a
+search shorthand, give it a global key. Each entry is keyed by an **item key**:
+
+| Item key | Addresses |
+|---|---|
+| `cmd:<id>` | a command script, by filename without `.sh` |
+| `app:/Applications/Foo.app` | an application, by path |
+| `mode:<name>` | a built-in window — `launcher`, `clipboard`, `emoji`, `screenshots`, `camera`, `filesearch` |
+
+```jsonc
+{
+  "items": {
+    "cmd:emoji":                     { "alias": "emo", "hotkey": "opt+e" },
+    "cmd:brew-services":             { "enabled": false },
+    "app:/Applications/Ghostty.app": { "alias": "term", "hotkey": "opt+t" },
+    "mode:clipboard":                { "hotkey": "cmd+shift+v" }
+  }
+}
+```
+
+- **`enabled: false`** drops the row from the launcher. It does *not* disarm a
+  hotkey you bound to it — keeping an item off the list but on a key is a
+  legitimate setup.
+- **`alias`** is a search shorthand, matched at a bonus over the item's real name
+  so it wins over whatever app fuzzy-matches the same letters.
+- **`hotkey`** runs the item directly, skipping the palette. The last segment is
+  the key, the rest modifiers (`cmd`/`shift`/`opt`/`ctrl`); the
+  `{"key": …, "modifiers": …}` object form works here too.
+
+### Leader sequences
+
+Add a **space** for a two-step key: whitespace separates steps, `+` separates
+modifiers, so `"opt+space e"` is ⌥Space then E — the notation Emacs and VS Code
+use. Sequences sharing a leader share it (⌥Space registers once and owns a map of
+next keys), and a sequence can run longer than two: `"opt+space g s"`.
+
+The point on a tiling setup: a leader opens a namespace that can't collide with
+the ⌥/⌘ chords AeroSpace already owns, and it needs **no Accessibility grant** —
+pressing the leader grabs its next-step keys as ordinary global hotkeys for ~2s
+and releases them the instant one fires, so there's no event tap and no TCC
+prompt. Escape cancels; hesitate ~0.45s and a which-key overlay lists the next
+keys. `pounce doctor` reports every binding it actually armed, so a typo or a key
+some other app holds is visible at startup, not on the day you press it.
+
+### Driving pounce from another binder
+
+If a tool already owns your keystrokes — AeroSpace binding modes, skhd,
+Shortcuts — let it do the chord and have pounce do the action:
+
+```sh
+pounce run cmd:emoji
+pounce run mode:clipboard
+```
+
+Same target grammar as `items`, dispatched through the identical path a native
+binding takes. It exits non-zero with a reason on a malformed target, so a typo
+fails loudly instead of arming a key that does nothing.
+
 ## CLI
 
 ```sh
@@ -111,6 +175,8 @@ pounce --launcher                 # apps + commands palette (the default mode)
 pounce --max-empty 7              # rows to show before you type
 pounce -p "Pick:"                 # generic picker; reads lines from stdin
 pounce -i "sf.symbol.name"        # icon for the picker
+pounce -p "Search:" --chain       # picker whose free-text Enter feeds another pounce step
+pounce run cmd:emoji              # run one item by its key (for external binders)
 
 # built-in modes
 pounce --clipboard                # clipboard history
@@ -136,6 +202,8 @@ pounce --check-bluetooth          # exit 0 / prints true when granted
 |---|---|
 | `-p`, `--placeholder` | Prompt text for the search field |
 | `-i`, `--icon` | SF Symbol icon for the picker |
+| `--chain` | Mark a free-text Enter as feeding another `pounce` step — holds the window with the loading skeleton instead of fading. See [two-step commands](/guides/pounce-commands/#two-step-commands-submenus) |
+| `run <item-key>` | Run one item by the key `items` uses (`cmd:emoji`, `mode:clipboard`, `app:/…`), for binders that own the keystroke |
 | `--launcher` | Apps + commands mode |
 | `--max-empty N` | Rows shown before any query is typed |
 | `--clipboard` / `--emoji` / `--screenshots` / `--camera` | Built-in modes |

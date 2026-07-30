@@ -66,6 +66,17 @@ service=$(list_services | pounce -p "Service:")
 [ -n "$service" ] && toggle_service "$service"
 ```
 
+When the second step is a **search** rather than a list — the user types free
+text and your script answers by fetching — pass `--chain`. On an empty match
+Enter hands the raw text back, and `--chain` tells Pounce that text feeds another
+`pounce`, so the window holds its loading skeleton instead of fading out between
+steps:
+
+```bash
+query=$(printf '' | pounce --chain -p "App Store — type a search, then Enter")
+[ -n "$query" ] && mas search "$query" | pounce -p "Install:"
+```
+
 Anything you can pipe into `pounce` becomes a picker. Which brings us to…
 
 ## Pounce as a generic picker
@@ -76,6 +87,10 @@ chosen one on stdout.
 ```sh
 echo -e "one\ntwo\nthree" | pounce -p "Pick:"
 ```
+
+A piped list keeps **the order you gave it** — only the launcher's own apps get
+sorted, so a ranking your script already computed (an App Store relevance list,
+say) survives into the picker instead of being alphabetized away.
 
 Each input line can carry extra columns, tab-separated, for richer rows:
 
