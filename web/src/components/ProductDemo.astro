@@ -1,0 +1,3361 @@
+---
+interface Props {
+  product: 'pounce' | 'trill' | 'perch';
+}
+
+const { product } = Astro.props;
+
+const content = {
+  pounce: {
+    label: '⌘ space to done',
+    title: 'Thought to action, before the thought leaves.',
+    copy: 'Summon it, type what you mean, and get back to the work. No dashboard. No ceremony.',
+  },
+  trill: {
+    label: 'your inbox at working speed',
+    title: 'A conversation, not a control room.',
+    copy: 'Triage the thread, find the thing, write the reply. Your messages stay local and close to the keyboard.',
+  },
+  perch: {
+    label: 'the notch earns its keep',
+    title: 'A temporary shelf that moves at your speed.',
+    copy: 'Flick something up, keep working, then carry it where it belongs. The original never moves.',
+  },
+}[product];
+---
+
+<section class="product-demo" aria-labelledby={`${product}-demo-title`} data-product-demo={product}>
+  <div class="demo-viewport">
+    <div class="demo-stage">
+      <figure class="macbook">
+        <div class="macbook-render">
+          <div class="macbook-screen">
+            {
+              product === 'pounce' ? (
+                <div
+                  class="pounce-demo"
+                  role="img"
+                  aria-label="Pounce summoned over a desktop: a recent-items list of apps, built-in commands, and a System Settings deep link filters into Slack search results as you type, a second summon finds the Claude app, and a third converts 200 CAD to USD inline"
+                >
+                  <div class="desktop-bar" aria-hidden="true">
+                    <span class="bar-group">
+                      <i class="pill accent">1</i>
+                      <i class="pill">pounce</i>
+                    </span>
+                    <span class="bar-group">
+                      <i class="pill">15%</i>
+                      <i class="pill">25°</i>
+                      <i class="pill">Wed Jul 29&nbsp;&nbsp;9:41</i>
+                    </span>
+                  </div>
+                  <div class="pounce-palette scene-recency" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>sla</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row selected">
+                        <img class="row-icon real" src="/media/app-icons/zen.png" alt="" loading="lazy" decoding="async" />
+                        <b>Zen</b>
+                        <em>Application</em>
+                      </div>
+                      <div class="palette-row">
+                        <img class="row-icon real flush" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                        <b>trill</b>
+                        <em>Application</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-clip" />
+                        <b>Clipboard History</b>
+                        <em>Browse &amp; paste recent copies</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-search" />
+                        <b>Find Files</b>
+                        <em>Search files &amp; folders by name</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-slider" />
+                        <b>Displays</b>
+                        <em>System Settings</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-ring" />
+                        <b>Emoji</b>
+                        <em>Search &amp; paste emoji</em>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pounce-palette scene-slack" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>slack</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row selected">
+                        <img class="row-icon real" src="/media/app-icons/slack.png" alt="" loading="lazy" decoding="async" />
+                        <b>Slack</b>
+                        <em>Application</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-moon" />
+                        <b>Toggle Hush</b>
+                        <em>Focus/DND + Slack status, one switch</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-tray" />
+                        <b>Install App</b>
+                        <em>Install from Homebrew, the Mac App Store, or Nixpkgs</em>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pounce-palette scene-claude" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>claude</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="palette-row selected">
+                        <img class="row-icon real" src="/media/app-icons/claude.png" alt="" loading="lazy" decoding="async" />
+                        <b>Claude</b>
+                        <em>Application</em>
+                      </div>
+                      <div class="palette-row">
+                        <span class="row-icon mark-link" />
+                        <b>Links</b>
+                        <em>Open a URL from the focused pane's Claude transcript</em>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pounce-palette scene-convert" aria-hidden="true">
+                    <div class="palette-field">
+                      <i class="glass" />
+                      <b>200 cad to usd</b>
+                      <i class="caret" />
+                    </div>
+                    <div class="palette-rows">
+                      <div class="answer-well">
+                        <div class="palette-row answer">
+                          <span class="row-icon mark-coin">$</span>
+                          <b>141.77 USD</b>
+                          <em>200 CAD → US Dollar · ECB 2026-07-28</em>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : product === 'trill' ? (
+                <div
+                  class="trill-demo"
+                  role="img"
+                  aria-label="Trill working a Messages inbox: a tapback and a live reply arrive, an answer is typed and sent with a five-second undo window, ⇧⌘F searches every conversation with from: and has:link operators, ⇧⌘R filters the sidebar to threads still waiting on you, and ⌘⇧L opens a library of every image, link, and file ever shared"
+                >
+                  <div class="trill-sidebar" aria-hidden="true">
+                    <div class="window-tools"><i /><i /><i /></div>
+                    <div class="trill-search">⌕&nbsp;&nbsp;Search everything</div>
+                    <div class="sidebar-lists">
+                      <div class="list-inbox">
+                        <div class="inbox-label"><span>inbox</span><b>12</b></div>
+                        <div class="chat-row">
+                          <span class="avatar mauve">JM</span>
+                          <span><b>Jo</b><small>landing demo is looking sharp</small></span>
+                          <time>now</time>
+                        </div>
+                        <div class="chat-row selected">
+                          <span class="avatar blue">AK</span>
+                          <span>
+                            <b>Alex</b>
+                            <span class="flip">
+                              <small class="preview-a">Can you send the build?</small>
+                              <small class="preview-b">Perfect. That was fast.</small>
+                              <small class="preview-c">glad it landed!</small>
+                            </span>
+                          </span>
+                          <time class="flip stamps">
+                            <i class="stamp-a">9:41</i>
+                            <i class="stamp-b">now</i>
+                          </time>
+                        </div>
+                        <div class="chat-row">
+                          <span class="avatar green">ops</span>
+                          <span><b>Backend</b><small>deploy finished cleanly</small></span>
+                          <time>9:32</time>
+                        </div>
+                        <div class="chat-row dim">
+                          <span class="avatar peach">M</span>
+                          <span><b>Mom</b><small>Photo</small></span>
+                          <time>Tue</time>
+                        </div>
+                        <div class="side-folders">
+                          <div class="side-label">folders</div>
+                          <div class="folder-row"><i class="fld" /><span>work</span><b>4</b></div>
+                          <div class="folder-row"><i class="fld" /><span>family</span><b>2</b></div>
+                        </div>
+                      </div>
+                      <div class="list-triage">
+                        <div class="inbox-label">
+                          <span>needs reply</span>
+                          <b class="flip count">
+                            <i class="count-a">3</i>
+                            <i class="count-b">2</i>
+                          </b>
+                        </div>
+                        <div class="chat-row">
+                          <span class="avatar mauve">JM</span>
+                          <span><b>Jo</b><small>landing demo is looking sharp</small></span>
+                          <time>4m</time>
+                        </div>
+                        <div class="chat-row">
+                          <span class="avatar green">ops</span>
+                          <span><b>Backend</b><small>deploy finished cleanly</small></span>
+                          <time>12m</time>
+                        </div>
+                        <div class="chat-row snoozed">
+                          <span class="avatar peach">M</span>
+                          <span><b>Mom</b><small>Photo</small></span>
+                          <em class="snooze">☾ 3h</em>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="trill-thread" aria-hidden="true">
+                    <header>
+                      <span class="avatar blue">AK</span>
+                      <span><b>Alex</b><small>iMessage · local</small></span>
+                      <em>⌘ K</em>
+                    </header>
+                    <div class="message-space">
+                      <div class="day">today 9:41</div>
+                      <p class="bubble received">Can you send the build?</p>
+                      <p class="bubble sent reacted">
+                        Already there — check Releases.
+                        <i class="tapback">!!</i>
+                      </p>
+                      <p class="bubble received incoming">Perfect. That was fast.</p>
+                      <p class="bubble sent reply">glad it landed!</p>
+                      <div class="send-meta">
+                        <em class="undo-pill">↩ undo · 5s</em>
+                        <small class="delivered">Delivered</small>
+                      </div>
+                    </div>
+                    <footer>
+                      <span class="placeholder">Message Alex…</span>
+                      <b class="typed">glad it landed!</b>
+                      <span class="caret-slot"><i class="caret" /></span>
+                      <b class="send-key">↑</b>
+                    </footer>
+                    <div class="search-sheet">
+                      <div class="sheet-field">
+                        <i class="glass">⌕</i>
+                        <b class="query"><i class="op">from:</i>alex&nbsp;<i class="op">has:</i>link</b>
+                        <i class="caret" />
+                      </div>
+                      <div class="sheet-results v1">
+                        <div class="s-row">
+                          <span class="dot" />
+                          <b>Can you send the build?</b>
+                          <em>9:41</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="dot" />
+                          <b>Perfect. That was fast.</b>
+                          <em>9:41</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="dot" />
+                          <b>can we ship thursday?</b>
+                          <em>Mon</em>
+                        </div>
+                      </div>
+                      <div class="sheet-results v2">
+                        <div class="s-row selected">
+                          <span class="chip">github.com</span>
+                          <b>nebelhaus/trill · Releases v2026.07</b>
+                          <em>Tue</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="chip">figma.com</span>
+                          <b>launch page mockups</b>
+                          <em>Jun 12</em>
+                        </div>
+                        <div class="s-row">
+                          <span class="chip">nebelhaus.com</span>
+                          <b>the trill landing draft</b>
+                          <em>May 30</em>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="library-pane">
+                      <header>
+                        <span class="lib-name">Library</span>
+                        <span class="lib-chips"><i class="on">all</i><i>images</i><i>links</i><i>files</i></span>
+                      </header>
+                      <div class="lib-grid">
+                        <div class="lib-tile art-a" />
+                        <div class="lib-tile link sel">
+                          <b>github.com</b>
+                          <small>nebelhaus/trill · Releases</small>
+                        </div>
+                        <div class="lib-tile art-b" />
+                        <div class="lib-tile file">
+                          <i class="document" />
+                          <small>build-2026.07.zip</small>
+                        </div>
+                        <div class="lib-tile art-c" />
+                        <div class="lib-tile link">
+                          <b>figma.com</b>
+                          <small>launch page mockups</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <aside class="trill-detail" aria-hidden="true">
+                    <span class="avatar blue">AK</span>
+                    <h3>Alex Kim</h3>
+                    <p class="flip detail-meta">
+                      <span class="meta-a">needs reply · 2 links · 4 files</span>
+                      <span class="meta-b">replied · 2 links · 4 files</span>
+                    </p>
+                    <div><b>local notes</b><span>release follow-up</span></div>
+                    <div><b>shared today</b><span>v2026.07.29</span></div>
+                  </aside>
+                  <i class="key-cast kc-a" aria-hidden="true">⇧⌘F</i>
+                  <i class="key-cast kc-b" aria-hidden="true">⇧⌘R</i>
+                  <i class="key-cast kc-c" aria-hidden="true">⌘⇧L</i>
+                </div>
+              ) : (
+                <div
+                  class="perch-demo"
+                  role="img"
+                  aria-label="Perch staging files in a shelf that grows from the MacBook notch: a photo dragged up from Finder lands as a staged copy while the original stays put, a folder and a note join it, the shelf tucks away while a Mail draft opens, then the whole stack drags out at once — advertised copy-only — and lands as three attachments"
+                >
+                  <div class="desktop-menu" aria-hidden="true">
+                    <span>⌁ &nbsp; Finder &nbsp; File &nbsp; Edit &nbsp; View</span>
+                    <span>◔ &nbsp; 100% &nbsp; Wed Jul 29 &nbsp; 9:41</span>
+                  </div>
+                  <div class="desktop-window win-finder" aria-hidden="true">
+                    <header><i /><i /><i /><span>release</span></header>
+                    <aside>
+                      <b>Favorites</b>
+                      <span>⌂ &nbsp; AirDrop</span>
+                      <span>▣ &nbsp; Applications</span>
+                      <span>⌁ &nbsp; Downloads</span>
+                    </aside>
+                    <div class="desktop-main">
+                      <div class="file-card grab-late"><i class="folder" /><span>build</span></div>
+                      <div class="file-card grab-late"><i class="document" /><span>notes.md</span></div>
+                      <div class="file-card grab-first"><i class="image" /><span>hero.png</span></div>
+                    </div>
+                  </div>
+                  <div class="desktop-window win-mail" aria-hidden="true">
+                    <header><i /><i /><i /><span>New Message</span></header>
+                    <div class="mail-body">
+                      <div class="mail-field"><b>To:</b><span>Jo</span></div>
+                      <div class="mail-field"><b>Subject:</b><span>launch assets</span></div>
+                      <div class="drop-well">
+                        <span class="attach-chip"><i class="dot-image" />hero.png</span>
+                        <span class="attach-chip"><i class="dot-folder" />build</span>
+                        <span class="attach-chip"><i class="dot-doc" />notes.md</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="perch-shelf" aria-hidden="true">
+                    <header>
+                      <span class="flip shelf-state">
+                        <span class="st-drop">drop to stash</span>
+                        <span class="st-one">1 thing waiting</span>
+                        <span class="st-three">3 things waiting</span>
+                        <span class="st-empty">nothing waiting</span>
+                      </span>
+                      <b>copy-only</b>
+                    </header>
+                    <div class="shelf-items">
+                      <div class="shelf-item it-first"><i class="image" /><span>hero.png</span></div>
+                      <div class="shelf-item it-late"><i class="folder" /><span>build</span></div>
+                      <div class="shelf-item it-late"><i class="document" /><span>notes.md</span></div>
+                    </div>
+                  </div>
+                  <i class="drag-ghost ghost-up-one" aria-hidden="true"><i class="image" /></i>
+                  <i class="drag-ghost ghost-up-two" aria-hidden="true"><i class="folder" /><i class="document" /></i>
+                  <i class="drag-ghost ghost-out" aria-hidden="true">
+                    <i class="image" /><i class="folder" /><i class="document" />
+                    <b class="ghost-count">3</b>
+                    <em class="copy-pill">copy</em>
+                  </i>
+                  <i class="cursor" aria-hidden="true" />
+                </div>
+              )
+            }
+          </div>
+          <img
+            class="macbook-frame"
+            src="/media/macbook-pro-orthographic.svg"
+            alt=""
+            width="1648"
+            height="1158"
+            loading="lazy"
+            decoding="async"
+            aria-hidden="true"
+          />
+        </div>
+      </figure>
+    </div>
+  </div>
+
+  <div class="demo-heading">
+    <div>
+      <p class="demo-label">{content.label}</p>
+      <h2 id={`${product}-demo-title`}>{content.title}</h2>
+    </div>
+    <p>{content.copy}</p>
+  </div>
+</section>
+
+<style>
+  .product-demo {
+    margin: 0 0 6.5rem;
+  }
+
+  /* The device leads; this reads as its caption, so it sits below and a size
+     down from the hero's h1. */
+  .demo-heading {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    align-items: end;
+    gap: 3rem;
+    margin: 2.2rem 0 0;
+  }
+
+  .demo-label {
+    margin: 0 0 0.7rem;
+    color: var(--product-accent);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.055em;
+    text-transform: lowercase;
+  }
+
+  .demo-heading h2 {
+    max-width: 680px;
+    margin: 0;
+    font-size: clamp(1.55rem, 3.2vw, 2.2rem);
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+  }
+
+  .demo-heading > p {
+    max-width: 470px;
+    margin: 0 0 0.25rem;
+    color: var(--subtext0);
+    font-size: 0.94rem;
+  }
+
+  .demo-viewport {
+    padding: 0.5rem 0 0.9rem;
+    overflow: clip;
+  }
+
+  .demo-stage {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+  }
+
+  .macbook {
+    position: relative;
+    width: min(960px, calc(100% - 1rem));
+    margin: 0;
+  }
+
+  /* Grounding on a near-black page: a shadow would vanish, so the laptop
+     sits in a faint pool of its own accent light instead. */
+  .macbook::after {
+    position: absolute;
+    right: 7%;
+    bottom: -2.6%;
+    left: 7%;
+    height: 5%;
+    background: radial-gradient(50% 100% at 50% 0, color-mix(in srgb, var(--product-accent, var(--mauve)) 17%, transparent), transparent 74%);
+    content: '';
+  }
+
+  /* Geometry mirrors macbook-pro-orthographic.svg's 1648 × 1158 viewBox:
+     the panel cutout is x 58–1590, y 34–1029. */
+  .macbook-render {
+    position: relative;
+    aspect-ratio: 1648 / 1128;
+    container-type: inline-size;
+  }
+
+  .macbook-screen {
+    position: absolute;
+    top: 3.014%;
+    left: 3.519%;
+    z-index: 1;
+    width: 92.961%;
+    height: 88.209%;
+    overflow: hidden;
+    background: var(--crust);
+    border-radius: 1.96% 1.96% 0.52% 0.52%;
+    isolation: isolate;
+  }
+
+  .macbook-frame {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Pounce's code-native preview: the real palette chrome, synthetic results. */
+  .pounce-demo {
+    display: grid;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    align-content: start;
+    overflow: hidden;
+    background:
+      radial-gradient(95% 72% at 50% 6%, color-mix(in srgb, var(--product-accent, var(--peach)) 6%, transparent), transparent 62%),
+      radial-gradient(circle at 68% 78%, transparent 0 16%, color-mix(in srgb, var(--product-accent, var(--peach)) 16%, transparent) 16.1% 16.4%, transparent 16.5% 27%, color-mix(in srgb, var(--surface2) 34%, transparent) 27.1% 27.4%, transparent 27.5% 39%, color-mix(in srgb, var(--surface2) 44%, transparent) 39.1% 39.4%, transparent 39.5%),
+      var(--crust);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 1.25cqw, 12px);
+    text-align: left;
+  }
+
+  /* Sill, roughly: pills either side, not a macOS menu bar. */
+  /* Sits clear of the bezel's inner edge and corner radius — flush against
+     the top it reads as a collision with the frame. */
+  .desktop-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 8%;
+    padding: 1.6% 2.8% 0;
+  }
+
+  .bar-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  .pill {
+    padding: 0.32em 0.62em;
+    background: color-mix(in srgb, var(--surface0) 78%, transparent);
+    border-radius: 0.8em;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.72em;
+    font-style: normal;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .pill.accent {
+    background: color-mix(in srgb, var(--product-accent, var(--peach)) 24%, transparent);
+    color: var(--product-accent, var(--peach));
+  }
+
+  /* One 14s clock, three summons. The first opens onto the recency list;
+     typing "sla" filters it into the Slack results (a twin palette swapped
+     in on the SAME frame — no fade overlap, or the stack visibly flashes)
+     and the last two chars land after the swap, the way a live list chases
+     the query. Then a fresh summon types "claude", and a third converts
+     currency inline. */
+  .pounce-palette {
+    position: absolute;
+    top: 19%;
+    left: 50%;
+    width: 62%;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--crust) 96%, transparent);
+    border: 1px solid var(--surface0);
+    border-radius: 13px;
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transform: translate(-50%, 0) scale(1);
+  }
+
+  .scene-recency {
+    animation: recency-summons 14s ease-out infinite;
+  }
+
+  .scene-slack {
+    animation: slack-appears 14s ease-out infinite;
+  }
+
+  .scene-claude {
+    animation: palette-summons 14s ease-out infinite;
+  }
+
+  .scene-convert {
+    animation: convert-summons 14s ease-out infinite;
+  }
+
+  .palette-field {
+    display: flex;
+    align-items: center;
+    gap: 0.85em;
+    padding: 1.5em 1.7em;
+    border-bottom: 1px solid var(--surface0);
+    font-family: var(--mono);
+    font-size: 1.2em;
+  }
+
+  .palette-field .glass {
+    position: relative;
+    width: 0.92em;
+    height: 0.92em;
+    flex: 0 0 auto;
+    border: 1.5px solid var(--overlay0);
+    border-radius: 50%;
+  }
+
+  .palette-field .glass::after {
+    position: absolute;
+    right: -0.3em;
+    bottom: -0.14em;
+    width: 0.44em;
+    height: 1.5px;
+    background: var(--overlay0);
+    border-radius: 1px;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  .palette-field b {
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .scene-recency .palette-field b {
+    animation: types-sla 14s steps(1, end) infinite;
+  }
+
+  .scene-slack .palette-field b {
+    animation: types-slack 14s steps(1, end) infinite;
+  }
+
+  .scene-claude .palette-field b {
+    animation: types-claude 14s steps(1, end) infinite;
+  }
+
+  .scene-convert .palette-field b {
+    animation: types-convert 14s linear infinite;
+  }
+
+  .palette-field .caret {
+    width: 2px;
+    height: 1.25em;
+    margin-left: -0.5em;
+    background: var(--product-accent, var(--mauve));
+    animation: caret-blinks 1.06s steps(2, jump-none) infinite;
+  }
+
+  .palette-rows {
+    padding: 0.55em;
+  }
+
+  .palette-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.9em;
+    padding: 0.62em 1.1em;
+    border-radius: 8px;
+    opacity: 0;
+  }
+
+  .palette-row:nth-child(2) {
+    animation-delay: 0.05s;
+  }
+
+  .palette-row:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+
+  .palette-row:nth-child(4) {
+    animation-delay: 0.15s;
+  }
+
+  .palette-row:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+
+  .palette-row:nth-child(6) {
+    animation-delay: 0.25s;
+  }
+
+  .scene-recency .palette-row {
+    animation: rows-bloom 14s ease-out infinite;
+  }
+
+  .scene-slack .palette-row {
+    animation: rows-snap 14s linear infinite;
+  }
+
+  .scene-claude .palette-row {
+    animation: rows-bloom-late 14s ease-out infinite;
+  }
+
+  .scene-convert .palette-row {
+    animation: answer-pops 14s ease-out infinite;
+  }
+
+  .palette-row.selected,
+  .palette-row.answer {
+    background: color-mix(in srgb, var(--product-accent, var(--mauve)) 17%, transparent);
+  }
+
+  /* The ↵ reads as a brightness blip on the selected row, just before close. */
+  .scene-slack .palette-row.selected {
+    animation:
+      rows-snap 14s linear infinite,
+      actioned-a 14s linear infinite;
+  }
+
+  .scene-claude .palette-row.selected {
+    animation:
+      rows-bloom-late 14s ease-out infinite,
+      actioned-b 14s linear infinite;
+  }
+
+  .scene-convert .palette-row.answer {
+    animation:
+      answer-pops 14s ease-out infinite,
+      actioned-c 14s linear infinite;
+  }
+
+  /* The calculator answer is a card, not a row: big value, provenance under
+     it, the coin spanning both lines. */
+  .palette-row.answer {
+    grid-template-columns: auto 1fr;
+    gap: 0.35em 1em;
+    padding: 0.9em 1.1em;
+  }
+
+  .palette-row.answer .row-icon {
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  .palette-row.answer b {
+    font-size: 1.65em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .palette-row.answer em {
+    color: var(--subtext0);
+  }
+
+  .palette-row b,
+  .palette-row em {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .palette-row b {
+    font-size: 1.06em;
+    font-weight: 600;
+  }
+
+  .palette-row em {
+    color: var(--overlay1);
+    font-size: 0.88em;
+    font-style: normal;
+  }
+
+  .palette-row.selected em {
+    color: var(--subtext0);
+  }
+
+  /* Built-in commands are drawn glyphs; the app rows show the apps' real
+     icons (extracted from their bundles at 128px). */
+  .row-icon {
+    position: relative;
+    width: 2em;
+    height: 2em;
+    background: var(--surface1);
+    border-radius: 27%;
+  }
+
+  /* macOS icns art bakes the squircle + a ~10% transparent margin into the
+     bitmap, so the box oversizes and pulls back in to keep the *visible*
+     squircle at the 2em the drawn glyphs use. */
+  .row-icon.real {
+    width: 2.5em;
+    height: 2.5em;
+    margin: -0.25em;
+    background: none;
+    border-radius: 0;
+  }
+
+  /* Trill's icns is full-bleed (no baked margin) — no compensation needed. */
+  .row-icon.real.flush {
+    width: 2em;
+    height: 2em;
+    margin: 0;
+  }
+
+  /* System Settings as sliders: two rails, two knobs. */
+  .row-icon.mark-slider {
+    background:
+      radial-gradient(circle 1.7px at 38% 38%, var(--overlay1) 97%, transparent),
+      radial-gradient(circle 1.7px at 64% 62%, var(--overlay1) 97%, transparent),
+      linear-gradient(var(--overlay1) 0 100%) 50% 38% / 44% 1.5px no-repeat,
+      linear-gradient(var(--overlay1) 0 100%) 50% 62% / 44% 1.5px no-repeat,
+      var(--surface1);
+  }
+
+  /* Clipboard: a board with its clip sitting proud of the top edge. */
+  .row-icon.mark-clip::before {
+    position: absolute;
+    inset: 26% 30%;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 2px;
+    content: '';
+  }
+
+  .row-icon.mark-clip::after {
+    position: absolute;
+    top: 18%;
+    left: 38%;
+    width: 24%;
+    height: 14%;
+    background: var(--surface1);
+    border: 1.5px solid var(--overlay1);
+    border-radius: 2px;
+    content: '';
+  }
+
+  /* Find Files: the same magnifier as the query field, in miniature. */
+  .row-icon.mark-search::before {
+    position: absolute;
+    inset: 26% 36% 36% 26%;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 50%;
+    content: '';
+  }
+
+  .row-icon.mark-search::after {
+    position: absolute;
+    right: 24%;
+    bottom: 27%;
+    width: 20%;
+    height: 1.5px;
+    background: var(--overlay1);
+    border-radius: 1px;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  /* A crescent for Hush: a moon disc with a bite of icon-background. */
+  .row-icon.mark-moon {
+    background:
+      radial-gradient(circle at 62% 38%, var(--surface1) 0 24%, transparent 25%),
+      radial-gradient(circle at 48% 52%, var(--overlay1) 0 27%, transparent 28%),
+      var(--surface1);
+  }
+
+  /* Install App: an arrow dropping into a tray. */
+  .row-icon.mark-tray::before {
+    position: absolute;
+    top: 24%;
+    left: calc(50% - 0.75px);
+    width: 1.5px;
+    height: 26%;
+    background: var(--overlay1);
+    content: '';
+  }
+
+  .row-icon.mark-tray::after {
+    position: absolute;
+    inset: 52% 28% 26%;
+    border: 1.5px solid var(--overlay1);
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    content: '';
+  }
+
+  /* Links: two chain plates on the diagonal. */
+  .row-icon.mark-link::before,
+  .row-icon.mark-link::after {
+    position: absolute;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 40%;
+    content: '';
+    transform: rotate(-45deg);
+  }
+
+  .row-icon.mark-link::before {
+    inset: 32% 40% 32% 16%;
+  }
+
+  .row-icon.mark-link::after {
+    inset: 32% 16% 32% 40%;
+  }
+
+  /* The converter's coin: a $ in a ring on an accent chip. */
+  .row-icon.mark-coin {
+    display: grid;
+    width: 2.6em;
+    height: 2.6em;
+    place-items: center;
+    background: color-mix(in srgb, var(--product-accent, var(--mauve)) 26%, transparent);
+    color: var(--product-accent, var(--mauve));
+    font-size: 1em;
+    font-weight: 650;
+  }
+
+  .row-icon.mark-coin::after {
+    position: absolute;
+    inset: 21%;
+    border: 1.5px solid var(--product-accent, var(--mauve));
+    border-radius: 50%;
+    content: '';
+  }
+
+  .row-icon.mark-ring::after {
+    position: absolute;
+    inset: 30%;
+    border: 1.5px solid var(--overlay1);
+    border-radius: 50%;
+    content: '';
+  }
+
+  /* No hint footer here — the list just ends, so it gets a touch more
+     breathing room at the bottom than between rows. */
+  .palette-rows {
+    padding-bottom: 0.75em;
+  }
+
+  /* The converter opens as a bare input; the well under it holds no track
+     until the query completes, then 0fr→1fr grows the palette around the
+     answer (the row's padding is clipped by the well while collapsed). */
+  .scene-convert .palette-rows {
+    display: grid;
+    grid-template-rows: 0fr;
+    padding-block: 0;
+    animation: answer-grows 14s ease-out infinite;
+  }
+
+  .scene-convert .palette-field {
+    border-bottom-color: transparent;
+    animation: field-divides 14s linear infinite;
+  }
+
+  .answer-well {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Trill's code-native preview: real layout language, synthetic data. */
+  /* Full-bleed to the panel edge: the notch (42–58% of the screen, ~6% tall)
+     overlays the thread header's empty middle — the avatar/name sit left of
+     it and the ⌘K chip right of it, so it bites nothing. Starting below the
+     notch instead left a dead black band along the top. */
+  .trill-demo {
+    display: grid;
+    position: absolute;
+    grid-template-columns: 29% 48% 23%;
+    inset: 0;
+    overflow: hidden;
+    background: var(--base);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 1.25cqw, 12px);
+    text-align: left;
+  }
+
+  .trill-sidebar {
+    padding: 3.7% 3.6% 2%;
+    background: var(--mantle);
+    border-right: 1px solid var(--surface0);
+  }
+
+  /* The inbox list and the ⇧⌘R needs-reply list are twins stacked in one
+     slot, swapped by opacity on the shared clock — a filter application
+     re-renders in place, it doesn't push layout around. */
+  .sidebar-lists {
+    position: relative;
+  }
+
+  .list-triage {
+    position: absolute;
+    inset: 0;
+    background: var(--mantle);
+    opacity: 0;
+    animation: triage-holds 18s linear infinite;
+  }
+
+  .list-triage .inbox-label span,
+  .list-triage .inbox-label b {
+    color: var(--yellow);
+  }
+
+  .list-triage .chat-row {
+    opacity: 0;
+    animation: triage-row-snaps 18s linear infinite;
+  }
+
+  .list-triage .chat-row:nth-child(3) {
+    animation-delay: 0.07s;
+  }
+
+  .list-triage .chat-row.snoozed {
+    animation: snoozed-row 18s linear infinite;
+    animation-delay: 0.14s;
+  }
+
+  .snooze {
+    padding: 0.2em 0.55em;
+    background: color-mix(in srgb, var(--yellow) 14%, transparent);
+    border-radius: 1em;
+    color: var(--yellow);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-style: normal;
+    opacity: 0;
+    animation: snooze-lands 18s ease-out infinite;
+  }
+
+  /* Folders exist and that's the whole pitch — a quiet strip under the
+     inbox, not a beat of its own. */
+  .side-folders {
+    margin-top: 8%;
+    padding-top: 5%;
+    border-top: 1px solid var(--surface0);
+  }
+
+  .side-label {
+    padding: 0 3% 3%;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+
+  .folder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 3.5% 4%;
+    color: var(--subtext0);
+    font-size: 0.92em;
+  }
+
+  .folder-row b {
+    margin-left: auto;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.8em;
+    font-weight: 500;
+  }
+
+  .folder-row .fld {
+    position: relative;
+    width: 1.15em;
+    height: 0.85em;
+    background: var(--surface2);
+    border-radius: 2px;
+  }
+
+  .folder-row .fld::before {
+    position: absolute;
+    top: -0.18em;
+    left: 0.08em;
+    width: 0.45em;
+    height: 0.22em;
+    background: var(--surface2);
+    border-radius: 2px 2px 0 0;
+    content: '';
+  }
+
+  /* Stacked text swap: every child shares the cell, opacity picks one. */
+  .flip {
+    display: grid;
+  }
+
+  .flip > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .flip i {
+    font-style: normal;
+  }
+
+  time.flip {
+    justify-items: end;
+  }
+
+  .preview-a,
+  .stamp-a {
+    animation: swap-out-incoming 18s linear infinite;
+  }
+
+  .preview-b {
+    opacity: 0;
+    animation: preview-mid 18s linear infinite;
+  }
+
+  .preview-c,
+  .meta-b {
+    opacity: 0;
+    animation: swap-in-replied 18s linear infinite;
+  }
+
+  .stamp-b {
+    opacity: 0;
+    animation: swap-in-incoming 18s linear infinite;
+  }
+
+  .meta-a {
+    animation: swap-out-replied 18s linear infinite;
+  }
+
+  .count-a {
+    animation: count-holds 18s linear infinite;
+  }
+
+  .count-b {
+    opacity: 0;
+    animation: count-ticks 18s linear infinite;
+  }
+
+  .window-tools {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 9%;
+  }
+
+  .window-tools i {
+    width: 7px;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 50%;
+  }
+
+  .trill-search {
+    padding: 5% 6%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 7px;
+    color: var(--overlay1);
+    font-family: var(--mono);
+  }
+
+  .inbox-label {
+    display: flex;
+    justify-content: space-between;
+    padding: 9% 3% 3%;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+
+  .inbox-label b {
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  .chat-row {
+    display: grid;
+    grid-template-columns: 27px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0;
+    padding: 5% 4%;
+    border-radius: 7px;
+  }
+
+  .chat-row.selected {
+    background: var(--surface0);
+  }
+
+  .chat-row.dim {
+    opacity: 0.62;
+  }
+
+  .chat-row > span:nth-child(2),
+  .trill-thread > header > span:nth-child(2) {
+    min-width: 0;
+  }
+
+  .chat-row b,
+  .chat-row small,
+  .trill-thread > header b,
+  .trill-thread > header small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-row small,
+  .chat-row time,
+  .trill-thread > header small {
+    color: var(--overlay1);
+    font-size: 0.8em;
+  }
+
+  .avatar {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--crust);
+    font-size: 0.66em;
+    font-weight: 750;
+  }
+
+  .avatar.blue {
+    background: var(--blue);
+  }
+
+  .avatar.mauve {
+    background: var(--mauve);
+  }
+
+  .avatar.green {
+    background: var(--green);
+  }
+
+  .avatar.peach {
+    background: var(--peach);
+  }
+
+  .trill-thread {
+    display: grid;
+    position: relative;
+    grid-template-rows: auto 1fr auto;
+    min-width: 0;
+    background: var(--base);
+  }
+
+  /* Top padding clears the header row under the notch's ~6% bite — the
+     avatar/name sit left of it, but the subtitle's tail would graze it
+     when vertically centered. */
+  .trill-thread > header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 13%;
+    padding: 4.2% 4% 1.6%;
+    background: color-mix(in srgb, var(--mantle) 72%, transparent);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .trill-thread > header em {
+    margin-left: auto;
+    padding: 2px 6px;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 4px;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.74em;
+    font-style: normal;
+  }
+
+  .message-space {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 6%;
+  }
+
+  .day {
+    margin: 0 auto 6%;
+    color: var(--overlay0);
+    font-family: var(--mono);
+    font-size: 0.7em;
+  }
+
+  .bubble {
+    max-width: 72%;
+    margin: 1.2% 0;
+    padding: 3.2% 4%;
+    border-radius: 12px;
+    line-height: 1.35;
+  }
+
+  .bubble.received {
+    align-self: flex-start;
+    background: var(--surface0);
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble.sent {
+    align-self: flex-end;
+    background: var(--blue);
+    border-bottom-right-radius: 4px;
+    color: var(--crust);
+  }
+
+  .bubble.incoming {
+    opacity: 0;
+    animation: message-arrives 18s ease-in-out infinite;
+  }
+
+  /* Alex reacts before he replies: a tapback chip lands on the sent bubble,
+     overlapping it the way Messages hangs reactions off a corner. */
+  .bubble.reacted {
+    position: relative;
+    margin-top: 3%;
+  }
+
+  .tapback {
+    display: grid;
+    position: absolute;
+    top: -1em;
+    right: -0.45em;
+    padding: 0.18em 0.5em;
+    place-items: center;
+    background: var(--surface1);
+    border: 1px solid var(--surface2);
+    border-radius: 1em;
+    color: var(--text);
+    font-size: 0.78em;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transform: scale(0.4);
+    animation: tapback-pops 18s ease-out infinite;
+  }
+
+  .bubble.reply {
+    opacity: 0;
+    transform: translateY(7px) scale(0.96);
+    animation: reply-pops 18s ease-out infinite;
+  }
+
+  /* Undo-send: the pill owns the five seconds after ↑, then Delivered takes
+     the same slot — they crossfade in one stacked cell under the bubble. */
+  .send-meta {
+    display: grid;
+    align-self: flex-end;
+    justify-items: end;
+    min-height: 1.6em;
+    margin-top: 0.35em;
+  }
+
+  .send-meta > * {
+    grid-area: 1 / 1;
+  }
+
+  .undo-pill {
+    padding: 0.28em 0.65em;
+    background: color-mix(in srgb, var(--blue) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--blue) 45%, transparent);
+    border-radius: 1em;
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 0.72em;
+    font-style: normal;
+    opacity: 0;
+    animation: undo-window 18s linear infinite;
+  }
+
+  .delivered {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    opacity: 0;
+    animation: delivers 18s linear infinite;
+  }
+
+  .trill-thread > footer {
+    display: flex;
+    position: relative;
+    align-items: center;
+    margin: 0 4% 4%;
+    padding: 2.4% 2.6% 2.4% 4%;
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    border-radius: 9px;
+    color: var(--overlay1);
+  }
+
+  .trill-thread > footer .placeholder {
+    position: absolute;
+    left: 4%;
+    animation: placeholder-yields 18s linear infinite;
+  }
+
+  .trill-thread > footer .typed {
+    width: 0;
+    overflow: hidden;
+    color: var(--text);
+    font-family: var(--mono);
+    font-weight: 400;
+    white-space: nowrap;
+    animation: types-reply 18s linear infinite;
+  }
+
+  /* The slot gates the caret to the composing window; the caret inside it
+     blinks on its own fast clock — two opacities multiply, they can't share
+     one animation slot. */
+  .caret-slot {
+    opacity: 0;
+    animation: composer-focus 18s linear infinite;
+  }
+
+  .caret-slot .caret,
+  .sheet-field .caret {
+    display: block;
+    width: 2px;
+    height: 1.15em;
+    background: var(--blue);
+    animation: caret-blinks 1.06s steps(2, jump-none) infinite;
+  }
+
+  .trill-thread > footer .send-key {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    margin-left: auto;
+    place-items: center;
+    background: var(--blue);
+    border-radius: 5px;
+    color: var(--crust);
+    animation: send-blips 18s linear infinite;
+  }
+
+  /* ⇧⌘F: a search sheet over the thread. Twin result lists stacked in one
+     grid cell — three matches for "from:alex", refined to link rows on the
+     SAME frame " has:link" finishes typing (disjoint keyframes, no fade). */
+  .search-sheet {
+    display: grid;
+    position: absolute;
+    top: 16%;
+    right: 5%;
+    left: 5%;
+    z-index: 3;
+    grid-template-rows: auto auto;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--crust) 97%, transparent);
+    border: 1px solid var(--surface0);
+    border-radius: 10px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+    animation: search-drops 18s ease-out infinite;
+  }
+
+  .sheet-field {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 1em 1.2em;
+    border-bottom: 1px solid var(--surface0);
+    font-family: var(--mono);
+    font-size: 1.05em;
+  }
+
+  .sheet-field .glass {
+    color: var(--overlay1);
+    font-style: normal;
+  }
+
+  .sheet-field .query {
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    font-weight: 400;
+    white-space: nowrap;
+    animation: types-query 18s linear infinite;
+  }
+
+  .query .op {
+    color: var(--lavender);
+    font-style: normal;
+  }
+
+  .search-sheet .sheet-results {
+    grid-area: 2 / 1;
+    padding: 0.45em 0.45em 0.6em;
+    opacity: 0;
+  }
+
+  .sheet-results.v1 {
+    animation: results-first 18s linear infinite;
+  }
+
+  .sheet-results.v2 {
+    animation: results-refine 18s linear infinite;
+  }
+
+  .s-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.7em;
+    padding: 0.55em 0.9em;
+    border-radius: 7px;
+  }
+
+  .s-row.selected {
+    background: color-mix(in srgb, var(--product-accent, var(--blue)) 15%, transparent);
+    animation: search-actioned 18s linear infinite;
+  }
+
+  .s-row b {
+    overflow: hidden;
+    font-size: 0.92em;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .s-row em {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.78em;
+    font-style: normal;
+  }
+
+  .s-row .dot {
+    width: 0.6em;
+    height: 0.6em;
+    background: var(--blue);
+    border-radius: 50%;
+  }
+
+  .s-row .chip {
+    padding: 0.2em 0.5em;
+    background: color-mix(in srgb, var(--lavender) 16%, transparent);
+    border-radius: 5px;
+    color: var(--lavender);
+    font-family: var(--mono);
+    font-size: 0.7em;
+  }
+
+  /* ⌘⇧L: the Universal Library takes over the thread pane — everything
+     shared, every conversation, one grid. */
+  .library-pane {
+    display: grid;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    grid-template-rows: auto 1fr;
+    padding: 4% 5%;
+    background: var(--base);
+    opacity: 0;
+    transform: scale(0.99);
+    animation: library-opens 18s ease-out infinite;
+  }
+
+  .library-pane > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1em;
+  }
+
+  .lib-name {
+    font-size: 1.08em;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  .lib-chips {
+    display: flex;
+    gap: 0.35em;
+  }
+
+  .lib-chips i {
+    padding: 0.28em 0.6em;
+    background: color-mix(in srgb, var(--surface0) 80%, transparent);
+    border-radius: 1em;
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.72em;
+    font-style: normal;
+  }
+
+  .lib-chips i.on {
+    background: color-mix(in srgb, var(--teal) 16%, transparent);
+    color: var(--teal);
+  }
+
+  .lib-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-content: start;
+    gap: 0.7em;
+  }
+
+  .lib-tile {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    opacity: 0;
+    transform: translateY(6px);
+    animation: tiles-bloom 18s ease-out infinite;
+  }
+
+  .lib-grid .lib-tile:nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .lib-grid .lib-tile:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .lib-grid .lib-tile:nth-child(4) {
+    animation-delay: 0.18s;
+  }
+
+  .lib-grid .lib-tile:nth-child(5) {
+    animation-delay: 0.24s;
+  }
+
+  .lib-grid .lib-tile:nth-child(6) {
+    animation-delay: 0.3s;
+  }
+
+  /* Photos as CSS art, same trick as perch's image glyph, tile-sized. */
+  .lib-tile.art-a {
+    background:
+      linear-gradient(152deg, transparent 46%, var(--teal) 47% 70%, transparent 71%),
+      linear-gradient(38deg, transparent 50%, var(--green) 51% 78%, transparent 79%),
+      var(--surface0);
+  }
+
+  .lib-tile.art-b {
+    background:
+      radial-gradient(circle at 70% 30%, var(--peach) 0 16%, transparent 17%),
+      linear-gradient(color-mix(in srgb, var(--peach) 22%, var(--surface0)), var(--surface0));
+  }
+
+  .lib-tile.art-c {
+    background:
+      linear-gradient(118deg, color-mix(in srgb, var(--lavender) 38%, var(--surface0)) 0 44%, transparent 45%),
+      linear-gradient(298deg, color-mix(in srgb, var(--blue) 30%, var(--surface0)) 0 30%, transparent 31%),
+      var(--surface0);
+  }
+
+  .lib-tile.link {
+    display: grid;
+    align-content: end;
+    gap: 0.25em;
+    padding: 0.7em 0.8em;
+    background: var(--crust);
+  }
+
+  .lib-tile.link b {
+    overflow: hidden;
+    color: var(--lavender);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lib-tile.link small,
+  .lib-tile.file small {
+    overflow: hidden;
+    color: var(--subtext0);
+    font-size: 0.72em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lib-tile.file {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.55em;
+    background: var(--crust);
+  }
+
+  /* The document glyph's sizing lives on perch's .file-card/.shelf-item
+     selectors, so the library tile sizes it itself. */
+  .lib-tile.file i {
+    display: block;
+    position: relative;
+    width: 2.6em;
+    height: 2.2em;
+    border-radius: 3px;
+  }
+
+  .lib-tile.file small {
+    font-family: var(--mono);
+    font-size: 0.64em;
+  }
+
+  .lib-tile.sel {
+    animation:
+      tiles-bloom 18s ease-out infinite,
+      lib-actioned 18s linear infinite;
+  }
+
+  /* The keystroke drives each beat — trill is keyboard-first, so the
+     shortcut IS the story. One chip per beat, cast over the pane it acts on. */
+  .key-cast {
+    position: absolute;
+    top: 17%;
+    z-index: 4;
+    padding: 0.5em 0.75em;
+    background: color-mix(in srgb, var(--crust) 94%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1.1em;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transform: translateX(-50%) scale(0.86);
+  }
+
+  .kc-a {
+    left: 53%;
+    animation: keycast-search 18s ease-out infinite;
+  }
+
+  .kc-b {
+    left: 14.5%;
+    animation: keycast-triage 18s ease-out infinite;
+  }
+
+  .kc-c {
+    left: 53%;
+    animation: keycast-library 18s ease-out infinite;
+  }
+
+  .trill-detail {
+    padding: 17% 8% 4%;
+    background: var(--mantle);
+    border-left: 1px solid var(--surface0);
+    text-align: center;
+  }
+
+  .trill-detail > .avatar {
+    width: 44px;
+    height: 44px;
+    margin: auto;
+  }
+
+  .trill-detail h3 {
+    margin: 5% 0 0;
+    font-size: 1.1em;
+  }
+
+  .trill-detail > p {
+    margin: 2% 0 12%;
+    color: var(--subtext0);
+    font-size: 0.82em;
+  }
+
+  .trill-detail div {
+    margin: 5% 0;
+    padding: 7%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 7px;
+    text-align: left;
+  }
+
+  .trill-detail div b,
+  .trill-detail div span {
+    display: block;
+  }
+
+  .trill-detail div b {
+    margin-bottom: 3%;
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 0.74em;
+  }
+
+  .trill-detail div span {
+    color: var(--text);
+    font-size: 0.88em;
+  }
+
+  /* Perch's code-native preview: the cursor is the actor the way keystrokes
+     are trill's — every scene change is a drag it performs. */
+  .perch-demo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 74% 72%, color-mix(in srgb, var(--green) 14%, transparent), transparent 19%),
+      radial-gradient(circle at 77% 70%, transparent 0 12%, color-mix(in srgb, var(--surface2) 48%, transparent) 12.2% 12.5%, transparent 12.7% 19%, color-mix(in srgb, var(--surface2) 33%, transparent) 19.2% 19.5%, transparent 19.7%),
+      var(--crust);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(7px, 1.25cqw, 12px);
+    text-align: left;
+  }
+
+  .desktop-menu {
+    display: flex;
+    position: absolute;
+    inset: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    height: 5.8%;
+    padding: 0 1.6%;
+    background: rgba(28, 28, 28, 0.88);
+    color: var(--subtext0);
+    font-size: 0.76em;
+  }
+
+  .desktop-window {
+    display: grid;
+    position: absolute;
+    top: 16%;
+    left: 13%;
+    width: 60%;
+    height: 67%;
+    grid-template-columns: 27% 73%;
+    grid-template-rows: 12% 88%;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--base) 94%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 9px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+  }
+
+  /* The Finder window and the Mail draft are twins in one slot, snapped on
+     the same frame mid-loop — a Space switch, not a crossfade. */
+  .win-finder {
+    animation: finder-shows 16s linear infinite;
+  }
+
+  .win-mail {
+    grid-template-columns: 1fr;
+    opacity: 0;
+    animation: mail-shows 16s linear infinite;
+  }
+
+  .mail-body {
+    display: grid;
+    align-content: start;
+    gap: 4%;
+    padding: 5% 6%;
+  }
+
+  .mail-field {
+    display: flex;
+    gap: 0.6em;
+    padding-bottom: 3%;
+    border-bottom: 1px solid var(--surface0);
+    font-size: 0.82em;
+  }
+
+  .mail-field b {
+    color: var(--overlay1);
+    font-weight: 500;
+  }
+
+  .mail-field span {
+    color: var(--text);
+  }
+
+  /* The drop target glows while the stack hovers over it, then holds the
+     landed attachment chips. */
+  .drop-well {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.6em;
+    min-height: 34%;
+    margin-top: 2%;
+    padding: 5%;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    animation: well-glows 16s linear infinite;
+  }
+
+  .attach-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.4em 0.7em;
+    background: var(--crust);
+    border: 1px solid var(--surface1);
+    border-radius: 1.2em;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.78em;
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
+    animation: chip-lands 16s ease-out infinite;
+  }
+
+  .attach-chip:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .attach-chip:nth-child(3) {
+    animation-delay: 0.36s;
+  }
+
+  .attach-chip i {
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 2px;
+  }
+
+  .dot-image {
+    background: var(--teal);
+  }
+
+  .dot-folder {
+    background: var(--green);
+  }
+
+  .dot-doc {
+    background: var(--surface2);
+  }
+
+  /* The originals brighten while picked — and stay put when the ghost
+     leaves. That IS the copy-only story. */
+  .file-card.grab-first {
+    animation: card-picked-first 16s linear infinite;
+  }
+
+  .file-card.grab-late {
+    animation: card-picked-late 16s linear infinite;
+  }
+
+  .desktop-window header {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 5px;
+    padding: 0 2.3%;
+    background: var(--mantle);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .desktop-window header i {
+    width: 7px;
+    height: 7px;
+    background: var(--surface2);
+    border-radius: 50%;
+  }
+
+  .desktop-window header span {
+    margin: auto;
+    color: var(--subtext0);
+    font-size: 0.78em;
+  }
+
+  .desktop-window aside {
+    display: flex;
+    flex-direction: column;
+    gap: 8%;
+    padding: 10%;
+    background: color-mix(in srgb, var(--mantle) 92%, transparent);
+    border-right: 1px solid var(--surface0);
+    color: var(--subtext0);
+    font-size: 0.8em;
+  }
+
+  .desktop-window aside b {
+    color: var(--overlay1);
+    font-family: var(--mono);
+    font-size: 0.8em;
+    text-transform: uppercase;
+  }
+
+  .desktop-window .desktop-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 8%;
+    padding: 10%;
+  }
+
+  .file-card,
+  .shelf-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: var(--subtext0);
+    font-size: 0.74em;
+  }
+
+  .file-card i,
+  .shelf-item i {
+    display: block;
+    position: relative;
+    width: 30px;
+    height: 25px;
+    border-radius: 3px;
+  }
+
+  i.folder {
+    background: var(--green);
+  }
+
+  i.folder::before {
+    position: absolute;
+    top: -4px;
+    left: 2px;
+    width: 13px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 3px 3px 0 0;
+    content: '';
+  }
+
+  i.document {
+    background: var(--surface2);
+    border: 1px solid var(--overlay1);
+  }
+
+  i.document::after {
+    position: absolute;
+    inset: 6px 5px;
+    background: repeating-linear-gradient(var(--subtext0) 0 1px, transparent 1px 4px);
+    content: '';
+    opacity: 0.75;
+  }
+
+  i.image {
+    background:
+      linear-gradient(150deg, transparent 45%, var(--green) 46% 68%, transparent 69%),
+      linear-gradient(45deg, transparent 45%, var(--teal) 46% 74%, transparent 75%),
+      var(--surface1);
+    border: 1px solid var(--overlay0);
+  }
+
+  .perch-shelf {
+    position: absolute;
+    top: 5.7%;
+    left: 50%;
+    z-index: 2;
+    width: 45%;
+    padding: 3.7% 2.3% 2.4%;
+    background: color-mix(in srgb, var(--mantle) 97%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 0 0 13px 13px;
+    box-shadow: 0 17px 40px rgba(0, 0, 0, 0.48);
+    transform: translate(-50%, -84%) scaleX(0.35);
+    transform-origin: top;
+    animation: shelf-opens 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .perch-shelf header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 4%;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.72em;
+  }
+
+  .perch-shelf header b {
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  /* The header narrates the shelf's state — four stacked lines snapped on
+     the frames things land or leave. */
+  .st-one,
+  .st-three,
+  .st-empty {
+    opacity: 0;
+  }
+
+  .st-drop {
+    animation: state-drop 16s steps(1, end) infinite;
+  }
+
+  .st-one {
+    animation: state-one 16s steps(1, end) infinite;
+  }
+
+  .st-three {
+    animation: state-three 16s steps(1, end) infinite;
+  }
+
+  .st-empty {
+    animation: state-empty 16s steps(1, end) infinite;
+  }
+
+  .shelf-items {
+    display: flex;
+    justify-content: center;
+    gap: 13%;
+    padding: 6%;
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 8px;
+  }
+
+  /* Tiles pop as their ghosts land, dim while the stack is being dragged
+     out, and vanish the frame the destination accepts it. */
+  .shelf-item.it-first {
+    opacity: 0;
+    animation: tile-first 16s ease-out infinite;
+  }
+
+  .shelf-item.it-late {
+    opacity: 0;
+    animation: tile-late 16s ease-out infinite;
+  }
+
+  .shelf-items .shelf-item:nth-child(3) {
+    animation-delay: 0.07s;
+  }
+
+  /* Drag ghosts: the staged copy travelling under the cursor. The stack
+     ghost fans its three tiles and wears the count + the copy pledge. */
+  .drag-ghost {
+    display: flex;
+    position: absolute;
+    z-index: 5;
+    opacity: 0;
+    transform: rotate(-4deg);
+  }
+
+  .drag-ghost > i {
+    display: block;
+    position: relative;
+    width: 2em;
+    height: 1.65em;
+    border-radius: 3px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+  }
+
+  .ghost-up-one {
+    animation: ghost-up-one 16s ease-in-out infinite;
+  }
+
+  .ghost-up-two {
+    animation: ghost-up-two 16s ease-in-out infinite;
+  }
+
+  .ghost-up-two > i:nth-child(2) {
+    margin-top: 0.28em;
+    margin-left: -1.2em;
+  }
+
+  .ghost-out {
+    animation: ghost-out 16s ease-in-out infinite;
+  }
+
+  .ghost-out > i:nth-child(2) {
+    margin-top: 0.3em;
+    margin-left: -1.4em;
+  }
+
+  .ghost-out > i:nth-child(3) {
+    margin-top: 0.6em;
+    margin-left: -1.4em;
+  }
+
+  .ghost-count {
+    display: grid;
+    position: absolute;
+    top: -0.6em;
+    right: -0.6em;
+    width: 1.3em;
+    height: 1.3em;
+    place-items: center;
+    background: var(--green);
+    border-radius: 50%;
+    color: var(--crust);
+    font-size: 0.78em;
+    font-weight: 750;
+  }
+
+  .copy-pill {
+    position: absolute;
+    right: -0.5em;
+    bottom: -1.5em;
+    padding: 0.16em 0.55em;
+    background: color-mix(in srgb, var(--pink) 18%, var(--crust));
+    border: 1px solid color-mix(in srgb, var(--pink) 45%, transparent);
+    border-radius: 1em;
+    color: var(--pink);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-style: normal;
+  }
+
+  /* A drawn macOS arrow — the demo's actor. Parked at the base position so
+     a reduced-motion or frame-0 render isn't a corner artifact. */
+  .cursor {
+    position: absolute;
+    top: 60%;
+    left: 75%;
+    z-index: 6;
+    width: 1.1em;
+    height: 1.55em;
+    background: var(--text);
+    clip-path: polygon(0 0, 0 78%, 22% 63%, 38% 100%, 54% 92%, 37% 58%, 62% 56%);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+    animation:
+      cursor-roams 16s ease-in-out infinite,
+      cursor-clicks 16s linear infinite;
+  }
+
+  /* The 14s clock, in seconds: summon at 0, recency list up by 0.2. Typing
+     starts at 2.2 — s, l, a — and at 2.62 the list snaps to the Slack
+     results ON the same frame the recency palette drops (disjoint keyframes,
+     no crossfade); c and k land at 2.7 and 2.85. ↵ at 4.3, closed by 4.8.
+     Summon 2 at 5.6 types "claude" by 6.6, rows blooming mid-word; ↵ at 8,
+     gone by 8.6. Summon 3 at 9.2 types the conversion by 10.7, the answer
+     card pops at 10.8; ↵ copies at 12.4, gone by 13. The last second is
+     empty desktop so the loop can breathe. */
+  @keyframes recency-summons {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -8px) scale(0.97);
+    }
+    1.4%, 18.7% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    18.75%, 100% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
+  @keyframes slack-appears {
+    0%, 18.65% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(1);
+    }
+    18.7%, 32.9% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    34.3%, 100% {
+      opacity: 0;
+      transform: translate(-50%, -4px) scale(0.99);
+    }
+  }
+
+  @keyframes palette-summons {
+    0%, 40% {
+      opacity: 0;
+      transform: translate(-50%, -8px) scale(0.97);
+    }
+    41.4%, 60% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    61.4%, 100% {
+      opacity: 0;
+      transform: translate(-50%, -4px) scale(0.99);
+    }
+  }
+
+  @keyframes convert-summons {
+    0%, 65.7% {
+      opacity: 0;
+      transform: translate(-50%, -8px) scale(0.97);
+    }
+    67.1%, 91.4% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    92.9%, 100% {
+      opacity: 0;
+      transform: translate(-50%, -4px) scale(0.99);
+    }
+  }
+
+  @keyframes types-sla {
+    0%, 15.7% {
+      width: 0;
+    }
+    16.8% {
+      width: 1ch;
+    }
+    17.9% {
+      width: 2ch;
+    }
+    18.6%, 100% {
+      width: 3ch;
+    }
+  }
+
+  /* Picks up mid-word at the swap: sla → slac → slack. */
+  @keyframes types-slack {
+    0%, 19.2% {
+      width: 3ch;
+    }
+    19.9% {
+      width: 4ch;
+    }
+    20.7%, 100% {
+      width: 5ch;
+    }
+  }
+
+  @keyframes types-claude {
+    0%, 42.1% {
+      width: 0;
+    }
+    42.9% {
+      width: 1ch;
+    }
+    43.6% {
+      width: 2ch;
+    }
+    44.3% {
+      width: 3ch;
+    }
+    45% {
+      width: 4ch;
+    }
+    45.7% {
+      width: 5ch;
+    }
+    46.4%, 100% {
+      width: 6ch;
+    }
+  }
+
+  @keyframes types-convert {
+    0%, 68.6% {
+      width: 0;
+      animation-timing-function: steps(14, end);
+    }
+    76.4%, 100% {
+      width: 14ch;
+    }
+  }
+
+  @keyframes rows-bloom {
+    0%, 0.7% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    3.6%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* No slide for the slack rows — a live list re-render snaps. */
+  @keyframes rows-snap {
+    0%, 18.65% {
+      opacity: 0;
+    }
+    18.7%, 100% {
+      opacity: 1;
+    }
+  }
+
+  /* The claude rows land while the word is still being typed — results
+     chase the query, they don't wait for it. */
+  @keyframes rows-bloom-late {
+    0%, 43% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    46%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes answer-grows {
+    0%, 76.4% {
+      grid-template-rows: 0fr;
+      padding-block: 0;
+    }
+    78%, 100% {
+      grid-template-rows: 1fr;
+      padding-block: 0.55em 0.75em;
+    }
+  }
+
+  @keyframes field-divides {
+    0%, 76.9% {
+      border-bottom-color: transparent;
+    }
+    77%, 100% {
+      border-bottom-color: var(--surface0);
+    }
+  }
+
+  @keyframes answer-pops {
+    0%, 77.3% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    78.8%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes actioned-a {
+    0%, 30% {
+      filter: brightness(1);
+    }
+    31% {
+      filter: brightness(1.45);
+    }
+    32.1%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes actioned-b {
+    0%, 56.4% {
+      filter: brightness(1);
+    }
+    57.5% {
+      filter: brightness(1.45);
+    }
+    58.6%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes actioned-c {
+    0%, 88% {
+      filter: brightness(1);
+    }
+    89% {
+      filter: brightness(1.45);
+    }
+    90.3%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes caret-blinks {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.1;
+    }
+  }
+
+  /* Trill's 18s clock, in seconds: Alex tapbacks the sent bubble at 0.6 and
+     his reply lands at 1.2 — the sidebar preview and timestamp follow on the
+     same frame. The composer focuses at 1.75, types 15 chars by 3.15, and ↑
+     sends at 3.4: the bubble pops with a five-second undo pill that yields
+     to Delivered at 5.0. ⇧⌘F at 5.4 drops global search over the thread —
+     "from:alex" is typed by 6.8 and three matches snap in mid-word; then
+     " has:link" lands by 7.6 and the list refines to link rows on the same
+     frame; ↵ blips the selection at 8.8, closed by 9.7. ⇧⌘R at 9.9 swaps
+     the sidebar to needs-reply — Alex is absent, you just answered him —
+     and Mom's thread snoozes at 11.6, ticking the count 3 → 2; restored by
+     13.1. ⌘⇧L at 13.5 opens the Library over the thread: shared images,
+     links, and files bloom in a grid, one link blips at 15.7, gone by 16.6.
+     The thread's additions fade out around 17.5 so the loop seam lands on
+     the plain thread, invisible. */
+  @keyframes tapback-pops {
+    0%, 3.5% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    4.4% {
+      opacity: 1;
+      transform: scale(1.16);
+    }
+    5.2%, 96.8% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    98.6%, 100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes message-arrives {
+    0%, 5.8% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    7.4%, 96.8% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    98.6%, 100% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes swap-out-incoming {
+    0%, 6.6% {
+      opacity: 1;
+    }
+    7.4%, 98.75% {
+      opacity: 0;
+    }
+    98.85%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes swap-in-incoming {
+    0%, 6.8% {
+      opacity: 0;
+    }
+    7.6%, 98.75% {
+      opacity: 1;
+    }
+    98.85%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes preview-mid {
+    0%, 6.8% {
+      opacity: 0;
+    }
+    7.6%, 20.6% {
+      opacity: 1;
+    }
+    21.4%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes swap-out-replied {
+    0%, 20.8% {
+      opacity: 1;
+    }
+    21.6%, 98.75% {
+      opacity: 0;
+    }
+    98.85%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes swap-in-replied {
+    0%, 21% {
+      opacity: 0;
+    }
+    21.8%, 98.75% {
+      opacity: 1;
+    }
+    98.85%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes composer-focus {
+    0%, 9.3% {
+      opacity: 0;
+    }
+    9.7%, 19.6% {
+      opacity: 1;
+    }
+    20%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes placeholder-yields {
+    0%, 9.4% {
+      opacity: 1;
+    }
+    9.9%, 19.8% {
+      opacity: 0;
+    }
+    20.6%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes types-reply {
+    0%, 10% {
+      width: 0;
+      animation-timing-function: steps(15, end);
+    }
+    17.4%, 18.8% {
+      width: 15ch;
+    }
+    19%, 100% {
+      width: 0;
+    }
+  }
+
+  @keyframes send-blips {
+    0%, 18.6% {
+      filter: brightness(1);
+    }
+    19.2% {
+      filter: brightness(1.5);
+    }
+    20.4%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes reply-pops {
+    0%, 18.9% {
+      opacity: 0;
+      transform: translateY(7px) scale(0.96);
+    }
+    20.2%, 96.8% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    98.6%, 100% {
+      opacity: 0;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes undo-window {
+    0%, 20.1% {
+      opacity: 0;
+    }
+    20.9%, 26% {
+      opacity: 1;
+    }
+    27.2%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes delivers {
+    0%, 26.9% {
+      opacity: 0;
+    }
+    27.7%, 96.8% {
+      opacity: 1;
+    }
+    98.6%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes keycast-search {
+    0%, 29.6% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.86);
+    }
+    30.6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.04);
+    }
+    31.2%, 33.8% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    35%, 100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  @keyframes search-drops {
+    0%, 31.2% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.985);
+    }
+    32.6%, 52.6% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    54%, 100% {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.99);
+    }
+  }
+
+  @keyframes types-query {
+    0%, 34.2% {
+      width: 0;
+      animation-timing-function: steps(9, end);
+    }
+    37.8% {
+      width: 9ch;
+    }
+    39.4% {
+      width: 9ch;
+      animation-timing-function: steps(9, end);
+    }
+    42.4%, 100% {
+      width: 18ch;
+    }
+  }
+
+  @keyframes results-first {
+    0%, 35.9% {
+      opacity: 0;
+    }
+    36.1%, 42.35% {
+      opacity: 1;
+    }
+    42.45%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes results-refine {
+    0%, 42.45% {
+      opacity: 0;
+    }
+    42.55%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes search-actioned {
+    0%, 47.8% {
+      filter: brightness(1);
+    }
+    48.8% {
+      filter: brightness(1.45);
+    }
+    49.9%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes keycast-triage {
+    0%, 54.6% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.86);
+    }
+    55.6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.04);
+    }
+    56.2%, 58.8% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    60%, 100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  @keyframes triage-holds {
+    0%, 56.2% {
+      opacity: 0;
+    }
+    57%, 71.8% {
+      opacity: 1;
+    }
+    73%, 100% {
+      opacity: 0;
+    }
+  }
+
+  /* Filter results snap — a re-render, not a fade. */
+  @keyframes triage-row-snaps {
+    0%, 57.2% {
+      opacity: 0;
+    }
+    57.4%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes snoozed-row {
+    0%, 57.3% {
+      opacity: 0;
+    }
+    57.5%, 63.9% {
+      opacity: 1;
+    }
+    64.7%, 100% {
+      opacity: 0.55;
+    }
+  }
+
+  @keyframes snooze-lands {
+    0%, 63.7% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    64.5% {
+      opacity: 1;
+      transform: scale(1.14);
+    }
+    65.1%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes count-holds {
+    0%, 64.1% {
+      opacity: 1;
+    }
+    64.5%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes count-ticks {
+    0%, 64.3% {
+      opacity: 0;
+    }
+    64.7%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes keycast-library {
+    0%, 74.6% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.86);
+    }
+    75.6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.04);
+    }
+    76.2%, 78.8% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    80%, 100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  @keyframes library-opens {
+    0%, 76.4% {
+      opacity: 0;
+      transform: scale(0.99);
+    }
+    77.8%, 90.8% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    92.2%, 100% {
+      opacity: 0;
+      transform: scale(0.99);
+    }
+  }
+
+  @keyframes tiles-bloom {
+    0%, 77.6% {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    79.6%, 100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes lib-actioned {
+    0%, 86.4% {
+      filter: brightness(1);
+    }
+    87.4% {
+      filter: brightness(1.4);
+    }
+    88.6%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  /* Perch's 16s clock, in seconds: the cursor leaves its park at 0.5, picks
+     hero.png at 1.2 (the card brightens — and stays put), and drags a ghost
+     tile up; nearing the notch the shelf drops open at 2.3 reading "drop to
+     stash", and the tile lands at 2.6 — "1 thing waiting". At 4.6 it grabs
+     build + notes.md together and carries the pair up by 5.8 — tiles pop,
+     "3 things waiting". The shelf tucks away at 7.3 and the Space snaps
+     from Finder to a Mail draft at 7.8. The cursor hovers the notch at 9.7,
+     the shelf re-opens, and at 11.4 it grabs the STACK — three fanned tiles,
+     a count badge, and the copy pledge riding along — dropping into the
+     draft's glowing well at 12.6: chips land one-two-three, the shelf reads
+     "nothing waiting" and tucks away at 14. The last 2s rest on the draft;
+     the Space snaps back to Finder just before the seam. */
+  @keyframes shelf-opens {
+    0%, 12.5% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    14.5%, 43% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    45.5%, 58.5% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    60.5%, 85% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    87.5%, 100% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+  }
+
+  @keyframes finder-shows {
+    0%, 48.7% {
+      opacity: 1;
+    }
+    48.8%, 98.7% {
+      opacity: 0;
+    }
+    98.8%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mail-shows {
+    0%, 48.7% {
+      opacity: 0;
+    }
+    48.8%, 98.7% {
+      opacity: 1;
+    }
+    98.8%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cursor-roams {
+    0%, 3% {
+      top: 60%;
+      left: 75%;
+    }
+    7.5%, 8.5% {
+      top: 32%;
+      left: 53%;
+    }
+    14.5%, 24% {
+      top: 12%;
+      left: 50%;
+    }
+    29%, 30% {
+      top: 32%;
+      left: 40%;
+    }
+    35.5%, 37% {
+      top: 12%;
+      left: 50%;
+    }
+    44%, 57% {
+      top: 55%;
+      left: 66%;
+    }
+    60%, 64% {
+      top: 6.5%;
+      left: 50%;
+    }
+    66%, 71% {
+      top: 13%;
+      left: 50%;
+    }
+    78%, 79% {
+      top: 48%;
+      left: 44%;
+    }
+    86%, 100% {
+      top: 60%;
+      left: 75%;
+    }
+  }
+
+  @keyframes cursor-clicks {
+    0%, 7.4% {
+      transform: scale(1);
+    }
+    7.9%, 14.9% {
+      transform: scale(0.86);
+    }
+    15.4%, 28.9% {
+      transform: scale(1);
+    }
+    29.4%, 35.9% {
+      transform: scale(0.86);
+    }
+    36.4%, 70.9% {
+      transform: scale(1);
+    }
+    71.4%, 78.3% {
+      transform: scale(0.86);
+    }
+    78.8%, 100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes card-picked-first {
+    0%, 6.9% {
+      filter: brightness(1);
+    }
+    7.7%, 15.3% {
+      filter: brightness(1.35);
+    }
+    16.1%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes card-picked-late {
+    0%, 28.3% {
+      filter: brightness(1);
+    }
+    29.1%, 35.8% {
+      filter: brightness(1.35);
+    }
+    36.6%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes ghost-up-one {
+    0%, 8.6% {
+      top: 33%;
+      left: 51%;
+      opacity: 0;
+    }
+    9.6% {
+      opacity: 0.92;
+    }
+    14.9% {
+      top: 10.5%;
+      left: 48.5%;
+      opacity: 0.92;
+    }
+    15.3%, 100% {
+      top: 10.5%;
+      left: 48.5%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes ghost-up-two {
+    0%, 30.2% {
+      top: 33%;
+      left: 38%;
+      opacity: 0;
+    }
+    31.2% {
+      opacity: 0.92;
+    }
+    35.7% {
+      top: 10.5%;
+      left: 48%;
+      opacity: 0.92;
+    }
+    36.3%, 100% {
+      top: 10.5%;
+      left: 48%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes ghost-out {
+    0%, 71.6% {
+      top: 11%;
+      left: 46%;
+      opacity: 0;
+    }
+    72.6% {
+      opacity: 0.95;
+    }
+    78.1% {
+      top: 45%;
+      left: 41%;
+      opacity: 0.95;
+    }
+    78.7%, 100% {
+      top: 45%;
+      left: 41%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-drop {
+    0%, 15.9% {
+      opacity: 1;
+    }
+    16%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-one {
+    0%, 15.9% {
+      opacity: 0;
+    }
+    16%, 36.9% {
+      opacity: 1;
+    }
+    37%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-three {
+    0%, 36.9% {
+      opacity: 0;
+    }
+    37%, 77.9% {
+      opacity: 1;
+    }
+    78%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes state-empty {
+    0%, 77.9% {
+      opacity: 0;
+    }
+    78%, 100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes tile-first {
+    0%, 15.5% {
+      opacity: 0;
+      transform: translateY(-5px) scale(0.7);
+    }
+    16.6%, 70.9% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    71.7%, 77.8% {
+      opacity: 0.35;
+      transform: translateY(0) scale(1);
+    }
+    78.2%, 100% {
+      opacity: 0;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes tile-late {
+    0%, 36.2% {
+      opacity: 0;
+      transform: translateY(-5px) scale(0.7);
+    }
+    37.3%, 70.9% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    71.7%, 77.8% {
+      opacity: 0.35;
+      transform: translateY(0) scale(1);
+    }
+    78.2%, 100% {
+      opacity: 0;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes well-glows {
+    0%, 72.3% {
+      background: transparent;
+      border-color: transparent;
+    }
+    73.3%, 78.4% {
+      background: color-mix(in srgb, var(--product-accent, var(--green)) 8%, transparent);
+      border-color: color-mix(in srgb, var(--product-accent, var(--green)) 55%, transparent);
+    }
+    79.6%, 100% {
+      background: transparent;
+      border-color: transparent;
+    }
+  }
+
+  @keyframes chip-lands {
+    0%, 79.2% {
+      opacity: 0;
+      transform: translateY(4px) scale(0.9);
+    }
+    80.4%, 100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .demo-heading {
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+
+    .demo-heading > p {
+      max-width: 590px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .product-demo {
+      margin-bottom: 5rem;
+    }
+
+    .demo-heading {
+      margin-top: 1.4rem;
+    }
+
+    .demo-viewport {
+      padding-block: 0.25rem;
+    }
+
+    /* The device stays whole on phones. It used to bleed past both edges for
+       legibility, which only worked because a focus dialog could show the
+       rest; without that escape hatch a crop is just a crop. */
+    .macbook {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pounce-palette,
+    .palette-field b,
+    .palette-field .caret,
+    .palette-row,
+    .perch-shelf,
+    .win-finder,
+    .win-mail,
+    .file-card.grab-first,
+    .file-card.grab-late,
+    .shelf-item.it-first,
+    .shelf-item.it-late,
+    .shelf-state > span,
+    .st-drop,
+    .st-one,
+    .st-three,
+    .st-empty,
+    .attach-chip,
+    .drop-well,
+    .drag-ghost,
+    .ghost-up-one,
+    .ghost-up-two,
+    .ghost-out,
+    .cursor,
+    .list-triage,
+    .list-triage .chat-row,
+    .list-triage .chat-row.snoozed,
+    .snooze,
+    .preview-a,
+    .preview-b,
+    .preview-c,
+    .stamp-a,
+    .stamp-b,
+    .meta-a,
+    .meta-b,
+    .count-a,
+    .count-b,
+    .tapback,
+    .bubble.incoming,
+    .bubble.reply,
+    .undo-pill,
+    .delivered,
+    .trill-thread > footer .placeholder,
+    .trill-thread > footer .typed,
+    .trill-thread > footer .send-key,
+    .caret-slot,
+    .caret-slot .caret,
+    .sheet-field .caret,
+    .search-sheet,
+    .sheet-field .query,
+    .sheet-results.v1,
+    .sheet-results.v2,
+    .s-row.selected,
+    .library-pane,
+    .lib-tile,
+    .lib-tile.sel,
+    .key-cast {
+      animation: none;
+    }
+
+    .palette-field b {
+      width: auto;
+    }
+
+    /* The still frame is a freshly opened palette: recency list, no query. */
+    .scene-recency .palette-field b {
+      width: 0;
+    }
+
+    .bubble.incoming,
+    .palette-row {
+      opacity: 1;
+    }
+
+    /* Only the recency beat survives as a still; the other two stay hidden. */
+    .scene-recency {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    /* Trill's still is the finished conversation: tapback, reply, Delivered,
+       an empty composer — every overlay, keycast, and pill stays hidden. */
+    .tapback,
+    .bubble.incoming,
+    .bubble.reply,
+    .delivered,
+    .preview-c,
+    .stamp-b,
+    .meta-b {
+      opacity: 1;
+      transform: none;
+    }
+
+    .preview-a,
+    .stamp-a,
+    .meta-a {
+      opacity: 0;
+    }
+
+    /* Perch's still is a loaded shelf over the Finder window: three tiles,
+       "3 things waiting", no cursor, no ghosts, no Mail draft. */
+    .perch-shelf {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+
+    .shelf-item.it-first,
+    .shelf-item.it-late {
+      opacity: 1;
+      transform: none;
+    }
+
+    .st-drop {
+      opacity: 0;
+    }
+
+    .st-three {
+      opacity: 1;
+    }
+
+    .cursor {
+      opacity: 0;
+    }
+  }
+</style>

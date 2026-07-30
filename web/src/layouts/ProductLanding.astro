@@ -1,5 +1,6 @@
 ---
 import FamilyNav from '../components/FamilyNav.astro';
+import ProductDemo from '../components/ProductDemo.astro';
 import '../styles/landing-tokens.css';
 
 interface Feature {
@@ -19,6 +20,10 @@ interface Proof {
 
 interface Props {
   product: 'pounce' | 'trill' | 'perch';
+  /* Whether the hero leads with a direct download. Off for products whose
+     release artifact still assumes Homebrew lays it out (pounce, for now) —
+     those lead with brew and offer the guide as the second door. */
+  hasDownload?: boolean;
   accent: string;
   accentHover: string;
   logo: string;
@@ -54,6 +59,7 @@ interface Props {
 const props = Astro.props;
 const {
   product,
+  hasDownload = true,
   accent,
   accentHover,
   logo,
@@ -136,6 +142,35 @@ const canonical = `https://nebelhaus.com/${product}`;
           }
         </ul>
 
+        <div class="hero-cta">
+          {
+            hasDownload ? (
+              <>
+                <a class="cta-primary" href={`/download/${product}`}>
+                  <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 2.2v8.1M4.6 7l3.4 3.4L11.4 7M2.6 13.4h10.8" />
+                  </svg>
+                  Download for macOS
+                </a>
+                <a class="cta-secondary mono-cta" href="#install">
+                  <span class="prompt">$</span>&nbsp;brew install
+                </a>
+              </>
+            ) : (
+              <>
+                <a class="cta-primary mono-cta" href="#install">
+                  <span class="prompt">$</span>&nbsp;brew install
+                </a>
+                <a class="cta-secondary" href={guideHref}>Read the guide →</a>
+              </>
+            )
+          }
+        </div>
+      </section>
+
+      <ProductDemo product={product} />
+
+      <section class="install-section" id="install" aria-label="Install with Homebrew">
         <div class="install">
           <p class="install-label">install standalone with homebrew</p>
           <div class="install-row">
@@ -302,8 +337,76 @@ const canonical = `https://nebelhaus.com/${product}`;
       }
 
       .hero {
-        padding: 3.65rem 0 5.5rem;
+        padding: 3.65rem 0 3.1rem;
         text-align: center;
+      }
+
+      /* Two doors, one row: the primary is the accent act (the notarized
+         download — or brew, where no download ships yet), the secondary
+         mirrors its height so neither reads as an afterthought. */
+      .hero-cta {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+      }
+
+      .cta-primary,
+      .cta-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-width: 208px;
+        padding: 0.8rem 1.5rem;
+        border-radius: 10px;
+        font-size: 0.98rem;
+        font-weight: 650;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      .cta-primary {
+        background: var(--product-accent);
+        border: 1px solid var(--product-accent);
+        color: var(--crust);
+        box-shadow: 0 12px 40px color-mix(in srgb, var(--product-accent) 22%, transparent);
+      }
+
+      .cta-primary:hover {
+        background: var(--product-accent-hover);
+        border-color: var(--product-accent-hover);
+        color: var(--crust);
+      }
+
+      .cta-secondary {
+        background: var(--crust);
+        border: 1px solid var(--surface1);
+        color: var(--text);
+        font-weight: 550;
+      }
+
+      .cta-secondary:hover {
+        border-color: var(--surface2);
+        color: var(--text);
+      }
+
+      .mono-cta {
+        font-family: var(--mono);
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+
+      .cta-secondary.mono-cta .prompt {
+        color: var(--mauve);
+      }
+
+      .cta-primary.mono-cta {
+        font-weight: 600;
+      }
+
+      .cta-primary.mono-cta .prompt {
+        opacity: 0.6;
       }
 
       .eyebrow,
@@ -364,6 +467,12 @@ const canonical = `https://nebelhaus.com/${product}`;
         border-color: color-mix(in srgb, var(--product-accent) 52%, var(--surface0));
         color: var(--product-accent);
         font-weight: 650;
+      }
+
+      .install-section {
+        margin: 0 0 5.5rem;
+        scroll-margin-top: 2rem;
+        text-align: center;
       }
 
       .install {
@@ -740,7 +849,12 @@ const canonical = `https://nebelhaus.com/${product}`;
         }
 
         .hero {
-          padding: 2.9rem 0 4.5rem;
+          padding: 2.9rem 0 2.3rem;
+        }
+
+        .cta-primary,
+        .cta-secondary {
+          flex: 1 1 100%;
         }
 
         .eyebrow {
