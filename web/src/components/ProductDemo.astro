@@ -330,7 +330,7 @@ const content = {
                 <div
                   class="perch-demo"
                   role="img"
-                  aria-label="Perch ferrying screenshots between apps: ⇧⌘3 captures the trill landing page in a browser and the floating thumbnail is dragged into the notch shelf; a second capture of a terminal build run follows from another window; then Finder opens and the two staged shots drag out one at a time — one into the open release folder, one into the shots favorite — copy-only throughout, originals untouched"
+                  aria-label="Perch ferrying a QA session through the notch shelf: ⇧⌘3 captures the trill landing page and the floating thumbnail is dragged into the shelf, which grows out of the notch and tucks away whenever the cursor leaves; clicking Download for macOS lands Trill in the Dock's Downloads stack, which fans open so the download can be dragged in too; then Finder opens and both drag out one at a time — the screenshot into the shots folder, Trill into Applications — copy-only throughout, originals untouched"
                 >
                   <div class="desktop-menu" aria-hidden="true">
                     <span>⌁ &nbsp; Finder &nbsp; File &nbsp; Edit &nbsp; View</span>
@@ -349,39 +349,49 @@ const content = {
                       <span class="bp-cta">Download for macOS</span>
                     </div>
                   </div>
-                  <div class="desktop-window win-term" aria-hidden="true">
-                    <header><i /><i /><i /><span>hearth — zellij</span></header>
-                    <div class="term-lines">
-                      <p><b class="tp">❯</b> bench try</p>
-                      <p class="dim">building nebelhaus against local checkouts…</p>
-                      <p><i class="ok">✓</i> pounce &nbsp;&nbsp;<i class="ok">✓</i> trill &nbsp;&nbsp;<i class="ok">✓</i> perch</p>
-                      <p><i class="ok">✓</i> switch ready in 42s</p>
-                      <p><b class="tp">❯</b> <span class="block-caret" /></p>
-                    </div>
-                  </div>
                   <div class="desktop-window win-finder" aria-hidden="true">
                     <header>
                       <i /><i /><i />
                       <span class="flip win-title">
-                        <i class="ti-release">release</i>
                         <i class="ti-shots">shots</i>
+                        <i class="ti-apps">Applications</i>
                       </span>
                     </header>
                     <aside>
                       <b>Favorites</b>
                       <span>⌂ &nbsp; AirDrop</span>
-                      <span>▣ &nbsp; Applications</span>
+                      <span class="fav-apps">▣ &nbsp; Applications</span>
                       <span class="fav-shots">◫ &nbsp; shots</span>
                       <span>⌁ &nbsp; Downloads</span>
                     </aside>
-                    <div class="desktop-main main-release">
-                      <div class="file-card"><i class="folder" /><span>build</span></div>
-                      <div class="file-card"><i class="document" /><span>notes.md</span></div>
-                      <div class="file-card card-a"><i class="shot-mini mini-browser" /><span>trill.png</span></div>
-                    </div>
                     <div class="desktop-main main-shots">
-                      <div class="file-card card-b"><i class="shot-mini mini-term" /><span>hearth.png</span></div>
+                      <div class="file-card card-shot"><i class="shot-mini mini-browser" /><span>landing.png</span></div>
                     </div>
+                    <div class="desktop-main main-apps">
+                      <div class="file-card">
+                        <img class="app-ico" src="/media/app-icons/zen.png" alt="" loading="lazy" decoding="async" />
+                        <span>Zen</span>
+                      </div>
+                      <div class="file-card">
+                        <img class="app-ico" src="/media/app-icons/slack.png" alt="" loading="lazy" decoding="async" />
+                        <span>Slack</span>
+                      </div>
+                      <div class="file-card card-app">
+                        <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                        <span>Trill</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dock" aria-hidden="true">
+                    <img src="/media/app-icons/zen.png" alt="" loading="lazy" decoding="async" />
+                    <img src="/media/app-icons/claude.png" alt="" loading="lazy" decoding="async" />
+                    <img src="/media/app-icons/slack.png" alt="" loading="lazy" decoding="async" />
+                    <i class="sep" />
+                    <span class="stack">↓<b class="dl-badge">1</b></span>
+                  </div>
+                  <div class="dl-fan" aria-hidden="true">
+                    <img src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                    <em>Trill.zip</em>
                   </div>
                   <div class="perch-shelf" aria-hidden="true">
                     <header>
@@ -394,22 +404,26 @@ const content = {
                       <b>copy-only</b>
                     </header>
                     <div class="shelf-items">
-                      <div class="shelf-item sh-a"><i class="shot-mini mini-browser" /><span>trill.png</span></div>
-                      <div class="shelf-item sh-b"><i class="shot-mini mini-term" /><span>hearth.png</span></div>
+                      <div class="shelf-item sh-a"><i class="shot-mini mini-browser" /><span>landing.png</span></div>
+                      <div class="shelf-item sh-b">
+                        <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                        <span>Trill.zip</span>
+                      </div>
                     </div>
                   </div>
                   <i class="shutter" aria-hidden="true" />
                   <i class="key-cast kc-shot" aria-hidden="true">⇧⌘3</i>
                   <span class="thumb thumb-a" aria-hidden="true"><i class="shot-mini mini-browser" /></span>
-                  <span class="thumb thumb-b" aria-hidden="true"><i class="shot-mini mini-term" /></span>
-                  <i class="drag-ghost g-in-a" aria-hidden="true"><i class="shot-mini mini-browser" /></i>
-                  <i class="drag-ghost g-in-b" aria-hidden="true"><i class="shot-mini mini-term" /></i>
-                  <i class="drag-ghost g-out-a" aria-hidden="true">
+                  <i class="drag-ghost g-shot-in" aria-hidden="true"><i class="shot-mini mini-browser" /></i>
+                  <i class="drag-ghost g-dl-in" aria-hidden="true">
+                    <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                  </i>
+                  <i class="drag-ghost g-shot-out" aria-hidden="true">
                     <i class="shot-mini mini-browser" />
                     <em class="copy-pill">copy</em>
                   </i>
-                  <i class="drag-ghost g-out-b" aria-hidden="true">
-                    <i class="shot-mini mini-term" />
+                  <i class="drag-ghost g-dl-out" aria-hidden="true">
+                    <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
                     <em class="copy-pill">copy</em>
                   </i>
                   <i class="cursor" aria-hidden="true" />
@@ -1853,15 +1867,9 @@ const content = {
     font-size: 0.76em;
   }
 
-  /* Sits low enough that the open shelf (which reaches ~23% while holding
-     the session's screenshots) never covers a window's chrome. */
   .desktop-window {
     display: grid;
     position: absolute;
-    top: 26%;
-    left: 10%;
-    width: 58%;
-    height: 56%;
     grid-template-columns: 27% 73%;
     grid-template-rows: 12% 88%;
     overflow: hidden;
@@ -1871,22 +1879,25 @@ const content = {
     box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
   }
 
-  /* Browser, terminal, and Finder are triplets in one slot, snapped on the
-     same frame — an app switch, not a crossfade. */
+  /* The browser and Finder live in different corners of the desk — real
+     desktops aren't one window slot — and swap on the same frame. Both sit
+     clear of the shelf's drop zone under the notch. */
   .win-browser {
+    top: 20%;
+    left: 5%;
+    width: 52%;
+    height: 56%;
     grid-template-columns: 1fr;
-    animation: browser-shows 18s linear infinite;
-  }
-
-  .win-term {
-    grid-template-columns: 1fr;
-    opacity: 0;
-    animation: term-shows 18s linear infinite;
+    animation: browser-shows 20s linear infinite;
   }
 
   .win-finder {
+    top: 30%;
+    left: 38%;
+    width: 55%;
+    height: 52%;
     opacity: 0;
-    animation: finder-shows 18s linear infinite;
+    animation: finder-shows 20s linear infinite;
   }
 
   .url-pill {
@@ -1948,99 +1959,81 @@ const content = {
     color: var(--crust);
     font-size: 0.72em;
     font-weight: 650;
+    animation: cta-clicked 20s linear infinite;
   }
 
-  /* The other half of the QA loop: the build that shipped it. */
-  .term-lines {
-    display: grid;
-    align-content: start;
-    gap: 0.55em;
-    padding: 6% 7%;
-    background: color-mix(in srgb, var(--crust) 88%, transparent);
-    font-family: var(--mono);
-    font-size: 0.82em;
-  }
-
-  .term-lines p {
-    display: flex;
-    align-items: center;
-    gap: 0.6em;
-    margin: 0;
-  }
-
-  .term-lines .tp {
-    color: var(--green);
-    font-weight: 700;
-  }
-
-  .term-lines .ok {
-    color: var(--green);
-    font-style: normal;
-  }
-
-  .term-lines .dim {
-    color: var(--overlay1);
-  }
-
-  .block-caret {
-    width: 0.6em;
-    height: 1.05em;
-    background: var(--text);
-    animation: caret-blinks 1.06s steps(2, jump-none) infinite;
-  }
-
-  /* Finder shows two views in one frame slot: the release folder it opened
-     on, then the shots favorite once it's clicked. The title sits left of
-     center — centered it would hide behind the open shelf. */
+  /* Finder shows two views in one frame slot: the shots folder it opened
+     on, then Applications once its favorite is clicked. The title sits left
+     of center — centered it would hide behind the open shelf. */
   .desktop-window header .win-title {
     justify-items: start;
     margin: 0 auto 0 0.8em;
   }
 
-  .ti-release {
-    animation: finder-first-view 18s steps(1, end) infinite;
+  .ti-shots {
+    animation: finder-first-view 20s steps(1, end) infinite;
   }
 
-  .ti-shots {
+  .ti-apps {
     opacity: 0;
-    animation: finder-second-view 18s steps(1, end) infinite;
+    animation: finder-second-view 20s steps(1, end) infinite;
   }
 
   .win-finder .desktop-main {
     grid-area: 2 / 2;
   }
 
-  .main-release {
+  .main-shots {
     animation:
-      finder-first-view 18s steps(1, end) infinite,
-      main-a-glows 18s linear infinite;
+      finder-first-view 20s steps(1, end) infinite,
+      main-a-glows 20s linear infinite;
   }
 
-  .main-shots {
+  .main-apps {
     opacity: 0;
     animation:
-      finder-second-view 18s steps(1, end) infinite,
-      main-b-glows 18s linear infinite;
+      finder-second-view 20s steps(1, end) infinite,
+      main-b-glows 20s linear infinite;
   }
 
-  .fav-shots {
+  .fav-shots,
+  .fav-apps {
     margin: -0.3em -0.5em;
     padding: 0.3em 0.5em;
     border-radius: 5px;
-    animation: fav-selected 18s steps(1, end) infinite;
+  }
+
+  .fav-shots {
+    animation: fav-shots-selected 20s steps(1, end) infinite;
+  }
+
+  .fav-apps {
+    animation: fav-apps-selected 20s steps(1, end) infinite;
   }
 
   /* The landed copies — they pop into the view that accepted them. */
-  .file-card.card-a {
+  .file-card.card-shot {
     opacity: 0;
     transform: translateY(4px) scale(0.85);
-    animation: card-a-lands 18s ease-out infinite;
+    animation: card-shot-lands 20s ease-out infinite;
   }
 
-  .file-card.card-b {
+  .file-card.card-app {
     opacity: 0;
     transform: translateY(4px) scale(0.85);
-    animation: card-b-lands 18s ease-out infinite;
+    animation: card-app-lands 20s ease-out infinite;
+  }
+
+  /* Real app icons, same bitmaps as the pounce rows and the Dock. */
+  .app-ico {
+    display: block;
+    width: 2.4em;
+    height: 2.4em;
+  }
+
+  .shelf-item .app-ico {
+    width: 2.2em;
+    height: 2.2em;
   }
 
   /* A macOS screenshot in miniature: white-bordered, one per app. */
@@ -2068,20 +2061,6 @@ const content = {
     opacity: 0.85;
   }
 
-  .mini-term {
-    background: var(--crust);
-  }
-
-  .mini-term::after {
-    position: absolute;
-    top: 26%;
-    left: 15%;
-    width: 48%;
-    height: 48%;
-    background: repeating-linear-gradient(var(--green) 0 1.5px, transparent 1.5px 6px);
-    content: '';
-    opacity: 0.8;
-  }
 
   /* The capture flash, then the floating thumbnail macOS parks bottom-right. */
   .shutter {
@@ -2091,19 +2070,19 @@ const content = {
     background: var(--text);
     opacity: 0;
     pointer-events: none;
-    animation: shutter-fires 18s linear infinite;
+    animation: shutter-fires 20s linear infinite;
   }
 
   .kc-shot {
     top: 16%;
     left: 66%;
-    animation: keycast-shots 18s ease-out infinite;
+    animation: keycast-shots 20s ease-out infinite;
   }
 
   .thumb {
     position: absolute;
     right: 5.5%;
-    bottom: 7%;
+    bottom: 11%;
     z-index: 4;
     opacity: 0;
   }
@@ -2116,11 +2095,100 @@ const content = {
   }
 
   .thumb-a {
-    animation: thumb-a-parks 18s ease-out infinite;
+    animation: thumb-parks 20s ease-out infinite;
   }
 
-  .thumb-b {
-    animation: thumb-b-parks 18s ease-out infinite;
+  /* The desk chrome perch shares the screen with: a Dock with real app
+     icons and a Downloads stack that fans the fresh download open. */
+  /* The screen div bleeds ~2.4% under the frame's bezel art (pinned
+     geometry), so the Dock floats clear of that covered strip. */
+  .dock {
+    display: flex;
+    position: absolute;
+    bottom: 9.5%;
+    left: 50%;
+    z-index: 2;
+    align-items: center;
+    gap: 0.55em;
+    padding: 0.45em 0.65em;
+    background: color-mix(in srgb, var(--surface0) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--surface2) 40%, transparent);
+    border-radius: 1em;
+    transform: translateX(-50%);
+  }
+
+  .dock img {
+    display: block;
+    width: 2.3em;
+    height: 2.3em;
+  }
+
+  .dock .sep {
+    width: 1px;
+    height: 2em;
+    background: var(--surface2);
+  }
+
+  .dock .stack {
+    display: grid;
+    position: relative;
+    width: 2.1em;
+    height: 2.1em;
+    place-items: center;
+    background: color-mix(in srgb, var(--blue) 18%, var(--surface1));
+    border-radius: 22%;
+    color: var(--blue);
+    font-weight: 700;
+    animation: stack-bounces 20s ease-out infinite;
+  }
+
+  .dl-badge {
+    display: grid;
+    position: absolute;
+    top: -0.45em;
+    right: -0.45em;
+    width: 1.25em;
+    height: 1.25em;
+    place-items: center;
+    background: var(--blue);
+    border-radius: 50%;
+    color: var(--crust);
+    font-size: 0.66em;
+    font-weight: 750;
+    opacity: 0;
+    transform: scale(0.4);
+    animation: badge-pops 20s ease-out infinite;
+  }
+
+  .dl-fan {
+    display: grid;
+    position: absolute;
+    bottom: 21%;
+    left: 56.5%;
+    z-index: 2;
+    justify-items: center;
+    gap: 0.3em;
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.88);
+    transform-origin: bottom;
+    animation: fan-opens 20s ease-out infinite;
+  }
+
+  .dl-fan img {
+    display: block;
+    width: 3em;
+    height: 3em;
+  }
+
+  .dl-fan em {
+    padding: 0.2em 0.6em;
+    background: color-mix(in srgb, var(--crust) 92%, transparent);
+    border: 1px solid var(--surface1);
+    border-radius: 1em;
+    color: var(--subtext0);
+    font-family: var(--mono);
+    font-size: 0.68em;
+    font-style: normal;
   }
 
   /* Drag ghosts: the staged copy travelling under the cursor; leaving the
@@ -2138,20 +2206,26 @@ const content = {
     height: 2.1em;
   }
 
-  .g-in-a {
-    animation: ghost-in-a 18s ease-in-out infinite;
+  .drag-ghost .app-ico {
+    width: 2.6em;
+    height: 2.6em;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
   }
 
-  .g-in-b {
-    animation: ghost-in-b 18s ease-in-out infinite;
+  .g-shot-in {
+    animation: ghost-shot-in 20s ease-in-out infinite;
   }
 
-  .g-out-a {
-    animation: ghost-out-a 18s ease-in-out infinite;
+  .g-dl-in {
+    animation: ghost-dl-in 20s ease-in-out infinite;
   }
 
-  .g-out-b {
-    animation: ghost-out-b 18s ease-in-out infinite;
+  .g-shot-out {
+    animation: ghost-shot-out 20s ease-in-out infinite;
+  }
+
+  .g-dl-out {
+    animation: ghost-dl-out 20s ease-in-out infinite;
   }
 
   .desktop-window header {
@@ -2259,20 +2333,24 @@ const content = {
     border: 1px solid var(--overlay0);
   }
 
+  /* Grows out of the notch, not from under it: the shelf starts at the
+     panel's top edge and runs up BEHIND the notch (the frame paints over
+     it, z-index 3 over 2), so opening reads as the notch extruding. The
+     top padding clears the notch's ~6% bite before the header renders. */
   .perch-shelf {
     position: absolute;
-    top: 5.7%;
+    top: 0;
     left: 50%;
     z-index: 2;
-    width: 45%;
-    padding: 3.7% 2.3% 2.4%;
+    width: 34%;
+    padding: 7% 1.6% 1.6%;
     background: color-mix(in srgb, var(--mantle) 97%, transparent);
     border: 1px solid var(--surface1);
     border-radius: 0 0 13px 13px;
     box-shadow: 0 17px 40px rgba(0, 0, 0, 0.48);
     transform: translate(-50%, -84%) scaleX(0.35);
     transform-origin: top;
-    animation: shelf-opens 18s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    animation: shelf-opens 20s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
 
   .perch-shelf header {
@@ -2299,19 +2377,19 @@ const content = {
   }
 
   .st-drop {
-    animation: state-drop 18s steps(1, end) infinite;
+    animation: state-drop 20s steps(1, end) infinite;
   }
 
   .st-one {
-    animation: state-one 18s steps(1, end) infinite;
+    animation: state-one 20s steps(1, end) infinite;
   }
 
   .st-two {
-    animation: state-two 18s steps(1, end) infinite;
+    animation: state-two 20s steps(1, end) infinite;
   }
 
   .st-empty {
-    animation: state-empty 18s steps(1, end) infinite;
+    animation: state-empty 20s steps(1, end) infinite;
   }
 
   .shelf-items {
@@ -2328,12 +2406,12 @@ const content = {
      the frame the destination accepts them. */
   .shelf-item.sh-a {
     opacity: 0;
-    animation: shot-a-waits 18s ease-out infinite;
+    animation: shot-a-waits 20s ease-out infinite;
   }
 
   .shelf-item.sh-b {
     opacity: 0;
-    animation: shot-b-waits 18s ease-out infinite;
+    animation: shot-b-waits 20s ease-out infinite;
   }
 
   .copy-pill {
@@ -2363,8 +2441,8 @@ const content = {
     clip-path: polygon(0 0, 0 78%, 22% 63%, 38% 100%, 54% 92%, 37% 58%, 62% 56%);
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
     animation:
-      cursor-roams 18s ease-in-out infinite,
-      cursor-clicks 18s linear infinite;
+      cursor-roams 20s ease-in-out infinite,
+      cursor-clicks 20s linear infinite;
   }
 
   /* The 14s clock, in seconds: summon at 0, recency list up by 0.2. Typing
@@ -3030,496 +3108,568 @@ const content = {
     }
   }
 
-  /* Perch's 18s clock, in seconds: you're QA-ing the landing page you just
-     shipped. ⇧⌘3 at 1.3 — flash — and macOS parks the thumbnail bottom-right
-     at 1.6; the cursor drags it up at 2.3, the shelf drops open ("drop to
-     stash") as the drag nears the notch, and the shot lands at 3.6 — "1
-     thing waiting". The app snaps to the terminal that built it at 4.4;
-     ⇧⌘3 again at 5.3, thumbnail at 5.6, dragged in by 7.4 — "2 things
-     waiting". Finder opens on the release folder at 8.3: the first shot
-     drags out of the shelf (wearing the copy pledge) and pops in as
-     trill.png at 10.5. The cursor clicks the shots favorite at 11.5 — the
-     sidebar row lights, the view snaps — and the second shot files there,
-     landing as hearth.png at 13.9. "Nothing waiting"; the shelf tucks away
-     at 15.3, and the last two seconds rest on the filed result before the
-     apps snap back for the seam. */
+  /* Perch's 20s clock, in seconds: you're QA-ing the trill landing page.
+     ⇧⌘3 at 1.0 — flash — and macOS parks the thumbnail bottom-right; the
+     cursor drags it toward the notch and the shelf grows out of it at 2.7
+     ("drop to stash"); the shot lands at 3.5 — "1 thing waiting" — and the
+     shelf tucks away as the cursor walks off. It clicks Download for macOS
+     at 5.2: the Dock's Downloads stack bounces and takes a badge; clicking
+     the stack at 6.7 fans Trill.zip open, and dragging it up re-opens the
+     shelf — "2 things waiting" at 8.9 — which closes again once the cursor
+     leaves. Finder appears at 10.4 on the shots folder; a notch hover at
+     11.7 re-opens the shelf and the screenshot files into the glowing
+     folder at 13.7. A click on the Applications favorite at 14.7 lights
+     the row and snaps the view — Zen and Slack already live there — and
+     Trill lands beside them at 16.5. "Nothing waiting"; the shelf tucks
+     away at 17.8 and the desk rests on the installed result before the
+     seam snaps back. */
   @keyframes shelf-opens {
-    0%, 15.6% {
+    0%, 12.4% {
       opacity: 0;
       transform: translate(-50%, -84%) scaleX(0.35);
     }
-    17.4%, 82.4% {
+    13.4%, 20.4% {
       opacity: 1;
       transform: translate(-50%, 0) scaleX(1);
     }
-    84.8%, 100% {
+    22.4%, 39.4% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    40.4%, 47.4% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    49.4%, 58.9% {
+      opacity: 0;
+      transform: translate(-50%, -84%) scaleX(0.35);
+    }
+    59.9%, 87% {
+      opacity: 1;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+    89%, 100% {
       opacity: 0;
       transform: translate(-50%, -84%) scaleX(0.35);
     }
   }
 
   @keyframes browser-shows {
-    0%, 24.3% {
+    0%, 51.9% {
       opacity: 1;
     }
-    24.4%, 98.85% {
+    52%, 99.4% {
       opacity: 0;
     }
-    98.95%, 100% {
+    99.5%, 100% {
       opacity: 1;
-    }
-  }
-
-  @keyframes term-shows {
-    0%, 24.3% {
-      opacity: 0;
-    }
-    24.4%, 45.9% {
-      opacity: 1;
-    }
-    46%, 100% {
-      opacity: 0;
     }
   }
 
   @keyframes finder-shows {
-    0%, 45.9% {
+    0%, 51.9% {
       opacity: 0;
     }
-    46%, 98.85% {
+    52%, 99.4% {
       opacity: 1;
     }
-    98.95%, 100% {
+    99.5%, 100% {
       opacity: 0;
     }
   }
 
   @keyframes finder-first-view {
-    0%, 64.9% {
+    0%, 73.9% {
       opacity: 1;
     }
-    65%, 98.85% {
+    74%, 99.4% {
       opacity: 0;
     }
-    98.95%, 100% {
+    99.5%, 100% {
       opacity: 1;
     }
   }
 
   @keyframes finder-second-view {
-    0%, 64.9% {
+    0%, 73.9% {
       opacity: 0;
     }
-    65%, 98.85% {
+    74%, 99.4% {
       opacity: 1;
     }
-    98.95%, 100% {
+    99.5%, 100% {
       opacity: 0;
     }
   }
 
-  @keyframes fav-selected {
-    0%, 64.3% {
+  @keyframes fav-shots-selected {
+    0%, 51.9% {
       background: transparent;
       color: var(--subtext0);
     }
-    64.4%, 98.85% {
+    52%, 73.9% {
       background: color-mix(in srgb, var(--product-accent, var(--green)) 22%, transparent);
       color: var(--text);
     }
-    98.95%, 100% {
+    74%, 100% {
+      background: transparent;
+      color: var(--subtext0);
+    }
+  }
+
+  @keyframes fav-apps-selected {
+    0%, 73.9% {
+      background: transparent;
+      color: var(--subtext0);
+    }
+    74%, 99.4% {
+      background: color-mix(in srgb, var(--product-accent, var(--green)) 22%, transparent);
+      color: var(--text);
+    }
+    99.5%, 100% {
       background: transparent;
       color: var(--subtext0);
     }
   }
 
   @keyframes keycast-shots {
-    0%, 6.4% {
+    0%, 4.6% {
       opacity: 0;
       transform: scale(0.86);
     }
-    7.1% {
+    5.3% {
       opacity: 1;
       transform: scale(1.04);
     }
-    7.7%, 9.4% {
+    5.9%, 7.4% {
       opacity: 1;
       transform: scale(1);
     }
-    10.6%, 28.4% {
-      opacity: 0;
-      transform: scale(0.86);
-    }
-    29.1% {
-      opacity: 1;
-      transform: scale(1.04);
-    }
-    29.7%, 31.6% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    32.8%, 100% {
+    8.6%, 100% {
       opacity: 0;
       transform: scale(0.86);
     }
   }
 
   @keyframes shutter-fires {
-    0%, 6.9% {
+    0%, 5.1% {
       opacity: 0;
     }
-    7.3% {
+    5.5% {
       opacity: 0.5;
     }
-    8.3%, 28.9% {
-      opacity: 0;
-    }
-    29.3% {
-      opacity: 0.5;
-    }
-    30.3%, 100% {
+    6.5%, 100% {
       opacity: 0;
     }
   }
 
-  @keyframes thumb-a-parks {
-    0%, 8.3% {
+  @keyframes thumb-parks {
+    0%, 6.2% {
       opacity: 0;
       transform: translateX(14px);
     }
-    9.7%, 12.7% {
+    7.4%, 10.4% {
       opacity: 1;
       transform: translateX(0);
     }
-    12.9%, 100% {
+    10.7%, 100% {
       opacity: 0;
       transform: translateX(0);
     }
   }
 
-  @keyframes thumb-b-parks {
-    0%, 30.5% {
-      opacity: 0;
-      transform: translateX(14px);
+  @keyframes cta-clicked {
+    0%, 26% {
+      filter: brightness(1);
     }
-    31.9%, 34.9% {
+    26.6% {
+      filter: brightness(1.35);
+    }
+    27.4%, 100% {
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes stack-bounces {
+    0%, 27.9% {
+      transform: translateY(0);
+    }
+    28.4% {
+      transform: translateY(-6px);
+    }
+    29% {
+      transform: translateY(0);
+    }
+    29.5% {
+      transform: translateY(-3px);
+    }
+    30%, 100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes badge-pops {
+    0%, 28% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    28.8% {
       opacity: 1;
-      transform: translateX(0);
+      transform: scale(1.15);
     }
-    35.1%, 100% {
+    29.4%, 99.2% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    99.6%, 100% {
       opacity: 0;
-      transform: translateX(0);
+      transform: scale(1);
     }
   }
 
-  @keyframes ghost-in-a {
-    0%, 12.9% {
-      top: 78%;
-      left: 82%;
+  @keyframes fan-opens {
+    0%, 33.9% {
+      opacity: 0;
+      transform: translate(-50%, 8px) scale(0.88);
+    }
+    34.9%, 37.4% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    38.4%, 100% {
+      opacity: 0;
+      transform: translate(-50%, 4px) scale(0.94);
+    }
+  }
+
+  @keyframes ghost-shot-in {
+    0%, 10.7% {
+      top: 80%;
+      left: 82.5%;
       opacity: 0;
     }
-    13.9% {
+    11.7% {
       opacity: 0.95;
     }
-    19.3% {
-      top: 10.5%;
+    17.2% {
+      top: 11%;
       left: 47%;
       opacity: 0.95;
     }
-    19.9%, 100% {
-      top: 10.5%;
+    17.8%, 100% {
+      top: 11%;
       left: 47%;
       opacity: 0;
     }
   }
 
-  @keyframes ghost-in-b {
-    0%, 35.1% {
-      top: 78%;
-      left: 82%;
+  @keyframes ghost-dl-in {
+    0%, 37.6% {
+      top: 69%;
+      left: 54.5%;
       opacity: 0;
     }
-    36.1% {
+    38.6% {
       opacity: 0.95;
     }
-    40.7% {
-      top: 10.5%;
+    44.2% {
+      top: 11%;
       left: 47%;
       opacity: 0.95;
     }
-    41.3%, 100% {
-      top: 10.5%;
+    44.8%, 100% {
+      top: 11%;
       left: 47%;
       opacity: 0;
     }
   }
 
-  @keyframes ghost-out-a {
-    0%, 50.9% {
+  @keyframes ghost-shot-out {
+    0%, 62% {
       top: 12%;
-      left: 41%;
+      left: 45.5%;
       opacity: 0;
     }
-    51.9% {
+    63% {
       opacity: 0.95;
     }
-    56.9% {
-      top: 38%;
-      left: 40%;
+    68.2% {
+      top: 47%;
+      left: 67%;
       opacity: 0.95;
     }
-    57.5%, 100% {
-      top: 38%;
-      left: 40%;
+    68.8%, 100% {
+      top: 47%;
+      left: 67%;
       opacity: 0;
     }
   }
 
-  @keyframes ghost-out-b {
-    0%, 69.7% {
+  @keyframes ghost-dl-out {
+    0%, 76.5% {
       top: 12%;
-      left: 53%;
+      left: 51.5%;
       opacity: 0;
     }
-    70.7% {
+    77.5% {
       opacity: 0.95;
     }
-    75.7% {
-      top: 40%;
-      left: 38%;
+    82.2% {
+      top: 49%;
+      left: 67%;
       opacity: 0.95;
     }
-    76.3%, 100% {
-      top: 40%;
-      left: 38%;
+    82.8%, 100% {
+      top: 49%;
+      left: 67%;
       opacity: 0;
     }
   }
 
   @keyframes cursor-roams {
     0%, 4% {
-      top: 46%;
-      left: 78%;
+      top: 40%;
+      left: 74%;
     }
-    12.2%, 12.8% {
-      top: 80%;
+    10%, 10.6% {
+      top: 84%;
       left: 85%;
     }
-    19.4%, 20% {
+    17%, 17.5% {
       top: 13%;
       left: 50%;
     }
-    23%, 26% {
-      top: 34%;
-      left: 62%;
+    21.5%, 26.8% {
+      top: 57%;
+      left: 31%;
     }
-    34.4%, 35% {
-      top: 80%;
-      left: 85%;
+    32%, 33.8% {
+      top: 87.5%;
+      left: 56.5%;
     }
-    40.6%, 41.2% {
+    37%, 37.5% {
+      top: 73%;
+      left: 56.5%;
+    }
+    44%, 44.5% {
       top: 13%;
       left: 50%;
     }
-    45%, 48% {
-      top: 38%;
+    48%, 51% {
+      top: 42%;
       left: 66%;
     }
-    50%, 50.6% {
-      top: 14%;
+    58%, 59.5% {
+      top: 5%;
+      left: 50%;
+    }
+    61.5%, 62% {
+      top: 13%;
+      left: 46.5%;
+    }
+    68%, 68.5% {
+      top: 50%;
+      left: 70%;
+    }
+    72.5%, 74.3% {
+      top: 48%;
       left: 44%;
     }
-    56.7%, 57.3% {
+    76%, 76.5% {
+      top: 13%;
+      left: 53.5%;
+    }
+    82%, 82.5% {
+      top: 52%;
+      left: 70%;
+    }
+    87%, 100% {
       top: 40%;
-      left: 43%;
-    }
-    63.3%, 64.6% {
-      top: 50%;
-      left: 16.5%;
-    }
-    68.9%, 69.4% {
-      top: 14%;
-      left: 56%;
-    }
-    75.6%, 76.1% {
-      top: 42%;
-      left: 41%;
-    }
-    84%, 100% {
-      top: 46%;
-      left: 78%;
+      left: 74%;
     }
   }
 
   @keyframes cursor-clicks {
-    0%, 12.7% {
+    0%, 10.5% {
       transform: scale(1);
     }
-    13.2%, 19.6% {
+    11%, 17.3% {
       transform: scale(0.86);
     }
-    20.1%, 34.9% {
+    17.8%, 25.9% {
       transform: scale(1);
     }
-    35.4%, 40.8% {
+    26.2%, 26.8% {
       transform: scale(0.86);
     }
-    41.3%, 50.4% {
+    27.1%, 32.9% {
       transform: scale(1);
     }
-    50.9%, 56.9% {
+    33.2%, 33.8% {
       transform: scale(0.86);
     }
-    57.4%, 63.5% {
+    34.1%, 37.3% {
       transform: scale(1);
     }
-    63.9%, 64.6% {
+    37.6%, 44.3% {
       transform: scale(0.86);
     }
-    65.1%, 69.1% {
+    44.8%, 61.8% {
       transform: scale(1);
     }
-    69.6%, 75.7% {
+    62.1%, 68.3% {
       transform: scale(0.86);
     }
-    76.2%, 100% {
+    68.8%, 73.4% {
+      transform: scale(1);
+    }
+    73.7%, 74.3% {
+      transform: scale(0.86);
+    }
+    74.6%, 76.3% {
+      transform: scale(1);
+    }
+    76.6%, 82.3% {
+      transform: scale(0.86);
+    }
+    82.8%, 100% {
       transform: scale(1);
     }
   }
 
   @keyframes state-drop {
-    0%, 19.9% {
+    0%, 17.4% {
       opacity: 1;
     }
-    20%, 100% {
+    17.5%, 100% {
       opacity: 0;
     }
   }
 
   @keyframes state-one {
-    0%, 19.9% {
+    0%, 17.4% {
       opacity: 0;
     }
-    20%, 41.1% {
+    17.5%, 44.4% {
       opacity: 1;
     }
-    41.2%, 58.3% {
+    44.5%, 68.4% {
       opacity: 0;
     }
-    58.4%, 77.1% {
+    68.5%, 82.4% {
       opacity: 1;
     }
-    77.2%, 100% {
+    82.5%, 100% {
       opacity: 0;
     }
   }
 
   @keyframes state-two {
-    0%, 41.1% {
+    0%, 44.4% {
       opacity: 0;
     }
-    41.2%, 58.3% {
+    44.5%, 68.4% {
       opacity: 1;
     }
-    58.4%, 100% {
+    68.5%, 100% {
       opacity: 0;
     }
   }
 
   @keyframes state-empty {
-    0%, 77.1% {
+    0%, 82.4% {
       opacity: 0;
     }
-    77.2%, 100% {
+    82.5%, 100% {
       opacity: 1;
     }
   }
 
   @keyframes shot-a-waits {
-    0%, 19.8% {
+    0%, 17.4% {
       opacity: 0;
       transform: translateY(-5px) scale(0.7);
     }
-    20.9%, 50.6% {
+    18.4%, 61.9% {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
-    51.4%, 57.1% {
+    62.6%, 68.2% {
       opacity: 0.35;
       transform: translateY(0) scale(1);
     }
-    57.5%, 100% {
+    68.6%, 100% {
       opacity: 0;
       transform: translateY(0) scale(1);
     }
   }
 
   @keyframes shot-b-waits {
-    0%, 41% {
+    0%, 44.4% {
       opacity: 0;
       transform: translateY(-5px) scale(0.7);
     }
-    42.1%, 69.4% {
+    45.4%, 76.3% {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
-    70.2%, 75.9% {
+    77%, 82.2% {
       opacity: 0.35;
       transform: translateY(0) scale(1);
     }
-    76.3%, 100% {
+    82.6%, 100% {
       opacity: 0;
       transform: translateY(0) scale(1);
     }
   }
 
   @keyframes main-a-glows {
-    0%, 52.4% {
+    0%, 63.2% {
       background: transparent;
       box-shadow: none;
     }
-    53.4%, 57.3% {
+    64.2%, 68.3% {
       background: color-mix(in srgb, var(--product-accent, var(--green)) 7%, transparent);
       box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--product-accent, var(--green)) 45%, transparent);
     }
-    58.5%, 100% {
+    69.5%, 100% {
       background: transparent;
       box-shadow: none;
     }
   }
 
   @keyframes main-b-glows {
-    0%, 71.2% {
+    0%, 77.2% {
       background: transparent;
       box-shadow: none;
     }
-    72.2%, 76.1% {
+    78.2%, 82.3% {
       background: color-mix(in srgb, var(--product-accent, var(--green)) 7%, transparent);
       box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--product-accent, var(--green)) 45%, transparent);
     }
-    77.3%, 100% {
+    83.5%, 100% {
       background: transparent;
       box-shadow: none;
     }
   }
 
-  @keyframes card-a-lands {
-    0%, 58.2% {
+  @keyframes card-shot-lands {
+    0%, 68.4% {
       opacity: 0;
       transform: translateY(4px) scale(0.85);
     }
-    59.4%, 100% {
+    69.6%, 100% {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
   }
 
-  @keyframes card-b-lands {
-    0%, 77.1% {
+  @keyframes card-app-lands {
+    0%, 82.4% {
       opacity: 0;
       transform: translateY(4px) scale(0.85);
     }
-    78.3%, 100% {
+    83.6%, 100% {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
@@ -3564,15 +3714,15 @@ const content = {
     .palette-row,
     .perch-shelf,
     .win-browser,
-    .win-term,
     .win-finder,
-    .ti-release,
     .ti-shots,
-    .main-release,
+    .ti-apps,
     .main-shots,
+    .main-apps,
     .fav-shots,
-    .file-card.card-a,
-    .file-card.card-b,
+    .fav-apps,
+    .file-card.card-shot,
+    .file-card.card-app,
     .shelf-item.sh-a,
     .shelf-item.sh-b,
     .shelf-state > span,
@@ -3584,13 +3734,15 @@ const content = {
     .kc-shot,
     .thumb,
     .thumb-a,
-    .thumb-b,
+    .bp-cta,
+    .dock .stack,
+    .dl-badge,
+    .dl-fan,
     .drag-ghost,
-    .g-in-a,
-    .g-in-b,
-    .g-out-a,
-    .g-out-b,
-    .block-caret,
+    .g-shot-in,
+    .g-dl-in,
+    .g-shot-out,
+    .g-dl-out,
     .cursor,
     .list-triage,
     .list-triage .chat-row,
@@ -3667,12 +3819,17 @@ const content = {
       opacity: 0;
     }
 
-    /* Perch's still is mid-errand: both screenshots waiting in the open
-       shelf, Finder on the release folder below — no cursor, no ghosts,
-       no thumbnails, nothing filed yet. */
+    /* Perch's still is mid-errand: the screenshot and the Trill download
+       waiting in the open shelf, Finder on the shots folder below — no
+       cursor, no ghosts, no thumbnail, nothing filed yet. */
     .perch-shelf {
       opacity: 1;
       transform: translate(-50%, 0) scaleX(1);
+    }
+
+    .fav-shots {
+      background: color-mix(in srgb, var(--product-accent, var(--green)) 22%, transparent);
+      color: var(--text);
     }
 
     .shelf-item.sh-a,
