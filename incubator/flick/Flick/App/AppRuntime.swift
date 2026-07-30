@@ -1,0 +1,145 @@
+import AppKit
+import SwiftUI
+import os.log
+
+/// Composition root: builds the pipeline (providers → repository → policy →
+/// queue → compositor), owns every long-lived object, and is the only place
+/// that knows the whole shape.
+@MainActor
+final class AppRuntime {
+    let settings: AppSettings
+    private let database: AppDatabase?
+    private let repository: EventRepository
+    private let queue: BannerQueue
+    private let windowSystem: BannerWindowSystem
+    private var deliveryTask: Task<Void, Never>?
+    private var rulesWatcher: RulesWatcher
+
+    private static let log = Logger(subsystem: "com.nebelhaus.flick", category: "runtime")
+
+    init() {
+        let settings = AppSettings()
+        self.settings = settings
+
+        database = settings.persistHistory ? AppDatabase(url: AppPaths.databaseFile) : nil
+
+        // Rules hot-reload: the watcher owns the current RuleSet; the
+        // repository asks for a fresh engine per event, so an edited
+        // rules.json applies to the very next notification.
+        let watcher = RulesWatcher(file: AppPaths.rulesFile)
+        rulesWatcher = watcher
+        repository = EventRepository(
+            policy: { PolicyEngine(ruleSet: watcher.current()) },
+            database: database
+        )
+
+        queue = BannerQueue()
+        windowSystem = BannerWindowSystem(queue: queue, actionRouter: ActionRouter())
+    }
+
+    func start() {
+        windowSystem.start()
+        rulesWatcher.start()
+
+        deliveryTask = Task { [repository, queue] in
+            for await delivered in await repository.deliveries() {
+                if case .banner = delivered.decision {
+                    queue.enqueue(delivered.event)
+                }
+                // inboxOnly / digest events were already persisted by the
+                // repository; digest flushing is milestone 2.
+            }
+        }
+
+        Task { [repository, settings] in
+            await repository.supervise(SocketProvider())
+            if settings.systemMirrorEnabled {
+                await repository.supervise(SystemMirrorProvider())
+            }
+        }
+
+        database?.prune(olderThan: 30 * 24 * 3600)
+        Self.log.info("flick runtime started")
+    }
+
+    func stop() {
+        deliveryTask?.cancel()
+        windowSystem.stop()
+        Task { [repository] in await repository.shutdown() }
+    }
+
+    func providerStatusSnapshot() async -> [String: String?] {
+        let health = await repository.providerHealth
+        return health.mapValues { health -> String? in
+            if case .unavailable(let reason) = health { return reason }
+            return nil
+        }
+    }
+
+    var inboxDatabase: AppDatabase? { database }
+}
+
+/// Loads `~/.config/flick/rules.json` and reloads it when it changes.
+/// A malformed file logs and keeps the last good rules — a typo in a rule
+/// must never turn every banner off.
+final class RulesWatcher: @unchecked Sendable {
+    private let file: URL
+    private let queue = DispatchQueue(label: "com.nebelhaus.flick.rules")
+    private var ruleSet: RuleSet = .empty
+    private var source: DispatchSourceFileSystemObject?
+    private var watchedFD: Int32 = -1
+    private static let log = Logger(subsystem: "com.nebelhaus.flick", category: "rules")
+
+    init(file: URL) {
+        self.file = file
+    }
+
+    func current() -> RuleSet {
+        queue.sync { ruleSet }
+    }
+
+    func start() {
+        queue.sync {
+            load()
+            watch()
+        }
+    }
+
+    private func load() {
+        guard let data = try? Data(contentsOf: file) else {
+            ruleSet = .empty
+            return
+        }
+        do {
+            ruleSet = try JSONDecoder.flick.decode(RuleSet.self, from: data)
+            Self.log.info("loaded \(self.ruleSet.rules.count) rule(s)")
+        } catch {
+            Self.log.error("rules.json invalid — keeping previous rules: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    private func watch() {
+        source?.cancel()
+        source = nil
+        if watchedFD >= 0 { close(watchedFD); watchedFD = -1 }
+
+        // Editors replace the file (rename+write), so watch for both and
+        // re-arm on delete.
+        watchedFD = open(file.path, O_EVTONLY)
+        guard watchedFD >= 0 else { return }
+        let src = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: watchedFD,
+            eventMask: [.write, .delete, .rename],
+            queue: queue
+        )
+        src.setEventHandler { [weak self] in
+            self?.load()
+            if src.data.contains(.delete) || src.data.contains(.rename) {
+                self?.watch()
+            }
+        }
+        src.setCancelHandler { [fd = watchedFD] in if fd >= 0 { close(fd) } }
+        src.resume()
+        source = src
+    }
+}

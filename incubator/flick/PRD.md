@@ -1,0 +1,88 @@
+# Flick v1 product requirements
+
+## Promise
+
+Any local source — a shell script, a nix rebuild, trill, CI — can put a
+quiet, beautiful banner on screen with one line, and the user controls what
+interrupts them with a few declarative rules. No sound, ever. What we own,
+we own completely; what Apple owns, we mirror honestly or link to honestly.
+
+**Bad promise we are not making:** "a drop-in replacement for macOS
+Notification Center with perfect compatibility."
+
+## Milestones
+
+### M1 — renderer + first-party pipeline (v1 gate)
+
+- `LSUIElement` daemon + status item; same binary is the `flick` CLI.
+- Unix-socket ingest (owner-only perms), versioned JSON-lines wire format.
+- `flick send` (flags + `--json` stdin), `flick ping`; exit codes 0/1/2/3.
+- Normalization, dedupe window, app-owned sqlite history with retention
+  prune and an "off" switch.
+- rules.json: banner / inbox / digest / drop, quiet hours, critical
+  punch-through; hot reload; malformed file keeps last good rules.
+- Banner compositor: panel per banner, all Spaces + over fullscreen, never
+  key; top-right stack; hover pause; burst coalescing by thread; Reduce
+  Motion respected; redacted privacy level.
+- Inbox window + minimal settings (login item, persistence, provider
+  health, deep links to Apple's Notification/Focus settings).
+
+### M2 — rules that earn the name
+
+Digest flushing on schedule, per-source styling hooks, `flick history
+--source X --since 2h`, `flick watch --json`, pounce integration, Hush
+handshake (enable Focus profile ↔ flick takeover), opt-in command hooks
+with redacted environment.
+
+### M3 — System Mirror feasibility spike (measure, then decide)
+
+Read `~/Library/Group Containers/group.com.apple.usernoted/db2/db` under
+Full Disk Access and answer with numbers, per macOS version (Sonoma →
+current):
+
+1. Do records appear promptly on delivery? Via WAL watching or only polling?
+2. What lands under an active Focus? When banners are disabled per-app?
+3. Which fields survive for Slack, Mail, Calendar, browsers, system?
+4. Can destination/bundle metadata reliably open the right place?
+5. How aggressively are rows pruned?
+
+Ship System Mirror as opt-in experimental only if the answers support it;
+otherwise it stays a power-user module and flick remains the first-party
+layer. Either result is a success — the decision is the deliverable.
+
+### M4 — provider actions
+
+Trill open-conversation/reply, calendar open-event, GitHub open-PR, shell
+retry/logs — capability-advertised per provider, never generic promises.
+
+## Acceptance checks (M1)
+
+1. `flick send --title hello` with the daemon running: banner appears
+   top-right within 150 ms, silent, and auto-dismisses; the event is in the
+   inbox afterward.
+2. Send 10 events sharing `--thread` inside 10 s: one banner, "+9 more",
+   newest title on its face.
+3. Hover a banner: it stays; unhover: rotation resumes.
+4. `rules.json` routing a source to `drop` takes effect on the next event
+   after save, no restart.
+5. Quiet hours active: normal events go inbox-only; `--urgency critical`
+   still draws a banner.
+6. Unplug the external display while three banners are up: survivors
+   re-render on the remaining screen; nothing is lost.
+7. Kill -9 the daemon and relaunch: history intact; a stale socket file
+   does not prevent startup (a *live* second instance is refused).
+8. `flick send` with no daemon: exit code 2 and a one-line stderr.
+9. Full-screen a video: banners appear over it without stealing focus or a
+   keystroke.
+10. Reduce Motion on: banners appear with no offset animation.
+11. Toggle "keep history" off: no new rows in flick.db (and no other file
+    grows) while banners keep working.
+12. No sound plays for any event, including critical.
+
+## Non-goals (v1)
+
+- Capturing other apps' notifications (that's M3's question, not v1's
+  promise).
+- Suppressing Apple's banners programmatically.
+- Invoking arbitrary notification action buttons of other apps.
+- Windows/Linux, cloud sync, accounts, telemetry.
