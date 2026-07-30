@@ -72,7 +72,7 @@ cheatsheet always reflects the keys you actually have.
 | `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
-| `Alt <` / `Alt >` | Cycle swap layouts (grid → spiral → columns) |
+| `Alt [` / `Alt ]` | Cycle swap layouts (grid → spiral → columns) — works locked too |
 | `Super C` | Spawn an isolated Claude agent (own worktree) in a new pane |
 | `Super ⇧C` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
@@ -80,7 +80,10 @@ cheatsheet always reflects the keys you actually have.
 **Locked by default.** zellij boots in **Locked** input mode, so its single-key
 submode leaders (pane, tab, resize) stay inert until you press `Ctrl g` — a stray
 keystroke can't drop you into a submode. The `Super`-prefixed launchers above work
-regardless of the lock. Flip it with [`nebelhaus.hearth.zellijStartLocked`](/reference/options/#nebelhaushearthzellijstartlocked).
+regardless of the lock, and so do `Alt [` / `Alt ]` — picking a layout is a
+workspace act, not a submode. The rest of zellij's `Alt` row stays inert while
+locked on purpose: `Alt h/j/k/l` and `Alt`-arrows are word motions the shell and
+your editor want. Flip it with [`nebelhaus.hearth.zellijStartLocked`](/reference/options/#nebelhaushearthzellijstartlocked).
 
 **Clickable links** work across two modifiers. `⌥`-click a file path (or a
 visible URL / bare domain) in the terminal to open it — a path opens a new tab
