@@ -121,10 +121,19 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
-        settingsWindow?.close()
+        // Order is load-bearing: closing the Settings window first drops
+        // the app back to `.accessory` (UtilityWindowManager), and an
+        // accessory app has no active-app status to hand over — macOS then
+        // launches System Settings *behind* whatever was in front, which
+        // under AeroSpace means behind the tile the user is staring at. So
+        // open the deep link while flick is still the frontmost regular
+        // app, and tidy our own window up on the next runloop turn.
         SystemIntegration.presentFullDiskAccessAssistant(
             onGrantConfirmed: { runtime.settings.systemMirrorEnabled = true },
             onDismiss: { [weak self] in self?.showSettings() }
         )
+        DispatchQueue.main.async { [weak self] in
+            self?.settingsWindow?.close()
+        }
     }
 }
