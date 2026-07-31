@@ -132,7 +132,15 @@ zscratch clean                           # kill the scratch session + temp dir
 ```
 
 Feel it there; the real `bench try switch` happens once, at the end, already
-knowing it works.
+knowing it works. After that activation, press `Super R` (or run `zreload`) to
+gracefully quit/reopen Ghostty and load the installed zellij config and plugin
+wasm through a fresh server without rebuilding the workspace by hand. The
+destructive half runs in a launchd agent outside the terminal, so it survives
+both processes going away. Tabs, panes and working directories return; live
+Claude Code panes resume their exact conversations. Pane identity comes from a
+generation-scoped manifest rather than zellij's foreground-command label (which
+can temporarily be an LSP or tool); an unclassified command pane aborts before
+the launchd handoff.
 
 ## The whole life of a change
 
