@@ -220,7 +220,6 @@ struct OnboardingAssistantView: View {
                 HStack {
                     Spacer()
                     Button("Relaunch Flick Now") {
-                        onGrantConfirmed()
                         onClose()
                         SystemIntegration.relaunch()
                     }
@@ -278,6 +277,12 @@ struct OnboardingAssistantView: View {
                 if case .ready = health {
                     isFDAGranted = true
                     pollTimer?.invalidate()
+                    // Commit the moment we detect the grant, not when a
+                    // relaunch button is tapped: the text above (correctly)
+                    // treats Apple's own "Quit & Reopen" prompt as an
+                    // equally valid way to relaunch, and that path never
+                    // touches this view's buttons at all.
+                    onGrantConfirmed()
                 }
             }
         }
