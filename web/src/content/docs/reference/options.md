@@ -785,7 +785,7 @@ Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy
 
 `boolean` · default `false`
 
-A gauge pill showing how much of your Claude Code usage you've spent — `<5-hour>·<weekly>` as percentages, coloured by whichever window is closest to biting (green under 50, red at 90). Click for both windows with their reset times. The numbers ride Claude Code's own statusline feed, so nothing is polled and no token is read; the pill stays hidden until a Claude session first reports, and greys out if none has in half an hour.
+A gauge pill showing how much of your Claude Code usage you've spent (showing the higher of 5-hour or weekly usage as %, coloured by usage level: green under 50, yellow past 50, peach past 75, red at 90). Click for both windows with their reset times. The numbers ride Claude Code's own statusline feed, so nothing is polled and no token is read; the pill stays hidden until a Claude session first reports, and greys out if none has in half an hour.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
