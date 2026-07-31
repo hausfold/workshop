@@ -192,10 +192,11 @@ The token is one mutually-exclusive slot:
 ## Links — every URL a pane's session saw
 
 The same statusline pass that drives the HUD also notes which Claude transcript
-each pane is running, and Pounce turns that into a command. Summon the palette
-(**⌘Space**), run **Links**, and you get every URL from the focused pane's whole
-Claude Code session — newest first, including links buried in collapsed tool
-output or that scrolled away hours ago. **⏎** opens the pick in your browser.
+each pane is running, and Pounce turns that into a command. Press **⌘L** in the
+terminal (or summon the palette with **⌘Space** and run **Links**) to get every URL
+from the focused pane's whole Claude Code session — newest first, including links
+buried in collapsed tool output or that scrolled away hours ago. **⏎** opens the pick
+in your browser.
 
 GitHub PR and issue links come back enriched with their real title and
 open/closed/merged state — a parallel, cached `gh` fetch capped at ~2s, so a slow
