@@ -77,6 +77,7 @@ Spotlight's binding off.)
 | Type | Fuzzy-search in real time |
 | `↑` / `↓` | Move the selection |
 | `Return` | Run the default action |
+| `⇧Return` | Insert a newline — the query field is multi-line |
 | `⌘Return` | The modifier action (often "Reveal in Finder" for apps) |
 | `⌥Return` / `⌃Return` | Alternate actions, when shown |
 | `Tab` | Cycle sections (or emoji categories) |
@@ -160,10 +161,13 @@ Each is just a script you can read, copy, or replace.
 back via `pounce --transform`. Swap `tr` for anything and you have your own text
 action.
 
-**Update Pounce** runs `brew update && brew upgrade pounce && brew services
-restart pounce` in the background and reports via notifications, so a Homebrew
-install updates itself from the palette. (It bails on Nix installs — those
-update through the flake.)
+**Update Pounce** self-updates in place, and what it does follows how you
+installed Pounce: a Homebrew build runs `brew upgrade pounce` and restarts the
+service; a copy dragged to `/Applications` downloads the new release and swaps
+itself out; a Nix or rice install is pointed at the flake (`haus update`) rather
+than overwritten, since the next rebuild would revert it. It runs in the
+background and reports via notifications — see the [Pounce
+reference](/reference/pounce/) for the full per-install breakdown.
 
 Every System Settings pane is its own command too, so typing "Displays" or
 "Accessibility" jumps straight there instead of dropping you at the front door.

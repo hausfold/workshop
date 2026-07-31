@@ -120,13 +120,14 @@ Want to change what "Lock Screen" does? Drop your own `lock.sh` in
 </Aside>
 
 <Aside type="note" title="Data payloads & support files">
-Pounce discovers every top-level file in a command directory as a command. If a command script relies on support files or data catalogs (such as `.tsv` or `.json`), place them in a nested subdirectory (e.g. `data/`) so Pounce does not list them as runnable palette commands.
+Pounce lists every `.sh` file in a command directory as a command. A non-`.sh` file — a `.tsv` or `.json` data catalog — is ignored wherever it sits, so it never turns into a runnable row. The case that still needs nesting is a *helper* that is itself a `.sh` but shouldn't be a command: put it in a subdirectory (e.g. `data/`), which Pounce doesn't descend into.
 </Aside>
 
 ## Tips
 
 - Scripts don't need the executable bit — Pounce runs them with `bash` either
-  way — but the `.sh` suffix is optional too.
+  way — but they **must** end in `.sh`: that suffix is how Pounce finds them, and
+  a file without it is never listed as a command.
 - Keep long-running work fast to start; the palette dismisses as soon as the
   script is spawned.
 - For grouped or dynamic output, remember the tab-separated column format above.
