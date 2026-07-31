@@ -119,6 +119,10 @@ Want to change what "Lock Screen" does? Drop your own `lock.sh` in
 `~/.config/pounce/commands/` — same filename, and yours takes over.
 </Aside>
 
+<Aside type="note" title="Data payloads & support files">
+Pounce discovers every top-level file in a command directory as a command. If a command script relies on support files or data catalogs (such as `.tsv` or `.json`), place them in a nested subdirectory (e.g. `data/`) so Pounce does not list them as runnable palette commands.
+</Aside>
+
 ## Tips
 
 - Scripts don't need the executable bit — Pounce runs them with `bash` either

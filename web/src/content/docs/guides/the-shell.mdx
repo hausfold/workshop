@@ -79,10 +79,21 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super T` | New tab at `$HOME` — born named `~` (fresh tabs are never `Tab #N`) |
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
 | `Super F` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
+| `Super R` | **Reload the terminal stack** — gracefully quit/reopen Ghostty, then start a fresh zellij server with the same tabs, panes and working directories; live Claude Code panes resume their exact conversations |
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used) |
 | `Alt <` / `Alt >` | Cycle swap layouts (grid → spiral → columns) |
+
+The reload is also available as `zreload` from a shell. It prepares the recovery
+layout inside zellij, then hands the quit/delete/reopen sequence to a launchd
+agent outside the terminal, so killing the old server cannot strand its own
+script. This is a real Ghostty quit and relaunch, not `reload_config`: that action
+only reparses Ghostty settings and would leave the old launcher process alive.
+Each zellij server generation keeps an explicit pane-to-Claude-session manifest,
+so a foreground tool such as `sourcekit-lsp` cannot be mistaken for the pane
+that launched it. If any active command pane cannot be proven resumable, reload
+stops before quitting Ghostty or deleting the session.
 
 <Aside type="tip" title="Option-click a path">
 A custom zellij link handler means <kbd>Option</kbd>-clicking a file path in the
