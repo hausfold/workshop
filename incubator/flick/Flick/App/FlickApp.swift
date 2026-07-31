@@ -79,7 +79,8 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
             inboxWindow = window
         }
         inboxWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate()
+        inboxWindow?.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func showSettings() {
@@ -98,8 +99,14 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
                 rootView: SettingsView(settings: runtime.settings, providerStatus: status)
             )
             window.center()
+            // Bare activate() lets the system decline the request for an
+            // accessory-policy app (no Dock presence) — ignoringOtherApps
+            // is the forceful form menu-bar apps need to clear tiling WMs
+            // like AeroSpace, which otherwise leave the window ordered
+            // behind whatever's already on the visible workspace.
+            NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)
-            NSApp.activate()
+            window.orderFrontRegardless()
         }
     }
 }
