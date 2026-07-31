@@ -198,6 +198,27 @@ describe('/download and /api/release', () => {
     expect(res.headers.get('location')).toBe('https://example.com/trill-v1-macos.zip');
   });
 
+  it('prefers the DMG over the tarball when a release ships both', async () => {
+    // Pounce releases ship both: the tarball is the Homebrew formula's artifact
+    // (app + CLI scripts, brew wires the daemon), the DMG is the human's
+    // drag-to-Applications one. A human clicking Download must get the DMG —
+    // handing them the tarball strands them with a half-installed palette.
+    globalThis.fetch = makeFetch([
+      {
+        match: 'api.github.com/repos/nebelhaus/pounce/releases/latest',
+        json: {
+          tag_name: 'v2026.07.31',
+          assets: [
+            { name: 'pounce-v2026.07.31-macos.tar.gz', size: 701478, browser_download_url: 'https://example.com/pounce.tar.gz' },
+            { name: 'pounce-v2026.07.31-macos.dmg', size: 812345, browser_download_url: 'https://example.com/pounce.dmg' },
+          ],
+        },
+      },
+    ]);
+    const res = await worker.fetch(req('/download/pounce'), {});
+    expect(res.headers.get('location')).toBe('https://example.com/pounce.dmg');
+  });
+
   it('falls back to the releases page when the API is down', async () => {
     globalThis.fetch = makeFetch([{ match: 'api.github.com', throws: true }]);
     const res = await worker.fetch(req('/download/perch'), {});
