@@ -44,6 +44,13 @@ your shell comes back, focused, scrollback intact.
 `Ctrl Alt Shift c` is the resident variant: the one agent per tab that's allowed
 to edit the checkout you're actually looking at.
 
+Prefer the launcher? **Spawn Agent** in Pounce (`⌘Space`, type "spawn") does the
+same `claude --worktree` from the GUI: pick a repo, type what you want done, and
+it creates a worktree **named after the task** — not the random
+`luminous-twirling-codd` an unattended agent would coin — and drops a session
+into that repo's tab. Naming the branch from the prompt is the whole point; the
+palette is just the shortest path to it.
+
 <Aside type="tip" title="Closing a pane never loses work">
 When you close a `Super c` pane, the rice doesn't just delete the checkout. Any
 uncommitted edits are first parked as a `wip:` commit on the branch, then the
@@ -174,25 +181,27 @@ you push.
 
 Run agents in eight tabs and the question is always the same one: which of them
 is sitting on a permission prompt? The rice answers it in the tab bar itself — a
-paw beside the name of any tab holding an agent pane, coloured by what that agent
-is doing:
+filled badge beside the name of any tab holding agent panes. The badge carries a
+count — how many agents live in that tab — on a background coloured by what the
+most urgent one is doing:
 
-| Paw | Means |
+| Badge | Means |
 |---|---|
 | **peach** | an agent is blocked on you — a permission prompt, or it's asking a question |
 | **sky** | an agent is mid-turn, working |
 | **green** | the agent finished its turn; nothing is waiting |
-| *(no paw)* | no agent panes in that tab |
+| *(no badge)* | no agent panes in that tab |
 
-A tab with several agents in it shows the most urgent one, so peach always wins:
-the tab that needs you never hides behind a tab that's merely busy. And it's
-*status*, not a notification — a green paw stays green until that agent starts
-another turn or its pane goes away. Looking at it doesn't dismiss it.
+The number is the exact count of agent panes in the tab; the colour is the most
+urgent state among them, so peach always wins: the tab that needs you never hides
+behind a tab that's merely busy. And it's *status*, not a notification — a green
+badge stays green until that agent starts another turn or its pane goes away.
+Looking at it doesn't dismiss it.
 
 This is the same signal as the [`agents` bar pill](/guides/the-bar/), reported by
 the same Claude Code hooks (which is why it's exact rather than guessed — the
 agent says what it's doing, nothing scrapes the screen for it). The pill is for
-when you're out in the GUI; the paw is for when you're already in the terminal.
+when you're out in the GUI; the badge is for when you're already in the terminal.
 Nothing to enable: it lights up as soon as an agent pane reports, and stays
 invisible if you never run one.
 

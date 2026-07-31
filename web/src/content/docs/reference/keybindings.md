@@ -69,6 +69,7 @@ cheatsheet always reflects the keys you actually have.
 | `Super T` | New tab at `$HOME` (born named `~`) |
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
+| `Super R` | Reload the terminal stack — quit/reopen Ghostty and restart zellij with the same tabs, panes and cwds; live Claude panes resume (also `zreload` from a shell) |
 | `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
@@ -100,6 +101,7 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 | type | Fuzzy-search |
 | `↑` / `↓` | Move selection |
 | `Return` | Default action |
+| `⇧Return` | Insert a newline (the query field is multi-line) |
 | `⌘Return` | Modifier action (e.g. Reveal in Finder) |
 | `⌥Return` / `⌃Return` | Alternate actions (when shown) |
 | `⌥Return` *(Find Files)* | Copy the path |
@@ -109,8 +111,8 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 ## Ghostty note
 
 Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`,
-`⌘C` and `⌘⇧C` so zellij owns them — the same keys work whether or not you're
-multiplexed. (`⌘⇧C` is unbound pre-emptively: Ghostty claims nothing there
+`⌘R`, `⌘C` and `⌘⇧C` so zellij owns them — the same keys work whether or not
+you're multiplexed. (`⌘⇧C` is unbound pre-emptively: Ghostty claims nothing there
 today, and the unbind keeps it that way if a future release does.)
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
 
