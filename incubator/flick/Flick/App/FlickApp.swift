@@ -74,7 +74,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
             defer: false
         )
         window.titlebarAppearsTransparent = true
-        window.contentViewController = NSHostingController(
+        window.contentView = NSHostingView(
             rootView: InboxView(database: runtime?.inboxDatabase)
         )
         inboxWindow = window
@@ -92,6 +92,13 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
             // loop turn as a @State change) — an unsized NSWindow shows
             // only its titlebar, which is the bug this replaced. Form's
             // own scrolling absorbs any content taller than this.
+            //
+            // contentView (NSHostingView), not contentViewController
+            // (NSHostingController) — the controller variant auto-resizes
+            // the window to the view's "preferred content size" once
+            // layout settles, which for a Form without a fixed height
+            // collapses it back down to titlebar-only, silently undoing
+            // this frame.
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 440, height: 420),
                 styleMask: [.titled, .closable, .resizable],
@@ -99,7 +106,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
                 defer: false
             )
             window.title = "Flick Settings"
-            window.contentViewController = NSHostingController(
+            window.contentView = NSHostingView(
                 rootView: SettingsView(
                     settings: runtime.settings,
                     providerStatus: status,
