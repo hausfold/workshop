@@ -92,6 +92,26 @@ struct NotificationEvent: Codable, Sendable, Identifiable, Equatable {
         self.actions = actions
         self.metadata = metadata
     }
+
+    enum CodingKeys: String, CodingKey {
+        case id, source, timestamp, title, subtitle, body, symbol, thread, urgency, privacy, actions, metadata
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        self.source = try container.decodeIfPresent(String.self, forKey: .source) ?? "cli"
+        self.timestamp = try container.decodeIfPresent(Date.self, forKey: .timestamp) ?? .now
+        self.title = try container.decode(String.self, forKey: .title)
+        self.subtitle = try container.decodeIfPresent(String.self, forKey: .subtitle)
+        self.body = try container.decodeIfPresent(String.self, forKey: .body)
+        self.symbol = try container.decodeIfPresent(String.self, forKey: .symbol)
+        self.thread = try container.decodeIfPresent(String.self, forKey: .thread)
+        self.urgency = try container.decodeIfPresent(Urgency.self, forKey: .urgency) ?? .normal
+        self.privacy = try container.decodeIfPresent(Privacy.self, forKey: .privacy) ?? .visible
+        self.actions = try container.decodeIfPresent([Action].self, forKey: .actions) ?? []
+        self.metadata = try container.decodeIfPresent([String: String].self, forKey: .metadata) ?? [:]
+    }
 }
 
 extension NotificationEvent {

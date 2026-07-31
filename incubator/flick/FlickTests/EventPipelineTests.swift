@@ -66,6 +66,16 @@ final class EventPipelineTests: XCTestCase {
 
     // MARK: - CLI parsing (pure, no daemon)
 
+    func testCLIParsesPartialJSONFromStdin() throws {
+        let partialJSON = Data(#"{"title":"From JSON","body":"one line in","source":"ci"}"#.utf8)
+        let decoded = try JSONDecoder.flick.decode(NotificationEvent.self, from: partialJSON)
+        XCTAssertEqual(decoded.title, "From JSON")
+        XCTAssertEqual(decoded.body, "one line in")
+        XCTAssertEqual(decoded.source, "ci")
+        XCTAssertEqual(decoded.urgency, .normal)
+        XCTAssertEqual(decoded.privacy, .visible)
+    }
+
     func testCLIParsesFlagsIntoEvent() throws {
         let result = FlickCLI.parseSend([
             "--title", "Landing page shipped",
