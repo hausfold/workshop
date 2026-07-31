@@ -98,8 +98,10 @@ network requests at all.
 `updates.check` only ever *tells* you — it never installs anything. While a
 release is pending, the **Update Pounce** row is renamed with the new version
 and pinned to the palette's first row, and a notification repeats at most once
-a day. The wording follows how you installed Pounce, because not every install
-can update itself in place:
+a day. Press `⌘⏎` on that row to skip the version: the pin and the notification
+stop until the next release, though searching for the row still shows what's
+waiting. The wording follows how you installed Pounce, because not every
+install can update itself in place:
 
 | Install | What the nudge says |
 |---|---|
