@@ -6,6 +6,11 @@ struct SettingsView: View {
     /// nil = healthy). Experimental providers surface their honest state
     /// here instead of pretending.
     let providerStatus: [String: String?]
+    let onRequestFullDiskAccess: () -> Void
+
+    private var hasFullDiskAccess: Bool {
+        providerStatus["system-mirror"].flatMap { $0 } == nil
+    }
 
     var body: some View {
         Form {
@@ -16,15 +21,31 @@ struct SettingsView: View {
 
             Section("Providers") {
                 LabeledContent("Socket (flick CLI)", value: providerStatus["socket"].flatMap { $0 } ?? "ready")
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Toggle("System Mirror (experimental)", isOn: $settings.systemMirrorEnabled)
-                    Text("Reads macOS's private notification store, read-only, to redraw other apps' banners. Needs Full Disk Access and may stop working on any macOS update — flick stays fully useful without it.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let reason = providerStatus["system-mirror"].flatMap({ $0 }) {
-                        Text(reason)
+                        .disabled(!hasFullDiskAccess)
+
+                    if hasFullDiskAccess {
+                        Text("Reads macOS's private notification store, read-only, to redraw other apps' banners. May stop working on any macOS update — flick stays fully useful without it.")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.secondary)
+                        Label("Full Disk Access granted", systemImage: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("Requires Full Disk Access before enabling. Reads macOS's private notification store, read-only.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        if let reason = providerStatus["system-mirror"].flatMap({ $0 }) {
+                            Text(reason)
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
+                        Button("Grant Full Disk Access…", action: onRequestFullDiskAccess)
+                            .font(.caption)
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .padding(.top, 2)
                     }
                 }
             }

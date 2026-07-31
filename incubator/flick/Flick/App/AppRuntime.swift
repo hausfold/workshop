@@ -51,11 +51,12 @@ final class AppRuntime {
             }
         }
 
-        Task { [repository, settings] in
+        Task { [repository] in
             await repository.supervise(SocketProvider())
-            if settings.systemMirrorEnabled {
-                await repository.supervise(SystemMirrorProvider())
-            }
+            // Always probed, regardless of the toggle: Settings gates the
+            // toggle itself on Full Disk Access being granted, which it can
+            // only know by reading this provider's health.
+            await repository.supervise(SystemMirrorProvider())
         }
 
         database?.prune(olderThan: 30 * 24 * 3600)

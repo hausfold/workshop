@@ -23,7 +23,14 @@ final class AppSettings: ObservableObject {
     }
 
     @Published var systemMirrorEnabled: Bool {
-        didSet { defaults.set(systemMirrorEnabled, forKey: Keys.systemMirror) }
+        didSet {
+            defaults.set(systemMirrorEnabled, forKey: Keys.systemMirror)
+            // Toggling this is typically followed by a Full Disk Access grant,
+            // which macOS surfaces as a native "Quit & Reopen" prompt — the
+            // process can die before CFPreferences' async flush lands, so
+            // force it to disk now rather than losing the toggle on relaunch.
+            defaults.synchronize()
+        }
     }
 
     private let defaults: UserDefaults
