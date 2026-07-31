@@ -32,7 +32,9 @@ enum FlickMain {
 final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     private var runtime: AppRuntime?
     private var inboxWindow: NSWindow?
+    private var settingsWindow: NSWindow?
     private var statusItem: NSStatusItem?
+    private let windowManager = UtilityWindowManager()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let runtime = AppRuntime()
@@ -63,50 +65,59 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func showInbox() {
-        if inboxWindow == nil {
-            let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 480, height: 420),
-                styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
-                backing: .buffered,
-                defer: false
-            )
-            window.titlebarAppearsTransparent = true
-            window.isReleasedWhenClosed = false
-            window.center()
-            window.contentView = NSHostingView(
-                rootView: InboxView(database: runtime?.inboxDatabase)
-            )
-            inboxWindow = window
-        }
-        inboxWindow?.makeKeyAndOrderFront(nil)
-        inboxWindow?.orderFrontRegardless()
-        NSApp.activate(ignoringOtherApps: true)
+        inboxWindow?.close()
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 420),
+            styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        window.titlebarAppearsTransparent = true
+        window.contentViewController = NSHostingController(
+            rootView: InboxView(database: runtime?.inboxDatabase)
+        )
+        inboxWindow = window
+        windowManager.show(window)
     }
 
     @objc private func showSettings() {
         guard let runtime else { return }
         Task { @MainActor in
             let status = await runtime.providerStatusSnapshot()
+            settingsWindow?.close()
+
+            // A deterministic frame, not one measured off SwiftUI's
+            // fittingSize (which can read stale content from the same run
+            // loop turn as a @State change) — an unsized NSWindow shows
+            // only its titlebar, which is the bug this replaced. Form's
+            // own scrolling absorbs any content taller than this.
             let window = NSWindow(
-                contentRect: .zero,
-                styleMask: [.titled, .closable],
+                contentRect: NSRect(x: 0, y: 0, width: 440, height: 420),
+                styleMask: [.titled, .closable, .resizable],
                 backing: .buffered,
                 defer: false
             )
             window.title = "Flick Settings"
-            window.isReleasedWhenClosed = false
-            window.contentView = NSHostingView(
-                rootView: SettingsView(settings: runtime.settings, providerStatus: status)
+            window.contentViewController = NSHostingController(
+                rootView: SettingsView(
+                    settings: runtime.settings,
+                    providerStatus: status,
+                    onRequestFullDiskAccess: { [weak self] in
+                        self?.presentFullDiskAccessAssistant(runtime: runtime)
+                    }
+                )
             )
-            window.center()
-            // Bare activate() lets the system decline the request for an
-            // accessory-policy app (no Dock presence) — ignoringOtherApps
-            // is the forceful form menu-bar apps need to clear tiling WMs
-            // like AeroSpace, which otherwise leave the window ordered
-            // behind whatever's already on the visible workspace.
-            NSApp.activate(ignoringOtherApps: true)
-            window.makeKeyAndOrderFront(nil)
-            window.orderFrontRegardless()
+            settingsWindow = window
+            windowManager.show(window)
         }
+    }
+
+    private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
+        settingsWindow?.close()
+        SystemIntegration.presentFullDiskAccessAssistant(
+            onGrantConfirmed: { runtime.settings.systemMirrorEnabled = true },
+            onDismiss: { [weak self] in self?.showSettings() }
+        )
     }
 }

@@ -61,6 +61,51 @@ enum SystemIntegration {
         open("x-apple.systempreferences:com.apple.Focus-Settings.extension")
     }
 
+    /// System Settings → Privacy & Security → Full Disk Access.
+    static func openFullDiskAccessSettings() {
+        open("x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_AllFiles")
+    }
+
+    // MARK: - Onboarding assistant
+
+    /// Self-relaunch, e.g. right after a TCC entitlement change like Full
+    /// Disk Access — cleaner than waiting on the user to notice Apple's own
+    /// "Quit & Reopen" prompt.
+    static func relaunch() {
+        let url = Bundle.main.bundleURL
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in
+            exit(0)
+        }
+    }
+
+    /// Opens the Full Disk Access pane and floats a non-activating helper
+    /// panel alongside it. `onGrantConfirmed` commits the setting (through
+    /// `AppSettings`, so it's flushed to disk) before `onDismiss` reopens
+    /// Settings — the panel itself never touches `UserDefaults` directly.
+    static func presentFullDiskAccessAssistant(
+        onGrantConfirmed: @escaping () -> Void,
+        onDismiss: (() -> Void)? = nil
+    ) {
+        openFullDiskAccessSettings()
+        OnboardingAssistantPanelController.shared.present(
+            mode: .fullDiskAccess,
+            onGrantConfirmed: onGrantConfirmed,
+            onDismiss: onDismiss
+        )
+    }
+
+    /// Launch the app-migration assistant for a given app (turn Apple's
+    /// native banners off for it once flick is rendering them instead).
+    static func presentAppMigrationAssistant(for bundleID: String, appName: String, onDismiss: (() -> Void)? = nil) {
+        openNotificationSettings(for: bundleID)
+        OnboardingAssistantPanelController.shared.present(
+            mode: .appMigration(bundleID: bundleID, appName: appName),
+            onDismiss: onDismiss
+        )
+    }
+
     private static func open(_ urlString: String) {
         guard let url = URL(string: urlString) else { return }
         NSWorkspace.shared.open(url)
