@@ -31,6 +31,9 @@ re-read each time the palette opens (no daemon restart needed).
   "quickAnswers": {
     "currency": true         // fetch ECB rates so "100 usd in eur" answers inline
   },
+  "updates": {
+    "check": true            // nudge (never install) when a new release is out
+  },
   "fileSearch": {
     "enabled": true,         // the Find Files mode
     "homeOnly": true,        // scope to ~ instead of the whole index
@@ -65,6 +68,7 @@ re-read each time the palette opens (no daemon restart needed).
 | `clipboard.blacklistBundleIds` | array of bundle ids | `["com.apple.Passwords"]` |
 | `clipboard.autoPaste` | `true` \| `false` | `false` |
 | `quickAnswers.currency` | `true` \| `false` | `true` |
+| `updates.check` | `true` \| `false` | `true` |
 | `fileSearch.enabled` | `true` \| `false` | `true` |
 | `fileSearch.homeOnly` | `true` \| `false` | `true` |
 | `fileSearch.maxResults` | number | `60` |
@@ -84,10 +88,29 @@ Setting `windows.enabled` turns on the MRU
 Accessibility grant to install its event tap, and without the grant stock ⌘Tab
 keeps working.
 
-`quickAnswers.currency` is the one thing in Pounce that touches the network: it
-fetches the ECB daily reference rates from `api.frankfurter.app` (at most every
-12 hours, cached to `~/.local/share/pounce/currency-rates.json`). Set it to
-`false` and Pounce makes no network requests at all.
+`quickAnswers.currency` and `updates.check` are the only two things in Pounce
+that touch the network. The first fetches the ECB daily reference rates from
+`api.frankfurter.app` (at most every 12 hours, cached to
+`~/.local/share/pounce/currency-rates.json`). The second asks GitHub once an
+hour whether there is a newer release. Set both to `false` and Pounce makes no
+network requests at all.
+
+`updates.check` only ever *tells* you — it never installs anything. While a
+release is pending, the **Update Pounce** row is renamed with the new version
+and pinned to the palette's first row, and a notification repeats at most once
+a day. The wording follows how you installed Pounce, because not every install
+can update itself in place:
+
+| Install | What the nudge says |
+|---|---|
+| Homebrew | Return runs `brew upgrade pounce` and restarts the service |
+| Dragged to `/Applications` | Return downloads the new release and swaps the app in place |
+| The nebelhaus rice | Run [`haus update`](/reference/haus/) — Pounce comes down with the rest of the rice |
+| Your own flake | Update your `pounce` input |
+
+The last two update through the Nix store rather than in place, so Pounce
+deliberately won't try to overwrite itself there — the next rebuild would
+revert it anyway.
 
 Setting `hotkey.enabled` to `false` frees the hotkey so an external launcher
 (skhd, AeroSpace) can bind a key to `pounce-palette` instead.

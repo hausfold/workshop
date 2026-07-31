@@ -85,11 +85,22 @@ const features = [
     accent: 'var(--neb-sapphire)',
   },
 ];
+
+// The Download button leads, because a DMG that drags to /Applications is a
+// complete install now: the commands ship inside the bundle and the login item
+// self-registers on first open.
+//
+// ORDERING — this depends on a pounce release that actually uploads a DMG (the
+// release workflow's DMG step). /download/pounce resolves the newest release's
+// artifact at click time, preferring the DMG and falling back to the archive,
+// so if this deploys BEFORE such a release exists the button hands a human the
+// Homebrew tarball: an unpacked folder with no installer. Ship this page with
+// or after that release, never ahead of it.
 ---
 
 <ProductLanding
   product="pounce"
-  hasDownload={false}
+  hasDownload={true}
   accent="var(--neb-product-pounce)"
   accentHover="var(--neb-product-pounce-hover)"
   logo="/logos/pounce-peeking.png"
