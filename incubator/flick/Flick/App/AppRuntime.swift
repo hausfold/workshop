@@ -51,12 +51,13 @@ final class AppRuntime {
             }
         }
 
-        Task { [repository] in
+        Task { [repository, weak self] in
             await repository.supervise(SocketProvider())
             // Always probed, regardless of the toggle: Settings gates the
             // toggle itself on Full Disk Access being granted, which it can
             // only know by reading this provider's health.
             await repository.supervise(SystemMirrorProvider())
+            await self?.reconcileSystemMirrorSetting()
         }
 
         database?.prune(olderThan: 30 * 24 * 3600)
@@ -67,6 +68,19 @@ final class AppRuntime {
         deliveryTask?.cancel()
         windowSystem.stop()
         Task { [repository] in await repository.shutdown() }
+    }
+
+    /// macOS revokes a Full Disk Access grant on its own when it can no
+    /// longer match the running build against the one it granted (an ad-hoc
+    /// signature pins the cdhash, so any rebuild does it). Left alone, the
+    /// app would keep claiming System Mirror is on while the provider sits
+    /// dead — so believe the probe, not the stored flag.
+    private func reconcileSystemMirrorSetting() async {
+        guard settings.systemMirrorEnabled else { return }
+        guard case .unavailable(let reason)? = await repository.providerHealth["system-mirror"]
+        else { return }
+        settings.systemMirrorEnabled = false
+        Self.log.info("system mirror disabled on launch: \(reason, privacy: .public)")
     }
 
     func providerStatusSnapshot() async -> [String: String?] {

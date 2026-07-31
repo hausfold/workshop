@@ -74,5 +74,15 @@ Geometry, policy, queue, and wire-format logic are all testable headless —
 keep it that way: anything that *can* be a pure function with a test should
 be. Feel-testing banners needs a real session: build, run, `flick send`.
 
+**Feel-test with `scripts/dev-install.sh`, not a bare `xcodebuild`.** A
+`CODE_SIGNING_ALLOWED=NO` build is ad-hoc signed, and macOS pins a TCC grant
+(Full Disk Access) to an ad-hoc bundle's **cdhash** — so the switch in System
+Settings revokes itself on your next build, and stale `Flick.app` copies all
+claiming `com.nebelhaus.flick` make Apple's "Quit & Reopen" relaunch the wrong
+one. The script signs with the Developer ID (team-anchored requirement → the
+grant survives every rebuild), unregisters the strays, and installs one copy at
+`~/Applications/Flick.app`. Pass `--reset-permissions` once when coming from an
+ad-hoc build.
+
 Cloud sessions: edit + test-plan only; `xcodebuild` and feel-testing are
 macOS-local jobs (workshop CLAUDE.md, "Claude Code on the web").

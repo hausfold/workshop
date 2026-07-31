@@ -102,6 +102,8 @@ struct OnboardingAssistantView: View {
 
     @State private var isFDAGranted = false
     @State private var pollTimer: Timer?
+    @State private var relaunchTimer: Timer?
+    @State private var relaunchCountdown = 3
     @State private var selectedTab = 0
 
     var body: some View {
@@ -139,6 +141,7 @@ struct OnboardingAssistantView: View {
         }
         .onDisappear {
             pollTimer?.invalidate()
+            relaunchTimer?.invalidate()
         }
     }
 
@@ -158,6 +161,16 @@ struct OnboardingAssistantView: View {
 
     @ViewBuilder
     private var fullDiskAccessContent: some View {
+        // An ad-hoc signed build has its TCC grant pinned to the binary's
+        // cdhash, so the switch flips itself back off on the next rebuild.
+        // Say so here rather than letting the user re-grant forever.
+        if let warning = SystemIntegration.permissionPersistenceWarning {
+            Label(warning, systemImage: "exclamationmark.triangle.fill")
+                .font(.caption2)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
         Picker("", selection: $selectedTab) {
             Text("If Already in List").tag(0)
             Text("If Missing").tag(1)
@@ -209,22 +222,24 @@ struct OnboardingAssistantView: View {
 
         if isFDAGranted {
             VStack(alignment: .leading, spacing: 8) {
-                Label("Full Disk Access Granted!", systemImage: "checkmark.circle.fill")
+                Label("Full Disk Access granted", systemImage: "checkmark.circle.fill")
                     .font(.caption)
                     .foregroundStyle(.green)
 
-                Text("Click **Quit & Reopen** on Apple's prompt, or click below to relaunch Flick:")
+                // Deliberately steering *away* from Apple's own prompt:
+                // it relaunches by bundle id, which can resolve to a
+                // different Flick.app than the one just granted, and macOS
+                // then revokes the grant it can no longer match.
+                Text("Restarting Flick in **\(relaunchCountdown)s** to pick the new access up. Ignore Apple's **Quit & Reopen** prompt — it can relaunch a different copy and lose the grant.")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 HStack {
                     Spacer()
-                    Button("Relaunch Flick Now") {
-                        onClose()
-                        SystemIntegration.relaunch()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
+                    Button("Restart Now") { relaunchNow() }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
                     Spacer()
                 }
             }
@@ -278,14 +293,37 @@ struct OnboardingAssistantView: View {
                     isFDAGranted = true
                     pollTimer?.invalidate()
                     // Commit the moment we detect the grant, not when a
-                    // relaunch button is tapped: the text above (correctly)
-                    // treats Apple's own "Quit & Reopen" prompt as an
-                    // equally valid way to relaunch, and that path never
-                    // touches this view's buttons at all.
+                    // relaunch button is tapped: the user may still reach
+                    // for Apple's own "Quit & Reopen" prompt, and that path
+                    // never touches this view's buttons at all.
                     onGrantConfirmed()
+                    startRelaunchCountdown()
                 }
             }
         }
+    }
+
+    /// The grant only takes effect in a fresh process, so don't make the
+    /// user find a button for it — restart on our own, from our own bundle
+    /// path, after a beat long enough to read what happened.
+    private func startRelaunchCountdown() {
+        relaunchTimer?.invalidate()
+        relaunchTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            Task { @MainActor in
+                relaunchCountdown -= 1
+                if relaunchCountdown <= 0 { relaunchNow() }
+            }
+        }
+    }
+
+    /// Note: no `onClose()` — that reopens the Settings window through the
+    /// dismiss callback, which would flash a window and steal focus in the
+    /// half second before the process exits. The panel dies with the
+    /// process anyway.
+    private func relaunchNow() {
+        relaunchTimer?.invalidate()
+        pollTimer?.invalidate()
+        SystemIntegration.relaunch()
     }
 }
 
@@ -321,6 +359,13 @@ final class OnboardingAssistantPanelController {
         newPanel.titlebarAppearsTransparent = true
         newPanel.isMovableByWindowBackground = false
         newPanel.isReleasedWhenClosed = false
+        // The whole point of this panel is to be readable *while* the user
+        // is in System Settings. Under a tiling WM (AeroSpace) that's a
+        // different workspace than the one flick's window was on, and a
+        // panel bound to one space would simply vanish at the moment it's
+        // needed — so join all of them.
+        newPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
+        newPanel.hidesOnDeactivate = false
 
         let hostingView = NSHostingView(
             rootView: OnboardingAssistantView(
@@ -333,8 +378,12 @@ final class OnboardingAssistantPanelController {
         )
         newPanel.contentView = hostingView
 
-        // Position panel bottom-right on the active screen
-        if let screen = NSScreen.main {
+        // Bottom-right of the screen the user is actually looking at —
+        // `NSScreen.main` follows the *key window*, which by now belongs to
+        // System Settings on some other display; the pointer is the better
+        // proxy for where the user's attention is.
+        let pointerScreen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) }
+        if let screen = pointerScreen ?? NSScreen.main {
             let visibleFrame = screen.visibleFrame
             let x = visibleFrame.maxX - 360
             let y = visibleFrame.minY + 40

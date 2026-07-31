@@ -1,4 +1,5 @@
 import AppKit
+import Security
 import ServiceManagement
 import UserNotifications
 import os.log
@@ -71,8 +72,17 @@ enum SystemIntegration {
     /// Self-relaunch, e.g. right after a TCC entitlement change like Full
     /// Disk Access — cleaner than waiting on the user to notice Apple's own
     /// "Quit & Reopen" prompt.
+    /// Relaunching *ourselves* — from `Bundle.main.bundleURL`, an exact
+    /// path — is deliberately preferred over Apple's own "Quit & Reopen"
+    /// button, which relaunches by bundle id: with more than one
+    /// `com.nebelhaus.flick` bundle registered (a stale DerivedData copy is
+    /// enough), LaunchServices can resolve that to a *different* build than
+    /// the one the grant was just made against.
     static func relaunch() {
         let url = Bundle.main.bundleURL
+        // Last line of defence for the toggle: CFPreferences' flush is
+        // async and `exit(0)` doesn't wait for it.
+        UserDefaults.standard.synchronize()
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
         NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in
@@ -106,9 +116,84 @@ enum SystemIntegration {
         )
     }
 
+    /// Every deep link above lands in this one app.
+    private static let systemSettingsBundleID = "com.apple.systempreferences"
+
+    private static var raiseTask: Task<Void, Never>?
+
     private static func open(_ urlString: String) {
         guard let url = URL(string: urlString) else { return }
-        NSWorkspace.shared.open(url)
+        // The deprecated `open(_:)` never asks for activation, so System
+        // Settings came up *behind* whatever the user was looking at. The
+        // configuration variant asks; `raiseSystemSettings` insists.
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        NSWorkspace.shared.open(url, configuration: configuration) { _, _ in
+            Task { @MainActor in raiseSystemSettings() }
+        }
+        raiseSystemSettings()
+    }
+
+    /// Bring System Settings to the front, and keep asking for a beat.
+    ///
+    /// One activation request is not enough here for two independent
+    /// reasons: on a cold launch the process exists before its window does
+    /// (activating a windowless app is a no-op), and under a tiling window
+    /// manager like AeroSpace the WM re-asserts its own focus right after
+    /// the app appears. So poll until it actually reports active, then stop
+    /// — never longer, or we'd yank focus back from a user who moved on.
+    private static func raiseSystemSettings() {
+        raiseTask?.cancel()
+        raiseTask = Task { @MainActor in
+            for attempt in 0..<12 {
+                if attempt > 0 {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                }
+                if Task.isCancelled { return }
+                guard let app = NSRunningApplication.runningApplications(
+                    withBundleIdentifier: systemSettingsBundleID
+                ).first else { continue }
+                if app.isActive && attempt > 0 { return }
+                app.unhide()
+                app.activate(options: [.activateAllWindows])
+            }
+        }
+    }
+
+    // MARK: - Signing identity (why a grant does or doesn't persist)
+
+    /// The Team ID this build is signed with, or nil when it's ad-hoc /
+    /// unsigned.
+    ///
+    /// This is load-bearing for the Full Disk Access flow, not trivia.
+    /// macOS stores a TCC grant against the app's *designated requirement*.
+    /// Signed with a Developer ID, that requirement names the team, so the
+    /// grant survives every rebuild. Ad-hoc, it names the binary's cdhash —
+    /// which changes on every single build — so macOS quietly revokes the
+    /// grant (the switch in System Settings flips itself back off) the next
+    /// time a differently-hashed Flick.app with this bundle id launches.
+    static var teamIdentifier: String? {
+        var code: SecCode?
+        guard SecCodeCopySelf(SecCSFlags(), &code) == errSecSuccess,
+              let code else { return nil }
+        var staticCode: SecStaticCode?
+        guard SecCodeCopyStaticCode(code, SecCSFlags(), &staticCode) == errSecSuccess,
+              let staticCode else { return nil }
+        var info: CFDictionary?
+        guard SecCodeCopySigningInformation(
+            staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &info
+        ) == errSecSuccess,
+            let dict = info as? [String: Any] else { return nil }
+        return dict[kSecCodeInfoTeamIdentifier as String] as? String
+    }
+
+    /// nil when permissions granted to this build will stick; otherwise the
+    /// reason they won't, in one sentence the user can act on.
+    static var permissionPersistenceWarning: String? {
+        guard teamIdentifier == nil else { return nil }
+        return "This is an ad-hoc signed build, so macOS drops its Full Disk Access "
+            + "grant every time Flick is rebuilt. Install a Developer ID-signed build "
+            + "(scripts/dev-install.sh) to grant it once and keep it."
     }
 
     // MARK: - Own UN registration (diagnostics)
