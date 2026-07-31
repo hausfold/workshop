@@ -23,6 +23,13 @@ const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path trave
 // The apps with signed + notarized release artifacts on GitHub. Keys are the
 // URL slugs; each repo lives at github.com/nebelhaus/<app>.
 const DOWNLOADABLE = new Set(["pounce", "trill", "perch"]);
+// The human-facing artifact, most-preferred first. A DMG outranks the archive
+// on purpose: pounce's release ships BOTH — the tarball is the Homebrew
+// formula's artifact (app + CLI scripts, brew wires the daemon), the DMG is the
+// drag-to-Applications one (self-contained app, login item self-registers on
+// first open). Handing a human the tarball is how you strand them with a
+// half-installed palette.
+const MACOS_DMG = /-macos\.dmg$/;
 const MACOS_ASSET = /-macos\.(zip|tar\.gz)$/;
 
 const text = (body, status = 200, extra = {}) =>
@@ -68,7 +75,10 @@ async function latestAppRelease(app) {
     });
     if (r.ok) {
       const release = await r.json();
-      const asset = release.assets?.find((a) => MACOS_ASSET.test(a.name)) ?? release.assets?.[0];
+      const asset =
+        release.assets?.find((a) => MACOS_DMG.test(a.name)) ??
+        release.assets?.find((a) => MACOS_ASSET.test(a.name)) ??
+        release.assets?.[0];
       if (release.tag_name && asset) {
         const meta = {
           tag: release.tag_name,
