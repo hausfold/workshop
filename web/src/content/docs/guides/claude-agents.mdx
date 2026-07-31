@@ -64,9 +64,9 @@ wt                    # list every parked / live agent worktree, all repos
 
 ```
 🌫  agent worktrees you can resume (wt <name>, or <repo>/<name>)
-  repo         name                       state  chat  last commit
-  nebelung     sparkle                    parked yes   2 hours ago — wip: auto-saved on pane close
-  pounce       quick-emoji                live   yes   10 min ago — add fuzzy weights
+  repo         name                       state  agent     last commit
+  nebelung     sparkle                    parked claude    2 hours ago — wip: auto-saved on pane close
+  pounce       quick-emoji                live   codex     10 min ago — add fuzzy weights
 ```
 
 To pick one back up, name it — `wt` rebuilds the checkout and reopens the chat
@@ -76,6 +76,32 @@ in the same directory, so Claude resumes with its full history:
 wt sparkle            # rebuild the checkout + reopen the chat (claude --resume)
 wt nebelung/sparkle   # qualify with the repo when a name exists in two repos
 ```
+
+## Spawn from Pounce — and choose the default client
+
+For a named worktree without first finding the right terminal tab, summon Pounce
+and run **Spawn Agent**. Pick a repository, describe the task, and it creates a
+`worktree-<task-name>` checkout before opening the configured client in that
+repo's zellij tab.
+
+Set the client declaratively:
+
+```nix
+nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
+```
+
+`wt` records that client with the worktree. Changing the option therefore only
+changes **new** palette spawns: a parked Codex task still reopens through
+`codex resume`, and an OpenCode task through `opencode --continue`. Claude's
+native ⌘C worktree binding remains Claude-specific.
+
+There is also **Spawn Agent with Screenshot**. It uses macOS's normal area
+selector (`screencapture -i`) before the repository/prompt flow, then keeps the
+PNG under `~/.cache/nebelhaus-agent-screenshots/` for the agent. Codex receives
+it as an initial image; Claude and OpenCode receive its file path in the first
+prompt so they can inspect it. Keeping it as a separate palette entry matters:
+a task whose text happens to contain “screenshot” can never steal Return in the
+free-text prompt field.
 
 ## Cross-repo work: `wt child`
 
@@ -208,13 +234,14 @@ Claude Code falls back to its visible scrollback.
 | Command | What it does |
 |---|---|
 | `wt` | List every parked/live agent worktree across all repos (self-heals first) |
-| `wt <name>` | Resume one: rebuild its checkout and reopen its Claude chat |
+| `wt <name>` | Resume one: rebuild its checkout and reopen its recorded agent chat |
 | `wt resume <name>` | The same thing, spelled out |
 | `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
 | `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
 | `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
 | `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
 | `wt create` / `wt remove` | The hooks `Super c` fires — you don't call these by hand |
+| `wt agent default` | Print the configured palette-spawn client |
 
 <Aside type="note" title="Related shell touches">
 New panes born inside a worktree hop back to the repo's **main checkout** by
