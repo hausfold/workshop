@@ -75,9 +75,9 @@ cheatsheet always reflects the keys you actually have.
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt [` / `Alt ]` | Cycle swap layouts (grid → spiral → columns) — works locked too |
-| `Super C` | Spawn an isolated Claude agent (own worktree) in a new pane |
+| `Super C` | Spawn an isolated agent (own worktree) in a new pane — your [`agents.default`](/reference/options/) client: Claude Code via its own `--worktree`, Codex or Opencode via `wt new` |
 | `Super ⇧C` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
-| `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
+| `Ctrl ⌥⇧C` | Spawn a resident agent (this checkout) |
 
 **Locked by default.** zellij boots in **Locked** input mode, so its single-key
 submode leaders (pane, tab, resize) stay inert until you press `Ctrl g` — a stray

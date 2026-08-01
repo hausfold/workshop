@@ -65,14 +65,16 @@ CLAUDE.md](https://github.com/nebelhaus/nebelhaus/blob/main/CLAUDE.md) and the
 
 ## Agent worktrees (parallel Claude sessions)
 
-Claude panes spawned with `Super c` (⌘C) run `claude --worktree`: each session
-gets its own checkout under `~/.cache/claude-worktrees/<repo>/<name>` on branch
-`worktree-<name>`, branched from the repo's **local HEAD**. The plumbing is
+Agent panes spawned with `Super c` (⌘C) run the client `nebelhaus.agents.default`
+names — here, `claude --worktree`; a Codex or OpenCode default runs `wt new`
+instead, which produces the identical worktree from the outside. Either way the
+session gets its own checkout under `~/.cache/claude-worktrees/<repo>/<name>` on
+branch `worktree-<name>`, branched from the repo's **local HEAD**. The plumbing is
 `wt` — a standalone, repo-agnostic tool that ships in the **rice**
 (`nebelhaus/modules/den`, next to `haus`) on PATH, wired into
 `~/.claude/settings.json` as Claude Code's `WorktreeCreate`/`WorktreeRemove`
 hooks (the host points the hooks at it). It lives in the rice, not `bench`,
-because the rice already ships the `claude --worktree` keybinds — and not every
+because the rice already ships the agent keybinds — and not every
 machine running `wt` has the workshop. Worktrees live OUTSIDE the repos so trees
 stay clean and `bench try`'s `path:` overrides never swallow them. (`Ctrl Alt
 Shift c` is the in-place variant: the one agent per tab allowed to edit the real
