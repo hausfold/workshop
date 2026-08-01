@@ -33,12 +33,22 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    /// Set when FDA assistant flow is triggered so that if the user or macOS
+    /// quits & relaunches Flick, Settings re-opens automatically to show status.
+    @Published var reopenSettingsOnLaunch: Bool {
+        didSet {
+            defaults.set(reopenSettingsOnLaunch, forKey: Keys.reopenSettingsOnLaunch)
+            defaults.synchronize()
+        }
+    }
+
     private let defaults: UserDefaults
 
     private enum Keys {
         static let launchAtLogin = "launchAtLogin"
         static let persistHistory = "persistHistory"
         static let systemMirror = "systemMirrorEnabled"
+        static let reopenSettingsOnLaunch = "reopenSettingsOnLaunch"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -47,9 +57,11 @@ final class AppSettings: ObservableObject {
             Keys.launchAtLogin: false,
             Keys.persistHistory: true,
             Keys.systemMirror: false, // experimental: always opt-in
+            Keys.reopenSettingsOnLaunch: false,
         ])
         launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         persistHistory = defaults.bool(forKey: Keys.persistHistory)
         systemMirrorEnabled = defaults.bool(forKey: Keys.systemMirror)
+        reopenSettingsOnLaunch = defaults.bool(forKey: Keys.reopenSettingsOnLaunch)
     }
 }

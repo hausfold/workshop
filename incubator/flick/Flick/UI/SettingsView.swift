@@ -6,10 +6,17 @@ struct SettingsView: View {
     /// nil = healthy). Experimental providers surface their honest state
     /// here instead of pretending.
     let providerStatus: [String: String?]
+    var fetchProviderStatus: (() async -> [String: String?])? = nil
     let onRequestFullDiskAccess: () -> Void
 
+    @State private var liveStatus: [String: String?]? = nil
+
+    private var currentStatus: [String: String?] {
+        liveStatus ?? providerStatus
+    }
+
     private var hasFullDiskAccess: Bool {
-        providerStatus["system-mirror"].flatMap { $0 } == nil
+        currentStatus["system-mirror"].flatMap { $0 } == nil
     }
 
     var body: some View {
@@ -20,33 +27,54 @@ struct SettingsView: View {
             }
 
             Section("Providers") {
-                LabeledContent("Socket (flick CLI)", value: providerStatus["socket"].flatMap { $0 } ?? "ready")
-                VStack(alignment: .leading, spacing: 6) {
-                    Toggle("System Mirror (experimental)", isOn: $settings.systemMirrorEnabled)
-                        .disabled(!hasFullDiskAccess)
+                LabeledContent("Socket (flick CLI)", value: currentStatus["socket"].flatMap { $0 } ?? "ready")
 
-                    if hasFullDiskAccess {
+                if hasFullDiskAccess {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle("System Mirror (experimental)", isOn: $settings.systemMirrorEnabled)
                         Text("Reads macOS's private notification store, read-only, to redraw other apps' banners. May stop working on any macOS update — flick stays fully useful without it.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Label("Full Disk Access granted", systemImage: "checkmark.circle.fill")
                             .font(.caption)
                             .foregroundStyle(.green)
-                    } else {
-                        Text("Requires Full Disk Access before enabling. Reads macOS's private notification store, read-only.")
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "lock.shield")
+                                .font(.title3)
+                                .foregroundStyle(.orange)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("System Mirror (experimental)")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                Text("Permission required")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+
+                        Text("System Mirror reads macOS's private notification store to mirror banners from other apps. Full Disk Access is required before enabling.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        if let reason = providerStatus["system-mirror"].flatMap({ $0 }) {
+
+                        if let reason = currentStatus["system-mirror"].flatMap({ $0 }) {
                             Text(reason)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundStyle(.orange)
                         }
-                        Button("Grant Full Disk Access…", action: onRequestFullDiskAccess)
-                            .font(.caption)
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                            .padding(.top, 2)
+
+                        Button(action: onRequestFullDiskAccess) {
+                            Label("Grant Full Disk Access…", systemImage: "lock.shield.fill")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.regular)
+                        .padding(.top, 2)
                     }
+                    .padding(10)
+                    .background(Color.orange.opacity(0.08))
+                    .cornerRadius(8)
                 }
             }
 
@@ -66,5 +94,15 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 440)
+        .task {
+            guard let fetchProviderStatus else { return }
+            while !Task.isCancelled {
+                let status = await fetchProviderStatus()
+                await MainActor.run {
+                    self.liveStatus = status
+                }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+        }
     }
 }

@@ -41,6 +41,10 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         self.runtime = runtime
         runtime.start()
         installStatusItem()
+
+        if runtime.settings.reopenSettingsOnLaunch {
+            showSettings()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -83,6 +87,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showSettings() {
         guard let runtime else { return }
+        runtime.settings.reopenSettingsOnLaunch = false
         Task { @MainActor in
             let status = await runtime.providerStatusSnapshot()
             settingsWindow?.close()
@@ -110,6 +115,9 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
                 rootView: SettingsView(
                     settings: runtime.settings,
                     providerStatus: status,
+                    fetchProviderStatus: { [weak runtime] in
+                        await runtime?.providerStatusSnapshot() ?? [:]
+                    },
                     onRequestFullDiskAccess: { [weak self] in
                         self?.presentFullDiskAccessAssistant(runtime: runtime)
                     }
@@ -121,6 +129,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
+        runtime.settings.reopenSettingsOnLaunch = true
         // Order is load-bearing: closing the Settings window first drops
         // the app back to `.accessory` (UtilityWindowManager), and an
         // accessory app has no active-app status to hand over — macOS then

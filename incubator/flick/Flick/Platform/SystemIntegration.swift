@@ -69,31 +69,11 @@ enum SystemIntegration {
 
     // MARK: - Onboarding assistant
 
-    /// Self-relaunch, e.g. right after a TCC entitlement change like Full
-    /// Disk Access — cleaner than waiting on the user to notice Apple's own
-    /// "Quit & Reopen" prompt.
-    /// Relaunching *ourselves* — from `Bundle.main.bundleURL`, an exact
-    /// path — is deliberately preferred over Apple's own "Quit & Reopen"
-    /// button, which relaunches by bundle id: with more than one
-    /// `com.nebelhaus.flick` bundle registered (a stale DerivedData copy is
-    /// enough), LaunchServices can resolve that to a *different* build than
-    /// the one the grant was just made against.
-    static func relaunch() {
-        let url = Bundle.main.bundleURL
-        // Last line of defence for the toggle: CFPreferences' flush is
-        // async and `exit(0)` doesn't wait for it.
-        UserDefaults.standard.synchronize()
-        let configuration = NSWorkspace.OpenConfiguration()
-        configuration.createsNewApplicationInstance = true
-        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in
-            exit(0)
-        }
-    }
-
     /// Opens the Full Disk Access pane and floats a non-activating helper
-    /// panel alongside it. `onGrantConfirmed` commits the setting (through
-    /// `AppSettings`, so it's flushed to disk) before `onDismiss` reopens
-    /// Settings — the panel itself never touches `UserDefaults` directly.
+    /// panel alongside it. Access is picked up live without quitting or
+    /// relaunching the app. `onGrantConfirmed` commits the setting
+    /// (through `AppSettings`, so it's flushed to disk) before `onDismiss`
+    /// reopens Settings — the panel itself never touches `UserDefaults` directly.
     static func presentFullDiskAccessAssistant(
         onGrantConfirmed: @escaping () -> Void,
         onDismiss: (() -> Void)? = nil

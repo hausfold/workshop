@@ -102,8 +102,6 @@ struct OnboardingAssistantView: View {
 
     @State private var isFDAGranted = false
     @State private var pollTimer: Timer?
-    @State private var relaunchTimer: Timer?
-    @State private var relaunchCountdown = 3
     @State private var selectedTab = 0
 
     var body: some View {
@@ -141,7 +139,6 @@ struct OnboardingAssistantView: View {
         }
         .onDisappear {
             pollTimer?.invalidate()
-            relaunchTimer?.invalidate()
         }
     }
 
@@ -180,7 +177,7 @@ struct OnboardingAssistantView: View {
 
         if selectedTab == 0 {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Find **Flick** in the System Settings list and turn its switch **ON**:")
+                Text("Find **Flick** in System Settings and turn its switch **ON**. If Apple prompts, click **Later**:")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -222,22 +219,19 @@ struct OnboardingAssistantView: View {
 
         if isFDAGranted {
             VStack(alignment: .leading, spacing: 8) {
-                Label("Full Disk Access granted", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
+                Label("Full Disk Access Granted", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline)
+                    .bold()
                     .foregroundStyle(.green)
 
-                // Deliberately steering *away* from Apple's own prompt:
-                // it relaunches by bundle id, which can resolve to a
-                // different Flick.app than the one just granted, and macOS
-                // then revokes the grant it can no longer match.
-                Text("Restarting Flick in **\(relaunchCountdown)s** to pick the new access up. Ignore Apple's **Quit & Reopen** prompt — it can relaunch a different copy and lose the grant.")
-                    .font(.caption2)
+                Text("System Mirror is active. No quit or restart required.")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack {
                     Spacer()
-                    Button("Restart Now") { relaunchNow() }
+                    Button("Done") { onClose() }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
                     Spacer()
@@ -251,6 +245,12 @@ struct OnboardingAssistantView: View {
                 Text("Waiting for switch toggle…")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Spacer()
+                Button("Open Settings") {
+                    SystemIntegration.openFullDiskAccessSettings()
+                }
+                .font(.caption)
+                .buttonStyle(.borderless)
             }
             .padding(.top, 4)
         }
@@ -292,38 +292,10 @@ struct OnboardingAssistantView: View {
                 if case .ready = health {
                     isFDAGranted = true
                     pollTimer?.invalidate()
-                    // Commit the moment we detect the grant, not when a
-                    // relaunch button is tapped: the user may still reach
-                    // for Apple's own "Quit & Reopen" prompt, and that path
-                    // never touches this view's buttons at all.
                     onGrantConfirmed()
-                    startRelaunchCountdown()
                 }
             }
         }
-    }
-
-    /// The grant only takes effect in a fresh process, so don't make the
-    /// user find a button for it — restart on our own, from our own bundle
-    /// path, after a beat long enough to read what happened.
-    private func startRelaunchCountdown() {
-        relaunchTimer?.invalidate()
-        relaunchTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            Task { @MainActor in
-                relaunchCountdown -= 1
-                if relaunchCountdown <= 0 { relaunchNow() }
-            }
-        }
-    }
-
-    /// Note: no `onClose()` — that reopens the Settings window through the
-    /// dismiss callback, which would flash a window and steal focus in the
-    /// half second before the process exits. The panel dies with the
-    /// process anyway.
-    private func relaunchNow() {
-        relaunchTimer?.invalidate()
-        pollTimer?.invalidate()
-        SystemIntegration.relaunch()
     }
 }
 
