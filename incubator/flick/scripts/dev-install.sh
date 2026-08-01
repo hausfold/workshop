@@ -164,9 +164,11 @@ Installed: $INSTALL_PATH  (Team $ACTUAL_TEAM)
 
 Full Disk Access, once:
   Flick menu bar → Settings… → Unlock System Mirror…
-  The assistant walks you through the pane, then closes itself and reopens
-  Settings the moment the grant lands. No relaunch — ignore Apple's own
-  "Quit & Reopen" prompt (its "Later" button grants access just the same).
+  The assistant walks you through the pane and closes itself the moment the
+  grant lands — access is picked up live, so either answer to Apple's
+  "Quit & Reopen" sheet works. "Later" changes nothing; "Quit & Reopen"
+  is finished by Flick's own watchdog, since macOS quits background-only
+  apps without ever performing the reopen.
 
 Every later run of this script keeps that grant.
 EOF
