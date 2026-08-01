@@ -94,18 +94,20 @@ struct OnboardingAssistantView: View {
     }
 
     let mode: Mode
-    /// Fires once, right before relaunching, when the user confirms Full
-    /// Disk Access was granted — the caller commits the setting through
-    /// `AppSettings` so it's flushed to disk before the process exits.
+    /// Fires once, when the probe first sees Full Disk Access land — the
+    /// caller commits the setting through `AppSettings` so it's flushed to
+    /// disk, then this panel closes itself and hands back to Settings.
     var onGrantConfirmed: () -> Void = {}
     let onClose: () -> Void
 
-    @State private var isFDAGranted = false
     @State private var pollTimer: Timer?
     @State private var selectedTab = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // No in-content close button: the panel is `.titled`/`.closable`,
+            // so it already has the native red traffic light. Two ways to
+            // shut one small window is one too many.
             HStack {
                 Image(systemName: modeIcon)
                     .foregroundStyle(.tint)
@@ -113,11 +115,6 @@ struct OnboardingAssistantView: View {
                 Text(modeTitle)
                     .font(.headline)
                 Spacer()
-                Button(action: onClose) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
             }
 
             Divider()
@@ -130,7 +127,11 @@ struct OnboardingAssistantView: View {
             }
         }
         .padding(16)
-        .frame(width: 350)
+        // The panel's height is fixed per mode (it can't be measured — see
+        // the controller), so any slack goes to the bottom rather than being
+        // split into two gaps around vertically-centred content.
+        .frame(width: 350, alignment: .top)
+        .frame(maxHeight: .infinity, alignment: .top)
         .background(.ultraThinMaterial)
         .onAppear {
             if case .fullDiskAccess = mode {
@@ -181,22 +182,7 @@ struct OnboardingAssistantView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                HStack(spacing: 12) {
-                    Image(nsImage: NSApp.applicationIconImage ?? NSImage(named: NSImage.applicationIconName)!)
-                        .resizable()
-                        .frame(width: 28, height: 28)
-                    Text("Flick")
-                        .font(.subheadline)
-                        .bold()
-                    Spacer()
-                    Toggle("", isOn: .constant(true))
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
-                }
-                .padding(10)
-                .background(Color.primary.opacity(0.06))
-                .cornerRadius(8)
+                FlickSwitchDemo()
             }
         } else {
             VStack(alignment: .leading, spacing: 8) {
@@ -217,43 +203,24 @@ struct OnboardingAssistantView: View {
             }
         }
 
-        if isFDAGranted {
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Full Disk Access Granted", systemImage: "checkmark.circle.fill")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundStyle(.green)
-
-                Text("System Mirror is active. No quit or restart required.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                HStack {
-                    Spacer()
-                    Button("Done") { onClose() }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                    Spacer()
-                }
-            }
-            .padding(.top, 4)
-        } else {
-            HStack {
-                ProgressView()
-                    .controlSize(.small)
-                Text("Waiting for switch toggle…")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button("Open Settings") {
-                    SystemIntegration.openFullDiskAccessSettings()
-                }
+        // No spinner here. Nothing is loading — flick is waiting on a human,
+        // and a spinner in that spot claims the app is busy when the ball is
+        // squarely in the user's court.
+        HStack(spacing: 6) {
+            Image(systemName: "bolt.horizontal.circle")
                 .font(.caption)
-                .buttonStyle(.borderless)
+                .foregroundStyle(.tint)
+            Text("Picked up the instant you flip it.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button("Open Settings") {
+                SystemIntegration.openFullDiskAccessSettings()
             }
-            .padding(.top, 4)
+            .font(.caption)
+            .buttonStyle(.borderless)
         }
+        .padding(.top, 4)
     }
 
     @ViewBuilder
@@ -284,17 +251,119 @@ struct OnboardingAssistantView: View {
         .controlSize(.small)
     }
 
+    /// The grant is the end of this panel's job. Rather than swapping in a
+    /// "granted, click Done" state the user has to dismiss, close — the
+    /// caller reopens Settings, where the now-unlocked toggle is the payoff.
     private func startFDAPolling() {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             Task { @MainActor in
                 let provider = SystemMirrorProvider()
                 let health = await provider.probe()
                 if case .ready = health {
-                    isFDAGranted = true
                     pollTimer?.invalidate()
+                    pollTimer = nil
                     onGrantConfirmed()
+                    onClose()
                 }
             }
+        }
+    }
+}
+
+// MARK: - Looping "flip the switch" demo
+
+/// A silent, non-interactive re-enactment of the single thing the user has
+/// to do in System Settings: find flick's row and turn its switch on.
+///
+/// It starts **off** on purpose — off is the state they're staring at, and a
+/// mock that's already on illustrates the destination while hiding the
+/// action. A pointer glides in, clicks, the switch flips, then the whole
+/// thing resets and loops.
+private struct FlickSwitchDemo: View {
+    @State private var isOn = false
+    /// 1 = pointer parked off to the lower right, 0 = resting on the switch.
+    @State private var cursorTravel: CGFloat = 1
+    @State private var cursorVisible = false
+    @State private var pressed = false
+    @State private var ripple = false
+
+    private var appIcon: NSImage {
+        NSApp.applicationIconImage ?? NSImage(named: NSImage.applicationIconName)!
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(nsImage: appIcon)
+                .resizable()
+                .frame(width: 28, height: 28)
+            Text("Flick")
+                .font(.subheadline)
+                .bold()
+            Spacer()
+            Toggle("", isOn: .constant(isOn))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .allowsHitTesting(false)
+                .scaleEffect(pressed ? 0.93 : 1)
+                .overlay {
+                    Circle()
+                        .strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 1.5)
+                        .frame(width: 24, height: 24)
+                        .scaleEffect(ripple ? 1.8 : 0.4)
+                        .opacity(ripple ? 0 : 0.9)
+                        .allowsHitTesting(false)
+                }
+                .overlay {
+                    Image(systemName: pressed ? "cursorarrow.click" : "cursorarrow")
+                        .font(.system(size: 15))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.6), radius: 1.5, y: 0.5)
+                        .offset(x: 6 + cursorTravel * 40, y: 9 + cursorTravel * 30)
+                        .opacity(cursorVisible ? 1 : 0)
+                        .allowsHitTesting(false)
+                }
+        }
+        .padding(10)
+        .background(Color.primary.opacity(0.06))
+        .cornerRadius(8)
+        // `.task` is tied to the view's lifetime, so the loop cancels itself
+        // when the panel goes away — no timer to invalidate.
+        .task { await runLoop() }
+    }
+
+    private func runLoop() async {
+        while !Task.isCancelled {
+            withTransaction(Transaction(animation: nil)) {
+                isOn = false
+                cursorTravel = 1
+                cursorVisible = false
+                pressed = false
+                ripple = false
+            }
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            if Task.isCancelled { return }
+
+            withAnimation(.easeOut(duration: 0.25)) { cursorVisible = true }
+            withAnimation(.easeInOut(duration: 0.75)) { cursorTravel = 0 }
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            if Task.isCancelled { return }
+
+            withAnimation(.easeIn(duration: 0.08)) { pressed = true }
+            withAnimation(.easeOut(duration: 0.55)) { ripple = true }
+            try? await Task.sleep(nanoseconds: 130_000_000)
+            if Task.isCancelled { return }
+
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { isOn = true }
+            withAnimation(.easeOut(duration: 0.15)) { pressed = false }
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            if Task.isCancelled { return }
+
+            withAnimation(.easeIn(duration: 0.3)) {
+                cursorVisible = false
+                cursorTravel = 1
+            }
+            try? await Task.sleep(nanoseconds: 1_100_000_000)
         }
     }
 }
@@ -302,7 +371,7 @@ struct OnboardingAssistantView: View {
 // MARK: - Onboarding Assistant Panel Controller
 
 @MainActor
-final class OnboardingAssistantPanelController {
+final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
     static let shared = OnboardingAssistantPanelController()
 
     private var panel: NSPanel?
@@ -319,8 +388,20 @@ final class OnboardingAssistantPanelController {
 
         self.onDismiss = onDismiss
 
+        // A deterministic content height per mode, not one measured off
+        // SwiftUI (`fittingSize` can read stale on macOS 26) — an NSPanel
+        // that guesses wrong clips the content or leaves a dead band under
+        // it. The ad-hoc-signing warning is the only conditional block.
+        let height: CGFloat
+        switch mode {
+        case .fullDiskAccess:
+            height = SystemIntegration.permissionPersistenceWarning == nil ? 264 : 320
+        case .appMigration:
+            height = 300
+        }
+
         let newPanel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 340, height: 260),
+            contentRect: NSRect(x: 0, y: 0, width: 350, height: height),
             styleMask: [.titled, .closable, .utilityWindow, .nonactivatingPanel, .hudWindow],
             backing: .buffered,
             defer: false
@@ -364,12 +445,23 @@ final class OnboardingAssistantPanelController {
             newPanel.center()
         }
 
+        // The native red traffic light is now the only way to close this by
+        // hand, so it has to run the same teardown the in-content button
+        // used to — otherwise clicking it would strand `onDismiss` and
+        // Settings would never come back.
+        newPanel.delegate = self
+
         newPanel.orderFrontRegardless()
         self.panel = newPanel
     }
 
     func dismiss() {
-        panel?.close()
+        panel?.close() // `windowWillClose` does the teardown, once.
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard let closing = notification.object as? NSWindow, closing === panel else { return }
+        closing.delegate = nil
         panel = nil
         let callback = onDismiss
         onDismiss = nil

@@ -137,9 +137,10 @@ cat <<EOF
 Installed: $INSTALL_PATH  (Team $ACTUAL_TEAM)
 
 Full Disk Access, once:
-  Flick menu bar → Settings… → Grant Full Disk Access…
-  The assistant walks you through the pane and restarts Flick itself when it
-  sees the grant land — ignore Apple's own "Quit & Reopen" prompt.
+  Flick menu bar → Settings… → Unlock System Mirror…
+  The assistant walks you through the pane, then closes itself and reopens
+  Settings the moment the grant lands. No relaunch — ignore Apple's own
+  "Quit & Reopen" prompt (its "Later" button grants access just the same).
 
 Every later run of this script keeps that grant.
 EOF

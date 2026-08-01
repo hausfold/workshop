@@ -35,6 +35,9 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: NSWindow?
     private var statusItem: NSStatusItem?
     private let windowManager = UtilityWindowManager()
+    /// Set when the FDA assistant sees the grant land, read once by the
+    /// Settings window it hands back to.
+    private var pendingUnlockCelebration = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let runtime = AppRuntime()
@@ -86,6 +89,14 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func showSettings() {
+        presentSettings(celebrateUnlock: false)
+    }
+
+    /// `celebrateUnlock` is true only on the hop back from the Full Disk
+    /// Access assistant right after the grant landed — Settings then opens
+    /// with the System Mirror row briefly highlighted, so the payoff is
+    /// visible instead of just being "the card changed while you were away".
+    private func presentSettings(celebrateUnlock: Bool) {
         guard let runtime else { return }
         runtime.settings.reopenSettingsOnLaunch = false
         Task { @MainActor in
@@ -120,7 +131,8 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
                     },
                     onRequestFullDiskAccess: { [weak self] in
                         self?.presentFullDiskAccessAssistant(runtime: runtime)
-                    }
+                    },
+                    celebrateUnlock: celebrateUnlock
                 )
             )
             settingsWindow = window
@@ -130,6 +142,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
         runtime.settings.reopenSettingsOnLaunch = true
+        pendingUnlockCelebration = false
         // Order is load-bearing: closing the Settings window first drops
         // the app back to `.accessory` (UtilityWindowManager), and an
         // accessory app has no active-app status to hand over — macOS then
@@ -138,8 +151,16 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         // open the deep link while flick is still the frontmost regular
         // app, and tidy our own window up on the next runloop turn.
         SystemIntegration.presentFullDiskAccessAssistant(
-            onGrantConfirmed: { runtime.settings.systemMirrorEnabled = true },
-            onDismiss: { [weak self] in self?.showSettings() }
+            onGrantConfirmed: { [weak self] in
+                self?.pendingUnlockCelebration = true
+                runtime.settings.systemMirrorEnabled = true
+            },
+            onDismiss: { [weak self] in
+                guard let self else { return }
+                let celebrate = self.pendingUnlockCelebration
+                self.pendingUnlockCelebration = false
+                self.presentSettings(celebrateUnlock: celebrate)
+            }
         )
         DispatchQueue.main.async { [weak self] in
             self?.settingsWindow?.close()
