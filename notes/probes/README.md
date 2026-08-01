@@ -6,6 +6,7 @@ The matrix is one macOS release away from being wrong — rerun these on every b
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
 swift notes/probes/displays.swift                  # displays, persistent UUIDs, HiDPI modes
+./notes/probes/ncprefs-flags.sh                    # per-app notification switches
 ```
 
 `accessibility-effective.swift` reports what macOS *actually* honours, not what
@@ -39,6 +40,41 @@ without FDA, since that can only reproduce the original refusal.
 To grant FDA: System Settings ▸ Privacy & Security ▸ Full Disk Access ▸ (+), add
 the terminal, then fully quit and reopen it. On macOS 26 a *stale* grant often
 has to be removed and re-added with (+) before it takes.
+
+## `ncprefs-flags.sh` — where the notification switches really live
+
+Settled on 26.6, 2026-08-01, by holding one app's switches in a known state and
+diffing — not by trusting the flag tables in circulation, all of which point at
+the wrong file now.
+
+The per-app switches in System Settings ▸ Notifications live in
+`group.com.apple.usernoted`'s container prefs. **`com.apple.ncprefs` is a stale
+mirror**: it still has an `apps` array with plausible `flags`, and on this
+machine it sat unchanged for two weeks while the real settings moved. `--legacy`
+prints the drift (9 apps disagreed the day this was written, including the one
+under test). Anything built on ncprefs reports confidently wrong state.
+
+Two bits matter, both verified against the live UI:
+
+| bit | mask | switch |
+|---|---|---|
+| 3 | `0x8` | **Desktop** — the on-screen banner |
+| 2 | `0x4` | **Play sound for notification** |
+
+Both clear = silent, drawing nothing, still reaching Notification Center. That
+is the end state to steer an app to when something else is rendering its
+banners; turning *Allow notifications* off instead would stop the events
+reaching the store at all.
+
+The container is TCC-protected, so this needs **Full Disk Access** — and a
+terminal that already holds FDA reads it without complaint while telling you
+nothing about an un-granted process. `--tcc` makes that distinction explicit.
+Any checker built on this has three verdicts, not two: noisy, quiet, and
+*can't tell* — and "can't tell" must never render as "all clear".
+
+macOS 26 also retired the old alert-style radio. There is no "Banners"
+checkbox to uncheck any more: it's the **Desktop** checkbox plus an
+Alert Style Temporary/Persistent pair.
 
 ## `accessibility-sweep.sh`
 
