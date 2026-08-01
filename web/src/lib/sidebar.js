@@ -26,7 +26,7 @@ export const sidebar = [
       { label: 'Window management (prowl)', slug: 'guides/window-management' },
       { label: 'The bar (sill)', slug: 'guides/the-bar' },
       { label: 'The shell (hearth)', slug: 'guides/the-shell' },
-      { label: 'Claude Code agents (wt)', slug: 'guides/claude-agents' },
+      { label: 'Coding agents (wt)', slug: 'guides/claude-agents' },
       { label: 'Touch ID for sudo (collar)', slug: 'guides/touch-id' },
       { label: 'Focus & DND (hush)', slug: 'guides/hush' },
       { label: 'Pounce — the launcher', slug: 'guides/pounce' },
