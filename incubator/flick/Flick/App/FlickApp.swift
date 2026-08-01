@@ -36,8 +36,9 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let windowManager = UtilityWindowManager()
     /// Set when the FDA assistant sees the grant land, read once by the
-    /// Settings window it hands back to.
-    private var pendingUnlockCelebration = false
+    /// Disarms `reopenSettingsOnLaunch` when the grant landed and the process
+    /// was never actually restarted (Apple's "Later" button).
+    private var reopenDisarmTask: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let runtime = AppRuntime()
@@ -45,8 +46,11 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         runtime.start()
         installStatusItem()
 
+        // Only ever set by the Full Disk Access assistant, so a launch that
+        // sees it is the relaunch straight out of Apple's "Quit & Reopen" —
+        // which makes this the first moment the user can be shown the unlock.
         if runtime.settings.reopenSettingsOnLaunch {
-            showSettings()
+            presentSettings(celebrateUnlock: true)
         }
     }
 
@@ -142,7 +146,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
         runtime.settings.reopenSettingsOnLaunch = true
-        pendingUnlockCelebration = false
+        reopenDisarmTask?.cancel()
         // Order is load-bearing: closing the Settings window first drops
         // the app back to `.accessory` (UtilityWindowManager), and an
         // accessory app has no active-app status to hand over — macOS then
@@ -150,20 +154,35 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         // under AeroSpace means behind the tile the user is staring at. So
         // open the deep link while flick is still the frontmost regular
         // app, and tidy our own window up on the next runloop turn.
+        // No `onDismiss`. Reopening Settings here is a leftover from the
+        // flow that relaunched flick itself: now that the helper closes the
+        // instant the grant lands, macOS is *still* showing its own
+        // "Quit & Reopen" sheet — and a settings window raising itself over
+        // that sheet buries the thing the user has to answer. Closing to
+        // nothing hands System Settings back its own screen. The relaunch
+        // path still shows Settings, from `applicationDidFinishLaunching`.
         SystemIntegration.presentFullDiskAccessAssistant(
             onGrantConfirmed: { [weak self] in
-                self?.pendingUnlockCelebration = true
                 runtime.settings.systemMirrorEnabled = true
-            },
-            onDismiss: { [weak self] in
-                guard let self else { return }
-                let celebrate = self.pendingUnlockCelebration
-                self.pendingUnlockCelebration = false
-                self.presentSettings(celebrateUnlock: celebrate)
+                self?.disarmReopenOnLaunch(runtime: runtime)
             }
         )
         DispatchQueue.main.async { [weak self] in
             self?.settingsWindow?.close()
+        }
+    }
+
+    /// `reopenSettingsOnLaunch` exists to survive Apple's "Quit & Reopen".
+    /// If the user takes the "Later" branch instead, no relaunch ever comes
+    /// and the flag would sit armed until some unrelated launch popped
+    /// Settings open out of nowhere — so give the restart a generous window
+    /// and then stand it down.
+    private func disarmReopenOnLaunch(runtime: AppRuntime) {
+        reopenDisarmTask?.cancel()
+        reopenDisarmTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 90_000_000_000)
+            guard !Task.isCancelled else { return }
+            runtime.settings.reopenSettingsOnLaunch = false
         }
     }
 }
