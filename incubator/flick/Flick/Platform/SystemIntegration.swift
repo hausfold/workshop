@@ -67,6 +67,87 @@ enum SystemIntegration {
         open("x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_AllFiles")
     }
 
+    // MARK: - Relaunch watchdog (finishing Apple's "Quit & Reopen")
+
+    /// How long after arming the watchdog gives up and stands down. Long
+    /// enough to cover a user reading Apple's sheet, short enough that a
+    /// forgotten watchdog can't resurrect flick an hour later.
+    private static let relaunchWatchdogWindow = 300
+
+    private static var relaunchSentinel: URL? {
+        try? FileManager.default.url(
+            for: .applicationSupportDirectory, in: .userDomainMask,
+            appropriateFor: nil, create: true
+        )
+        .appendingPathComponent("Flick", isDirectory: true)
+        .appendingPathComponent("relaunch-armed")
+    }
+
+    /// Arm a detached watcher that re-opens *this exact bundle* if flick dies
+    /// while a Full Disk Access grant is in flight.
+    ///
+    /// This is not an auto-restart — flick picks the grant up live and has no
+    /// reason to bounce. It exists for one case: macOS's TCC "Quit & Reopen"
+    /// button quits flick and then, for a background-only (`LSUIElement`)
+    /// app, routinely never performs the reopen. The user presses a button
+    /// promising two things, gets one, and is left with no menu bar item and
+    /// no compositor, mid-setup. This finishes the half macOS dropped.
+    ///
+    /// An external watcher rather than a relaunch spawned from
+    /// `applicationWillTerminate`, because we don't get to assume a graceful
+    /// exit: if TCC kills the process outright, no delegate method ever runs.
+    /// Polling the pid from outside covers both. It reopens by **path**, not
+    /// bundle id — LaunchServices can resolve `com.nebelhaus.flick` to a
+    /// stale DerivedData copy the grant was never made against.
+    ///
+    /// The sentinel file is the disarm channel: `disarmRelaunchWatchdog()`
+    /// deletes it, and the watcher re-checks it after flick exits, so a user
+    /// who deliberately quits is never resurrected.
+    static func armRelaunchWatchdog() {
+        guard let sentinel = relaunchSentinel else { return }
+        try? FileManager.default.createDirectory(
+            at: sentinel.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        guard FileManager.default.createFile(atPath: sentinel.path, contents: nil)
+            || FileManager.default.fileExists(atPath: sentinel.path) else { return }
+
+        let script = """
+        pid=\(ProcessInfo.processInfo.processIdentifier)
+        sentinel=\(shellQuoted(sentinel.path))
+        app=\(shellQuoted(Bundle.main.bundleURL.path))
+        waited=0
+        while kill -0 "$pid" 2>/dev/null; do
+            [ "$waited" -ge \(relaunchWatchdogWindow) ] && exit 0
+            waited=$((waited + 1))
+            sleep 1
+        done
+        [ -f "$sentinel" ] || exit 0
+        rm -f "$sentinel"
+        sleep 1
+        /usr/bin/open "$app"
+        """
+
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", script]
+        do {
+            try task.run()
+        } catch {
+            log.error("relaunch watchdog failed to arm: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Stand the watchdog down. The watcher process notices on its next
+    /// check and exits without reopening anything.
+    static func disarmRelaunchWatchdog() {
+        guard let sentinel = relaunchSentinel else { return }
+        try? FileManager.default.removeItem(at: sentinel)
+    }
+
+    private static func shellQuoted(_ path: String) -> String {
+        "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
     // MARK: - Onboarding assistant
 
     /// Opens the Full Disk Access pane and floats a non-activating helper

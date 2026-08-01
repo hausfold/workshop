@@ -39,6 +39,9 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     /// Disarms `reopenSettingsOnLaunch` when the grant landed and the process
     /// was never actually restarted (Apple's "Later" button).
     private var reopenDisarmTask: Task<Void, Never>?
+    /// True once the assistant's probe saw Full Disk Access land, so a helper
+    /// closing because it succeeded can be told apart from one the user shut.
+    private var fdaGrantLanded = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let runtime = AppRuntime()
@@ -55,6 +58,10 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // CFPreferences' flush is async and nothing waits for it on the way
+        // out — and if the relaunch watchdog fires, the next launch has to
+        // find the settings this flow just wrote.
+        UserDefaults.standard.synchronize()
         runtime?.stop()
     }
 
@@ -70,9 +77,17 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(withTitle: "Inbox", action: #selector(showInbox), keyEquivalent: "i").target = self
         menu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",").target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Flick", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit Flick", action: #selector(quitFlick), keyEquivalent: "q").target = self
         item.menu = menu
         statusItem = item
+    }
+
+    /// The one quit flick must treat as final: whatever the Full Disk Access
+    /// flow armed, a user picking Quit means it. Disarming here is what keeps
+    /// the relaunch watchdog from resurrecting an app somebody just closed.
+    @objc private func quitFlick() {
+        SystemIntegration.disarmRelaunchWatchdog()
+        NSApp.terminate(nil)
     }
 
     @objc private func showInbox() {
@@ -146,7 +161,12 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
         runtime.settings.reopenSettingsOnLaunch = true
+        fdaGrantLanded = false
         reopenDisarmTask?.cancel()
+        // Armed for the whole flow, not just after the grant: Apple's
+        // "Quit & Reopen" sheet can appear the moment the switch is flipped,
+        // and its quit is what this catches.
+        SystemIntegration.armRelaunchWatchdog()
         // Order is load-bearing: closing the Settings window first drops
         // the app back to `.accessory` (UtilityWindowManager), and an
         // accessory app has no active-app status to hand over — macOS then
@@ -164,7 +184,15 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         SystemIntegration.presentFullDiskAccessAssistant(
             onGrantConfirmed: { [weak self] in
                 runtime.settings.systemMirrorEnabled = true
-                self?.disarmReopenOnLaunch(runtime: runtime)
+                self?.fdaGrantLanded = true
+            },
+            onDismiss: { [weak self] in
+                guard let self else { return }
+                // Closed without a grant: nothing is coming, stand the flag
+                // down now. Closed *because* the grant landed: Apple's
+                // "Quit & Reopen" sheet is still on screen behind us, so keep
+                // it armed long enough to cover an answer to it.
+                disarmReopenOnLaunch(runtime: runtime, after: fdaGrantLanded ? 300 : 0)
             }
         )
         DispatchQueue.main.async { [weak self] in
@@ -172,17 +200,23 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// `reopenSettingsOnLaunch` exists to survive Apple's "Quit & Reopen".
-    /// If the user takes the "Later" branch instead, no relaunch ever comes
-    /// and the flag would sit armed until some unrelated launch popped
-    /// Settings open out of nowhere — so give the restart a generous window
-    /// and then stand it down.
-    private func disarmReopenOnLaunch(runtime: AppRuntime) {
+    /// `reopenSettingsOnLaunch` does double duty: it's what makes the
+    /// post-relaunch Settings window appear, *and* what authorises
+    /// `applicationWillTerminate` to finish Apple's "Quit & Reopen". Both
+    /// only make sense while that sheet could still be answered — if the user
+    /// takes the "Later" branch no relaunch ever comes, and left armed the
+    /// flag would pop Settings open during some unrelated launch weeks later.
+    private func disarmReopenOnLaunch(runtime: AppRuntime, after seconds: UInt64) {
         reopenDisarmTask?.cancel()
+        guard seconds > 0 else {
+            runtime.settings.reopenSettingsOnLaunch = false
+            return
+        }
         reopenDisarmTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 90_000_000_000)
+            try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
             guard !Task.isCancelled else { return }
             runtime.settings.reopenSettingsOnLaunch = false
+            SystemIntegration.disarmRelaunchWatchdog()
         }
     }
 }
