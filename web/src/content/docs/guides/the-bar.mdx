@@ -89,13 +89,30 @@ awake off
   don't use agents. The same state also shows up **inside** the terminal: a
   count badge beside the zellij tab name of whichever tab holds agent panes — see
   [Claude Code agents](/guides/claude-agents/#which-tab-wants-you).
-- **`claudeUsage`** — a gauge pill showing how much of your Claude Code usage
-  you've spent as a percentage (showing the higher of 5-hour or weekly usage),
-  coloured to match (green under 50%, yellow past 50%, peach past 75%, red at 90%). Click it
-  for both windows with their reset times. The numbers arrive on Claude Code's
-  own statusline feed — nothing is polled, no API is called, and no token is
-  read out of your keychain — so the pill stays hidden until a Claude session
-  first reports, and greys out if none has in half an hour.
+- **`aiUsage`** (was `claudeUsage`, still accepted) — a gauge pill showing how
+  much of your AI usage you've spent: a percentage for subscription limits
+  (Claude Code, Codex), or the day's dollars for token-billed Opencode. It
+  follows whichever provider reported most recently, showing the higher of the
+  5-hour or weekly window and colouring to match (green under 50%, yellow past
+  50%, peach past 75%, red at 90%). Click it for every provider's windows with
+  their reset times.
+
+  Where each row comes from matters, because one of them leaves the machine:
+
+  - **Claude Code** rides its own statusline feed. Nothing is polled and no
+    token is read, so the row appears once a Claude session first reports and
+    greys out if none has in half an hour.
+  - **Opencode** is read straight out of its local sqlite db. Also no network.
+  - **Codex** is the exception. It keeps no usage data on disk at all — the
+    desktop app holds threads server-side, and only the CLI and the VS Code
+    extension ever wrote rate limits locally — so a disk-fed row silently
+    freezes the day you switch to the GUI app. That row is polled from your
+    ChatGPT account instead (limits are per account, so it counts GUI usage
+    too), authenticated with the OAuth token already in `~/.codex/auth.json`.
+    The refresher renews that token when it nears expiry and rewrites the file
+    in place, keeping a `.bak`. **If you've never logged into Codex on this
+    machine, no call is ever made** — the presence of `auth.json` is the entire
+    opt-in.
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
 - **`harvest`** — a [Harvest](https://www.getharvest.com/) time-tracking pill.
   It reads credentials from a file **you** provide at
@@ -106,7 +123,9 @@ The **hush** (Do-Not-Disturb) pill is separate: it rides
 
 <Aside type="note" title="Secrets stay out of Nix">
 sill never bakes tokens into the store. The harvest plugin sources your
-`harvest_secrets.sh` at runtime — keep that file out of git.
+`harvest_secrets.sh` at runtime — keep that file out of git. `aiUsage` reads
+your Codex login from `~/.codex/auth.json` the same way: at runtime, from the
+file OpenAI's own tooling wrote, never through Nix.
 </Aside>
 
 ## Turning it off
