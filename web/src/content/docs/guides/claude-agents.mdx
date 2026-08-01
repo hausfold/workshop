@@ -45,7 +45,9 @@ your shell comes back, focused, scrollback intact.
 to edit the checkout you're actually looking at.
 
 Prefer the launcher? **Spawn Agent** in Pounce (`⌘Space`, type "spawn") does the
-same `claude --worktree` from the GUI: pick a repo, type what you want done, and
+same thing from the GUI, for [whichever client you've made the
+default](#spawn-from-pounce--and-choose-the-default-client): pick a repo, type
+what you want done, and
 it creates a worktree **named after the task** — not the random
 `luminous-twirling-codd` an unattended agent would coin — and drops a session
 into that repo's tab. Naming the branch from the prompt is the whole point; the
@@ -55,13 +57,13 @@ palette is just the shortest path to it.
 When you close a `Super c` pane, the rice doesn't just delete the checkout. Any
 uncommitted edits are first parked as a `wip:` commit on the branch, then the
 checkout is removed. **Only branches whose work has already merged get reaped** —
-everything unmerged survives on its branch, and the Claude transcript survives
+everything unmerged survives on its branch, and the agent transcript survives
 too. The checkout dir is disposable; your work isn't.
 </Aside>
 
 ## Resuming a session
 
-Because the work lives on the branch (and the chat in Claude's transcript),
+Because the work lives on the branch (and the chat in your client’s transcript),
 a closed pane is never a dead end. Run `wt` bare to see everything you can pick
 back up, across **every** repo:
 
@@ -71,16 +73,16 @@ wt                    # list every parked / live agent worktree, all repos
 
 ```
 🌫  agent worktrees you can resume (wt <name>, or <repo>/<name>)
-  repo         name                       state  agent     last commit
-  nebelung     sparkle                    parked claude    2 hours ago — wip: auto-saved on pane close
-  pounce       quick-emoji                live   codex     10 min ago — add fuzzy weights
+  repo         name                       state  agent  last commit
+  nebelung     sparkle                    parked claude 2 hours ago — wip: auto-saved on pane close
+  pounce       quick-emoji                live   codex  10 min ago — add fuzzy weights
 ```
 
 To pick one back up, name it — `wt` rebuilds the checkout and reopens the chat
-in the same directory, so Claude resumes with its full history:
+in the same directory, so that worktree's client resumes with its full history:
 
 ```sh
-wt sparkle            # rebuild the checkout + reopen the chat (claude --resume)
+wt sparkle            # rebuild the checkout + reopen the chat (that worktree's client)
 wt nebelung/sparkle   # qualify with the repo when a name exists in two repos
 ```
 
@@ -101,6 +103,12 @@ nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
 changes **new** palette spawns: a parked Codex task still reopens through
 `codex resume`, and an OpenCode task through `opencode --continue`. Claude's
 native ⌘C worktree binding remains Claude-specific.
+
+The option names a client; it doesn't install one. Point it at something that
+isn't on your PATH and the spawn still makes the worktree and the pane — the
+pane just holds `✗ codex is unavailable — install it, then try again`, and you
+`wt reap` the empty worktree. Check with `wt agent default` and a bare
+`command -v` before switching.
 
 There is also **Spawn Agent with Screenshot**. It uses macOS's normal area
 selector (`screencapture -i`) before the repository/prompt flow, then keeps the
@@ -131,9 +139,9 @@ workshop root through Git keeps the command independent of where you cloned it.
 
 Most cleanup is automatic: closing a pane reaps a merged branch, and every `wt`
 listing first self-heals by sweeping parked branches whose PR has since merged.
-But some things end a pane *without* the graceful hook — a reboot, a crash, a
-`/ship` that closes the pane, or a `wt child` checkout (which the hook never
-owns). For those, sweep on demand:
+But some things end a pane *without* the graceful hook — a reboot, a crash, or a
+`wt child` checkout (which the hook never owns, since the pane that made it isn't
+the one it belongs to). For those, sweep on demand:
 
 ```sh
 wt reap               # reap every LANDED worktree now — parked ones, plus
