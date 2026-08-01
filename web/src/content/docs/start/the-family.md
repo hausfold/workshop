@@ -31,7 +31,7 @@ nebelhaus, you only ever need the first one:
 | Command | You reach for it to… | Works on | Ships in |
 |---|---|---|---|
 | **`haus`** | drive your own machine — [rebuild, update, roll back, diagnose](/reference/haus/) | your Mac (`~/.config/nix`) | the rice — every install has it |
-| **`wt`** | manage [Claude Code agent worktrees](/guides/claude-agents/) — safe parallel agents, resumable panes | any git repo | the rice — every install has it |
+| **`wt`** | manage [agent worktrees](/guides/claude-agents/) — safe parallel agents, resumable panes | any git repo | the rice — every install has it |
 | **`bench`** | [move a change across the family repos](/internals/contributing/) — try, ship, release | the workshop checkouts | the workshop — contributors only |
 | **`zscratch`** | [feel-test a zellij edit](/internals/contributing/#feel-testing-a-zellij-edit-zscratch) with no rebuild | the rice's zellij config | the rice — for rice contributors |
 

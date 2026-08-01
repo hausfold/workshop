@@ -86,7 +86,8 @@ awake off
 - **`agents`** — a paw pill tracking your agent-worktree panes: amber when one is
   waiting on you, click for the per-agent list, click a row to jump to its pane.
   Each row is marked with the client sitting in it (Claude Code, Codex,
-  Opencode), painted in that pane's state colour. Dormant until a client's hooks
+  Opencode), painted in that pane's state colour, and a row clears itself once
+  its pane is gone — however the agent ended. Dormant until a client's hooks
   fire, so it's harmless if you don't use agents. The same state also shows up
   **inside** the terminal: a count badge beside the zellij tab name of whichever
   tab holds agent panes — see

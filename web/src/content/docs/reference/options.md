@@ -708,6 +708,58 @@ nebelhaus.keys.windowNav = "none" instead of turning the room off.
 
 The menu bar, and which pills it draws.
 
+### `nebelhaus.sill.aiUsage.provider`
+
+`one of "latest", "claude", "codex", "opencode"` · default `"latest"`
+
+Which AI provider to display in the main pill: `latest` (default, automatically
+shows whichever provider reported most recently), or one of
+`claude`, `codex`, `opencode`.
+Clicking the pill always displays the full dropdown with all reporting providers.
+
+Note this is about *usage readouts*, not about which client `wt` can
+spawn: a provider reports here whenever it has data for your account —
+Codex notably does so from a ChatGPT login alone, with no CLI installed
+— so it is deliberately not tied to `nebelhaus.agents.clients`.
+
+Example:
+
+```nix
+"claude"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.sill.battery.hideOver`
+
+`null or signed integer` · default `null`
+
+Hide the battery pill when charge percentage is above this threshold
+(e.g., set to 80 to show the battery pill only when charge is at or below 80%).
+
+Example:
+
+```nix
+80
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.sill.clock.mode`
+
+`one of "full", "compact"` · default `"full"`
+
+The display mode for the clock pill: `full` (default, e.g. "Fri Jul 31  09:41 AM" with calendar icon)
+or `compact` (e.g. "Fri 31/7 9:41" without icon and trimmed spacing).
+
+Example:
+
+```nix
+"compact"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
 ### `nebelhaus.sill.enable`
 
 `boolean` · default `true`
@@ -724,7 +776,7 @@ The SketchyBar menu bar. When off, the native macOS menu bar is kept
 Which SketchyBar pills to draw, one bool each. The core pills —
 `clock`, `weather`, `media`, `battery`, `wifi` — default true; the extras
 — the readouts `cpu`, `memory`, `volume`, `calendar`, `caffeinate`
-and the personal `agents`, `claudeUsage`, `elgato`, `harvest` —
+and the personal `agents`, `aiUsage`, `elgato`, `harvest` —
 default false. Set
 only what you want to change:
 
@@ -753,7 +805,15 @@ Example:
 
 `boolean` · default `false`
 
-A paw pill tracking your `claude --worktree` agent panes — amber when one is blocked on you, click for the per-agent list; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by Claude Code hooks (point them at ~/.config/sketchybar/plugins/agents-hook.sh); dormant until they fire.
+A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice never touches your hooks. A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.sill.items.aiUsage`
+
+`boolean` · default `false`
+
+A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -785,7 +845,7 @@ Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy
 
 `boolean` · default `false`
 
-A gauge pill showing how much of your Claude Code usage you've spent (showing the higher of 5-hour or weekly usage as %, coloured by usage level: green under 50, yellow past 50, peach past 75, red at 90). Click for both windows with their reset times. The numbers ride Claude Code's own statusline feed, so nothing is polled and no token is read; the pill stays hidden until a Claude session first reports, and greys out if none has in half an hour.
+Deprecated alias for `aiUsage`.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -1453,17 +1513,87 @@ for the same reproducibility reason as autoUpdate.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
+## nebelhaus.agents
+### `nebelhaus.agents.clients`
+
+`list of (one of "claude", "codex", "opencode")` · see below
+
+Which coding-agent clients to install. `claude` is Claude Code, `codex`
+is OpenAI Codex, `opencode` is OpenCode. The ⌘C terminal binding starts
+whichever one `agents.default` names — Claude Code through its own
+`--worktree` hook, the others through `wt new`.
+
+A list rather than one bool per client, matching `developer.languages`
+— a fourth client later doesn't change this option's shape.
+
+This is the option that makes `agents.default` honest. Naming a client
+you have not installed used to fail *at spawn time*, inside the pane,
+after the worktree already existed: a flash of
+`codex is unavailable`, and litter to reap. `agents.default` must now
+be a member of this list, so the same mistake fails the rebuild
+instead, with both values named.
+
+Override the package for a client the usual Nix way — an overlay on
+`claude-code`, `codex` or `opencode` — rather than dropping the client
+here and installing your own copy alongside; two derivations shipping
+the same `bin/` name collide in one profile.
+
+Example:
+
+```nix
+[
+  "claude"
+  "codex"
+]
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.agents.default`
+
+`one of "claude", "codex", "opencode"` · default `"claude"`
+
+The coding agent started by Pounce's **Spawn Agent** commands, by the
+⌘C / Super-c zellij binds and the `c` shell alias, and used to reopen
+worktrees with no client recorded yet. Each spawned worktree records its
+own client, so changing this affects new work but never reopens an
+existing Codex or OpenCode task in Claude.
+
+Must be one of `agents.clients` — see there.
+
+Only `claude` can make its own worktree (its native `--worktree` flag,
+which fires the `wt` create hook); for `codex` and `opencode` ⌘C runs
+`wt new` instead, producing the same checkout, branch and registry entry
+from the outside. Resuming follows the client too: `codex` reopens its
+cwd-filtered `codex resume` picker, `opencode` continues its latest
+session for that cwd. All three share one `wt` branch/parking/reap
+lifecycle, and all three light up the `agents` bar pill and the zellij
+tab-bar badge — the opencode plugin and the codex hooks are written for
+you; only Claude Code's stay yours to wire, because Claude owns its own
+settings.json (see `nebelhaus.sill.plugins`).
+
+Example:
+
+```nix
+"codex"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
 ## nebelhaus.developer
 ### `nebelhaus.developer.agents.enable`
 
 `boolean` · default `config.nebelhaus.developer.enable`
 
-Coding-agent tooling: `wt` (Claude Code agent worktrees), `zscratch`,
-the agent-worktree statusline, opencode, and the Claude Code settings
-and hooks hearth writes.
+Coding-agent *tooling*: `wt` (agent worktrees), `agent-state` (the
+pane-status writer behind the `agents` bar pill and the zellij tab
+badge), `zscratch`, the agent-worktree statusline, and the client
+config hearth writes (Claude Code's settings.json keys, opencode's
+agent-state plugin). Which clients get installed is `agents.clients`.
 
 Off is right for any machine not running coding agents — it's a large
-surface a non-developer never sees.
+surface a non-developer never sees. It also empties `agents.clients`,
+since a client with no `wt` to park it is not the deal on offer.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
@@ -1805,6 +1935,27 @@ Example:
 `boolean` · default `true`
 
 The perch notch file shelf, installed via the perch flake (copied to /Applications).
+
+<small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
+
+### `nebelhaus.perch.followSystemAppearance`
+
+`boolean` · default `true`
+
+Let the shelf's palette follow macOS Light/Dark Mode instead of pinning
+one polarity: perch gets the nebelung variant AND its latte counterpart
+at your nebelhaus.theme.contrast, and picks between them itself — no
+rebuild, no relaunch.
+
+Same honest scope as the trill and pounce options of the same name: with
+this on, perch does NOT follow nebelhaus.theme.flavor, because asking to
+follow the system says the polarity is macOS's call. The contrast axis
+still applies to both halves. Set it false to pin the shelf to
+theme.flavor like every other themed tool.
+
+Perch has no theme picker of its own — the shelf is a five-second
+surface with nowhere to put one — so unlike trill, this is the only word
+on its colors.
 
 <small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
 

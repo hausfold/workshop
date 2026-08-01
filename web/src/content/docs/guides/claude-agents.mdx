@@ -1,6 +1,6 @@
 ---
-title: Claude Code agents (wt)
-description: The rice ships wt — safe, resumable Claude Code agent worktrees for any git repo, with a live statusline HUD. A productivity feature, not a nebelhaus-only tool.
+title: Coding agents (wt)
+description: The rice ships wt — safe, resumable agent worktrees for any git repo and any of Claude Code, Codex or OpenCode, with a live statusline HUD. A productivity feature, not a nebelhaus-only tool.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -237,8 +237,13 @@ remove> <client>`, which the rice puts on your `PATH`:
 | Client | Wiring | Who writes it |
 |---|---|---|
 | **OpenCode** | `~/.config/opencode/plugin/nebelhaus-agent-state.js` | the rice, for you |
+| **Codex** | `UserPromptSubmit` / `PermissionRequest` / `Stop` in `~/.codex/hooks.json` | the rice, for you — Codex then asks you to **review and trust** those hooks the first time it starts, which the rice deliberately doesn't bypass |
 | **Claude Code** | `UserPromptSubmit` / `Notification` / `Stop` / `SessionEnd` hooks in `~/.claude/settings.json` | you — Claude owns that file and rewrites it, so the rice never touches your hooks |
-| **Codex** | the matching events in `~/.codex/hooks.json` | you (Codex asks you to trust hooks the first time it sees them) |
+
+A pane's row also disappears on its own once the pane is gone, whether or not its
+client said goodbye. That matters most for Codex, whose hooks have no
+session-*end* event at all — but it's the same thing that clears the row of a
+Claude agent you killed, or one that crashed.
 
 ## The statusline HUD
 
