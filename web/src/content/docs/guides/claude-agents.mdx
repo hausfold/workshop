@@ -106,16 +106,27 @@ and an OpenCode task through `opencode --continue`.
 The option drives the ⌘C keybinds and the `c` shell alias too. Only Claude Code
 can make its own worktree (its native `--worktree` flag, which fires `wt`'s
 create hook); for Codex and OpenCode, ⌘C runs **`wt new`** instead — the same
-checkout, branch, registry entry and parent session, made from the outside. Note
-the rice only *installs* OpenCode: Claude Code and Codex are personal choices
-that belong in your own host file, and Spawn Agent says so up front rather than
-opening a pane that can't start.
+checkout, branch, registry entry and parent session, made from the outside.
 
-The option names a client; it doesn't install one. Point it at something that
-isn't on your PATH and the spawn still makes the worktree and the pane — the
-pane just holds `✗ codex is unavailable — install it, then try again`, and you
-`wt reap` the empty worktree. Check with `wt agent default` and a bare
-`command -v` before switching.
+A separate option says which clients are **installed**:
+
+```nix
+nebelhaus.agents.clients = [ "claude" "opencode" ];   # the default
+```
+
+`agents.default` must be one of them, and the rebuild says so by name if it
+isn't — which is the point: naming a client you didn't have used to fail at
+spawn time, *inside the pane*, after the worktree already existed. Pounce's
+Spawn Agent still checks `command -v` before it creates anything, for the case
+the assertion can't cover (a hand-managed install that moved).
+
+<Aside type="caution" title="Overlay, don't add">
+Want a patched build of a client — a wrapper, a postInstall patch? **Overlay the
+package** (`claude-code`, `codex`, `opencode`) rather than putting your own
+derivation in `home.packages` beside it. Two derivations shipping the same
+`bin/claude` collide in one profile, and the rebuild fails with
+`two given paths contain a conflicting subpath`.
+</Aside>
 
 There is also **Spawn Agent with Screenshot**. It uses macOS's normal area
 selector (`screencapture -i`) before the repository/prompt flow, then keeps the
