@@ -93,22 +93,28 @@ and run **Spawn Agent**. Pick a repository, describe the task, and it creates a
 `worktree-<task-name>` checkout before opening the configured client in that
 repo's zellij tab.
 
-Set the client declaratively:
+Set the clients declaratively — which ones you have, and which one spawns:
 
 ```nix
-nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
+nebelhaus.agents.clients = [ "claude" "codex" ];  # installed
+nebelhaus.agents.default = "codex";               # spawned by the palette
 ```
+
+`clients` installs. `default` must be one of them, and the rebuild fails
+naming both if it isn't — so the palette can never reach for a client that
+isn't on your PATH. Leave both unset and you get `[ "claude" "opencode" ]`
+with Claude as the default.
 
 `wt` records that client with the worktree. Changing the option therefore only
 changes **new** palette spawns: a parked Codex task still reopens through
 `codex resume`, and an OpenCode task through `opencode --continue`. Claude's
 native ⌘C worktree binding remains Claude-specific.
 
-The option names a client; it doesn't install one. Point it at something that
-isn't on your PATH and the spawn still makes the worktree and the pane — the
-pane just holds `✗ codex is unavailable — install it, then try again`, and you
-`wt reap` the empty worktree. Check with `wt agent default` and a bare
-`command -v` before switching.
+Want a patched build of a client — your own wrapper, a stripped-down UI? Overlay
+the package (`claude-code`, `codex`, `opencode`) rather than dropping it from
+`clients` and installing your own copy beside it. Two derivations shipping the
+same `bin/` name collide in one profile; an overlay makes `clients` install
+*your* build.
 
 There is also **Spawn Agent with Screenshot**. It uses macOS's normal area
 selector (`screencapture -i`) before the repository/prompt flow, then keeps the
