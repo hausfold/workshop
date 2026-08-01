@@ -44,17 +44,26 @@ your shell comes back, focused, scrollback intact.
 `Ctrl Alt Shift c` is the resident variant: the one agent per tab that's allowed
 to edit the checkout you're actually looking at.
 
+Prefer the launcher? **Spawn Agent** in Pounce (`⌘Space`, type "spawn") does the
+same thing from the GUI, for [whichever client you've made the
+default](#spawn-from-pounce--and-choose-the-default-client): pick a repo, type
+what you want done, and
+it creates a worktree **named after the task** — not the random
+`luminous-twirling-codd` an unattended agent would coin — and drops a session
+into that repo's tab. Naming the branch from the prompt is the whole point; the
+palette is just the shortest path to it.
+
 <Aside type="tip" title="Closing a pane never loses work">
 When you close a `Super c` pane, the rice doesn't just delete the checkout. Any
 uncommitted edits are first parked as a `wip:` commit on the branch, then the
 checkout is removed. **Only branches whose work has already merged get reaped** —
-everything unmerged survives on its branch, and the Claude transcript survives
+everything unmerged survives on its branch, and the agent transcript survives
 too. The checkout dir is disposable; your work isn't.
 </Aside>
 
 ## Resuming a session
 
-Because the work lives on the branch (and the chat in Claude's transcript),
+Because the work lives on the branch (and the chat in your client’s transcript),
 a closed pane is never a dead end. Run `wt` bare to see everything you can pick
 back up, across **every** repo:
 
@@ -64,18 +73,68 @@ wt                    # list every parked / live agent worktree, all repos
 
 ```
 🌫  agent worktrees you can resume (wt <name>, or <repo>/<name>)
-  repo         name                       state  chat  last commit
-  nebelung     sparkle                    parked yes   2 hours ago — wip: auto-saved on pane close
-  pounce       quick-emoji                live   yes   10 min ago — add fuzzy weights
+  repo         name                       state  agent  last commit
+  nebelung     sparkle                    parked claude 2 hours ago — wip: auto-saved on pane close
+  pounce       quick-emoji                live   codex  10 min ago — add fuzzy weights
 ```
 
 To pick one back up, name it — `wt` rebuilds the checkout and reopens the chat
-in the same directory, so Claude resumes with its full history:
+in the same directory, so that worktree's client resumes with its full history:
 
 ```sh
-wt sparkle            # rebuild the checkout + reopen the chat (claude --resume)
+wt sparkle            # rebuild the checkout + reopen the chat (that worktree's client)
 wt nebelung/sparkle   # qualify with the repo when a name exists in two repos
 ```
+
+## Spawn from Pounce — and choose the default client
+
+For a named worktree without first finding the right terminal tab, summon Pounce
+and run **Spawn Agent**. Pick a repository, describe the task, and it creates a
+`worktree-<task-name>` checkout before opening the configured client in that
+repo's zellij tab.
+
+Set the client declaratively:
+
+```nix
+nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
+```
+
+`wt` records that client with the worktree. Changing the option therefore only
+changes **new** spawns: a parked Codex task still reopens through `codex resume`,
+and an OpenCode task through `opencode --continue`.
+
+The option drives the ⌘C keybinds and the `c` shell alias too. Only Claude Code
+can make its own worktree (its native `--worktree` flag, which fires `wt`'s
+create hook); for Codex and OpenCode, ⌘C runs **`wt new`** instead — the same
+checkout, branch, registry entry and parent session, made from the outside.
+
+A separate option says which clients are **installed**:
+
+```nix
+nebelhaus.agents.clients = [ "claude" "opencode" ];   # the default
+```
+
+`agents.default` must be one of them, and the rebuild says so by name if it
+isn't — which is the point: naming a client you didn't have used to fail at
+spawn time, *inside the pane*, after the worktree already existed. Pounce's
+Spawn Agent still checks `command -v` before it creates anything, for the case
+the assertion can't cover (a hand-managed install that moved).
+
+<Aside type="caution" title="Overlay, don't add">
+Want a patched build of a client — a wrapper, a postInstall patch? **Overlay the
+package** (`claude-code`, `codex`, `opencode`) rather than putting your own
+derivation in `home.packages` beside it. Two derivations shipping the same
+`bin/claude` collide in one profile, and the rebuild fails with
+`two given paths contain a conflicting subpath`.
+</Aside>
+
+There is also **Spawn Agent with Screenshot**. It uses macOS's normal area
+selector (`screencapture -i`) before the repository/prompt flow, then keeps the
+PNG under `~/.cache/nebelhaus-agent-screenshots/` for the agent. Codex receives
+it as an initial image; Claude and OpenCode receive its file path in the first
+prompt so they can inspect it. Keeping it as a separate palette entry matters:
+a task whose text happens to contain “screenshot” can never steal Return in the
+free-text prompt field.
 
 ## Cross-repo work: `wt child`
 
@@ -98,9 +157,9 @@ workshop root through Git keeps the command independent of where you cloned it.
 
 Most cleanup is automatic: closing a pane reaps a merged branch, and every `wt`
 listing first self-heals by sweeping parked branches whose PR has since merged.
-But some things end a pane *without* the graceful hook — a reboot, a crash, a
-`/ship` that closes the pane, or a `wt child` checkout (which the hook never
-owns). For those, sweep on demand:
+But some things end a pane *without* the graceful hook — a reboot, a crash, or a
+`wt child` checkout (which the hook never owns, since the pane that made it isn't
+the one it belongs to). For those, sweep on demand:
 
 ```sh
 wt reap               # reap every LANDED worktree now — parked ones, plus
@@ -148,27 +207,38 @@ you push.
 
 Run agents in eight tabs and the question is always the same one: which of them
 is sitting on a permission prompt? The rice answers it in the tab bar itself — a
-paw beside the name of any tab holding an agent pane, coloured by what that agent
-is doing:
+filled badge beside the name of any tab holding agent panes. The badge carries a
+count — how many agents live in that tab — on a background coloured by what the
+most urgent one is doing:
 
-| Paw | Means |
+| Badge | Means |
 |---|---|
 | **peach** | an agent is blocked on you — a permission prompt, or it's asking a question |
 | **sky** | an agent is mid-turn, working |
 | **green** | the agent finished its turn; nothing is waiting |
-| *(no paw)* | no agent panes in that tab |
+| *(no badge)* | no agent panes in that tab |
 
-A tab with several agents in it shows the most urgent one, so peach always wins:
-the tab that needs you never hides behind a tab that's merely busy. And it's
-*status*, not a notification — a green paw stays green until that agent starts
-another turn or its pane goes away. Looking at it doesn't dismiss it.
+The number is the exact count of agent panes in the tab; the colour is the most
+urgent state among them, so peach always wins: the tab that needs you never hides
+behind a tab that's merely busy. And it's *status*, not a notification — a green
+badge stays green until that agent starts another turn or its pane goes away.
+Looking at it doesn't dismiss it.
 
 This is the same signal as the [`agents` bar pill](/guides/the-bar/), reported by
-the same Claude Code hooks (which is why it's exact rather than guessed — the
-agent says what it's doing, nothing scrapes the screen for it). The pill is for
-when you're out in the GUI; the paw is for when you're already in the terminal.
-Nothing to enable: it lights up as soon as an agent pane reports, and stays
-invisible if you never run one.
+the client's own lifecycle hooks (which is why it's exact rather than guessed —
+the agent says what it's doing, nothing scrapes the screen for it). The pill is
+for when you're out in the GUI; the badge is for when you're already in the
+terminal. It lights up as soon as an agent pane reports, and stays invisible if
+you never run one.
+
+Every client reports through one command, `agent-state <working|waiting|idle|
+remove> <client>`, which the rice puts on your `PATH`:
+
+| Client | Wiring | Who writes it |
+|---|---|---|
+| **OpenCode** | `~/.config/opencode/plugin/nebelhaus-agent-state.js` | the rice, for you |
+| **Claude Code** | `UserPromptSubmit` / `Notification` / `Stop` / `SessionEnd` hooks in `~/.claude/settings.json` | you — Claude owns that file and rewrites it, so the rice never touches your hooks |
+| **Codex** | the matching events in `~/.codex/hooks.json` | you (Codex asks you to trust hooks the first time it sees them) |
 
 ## The statusline HUD
 
@@ -208,13 +278,15 @@ Claude Code falls back to its visible scrollback.
 | Command | What it does |
 |---|---|
 | `wt` | List every parked/live agent worktree across all repos (self-heals first) |
-| `wt <name>` | Resume one: rebuild its checkout and reopen its Claude chat |
+| `wt <name>` | Resume one: rebuild its checkout and reopen its recorded agent chat |
 | `wt resume <name>` | The same thing, spelled out |
 | `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
 | `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
 | `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
 | `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
-| `wt create` / `wt remove` | The hooks `Super c` fires — you don't call these by hand |
+| `wt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super c` runs when that client isn't Claude Code |
+| `wt create` / `wt remove` | The hooks Claude Code's `--worktree` fires — you don't call these by hand |
+| `wt agent default` | Print the configured spawn client |
 
 <Aside type="note" title="Related shell touches">
 New panes born inside a worktree hop back to the repo's **main checkout** by

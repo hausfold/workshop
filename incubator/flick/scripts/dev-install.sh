@@ -86,6 +86,11 @@ BUILT_APP="$DERIVED/Build/Products/Release/Flick.app"
 #
 # Not cosmetic: whichever copy LaunchServices resolves is the one Apple's
 # "Quit & Reopen" relaunches and the one System Settings' + button adds.
+#
+# `-u` alone does NOT hold. It evicts the *record*, not the bundle, and
+# LaunchServices re-scans and re-adds any `Flick.app` still sitting on disk —
+# so the strays come back on the next index pass and the app shows up three
+# times in a launcher again. Step 4b is the half that makes this stick.
 
 say "unregistering stale $BUNDLE_ID bundles…"
 "$LSREGISTER" -dump 2>/dev/null \
@@ -118,6 +123,27 @@ ACTUAL_TEAM="$(codesign -dvvv "$INSTALL_PATH" 2>&1 | sed -n 's/^TeamIdentifier=/
 say "team identifier: $ACTUAL_TEAM (grants now survive rebuilds)"
 
 "$LSREGISTER" -f "$INSTALL_PATH"
+
+# --- 4b. delete the build output, so it cannot re-register -------------------
+#
+# The installed copy is the only one anyone should ever resolve, and by this
+# line it exists, is signed, and is registered. Everything under `build/` is
+# now redundant — including the DerivedData tree this very script just built,
+# which is otherwise a stray it re-creates on every single run.
+#
+# Scoped to `$REPO_ROOT/build` and guarded on the path being non-empty: this
+# is an `rm -rf` in a script people run often, and the failure mode of a
+# mis-set REPO_ROOT is not one worth risking for a tidier line.
+
+if [[ -n "$REPO_ROOT" && -d "$REPO_ROOT/build" ]]; then
+  say "removing build output under $REPO_ROOT/build (would re-register otherwise)"
+  while IFS= read -r stray; do
+    [[ "$stray" == "$INSTALL_PATH" ]] && continue
+    printf '    - %s\n' "$stray"
+    "$LSREGISTER" -u "$stray" 2>/dev/null || true
+  done < <(find "$REPO_ROOT/build" -maxdepth 6 -name "Flick.app" -type d 2>/dev/null)
+  rm -rf "${REPO_ROOT:?}/build"
+fi
 
 # --- 5. optional: clear the un-matchable TCC rows ----------------------------
 
