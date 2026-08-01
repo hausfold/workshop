@@ -93,28 +93,36 @@ and run **Spawn Agent**. Pick a repository, describe the task, and it creates a
 `worktree-<task-name>` checkout before opening the configured client in that
 repo's zellij tab.
 
-Set the client declaratively:
+Two options set this, both declarative. `agents.clients` is the list the rice
+**installs** — one package per entry — and `agents.default` is the one Spawn
+Agent opens:
 
 ```nix
-nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
+nebelhaus.agents.clients = [ "claude" "opencode" ]; # installed (the default when agent tooling is on)
+nebelhaus.agents.default = "claude";                # which one Spawn Agent starts
 ```
 
-`wt` records that client with the worktree. Changing the option therefore only
-changes **new** spawns: a parked Codex task still reopens through `codex resume`,
-and an OpenCode task through `opencode --continue`.
+`agents.default` must be a member of `agents.clients`, and the rebuild asserts
+it: naming a client you haven't installed now fails the build — with both values
+named — instead of failing at spawn time inside a pane, after the worktree
+already exists. Add `"codex"` to the list to install OpenAI Codex; drop a client
+to stop installing it. Override a client's package the usual Nix way (an overlay
+on `claude-code`, `codex`, or `opencode`), not a second copy beside it — two
+builds shipping `bin/claude` collide in one profile.
+
+`wt` records the chosen client with each worktree, so changing `agents.default`
+only affects **new** spawns: a parked Codex task still reopens through `codex
+resume`, and an OpenCode task through `opencode --continue`.
 
 The option drives the ⌘C keybinds and the `c` shell alias too. Only Claude Code
 can make its own worktree (its native `--worktree` flag, which fires `wt`'s
 create hook); for Codex and OpenCode, ⌘C runs **`wt new`** instead — the same
-checkout, branch, registry entry and parent session, made from the outside. Note
-the rice only *installs* OpenCode: Claude Code and Codex are personal choices
-that belong in your own host file, and Spawn Agent says so up front rather than
-opening a pane that can't start.
+checkout, branch, registry entry and parent session, made from the outside.
 
-The option names a client; it doesn't install one. Point it at something that
-isn't on your PATH and the spawn still makes the worktree and the pane — the
-pane just holds `✗ codex is unavailable — install it, then try again`, and you
-`wt reap` the empty worktree. Check with `wt agent default` and a bare
+The rebuild covers the Nix-managed clients, but `spawn-agent` still preflights
+`command -v` before it makes anything — so a client you hand-installed off PATH
+gets a toast (`✗ codex is unavailable — install it, then try again`), not a dead
+pane and an empty worktree to `wt reap`. Check with `wt agent default` and a bare
 `command -v` before switching.
 
 There is also **Spawn Agent with Screenshot**. It uses macOS's normal area

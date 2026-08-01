@@ -162,6 +162,28 @@ network, nothing leaves the machine. The output is meant for you to paste into a
 assistant yourself, so it can write in your voice without ever being handed your
 messages.
 
+## Staying current
+
+trill knows how you installed it and updates the right way. It polls GitHub for a
+new release once an hour — one unauthenticated request, carrying nothing but an
+IP — and, when one lands, shows a nudge whose button matches your install:
+
+- **Drag-installed** into `/Applications` → **Update & Restart**: it downloads,
+  refuses a build whose signing identity differs from the running app (a mismatch
+  at the same path would silently drop your Full Disk Access grant), quits itself
+  so nothing is swapped under a live process, and reopens.
+- **Homebrew cask** → it defers to brew (`brew upgrade --cask trill`), so brew's
+  receipt never ends up lying about what's installed.
+- **nebelhaus rice** → run `haus update`; **plain Nix** → bump your `trill` flake
+  input. trill hands you the command instead of swapping a store-managed bundle
+  out from under Nix, where the next rebuild would just undo it.
+
+It tells those apart by out-of-band receipts — the rice's `trill.installed-from`
+marker, brew's `Caskroom/trill` — not by path, because the rice and a cask both
+land at `/Applications/Trill.app`. Automatic checks are on by default; toggle
+them in **Settings ▸ Updates**, or check on demand from the **Trill** menu ▸
+**Check for Updates…**.
+
 ## Honest scope
 
 - trill **displays** tapbacks, threaded replies, and edits, but can't *send*
