@@ -100,9 +100,16 @@ nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
 ```
 
 `wt` records that client with the worktree. Changing the option therefore only
-changes **new** palette spawns: a parked Codex task still reopens through
-`codex resume`, and an OpenCode task through `opencode --continue`. Claude's
-native ⌘C worktree binding remains Claude-specific.
+changes **new** spawns: a parked Codex task still reopens through `codex resume`,
+and an OpenCode task through `opencode --continue`.
+
+The option drives the ⌘C keybinds and the `c` shell alias too. Only Claude Code
+can make its own worktree (its native `--worktree` flag, which fires `wt`'s
+create hook); for Codex and OpenCode, ⌘C runs **`wt new`** instead — the same
+checkout, branch, registry entry and parent session, made from the outside. Note
+the rice only *installs* OpenCode: Claude Code and Codex are personal choices
+that belong in your own host file, and Spawn Agent says so up front rather than
+opening a pane that can't start.
 
 The option names a client; it doesn't install one. Point it at something that
 isn't on your PATH and the spawn still makes the worktree and the pane — the
@@ -207,11 +214,20 @@ badge stays green until that agent starts another turn or its pane goes away.
 Looking at it doesn't dismiss it.
 
 This is the same signal as the [`agents` bar pill](/guides/the-bar/), reported by
-the same Claude Code hooks (which is why it's exact rather than guessed — the
-agent says what it's doing, nothing scrapes the screen for it). The pill is for
-when you're out in the GUI; the badge is for when you're already in the terminal.
-Nothing to enable: it lights up as soon as an agent pane reports, and stays
-invisible if you never run one.
+the client's own lifecycle hooks (which is why it's exact rather than guessed —
+the agent says what it's doing, nothing scrapes the screen for it). The pill is
+for when you're out in the GUI; the badge is for when you're already in the
+terminal. It lights up as soon as an agent pane reports, and stays invisible if
+you never run one.
+
+Every client reports through one command, `agent-state <working|waiting|idle|
+remove> <client>`, which the rice puts on your `PATH`:
+
+| Client | Wiring | Who writes it |
+|---|---|---|
+| **OpenCode** | `~/.config/opencode/plugin/nebelhaus-agent-state.js` | the rice, for you |
+| **Claude Code** | `UserPromptSubmit` / `Notification` / `Stop` / `SessionEnd` hooks in `~/.claude/settings.json` | you — Claude owns that file and rewrites it, so the rice never touches your hooks |
+| **Codex** | the matching events in `~/.codex/hooks.json` | you (Codex asks you to trust hooks the first time it sees them) |
 
 ## The statusline HUD
 
@@ -257,8 +273,9 @@ Claude Code falls back to its visible scrollback.
 | `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
 | `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
 | `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
-| `wt create` / `wt remove` | The hooks `Super c` fires — you don't call these by hand |
-| `wt agent default` | Print the configured palette-spawn client |
+| `wt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super c` runs when that client isn't Claude Code |
+| `wt create` / `wt remove` | The hooks Claude Code's `--worktree` fires — you don't call these by hand |
+| `wt agent default` | Print the configured spawn client |
 
 <Aside type="note" title="Related shell touches">
 New panes born inside a worktree hop back to the repo's **main checkout** by
