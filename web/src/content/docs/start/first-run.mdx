@@ -103,8 +103,11 @@ A few first tweaks people reach for:
     cask = "slack";
   };
 
-  # Or just install casks without giving them a launcher key
-  homebrew.casks = [ "discord" ];
+  # Same list, no launcher key: installed, nothing bound
+  nebelhaus.apps.discord = {
+    name = "Discord";
+    cask = "discord";
+  };
 }
 ```
 

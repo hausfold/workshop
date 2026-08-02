@@ -156,12 +156,15 @@ disabled. Leave `tour.steps` at its default `null` to keep the built-in tour.
 nebelhaus.homebrew.cleanup = "none";    # none | uninstall | zap — how rebuild treats undeclared apps
 nebelhaus.homebrew.autoUpdate = false;  # brew update before each rebuild
 nebelhaus.homebrew.upgrade = false;     # upgrade outdated packages each rebuild
-homebrew.casks = [ "discord" ];         # plain installs, no launcher key
 ```
 
 `cleanup` defaults to `"none"` so nothing you installed by hand is ever removed.
 Set it to `"zap"` if you want a *fully* declarative machine where undeclared
 casks get uninstalled on rebuild.
+
+These are policy knobs only — the apps themselves belong in `nebelhaus.apps`,
+including the ones you don't want a launcher key for (just omit `key`). See
+[Adding apps & tools](/guides/adding-apps/#one-list-nebelhausapps).
 
 <Aside type="tip" title="Keeping casks current (e.g. trill)">
 `autoUpdate` and `upgrade` are **off by default** so a rebuild is

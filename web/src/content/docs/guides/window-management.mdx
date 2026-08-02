@@ -144,8 +144,12 @@ nebelhaus.apps.discord = {
 
 Each field:
 
-- **`key`** — the launcher letter (unique across the roster).
-- **`name`** — the macOS app name (`open -a` uses it).
+- **`key`** — the launcher letter (unique across the roster). `null` — the
+  default — makes the entry install-only: no letter, no cheatsheet row, no pill.
+  That's how the same list holds apps you never launch by keyboard, and fonts
+  and CLI tools; see [Adding apps & tools](/guides/adding-apps/).
+- **`name`** — the macOS app name (`open -a` uses it). Required when `key` is
+  set; `null` is fine for something with no `.app` at all.
 - **`workspace`** — the AeroSpace workspace letter; `null` means launcher-only,
   no dedicated workspace.
 - **`appId`** — the bundle id, used to auto-assign the app's windows to its
@@ -155,7 +159,11 @@ Each field:
   ligature (e.g. `:slack:`) shown in the bar; `null` falls back to the workspace
   letter.
 - **`label`** — the cheatsheet caption; `null` uses `name`.
-- **`cask`** — a Homebrew cask to install it; `null` if it's already installed.
+- **`cask`** / **`brew`** / **`package`** / **`appStoreId`** — where it comes
+  from: a Homebrew cask, a Homebrew formula, a Nixpkgs package, or a Mac App
+  Store id. Set the one that applies; set none if it's already installed.
+- **`scope`** — `"user"` (default) or `"system"`, for `package` only: your
+  profile, or machine-wide so root and launchd jobs can see it too.
 - **`enable`** — set `false` to disable a default or imported app by id.
 - **`order`** — lower numbers appear earlier in the roster.
 
