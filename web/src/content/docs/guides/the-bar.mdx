@@ -123,11 +123,21 @@ awake off
   statusline was rendering somewhere, so on a Codex or Opencode machine the pill
   would grey out and stay grey.
 
-  Claude and Opencode each get one more line in that dropdown — a **`tokens`**
-  row, showing raw tokens moved today, this week, this month and all time:
+  Claude and Opencode each get a **`tokens`** block in that dropdown — raw
+  tokens moved today, this week, this month and all time, two periods to a line
+  so a full set reads as a 2×2 — and the dropdown closes with an `∑ Everything`
+  block adding up every provider:
 
   ```
-  tokens   220M d  ·  2.02B w  ·  590M m  ·  7.65B total
+  ✳ Claude
+    session  48%  ·  resets 11:50
+    weekly   13%  ·  resets Sat 03:00
+    tokens   220M d  ·  2.02B w
+             590M m  ·  7.65B total
+  …
+  ∑ Everything
+    tokens   220M d  ·  2.09B w
+             597M m  ·  7.89B total
   ```
 
   It exists purely for the fun of watching the number climb. Every other figure
@@ -139,11 +149,13 @@ awake off
   output, and cache reads are most of what an agent session does.
 
   A period with nothing in it is dropped rather than printed as a zero, so the
-  line just gets shorter — first thing on a Tuesday morning you'll see
-  `78.8M w · 7.34M m · 238M total`, and a provider you haven't used at all gets
-  no row. The periods are counted independently, so `w` being *larger* than `m`
-  is normal and correct: a week that started in the previous month has days in
-  it that this month doesn't.
+  block just gets smaller — first thing on a Tuesday morning you'll see
+  `78.8M w · 7.34M m` over `238M total`, and a provider you haven't used at all
+  gets no block. The periods are counted independently, so `w` being *larger*
+  than `m` is normal and correct: a week that started in the previous month has
+  days in it that this month doesn't. `∑ Everything` appears only when more than
+  one provider is reporting — with a single feed it would just restate the block
+  above it.
 
   Claude's is summed from your own transcripts in `~/.claude/projects` — the
   only place the raw counters exist. Reading all of them takes seconds, so an
