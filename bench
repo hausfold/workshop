@@ -456,6 +456,35 @@ cmd_status() {
   fi
 }
 
+# ── activating what we already built ────────────────────────────────────────
+# Every switch below has ALREADY built the system into $CONSUMER/result. The
+# obvious `darwin-rebuild switch --flake` would then build it a SECOND time as
+# root, against root's own eval + lazy-trees caches under /var/root/.cache/nix —
+# same store, same result. Measured on mbp: ~3 s wasted after a plain edit, and
+# ~15 s whenever a flake input moved, because root re-unpacks nixpkgs' nixexprs
+# into its own git cache right after your user-side eval unpacked it into yours.
+# With `overrides` in play that second eval is the expensive one, since it walks
+# the local checkouts too.
+#
+# `haus-activate` (shipped by the rice — nebelhaus/modules/den) does only the
+# privileged half: set the system profile, then run that build's own
+# `darwin-rebuild activate`. Both routes go through a stable
+# /run/current-system path, never ./result or a store path: collar's
+# passwordless-sudo rule matches a literal path, because sudo ≥1.9.17 no longer
+# follows the command symlink.
+#
+# The fallback is for a machine whose running system predates haus-activate —
+# including, notably, the very rebuild that installs it.
+activate_built() {
+  local host="$1"
+  if [ -x /run/current-system/sw/bin/haus-activate ]; then
+    sudo /run/current-system/sw/bin/haus-activate "$CONSUMER/result"
+  else
+    # shellcheck disable=SC2046
+    (cd "$CONSUMER" && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
+  fi
+}
+
 cmd_try() {
   local host; host="$(host_name)"
   detect_worktree
@@ -473,12 +502,7 @@ cmd_try() {
   say "build OK — nothing pushed, nothing activated."
   if [ "${1:-}" = "switch" ]; then
     say "switching (this activates the LOCAL build on this machine)…"
-    # Activate via the stable /run/current-system path, not ./result: the
-    # collar module's passwordless-sudo rule matches that literal path (sudo no
-    # longer follows the command symlink), and the built system's own `activate`
-    # script runs either way, so the result is identical.
-    # shellcheck disable=SC2046
-    (cd "$CONSUMER" && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
+    activate_built "$host"
     warn "you are now running unpushed code. When happy: commit + bench ship,"
     warn "so a plain rebuild reproduces what you're running."
   else
@@ -611,8 +635,7 @@ cmd_try_batch() {
 
   if [ -n "$do_switch" ]; then
     say "switching (activates the COMBINED unmerged batch on this machine)…"
-    # shellcheck disable=SC2046
-    (cd "$CONSUMER" && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
+    activate_built "$host"
     warn "you are now running a COMBINATION of unmerged branches — none of it is on main."
   fi
 
@@ -694,9 +717,8 @@ cmd_ship() {
 cmd_rebuild() {
   local host; host="$(host_name)"
   say "pinned rebuild of $host from ${CONSUMER}…"
-  (cd "$CONSUMER" \
-    && nix build ".#darwinConfigurations.$host.system" \
-    && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host")
+  (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system")
+  activate_built "$host"
   say "the house stands."
 }
 
