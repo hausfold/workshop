@@ -93,17 +93,27 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-## nebelhaus.apps
+## nebelhaus.roster
 
-The shared app roster: one entry per app, driving the launcher key, its workspace, the bar pill, the cheatsheet, and optionally its Homebrew cask.
+One list of everything this machine has — apps, fonts, command-line tools. Each entry drives its launcher key, workspace, bar pill and cheatsheet row, and installs it from whichever source it names: a Homebrew cask or formula, a Nixpkgs package, or the Mac App Store.
 
-### `nebelhaus.apps`
+### `nebelhaus.roster`
 
 `attribute set of (submodule)` · default `{ }`
 
-The shared app roster, keyed by a stable app id. This is the canonical,
-composable source for AeroSpace launcher keys and workspaces,
-SketchyBar pills, the pounce cheatsheet, and optional Homebrew casks.
+The one list of things this machine has, keyed by a stable id. It is
+the canonical, composable source for AeroSpace launcher keys and
+workspaces, SketchyBar pills, the pounce cheatsheet, Nebelung theme
+ports — and for the install itself, from any of four sources
+(`cask`, `brew`, `package`, `appStoreId`).
+
+Every field except the id is optional, and WHICH fields you set is
+what the entry means. Set `key` and it joins the launcher; set
+`workspace` and it claims one, with a pill; set none of those and
+it's install-only — which is how a font or a command-line tool
+lives in the same list as Slack instead of in a second one beside
+it. The rice's own `homebrew.casks` / `home.packages` still work and
+still merge; you just shouldn't need them for an app.
 
 Attribute-set entries merge across Nix modules, so a host, an imported
 file, and pounce's "Install App" command can each contribute one app
@@ -114,6 +124,7 @@ Example:
 
 ```nix
 {
+  # Launcher app: leader s, owns workspace S, installs itself.
   slack = {
     key = "s";
     name = "Slack";
@@ -122,12 +133,19 @@ Example:
     barIcon = ":slack:";
     cask = "slack";
   };
+
+  # Install-only: no key, so no leader binding and no pill.
+  framer = { cask = "framer"; };
+  orbstack = { package = pkgs.orbstack; };
+  biome = { package = pkgs.biome; scope = "system"; };
+  ical-buddy = { brew = "ical-buddy"; };
+  xcode = { name = "Xcode"; appStoreId = 497799835; };
 }
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.appId`
+### `nebelhaus.roster.<name>.appId`
 
 `null or string` · default `null`
 
@@ -144,7 +162,30 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.barIcon`
+### `nebelhaus.roster.<name>.appStoreId`
+
+`null or signed integer` · default `null`
+
+Mac App Store numeric app id (the digits in its store URL), so an
+App Store app is declared in the same roster as everything else
+rather than in a comment.
+
+Recording it is always safe; INSTALLING from it is opt-in via
+`nebelhaus.appStore.install`, because the App Store is the one
+source that can't be fully automated: `mas` has no sign-in
+command, and it cannot buy a paid app for the first time. Free
+apps it can fetch; paid ones you purchase once in App Store.app
+and every machine afterwards can install them.
+
+Example:
+
+```nix
+497799835
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.barIcon`
 
 `null or string` · default `null`
 
@@ -161,7 +202,24 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.cask`
+### `nebelhaus.roster.<name>.brew`
+
+`null or string` · default `null`
+
+Homebrew FORMULA that installs this entry, appended to
+homebrew.brews. For the command-line half of the roster — a tool
+with no .app bundle, which usually means `key`, `name` and
+`workspace` are all null.
+
+Example:
+
+```nix
+"ical-buddy"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.cask`
 
 `null or string` · default `null`
 
@@ -177,7 +235,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.enable`
+### `nebelhaus.roster.<name>.enable`
 
 `boolean` · default `true`
 
@@ -185,12 +243,41 @@ Whether this app participates in the shared launcher roster.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.key`
+### `nebelhaus.roster.<name>.installedBy`
 
-`string` · no default
+`null or string` · default `null`
+
+The nebelhaus module that puts this app on disk, when none of the
+four sources above describes it: trill, pounce and perch copy a
+notarized bundle into /Applications from their own activation
+step, which is neither a cask nor a package you can list.
+
+Set BY the rice, not by you. It exists so the roster can still
+answer "who installed this?" for those apps — without it, a host
+adding a leader key for Trill had to KNOW the rice already ships
+it, leave every source field null, and leave a comment explaining
+the hole. This is that comment, as data.
+
+Example:
+
+```nix
+"nebelhaus.trill"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.key`
+
+`null or string` · default `null`
 
 The leader letter for this app: tap Caps Lock then this key to
 launch/focus it. Must be unique across the roster.
+
+null (the default) means the entry is INSTALL-ONLY: it still
+brings its cask/formula/package, but claims no leader key, no
+cheatsheet row, and no launch-mode bubble. That is what lets one
+roster hold both the apps you reach for by keyboard and the ones
+you just want on the machine (and fonts, and CLI tools).
 
 Example:
 
@@ -200,7 +287,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.label`
+### `nebelhaus.roster.<name>.label`
 
 `null or string` · default `null`
 
@@ -214,11 +301,14 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.name`
+### `nebelhaus.roster.<name>.name`
 
-`string` · no default
+`null or string` · default `null`
 
-macOS application name, as passed to `open -a`.
+macOS application name, as passed to `open -a`. Required when
+`key` is set (the launcher has nothing to open otherwise);
+null is right for an install-only entry — a font, a CLI tool, or
+an app you launch some other way.
 
 Example:
 
@@ -228,7 +318,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.order`
+### `nebelhaus.roster.<name>.order`
 
 `signed integer` · default `1000`
 
@@ -236,7 +326,42 @@ Roster order; lower values appear first. Ties are sorted by app id.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.apps.<name>.workspace`
+### `nebelhaus.roster.<name>.package`
+
+`null or package` · default `null`
+
+Nixpkgs package that installs this entry. Where it lands is
+`scope`'s call.
+
+Example:
+
+```nix
+pkgs.orbstack
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.scope`
+
+`one of "user", "system"` · default `"user"`
+
+Which profile `package` installs into.
+
+- "user" (default): home-manager's `home.packages`. Right for
+  anything you run as yourself — apps, editors, CLI tools.
+- "system": nix-darwin's `environment.systemPackages`. Installed
+  once for the whole machine, so it's on PATH for root, for
+  non-login shells, and for launchd jobs — which is what a tool
+  invoked by a daemon, a `sudo` workflow, or an activation script
+  actually needs. (It is about REACH, not about the package
+  needing elevated privileges to install: `darwin-rebuild` runs
+  under sudo either way.)
+
+Ignored when `package` is null — Homebrew has no such split.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.workspace`
 
 `null or string` · default `null`
 
@@ -251,6 +376,33 @@ Example:
 ```nix
 "S"
 ```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.appStore
+
+Whether a rebuild may install the roster's `appStoreId` entries. Off by default: it reaches the network and acts on your Apple Account, and it can never be complete — `mas` cannot sign in, and cannot buy a paid app.
+
+### `nebelhaus.appStore.install`
+
+`boolean` · default `false`
+
+Install roster entries that set `appStoreId` from the Mac App
+Store during activation, skipping any already installed.
+
+Off by default: this reaches the network and acts on your Apple
+ID, which shouldn't happen as a side effect of turning on a
+window manager. It also can't be complete — `mas` cannot sign in
+(do that once in App Store.app) and cannot make a first-time
+PURCHASE, so a paid app you don't already own is reported and
+skipped rather than installed.
+
+Deliberately NOT nix-darwin's `homebrew.masApps`: that runs
+`mas install` through `brew bundle` as your user, and since
+macOS 13 the App Store install path requires root — so it stops
+for a password prompt that a rebuild has no terminal to show,
+and the rebuild hangs. The activation step this option enables
+is already running as root, so it neither prompts nor wedges.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
@@ -378,13 +530,13 @@ Example:
 
 `boolean` · default `true`
 
-Theme the apps in your roster (`nebelhaus.apps`) that Nebelung ships a
+Theme the apps in your roster (`nebelhaus.roster`) that Nebelung ships a
 port for, without wiring each one by hand.
 
 The rice already themes every tool it installs itself — the shell, the
 terminal, the git stack, Zen, Obsidian. This covers the other direction:
 an app YOU added to the roster that Nebelung happens to have a theme for.
-Add `zed`, `warp` or `xcode` to `nebelhaus.apps` and its Nebelung theme
+Add `zed`, `warp` or `xcode` to `nebelhaus.roster` and its Nebelung theme
 lands where that app looks for themes, in the flavor and contrast you
 selected, following them on every rebuild. Matching is by roster id, so
 the entry has to be named after the port (`zed`, not `zed-editor`).

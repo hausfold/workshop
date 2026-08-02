@@ -55,11 +55,11 @@ into `flake.nix`. The identity and app choices come along for free.
 
 Once that switch finishes, the rebuild has already restored:
 
-- **Every declared GUI app** — anything with a `cask` in your roster or in
-  `homebrew.casks` reinstalls itself.
+- **Every declared GUI app** — anything in `nebelhaus.roster` with a `cask`,
+  `brew` or `package` reinstalls itself.
 - **Your whole shell** — Ghostty, zellij, zsh, starship, yazi, helix, and the
   CLI toolbelt, themed and configured.
-- **All your CLI tools** from `home.packages`.
+- **All your CLI tools** — the roster's `package` / `brew` entries.
 - **The macOS defaults** the rice manages (Dock, Finder, trackpad, key repeat,
   the Caps-Lock remap, ⌘Space).
 - **The background agents** — tiling, the bar, and the launcher, launched via
@@ -94,7 +94,7 @@ on a fresh machine:
 
 4. **Apps outside the config.** Anything you installed by hand won't reappear —
    reinstall those, and consider moving the ones you care about into your config
-   (a [cask or `masApps`](/guides/adding-apps/#app-store-apps)) so *next* time
+   (a [roster entry](/guides/adding-apps/)) so *next* time
    they do.
 
 5. **App logins & licences.** Nix restores the app; it can't restore your
@@ -103,8 +103,8 @@ on a fresh machine:
 </Steps>
 
 <Aside type="tip" title="Do future-you a favour">
-Every app you move from "installed by hand" into `homebrew.casks` (or the
-roster) is one less thing to remember next migration. The goal is a machine you
+Every app you move from "installed by hand" into `nebelhaus.roster` is one less
+thing to remember next migration. The goal is a machine you
 could wipe on a Tuesday without flinching.
 </Aside>
 

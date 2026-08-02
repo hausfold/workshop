@@ -55,21 +55,24 @@ There's nothing to set up first — no data files, no options to point at. Each
 selection lands as its own Nix module under `hosts/<hostname>/packages/`, and
 Pounce stages and commits just that file after a successful rebuild.
 
-## Which line do I add?
+## One list: `nebelhaus.roster`
+
+Everything the machine has goes in the same roster — apps, fonts, CLI tools,
+Nixpkgs packages, App Store apps. You don't choose an *option*; you choose which
+**fields** to set, and that's what the entry means:
 
 <CardGrid>
   <Card title="A GUI app I'll live in" icon="laptop">
-    Want it tiled, with a Caps-Lock letter and its own workspace? Add it to the
-    **app roster** — one entry gives you the key, the workspace, the bar pill,
-    and (optionally) installs it.
+    Set **`key`** and **`workspace`**: a Caps-Lock letter, its own workspace, a
+    bar pill, the auto-tiling rule, a cheatsheet row — and it installs it.
   </Card>
   <Card title="A GUI app, no fuss" icon="download">
-    Just want it *installed* — no launcher key, no tiling opinions? One line in
-    **`homebrew.casks`**.
+    Omit `key` and `workspace`. The entry is just an install: nothing bound,
+    nothing drawn, still declared.
   </Card>
   <Card title="A CLI tool I'll keep" icon="seti:shell">
-    A command you want on your `PATH` for good? Add it to **`home.packages`**
-    from nixpkgs — and it rolls back with everything else.
+    Same list, no launcher fields — just **`package`** (nixpkgs) or **`brew`**
+    (a formula). `scope` decides user profile vs system-wide.
   </Card>
   <Card title="A CLI tool, just once" icon="magnifier">
     Trying something out? Run it **without installing** via `,` (comma). Nothing
@@ -77,17 +80,69 @@ Pounce stages and commits just that file after a successful rebuild.
   </Card>
 </CardGrid>
 
+Four sources, one per package manager — set the one that applies:
+
+| field | installs from | example |
+|---|---|---|
+| `cask` | Homebrew cask | `cask = "slack";` |
+| `brew` | Homebrew formula | `brew = "ical-buddy";` |
+| `package` | your flake's pinned nixpkgs | `package = pkgs.ripgrep;` |
+| `appStoreId` | the Mac App Store | `appStoreId = 497799835;` |
+
+Set none of them and the entry is pure metadata — right for something already on
+the machine (Safari, Music) that you still want a launcher key for.
+
+### The rice's own apps are entries too
+
+You don't have to know which apps nebelhaus already installs. Each room declares
+its own: `den` gives `ghostty` its cask, `prowl` gives `aerospace` its, `sill`
+`sketchybar`, `snippets` `espanso`. Trill, Pounce and Perch copy a notarized
+bundle into `/Applications` from their own activation step — neither a cask nor
+a package — so they carry `installedBy` instead.
+
+The practical effect: when you add a leader key for an app the rice ships, you
+write only the launcher half.
+
+```nix
+# Trill's name, bundle id and installer come from nebelhaus.trill.
+nebelhaus.roster.trill = {
+  key = "m";
+  workspace = "M";
+  barIcon = ":messages:";
+};
+```
+
+The rule underneath is *whoever installs an app owns its source fields, whoever
+gives it a key owns the launcher fields* — so two modules never fight over one
+field, and your host file never explains what the rice is doing. `haus doctor`
+and the [agent skill](/guides/ai-agent/) both read the merged result, so
+"what's on this machine and who put it there" has one answer.
+
+<Aside type="note" title="Why one list and not four">
+`homebrew.casks`, `homebrew.brews`, `home.packages` and
+`environment.systemPackages` all still work and still merge. But reaching for
+them for an *app* means declaring it in two places the moment you want a
+launcher key — and worse, **nothing warns you.** Homebrew's lists concatenate
+and `brew bundle` is idempotent, so a cask named in two places just installs
+twice, in two locations, forever. (That's not hypothetical: it's how a
+`homebrew.casks = [ "iina" ]` sat beside the rice's own `pkgs.iina` for months.)
+
+The roster catches it now — same id merges, and a name that appears twice in the
+final Homebrew lists is a build warning. The plain lists stay as the escape
+hatch for the rare thing that isn't an app at all, like a tap.
+</Aside>
+
 ---
 
 ## A GUI app with a launcher key (the roster)
 
 This is the nebelhaus-native way to add an app you actually work in. One keyed
-entry in `nebelhaus.apps` wires up *everything at once*: a Caps-Lock letter to
+entry in `nebelhaus.roster` wires up *everything at once*: a Caps-Lock letter to
 launch/focus it, a workspace it lives on, a pill in the bar, the auto-tiling
 rule, a row in the cheatsheet — and it installs the app for you.
 
 ```nix
-nebelhaus.apps.slack = {
+nebelhaus.roster.slack = {
   key = "s";
   name = "Slack";
   workspace = "S";
@@ -116,10 +171,11 @@ The two fields people always have to look up:
   (e.g. `:slack:`, `:discord:`, `:figma:`). Browse the list on that page; leave
   it `null` and the bar just shows the workspace letter.
 
-<Aside type="tip" title="cask = install, null = already here">
-Set `cask = "slack"` and declaring the app **also installs it** — no separate
-line needed. Set `cask = null` for apps that are already on the machine (Safari,
-Music, anything from the App Store) but you still want a launcher key for.
+<Aside type="tip" title="Declaring it is what installs it">
+`cask = "slack"` means the entry **also installs** Slack — no second line
+anywhere. Leave every source field unset for an app that's already on the
+machine (Safari, Music, something you dragged in) but you still want a launcher
+key for.
 </Aside>
 
 The full field-by-field breakdown — and the one-app-per-workspace thinking
@@ -135,23 +191,28 @@ need one click you'll find waiting in `haus doctor`. See
 [Theming ▸ Apps you added yourself](/guides/theming/#apps-you-added-yourself).
 </Aside>
 
-## A GUI app, no launcher key (a plain cask)
+## A GUI app, no launcher key
 
 Some apps you just want *installed* — a background utility, something you open
-from Spotlight-muscle-memory, a thing you touch once a month. Skip the roster
-and drop the [Homebrew cask](https://formulae.brew.sh/cask/) straight in:
+from Spotlight-muscle-memory, a thing you touch once a month. Same roster, minus
+the launcher fields:
 
 ```nix
-homebrew.casks = [
-  "discord"
-  "obsidian"
-  "figma"
-];
+nebelhaus.roster = {
+  discord = { name = "Discord"; cask = "discord"; };
+  figma   = { name = "Figma";   cask = "figma"; };
+};
 ```
 
-Your list is *merged* with the casks the rice already installs (Ghostty,
-AeroSpace, and any roster apps), so you never repeat or clobber them. Don't know
-the cask name? Search it:
+No `key`, so no Caps-Lock letter and no cheatsheet row. No `workspace`, so no
+pill and no auto-tiling rule. It's simply installed — and, crucially, *declared*,
+which is what stops [`cleanup = "zap"`](/guides/making-it-yours/#homebrew-behaviour)
+from removing it later.
+
+`name` is optional here too, but worth setting: it's what `open -a` uses, and
+it's what shows up when a tool lists your machine back to you.
+
+Don't know the cask name? Search it:
 
 ```sh
 brew search --cask obsidian
@@ -174,29 +235,55 @@ App → Mac App Store**: type a search, choose the Mac-compatible result, then
 install it alone or give it a roster key and workspace. Pounce already knows the
 result's numeric App Store id and bundle id.
 
-This path uses [`mas get`](https://github.com/mas-cli/mas) in a visible floating
-terminal. You need to be signed into the App Store, and a download may ask for
-Touch ID or your Apple Account. Paid apps must already have been purchased; if
-the CLI cannot acquire one, Pounce opens the App Store page for you.
+That path uses [`mas get`](https://github.com/mas-cli/mas) in a visible floating
+terminal — visible on purpose, because App Store installs need root and mas asks
+for your password or Touch ID, which a silent rebuild would have nowhere to show.
 
-Unlike Homebrew and Nix choices, App Store acquisition itself isn't captured in
-a Nix module: it is an Apple Account operation, not part of the Nix generation.
-A roster entry is still declarative after the app is acquired.
+By hand, an App Store app is a roster entry like any other:
+
+```nix
+nebelhaus.roster.xcode = {
+  name = "Xcode";
+  appStoreId = 497799835;   # the digits in its App Store URL
+};
+```
+
+Recording the id is always safe. **Installing** from it is opt-in:
+
+```nix
+nebelhaus.appStore.install = true;
+```
+
+Then a rebuild fetches any `appStoreId` entry that isn't already installed. It's
+off by default because it reaches the network and acts on your Apple Account —
+that shouldn't happen as a side effect of turning on a window manager.
+
+<Aside type="caution" title="What the App Store can't do, exactly">
+- **mas cannot sign in.** Do it once in App Store.app, per machine.
+- **mas cannot buy a paid app**, ever. Purchase it once in App Store.app; after
+  that any machine can install it.
+- **Free apps it can fetch outright** — `mas get` acquires an app you've never
+  had. (`mas install` is the narrower one: already-purchased only.)
+
+So an unpurchased paid app is *reported and skipped* during a rebuild, never
+fatal. And note the rice does **not** use nix-darwin's `homebrew.masApps`: that
+runs `mas install` as you through `brew bundle`, hits the root requirement, and
+stops for a password prompt the rebuild can't display — a hung activation.
+</Aside>
 
 ## Already-installed apps
 
 For anything already on the machine — Safari, Music, an app you installed by hand
-— you don't need to install it again. If you want it in the launcher, just add a
-roster entry with `cask = null`:
+— you don't need to install it again. Add a roster entry with no source field at
+all and it's pure launcher wiring:
 
 ```nix
-nebelhaus.apps.music = {
+nebelhaus.roster.music = {
   key = "m";
   name = "Music";
   workspace = "M";
   appId = "com.apple.Music";
   barIcon = ":apple_music:";
-  cask = null;
 };
 ```
 
@@ -206,19 +293,18 @@ nebelhaus.apps.music = {
 
 Command-line tools normally come from **nixpkgs**, which makes them declarative,
 reproducible, and roll-backable. **Pounce → Install App → Nix packages** searches
-the exact Nixpkgs revision pinned by your flake and writes a module under
-`hosts/<hostname>/packages/` that adds the chosen attribute to
-`environment.systemPackages`. If you prefer to keep the list in Nix source,
-personal tools go
-in your host file's home-manager block:
+the exact Nixpkgs revision pinned by your flake and writes a roster entry under
+`hosts/<hostname>/packages/`. By hand it's the same list as everything else — a
+tool just has no launcher fields to set:
 
 ```nix
-home-manager.users.${username} = {
-  home.packages = with pkgs; [
-    ripgrep
-    httpie
-    ffmpeg
-  ];
+nebelhaus.roster = {
+  ripgrep = { package = pkgs.ripgrep; };
+  httpie  = { package = pkgs.httpie; };
+  ffmpeg  = { package = pkgs.ffmpeg; };
+
+  # A formula, when nixpkgs doesn't have it (or brew's build is the one you want)
+  ical-buddy = { brew = "ical-buddy"; };
 };
 ```
 
@@ -229,14 +315,33 @@ nix search nixpkgs ripgrep
 # …or browse https://search.nixos.org/packages
 ```
 
-<Aside type="note" title="System vs. home — and where the rice's own tools live">
+### `scope` — your profile, or the whole machine
+
+`scope` applies to `package` only (Homebrew has no such split):
+
+- **`"user"`** (the default) → home-manager's `home.packages`. Right for
+  anything you run as yourself.
+- **`"system"`** → `environment.systemPackages`. Installed once for the machine,
+  so it's on `PATH` for **root, launchd jobs, and non-login shells** — which is
+  what a tool called by a daemon or a `sudo` workflow actually needs.
+
+```nix
+nebelhaus.roster.age = {
+  package = pkgs.age;
+  scope = "system";   # a launchd job needs to find it
+};
+```
+
+It's about *reach*, not about needing elevated privileges to install —
+`darwin-rebuild` runs under `sudo` either way. When in doubt, leave it at
+`"user"`.
+
+<Aside type="note" title="Where the rice's own tools live">
 The rice ships a baseline toolbelt already (`bat`, `fzf`, `lazygit`, `jq`,
 `gh`, `delta`, `yazi`… — see [The shell](/guides/the-shell/)). Those live in the
 **nebelhaus repo**, not your host file; only edit them if you're changing the
-shared distro for everyone. *Your* machine's extras belong in `home.packages` in
-your host file. (The rare tool that `sudo` or a non-login shell must see can go
-in `environment.systemPackages` instead — but `home.packages` is almost always
-what you want.)
+shared distro for everyone. *Your* machine's extras belong in your host file's
+roster.
 </Aside>
 
 ## A CLI tool, just to try it
@@ -250,7 +355,7 @@ for one-offs and "does this even do what I think":
 , ncdu                   # try a disk-usage TUI once
 ```
 
-If you find yourself reaching for it twice, *then* add it to `home.packages`.
+If you find yourself reaching for it twice, *then* give it a roster entry.
 
 ## Tools that need a secret or an env var
 

@@ -94,7 +94,7 @@ A few first tweaks people reach for:
   nebelhaus.hearth.editor = "nvim";
 
   # Add an app to the launcher + workspace roster
-  nebelhaus.apps.slack = {
+  nebelhaus.roster.slack = {
     key = "s";
     name = "Slack";
     workspace = "S";
@@ -103,8 +103,11 @@ A few first tweaks people reach for:
     cask = "slack";
   };
 
-  # Or just install casks without giving them a launcher key
-  homebrew.casks = [ "discord" ];
+  # Same list, no launcher key: installed, nothing bound
+  nebelhaus.roster.discord = {
+    name = "Discord";
+    cask = "discord";
+  };
 }
 ```
 
