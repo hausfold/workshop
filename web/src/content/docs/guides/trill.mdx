@@ -36,6 +36,21 @@ copy; clear it yourself:
 xattr -dr com.apple.quarantine /Applications/Trill.app
 ```
 
+## Staying current
+
+trill checks GitHub for a new release hourly (and when you bring the app
+forward), and when one is out it floats a card at the bottom of the sidebar plus
+at most one notification a day. What the **Update** button does follows how you
+installed it: a drag-install downloads the release and swaps itself out; a
+Homebrew cask defers to `brew upgrade --cask trill`; a rice or Nix install is
+*told* the command to run (`haus update`) rather than overwritten, since the next
+rebuild would revert it.
+
+Turn the poll off in **Settings ▸ Updates**; **Trill ▸ Check for Updates…**
+always works on demand. The self-update quits trill first so your draft flushes,
+and refuses any download signed by a different identity than the running app —
+that signature is what your Full Disk Access grant is keyed to.
+
 ## First run — the permissions
 
 trill opens in **Synthetic Fixture** mode (deterministic sample data, no
