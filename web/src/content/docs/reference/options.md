@@ -93,167 +93,6 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-## nebelhaus.apps
-
-The shared app roster: one entry per app, driving the launcher key, its workspace, the bar pill, the cheatsheet, and optionally its Homebrew cask.
-
-### `nebelhaus.apps`
-
-`attribute set of (submodule)` · default `{ }`
-
-The shared app roster, keyed by a stable app id. This is the canonical,
-composable source for AeroSpace launcher keys and workspaces,
-SketchyBar pills, the pounce cheatsheet, and optional Homebrew casks.
-
-Attribute-set entries merge across Nix modules, so a host, an imported
-file, and pounce's "Install App" command can each contribute one app
-without parsing or replacing a monolithic list. Set an entry's enable
-field to false to remove it, or override individual fields by app id.
-
-Example:
-
-```nix
-{
-  slack = {
-    key = "s";
-    name = "Slack";
-    workspace = "S";
-    appId = "com.tinyspeck.slackmacgap";
-    barIcon = ":slack:";
-    cask = "slack";
-  };
-}
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.appId`
-
-`null or string` · default `null`
-
-Bundle id, used for the AeroSpace `on-window-detected`
-auto-assign rule and the wake-time re-sort. null skips
-auto-assignment (the app still launches, it just isn't herded
-to its workspace). Find one with `osascript -e 'id of app "…"'`.
-
-Example:
-
-```nix
-"com.tinyspeck.slackmacgap"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.barIcon`
-
-`null or string` · default `null`
-
-The SketchyBar workspace-pill glyph. A sketchybar-app-font
-ligature like ":slack:" renders the app's logo; any other
-string is drawn in the bar's Nerd Font. null falls back to the
-workspace letter. Ignored when workspace is null.
-
-Example:
-
-```nix
-":slack:"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.cask`
-
-`null or string` · default `null`
-
-Homebrew cask that installs this app. When set, it's appended to
-homebrew.casks so declaring the app also installs it. null means
-"already present / installed some other way" (e.g. Safari, Music).
-
-Example:
-
-```nix
-"slack"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.enable`
-
-`boolean` · default `true`
-
-Whether this app participates in the shared launcher roster.
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.key`
-
-`string` · no default
-
-The leader letter for this app: tap Caps Lock then this key to
-launch/focus it. Must be unique across the roster.
-
-Example:
-
-```nix
-"s"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.label`
-
-`null or string` · default `null`
-
-Cheatsheet caption for the leader key. null uses name.
-
-Example:
-
-```nix
-"Slack"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.name`
-
-`string` · no default
-
-macOS application name, as passed to `open -a`.
-
-Example:
-
-```nix
-"Slack"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.order`
-
-`signed integer` · default `1000`
-
-Roster order; lower values appear first. Ties are sorted by app id.
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
-### `nebelhaus.apps.<name>.workspace`
-
-`null or string` · default `null`
-
-The AeroSpace workspace this app owns — its window auto-moves
-here, it gets a SketchyBar pill, and the leader then ⇧<key>
-throws a window to it. null makes the app "launcher-only": the
-leader still opens it in the current workspace, but it claims no
-workspace, pill, or auto-assign rule (e.g. Passwords).
-
-Example:
-
-```nix
-"S"
-```
-
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
-
 ## nebelhaus.theme
 
 Colour and wallpaper.
@@ -378,13 +217,13 @@ Example:
 
 `boolean` · default `true`
 
-Theme the apps in your roster (`nebelhaus.apps`) that Nebelung ships a
+Theme the apps in your roster (`nebelhaus.roster`) that Nebelung ships a
 port for, without wiring each one by hand.
 
 The rice already themes every tool it installs itself — the shell, the
 terminal, the git stack, Zen, Obsidian. This covers the other direction:
 an app YOU added to the roster that Nebelung happens to have a theme for.
-Add `zed`, `warp` or `xcode` to `nebelhaus.apps` and its Nebelung theme
+Add `zed`, `warp` or `xcode` to `nebelhaus.roster` and its Nebelung theme
 lands where that app looks for themes, in the flavor and contrast you
 selected, following them on every rebuild. Matching is by roster id, so
 the entry has to be named after the port (`zed`, not `zed-editor`).
@@ -813,7 +652,7 @@ A paw pill tracking your agent-worktree panes — amber when one is blocked on y
 
 `boolean` · default `false`
 
-A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all.
+A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -1189,6 +1028,38 @@ surface has today. (It writes pounce's own `enabled` key.)
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
+### `nebelhaus.pounce.scale`
+
+`integer or floating point number between 0.8 and 2.0 (both inclusive)` · default `nebelhaus.ui.scale, held inside pounce's 0.8-2.0`
+
+How big the palette is drawn. Multiplies every size in pounce's UI — the
+launcher's rows, header, icons and action bar, and the panels behind it:
+the emoji grid, clipboard history, recent screenshots, camera peek, Find
+Files, the cheatsheet and the window switcher.
+
+Follows nebelhaus.ui.scale by default, so you rarely set this directly.
+It exists as its own option for the case where the palette wants a
+different size from the rest of the rice — the launcher is read at arm's
+length for a second, not lived in like the terminal.
+
+pounce's own range is narrower than ui.scale's, so a rice at
+`ui.scale = 2.5` gets a palette at 2.0 rather than an evaluation error.
+
+Two things adapt on their own, which is why one number is enough: the
+launcher shows fewer rows when the scaled rows stop fitting on screen, and
+every panel's width is held inside the visible frame. That matters most
+alongside `nebelhaus.displays.<name>.uiScale` — a larger-text display mode
+and a larger palette multiply, and the palette is the one that would
+otherwise run off the edge.
+
+Example:
+
+```nix
+1.4
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
 ### `nebelhaus.pounce.signingIdentity`
 
 `string` · default `""`
@@ -1218,6 +1089,21 @@ Example:
 ```nix
 "Developer ID Application: Jane Doe (ABCDE12345)"
 ```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.windowMode`
+
+`one of "default", "compact"` · default `"compact"`
+
+The palette's proportions. `compact` is narrower with tighter rows and
+keeps its list hidden until you type — the rice's tuned look, and what it
+shipped before this option existed. `default` is pounce's roomier layout,
+which shows the top results the moment it opens.
+
+This is shape, not size: how BIG the palette is drawn is
+nebelhaus.pounce.scale. The two compose — a compact palette at scale 1.4
+is still the compact layout, just readable from further away.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
@@ -1579,6 +1465,63 @@ Example:
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.appStore
+### `nebelhaus.appStore.install`
+
+`boolean` · default `false`
+
+Install roster entries that set `appStoreId` from the Mac App
+Store during activation, skipping any already installed.
+
+Off by default: this reaches the network and acts on your Apple
+ID, which shouldn't happen as a side effect of turning on a
+window manager. It also can't be complete — `mas` cannot sign in
+(do that once in App Store.app) and cannot make a first-time
+PURCHASE, so a paid app you don't already own is reported and
+skipped rather than installed.
+
+Deliberately NOT nix-darwin's `homebrew.masApps`: that runs
+`mas install` through `brew bundle` as your user, and since
+macOS 13 the App Store install path requires root — so it stops
+for a password prompt that a rebuild has no terminal to show,
+and the rebuild hangs. The activation step this option enables
+is already running as root, so it neither prompts nor wedges.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.collar
+### `nebelhaus.collar.enable`
+
+`boolean` · default `true`
+
+The collar room: Touch ID for `sudo`, with `reattach` — the PAM shim
+that keeps the prompt working when sudo runs inside a terminal
+multiplexer (tmux/zellij/screen), where it otherwise beachballs.
+
+Off means macOS's stock password prompt everywhere, including for the
+rebuild below. Nothing else in the rice depends on it.
+
+<small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
+
+### `nebelhaus.collar.passwordlessRebuild`
+
+`boolean` · default `true`
+
+Exempt system activation from authenticating at all: a sudoers rule
+granting NOPASSWD to `darwin-rebuild` and `haus-activate` at their
+stable /run/current-system paths. This is what makes `haus rebuild`,
+`haus rollback` and `bench try switch` a single uninterrupted command
+rather than one that stops for a fingerprint you already gave.
+
+Honest scope: this is a real root grant, and both commands take a path
+or flake ref you choose — so it means "anything I can build, I can
+activate as root, unprompted". That is the whole point (you already
+authenticated to build it), but on a shared or managed machine it's the
+knob to turn off. With it off, activation prompts via Touch ID (or a
+password when `enable` is false) and nothing else changes.
+
+<small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
 
 ## nebelhaus.developer
 ### `nebelhaus.developer.agents.enable`
@@ -1959,6 +1902,289 @@ on its colors.
 
 <small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
 
+## nebelhaus.roster
+### `nebelhaus.roster`
+
+`attribute set of (submodule)` · default `{ }`
+
+The one list of things this machine has, keyed by a stable id. It is
+the canonical, composable source for AeroSpace launcher keys and
+workspaces, SketchyBar pills, the pounce cheatsheet, Nebelung theme
+ports — and for the install itself, from any of four sources
+(`cask`, `brew`, `package`, `appStoreId`).
+
+Every field except the id is optional, and WHICH fields you set is
+what the entry means. Set `key` and it joins the launcher; set
+`workspace` and it claims one, with a pill; set none of those and
+it's install-only — which is how a font or a command-line tool
+lives in the same list as Slack instead of in a second one beside
+it. The rice's own `homebrew.casks` / `home.packages` still work and
+still merge; you just shouldn't need them for an app.
+
+Attribute-set entries merge across Nix modules, so a host, an imported
+file, and pounce's "Install App" command can each contribute one app
+without parsing or replacing a monolithic list. Set an entry's enable
+field to false to remove it, or override individual fields by app id.
+
+Example:
+
+```nix
+{
+  # Launcher app: leader s, owns workspace S, installs itself.
+  slack = {
+    key = "s";
+    name = "Slack";
+    workspace = "S";
+    appId = "com.tinyspeck.slackmacgap";
+    barIcon = ":slack:";
+    cask = "slack";
+  };
+
+  # Install-only: no key, so no leader binding and no pill.
+  framer = { cask = "framer"; };
+  orbstack = { package = pkgs.orbstack; };
+  biome = { package = pkgs.biome; scope = "system"; };
+  ical-buddy = { brew = "ical-buddy"; };
+  xcode = { name = "Xcode"; appStoreId = 497799835; };
+}
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.appId`
+
+`null or string` · default `null`
+
+Bundle id, used for the AeroSpace `on-window-detected`
+auto-assign rule and the wake-time re-sort. null skips
+auto-assignment (the app still launches, it just isn't herded
+to its workspace). Find one with `osascript -e 'id of app "…"'`.
+
+Example:
+
+```nix
+"com.tinyspeck.slackmacgap"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.appStoreId`
+
+`null or signed integer` · default `null`
+
+Mac App Store numeric app id (the digits in its store URL), so an
+App Store app is declared in the same roster as everything else
+rather than in a comment.
+
+Recording it is always safe; INSTALLING from it is opt-in via
+`nebelhaus.appStore.install`, because the App Store is the one
+source that can't be fully automated: `mas` has no sign-in
+command, and it cannot buy a paid app for the first time. Free
+apps it can fetch; paid ones you purchase once in App Store.app
+and every machine afterwards can install them.
+
+Example:
+
+```nix
+497799835
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.barIcon`
+
+`null or string` · default `null`
+
+The SketchyBar workspace-pill glyph. A sketchybar-app-font
+ligature like ":slack:" renders the app's logo; any other
+string is drawn in the bar's Nerd Font. null falls back to the
+workspace letter. Ignored when workspace is null.
+
+Example:
+
+```nix
+":slack:"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.brew`
+
+`null or string` · default `null`
+
+Homebrew FORMULA that installs this entry, appended to
+homebrew.brews. For the command-line half of the roster — a tool
+with no .app bundle, which usually means `key`, `name` and
+`workspace` are all null.
+
+Example:
+
+```nix
+"ical-buddy"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.cask`
+
+`null or string` · default `null`
+
+Homebrew cask that installs this app. When set, it's appended to
+homebrew.casks so declaring the app also installs it. null means
+"already present / installed some other way" (e.g. Safari, Music).
+
+Example:
+
+```nix
+"slack"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.enable`
+
+`boolean` · default `true`
+
+Whether this app participates in the shared launcher roster.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.installedBy`
+
+`null or string` · default `null`
+
+The nebelhaus module that puts this app on disk, when none of the
+four sources above describes it: trill, pounce and perch copy a
+notarized bundle into /Applications from their own activation
+step, which is neither a cask nor a package you can list.
+
+Set BY the rice, not by you. It exists so the roster can still
+answer "who installed this?" for those apps — without it, a host
+adding a leader key for Trill had to KNOW the rice already ships
+it, leave every source field null, and leave a comment explaining
+the hole. This is that comment, as data.
+
+Example:
+
+```nix
+"nebelhaus.trill"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.key`
+
+`null or string` · default `null`
+
+The leader letter for this app: tap Caps Lock then this key to
+launch/focus it. Must be unique across the roster.
+
+null (the default) means the entry is INSTALL-ONLY: it still
+brings its cask/formula/package, but claims no leader key, no
+cheatsheet row, and no launch-mode bubble. That is what lets one
+roster hold both the apps you reach for by keyboard and the ones
+you just want on the machine (and fonts, and CLI tools).
+
+Example:
+
+```nix
+"s"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.label`
+
+`null or string` · default `null`
+
+Cheatsheet caption for the leader key. null uses name.
+
+Example:
+
+```nix
+"Slack"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.name`
+
+`null or string` · default `null`
+
+macOS application name, as passed to `open -a`. Required when
+`key` is set (the launcher has nothing to open otherwise);
+null is right for an install-only entry — a font, a CLI tool, or
+an app you launch some other way.
+
+Example:
+
+```nix
+"Slack"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.order`
+
+`signed integer` · default `1000`
+
+Roster order; lower values appear first. Ties are sorted by app id.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.package`
+
+`null or package` · default `null`
+
+Nixpkgs package that installs this entry. Where it lands is
+`scope`'s call.
+
+Example:
+
+```nix
+pkgs.orbstack
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.scope`
+
+`one of "user", "system"` · default `"user"`
+
+Which profile `package` installs into.
+
+- "user" (default): home-manager's `home.packages`. Right for
+  anything you run as yourself — apps, editors, CLI tools.
+- "system": nix-darwin's `environment.systemPackages`. Installed
+  once for the whole machine, so it's on PATH for root, for
+  non-login shells, and for launchd jobs — which is what a tool
+  invoked by a daemon, a `sudo` workflow, or an activation script
+  actually needs. (It is about REACH, not about the package
+  needing elevated privileges to install: `darwin-rebuild` runs
+  under sudo either way.)
+
+Ignored when `package` is null — Homebrew has no such split.
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.workspace`
+
+`null or string` · default `null`
+
+The AeroSpace workspace this app owns — its window auto-moves
+here, it gets a SketchyBar pill, and the leader then ⇧<key>
+throws a window to it. null makes the app "launcher-only": the
+leader still opens it in the current workspace, but it claims no
+workspace, pill, or auto-assign rule (e.g. Passwords).
+
+Example:
+
+```nix
+"S"
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
 ## nebelhaus.ui
 ### `nebelhaus.ui.scale`
 
@@ -1976,17 +2202,32 @@ still wins:
 What it currently moves:
 
   - the terminal font size (nebelhaus.fonts.mono.size)
+  - the command palette, whole (nebelhaus.pounce.scale) — its rows,
+    text and icons, and the emoji / clipboard / screenshots / camera /
+    Find Files / cheatsheet panels behind it
+  - the type in Sill's menu bar — pill labels, icons and popup rows —
+    up to a ceiling; see below
   - the Dock icon size (system.defaults.dock.tilesize)
   - prowl's window gaps
 
-What it deliberately does NOT move:
+Where it stops, and why it isn't a gap waiting to be filled:
 
-  - Sill's menu bar. Its height is tuned to sit inside the macOS
-    menu-bar band so the hover-reveal covers it exactly; scaling that
-    linearly breaks the alignment rather than making it bigger. The bar
-    needs its own sizing pass, not a multiplier.
+  - Sill's bar HEIGHT. The bar is 36pt with 28pt pills so the pills sit
+    inside the 32pt menu-bar band that macOS's own hover-reveal covers;
+    taller pills poke out below it. That band is macOS's, fixed, and has
+    no setting behind it — measured, not assumed. So the bar's type
+    follows this option up to the largest that still fits a pill
+    (1.25x) and then stops, silently: past that a rice simply gets the
+    ceiling. The only way to make the whole bar bigger is to change what
+    a point MEANS — the display's scaled resolution, below.
   - anything outside nebelhaus. macOS has no system-wide UI scale, so
     third-party apps follow only a display-resolution change.
+
+Worth knowing if you set both: this and
+`nebelhaus.displays.<name>.uiScale` MULTIPLY. A larger-text display mode
+leaves a smaller desktop in points, and this asks for bigger points
+inside it — so 1.4 on an already-scaled display is a bigger jump than
+1.4 on the panel's default.
 
 Example:
 
