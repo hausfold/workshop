@@ -122,6 +122,30 @@ awake off
   you don't use Claude: those two rows used to move only while a Claude
   statusline was rendering somewhere, so on a Codex or Opencode machine the pill
   would grey out and stay grey.
+
+  Claude and Opencode each get one more line in that dropdown — a **`tokens`**
+  row, showing raw tokens moved today and all time:
+
+  ```
+  tokens   184.41M today  ·  7.61B all time
+  ```
+
+  It exists purely for the fun of watching the number climb. Every other figure
+  in the pill is a fraction of something you're allowed; this is the count of
+  what you've actually moved, which no client shows you anywhere. It's a score,
+  not a limit — nothing warns on it, nothing throttles on it, and it never
+  reaches the pill's own label, which keeps showing the number you can act on.
+  Expect it to be enormous: it counts cache reads alongside real input and
+  output, and cache reads are most of what an agent session does.
+
+  Claude's is summed from your own transcripts in `~/.claude/projects` — the
+  only place the raw counters exist. Reading all of them takes seconds, so an
+  index remembers each transcript's size and only re-reads the sessions that
+  grew; the score updates roughly every quarter of an hour. Codex has no row
+  here for the same reason its limits are polled: no local history to count.
+
+  It is not a bill. Nothing de-duplicates, so a resumed or forked session counts
+  the messages it inherited more than once.
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
 - **`harvest`** — a [Harvest](https://www.getharvest.com/) time-tracking pill.
   It reads credentials from a file **you** provide at
