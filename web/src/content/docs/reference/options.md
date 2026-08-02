@@ -813,7 +813,7 @@ A paw pill tracking your agent-worktree panes — amber when one is blocked on y
 
 `boolean` · default `false`
 
-A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all.
+A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -1189,6 +1189,38 @@ surface has today. (It writes pounce's own `enabled` key.)
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
+### `nebelhaus.pounce.scale`
+
+`integer or floating point number between 0.8 and 2.0 (both inclusive)` · default `nebelhaus.ui.scale, held inside pounce's 0.8-2.0`
+
+How big the palette is drawn. Multiplies every size in pounce's UI — the
+launcher's rows, header, icons and action bar, and the panels behind it:
+the emoji grid, clipboard history, recent screenshots, camera peek, Find
+Files, the cheatsheet and the window switcher.
+
+Follows nebelhaus.ui.scale by default, so you rarely set this directly.
+It exists as its own option for the case where the palette wants a
+different size from the rest of the rice — the launcher is read at arm's
+length for a second, not lived in like the terminal.
+
+pounce's own range is narrower than ui.scale's, so a rice at
+`ui.scale = 2.5` gets a palette at 2.0 rather than an evaluation error.
+
+Two things adapt on their own, which is why one number is enough: the
+launcher shows fewer rows when the scaled rows stop fitting on screen, and
+every panel's width is held inside the visible frame. That matters most
+alongside `nebelhaus.displays.<name>.uiScale` — a larger-text display mode
+and a larger palette multiply, and the palette is the one that would
+otherwise run off the edge.
+
+Example:
+
+```nix
+1.4
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
 ### `nebelhaus.pounce.signingIdentity`
 
 `string` · default `""`
@@ -1218,6 +1250,21 @@ Example:
 ```nix
 "Developer ID Application: Jane Doe (ABCDE12345)"
 ```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+
+### `nebelhaus.pounce.windowMode`
+
+`one of "default", "compact"` · default `"compact"`
+
+The palette's proportions. `compact` is narrower with tighter rows and
+keeps its list hidden until you type — the rice's tuned look, and what it
+shipped before this option existed. `default` is pounce's roomier layout,
+which shows the top results the moment it opens.
+
+This is shape, not size: how BIG the palette is drawn is
+nebelhaus.pounce.scale. The two compose — a compact palette at scale 1.4
+is still the compact layout, just readable from further away.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
@@ -1579,6 +1626,39 @@ Example:
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.collar
+### `nebelhaus.collar.enable`
+
+`boolean` · default `true`
+
+The collar room: Touch ID for `sudo`, with `reattach` — the PAM shim
+that keeps the prompt working when sudo runs inside a terminal
+multiplexer (tmux/zellij/screen), where it otherwise beachballs.
+
+Off means macOS's stock password prompt everywhere, including for the
+rebuild below. Nothing else in the rice depends on it.
+
+<small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
+
+### `nebelhaus.collar.passwordlessRebuild`
+
+`boolean` · default `true`
+
+Exempt system activation from authenticating at all: a sudoers rule
+granting NOPASSWD to `darwin-rebuild` and `haus-activate` at their
+stable /run/current-system paths. This is what makes `haus rebuild`,
+`haus rollback` and `bench try switch` a single uninterrupted command
+rather than one that stops for a fingerprint you already gave.
+
+Honest scope: this is a real root grant, and both commands take a path
+or flake ref you choose — so it means "anything I can build, I can
+activate as root, unprompted". That is the whole point (you already
+authenticated to build it), but on a shared or managed machine it's the
+knob to turn off. With it off, activation prompts via Touch ID (or a
+password when `enable` is false) and nothing else changes.
+
+<small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
 
 ## nebelhaus.developer
 ### `nebelhaus.developer.agents.enable`
@@ -1976,17 +2056,32 @@ still wins:
 What it currently moves:
 
   - the terminal font size (nebelhaus.fonts.mono.size)
+  - the command palette, whole (nebelhaus.pounce.scale) — its rows,
+    text and icons, and the emoji / clipboard / screenshots / camera /
+    Find Files / cheatsheet panels behind it
+  - the type in Sill's menu bar — pill labels, icons and popup rows —
+    up to a ceiling; see below
   - the Dock icon size (system.defaults.dock.tilesize)
   - prowl's window gaps
 
-What it deliberately does NOT move:
+Where it stops, and why it isn't a gap waiting to be filled:
 
-  - Sill's menu bar. Its height is tuned to sit inside the macOS
-    menu-bar band so the hover-reveal covers it exactly; scaling that
-    linearly breaks the alignment rather than making it bigger. The bar
-    needs its own sizing pass, not a multiplier.
+  - Sill's bar HEIGHT. The bar is 36pt with 28pt pills so the pills sit
+    inside the 32pt menu-bar band that macOS's own hover-reveal covers;
+    taller pills poke out below it. That band is macOS's, fixed, and has
+    no setting behind it — measured, not assumed. So the bar's type
+    follows this option up to the largest that still fits a pill
+    (1.25x) and then stops, silently: past that a rice simply gets the
+    ceiling. The only way to make the whole bar bigger is to change what
+    a point MEANS — the display's scaled resolution, below.
   - anything outside nebelhaus. macOS has no system-wide UI scale, so
     third-party apps follow only a display-resolution change.
+
+Worth knowing if you set both: this and
+`nebelhaus.displays.<name>.uiScale` MULTIPLY. A larger-text display mode
+leaves a smaller desktop in points, and this asks for bigger points
+inside it — so 1.4 on an already-scaled display is a bigger jump than
+1.4 on the panel's default.
 
 Example:
 
