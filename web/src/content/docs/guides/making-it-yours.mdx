@@ -240,21 +240,32 @@ extraModules = [ nebelhaus.presets.everyday nebelhaus.presets.large-print ];
 ```
 
 It uses two complementary size controls. `ui.scale = 1.4` moves the terminal
-font, the Dock icons and the tiling gaps together — pin any single one afterwards
-and yours wins. `displays.main.uiScale = "larger-text"` moves the current main
-display one step toward larger text, which makes **everything** bigger, including
-third-party apps the rice knows nothing about. The trade-off is less desktop
-space.
+font, the whole command palette, the menu bar's type, the Dock icons and the
+tiling gaps together — pin any single one afterwards and yours wins.
+`displays.main.uiScale = "larger-text"` moves the current main display one step
+toward larger text, which makes **everything** bigger, including third-party apps
+the rice knows nothing about. The trade-off is less desktop space.
+
+Note that the two **multiply**: a larger-text display leaves you fewer points of
+desktop, and `ui.scale` asks for bigger points inside it. That's the intended
+effect — it's just a bigger jump than either alone.
 
 For per-display control, add a UUID-specific setting in your host file; it wins
 over the preset's broad `main` selector. `hausdisp list` prints the persistent
 UUIDs of the displays currently attached.
 
-The remaining size limits are the menu bar and the Pounce window: both use
-geometry tuned to their layouts, so a multiplier would break alignment rather
-than enlarge them. The preset also doesn't change an app's own font preference
-or macOS's separate Dynamic Type text-size setting; display scaling is the
-system-wide lever that works.
+One size limit remains, and it's macOS's rather than the rice's: **the menu bar's
+height.** Sill is 36pt tall with 28pt pills so the pills sit inside the 32pt band
+that macOS's own menu-bar hover-reveal covers — taller pills poke out below it.
+There is no menu-bar-size setting on macOS to delegate to. So the bar's *type*
+follows `ui.scale` up to 1.25× and then stops, and prowl gives the bar a little
+extra room against the tiled windows as it grows. Making the whole bar bigger is
+what `displays.*.uiScale` is for: it changes what a point *means*, which is the
+only thing that band responds to.
+
+The preset also doesn't change an app's own font preference or macOS's separate
+Dynamic Type text-size setting; display scaling is the system-wide lever that
+works.
 
 Want to make one for other people? [Sharing a rice](/guides/sharing-a-rice/)
 covers the data-only boundary, `checkRice`, composition testing, and the

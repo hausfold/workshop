@@ -17,6 +17,7 @@ re-read each time the palette opens (no daemon restart needed).
   "themeLight": "nebelung-latte",  // used when macOS is in Light Mode
   "themeDark": "nebelung",         // used when macOS is in Dark Mode
   "windowMode": "default",   // "default" (720px) or "compact" (600px, tighter)
+  "scale": 1.0,              // 0.8-2.0 — how big the whole UI is drawn
   "hotkey": {
     "enabled": true,         // register the global hotkey in-process
     "key": "space",          // "space", "return", "tab", "escape", "a"–"z", "0"–"9"
@@ -60,6 +61,7 @@ re-read each time the palette opens (no daemon restart needed).
 | `themeLight` | same values; applies in macOS Light Mode | `"nebelung-latte"` |
 | `themeDark` | same values; applies in macOS Dark Mode | `"nebelung"` |
 | `windowMode` | `"default"` \| `"compact"` | `"default"` |
+| `scale` | `0.8`–`2.0` (clamped, not rejected) | `1.0` |
 | `hotkey.enabled` | `true` \| `false` | `true` |
 | `hotkey.key` | key name | `"space"` |
 | `hotkey.modifiers` | array of `cmd`/`shift`/`opt`/`ctrl` | `["cmd"]` |
@@ -132,6 +134,30 @@ curl -fsSLo ~/.config/pounce/themes/nebelung-latte.json \
 ```
 
 An unknown name or malformed file falls back to the built-in nebelung palette.
+
+### Sizing: `windowMode` and `scale`
+
+Two independent knobs. `windowMode` picks the launcher's *proportions* —
+`"compact"` is a narrower window with tighter rows that hides its list until you
+type. `scale` picks how *big* the whole thing is drawn: every size in the UI —
+text, rows, icons, the emoji grid, clipboard history, Find Files, the cheatsheet,
+the window switcher — is multiplied by it. They compose, so a compact launcher at
+`1.4` is still the compact layout, just readable from further away.
+
+Sizes are resolved before layout rather than by scaling the rendered window, so
+text stays crisp at any value. Out-of-range values are clamped to 0.8–2.0 rather
+than rejected: a config asking for `3.0` wants the biggest palette Pounce can
+draw, and handing back the smallest would be the opposite of the ask.
+
+Two things adapt on their own so a large scale can't push the window off screen:
+the launcher shows fewer rows once the scaled rows stop fitting, and every panel's
+width is held inside the visible screen. That matters most on a Mac that has
+*also* been set to a lower-resolution "larger text" display mode — both make
+things bigger, and they multiply.
+
+On the rice this is written for you from
+[`nebelhaus.ui.scale`](/reference/options/#nebelhausuiscale), so the palette grows
+with the rest of the desktop.
 
 ## Per-item settings (`items`)
 
