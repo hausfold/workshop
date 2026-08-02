@@ -12,7 +12,7 @@ tmux, where stock Touch-ID-for-sudo silently fails.
 
 ## What it turns on
 
-collar configures two PAM settings for `sudo`, and installs one sudoers rule:
+collar configures two PAM settings for `sudo`, and installs one sudoers file:
 
 ```nix
 security.pam.services.sudo_local.touchIdAuth = true;   # fingerprint for sudo
@@ -22,21 +22,32 @@ security.pam.services.sudo_local.reattach   = true;    # make it work in tmux/ze
 - **`touchIdAuth`** adds the Touch ID PAM module to `sudo`.
 - **`reattach`** pulls in [`pam_reattach`](https://github.com/fabianishere/pam_reattach),
   which reattaches the sudo process to your GUI login session.
-- **`/etc/sudoers.d/darwin-rebuild`** exempts one command from authentication
+- **`/etc/sudoers.d/darwin-rebuild`** exempts activation from authentication
   entirely — see below.
 
-## The one command that never asks
+## The commands that never ask
 
 Activating a build is the privileged thing this rice does constantly, and a
 prompt per rebuild buys nothing: you already authenticated to *build* it. So
-collar grants that one command a pass:
+collar grants activation a pass:
 
 ```
 <you> ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild
+<you> ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/haus-activate
 ```
 
-`haus rebuild` and `bench try switch` both route through that exact path, so
-rebuilds run straight through. Nothing else is exempt.
+Two commands, one act. `darwin-rebuild` is the classic route (and the only one
+for `haus rollback`); `haus-activate` is the faster one `haus rebuild` and
+`bench try switch` take — they build the system as *you*, then hand the result
+to `haus-activate`, so root never evaluates your config a second time. Nothing
+else is exempt.
+
+<Aside type="note" title="How wide is that, really?">
+`haus-activate` takes a path, which looks like the broader grant — but it isn't
+a widening. `darwin-rebuild switch --flake <anything>` already meant "anything I
+can build, I can activate as root, unprompted". Both lines are the same grant,
+and `nebelhaus.collar.passwordlessRebuild = false` drops both.
+</Aside>
 
 <Aside type="caution" title="Why the stable path, not the store path">
 macOS 26.6 shipped sudo 1.9.17, which stopped dereferencing a command's symlink
@@ -75,10 +86,17 @@ Nix store and lets you manage hardware keys the normal way.
 Commit signing itself is wired up in [hearth](/guides/the-shell/) from your
 `nebelhaus.git.signingKey` — collar only handles the `sudo` authentication path.
 
-## Nothing to configure
+## Two switches
 
-collar has no options of its own — it's on as part of the rice. If you ever want
-to opt out, remove or override the two PAM settings (and the sudoers rule, if the
-passwordless rebuild isn't to your taste) in your host file. For most people it
-just works from the first `switch`, and typing your password to `sudo` becomes a
-memory.
+collar is on by default and has exactly two knobs:
+
+```nix
+nebelhaus.collar.enable = true;              # Touch ID for sudo, reattach and all
+nebelhaus.collar.passwordlessRebuild = true; # activation never authenticates
+```
+
+Turn the second off on a machine you don't administer alone, and activation goes
+back to asking (Touch ID, or a password when `enable` is false). Turn the first
+off and macOS's stock password prompt comes back everywhere. For most people
+both stay on, they just work from the first `switch`, and typing your password
+to `sudo` becomes a memory.
