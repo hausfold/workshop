@@ -51,7 +51,7 @@ terminal is always <kbd>⇪</kbd> <kbd>T</kbd>, the browser is always
 launched if it isn't running, focused if it is, and it lands on *its* workspace
 every time. Your hands stop negotiating with the window manager.
 
-That whole scheme comes from **one keyed map** — `nebelhaus.apps`, the roster —
+That whole scheme comes from **one keyed map** — `nebelhaus.roster`, the roster —
 so the launcher key, the workspace, the bar pill, and the auto-tiling rule can
 never drift out of sync. Keyed entries also compose cleanly across your host
 file and pounce-generated package modules. A few things worth internalizing:
@@ -110,7 +110,7 @@ More on each in [The shell](/guides/the-shell/).
 ### Apps, tiling & the launcher
 
 ```nix
-nebelhaus.apps.slack = { /* one keyed roster entry — see Adding apps */ };
+nebelhaus.roster.slack = { /* one keyed roster entry — see Adding apps */ };
 nebelhaus.prowl.enable = true;    # false: no tiling, no Caps-Lock remap
 nebelhaus.pounce.enable = true;   # false: no ⌘Space palette
 nebelhaus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant across rebuilds
@@ -162,9 +162,9 @@ nebelhaus.homebrew.upgrade = false;     # upgrade outdated packages each rebuild
 Set it to `"zap"` if you want a *fully* declarative machine where undeclared
 casks get uninstalled on rebuild.
 
-These are policy knobs only — the apps themselves belong in `nebelhaus.apps`,
+These are policy knobs only — the apps themselves belong in `nebelhaus.roster`,
 including the ones you don't want a launcher key for (just omit `key`). See
-[Adding apps & tools](/guides/adding-apps/#one-list-nebelhausapps).
+[Adding apps & tools](/guides/adding-apps/#one-list-nebelhausroster).
 
 <Aside type="tip" title="Keeping casks current (e.g. trill)">
 `autoUpdate` and `upgrade` are **off by default** so a rebuild is

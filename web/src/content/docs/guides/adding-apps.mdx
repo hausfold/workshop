@@ -55,7 +55,7 @@ There's nothing to set up first — no data files, no options to point at. Each
 selection lands as its own Nix module under `hosts/<hostname>/packages/`, and
 Pounce stages and commits just that file after a successful rebuild.
 
-## One list: `nebelhaus.apps`
+## One list: `nebelhaus.roster`
 
 Everything the machine has goes in the same roster — apps, fonts, CLI tools,
 Nixpkgs packages, App Store apps. You don't choose an *option*; you choose which
@@ -92,13 +92,44 @@ Four sources, one per package manager — set the one that applies:
 Set none of them and the entry is pure metadata — right for something already on
 the machine (Safari, Music) that you still want a launcher key for.
 
+### The rice's own apps are entries too
+
+You don't have to know which apps nebelhaus already installs. Each room declares
+its own: `den` gives `ghostty` its cask, `prowl` gives `aerospace` its, `sill`
+`sketchybar`, `snippets` `espanso`. Trill, Pounce and Perch copy a notarized
+bundle into `/Applications` from their own activation step — neither a cask nor
+a package — so they carry `installedBy` instead.
+
+The practical effect: when you add a leader key for an app the rice ships, you
+write only the launcher half.
+
+```nix
+# Trill's name, bundle id and installer come from nebelhaus.trill.
+nebelhaus.roster.trill = {
+  key = "m";
+  workspace = "M";
+  barIcon = ":messages:";
+};
+```
+
+The rule underneath is *whoever installs an app owns its source fields, whoever
+gives it a key owns the launcher fields* — so two modules never fight over one
+field, and your host file never explains what the rice is doing. `haus doctor`
+and the [agent skill](/guides/ai-agent/) both read the merged result, so
+"what's on this machine and who put it there" has one answer.
+
 <Aside type="note" title="Why one list and not four">
 `homebrew.casks`, `homebrew.brews`, `home.packages` and
-`environment.systemPackages` all still work, and still merge — the rice's own
-modules use them. But reaching for them for an *app* means declaring it in two
-places the moment you want a launcher key, which is how a roster full of
-`cask = null` happens. The roster is the door; the plain lists are the escape
-hatch for the rare thing that isn't an app at all.
+`environment.systemPackages` all still work and still merge. But reaching for
+them for an *app* means declaring it in two places the moment you want a
+launcher key — and worse, **nothing warns you.** Homebrew's lists concatenate
+and `brew bundle` is idempotent, so a cask named in two places just installs
+twice, in two locations, forever. (That's not hypothetical: it's how a
+`homebrew.casks = [ "iina" ]` sat beside the rice's own `pkgs.iina` for months.)
+
+The roster catches it now — same id merges, and a name that appears twice in the
+final Homebrew lists is a build warning. The plain lists stay as the escape
+hatch for the rare thing that isn't an app at all, like a tap.
 </Aside>
 
 ---
@@ -106,12 +137,12 @@ hatch for the rare thing that isn't an app at all.
 ## A GUI app with a launcher key (the roster)
 
 This is the nebelhaus-native way to add an app you actually work in. One keyed
-entry in `nebelhaus.apps` wires up *everything at once*: a Caps-Lock letter to
+entry in `nebelhaus.roster` wires up *everything at once*: a Caps-Lock letter to
 launch/focus it, a workspace it lives on, a pill in the bar, the auto-tiling
 rule, a row in the cheatsheet — and it installs the app for you.
 
 ```nix
-nebelhaus.apps.slack = {
+nebelhaus.roster.slack = {
   key = "s";
   name = "Slack";
   workspace = "S";
@@ -167,7 +198,7 @@ from Spotlight-muscle-memory, a thing you touch once a month. Same roster, minus
 the launcher fields:
 
 ```nix
-nebelhaus.apps = {
+nebelhaus.roster = {
   discord = { name = "Discord"; cask = "discord"; };
   figma   = { name = "Figma";   cask = "figma"; };
 };
@@ -211,7 +242,7 @@ for your password or Touch ID, which a silent rebuild would have nowhere to show
 By hand, an App Store app is a roster entry like any other:
 
 ```nix
-nebelhaus.apps.xcode = {
+nebelhaus.roster.xcode = {
   name = "Xcode";
   appStoreId = 497799835;   # the digits in its App Store URL
 };
@@ -247,7 +278,7 @@ For anything already on the machine — Safari, Music, an app you installed by h
 all and it's pure launcher wiring:
 
 ```nix
-nebelhaus.apps.music = {
+nebelhaus.roster.music = {
   key = "m";
   name = "Music";
   workspace = "M";
@@ -267,7 +298,7 @@ the exact Nixpkgs revision pinned by your flake and writes a roster entry under
 tool just has no launcher fields to set:
 
 ```nix
-nebelhaus.apps = {
+nebelhaus.roster = {
   ripgrep = { package = pkgs.ripgrep; };
   httpie  = { package = pkgs.httpie; };
   ffmpeg  = { package = pkgs.ffmpeg; };
@@ -295,7 +326,7 @@ nix search nixpkgs ripgrep
   what a tool called by a daemon or a `sudo` workflow actually needs.
 
 ```nix
-nebelhaus.apps.age = {
+nebelhaus.roster.age = {
   package = pkgs.age;
   scope = "system";   # a launchd job needs to find it
 };

@@ -126,17 +126,17 @@ For the less-frequent structural operations:
 ## Your app roster
 
 The launcher letters, workspace assignments, and the bar's workspace pills all
-come from **one keyed app map**: `nebelhaus.apps`. Out of the box it's just a
+come from **one keyed app map**: `nebelhaus.roster`. Out of the box it's just a
 terminal (`T`) and a browser (`B`). Entries compose across modules, so add only
 your own:
 
 ```nix
-nebelhaus.apps.slack = {
+nebelhaus.roster.slack = {
   key = "s"; name = "Slack"; workspace = "S";
   appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
   label = "Slack"; cask = "slack";
 };
-nebelhaus.apps.discord = {
+nebelhaus.roster.discord = {
   key = "d"; name = "Discord"; workspace = "D";
   appId = "com.hnc.Discord"; barIcon = ":discord:"; cask = "discord";
 };
@@ -161,7 +161,12 @@ Each field:
 - **`label`** — the cheatsheet caption; `null` uses `name`.
 - **`cask`** / **`brew`** / **`package`** / **`appStoreId`** — where it comes
   from: a Homebrew cask, a Homebrew formula, a Nixpkgs package, or a Mac App
-  Store id. Set the one that applies; set none if it's already installed.
+  Store id. Set the one that applies (two is a build error); set none if it's
+  already installed.
+- **`installedBy`** — set by the *rice*, not by you: the module that puts an app
+  on disk when no source field can describe it (trill, pounce and perch copy a
+  notarized bundle in from their own activation step). It's why an entry for a
+  rice-shipped app needs only its launcher fields.
 - **`scope`** — `"user"` (default) or `"system"`, for `package` only: your
   profile, or machine-wide so root and launchd jobs can see it too.
 - **`enable`** — set `false` to disable a default or imported app by id.
