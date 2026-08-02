@@ -11,12 +11,37 @@ your own commands, see [Writing pounce commands](/guides/pounce-commands/).
 Pounce reads `~/.config/pounce/config.json`. Every key is optional; the file is
 re-read each time the palette opens (no daemon restart needed).
 
+### Start from a config that documents itself
+
+```sh
+pounce config init      # writes ~/.config/pounce/config.json
+pounce config print     # …or just look at it, touching nothing
+```
+
+That writes **every** setting at its default, with a sentence above it, all
+commented out — so the file changes nothing until you uncomment a line, and you
+make it minimal by deleting the lines you never touched. Nothing below needs to
+be memorised or copied out of this page.
+
+It never overwrites a config you already have: it writes `config.json.new` beside
+it instead, and `--force` replaces. **Inside the rice it refuses**, because your
+config.json is generated from [`nebelhaus.pounce.*`](/reference/options/#nebelhauspounce)
+and the next `haus rebuild` would put the generated one straight back — change it
+in your host file instead.
+
+**Comments and trailing commas are fine.** Pounce strips both before parsing, which
+is what lets you uncomment any subset of lines without fixing up commas by hand.
+`//` and `/* */` inside a string value are left alone, so a URL in a setting is
+safe. Unknown keys are ignored, so an older pounce never chokes on a config written
+by a newer one.
+
 ```jsonc
 {
   "theme": "nebelung",       // "nebelung" (default), "mocha", or a themes/ file
   "themeLight": "nebelung-latte",  // used when macOS is in Light Mode
   "themeDark": "nebelung",         // used when macOS is in Dark Mode
   "windowMode": "default",   // "default" (720px) or "compact" (600px, tighter)
+  "scale": 1.0,              // 0.8-2.0 — how big the whole UI is drawn
   "hotkey": {
     "enabled": true,         // register the global hotkey in-process
     "key": "space",          // "space", "return", "tab", "escape", "a"–"z", "0"–"9"
@@ -60,6 +85,7 @@ re-read each time the palette opens (no daemon restart needed).
 | `themeLight` | same values; applies in macOS Light Mode | `"nebelung-latte"` |
 | `themeDark` | same values; applies in macOS Dark Mode | `"nebelung"` |
 | `windowMode` | `"default"` \| `"compact"` | `"default"` |
+| `scale` | `0.8`–`2.0` (clamped, not rejected) | `1.0` |
 | `hotkey.enabled` | `true` \| `false` | `true` |
 | `hotkey.key` | key name | `"space"` |
 | `hotkey.modifiers` | array of `cmd`/`shift`/`opt`/`ctrl` | `["cmd"]` |
@@ -132,6 +158,30 @@ curl -fsSLo ~/.config/pounce/themes/nebelung-latte.json \
 ```
 
 An unknown name or malformed file falls back to the built-in nebelung palette.
+
+### Sizing: `windowMode` and `scale`
+
+Two independent knobs. `windowMode` picks the launcher's *proportions* —
+`"compact"` is a narrower window with tighter rows that hides its list until you
+type. `scale` picks how *big* the whole thing is drawn: every size in the UI —
+text, rows, icons, the emoji grid, clipboard history, Find Files, the cheatsheet,
+the window switcher — is multiplied by it. They compose, so a compact launcher at
+`1.4` is still the compact layout, just readable from further away.
+
+Sizes are resolved before layout rather than by scaling the rendered window, so
+text stays crisp at any value. Out-of-range values are clamped to 0.8–2.0 rather
+than rejected: a config asking for `3.0` wants the biggest palette Pounce can
+draw, and handing back the smallest would be the opposite of the ask.
+
+Two things adapt on their own so a large scale can't push the window off screen:
+the launcher shows fewer rows once the scaled rows stop fitting, and every panel's
+width is held inside the visible screen. That matters most on a Mac that has
+*also* been set to a lower-resolution "larger text" display mode — both make
+things bigger, and they multiply.
+
+On the rice this is written for you from
+[`nebelhaus.ui.scale`](/reference/options/#nebelhausuiscale), so the palette grows
+with the rest of the desktop.
 
 ## Per-item settings (`items`)
 
@@ -214,6 +264,11 @@ pounce run app:/Applications/Ghostty.app
 pounce --cheatsheet [path]        # cheatsheet overlay
 pounce --transform 'tr a-z A-Z'   # rewrite the selected text through a shell filter
 
+# settings
+pounce config                     # print the config path
+pounce config print               # an annotated config on stdout, touching nothing
+pounce config init                # write it (--force replaces an existing one)
+
 # housekeeping
 pounce doctor                     # diagnose a dead/slow hotkey (see Troubleshooting)
 pounce --help                     # every flag, from the binary itself
@@ -237,6 +292,7 @@ pounce --check-bluetooth          # exit 0 / prints true when granted
 | `--cheatsheet [path]` | Overlay a cheatsheet (JSON) |
 | `--transform <filter>` | Pipe the current selection through a shell filter and paste the result back (needs Accessibility) — how **Capitalize** / **Lowercase** work |
 | `run <item-key>` | Run one item: `mode:clipboard` \| `mode:emoji` \| `mode:screenshots` \| `mode:camera` \| `mode:filesearch` \| `mode:launcher`, `cmd:<id>`, `app:<path>`. The built-in windows had a flag each until 2026-07-30 (`--clipboard` and friends); they're items now, so one name works as a palette row, a hotkey target and a CLI argument. Needs the daemon |
+| `config [print\|init]` | The config path, an annotated config on stdout, or write one — every setting at its default, documented, commented out. `init --force` replaces an existing config; without it you get `config.json.new` beside yours |
 | `--version` | Print the version |
 | `--request-accessibility` / `--check-accessibility` | Manage the Accessibility (TCC) grant |
 | `--request-bluetooth` / `--check-bluetooth` | Manage the Bluetooth (TCC) grant — the bluetooth plugin calls this for you |

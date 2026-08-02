@@ -12,8 +12,20 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
-> **Status, 2026-07-30.** §3 (structure) and §4 (spikes) are **done**, Phase 3 is
+> **Status, 2026-08-02.** §3 (structure) and §4 (spikes) are **done**, Phase 3 is
 > mostly done, and all three reference rices pass the readiness test (§6).
+>
+> **The sizing pass is DONE — both halves** (pounce#53 + rice#175). `ui.scale`
+> reaches the command palette (the launcher and every panel behind it) and the
+> menu bar's type. Those were the last two rice-owned surfaces `large-print`
+> could not enlarge, so §5.2's fan-out is five targets now instead of three.
+> Two findings outlived the change and are the reason to read §5.2:
+> **(a) `ui.scale` and `displays.*.uiScale` MULTIPLY**, and nothing in the surface
+> said so — every point-valued option is silently coupled to `displays`;
+> **(b) the bar is a CEILING, not a multiplier** — its height belongs to macOS's
+> menu-bar band, measured and confirmed to have no setting behind it, so the type
+> scales to 1.25× and stops. That is the first place the readiness test ran into
+> something macOS simply owns.
 >
 > What moved since the last pass is **pounce**, and it moved somewhere this doc
 > didn't predict. The palette reads its theme from **runtime files** now
@@ -30,8 +42,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > a reachability designation" idea now ships as data for 53 ports, in a different
 > room than the one that proposed it.
 >
-> **Still open, in this order:** pounce/sill **sizing** (§5.2, which the theming
-> work did *not* touch) · §5.4 apps v2 (the schema migration, deliberately last).
+> **Still open:** §5.4 apps v2 (the schema migration, deliberately last) — and
+> with sizing closed it is the last unstarted item in Phase 3. `density`/`motion`
+> (§5.2) remain unbuilt but were never blockers.
 > §5.10 displays shipped in rice#147 and the rice-side pounce options in rice#149;
 > displays still wants a docked multi-monitor proof before growing profiles, but
 > that validation no longer blocks `large-print`.
@@ -347,7 +360,7 @@ nebelhaus.theme = {
       Carries the FDA caveat (§5.12), so it must degrade cleanly: the palette
       side works for everyone, the OS side sharpens it when FDA is granted.
 
-### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped**
+### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done**
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
 every room, so a rice says "spacious" once instead of tuning nine numbers.
 
@@ -367,22 +380,38 @@ contrast.
 - [x] Every consumer reads `ui.*` through `mkDefault` so a host can still pin one
       number — verified end to end while writing `large-print`: `ui.scale = 1.4`
       resolves `fonts.mono.size` to 27, and pinning the font size afterwards wins.
-- [ ] **The fan-out is still THREE targets, not nine**: terminal font size, Dock
-      `tilesize`, prowl gaps. `density` and `motion` don't exist yet. The two
-      absences that matter most for `large-print` are deliberate-but-unfinished
-      rather than decided: **sill's bar** and **pounce's palette window** are sized
-      by geometry tuned to the macOS menu-bar band and to their own layouts, so a
-      multiplier breaks alignment instead of enlarging — they each need a sizing
-      pass. On a non-dev Mac the palette is *how you launch things*, so pounce is
-      the higher-value one.
-      ⚠️ **Do not read pounce's theming work as progress here.** Colour and size are
-      separate seams and only colour got one: the palette follows `flavor`/`contrast`
-      and macOS appearance now (§5.1), while its geometry is still `windowMode =
-      "compact"` written straight into `config.json` by
-      [`modules/pounce/default.nix:340`](nebelhaus/modules/pounce/default.nix:340) —
-      no option, no `ui.scale` term. Worth stating because "pounce follows the theme"
-      reads like the pounce gap closed, and the `large-print`-relevant half of it
-      didn't move at all.
+- [x] ✅ **The sizing pass is done — the fan-out is FIVE targets now** (pounce#53
+      + rice#175): terminal font size, **the whole command palette**, **the menu
+      bar's type**, Dock `tilesize`, prowl gaps. `density` and `motion` still
+      don't exist.
+      The palette was the higher-value of the two §5.2 gaps for exactly the reason
+      this doc kept repeating — on a non-dev Mac it *is* how you launch things —
+      and closing it took a seam in the app, not an option in the rice:
+      **(a)** every size in pounce is now written for scale 1.0 and read through a
+      `pt()` helper, so `"scale": 1.4` in `config.json` multiplies the launcher AND
+      the emoji / clipboard / screenshots / camera / Find Files / cheatsheet / ⌘Tab
+      panels together. `nebelhaus.pounce.scale` follows `ui.scale`, clamped into
+      pounce's narrower 0.8–2.0 so `ui.scale = 2.5` yields a 2.0 palette rather
+      than an eval error.
+      **(b)** the rejected alternative is the part worth keeping: a `.scaleEffect`
+      on the hosting view is one line and scales everything, but it rasterises then
+      transforms — **soft text is the one thing a legibility feature must not
+      ship**, so resolving sizes before layout was non-negotiable. Any future
+      "make this tool bigger" faces the same fork.
+      **(c)** `windowMode` became an option on the way (§5.9), which forced the
+      distinction the surface was missing: *proportions* (compact vs default) and
+      *size* are different questions, and one enum was answering neither well.
+- [x] ★ **Finding: `ui.scale` and `displays.*.uiScale` MULTIPLY, and nothing said
+      so.** They are documented as separate answers — one makes the *rice* bigger,
+      one makes the *Mac* bigger — but `large-print` sets both, and a
+      `larger-text` display leaves a **1147pt-wide desktop** while `ui.scale = 1.4`
+      asks pounce's 820pt panels to draw at 1148. The window is then wider than the
+      screen it is centred on. pounce#53 handles its own half (panel widths clamp
+      to the visible frame; the launcher shows fewer rows when the scaled ones stop
+      fitting), but the general lesson belongs here: **any option whose unit is
+      "points" is silently coupled to `displays`, because a display mode changes
+      what a point means.** Worth auditing `fonts.*.size` and prowl's gaps for the
+      same interaction, and worth a line in whatever guide covers `large-print`.
 - [ ] Finder icon/sidebar size — typed and writable per the matrix, still unwired.
       Note it needs the restart map (§4): nix-darwin restarts only Dock.
 - [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
@@ -390,6 +419,34 @@ contrast.
       (§4), so there is nothing to delegate to.
 - [ ] ~~`cursorScale`~~ **cut** — `mouseDriverCursorSize` is in the locked
       `universalaccess` domain. Cursor size is `haus doctor` checklist only.
+- [x] ✅ **Sill: the type scales to a CEILING and stops — a different shape of
+      answer, and the more interesting one.** Everything else here was a multiplier
+      a tool was missing; the bar is not that. `sketchybarrc` pins `height=36` with
+      28pt pills because the native menu bar auto-reveals on hover even while
+      hidden and is only **32pt** on a notched display — den forces that reveal
+      opaque so it covers the bar exactly, and that only works while the pills stay
+      inside the band. So the bar's height is macOS's, not ours.
+      **Measured before deciding, which is what settled it:** safe-area inset
+      **32pt**, `NSStatusBar.thickness` **22pt**, menu-bar font **13pt**, and *none
+      of the three is a preference*. There is **no menu-bar-size setting on macOS**
+      — `NSStatusItemSpacing` / `NSStatusItemSelectionPadding` control spacing
+      between items, not size. Display resolution is the only lever, exactly as
+      §5.10 concluded for text.
+      So: height fixed, type follows `ui.scale` to **1.25×** (the 17pt icon font at
+      21pt, ~3.5pt clearance in a 28pt pill) and then silently stops. Chosen over
+      "declare sill outside `ui.scale`" because a bar that quietly stops growing
+      beats one that never grew — but the ceiling is stated in the option rather
+      than discovered.
+      Mechanically it was the cheap half: `sizes.sh` is the fourth generated
+      fragment the rc sources (after `colors.sh` / `workspaces.sh` /
+      `position.sh`), and all 16 font literals across the rc, the Nix-generated
+      item blocks and four plugins now read `FS_*` from it — sizes are as
+      single-sourced as colours. At `ui.scale = 1.0` the generated numbers are
+      byte-identical to the tuned ones, so it's a no-op for anyone not scaling.
+      **The general lesson:** when an option can't fully deliver, a stated ceiling
+      is a better answer than either a broken multiplier or a refusal — but only
+      if the limit is *measured*. The reason this took one pass instead of three is
+      that the band was probed rather than reasoned about.
 - [ ] **Honest scope line:** this changes *nebelhaus's own* UI reliably and Dock/
       Finder sizes reliably. System-wide text size is reachable **only** via
       display mode (§5.10) — macOS 26's per-app `FontSizeCategory` is locked.
@@ -581,7 +638,7 @@ power source, display attach.
 - [ ] Only build the trigger engine *after* one hand-written scene proves useful —
       the declarative half is cheap, the trigger daemon is not
 
-### 5.9 Open up Sill widgets and Pounce commands · M · risk M · ◐ **pounce built its half**
+### 5.9 Open up Sill widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
 `sill.items` is a closed submodule of 13 bools. Pounce commands were
 script-discovery only with **no Nix option at all**; as of pounce#43 the
 *app* has the schema and the **rice** is what's missing — which flips this item
@@ -605,11 +662,13 @@ mic/camera-in-use · VPN state · Bluetooth device battery · next reminder ·
 break timer · storage pressure · NAS reachability · world clocks.
 
 - [ ] `sill.items` becomes sugar over `sill.widgets` (bundled widgets pre-declared)
-- [ ] While here: pounce has **no option for its own window sizing** (`windowMode`
-      is written straight into `config.json` by the rice), which is why `ui.scale`
-      can't reach the palette (§5.2). On a non-dev Mac the palette is how you launch
-      things, so this is the highest-value missing knob for `large-print`. Still true
-      after the theming work — see the warning in §5.2.
+- [x] ✅ **Pounce's window sizing is an option now** (pounce#53 + rice#175).
+      `windowMode` had been written straight into `config.json` with no option at
+      all; it is `nebelhaus.pounce.windowMode` now, and it gained a sibling —
+      `nebelhaus.pounce.scale`, following `ui.scale` — because writing the option
+      exposed that one enum was answering two questions. `windowMode` is the
+      layout's *proportions*; `scale` is how big it's drawn; they compose. See
+      §5.2 for the app-side seam that made the second one possible.
 - [x] **pounce side: `config.json` grew an `items` map** (pounce#43), keyed by the
       frecency key so commands, apps and built-in modes share **one address space**
       (`cmd:` / `app:` / `mode:`), each taking `enabled` / `alias` / `hotkey`. The
@@ -778,8 +837,10 @@ option family followed in workshop#137.
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
 everything macOS can't veto)* — **mostly done 2026-07-27**
 - [x] §5.3 fonts (nebelhaus#91)
-- [x] §5.2 `ui.scale` — shipped, but the fan-out is three targets, not nine
-      (`density`/`motion` unbuilt; sill + pounce need their own sizing pass)
+- [x] §5.2 `ui.scale` — shipped; the sizing pass closed it out at five targets
+      (`density`/`motion` still unbuilt). **Pounce and sill both reached**
+      (pounce#53 + rice#175): the palette and every panel behind it scale freely,
+      the bar's type scales to the menu-bar band's ceiling and stops
 - [x] §5.1 theme: **contrast** (nebelung#11 + nebelhaus#103) and **flavor / light
       mode** (nebelung#12 + nebelhaus#108), then **roster theming from port
       metadata** (nebelung#17/#18/#19 + nebelhaus#136) and **pounce off the
@@ -882,15 +943,36 @@ limits it exposed:**
    shrinks — but it reaches third-party apps that `ui.scale` cannot.
 
 So the honest reading now: the option surface can express all three reference
-rices, and `large-print` reaches both the rice and the whole Mac. Its remaining
-visible gaps are pounce/sill sizing (§5.2/§5.9) and the font-package format limit
-above, not §5.4.
+rices, and `large-print` reaches both the rice and the whole Mac. Its one
+remaining visible gap is the font-package format limit above — not §5.2, and not
+§5.4.
 
 **Re-checked 2026-07-30 after rice#147/#149.** Displays and the rice-side pounce
-item generator both landed. That leaves the sizing pass as the next coherent
-piece: the menu bar and palette are the two rice-owned surfaces `large-print`
-still cannot enlarge. The dock is now a validation dependency only for future
-multi-display profiles, not an ordering dependency for the shipped scale option.
+item generator both landed. That left the sizing pass as the next coherent piece:
+the menu bar and palette were the two rice-owned surfaces `large-print` could not
+enlarge. The dock is now a validation dependency only for future multi-display
+profiles, not an ordering dependency for the shipped scale option.
+
+**Updated 2026-08-02 after pounce#53 + rice#175 — the sizing pass is done.**
+`large-print` now enlarges both surfaces a non-developer actually touches: the
+palette they launch things with, and the bar they read. Two things it taught,
+both bigger than the change:
+
+1. **The two "make it bigger" levers multiply.** `ui.scale` and
+   `displays.*.uiScale` are documented as answers to different questions — the
+   rice vs the Mac — and `large-print` sets both, so a tool sized in points has to
+   be told where the (now smaller) screen ends. Every point-valued option in the
+   surface is coupled to `displays` this way; only pounce's is guarded so far.
+   `fonts.*.size` and prowl's gaps want the same audit.
+2. **A stated ceiling is a legitimate third answer.** The bar can't scale
+   proportionally — its height belongs to the macOS menu-bar band, which was
+   *measured* to have no setting behind it — so it grows its type to 1.25× and
+   stops, with the limit written into `ui.scale`'s own description. That's better
+   than either a multiplier that clips or a refusal that leaves the bar alone, and
+   it is the first place the readiness test's "expressible without reaching around
+   `nebelhaus.*`" ran into something macOS simply owns. The reason it took one
+   pass rather than three: the band was probed before anything was designed
+   against it. **Measure the limit before deciding the option's shape.**
 
 ---
 
