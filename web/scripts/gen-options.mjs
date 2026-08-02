@@ -67,6 +67,28 @@ try {
 }
 const raw = JSON.parse(readFileSync(join(outPath, 'share/doc/nixos/options.json'), 'utf8'));
 
+// Reading order and a one-line blurb per room. The module system can't produce
+// these — it has no notion of "identity first, policy last", and nowhere to hang
+// a sentence about a whole namespace — so the rice carries them as data
+// (modules/options-groups.nix) and ships them beside options.json.
+//
+// They used to live in this file, where they covered 16 of the rice's 23 rooms:
+// agents, collar, developer, displays, keys, perch and ui fell off the end of
+// the page alphabetically, blurbless, and nobody noticed because a missing blurb
+// looks exactly like a blurb nobody wrote. The rice's own host template renders
+// from the same file, so the two orderings can't disagree either.
+const GROUPS_PATH = join(outPath, 'share/doc/nixos/groups.json');
+if (!existsSync(GROUPS_PATH)) {
+  console.error(
+    `The rice checkout at ${rice} builds no groups.json beside options.json.\n\n` +
+      'That file carries the per-room order and blurbs this page is laid out\n' +
+      'with. The checkout predates nebelhaus#184 — update it (CI pulls\n' +
+      'nebelhaus/nebelhaus main) and re-run.\n',
+  );
+  process.exit(1);
+}
+const GROUPS = JSON.parse(readFileSync(GROUPS_PATH, 'utf8'));
+
 const options = Object.entries(raw)
   .filter(([name]) => name.startsWith('nebelhaus.'))
   .map(([name, o]) => ({ name, ...o }));
@@ -75,44 +97,19 @@ const options = Object.entries(raw)
 // Second path segment is the room/feature: nebelhaus.git.name -> "git".
 const groupOf = (name) => name.split('.')[1];
 
-// Reading order, roughly "identity → look → rooms → policy". Anything new that
-// isn't listed lands alphabetically at the end rather than vanishing, so a
-// freshly added option is never silently dropped from the page.
-const ORDER = [
-  'git', 'apps', 'theme', 'fonts', 'hearth', 'claude', 'accessibility',
-  'prowl', 'sill', 'tour', 'pounce', 'trill', 'hush', 'snippets',
-  'secrets', 'homebrew',
-];
-const BLURB = {
-  git: 'Your commit identity — set your own. It stays in [your host file](/internals/flakes/#your-config-is-a-thin-consumer).',
-  apps: 'The shared app roster: one entry per app, driving the launcher key, its workspace, the bar pill, the cheatsheet, and optionally its Homebrew cask.',
-  theme: 'Colour and wallpaper.',
-  fonts: 'The terminal font. The bar keeps its own font at its own tuned sizes.',
-  hearth: 'The shell and terminal experience.',
-  claude: 'Claude Code integration.',
-  accessibility:
-    'macOS accessibility keys the rice can actually apply. These write to a TCC-protected domain, so they take effect only when the app you run the rebuild from holds Full Disk Access — otherwise the rice warns and moves on.',
-  prowl: 'Tiling window management and the Caps-Lock leader launcher.',
-  sill: 'The menu bar, and which pills it draws.',
-  tour: 'The first-run tutor.',
-  pounce: 'The ⌘Space command palette.',
-  trill: 'The Messages client.',
-  hush: 'One quiet switch: Do Not Disturb, optional Slack status, and your hooks.',
-  snippets: 'Text expansion via espanso.',
-  secrets: 'Where secret values come from on this machine.',
-  homebrew: 'How rebuilds treat Homebrew packages you did not declare.',
-};
-
 const groups = new Map();
 for (const opt of options) {
   const g = groupOf(opt.name);
   if (!groups.has(g)) groups.set(g, []);
   groups.get(g).push(opt);
 }
-const ordered = [
-  ...ORDER.filter((g) => groups.has(g)),
-  ...[...groups.keys()].filter((g) => !ORDER.includes(g)).sort(),
-];
+// A room the rice hasn't given an order lands alphabetically after the ones it
+// has, rather than vanishing — a freshly added room is on the page the day it
+// exists, and gets its blurb whenever someone writes one.
+const orderOf = (g) => GROUPS[g]?.order ?? Number.MAX_SAFE_INTEGER;
+const ordered = [...groups.keys()].sort(
+  (a, b) => orderOf(a) - orderOf(b) || a.localeCompare(b),
+);
 
 // ---- rendering --------------------------------------------------------------
 const literal = (v) => (v && typeof v === 'object' && 'text' in v ? v.text : undefined);
@@ -141,7 +138,8 @@ function renderOption(opt) {
 const body = ordered
   .map((g) => {
     const head = [`## nebelhaus.${g}`, ''];
-    if (BLURB[g]) head.push(BLURB[g], '', '');
+    const blurb = GROUPS[g]?.blurb;
+    if (blurb) head.push(blurb, '', '');
     const opts = groups.get(g).sort((a, b) => a.name.localeCompare(b.name));
     return head.join('\n') + opts.map(renderOption).join('\n');
   })
