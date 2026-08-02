@@ -264,6 +264,41 @@ The token is one mutually-exclusive slot:
 | `+A -D` | uncommitted line changes, when nothing's committed yet |
 | *(nothing)* | identical to `main` — no news is good news |
 
+### The right-edge chips
+
+Flush right on row one, a few small per-session chips: how far behind your pinned
+nebelhaus is (`⇡N`, what `haus update` would pull), context used, session cost,
+then the two that tell you what this pane is *actually running*.
+
+**Permission mode.** Auto is the rice's default, so it's the silent one — same
+"no news is good news" rule as the status token. Everything else is a positive
+mark, told apart by how many chevrons it has rather than by colour alone:
+
+| Chip | Mode |
+|---|---|
+| *(nothing)* | `auto` — the default you live in |
+| `⏵` | `default` — gated, asks before every tool |
+| `⏵⏵` | `acceptEdits` — edits sail through |
+| `⏵⏵⏵` | `bypassPermissions` — no gates at all |
+| `⏸` | `plan` |
+| `⊘` | `dontAsk` — deny anything not already allowed |
+
+**Model.** A short family + version tag — `O5`, `S5`, `H45`, `F5` — always
+present, so you can tell at a glance which pane is on which model.
+
+These two work together. Switching to a model that has no auto mode drops you to
+`default` without announcing it; the `⏵` tells you the mode changed and the model
+chip tells you why.
+
+:::note
+The mode chip updates at **turn boundaries**, not while you cycle `shift+tab`.
+Claude Code only records the permission mode when a turn is submitted, and
+exposes it nowhere else — no statusline field, no hook — so the chip means "the
+mode as of your last submitted turn". That's what makes it good at catching a
+mode that changed *under* you, and why it sits still if you cycle modes while
+idle.
+:::
+
 ## Links — every URL a pane's session saw
 
 The same statusline pass that drives the HUD also notes which Claude transcript
