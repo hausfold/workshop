@@ -215,13 +215,14 @@ so the rest of the family keeps deterministic rebuilds.
 
 ## Turning rooms off
 
-Three rooms are opt-*out*; the rest are load-bearing:
+Four rooms are opt-*out*; the rest are load-bearing:
 
 | Room | Option | Off means |
 |---|---|---|
 | prowl (tiling) | `nebelhaus.prowl.enable = false` | No AeroSpace, no leader key |
 | sill (bar) | `nebelhaus.sill.enable = false` | The native menu bar stays |
 | pounce (launcher) | `nebelhaus.pounce.enable = false` | ⌘Space stays Spotlight |
+| apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `nebelhaus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
 
 If what you actually want is the tiler **without** its keyboard claims, don't turn
 the room off — set `nebelhaus.keys.leader = "none"` and

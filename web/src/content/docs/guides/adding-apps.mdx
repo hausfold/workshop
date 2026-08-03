@@ -125,7 +125,9 @@ them for an *app* means declaring it in two places the moment you want a
 launcher key — and worse, **nothing warns you.** Homebrew's lists concatenate
 and `brew bundle` is idempotent, so a cask named in two places just installs
 twice, in two locations, forever. (That's not hypothetical: it's how a
-`homebrew.casks = [ "iina" ]` sat beside the rice's own `pkgs.iina` for months.)
+`homebrew.casks = [ "iina" ]` sat beside the rice's own `pkgs.iina` for months —
+back when IINA came from a bare package line rather than the roster entry
+[the rice declares today](#the-apps-the-rice-picks-for-you).)
 
 The roster catches it now — same id merges, and a name that appears twice in the
 final Homebrew lists is a build warning. The plain lists stay as the escape
@@ -286,6 +288,32 @@ nebelhaus.roster.music = {
   barIcon = ":apple_music:";
 };
 ```
+
+---
+
+## The apps the rice picks for you
+
+A few apps arrive without you asking, because a machine the rice calls finished
+should have them. They live in their own room — `nebelhaus.apps` — and each is
+one switch:
+
+```nix
+# IINA, the video player. On by default; it also takes over the video file
+# types macOS hands QuickTime Player, TV and your browser.
+nebelhaus.apps.videoPlayer.enable = false;          # don't install it at all
+nebelhaus.apps.videoPlayer.claimFileTypes = false;  # install it, rebind nothing
+```
+
+The distinction the room draws: an app a *room needs to work* belongs to that
+room (prowl brings AeroSpace because it **is** the tiler), while an app the rice
+merely **chooses for you** belongs here, behind a switch. What it installs is an
+ordinary roster entry, so you can give IINA a launcher key
+(`nebelhaus.roster.iina.key = "v";`) or pin a different build without leaving
+the list everything else lives in.
+
+The file types are the ordinary user default — the same record Finder's *Get
+Info ▸ Change All* writes — so nothing here is hard to undo. Audio, `.gif`,
+playlists and `.ts` are never touched.
 
 ---
 
