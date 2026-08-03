@@ -10,13 +10,16 @@ Four command-line tools, two jobs — keeping them straight is half the battle:
 | tool | for | does | ships in |
 |------|-----|------|----------|
 | **`haus`** | *using* a nebelhaus machine | rebuild / update / rollback / doctor — drives **your Mac** | the rice (every install) |
-| **`wt`** | *any Claude Code user* | agent worktrees for **any repo** — spawn, resume, reap, `wt child` | the rice (every install) |
+| **`holt`** | *any agent user* | agent worktrees for **any repo** — spawn, resume, park, reap, `holt child` | the rice (every install) |
 | **`bench`** | *developing* the family | try / try-batch / ship / release / status — moves changes **across these repos** | the workshop (here) |
 | **`zscratch`** | *developing* the rice | feel-test a zellij edit with **no rebuild** | the rice |
 
 `haus` and `bench` never overlap — named apart on purpose so they can't shadow
-each other (`haus` = your machine; `bench` = these repos). `wt` and `zscratch`
+each other (`haus` = your machine; `bench` = these repos). `holt` and `zscratch`
 are dev tools the rice puts on `PATH` regardless of whether you contribute.
+(`holt` has [its own repo](https://github.com/nebelhaus/holt); the rice takes it
+as a flake input. Its predecessor `wt` is **frozen**, still on `PATH`, and shares
+the same registry — so old commands work, but write new ones against `holt`.)
 
 ## Daily driving
 
@@ -48,9 +51,9 @@ agents never yank the branch out from under each other, or you. The worktrees
 live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>`.
 
 Claude Code's `WorktreeCreate` / `WorktreeRemove` hooks (in
-`~/.claude/settings.json`) delegate to `wt create` / `wt remove` — the standalone
-`wt` tool that ships in the rice (`nebelhaus/modules/den`), **not** a `bench`
-command. That's what keeps `git status` and `bench try`'s overrides clean.
+`~/.claude/settings.json`) delegate to `holt hook create` / `holt hook remove` —
+the standalone `holt` tool the rice ships on `PATH`, **not** a `bench` command.
+That's what keeps `git status` and `bench try`'s overrides clean.
 `Ctrl Alt Shift a` spawns the one agent allowed to edit the checkout you're
 looking at.
 
@@ -67,8 +70,8 @@ A PR is conflict-detected and atomic, so parallel agents can't clobber each
 other's commits. Closing the Claude pane removes the worktree; the branch and PR
 survive until merged.
 
-Run `wt` bare to list every parked/live agent worktree across all repos, and
-`wt <name>` to rebuild a parked checkout and drop back into `claude --resume`.
+Run `holt` bare to list every parked/live agent worktree across all repos, and
+`holt <name>` to rebuild a parked checkout and drop back into `claude --resume`.
 
 ## Feel-testing one branch, alone
 
@@ -80,7 +83,7 @@ uncommitted work at all — so when an agent hands you "this fixes the popup bli
 that:
 
 ```sh
-wt                        # lists every worktree with its path (bench status does too)
+holt                      # lists every worktree with its path (bench status does too)
 cd ~/.cache/claude-worktrees/<repo>/<name>
 bench try switch          # builds against THIS branch and activates it
 # …feel it…
