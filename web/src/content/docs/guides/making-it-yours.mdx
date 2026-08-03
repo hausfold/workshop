@@ -80,6 +80,26 @@ this whole surface — generated from the revision you're pinned to — so you c
 ask in plain words instead: [Changing your Mac with an
 agent](/guides/ai-agent/).
 
+Or read the surface straight out of your own config. A fresh install drops a
+`hosts/<host>/options.nix` beside your host file — every `nebelhaus.*` option at
+its default, a sentence each, **all commented out**. Uncomment what you want,
+delete what you'll never touch; you find out a knob exists by reading the file you
+already edit. It's rendered from the rice you're pinned to, so it can't advertise
+an option your machine doesn't have — the rice-side twin of pounce's `pounce
+config init`.
+
+```sh
+haus options    # refresh it against the current rice (--force overwrites yours)
+```
+
+<Aside type="note" title="Scaffolded, not active">
+Nothing in that file does anything until you uncomment a line *and* `import` it —
+`haus options` prints the `imports = [ ./options.nix ];` line to add if your host
+file is missing it. Commented-out is deliberate: the rice's defaults are
+`mkDefault`s, so a file spelling every default out would silently beat any preset
+it imports.
+</Aside>
+
 ### Identity
 
 ```nix
