@@ -16,7 +16,7 @@ the bench — every repo in one place, and the tool that moves changes between t
 
 This directory is the working checkout of the whole
 [nebelhaus](https://github.com/nebelhaus) org. Each subdirectory is its own repo;
-this folder itself is a small repo holding this README, a `CLAUDE.md`, the
+this folder itself is a small repo holding this README, an `AGENTS.md`, the
 `bench` script, and `web/` (nebelhaus.com), plus `assets/` and `test/`.
 
 If you remember one thing: **work anywhere, then `./bench status` tells you
@@ -112,11 +112,16 @@ cd workshop
 
 ## where a change goes
 
-Every repo's `CLAUDE.md` opens with the same routing table, so a session started
-anywhere knows whether it's in the right place. The short version: **colors →
-nebelung · the palette app → pounce · system behavior → nebelhaus · personal
-anything → `~/.config/nix`**. When in doubt, start here and read
-[`CLAUDE.md`](./CLAUDE.md).
+Every repo's agent instructions open with the same routing table, so a session
+started anywhere knows whether it's in the right place. The short version:
+**colors → nebelung · the palette app → pounce · system behavior → nebelhaus ·
+personal anything → `~/.config/nix`**. When in doubt, start here and read
+[`AGENTS.md`](./AGENTS.md).
+
+Those instructions are harness-neutral on purpose: `AGENTS.md` is the one body,
+and Claude Code, Codex, OpenCode, Copilot & co. each reach it through a
+one-line pointer, with the shared flows (`/ship`, `/docs-sync`) and the session
+bootstrap in [`.agents/`](./.agents/README.md).
 
 ## more
 
