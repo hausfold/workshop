@@ -355,6 +355,19 @@ unmerged_agent_branches() { # worktree-* branches not merged into the current HE
   git -C "$(repo_dir "$1")" branch --list 'worktree-*' --no-merged HEAD \
     --format='%(refname:short)' 2>/dev/null
 }
+# The registry `holt` (and frozen `wt`) both write: one tab-separated row per
+# worktree, name \t repo \t branch \t checkout \t parent \t agent. It is the ONLY
+# thing that knows a branch is a real, resumable session — a bare `worktree-*`
+# name proves nothing. `--no-merged` can't see a SQUASH merge, so a landed PR's
+# branch looks unmerged forever, and a CLOSED PR's branch never merges at all;
+# both used to be printed as "parked", telling you to resume a session that
+# holt correctly reports doesn't exist. Registry says no row → it's a corpse.
+WT_REGISTRY="${CLAUDE_WT_BASE:-$HOME/.cache/claude-worktrees}/registry.tsv"
+branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
+  [ -f "$WT_REGISTRY" ] || return 1
+  awk -F'\t' -v r="$(repo_dir "$1")" -v b="$2" \
+    '$2 == r && $3 == b { found = 1; exit } END { exit !found }' "$WT_REGISTRY"
+}
 
 status_running() { # the receipt a `try switch` left — FIRST section, because it
                    # outranks every lock edge below: when it fires, the locks
@@ -422,7 +435,7 @@ cmd_status() {
   [ "$any_behind" = 1 ] && hint "↓ behind origin: bench pull <repo> (or bare bench pull for all)"
 
   # Agent worktrees + their branches — only speak up if any exist.
-  local wt_lines=""
+  local wt_lines="" any_stale=0
   for name in "${FAMILY[@]}"; do
     local wt branch dirty
     while IFS= read -r wt; do
@@ -439,9 +452,15 @@ cmd_status() {
     for b in $(unmerged_agent_branches "$name"); do
       # branches whose worktree is gone but whose commits aren't merged yet
       if ! git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b"; then
-        local repo_c; printf -v repo_c '%-12s' "$name"
-        wt_lines+="$(printf '  %s%s%s %-24s %s·      %s%s(parked — '\''wt %s'\'' to resume, or open a PR / delete)%s' \
-          "$C_REPO" "$repo_c" "$C_OFF" "$b" "$C_MUT" "$C_OFF" "$C_MUT" "${b#worktree-}" "$C_OFF")"$'\n'
+        local repo_c note; printf -v repo_c '%-12s' "$name"
+        if branch_is_parked "$name" "$b"; then
+          note="(parked — 'holt ${b#worktree-}' to resume, or open a PR / delete)"
+        else
+          any_stale=1
+          note="(stale branch — no checkout, no registry row; open a PR or delete)"
+        fi
+        wt_lines+="$(printf '  %s%s%s %-24s %s·      %s%s%s%s' \
+          "$C_REPO" "$repo_c" "$C_OFF" "$b" "$C_MUT" "$C_OFF" "$C_MUT" "$note" "$C_OFF")"$'\n'
       fi
     done
   done
@@ -451,7 +470,9 @@ cmd_status() {
     printf '  %s%-12s %-24s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
     printf '%s' "$wt_lines"
     # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
-    printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `wt reap`%s\n' "$C_MUT" "$C_OFF"
+    printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `holt reap`%s\n' "$C_MUT" "$C_OFF"
+    # shellcheck disable=SC2016
+    [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
   fi
 
   echo
@@ -858,13 +879,15 @@ cmd_ship() {
 # ── Claude Code agent worktrees ─────────────────────────────────────────────
 # The worktree lifecycle — create on `claude --worktree`, save-on-close, and
 # list/resume — used to live here, but it isn't family business: it's a standalone,
-# repo-agnostic tool now, `wt`, that ships in the RICE (nebelhaus/modules/den,
-# next to `haus`) on PATH, wired into Claude Code's WorktreeCreate/WorktreeRemove
-# hooks — because the rice already ships the `claude --worktree` keybinds. bench
-# no longer owns it — not every machine that runs `wt` has bench. To see or resume
-# parked/live agent worktrees across ALL repos, run `wt` (or `wt <name>`).
-# bench still *reports* family worktrees in `bench status`; it just doesn't drive
-# their lifecycle.
+# repo-agnostic product now, `holt` (its own repo, ejected from the incubator
+# 2026-08-03), which the RICE takes as a flake input and ships on PATH, wired into
+# Claude Code's WorktreeCreate/WorktreeRemove hooks — because the rice already
+# ships the agent keybinds. bench no longer owns it — not every machine that runs
+# `holt` has bench. To see or resume parked/live agent worktrees across ALL repos,
+# run `holt` (or `holt <name>`); its predecessor `wt` is frozen but still reads the
+# same registry.tsv. bench still *reports* family worktrees in `bench status` — and
+# reads that registry to tell a real parked session from a branch that outlived its
+# PR — but it doesn't drive their lifecycle.
 
 cmd_rebuild() {
   local host; host="$(host_name)"
