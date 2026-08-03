@@ -22,10 +22,15 @@ already exist, and one it treated as a detail is the actual root blocker.
 > header is a summary and the CHECKBOXES are the source of truth, and when they
 > disagree the repo settles it.
 >
-> Also new: §5.6's first two groups shipped — `nebelhaus.hotCorners.*` and
-> `nebelhaus.screenshots.*` (rice#198), which settled that section's default
-> policy (null = write nothing, and null ≠ off) and turned up two silent failures
-> worth reading before the next group.
+> Also new, both in rice#198: §5.6's first two groups shipped
+> (`nebelhaus.hotCorners.*` and `nebelhaus.screenshots.*`), settling that
+> section's default policy — null = write nothing, and null ≠ off — and turning up
+> two silent failures worth reading before the next group. And **Phase 0 is
+> closed**: `nebelhaus.packs.writing` is the shareable app pack that item asked
+> for. Writing it found a real bug (roster leader keys were never checked against
+> the built-in launch actions, so a pack could silently eat one) and hit §5.3's
+> package-type format limit from a second family, which makes that limit worth
+> fixing once rather than living with.
 >
 > **Status, 2026-08-02.** §3 (structure) and §4 (spikes) are **done**, Phase 3 is
 > mostly done, and all three reference rices pass the readiness test (§6).
@@ -496,6 +501,16 @@ nebelhaus.fonts = {
       package without evaluating one (a string resolved against `pkgs` by the
       module, with the obvious injection question to answer first), not another
       `types.package` option.
+      → ★ **Confirmed as a property of the format, not a fonts quirk (2026-08-03).**
+      `packs/writing.nix` hit the identical wall from a different family:
+      `roster.*.package` is also `types.package`, so a pack can install from
+      Homebrew and the App Store but never from Nixpkgs. **Two families is the
+      point at which this stops being a workaround-per-option and becomes one fix.**
+      The audit to run before publishing the format is mechanical — every leaf in
+      `options-json` whose type is package, derivation or path-to-store is
+      invisible to a data-only rice — and it's worth running as a CHECK rather
+      than a one-off, because the next option typed that way will be added by
+      someone who has never read this paragraph.
 
 ### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ◐ **(a) shipped as `roster` (rice#182), (b) untouched**
 The registry is good. Two concrete gaps — and the halves came apart: the install
@@ -927,12 +942,33 @@ session and would have been cheaper than the half-rebuild that prompted it.
 - [x] `nebelhaus.fonts` (§5.3) — nebelhaus#91. Turned up a real bug on the way:
       sill named `Hack Nerd Font` in seven places and **nothing installed it**,
       so every fresh install had been drawing tofu across the whole bar.
-- ◐ Publish one shareable **app pack** `.nix` (only sets `nebelhaus.roster.*`) and
-      a short guide. The **guide half is effectively done** —
-      `guides/sharing-a-rice.mdx` (workshop#138) defines the data-only format and
-      `guides/adding-apps.mdx` covers the four roster sources — but no importable
-      `.nix` file has been published, which is the half that makes it a *pack*.
-      `presets/` holds only whole rices.
+- [x] ✅ **Shareable app pack — rice#198.** `packs/writing.nix` +
+      `packs/README.md`, exposed as `nebelhaus.packs.<name>` and run through the
+      same `nix flake check` the presets are. **Phase 0 is now closed.**
+      A pack is a preset that touches ONE family (`roster`), which is why it
+      composes rather than competes: `[ everyday large-print writing ]` is a
+      sentence — what kind of machine, how you see it, what's on it — and none of
+      the three files knows about the other two.
+      Three things it taught, all of which needed writing one to find:
+      **(a) it found a real bug.** `z` is the obvious letter for Zotero and also a
+      built-in leader action; the rice ACCEPTED that and emitted two `z =`
+      bindings into one AeroSpace table, silently keeping whichever parsed last.
+      `leaderExtras` had been checked against the built-ins since forever —
+      roster keys never were, because `roster` asserts uniqueness among its own
+      entries and knows nothing about window management. **The check existed in
+      one direction only**, and a shared rice is exactly what makes the other
+      direction likely: a pack author doesn't know the leader vocabulary.
+      **(b) `appId` is the field a pack structurally can't fill in** — it isn't in
+      Homebrew's cask metadata and a guessed bundle id produces a rule that
+      silently never matches. Leaving it null costs *only* auto-assignment, so the
+      honest shape is to ship null and name the one-liner that closes it.
+      **(c) it hit the §5.3 format limit again, from a second family.** A pack can
+      install from Homebrew and the App Store but NOT from Nixpkgs, because
+      `roster.*.package` is `types.package`. That's now two families where
+      data-only meets a package type, which upgrades it from a fonts quirk to a
+      property of the format worth fixing once.
+      Worth recording for the phase list: the item that closed had been open the
+      longest and needed **no new mechanism at all** — only a file to point at.
 - [x] Hot corners + screenshot settings (§5.6) — **rice#198**. Nine leaves, all
       defaulting to write-nothing; see §5.6 for the two silent failures they
       turned up.
@@ -1117,11 +1153,13 @@ the remaining work sits changed shape:
   sides now, so what's left there is `sill.widgets` and command metadata.
 - Phase 5's §5.12 has its doctor half, so the accessibility line item is now
   purely about the remaining unmeasured keys.
-- **Phase 0 is the one that's genuinely stalled**, and for a reason worth naming:
-  its remaining item (publish an importable app pack) needs no code at all — the
-  format, the guide and the four install sources all exist — which is precisely
-  why it keeps losing to items that do. It's the cheapest thing in the document
-  and has been open the longest.
+- **Phase 0 was the one genuinely stalled phase, and it is now closed** (rice#198).
+  Worth naming why it had stalled: its last item needed no code at all — the
+  format, the guide and the four install sources all existed — which is precisely
+  why it kept losing to items that did. It was the cheapest thing in the document
+  and had been open the longest. **Cheap and unblocked is not the same as
+  likely-to-happen**; if anything it's the opposite, because nothing forces the
+  issue. The lesson for whatever ends up last in Phase 5.
 
 ---
 
