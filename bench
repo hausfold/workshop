@@ -973,19 +973,32 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # nothing further to chase.
 
 SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+WATCH_FRAME_S=0.1         # one spinner frame — 10 fps, so a 10-glyph cycle = 1s
+WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
 
-# The rendered job rows, refreshed each poll. Global (not local to the watch
-# function) so the paint helpers can read them without threading an array
-# through — same reason BATCH_SRC is global.
+# Frame rate and poll rate are DELIBERATELY unrelated. The naive loop couples
+# them — fetch, paint, sleep — and that costs you twice: the spinner freezes for
+# however long the API call takes, always at the same point in the cycle (so it
+# reads as a stutter, not as latency), and the durations can only advance in
+# poll-sized jumps. Here the fetch runs in the BACKGROUND while the paint loop
+# keeps ticking at 10 fps, and running jobs are clocked locally from their start
+# time — so the display is smooth and second-accurate at any poll interval, and
+# the interval is free to be a polite 5s instead of a hammering 1s.
 declare -ga WATCH_ROWS=()
 WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""; WATCH_PAINTED=0
+WATCH_FETCH_PID=""; WATCH_SNAP_FILE=""
 
 # Turn a `gh run view --json status,conclusion,jobs` blob into one
-# state<TAB>name<TAB>detail row per job, plus a trailing RUN row. Durations need
-# ISO-8601 arithmetic, which bash can't do portably (BSD vs GNU `date -d`), so
-# this lives in python like the other JSON readers here. A job that hasn't
-# started carries a year-1 timestamp — hence the `< 2000` guard, without which
-# "queued" would render as a two-millennium runtime.
+# state<TAB>name<TAB>detail<TAB>since row per job, plus a trailing RUN row.
+# Durations need ISO-8601 arithmetic, which bash can't do portably (BSD vs GNU
+# `date -d`), so this lives in python like the other JSON readers here. A job
+# that hasn't started carries a year-1 timestamp — hence the `< 2000` guard,
+# without which "queued" would render as a two-millennium runtime.
+#
+# `since` is the start time as a unix epoch, and it is set ONLY for a job still
+# running. That's the handoff to the paint loop: a finished job's duration is
+# final and comes from here, but a running one's is re-derived every frame from
+# `since`, so the clock ticks once a second no matter how stale this snapshot is.
 WATCH_RENDER_PY='
 import json, sys
 from datetime import datetime, timezone
@@ -1003,15 +1016,18 @@ for j in d.get("jobs", []):
     else:
         state = {"success": "ok", "skipped": "skip", "cancelled": "skip"}.get(cc, "fail")
     started, ended = parse(j.get("startedAt")), parse(j.get("completedAt"))
+    since = ""
     if state == "wait" or not started or started.year < 2000:
         detail = {"wait": "queued", "skip": "skipped"}.get(state, "—")
     else:
         end = ended if (ended and ended.year >= 2000 and st == "completed") else now
         secs = max(0, int((end - started).total_seconds()))
         detail = "%dm %02ds" % (secs // 60, secs % 60) if secs >= 60 else "%ds" % secs
+        if st != "completed":
+            since = "%d" % started.timestamp()
     # Clamp the name: the live repaint counts LINES to move the cursor back up,
     # so a row that soft-wraps in a narrow terminal would desync the whole frame.
-    print("%s\t%s\t%s" % (state, (j.get("name") or "?")[:34], detail))
+    print("%s\t%s\t%s\t%s" % (state, (j.get("name") or "?")[:34], detail, since))
 print("RUN\t%s\t%s" % (d.get("status") or "", d.get("conclusion") or ""))
 '
 
@@ -1027,16 +1043,66 @@ row_glyph() { # row_glyph <state> <frame> — the status mark at the head of a j
 
 # Repaint every row in place. Colour lives OUTSIDE the %-*s width (an escape
 # counted as width shears the column), same discipline as cmd_status.
+#
+# Everything in here is a builtin on purpose: this runs 10× a second, and a
+# `$(date)` or `$(dur …)` per row per frame would be a few hundred forks a
+# minute just to draw a clock.
 paint_live() { # paint_live <frame>
-  local row state name detail
+  local row state name detail since now secs
+  now="${EPOCHSECONDS:-$(date +%s)}"        # bash ≥5 has it free; older forks once
   [ "$WATCH_PAINTED" -gt 0 ] && printf '\033[%dA' "$WATCH_PAINTED"
   WATCH_PAINTED=0
   for row in "${WATCH_ROWS[@]}"; do
-    IFS=$'\t' read -r state name detail <<<"$row"
+    IFS=$'\t' read -r state name detail since <<<"$row"
+    # A running job's clock is OURS, not the snapshot's — otherwise the seconds
+    # would sit still between polls and then jump by the poll interval. The cost
+    # is that a job finishing just after a poll keeps counting until the next
+    # one, so the number can tick DOWN by a few seconds as the row flips to ✓.
+    # That's the honest direction to be wrong in: "running for N seconds now" and
+    # "took N seconds" are different facts, and CI's is the one that's final.
+    if [ -n "$since" ]; then
+      secs=$(( now - since )); [ "$secs" -lt 0 ] && secs=0   # clock skew vs GitHub
+      if [ "$secs" -ge 60 ]
+        then printf -v detail '%dm %02ds' $((secs / 60)) $((secs % 60))
+        else printf -v detail '%ds' "$secs"; fi
+    fi
     printf '\033[2K   %s  %s%-34s%s %s%s%s\n' \
       "$(row_glyph "$state" "$1")" "$C_REPO" "$name" "$C_OFF" "$C_MUT" "$detail" "$C_OFF"
     WATCH_PAINTED=$((WATCH_PAINTED + 1))
   done
+}
+
+# ── the background poll ───────────────────────────────────────────────────────
+# `gh run view` takes anywhere from 200ms to well over a second, and blocking the
+# paint loop on it is what made the spinner stutter. So it runs detached, writing
+# into a scratch file the loop picks up whenever it happens to be ready.
+
+watch_fetch_start() { # watch_fetch_start <repo> <run-id>
+  # Write-then-rename so the loop can never read a half-written blob, and so a
+  # FAILED fetch (no rename) simply leaves the last good snapshot in place —
+  # a blip in the network shouldn't blank the rows.
+  gh run view "$2" --repo "$GH_ORG/$1" --json status,conclusion,jobs \
+     >"$WATCH_SNAP_FILE.part" 2>/dev/null && mv -f "$WATCH_SNAP_FILE.part" "$WATCH_SNAP_FILE" &
+  WATCH_FETCH_PID=$!
+}
+
+watch_absorb() { # re-read the newest snapshot into WATCH_ROWS / WATCH_RUN_*
+  local row _
+  [ -s "$WATCH_SNAP_FILE" ] || return 0
+  WATCH_ROWS=(); WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""
+  while IFS= read -r row; do
+    case "$row" in
+      RUN$'\t'*) IFS=$'\t' read -r _ WATCH_RUN_STATUS WATCH_RUN_CONCL <<<"$row" ;;
+      *)         WATCH_ROWS+=("$row") ;;
+    esac
+  done < <(python3 -c "$WATCH_RENDER_PY" <"$WATCH_SNAP_FILE" 2>/dev/null || true)
+}
+
+watch_cleanup() {
+  [ -n "$WATCH_FETCH_PID" ] && kill "$WATCH_FETCH_PID" 2>/dev/null
+  [ -n "$WATCH_SNAP_FILE" ] && rm -f "$WATCH_SNAP_FILE" "$WATCH_SNAP_FILE.part"
+  WATCH_FETCH_PID=""; WATCH_SNAP_FILE=""
+  return 0                                  # never let the last test trip set -e
 }
 
 release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
@@ -1053,7 +1119,7 @@ release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiti
 }
 
 watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends; 0 iff green
-  local repo="$1" id="$2" frame=0 snap row state name detail _
+  local repo="$1" id="$2" frame=0 row state name detail now polled=0
   # Live redraw only on a TTY — piped, in CI, or under bats we print one plain
   # line per state CHANGE, so a log stays readable and no cursor escape ever
   # reaches a file. (Motion, unlike colour, isn't gated on NO_COLOR: a spinner
@@ -1061,33 +1127,39 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
   local live=""; [ -t 1 ] && live=1
   declare -A seen=()
 
+  WATCH_SNAP_FILE="$(mktemp "${TMPDIR:-/tmp}/bench-watch.XXXXXX")"
   if [ -n "$live" ]; then
     printf '\033[?25l'                                   # hide the cursor while we repaint
     # Restore it however we leave, including Ctrl-C — a terminal left with no
     # cursor is the worst thing a spinner can do to you. EXIT (not RETURN):
     # under `set -e` a losing run terminates the shell outright rather than
     # returning, and a RETURN trap never fires on that path.
-    trap 'printf "\033[?25h"' EXIT
-    trap 'printf "\033[?25h\n"; warn "still running on CI — bench release does not cancel it."; exit 130' INT
+    trap 'printf "\033[?25h"; watch_cleanup' EXIT
+    trap 'printf "\033[?25h\n"; watch_cleanup; warn "still running on CI — bench release does not cancel it."; exit 130' INT
+  else
+    trap 'watch_cleanup' EXIT
   fi
 
   while :; do
-    snap="$(gh run view "$id" --repo "$GH_ORG/$repo" --json status,conclusion,jobs 2>/dev/null || true)"
-    if [ -n "$snap" ]; then
-      WATCH_ROWS=(); WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""
-      while IFS= read -r row; do
-        case "$row" in
-          RUN$'\t'*) IFS=$'\t' read -r _ WATCH_RUN_STATUS WATCH_RUN_CONCL <<<"$row" ;;
-          *)         WATCH_ROWS+=("$row") ;;
-        esac
-      done < <(printf '%s' "$snap" | python3 -c "$WATCH_RENDER_PY" 2>/dev/null || true)
+    now="${EPOCHSECONDS:-$(date +%s)}"
+    # Kick off the next poll when one is due and none is in flight…
+    if [ -z "$WATCH_FETCH_PID" ] && { [ "$polled" -eq 0 ] || [ $((now - polled)) -ge "$WATCH_POLL_S" ]; }; then
+      polled="$now"; watch_fetch_start "$repo" "$id"
+    fi
+    # …and pick it up whenever it lands. Live, that check is non-blocking, which
+    # is the whole point: the spinner keeps ticking through the call. Logging,
+    # there's no animation to protect, so just block on it and stay simple.
+    if [ -n "$WATCH_FETCH_PID" ] && { [ -z "$live" ] || ! kill -0 "$WATCH_FETCH_PID" 2>/dev/null; }; then
+      wait "$WATCH_FETCH_PID" 2>/dev/null || true      # reap; a failed fetch is fine
+      WATCH_FETCH_PID=""
+      watch_absorb
     fi
 
     if [ -n "$live" ]; then
       paint_live "$frame"
     else
       for row in "${WATCH_ROWS[@]}"; do
-        IFS=$'\t' read -r state name detail <<<"$row"
+        IFS=$'\t' read -r state name detail _ <<<"$row"
         [ "${seen[$name]:-}" = "$state" ] && continue
         seen[$name]="$state"
         printf '   %s  %s (%s)\n' "$(row_glyph "$state" 0)" "$name" "$detail"
@@ -1096,20 +1168,16 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
 
     [ "$WATCH_RUN_STATUS" = "completed" ] && break
 
-    # Poll every ~2 s, but animate at 10 fps in between: durations tick two
-    # seconds at a time (imperceptible) while the spinner stays alive, and the
-    # API sees one call per run-second instead of ten.
     if [ -n "$live" ]; then
-      for _ in 1 2 3 4 5 6 7 8 9; do
-        frame=$((frame + 1)); paint_live "$frame"; sleep 0.2
-      done
-      frame=$((frame + 1))
+      frame=$((frame + 1)); sleep "$WATCH_FRAME_S"
     else
-      sleep 3
+      sleep "$WATCH_POLL_S"                 # no animation to keep alive, so just wait
     fi
   done
 
-  if [ -n "$live" ]; then printf '\033[?25h'; trap - EXIT INT; fi
+  if [ -n "$live" ]; then printf '\033[?25h'; fi
+  trap - EXIT INT
+  watch_cleanup
   [ "$WATCH_RUN_CONCL" = "success" ]
 }
 

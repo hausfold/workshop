@@ -197,9 +197,23 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
     {"name":"bump nebelhaus/homebrew-tap","status":"completed","conclusion":"success",
      "startedAt":"2026-08-02T10:02:41Z","completedAt":"2026-08-02T10:02:50Z"}]}'
   [ "$status" -eq 0 ]
-  [ "${lines[0]}" = "ok	build + publish release	2m 41s" ]
-  [ "${lines[1]}" = "ok	bump nebelhaus/homebrew-tap	9s" ]
+  # Trailing empty field: a FINISHED job's duration is final, so it carries no
+  # start epoch for the paint loop to keep counting from.
+  [ "${lines[0]}" = "ok	build + publish release	2m 41s	" ]
+  [ "${lines[1]}" = "ok	bump nebelhaus/homebrew-tap	9s	" ]
   [ "${lines[2]}" = "RUN	completed	success" ]
+}
+
+@test "a RUNNING job carries its start epoch so the paint loop can clock it live" {
+  # This is what decouples the display from the poll: the seconds tick locally
+  # once a second even though `gh run view` is only called every few.
+  run render_run '{"status":"in_progress","conclusion":null,"jobs":[
+    {"name":"build + publish release","status":"in_progress","conclusion":null,
+     "startedAt":"2026-08-02T10:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
+  [ "$status" -eq 0 ]
+  # 2026-08-02T10:00:00Z as a unix epoch.
+  [ "$(printf '%s' "${lines[0]}" | cut -f4)" = "1785664800" ]
+  [ "$(printf '%s' "${lines[0]}" | cut -f1)" = "run" ]
 }
 
 @test "a job that hasn't started reads as queued, not as a 2000-year runtime" {
@@ -208,7 +222,7 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   run render_run '{"status":"in_progress","conclusion":null,"jobs":[
     {"name":"bump nebelhaus/homebrew-tap","status":"queued","conclusion":null,
      "startedAt":"0001-01-01T00:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
-  [ "${lines[0]}" = "wait	bump nebelhaus/homebrew-tap	queued" ]
+  [ "${lines[0]}" = "wait	bump nebelhaus/homebrew-tap	queued	" ]
   [ "${lines[1]}" = "RUN	in_progress	" ]
 }
 
@@ -218,8 +232,8 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
      "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:01:35Z"},
     {"name":"bump nebelhaus/homebrew-tap","status":"completed","conclusion":"skipped",
      "startedAt":"0001-01-01T00:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
-  [ "${lines[0]}" = "fail	build + publish release	1m 35s" ]
-  [ "${lines[1]}" = "skip	bump nebelhaus/homebrew-tap	skipped" ]
+  [ "${lines[0]}" = "fail	build + publish release	1m 35s	" ]
+  [ "${lines[1]}" = "skip	bump nebelhaus/homebrew-tap	skipped	" ]
   [ "${lines[2]}" = "RUN	completed	failure" ]
 }
 
@@ -229,7 +243,7 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
     {"name":"an absurdly long job name that would certainly wrap a narrow terminal",
      "status":"completed","conclusion":"success",
      "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:00:05Z"}]}'
-  [ "${lines[0]}" = "ok	an absurdly long job name that wou	5s" ]
+  [ "${lines[0]}" = "ok	an absurdly long job name that wou	5s	" ]
 }
 
 @test "row_glyph walks the spinner and never leaves colour on" {
