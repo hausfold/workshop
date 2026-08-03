@@ -184,6 +184,67 @@ NIX
   [ "$output" = "$today-3" ]
 }
 
+# ── the release watch: rendering a `gh run view` blob into job rows ────────────
+# Only the pure part is tested — turning CI's JSON into state/name/detail rows.
+# The paint loop needs a TTY and a live run, so it isn't reachable from here.
+
+render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
+
+@test "the watch renders a finished run as ✓ rows plus a RUN verdict" {
+  run render_run '{"status":"completed","conclusion":"success","jobs":[
+    {"name":"build + publish release","status":"completed","conclusion":"success",
+     "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:02:41Z"},
+    {"name":"bump nebelhaus/homebrew-tap","status":"completed","conclusion":"success",
+     "startedAt":"2026-08-02T10:02:41Z","completedAt":"2026-08-02T10:02:50Z"}]}'
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "ok	build + publish release	2m 41s" ]
+  [ "${lines[1]}" = "ok	bump nebelhaus/homebrew-tap	9s" ]
+  [ "${lines[2]}" = "RUN	completed	success" ]
+}
+
+@test "a job that hasn't started reads as queued, not as a 2000-year runtime" {
+  # GitHub hands back a year-1 timestamp for a job that never began; without the
+  # guard that subtraction renders as an absurd duration.
+  run render_run '{"status":"in_progress","conclusion":null,"jobs":[
+    {"name":"bump nebelhaus/homebrew-tap","status":"queued","conclusion":null,
+     "startedAt":"0001-01-01T00:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
+  [ "${lines[0]}" = "wait	bump nebelhaus/homebrew-tap	queued" ]
+  [ "${lines[1]}" = "RUN	in_progress	" ]
+}
+
+@test "a failed job renders as fail and a skipped one says so" {
+  run render_run '{"status":"completed","conclusion":"failure","jobs":[
+    {"name":"build + publish release","status":"completed","conclusion":"failure",
+     "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:01:35Z"},
+    {"name":"bump nebelhaus/homebrew-tap","status":"completed","conclusion":"skipped",
+     "startedAt":"0001-01-01T00:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
+  [ "${lines[0]}" = "fail	build + publish release	1m 35s" ]
+  [ "${lines[1]}" = "skip	bump nebelhaus/homebrew-tap	skipped" ]
+  [ "${lines[2]}" = "RUN	completed	failure" ]
+}
+
+@test "a long job name is clamped so a live row can never soft-wrap" {
+  # The repaint moves the cursor up by LINE COUNT; a wrapped row desyncs the frame.
+  run render_run '{"status":"completed","conclusion":"success","jobs":[
+    {"name":"an absurdly long job name that would certainly wrap a narrow terminal",
+     "status":"completed","conclusion":"success",
+     "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:00:05Z"}]}'
+  [ "${lines[0]}" = "ok	an absurdly long job name that wou	5s" ]
+}
+
+@test "row_glyph walks the spinner and never leaves colour on" {
+  run row_glyph run 0
+  [ "$output" = "⠋" ]          # NO_COLOR is unset in bats, and stdout isn't a TTY
+  run row_glyph run 11
+  [ "$output" = "⠙" ]          # frame 11 wraps back round the 10-frame cycle
+  run row_glyph ok 0
+  [ "$output" = "✓" ]
+  run row_glyph fail 0
+  [ "$output" = "✗" ]
+  run row_glyph queued 0
+  [ "$output" = "·" ]
+}
+
 # ── latest_tag / commits_since: the release-edge staleness check ───────────────
 
 make_repo() { # make_repo <name> — a fixture git repo with one commit

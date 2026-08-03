@@ -24,9 +24,10 @@
 #   bench docs-since   commits in every repo since the docs were last
 #                  reconciled (--mark records new watermarks) — the input
 #                  to the daily /docs-sync sweep
-#   bench release   stamp today's date as the version (YYYY.MM.DD, -N on a
-#                  same-day repeat) and tag it — CI then publishes the GitHub
-#                  release and bumps the Homebrew tap
+#   bench release <repo> [--ship]   stamp today's date as the version
+#                  (YYYY.MM.DD, -N on a same-day repeat) and tag it, then WATCH
+#                  the CI run to the end — GitHub release + Homebrew tap bump.
+#                  --ship ripples the new lock edge downstream afterwards.
 #
 # Rule of thumb: hack freely, `bench try` until happy, commit, `bench ship`.
 #
@@ -805,6 +806,161 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
   echo "$base-$n"
 }
 
+# ── Watching the release run ──────────────────────────────────────────────────
+# `bench release` BLOCKS on CI rather than handing you a URL, and that's a
+# correctness fix as much as a nicety: trill's and perch's release workflows
+# push a `bump-flake` commit BACK to the repo (the notarized ZIP's sha256), so
+# the instant the tag lands your checkout is behind origin. Returning early
+# hands you a shell where `bench ship` would ripple a rev CI is about to
+# supersede. Blocking, then fast-forwarding, closes that window.
+#
+# There is exactly ONE workflow to watch — each repo's `release`, holding 1–3
+# jobs (nebelhaus: publish; pounce: publish + bump-tap; trill/perch: those plus
+# bump-flake). The tap bump is a plain push into homebrew-tap, which has no
+# workflows of its own, so when this run goes green the release IS live —
+# nothing further to chase.
+
+SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+
+# The rendered job rows, refreshed each poll. Global (not local to the watch
+# function) so the paint helpers can read them without threading an array
+# through — same reason BATCH_SRC is global.
+declare -ga WATCH_ROWS=()
+WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""; WATCH_PAINTED=0
+
+# Turn a `gh run view --json status,conclusion,jobs` blob into one
+# state<TAB>name<TAB>detail row per job, plus a trailing RUN row. Durations need
+# ISO-8601 arithmetic, which bash can't do portably (BSD vs GNU `date -d`), so
+# this lives in python like the other JSON readers here. A job that hasn't
+# started carries a year-1 timestamp — hence the `< 2000` guard, without which
+# "queued" would render as a two-millennium runtime.
+WATCH_RENDER_PY='
+import json, sys
+from datetime import datetime, timezone
+
+def parse(t):
+    try:    return datetime.fromisoformat((t or "").replace("Z", "+00:00"))
+    except ValueError: return None
+
+d = json.load(sys.stdin)
+now = datetime.now(timezone.utc)
+for j in d.get("jobs", []):
+    st, cc = j.get("status"), j.get("conclusion")
+    if st != "completed":
+        state = "run" if st == "in_progress" else "wait"
+    else:
+        state = {"success": "ok", "skipped": "skip", "cancelled": "skip"}.get(cc, "fail")
+    started, ended = parse(j.get("startedAt")), parse(j.get("completedAt"))
+    if state == "wait" or not started or started.year < 2000:
+        detail = {"wait": "queued", "skip": "skipped"}.get(state, "—")
+    else:
+        end = ended if (ended and ended.year >= 2000 and st == "completed") else now
+        secs = max(0, int((end - started).total_seconds()))
+        detail = "%dm %02ds" % (secs // 60, secs % 60) if secs >= 60 else "%ds" % secs
+    # Clamp the name: the live repaint counts LINES to move the cursor back up,
+    # so a row that soft-wraps in a narrow terminal would desync the whole frame.
+    print("%s\t%s\t%s" % (state, (j.get("name") or "?")[:34], detail))
+print("RUN\t%s\t%s" % (d.get("status") or "", d.get("conclusion") or ""))
+'
+
+row_glyph() { # row_glyph <state> <frame> — the status mark at the head of a job row
+  case "$1" in
+    run)  printf '%s%s%s' "$C_FOG" "${SPIN[$(( $2 % ${#SPIN[@]} ))]}" "$C_OFF" ;;
+    ok)   printf '%s✓%s' "$C_OK"  "$C_OFF" ;;
+    fail) printf '%s✗%s' "$C_ERR" "$C_OFF" ;;
+    skip) printf '%s–%s' "$C_MUT" "$C_OFF" ;;
+    *)    printf '%s·%s' "$C_MUT" "$C_OFF" ;;
+  esac
+}
+
+# Repaint every row in place. Colour lives OUTSIDE the %-*s width (an escape
+# counted as width shears the column), same discipline as cmd_status.
+paint_live() { # paint_live <frame>
+  local row state name detail
+  [ "$WATCH_PAINTED" -gt 0 ] && printf '\033[%dA' "$WATCH_PAINTED"
+  WATCH_PAINTED=0
+  for row in "${WATCH_ROWS[@]}"; do
+    IFS=$'\t' read -r state name detail <<<"$row"
+    printf '\033[2K   %s  %s%-34s%s %s%s%s\n' \
+      "$(row_glyph "$state" "$1")" "$C_REPO" "$name" "$C_OFF" "$C_MUT" "$detail" "$C_OFF"
+    WATCH_PAINTED=$((WATCH_PAINTED + 1))
+  done
+}
+
+release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
+  # A tag push takes a few seconds to materialise as a run, and gh keys tag runs
+  # by --branch (head_branch is the tag name for a tag push).
+  local repo="$1" tag="$2" id _
+  for _ in $(seq 1 20); do
+    id="$(gh run list --repo "$GH_ORG/$repo" --workflow release --branch "$tag" \
+            --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
+    [ -n "$id" ] && [ "$id" != "null" ] && { echo "$id"; return 0; }
+    sleep 2
+  done
+  return 1
+}
+
+watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends; 0 iff green
+  local repo="$1" id="$2" frame=0 snap row state name detail _
+  # Live redraw only on a TTY — piped, in CI, or under bats we print one plain
+  # line per state CHANGE, so a log stays readable and no cursor escape ever
+  # reaches a file. (Motion, unlike colour, isn't gated on NO_COLOR: a spinner
+  # on a no-colour terminal is still the thing you want to see.)
+  local live=""; [ -t 1 ] && live=1
+  declare -A seen=()
+
+  if [ -n "$live" ]; then
+    printf '\033[?25l'                                   # hide the cursor while we repaint
+    # Restore it however we leave, including Ctrl-C — a terminal left with no
+    # cursor is the worst thing a spinner can do to you. EXIT (not RETURN):
+    # under `set -e` a losing run terminates the shell outright rather than
+    # returning, and a RETURN trap never fires on that path.
+    trap 'printf "\033[?25h"' EXIT
+    trap 'printf "\033[?25h\n"; warn "still running on CI — bench release does not cancel it."; exit 130' INT
+  fi
+
+  while :; do
+    snap="$(gh run view "$id" --repo "$GH_ORG/$repo" --json status,conclusion,jobs 2>/dev/null || true)"
+    if [ -n "$snap" ]; then
+      WATCH_ROWS=(); WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""
+      while IFS= read -r row; do
+        case "$row" in
+          RUN$'\t'*) IFS=$'\t' read -r _ WATCH_RUN_STATUS WATCH_RUN_CONCL <<<"$row" ;;
+          *)         WATCH_ROWS+=("$row") ;;
+        esac
+      done < <(printf '%s' "$snap" | python3 -c "$WATCH_RENDER_PY" 2>/dev/null || true)
+    fi
+
+    if [ -n "$live" ]; then
+      paint_live "$frame"
+    else
+      for row in "${WATCH_ROWS[@]}"; do
+        IFS=$'\t' read -r state name detail <<<"$row"
+        [ "${seen[$name]:-}" = "$state" ] && continue
+        seen[$name]="$state"
+        printf '   %s  %s (%s)\n' "$(row_glyph "$state" 0)" "$name" "$detail"
+      done
+    fi
+
+    [ "$WATCH_RUN_STATUS" = "completed" ] && break
+
+    # Poll every ~2 s, but animate at 10 fps in between: durations tick two
+    # seconds at a time (imperceptible) while the spinner stays alive, and the
+    # API sees one call per run-second instead of ten.
+    if [ -n "$live" ]; then
+      for _ in 1 2 3 4 5 6 7 8 9; do
+        frame=$((frame + 1)); paint_live "$frame"; sleep 0.2
+      done
+      frame=$((frame + 1))
+    else
+      sleep 3
+    fi
+  done
+
+  if [ -n "$live" ]; then printf '\033[?25h'; trap - EXIT INT; fi
+  [ "$WATCH_RUN_CONCL" = "success" ]
+}
+
 cmd_release() {
   # Cut a release: stamp today's date as the version, commit it into the repo's
   # own version source (so the tag can't drift from what the code says — CI
@@ -814,8 +970,19 @@ cmd_release() {
   # typed by hand — the date IS the version. Division of labor: feature commits
   # are yours, lock bumps are ship's, the date-stamp + tag are release's,
   # formula bumps are CI's.
-  local name="${1:-}"
-  [ -n "$name" ] || die "usage: bench release <repo>   (releasable: pounce, trill, perch, nebelhaus)"
+  #
+  # Then it BLOCKS on that CI run (see the watch section above) instead of
+  # leaving you with a URL and a checkout that's about to fall behind.
+  local name="" ship=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --ship) ship=1 ;;
+      -*)     die "unknown flag: $1   (usage: bench release <repo> [--ship])" ;;
+      *)      name="$1" ;;
+    esac
+    shift
+  done
+  [ -n "$name" ] || die "usage: bench release <repo> [--ship]   (releasable: pounce, trill, perch, nebelhaus)"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
@@ -844,8 +1011,39 @@ cmd_release() {
   say "releasing $name $tag — pushing the tag; CI takes it from here…"
   git -C "$dir" tag -a "$tag" -m "$name $version"
   git -C "$dir" push origin "$tag"
-  say "watch it: https://github.com/$GH_ORG/$name/actions  (release → tap bump)"
-  warn "the date-stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
+
+  local runid=""
+  if command -v gh >/dev/null 2>&1; then
+    runid="$(release_run_id "$name" "$tag" || true)"
+  fi
+  if [ -z "$runid" ]; then
+    # No gh, not authed, or the run never showed. The tag is pushed and CI is
+    # running regardless — degrade to the old behaviour rather than failing.
+    warn "can't watch the run from here — the tag is pushed and CI is running."
+    hint "https://github.com/$GH_ORG/$name/actions  (release → tap bump)"
+    warn "the date-stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
+    return 0
+  fi
+
+  printf '\n%s   %s %s%s\n\n' "$C_MUT" "$name" "$tag" "$C_OFF"
+  if ! watch_release_run "$name" "$runid"; then
+    printf '\n'
+    die "release run failed — gh run view $runid --repo $GH_ORG/$name --log-failed"
+  fi
+  printf '\n'
+
+  # trill and perch have CI commit nix/release.nix back to the repo, so origin
+  # moved while we watched. Fast-forward before anything reads this HEAD.
+  git -C "$dir" pull -q --ff-only 2>/dev/null || true
+
+  say "$name $version is live — https://github.com/$GH_ORG/$name/releases/tag/$tag"
+  if [ -n "$ship" ]; then
+    printf '\n'
+    cmd_ship
+  else
+    warn "the date-stamp moved $name's HEAD — its lock edge downstream is now stale."
+    hint "ripple it: bench ship   (or cut the next one with: bench release $name --ship)"
+  fi
 }
 
 # ── docs-since ────────────────────────────────────────────────────────────────
@@ -972,7 +1170,7 @@ case "${1:-status}" in
   pull)    shift; cmd_pull "$@" ;;
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
-  release) cmd_release "${2:-}" ;;
-  *)       sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  release) shift; cmd_release "$@" ;;
+  *)       sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi
