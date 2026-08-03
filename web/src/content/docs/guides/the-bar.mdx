@@ -31,6 +31,18 @@ Any of these five can be switched off individually — see
 The pills react live: switch workspaces and the highlight follows; tap the
 Caps-Lock leader and the whole bar flips into launcher letter-mode.
 
+## Dropdowns
+
+Several pills open a dropdown on click — the weather popover, the calendar's next
+five events, the coffee pill's durations, the agents and AI-usage lists. They
+behave like every other menu on the Mac: **click anywhere else and the dropdown
+closes**, clicking the pill again also closes it, and opening one dropdown closes
+whichever was already open.
+
+(SketchyBar itself only ever hears about clicks on its own pills, so the rice
+ships a small helper — `sillpop` — to notice the click outside. It runs only
+while a dropdown is open, and needs no Accessibility permission.)
+
 ## The weather popover
 
 Click the weather pill and a popover blooms open with the full picture:

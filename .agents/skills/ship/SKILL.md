@@ -34,9 +34,12 @@ the safety, then merge it. Only *activation* and *release* still wait for me.
 git rev-parse --git-common-dir   # points OUTSIDE your toplevel → linked worktree
 ```
 
-Everything through **ripple** is yours to drive from a worktree. The only lines you may
-NOT cross from a worktree are `bench try switch` (activation) and `bench release` (always
-gated) — both are main-checkout jobs. From the main checkout you can do those too.
+Everything through **ripple** is yours to drive from a worktree. The two lines you may NOT
+cross *from a worktree* are `bench try switch` (activation) and `bench release` (always
+gated). Activation is refused to an agent from a worktree on purpose — it's machine-wide
+and serial, so parallel agents would silently overwrite each other; the user runs that one
+themselves, or tells you to and you set `BENCH_AGENT_SWITCH=1`. From a **main checkout**
+`bench try switch` is yours — which is exactly what Step 7 does, after the PR has merged.
 
 ## Step 1 — commit stragglers
 
@@ -207,6 +210,7 @@ is the reliable copy.
 
 **hack** (agents draft on `worktree-*` branches) → **test** (`bench try`, worktree-aware) →
 **PR** (push + `gh pr create`) → **merge** (/ship merges the PR — `gh pr merge`) →
-**try switch** (activate; main checkouts only) → **ship** (`bench ship` ripples locks) →
+**try switch** (activate — from the main checkout, which now holds the merged work) →
+**ship** (`bench ship` ripples locks) →
 **release** (tagged repos only; CI does the rest). A small fix runs straight through; big
 changes pause before merge; release always waits for me.

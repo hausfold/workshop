@@ -70,6 +70,41 @@ survive until merged.
 Run `wt` bare to list every parked/live agent worktree across all repos, and
 `wt <name>` to rebuild a parked checkout and drop back into `claude --resume`.
 
+## Feel-testing one branch, alone
+
+`bench try switch` works **from inside an agent worktree**, and that's the point:
+it's the only way to put ONE unmerged branch on the machine. Batch-testing (next
+section) always feels the whole open-PR queue combined, and it can't see
+uncommitted work at all — so when an agent hands you "this fixes the popup blink,
+`bench try switch` to feel it", you open a pane in its worktree and run exactly
+that:
+
+```sh
+wt                        # lists every worktree with its path (bench status does too)
+cd ~/.cache/claude-worktrees/<repo>/<name>
+bench try switch          # builds against THIS branch and activates it
+# …feel it…
+bench rebuild             # back to the pinned build
+```
+
+Nothing about a worktree makes the build special — the derivation is identical
+wherever the source sits. Two things *are* different, and each has its own answer:
+
+- **Who activates.** Activation is machine-wide and serial, so five parallel
+  agents each with a good reason to switch would silently overwrite one another.
+  So the gate is on **who, not where**: an AI agent is refused a worktree switch
+  (`BENCH_AGENT_SWITCH=1` overrides it when you've explicitly asked for one); a
+  person at the keyboard just runs it. An agent should build with `bench try` and
+  hand you the command.
+- **Remembering.** Every switch writes a receipt, and `bench status` leads with
+  it — "running LOCAL code — activated <when>", naming each repo, branch and
+  checkout, and flagging a source whose worktree has since been reaped. The
+  receipt pins the system store path it described, so a `haus rollback`, a
+  `bench rebuild`, or anyone else's switch retires it automatically instead of
+  nagging about a build that isn't mounted any more. `bench rebuild` is the way
+  back to pinned; landing the branch via its PR + `bench ship` is the way to make
+  what you're running reproducible.
+
 ## Batch-testing (test-then-merge)
 
 Activating a Mac is **serial** — one `darwin-rebuild switch` = one machine state
@@ -156,8 +191,10 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
    branches in parallel; the main checkouts never move.
 2. **test** — `./bench try` from wherever you are: it builds your real machine
    against the local checkouts (from inside an agent worktree, against *that*
-   branch). `./bench try switch` activates it — main checkouts only; it refuses
-   from a worktree.
+   branch). `./bench try switch` activates it — **from a worktree too**, which is
+   the only way to feel ONE unmerged branch on its own. What's gated is an *AI
+   agent* switching from a worktree — see
+   [Feel-testing one branch, alone](#feel-testing-one-branch-alone).
 3. **PR** — an agent lands its branch by opening a PR against `main`, never by
    pushing to or `git merge`-ing into `main` (parallel agents doing that clobbered
    each other — a PR is conflict-detected and atomic). Give it a **What / Why /

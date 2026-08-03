@@ -9,10 +9,13 @@
 # Editing upstream means nothing until the downstream locks catch up. This
 # script exists so you never have to remember that dance:
 #
-#   bench status    where is everything? (git state, lock edges, release edges,
+#   bench status    what is this machine RUNNING, and where is everything else?
+#                  (local-vs-pinned build, git state, lock edges, release edges,
 #                  agent worktrees)
 #   bench try       build YOUR machine against the LOCAL checkouts — no pushes
-#   bench try switch    …and activate it (still no pushes; prod untouched)
+#   bench try switch    …and activate it (still no pushes; prod untouched).
+#                  Works from an agent worktree too — that's how you feel-test
+#                  one unmerged branch. `bench rebuild` puts the pinned build back.
 #   bench try-batch [switch] [repo…]   build (or activate) EVERY open PR's
 #                  branch together on ONE throwaway integration tree per repo —
 #                  feel-test the whole review queue in a single rebuild, main
@@ -31,13 +34,17 @@
 #
 # Rule of thumb: hack freely, `bench try` until happy, commit, `bench ship`.
 #
-# Agent worktrees: Claude Code sessions spawn into git worktrees of the family
-# repos (branch `worktree-*`), so parallel agents never fight over a checkout's
-# branch. `bench try` is worktree-aware — run it from inside a worktree and that
-# repo's override points at the WORKTREE instead of the main checkout, so an
-# agent can verify its own branch builds. `bench try switch` refuses from a
-# worktree (only main-checkout code gets activated); `bench status` lists agent
-# worktrees and unmerged agent branches; `bench ship` warns about them.
+# Agent worktrees: agent sessions spawn into git worktrees of the family repos
+# (branch `worktree-*`), so parallel agents never fight over a checkout's branch.
+# Both try verbs are worktree-aware — run them from inside a worktree and that
+# repo's override points at the WORKTREE instead of the main checkout. That
+# includes `try switch`: activating ONE unmerged branch is how you feel-test it
+# alone (try-batch only ever feels the whole open-PR queue combined, and can't
+# see uncommitted work at all). The gate is on WHO, not WHERE — an AI agent is
+# refused a worktree switch unless told BENCH_AGENT_SWITCH=1, because activation
+# is machine-wide and serial, so parallel agents would silently overwrite each
+# other. `bench status` names whatever local code is currently activated (and
+# lists agent worktrees + unmerged agent branches); `bench ship` warns about them.
 set -euo pipefail
 
 # ROOT is the workshop's MAIN checkout — the dir holding the family repos as
@@ -165,6 +172,23 @@ local_src() { # local_src <repo> — the checkout to build against (batch- + wor
   # to the active agent worktree (if this repo is it), then the main checkout.
   if [ -n "${BATCH_SRC[$1]:-}" ]; then echo "${BATCH_SRC[$1]}"; return; fi
   if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else echo "$ROOT/$1"; fi
+}
+
+# ── who is driving? ─────────────────────────────────────────────────────────
+# Activation is the one bench verb that changes THIS machine's running state,
+# and it's serial — one darwin-rebuild switch = one machine. That makes it a
+# *human's* call, not because worktree code is dangerous (it isn't; the build
+# is identical either way) but because N agents in N parallel panes each have
+# an equally good reason to activate, and the last one silently wins.
+#
+# So the gate is on WHO, not WHERE: a person at the keyboard may `bench try
+# switch` from anywhere, including an agent worktree. An agent may not do it
+# from a worktree unprompted — it should hand the command back to the human,
+# or be told explicitly (BENCH_AGENT_SWITCH=1) that this time it's wanted.
+# This is a reminder, not a jail: an agent that's been told to activate sets
+# the variable and moves on.
+agent_driving() { # true when an AI coding agent is the one running bench
+  [ -n "${AI_AGENT:-}${CLAUDECODE:-}${CLAUDE_CODE_ENTRYPOINT:-}${CODEX_SANDBOX:-}${OPENCODE:-}${OPENCODE_BIN_PATH:-}" ]
 }
 
 overrides() { # every family input redirected at the local checkouts
@@ -328,7 +352,41 @@ unmerged_agent_branches() { # worktree-* branches not merged into the current HE
     --format='%(refname:short)' 2>/dev/null
 }
 
+status_running() { # the receipt a `try switch` left — FIRST section, because it
+                   # outranks every lock edge below: when it fires, the locks
+                   # describe a machine you are not currently running.
+  local body
+  if ! body="$(read_activation)"; then
+    say "running the pinned build — the lock edges below describe this machine"
+    echo
+    return 0
+  fi
+  local repo src branch dirty when="" gone=0
+  when="$(printf '%s\n' "$body" | sed -n 's/^when\t//p')"
+  warn "running LOCAL code — activated ${when:-at an unknown time}. The lock edges below do NOT describe this machine."
+  printf '  %s%-12s %-32s %-6s %s%s\n' "$C_MUT" "repo" "branch" "tree" "built from" "$C_OFF"
+  while IFS=$'\t' read -r repo src branch dirty; do
+    case "$repo" in when|host|system|'') continue ;; esac
+    local where="$src" dcol="$C_MUT"
+    [ "$dirty" = dirty ] && dcol="$C_WARN"
+    if [ ! -d "$src" ]; then where="$src  (gone)"; gone=1; fi
+    # Clamp the branch so one long agent name can't shear the columns — the
+    # same rule the release watch's job names follow.
+    [ "${#branch}" -gt 32 ] && branch="${branch:0:31}…"
+    local repo_c branch_c dirty_c
+    printf -v repo_c '%-12s' "$repo"; printf -v branch_c '%-32s' "$branch"
+    printf -v dirty_c '%-6s' "$([ "$dirty" = dirty ] && echo dirty || echo '·')"
+    printf '  %s%s%s %s %s%s%s %s%s%s\n' \
+      "$C_REPO" "$repo_c" "$C_OFF" "$branch_c" \
+      "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$where" "$C_OFF"
+  done <<<"$body"
+  [ "$gone" = 1 ] && hint "a source checkout is gone (worktree reaped) — the running system itself is safe (the system profile GC-roots it), but nothing can rebuild it from source any more"
+  hint "bench rebuild returns to the pinned build · land the branch via its PR, then bench ship, to make this reproducible"
+  echo
+}
+
 cmd_status() {
+  status_running
   say "repos"
   printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
   local any_dirty=0 any_ahead=0 any_behind=0
@@ -486,25 +544,112 @@ activate_built() {
   fi
 }
 
+# ── what is this machine actually running? ──────────────────────────────────
+# A `try switch` puts unpushed code on the machine. That's the point — testing
+# in prod is house style — but the fact then lives only in the scrollback of the
+# pane that did it, and panes die. THAT is the real hazard the old
+# worktree-refusal was groping at: not "worktree code is unsafe" (it isn't — the
+# derivation is identical wherever the source sits) but "you can't tell, an hour
+# later, that this machine isn't running what its flake.lock says".
+#
+# So every activation writes a receipt and `bench status` reads it back. The
+# receipt PINS THE SYSTEM STORE PATH it described, so it can't lie: a later
+# `haus rollback`, a plain `bench rebuild`, or anyone else's switch moves
+# /run/current-system, the paths stop matching, and the receipt is discarded as
+# stale instead of nagging about a build that's no longer running. No receipt
+# (or a stale one) IS the "running the pinned build" state.
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/bench"
+ACTIVE_FILE="$STATE_DIR/activated"
+
+current_system() { readlink /run/current-system 2>/dev/null || true; }
+
+record_activation() { # record_activation <host> — snapshot which sources went live
+  local host="$1" repo src line body=""
+  for repo in "${OVERRIDABLE[@]}"; do
+    src="$(local_src "$repo")"
+    local branch dirty
+    branch="$(git -C "$src" branch --show-current 2>/dev/null || echo '?')"
+    [ -n "$branch" ] || branch="(detached)"
+    # A try-batch integration tree is detached by construction and its scratch
+    # dir is gone by the time anyone reads this back, so name what it MEANT.
+    [ -n "${BATCH_SRC[$repo]:-}" ] && branch="batch: main + open PRs"
+    dirty="$([ -n "$(git -C "$src" status --porcelain 2>/dev/null)" ] && echo dirty || echo clean)"
+    # Only worth recording if it isn't the pinned main checkout on a clean main
+    # branch — otherwise a `try switch` from a spotless workshop would leave a
+    # receipt that says nothing and a status that cries wolf.
+    if [ "$src" = "$ROOT/$repo" ] && [ "$dirty" = clean ] \
+       && { [ "$branch" = main ] || [ "$branch" = master ]; }; then continue; fi
+    printf -v line '%s\t%s\t%s\t%s' "$repo" "$src" "$branch" "$dirty"
+    body+="$line"$'\n'
+  done
+  if [ -z "$body" ]; then rm -f "$ACTIVE_FILE"; return 0; fi
+  mkdir -p "$STATE_DIR"
+  { printf 'when\t%s\n' "$(date '+%Y-%m-%d %H:%M')"
+    printf 'host\t%s\n' "$host"
+    printf 'system\t%s\n' "$(current_system)"
+    printf '%s' "$body"; } >"$ACTIVE_FILE"
+}
+
+clear_activation() { rm -f "$ACTIVE_FILE"; }
+
+# read_activation — echo the receipt verbatim, but ONLY while it still describes
+# the running system. Returns 1 (and silently reaps the stale file) otherwise, so
+# every caller gets the same answer. It emits the header lines too rather than
+# setting globals: callers read it through $(…), and a subshell can't hand a
+# variable back — a header line CAN cross that boundary.
+read_activation() {
+  [ -f "$ACTIVE_FILE" ] || return 1
+  local recorded
+  recorded="$(sed -n 's/^system\t//p' "$ACTIVE_FILE")"
+  # An empty `system` means the switch predated this field — trust it rather
+  # than throw it away; anything else must still be what's mounted.
+  if [ -n "$recorded" ] && [ "$recorded" != "$(current_system)" ]; then
+    clear_activation; return 1
+  fi
+  cat "$ACTIVE_FILE"
+}
+
+active_banner() { # the loud "you are running unpushed code" block, post-switch
+  local body; body="$(read_activation)" || return 0
+  local repo src branch dirty
+  warn "this machine is now running LOCAL code, not what any flake.lock pins:"
+  while IFS=$'\t' read -r repo src branch dirty; do
+    case "$repo" in when|host|system|'') continue ;; esac
+    printf '      %s%-10s%s %s %s(%s)%s\n' \
+      "$C_REPO" "$repo" "$C_OFF" "$branch" "$C_MUT" "$dirty" "$C_OFF"
+  done <<<"$body"
+  hint "bench status will keep saying so · bench rebuild returns to the pinned build"
+}
+
 cmd_try() {
-  local host; host="$(host_name)"
+  local do_switch=""; [ "${1:-}" = "switch" ] && do_switch=1
   detect_worktree
   if [ -n "$WT_REPO" ]; then
-    if [ "${1:-}" = "switch" ]; then
-      die "refusing to switch from an agent worktree of $WT_REPO — only the main checkouts get activated. Land the branch via its PR, then try/switch from the main checkout."
+    # Activating a worktree branch is fine and often exactly what you want —
+    # it's the ONLY way to feel-test one unmerged branch on its own (try-batch
+    # feels the whole open-PR queue combined, and needs a PR to exist at all;
+    # neither can feel uncommitted work). What isn't fine is an AGENT doing it
+    # unasked: activation is serial and machine-wide, so the fifth parallel
+    # pane's switch silently replaces the fourth's. See agent_driving().
+    # Checked before anything slow, so the refusal costs nothing.
+    if [ -n "$do_switch" ] && agent_driving && [ -z "${BENCH_AGENT_SWITCH:-}" ]; then
+      die "activation from a worktree is the human's call — hand it over: 'bench try switch' from a pane in $WT_PATH. (Plain 'bench try' is yours to run freely. If they already asked you to activate: BENCH_AGENT_SWITCH=1 bench try switch.)"
     fi
     say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
   fi
+  local host; host="$(host_name)"
   ensure_trill_dev_app   # if trill is the local source, build + inject its dev app
   ensure_perch_dev_app   # likewise for perch
   say "building $host against the LOCAL checkouts (uncommitted edits included)…"
   # shellcheck disable=SC2046
   (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
   say "build OK — nothing pushed, nothing activated."
-  if [ "${1:-}" = "switch" ]; then
+  if [ -n "$do_switch" ]; then
     say "switching (this activates the LOCAL build on this machine)…"
     activate_built "$host"
-    warn "you are now running unpushed code. When happy: commit + bench ship,"
+    record_activation "$host"
+    active_banner
+    warn "when happy: commit, land the branch via its PR, then bench ship —"
     warn "so a plain rebuild reproduces what you're running."
   else
     say "to activate it too: bench try switch"
@@ -637,7 +782,9 @@ cmd_try_batch() {
   if [ -n "$do_switch" ]; then
     say "switching (activates the COMBINED unmerged batch on this machine)…"
     activate_built "$host"
+    record_activation "$host"   # the integration trees ARE the receipt's sources
     warn "you are now running a COMBINATION of unmerged branches — none of it is on main."
+    hint "bench status will keep saying so · bench rebuild returns to the pinned build"
   fi
 
   echo
@@ -717,9 +864,14 @@ cmd_ship() {
 
 cmd_rebuild() {
   local host; host="$(host_name)"
+  local was_local=""; [ -f "$ACTIVE_FILE" ] && was_local=1
   say "pinned rebuild of $host from ${CONSUMER}…"
   (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system")
   activate_built "$host"
+  # No overrides above → what's running is exactly what the locks pin. Tearing
+  # up the receipt IS how you get back to a trustworthy `bench status`.
+  clear_activation
+  [ -n "$was_local" ] && say "back on the pinned build — the local-code warning is cleared."
   say "the house stands."
 }
 
@@ -1171,6 +1323,6 @@ case "${1:-status}" in
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi

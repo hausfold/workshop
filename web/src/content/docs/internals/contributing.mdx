@@ -59,8 +59,10 @@ hand-walking the [pin chain](/internals/flakes/#why-pins-mean-nothing-changes-un
 ./bench ship
 ```
 
-`./bench status` shows every repo's git state and every stale lock edge at a
-glance.
+`./bench status` opens with **what this Mac is actually running** — the pinned
+build, or the local branches a `try switch` put on it — then every repo's git
+state and every stale lock edge at a glance. `./bench rebuild` is always the way
+back to the pinned build.
 
 ## Parallel agents & worktrees
 
@@ -74,8 +76,16 @@ Two things matter specifically when the repo is a *family* one:
 
 - **`bench try` is worktree-aware.** Run it from inside a worktree and that repo's
   flake override points at *your branch* instead of the main checkout — so an
-  agent can prove its branch builds before anyone merges it. (`bench try switch`
-  refuses from a worktree: only the main checkouts get activated.)
+  agent can prove its branch builds before anyone merges it.
+- **`bench try switch` works from a worktree too** — that's how you feel ONE
+  unmerged branch, which [try-batch](#feel-testing-the-whole-pr-queue-try-batch)
+  can't do (it always combines the whole open-PR queue, and never sees
+  uncommitted work). The gate is on **who, not where**: an AI agent is refused a
+  worktree switch — activation is machine-wide and serial, so parallel agents
+  would silently overwrite each other — while a person at the keyboard just runs
+  it. An agent that's been asked to activate anyway sets `BENCH_AGENT_SWITCH=1`.
+  Every switch leaves a receipt `bench status` reads back, so the machine can't
+  quietly stay on a branch nobody remembers; `bench rebuild` returns to pinned.
 - **Land work through a PR — never a push or local merge into `main`.** Parallel
   agents pushing straight to `main` clobber each other; a PR is conflict-detected
   and atomic. Push the branch, open a PR with a **What / Why / Verify / Watch-out**
@@ -152,7 +162,7 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
    branches in parallel; the main checkouts never move.
 2. **test** — `./bench try` builds your real machine against the local checkouts
    (from inside a worktree, against *that* branch). `./bench try switch` activates
-   it — main checkouts only.
+   it, from a worktree too — that's how one branch gets felt on its own.
 3. **PR** — push the branch and open a PR against `main`; never push to or
    `git merge` into `main` directly.
 4. **batch-test** — `./bench try-batch` feels the whole open-PR queue in one
