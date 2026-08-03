@@ -111,8 +111,8 @@ preview of the lines around each hit.
 
 Where the text comes from depends on the pane:
 
-- **Agent panes** — the session **transcript**, not the terminal. This isn't a
-  shortcut, it's the only thing that works: Claude Code renders in the
+- **Claude Code panes** — the session **transcript**, not the terminal. This
+  isn't a shortcut, it's the only thing that works: Claude Code renders in the
   alt-screen here (`tui = "fullscreen"`), and the alt-screen has no scrollback,
   so searching the terminal grid would find only what's on screen this second.
   The transcript is also simply better — it's the whole conversation, including
@@ -120,7 +120,17 @@ Where the text comes from depends on the pane:
   `scroll_buffer_size`. The pane → transcript join is the one the
   [Links picker](/reference/keybindings/#terminal--zellij-hearth) already uses,
   maintained by the Claude statusline.
-- **Every other pane** — its full scrollback.
+- **Opencode panes** — that conversation's rows in opencode's own history
+  database, for the same reason and with the same reach. Opencode's plugin runs
+  inside the opencode server process, which is a child of the pane, so it picks
+  up the pane id exactly the way the Claude statusline does; it reports the
+  session id through `agent-state` and the overlay reads the conversation back
+  out. A pane that hasn't sent its first message yet falls back to the newest
+  session recorded against that directory.
+- **Codex panes** — scrollback, i.e. one screenful. Codex reports its pane
+  state like the others, but passes no conversation id, and the rice knows no
+  on-disk history path for it to join to.
+- **Every other pane** — its full scrollback, up to `scroll_buffer_size`.
 
 Inside the overlay: `⏎` jumps to the pane the hit came from, `^y` copies the
 matched line, `^s` flips between this-pane and every-pane (your query survives

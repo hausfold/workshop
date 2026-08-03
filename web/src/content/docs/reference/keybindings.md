@@ -81,15 +81,17 @@ cheatsheet always reflects the keys you actually have.
 | `Super ⇧C` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
 | `Ctrl ⌥⇧C` | Spawn a resident agent (this checkout) |
 
-**Find searches transcripts, not just scrollback.** In a shell pane the overlay
-searches the full scrollback. In an **agent pane** it searches that session's
-**transcript** instead — which is both necessary and better: Claude Code renders
-in the alt-screen here, and the alt-screen has no scrollback at all, so
-searching the terminal grid would only ever find what's currently on display.
-The transcript has the whole conversation, including text inside collapsed tool
-output. Inside the overlay: `⏎` jumps to the pane the hit came from, `^y` copies
-the matched line, `^s` switches between this-pane and every-pane without losing
-your query, `Esc` closes.
+**Find searches conversations, not just scrollback.** In a shell pane the
+overlay searches the full scrollback. In a **Claude Code** or **Opencode** pane
+it searches that session's stored conversation instead — which is both necessary
+and better: both render in the alt-screen, and the alt-screen has no scrollback
+at all, so searching the terminal grid would only ever find what's currently on
+display. The stored conversation has all of it, including text inside collapsed
+tool output. **Codex** panes fall back to scrollback — they report pane state
+like the others but carry no conversation id to search by. Inside the overlay:
+`⏎` jumps to the pane the hit came from, `^y` copies the matched line, `^s`
+switches between this-pane and every-pane without losing your query, `Esc`
+closes.
 
 zellij's own in-place search is still there and unchanged — `Ctrl g` to unlock,
 then `s` or `/` — for when you want matches highlighted in the real pane and
