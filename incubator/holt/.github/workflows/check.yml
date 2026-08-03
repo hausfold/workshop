@@ -1,0 +1,54 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # The suite shims `gh` and `lsof` on PATH and builds throwaway repos in a
+    # temp dir, so it needs nothing but git, Go and bats — no network, no forge
+    # auth, no real checkout. That is also why it runs on both OSes: the
+    # occupancy and reflink paths are the ones most likely to diverge.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: incubator/holt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: false          # holt has no dependencies to cache — see go.mod
+      - name: install bats
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install bats-core
+          else sudo apt-get update && sudo apt-get install -y bats; fi
+
+      - name: gofmt
+        run: test -z "$(gofmt -l ./cmd ./internal)" || { gofmt -l ./cmd ./internal; exit 1; }
+      - name: vet
+        run: go vet ./...
+
+      # PRE-0.1 GATE. The acceptance suite is the full 0.1 contract and holt does
+      # not meet all of it yet, so `score` reports rather than fails — but every
+      # remaining failure must be an UNIMPLEMENTED command, never a regression in
+      # an implemented one. The guard below enforces exactly that, and this whole
+      # step becomes a plain `make test` the day the suite goes green.
+      - name: score
+        run: make score
+      - name: no regressions in implemented commands
+        run: |
+          set -o pipefail
+          bats test/holt.bats 2>&1 | grep '^not ok' \
+            | grep -Ev '^not ok [0-9]+ (resume|new|child|spawn|reship|agent start|husk: resume|dispatch: a bare)' \
+            > /tmp/regressions || true
+          if [ -s /tmp/regressions ]; then
+            echo "a command that IS implemented broke:"; cat /tmp/regressions; exit 1
+          fi
+          echo "no regressions"

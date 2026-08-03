@@ -28,7 +28,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
 | the org's GitHub front page | `./org-profile` — the checkout of the `nebelhaus/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the flick notification compositor (quiet banners, rules, `flick` CLI) | `./incubator/flick` — **incubating**: a complete repo-to-be awaiting eject to `nebelhaus/flick` (see its `BOOTSTRAP.md`); after eject, `./flick` |
-| holt — the worktree-lifecycle substrate (`wt` extracted as its own Go product) | `./incubator/holt` — **incubating**, spec only ([`SPEC.md`](./incubator/holt/SPEC.md)). Until holt 0.1 ships, the live implementation is still `wt` in `./nebelhaus/modules/den/wt.sh`; change *behaviour* there, and record *product* decisions in the spec. |
+| holt — the worktree-lifecycle substrate (`wt` extracted as its own Go product) | `./incubator/holt` — **incubating**: a Go repo-to-be, design in [`SPEC.md`](./incubator/holt/SPEC.md), progress via `make score` against the 77-test acceptance suite ported from `wt`. Until holt 0.1 is complete the live implementation is still `wt` in `./nebelhaus/modules/den/wt.sh` — fix *behaviour* there AND port it here, or the two diverge. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
