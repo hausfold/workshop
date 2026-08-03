@@ -140,7 +140,9 @@ nebelhaus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant acr
 
 ```nix
 nebelhaus.sill.enable = true;              # false: keep the native macOS menu bar
-nebelhaus.sill.plugins = [ "elgato" ];     # opt-in extras: agents | elgato | harvest
+nebelhaus.sill.items.elgato = true;        # opt-in extras: agents | aiUsage | cpu |
+                                           # memory | volume | calendar | caffeinate |
+                                           # elgato | harvest
 ```
 
 The bar's optional plugins are personal — an Elgato Key Light toggle, a Harvest

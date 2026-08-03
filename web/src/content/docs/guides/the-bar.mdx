@@ -166,6 +166,11 @@ awake off
   It is not a bill. Nothing de-duplicates, so a resumed or forked session counts
   the messages it inherited more than once.
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
+  The light is found for you over mDNS and remembered, so one that takes a new
+  address just comes back; pin it with `nebelhaus.sill.elgato.host` if you have
+  more than one light or mDNS is unreliable on your network. A light it cannot
+  reach at all — asleep, off the wifi, flat battery — draws **dim**, which is
+  deliberately not the same as the pill's "switched off" look.
 - **`harvest`** — a [Harvest](https://www.getharvest.com/) time-tracking pill.
   It reads credentials from a file **you** provide at
   `~/.config/sketchybar/harvest_secrets.sh`.
