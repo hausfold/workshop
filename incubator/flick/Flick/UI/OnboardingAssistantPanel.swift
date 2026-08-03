@@ -273,6 +273,18 @@ struct OnboardingAssistantView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 settingsRowMock(for: finding, appName: appName)
+                // Reached by naming the app explicitly — `--all` filters these
+                // out. Say it plainly rather than letting someone scroll a
+                // list for a row macOS never puts there.
+                if !finding.hasSettingsRow {
+                    Label(
+                        "macOS doesn't list \(appName) here — there's no row to change.",
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             Text("2 · Set it to look like this")

@@ -21,10 +21,22 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
     var alertStyle: AlertStyle
     var playsSound: Bool
     var badgesIcon: Bool
+    /// The master "Allow notifications" switch. **Load-bearing**: macOS keeps
+    /// the style and sound bits at their old values when this goes off, so an
+    /// app the user silenced years ago still reads as "banners + sound" until
+    /// you check this first.
+    var allowsNotifications: Bool
+    /// False for the rows System Settings doesn't list under Application
+    /// Notifications at all — the background agents, and a few Apple apps.
+    /// There's nothing for a user to click, so pointing them at it is a
+    /// dead end.
+    var hasSettingsRow: Bool
 
     /// The whole point of the audit. True when macOS will still draw or sound
     /// this app's notifications itself.
-    var isNoisy: Bool { alertStyle != .none || playsSound }
+    var isNoisy: Bool {
+        allowsNotifications && (alertStyle != .none || playsSound)
+    }
 
     /// The summary line System Settings puts under the app's name in
     /// Application Notifications ("Badges, Sounds, and Desktop"). Rebuilt
@@ -32,6 +44,7 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
     /// look for — the per-app deep link lands on the top of the pane, not on
     /// the app, so scanning for the row is the step that actually happens.
     var settingsSubtitle: String {
+        guard allowsNotifications else { return "Off" }
         var parts: [String] = []
         if badgesIcon { parts.append("Badges") }
         if playsSound { parts.append("Sounds") }
@@ -68,13 +81,27 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
 /// user's click in System Settings, never ours), and a layout it can't make
 /// sense of degrades to "nothing to report" rather than to a wrong answer.
 ///
-/// The flag bits below are reverse-engineered, and were confirmed two
-/// independent ways before being relied on: against the long-standing
-/// community tool (`drewdiver/ncprefs.py`, itself a descendant of Jacob
-/// Salmela's NCUtil), and empirically against this machine's own 92-app
-/// preference file — where `(flags >> 3) & 0b11` took only the values 0, 1
-/// and 2 across every app, which is what a two-bit style field looks like and
-/// not what three unrelated booleans look like.
+/// The flag bits below are reverse-engineered, and none is relied on until
+/// it's been corroborated:
+///
+///   - **style and sound** — against the long-standing community tool
+///     (`drewdiver/ncprefs.py`, a descendant of Jacob Salmela's NCUtil), and
+///     empirically against a 92-app preference file where `(flags >> 3) &
+///     0b11` took only the values 0, 1 and 2 across every app: a two-bit
+///     field, not three unrelated booleans.
+///   - **allow-notifications** — against 19 apps whose real state was read
+///     straight off the System Settings pane. This one was found the
+///     expensive way: the first cut shipped without it and cheerfully told
+///     the user to silence Calendar, ghostty and Chrome, all of which they'd
+///     switched off years earlier. macOS leaves the style and sound bits
+///     frozen at their last values when the master switch goes off, so
+///     *every* audit that skips this bit over-reports.
+///
+/// Bits with plausible community mappings that the data does **not**
+/// corroborate (lock screen, time-sensitive, critical) are not read at all.
+/// One of them is instructive: the community's `TIME_SENSITIVE_APPS` list
+/// matches bit 29's set here almost exactly, which is how bit 29 was ruled
+/// *out* as the allow bit rather than adopted as it.
 enum NotificationSettingsAudit {
     private static let log = Logger(subsystem: "com.nebelhaus.flick", category: "audit")
 
@@ -90,6 +117,25 @@ enum NotificationSettingsAudit {
         static let alerts: UInt64 = 1 << 4
         static let playSound: UInt64 = 1 << 2
         static let badgeAppIcon: UInt64 = 1 << 1
+        /// "Allow notifications". Pinned against 19 apps whose real state was
+        /// read out of System Settings: 0 for all 15 showing **Off**, 1 for
+        /// three of the four showing "Badges, Sounds, and Desktop".
+        ///
+        /// The one miss is an app with `auth == 0` — never prompted, so macOS
+        /// has no decision recorded and shows it enabled-looking anyway.
+        /// Treating `auth == 0` as allowed was tried and is *worse* (it breaks
+        /// two other apps), and no second bit separates the case without
+        /// obvious overfitting, so this stays a single bit. It errs toward
+        /// under-reporting — flick stays quiet about an app it might have
+        /// nagged over — which is the right direction for a nag.
+        static let allowNotifications: UInt64 = 1 << 25
+        /// Set on rows System Settings does not list under Application
+        /// Notifications. Every app carrying it here is an Apple background
+        /// agent (tccd, PlatformSSO, the timezone notifier) plus Clock and
+        /// Shortcuts — and Clock's absence from the list is confirmed
+        /// directly. Used only to *hide* rows, so being wrong costs an
+        /// omission, never a dead end.
+        static let noSettingsRow: UInt64 = 1 << 7
     }
 
     /// The preference domain, and the file it lands in. Read through
@@ -113,7 +159,9 @@ enum NotificationSettingsAudit {
             bundleID: bundleID,
             alertStyle: style,
             playsSound: flags & Flag.playSound != 0,
-            badgesIcon: flags & Flag.badgeAppIcon != 0
+            badgesIcon: flags & Flag.badgeAppIcon != 0,
+            allowsNotifications: flags & Flag.allowNotifications != 0,
+            hasSettingsRow: flags & Flag.noSettingsRow == 0
         )
     }
 
@@ -240,12 +288,11 @@ enum NotificationSettingsAudit {
             // silently dropping it would look like the audit was broken.
             candidates = ids.compactMap { all[$0] }
         case .everything:
-            // A stock Mac holds preferences for dozens of invisible system
-            // agents — tccd, PlatformSSO, the timezone notifier — which have
-            // no row a user would recognise, no app to open, and nothing
-            // flick would ever mirror. On this machine they were 26 of 68
-            // "findings": enough noise to make `--all` useless as a worklist.
-            candidates = all.values.filter { isInstalled($0.bundleID) }
+            // A stock Mac holds preferences for dozens of things that are not
+            // apps you can act on: invisible background agents, and rows
+            // System Settings simply doesn't list. Both are dead ends for a
+            // worklist, which is the one thing `--all` is for.
+            candidates = all.values.filter { $0.hasSettingsRow && isInstalled($0.bundleID) }
         }
         return candidates
             .filter { $0.isNoisy && $0.bundleID != ownBundleID }

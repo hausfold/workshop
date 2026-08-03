@@ -92,15 +92,25 @@ notification machinery.
 
 What flick *can* do is tell you when Apple is still drawing something it's
 also drawing. `NotificationSettingsAudit` reads `com.apple.ncprefs` — the
-private domain behind that pane — and decodes three bits per app: alert style
-(banners `1<<3`, alerts `1<<4`, neither = None) and play-sound (`1<<2`). The
-layout is reverse-engineered, so it was corroborated two independent ways
-before being trusted: against the long-standing community tool
-(`drewdiver/ncprefs.py`) and empirically across a real 92-app store, where
-`(flags >> 3) & 0b11` took only the values 0/1/2 — a two-bit field, not three
-loose booleans. Bits with plausible-but-uncorroborated community meanings
-(lock screen, time-sensitive, critical) are deliberately **not** read: acting
-on them would be guessing.
+private domain behind that pane — and decodes four bits per app: alert style
+(banners `1<<3`, alerts `1<<4`, neither = None), play-sound (`1<<2`), and
+**allow-notifications (`1<<25`)**.
+
+That last one is the one that matters most, and it was learned the expensive
+way. macOS leaves the style and sound bits frozen at their last values when
+the master switch goes off, so an audit that reads only style and sound
+reports every app the user has *already* silenced — the first cut of this
+shipped exactly that bug and told the user to go turn off Calendar, ghostty
+and Chrome, all long since off. It's now pinned in `NotificationSettingsAudit
+Tests` against 19 apps whose real state was read straight off the System
+Settings pane, with the single known miss (an app never prompted for
+authorization, `auth == 0`) asserted as a miss rather than hidden.
+
+Bits with plausible-but-uncorroborated community meanings are deliberately
+**not** read. Bit 29 is the cautionary tale: it looked like a fine candidate
+for the allow bit until its set turned out to match the community's
+"time-sensitive apps" list almost exactly — corroboration is what ruled it
+out, and nothing else would have.
 
 That audit is what `flick doctor` reports and what the stepped helper panel
 (`OnboardingAssistantView.Mode.nativeBanners`) polls once a second while the
