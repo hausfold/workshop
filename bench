@@ -63,8 +63,10 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
 # trill and perch sit before nebelhaus: both are flake inputs of the rice (which
 # installs them via Nix, not Homebrew), so their lock edges ripple downstream
-# like the others.
-FAMILY=(nebelung pounce trill perch nebelhaus)
+# like the others. holt sits there too — the rice takes it as an input and ships
+# it on PATH, so a holt commit is invisible to this machine until nebelhaus's
+# lock moves, exactly like every other edge here.
+FAMILY=(nebelung pounce trill perch holt nebelhaus)
 GH_ORG="nebelhaus"
 
 # The family repos that are flake INPUTS of the rice, so `overrides()` can point
@@ -74,7 +76,7 @@ GH_ORG="nebelhaus"
 # bench builds a signed .app in your login session and injects it via the flake's
 # `prebuilt` input (see ensure_trill_dev_app / ensure_perch_dev_app), so they
 # feel-test at source level like the pure-Nix repos.
-OVERRIDABLE=(nebelung pounce trill perch nebelhaus)
+OVERRIDABLE=(nebelung pounce trill perch holt nebelhaus)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -140,6 +142,7 @@ EDGES=(
   "nebelhaus pounce pounce"
   "nebelhaus trill trill"
   "nebelhaus perch perch"
+  "nebelhaus holt holt"
   "consumer nebelhaus nebelhaus"
 )
 
@@ -206,7 +209,8 @@ overrides() { # every family input redirected at the local checkouts
         --override-input nebelhaus/nebelung path:$(local_src nebelung) \
         --override-input nebelhaus/pounce path:$(local_src pounce) \
         --override-input nebelhaus/trill path:$(local_src trill)$trill_prebuilt \
-        --override-input nebelhaus/perch path:$(local_src perch)$perch_prebuilt"
+        --override-input nebelhaus/perch path:$(local_src perch)$perch_prebuilt \
+        --override-input nebelhaus/holt path:$(local_src holt)"
 }
 
 # trill is the one family repo Nix can't build from source: it's an Xcode project
