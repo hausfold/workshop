@@ -172,6 +172,33 @@ any other session's, because a just-merged branch looks exactly like a finished
 one while its agent is still sitting in it. Only landed work that nobody is
 standing in gets removed.
 
+## When a session outran its PR: `wt reship`
+
+You merge the PR, keep talking to the agent, and it makes a few more commits.
+Those commits are now in an odd place: **the PR that covered them is closed, and
+GitHub deleted the branch's remote counterpart when it merged** — so they're
+committed, unpushed, and unreviewed, on a branch nothing is watching.
+
+`wt` never reaps such a branch (a merged PR only counts as landed when the
+branch tip is still the exact commit it merged), and it says so everywhere:
+
+- the listing marks the row **`live+3`** — three commits past the merge — and
+  prints a one-line legend under the table;
+- `wt reap` names it instead of sweeping it: `⏏ kept sparkle (nebelhaus) —
+  merged PR #12, 3 commit(s) since`;
+- the statusline shows an **orange `3^`** where it used to show `⏏`.
+
+One command clears it:
+
+```sh
+wt reship              # push this branch, open the follow-up PR
+wt reship sparkle      # …or name one, from anywhere
+```
+
+It pushes the branch (re-creating the remote GitHub deleted) and opens a PR
+against the default branch, with the commits since the merge listed in the body.
+If a PR is already open for the branch, it just pushes to it.
+
 ## Setting work aside: `wt park`, never `git stash`
 
 `git stash` looks like it belongs to the checkout you're standing in. It doesn't.
@@ -261,6 +288,7 @@ The token is one mutually-exclusive slot:
 |---|---|
 | `⏏` | branch is merged into `main` — closing the pane reaps the worktree |
 | `N^` | `N` commits on the branch, not merged yet |
+| `N^` *(orange)* | the PR merged and `N` commits landed **since** — no PR covers them, nothing is pushed. [`wt reship`](#when-a-session-outran-its-pr-wt-reship) |
 | `+A -D` | uncommitted line changes, when nothing's committed yet |
 | *(nothing)* | identical to `main` — no news is good news |
 
@@ -324,6 +352,7 @@ Claude Code falls back to its visible scrollback.
 | `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
 | `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
 | `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
+| `wt reship [name]` | The PR merged and the branch kept committing: push it and open the follow-up PR |
 | `wt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super c` runs when that client isn't Claude Code |
 | `wt create` / `wt remove` | The hooks Claude Code's `--worktree` fires — you don't call these by hand |
 | `wt agent default` | Print the configured spawn client |
