@@ -68,7 +68,9 @@ cheatsheet always reflects the keys you actually have.
 | `Super ⇧P` | New pane, stay here (inherits cwd, no worktree hop) |
 | `Super T` | New tab at `$HOME` (born named `~`) |
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
-| `Super F` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
+| `Super F` | **Find** — full-text search over the focused pane, live as you type |
+| `Super ⇧F` | The same overlay, opened across **every pane** in the session |
+| `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
 | `Super R` | Reload the terminal stack — quit/reopen Ghostty and restart zellij with the same tabs, panes and cwds; live Claude panes resume (also `zreload` from a shell) |
 | `Super Y` | yazi peek — covers the terminal window it was summoned from (floating previews; `Enter` on a dir opens a new tab there; same worktree hop as `Super P`) |
 | `Super ⇧Y` | yazi peek, stay here (no worktree hop) |
@@ -78,6 +80,20 @@ cheatsheet always reflects the keys you actually have.
 | `Super C` | Spawn an isolated agent (own worktree) in a new pane — your [`agents.default`](/reference/options/) client: Claude Code via its own `--worktree`, Codex or Opencode via `wt new` |
 | `Super ⇧C` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
 | `Ctrl ⌥⇧C` | Spawn a resident agent (this checkout) |
+
+**Find searches transcripts, not just scrollback.** In a shell pane the overlay
+searches the full scrollback. In an **agent pane** it searches that session's
+**transcript** instead — which is both necessary and better: Claude Code renders
+in the alt-screen here, and the alt-screen has no scrollback at all, so
+searching the terminal grid would only ever find what's currently on display.
+The transcript has the whole conversation, including text inside collapsed tool
+output. Inside the overlay: `⏎` jumps to the pane the hit came from, `^y` copies
+the matched line, `^s` switches between this-pane and every-pane without losing
+your query, `Esc` closes.
+
+zellij's own in-place search is still there and unchanged — `Ctrl g` to unlock,
+then `s` or `/` — for when you want matches highlighted in the real pane and
+`n`/`p` to walk them. It exits back to Locked rather than Normal.
 
 **Locked by default.** zellij boots in **Locked** input mode, so its single-key
 submode leaders (pane, tab, resize) stay inert until you press `Ctrl g` — a stray
@@ -111,9 +127,10 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 ## Ghostty note
 
 Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`,
-`⌘R`, `⌘C` and `⌘⇧C` so zellij owns them — the same keys work whether or not
-you're multiplexed. (`⌘⇧C` is unbound pre-emptively: Ghostty claims nothing there
-today, and the unbind keeps it that way if a future release does.)
+`⌘⇧F`, `⌘⏎`, `⌘R`, `⌘C` and `⌘⇧C` so zellij owns them — the same keys work
+whether or not you're multiplexed. (`⌘⇧C`, `⌘⇧F` and `⌘⏎` are unbound
+pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
+way if a future release does.)
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
 
 `⌘D` and `⌘⇧D` are unbound too, but nothing takes them over: they do **nothing**.
