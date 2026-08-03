@@ -203,5 +203,10 @@ origin and a `bench ship` that ripples a rev CI is about to supersede. Pass
 `--ship` to ripple that new lock edge downstream in the same breath; without it
 you get the nudge and decide yourself, since `ship` touches the whole family.
 
-Each repo carries its own `CLAUDE.md` with the deep rules for that boundary —
-start there when working inside one.
+Each repo carries its own `AGENTS.md` with the deep rules for that boundary —
+start there when working inside one. It's the one instruction body every client
+reads (Codex, OpenCode, Cursor, Zed, Copilot and anything else that speaks
+[agents.md](https://agents.md)); the `CLAUDE.md` beside it is a one-line
+`@AGENTS.md` import, because Claude Code reads only that filename. Rules go in
+`AGENTS.md`, never in a client's own file — the repo's `.agents/README.md` maps
+which tool reads what.
