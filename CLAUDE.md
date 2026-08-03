@@ -32,13 +32,23 @@ The repos form a chain of pinned flake inputs:
 is **invisible downstream** until each downstream `flake.lock` is updated.
 Never hand-walk that ripple; the tooling does it:
 
-- `./bench status` — shows every stale lock edge, dirty/unpushed repo, and
-  every agent worktree / unmerged `worktree-*` branch.
+- `./bench status` — leads with **what this machine is actually running**
+  (the pinned build, or the local branches a `try switch` put on it), then
+  every stale lock edge, dirty/unpushed repo, and agent worktree / unmerged
+  `worktree-*` branch.
 - `./bench try [switch]` — build/run the user's machine against the **local
   checkouts** (via `--override-input`). This is how you test WITHOUT pushing.
   Worktree-aware: run from inside an agent worktree, it substitutes that
   worktree for the repo it belongs to — so a branch can prove it builds
-  before anyone merges it. `try switch` refuses from a worktree.
+  before anyone merges it. **`try switch` works from a worktree too** — it's
+  the only way to feel ONE unmerged branch (try-batch only ever feels the
+  whole open-PR queue combined, and can't see uncommitted work at all).
+  The gate is on **who, not where**: an AI agent is refused a worktree switch
+  unless told `BENCH_AGENT_SWITCH=1`, because activation is machine-wide and
+  serial, so N parallel agents would silently overwrite each other. A person
+  at the keyboard just runs it. Every switch leaves a receipt that `bench
+  status` reads back, so the machine can never quietly be running a branch
+  nobody remembers; `bench rebuild` puts the pinned build back and clears it.
 - `./bench try-batch [switch] [repo…]` — the antidote to serial activation.
   Instead of merging a stack of ready PRs to main and *then* rebuilding to
   test them (unverified code on main before you've felt it), it merges every
@@ -111,10 +121,15 @@ points outside your toplevel):
   activates: `cmd_ship` operates on the *main* checkouts, so it ripples
   merged/released upstream work downstream — it does **not** push your unmerged
   `worktree-*` branch. Use it for the downstream lock ripple (e.g. after a
-  release moved an upstream repo's HEAD). Mid-development, `bench try switch` /
-  `darwin-rebuild switch` stay off-limits from a worktree (they'd activate
-  unmerged branch code) — but at the END of `/ship`, once the PR has merged into
-  `main`, you activate directly by `cd`-ing to the main checkout: `cd "$main" &&
+  release moved an upstream repo's HEAD). Mid-development, **activation is mine,
+  not yours** — `bench try switch` from a worktree is a fine thing to *do*, and I
+  do it to feel-test a branch, but bench refuses it to an agent (that's what
+  `BENCH_AGENT_SWITCH=1` overrides) because parallel agents each activating would
+  silently overwrite one another's machine. Build with `bench try`, then tell me
+  the exact command and let me run it — unless I've asked you to activate, in
+  which case set the variable and go. At the END of `/ship`, once the PR has
+  merged into `main`, you activate directly by `cd`-ing to the main checkout
+  (no worktree involved, so no gate): `cd "$main" &&
   bench try switch` (no pane spawned; see the ship skill's Step 7). `bench
   release` is always gated.
 - **Land your work through a PR — never a direct push or a local `git merge`
@@ -236,7 +251,7 @@ What a cloud session **can** do, and its hard limits (all found the hard way):
   `releases.nixos.org`). Sanity-check with `nix flake metadata github:NixOS/nixpkgs`:
   if it 403s with "use add_repo", the policy is still too tight for a full eval.
 - ❌ `bench try switch` / `darwin-rebuild switch` never run here — macOS only.
-  Activation is always a local, main-checkout job.
+  Activation is always a job for the local machine, at its keyboard.
 
 So cloud is for **editing + own-org lock bumps**, not for building or switching.
 
@@ -245,8 +260,10 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
 - **Verify by actually running it.** `./bench try` to build, then
   `./bench try switch` to activate on the machine — testing in prod is the
   house style, and `darwin-rebuild` is passwordless, so drive the whole loop
-  yourself (activation is main-checkouts-only; from a worktree you stop at
-  `bench try` — no `try switch` — but `bench ship` IS allowed from a worktree).
+  yourself **from a main checkout**. From an agent *worktree* you build with
+  `bench try` and stop: `try switch` there is mine to run (bench refuses it to
+  an agent — see the `try` bullet above), while `bench ship` IS allowed from a
+  worktree.
 - **Ship by default, sized to the change.** `./bench ship` pushes to GitHub.
   Small stuff — bugfixes, typos, config/theme tweaks, docs — commit, verify,
   ship, without asking; a verified fix left unpushed is a bug here. Big
@@ -276,13 +293,15 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   is in the wrong repo even if it would work. Each repo's CLAUDE.md enforces
   its own boundary — respect it from up here too.
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)
-  → **test** (`bench try`, worktree-aware) → **PR** (the worktree agent pushes
+  → **test** (`bench try`, worktree-aware — and `bench try switch` from that same
+  worktree when I want to *feel* one branch alone; that switch is mine to run)
+  → **PR** (the worktree agent pushes
   its branch and opens a PR against `main`) → **batch-test** (main checkout only:
   `bench try-batch` feels the whole review queue — every open PR — in ONE rebuild,
   main untouched; the antidote to landing unverified code) → **merge** (I review
   and merge on GitHub — or, when I say `/ship`, the agent merges its own PR with
   `gh pr merge`; either way, never a direct push or local `git merge` into `main`)
-  → **try switch** (main checkouts only) → **ship** → **release** (tagged repos
+  → **try switch** (on main, now that it holds the work) → **ship** → **release** (tagged repos
   only; CI does the rest). A single in-place agent editing the *main* checkout
   directly (the `Ctrl Alt Shift c` mode, or a plain non-worktree session) can
   still drive a small fix straight through **ship** — the PR rule exists to keep

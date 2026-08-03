@@ -396,3 +396,150 @@ Docs-Sync: 2026-07-20"
   [[ "$output" != *"docs: sync 2026-07-20"* ]]
   [[ "$output" == *"(1 commits)"* ]]            # count matches what's shown
 }
+
+# ── who is driving: the switch gate is on WHO, not WHERE ──────────────────────
+# `bench try switch` is allowed from an agent worktree (that's the only way to
+# feel-test ONE unmerged branch). What's gated is an AI agent doing it unasked,
+# because activation is machine-wide and serial.
+
+@test "agent_driving is false for a plain human shell" {
+  ( unset AI_AGENT CLAUDECODE CLAUDE_CODE_ENTRYPOINT CODEX_SANDBOX OPENCODE OPENCODE_BIN_PATH
+    run agent_driving
+    [ "$status" -ne 0 ] )
+}
+
+@test "agent_driving spots each supported agent's marker" {
+  local var
+  for var in AI_AGENT CLAUDECODE CLAUDE_CODE_ENTRYPOINT CODEX_SANDBOX OPENCODE OPENCODE_BIN_PATH; do
+    ( unset AI_AGENT CLAUDECODE CLAUDE_CODE_ENTRYPOINT CODEX_SANDBOX OPENCODE OPENCODE_BIN_PATH
+      export "$var=1"
+      run agent_driving
+      [ "$status" -eq 0 ] ) || { echo "missed marker: $var"; return 1; }
+  done
+}
+
+# ── the activation receipt: what is this machine actually running? ────────────
+
+setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
+  STATE_DIR="$TMP/state"; ACTIVE_FILE="$STATE_DIR/activated"
+  local name
+  for name in "${OVERRIDABLE[@]}"; do
+    make_repo "$name"
+    git -C "$ROOT/$name" branch -M main
+  done
+}
+
+@test "record_activation writes nothing when every source is a clean main checkout" {
+  setup_receipt
+  WT_REPO="" WT_PATH=""
+  record_activation mbp
+  [ ! -f "$ACTIVE_FILE" ]
+}
+
+@test "record_activation names the worktree branch it just activated" {
+  setup_receipt
+  git -C "$ROOT/nebelhaus" worktree add -q -b worktree-blue "$TMP/wt-blue"
+  WT_REPO="nebelhaus" WT_PATH="$TMP/wt-blue"
+  record_activation mbp
+  run cat "$ACTIVE_FILE"
+  [[ "$output" == *"nebelhaus"* ]]
+  [[ "$output" == *"worktree-blue"* ]]
+  [[ "$output" == *"$TMP/wt-blue"* ]]
+  # the untouched repos stay out of it — the receipt lists only what drifted
+  [[ "$output" != *"pounce"* ]]
+}
+
+@test "record_activation flags a dirty source tree" {
+  setup_receipt
+  git -C "$ROOT/nebelhaus" worktree add -q -b worktree-blue "$TMP/wt-blue"
+  echo scratch >"$TMP/wt-blue/uncommitted"
+  WT_REPO="nebelhaus" WT_PATH="$TMP/wt-blue"
+  record_activation mbp
+  run cat "$ACTIVE_FILE"
+  [[ "$output" == *"dirty"* ]]
+}
+
+@test "record_activation records a batch tree as the queue it stood for" {
+  setup_receipt
+  BATCH_SRC[pounce]="$TMP/batch-pounce"
+  mkdir -p "$TMP/batch-pounce"
+  record_activation mbp
+  run cat "$ACTIVE_FILE"
+  [[ "$output" == *"batch: main + open PRs"* ]]
+}
+
+@test "read_activation returns the body while the recorded system is live" {
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  current_system() { echo /nix/store/aaa-system; }
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nnebelhaus\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
+  run read_activation
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-blue"* ]]
+  [ -f "$ACTIVE_FILE" ]
+}
+
+@test "read_activation reaps the receipt once the system moved under it" {
+  # a haus rollback, a bench rebuild, or anyone else's switch — the receipt
+  # must not keep claiming a build that isn't mounted any more.
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  current_system() { echo /nix/store/bbb-system; }
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nnebelhaus\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
+  run read_activation
+  [ "$status" -ne 0 ]
+  run cat "$ACTIVE_FILE"
+  [ "$status" -ne 0 ]                       # the stale file is gone
+}
+
+@test "read_activation trusts a receipt written before system-pinning existed" {
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  current_system() { echo /nix/store/bbb-system; }
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t\nnebelhaus\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
+  run read_activation
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-blue"* ]]
+}
+
+@test "status_running says pinned when no receipt is live" {
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  run status_running
+  [[ "$output" == *"running the pinned build"* ]]
+}
+
+@test "status_running leads with the local build, and flags a reaped source" {
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  current_system() { echo /nix/store/aaa-system; }
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nnebelhaus\t%s/gone-wt\tworktree-blue\tclean\n' "$TMP" >"$ACTIVE_FILE"
+  run status_running
+  [[ "$output" == *"running LOCAL code"* ]]
+  [[ "$output" == *"worktree-blue"* ]]
+  [[ "$output" == *"(gone)"* ]]
+  [[ "$output" == *"bench rebuild"* ]]
+}
+
+@test "status_running reports WHEN the local build was activated" {
+  # regression: read_activation is consumed through $(…), so the timestamp has
+  # to travel as a line of its output — a global set in that subshell is lost.
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  current_system() { echo /nix/store/aaa-system; }
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nnebelhaus\t%s\tworktree-blue\tclean\n' "$ROOT/nebelhaus" >"$ACTIVE_FILE"
+  run status_running
+  [[ "$output" == *"2026-08-03 10:00"* ]]
+  [[ "$output" != *"unknown time"* ]]
+}
+
+@test "status_running clamps a long branch name so the columns can't shear" {
+  setup_receipt
+  mkdir -p "$STATE_DIR"
+  current_system() { echo /nix/store/aaa-system; }
+  printf 'when\tnow\nhost\tmbp\nsystem\t/nix/store/aaa-system\nnebelhaus\t%s\tworktree-an-absurdly-long-agent-branch-name\tclean\n' \
+    "$ROOT/nebelhaus" >"$ACTIVE_FILE"
+  run status_running
+  [[ "$output" == *"…"* ]]
+  [[ "$output" != *"worktree-an-absurdly-long-agent-branch-name"* ]]
+}

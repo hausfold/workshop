@@ -74,8 +74,8 @@ works.
 
 | command | what it does |
 |---------|--------------|
-| `./bench status` | git state of every repo, every lock edge (who's pinning an old rev of whom), and every release edge (is the tag users install from behind main?) |
-| `./bench try [switch]` | build (and optionally activate) your machine against the local checkouts |
+| `./bench status` | what this Mac is actually running (the pinned build, or a local branch a `try switch` put on it), git state of every repo, every lock edge (who's pinning an old rev of whom), and every release edge (is the tag users install from behind main?) |
+| `./bench try [switch]` | build (and optionally activate) your machine against the local checkouts — from inside an agent worktree too, which is how you feel ONE unmerged branch |
 | `./bench try-batch [switch]` | merge every **open PR** onto a throwaway tree per repo and build the whole queue in ONE rebuild, `main` untouched |
 | `./bench ship` | push everything in dependency order, rippling `flake.lock` updates downstream |
 | `./bench rebuild` | plain pinned rebuild of `~/.config/nix` |
