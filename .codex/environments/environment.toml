@@ -3,4 +3,4 @@ version = 1
 name = "nebelhaus"
 
 [setup]
-script = ""
+script = "bash .agents/setup.sh"
