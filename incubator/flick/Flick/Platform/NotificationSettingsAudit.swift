@@ -200,18 +200,34 @@ enum NotificationSettingsAudit {
         Bundle.main.bundleIdentifier ?? "com.nebelhaus.flick"
     }
 
+    /// Does something on this Mac actually claim this bundle id? Injectable
+    /// so `findings` stays testable without a real LaunchServices database.
+    static let bundleIsInstalled: @Sendable (String) -> Bool = { bundleID in
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
+    }
+
     /// The noisy apps in scope, worst first (alerts before banners, sound
     /// breaking ties), then alphabetical so the order is stable between runs.
-    static func findings(scope: Scope, settings: [String: NativeNotificationSettings]? = nil)
-        -> [NativeNotificationSettings]
-    {
+    static func findings(
+        scope: Scope,
+        settings: [String: NativeNotificationSettings]? = nil,
+        isInstalled: (String) -> Bool = bundleIsInstalled
+    ) -> [NativeNotificationSettings] {
         let all = settings ?? readAll()
         let candidates: [NativeNotificationSettings]
         switch scope {
         case .only(let ids):
+            // Named explicitly, so it's reported even if nothing on this Mac
+            // claims the id — an app you uninstalled still has a row, and
+            // silently dropping it would look like the audit was broken.
             candidates = ids.compactMap { all[$0] }
         case .everything:
-            candidates = Array(all.values)
+            // A stock Mac holds preferences for dozens of invisible system
+            // agents — tccd, PlatformSSO, the timezone notifier — which have
+            // no row a user would recognise, no app to open, and nothing
+            // flick would ever mirror. On this machine they were 26 of 68
+            // "findings": enough noise to make `--all` useless as a worklist.
+            candidates = all.values.filter { isInstalled($0.bundleID) }
         }
         return candidates
             .filter { $0.isNoisy && $0.bundleID != ownBundleID }

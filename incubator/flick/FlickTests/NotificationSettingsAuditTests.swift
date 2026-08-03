@@ -117,12 +117,16 @@ final class NotificationSettingsAuditTests: XCTestCase {
     }
 
     func testFindingsSkipAlreadySilentApps() {
-        let found = NotificationSettingsAudit.findings(scope: .everything, settings: fixture)
+        let found = NotificationSettingsAudit.findings(
+            scope: .everything, settings: fixture, isInstalled: { _ in true }
+        )
         XCTAssertEqual(Set(found.map(\.bundleID)), ["com.apple.iCal", "com.tinyspeck.slackmacgap"])
     }
 
     func testFindingsRankAlertsAboveBanners() {
-        let found = NotificationSettingsAudit.findings(scope: .everything, settings: fixture)
+        let found = NotificationSettingsAudit.findings(
+            scope: .everything, settings: fixture, isInstalled: { _ in true }
+        )
         XCTAssertEqual(found.first?.bundleID, "com.apple.iCal")
     }
 
@@ -138,6 +142,28 @@ final class NotificationSettingsAuditTests: XCTestCase {
             scope: .only(["com.not.installed"]), settings: fixture
         )
         XCTAssertTrue(found.isEmpty)
+    }
+
+    func testEverythingSkipsBundleIDsNothingOnThisMacClaims() {
+        // The invisible system agents: a preferences row, but no app, no
+        // recognisable System Settings entry, and nothing flick would mirror.
+        let found = NotificationSettingsAudit.findings(
+            scope: .everything,
+            settings: fixture,
+            isInstalled: { $0 != "com.apple.iCal" }
+        )
+        XCTAssertEqual(found.map(\.bundleID), ["com.tinyspeck.slackmacgap"])
+    }
+
+    func testNamedAppsAreReportedEvenWhenUninstalled() {
+        // Explicitly asked for, so answer — silently dropping it would read
+        // as the audit being broken.
+        let found = NotificationSettingsAudit.findings(
+            scope: .only(["com.apple.iCal"]),
+            settings: fixture,
+            isInstalled: { _ in false }
+        )
+        XCTAssertEqual(found.map(\.bundleID), ["com.apple.iCal"])
     }
 
     func testListedBundleIDsTakesOnlyBundleShapedSources() {

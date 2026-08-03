@@ -291,19 +291,31 @@ struct OnboardingAssistantView: View {
         }
     }
 
+    /// Past this many apps the dots stop being countable at a glance and
+    /// start being a grey smear — a stock Mac has ~68 apps macOS notifies
+    /// for, so `--all` reaches this routinely.
+    private static let dottedStepLimit = 8
+
     /// One dot per app, filled as each goes quiet. Deliberately not a
-    /// percentage or a progress bar — the list is short and countable, and a
-    /// bar would imply flick is doing the work rather than the user.
+    /// percentage or a progress bar — a short list is countable, and a bar
+    /// would imply flick is doing the work rather than the user. Long lists
+    /// drop to the count alone, which stays honest at any length.
     @ViewBuilder
     private func stepIndicator(findings: [NativeNotificationSettings]) -> some View {
         let done = findings.filter { resolved.contains($0.bundleID) }.count
         HStack(spacing: 6) {
-            ForEach(findings, id: \.bundleID) { finding in
-                let isDone = resolved.contains(finding.bundleID)
-                let isCurrent = currentFinding(in: findings)?.bundleID == finding.bundleID
-                Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
+            if findings.count <= Self.dottedStepLimit {
+                ForEach(findings, id: \.bundleID) { finding in
+                    let isDone = resolved.contains(finding.bundleID)
+                    let isCurrent = currentFinding(in: findings)?.bundleID == finding.bundleID
+                    Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 11))
+                        .foregroundStyle(isDone ? Color.green : (isCurrent ? Color.accentColor : Color.secondary.opacity(0.4)))
+                }
+            } else {
+                Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 11))
-                    .foregroundStyle(isDone ? Color.green : (isCurrent ? Color.accentColor : Color.secondary.opacity(0.4)))
+                    .foregroundStyle(done > 0 ? Color.green : Color.secondary.opacity(0.4))
             }
             Spacer()
             Text("\(done) of \(findings.count) silenced")
