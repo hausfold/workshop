@@ -12,6 +12,21 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-03 — read §5.14 first.** An audit of every open box against
+> the actual repos found **three items that had shipped and were never ticked**
+> (§5.9's rice-side `pounce.items` in rice#149, §5.12's FDA detection in rice#128,
+> §5.2's Finder sidebar in rice#181) plus one family renamed out from under the
+> whole document: **`nebelhaus.apps` is `nebelhaus.roster` since rice#182**, which
+> also shipped §5.4's multi-source install. Those are corrected below. §5.14
+> records why it drifted and what to do about it — the short version is that this
+> header is a summary and the CHECKBOXES are the source of truth, and when they
+> disagree the repo settles it.
+>
+> Also new: §5.6's first two groups shipped — `nebelhaus.hotCorners.*` and
+> `nebelhaus.screenshots.*` (rice#198), which settled that section's default
+> policy (null = write nothing, and null ≠ off) and turned up two silent failures
+> worth reading before the next group.
+>
 > **Status, 2026-08-02.** §3 (structure) and §4 (spikes) are **done**, Phase 3 is
 > mostly done, and all three reference rices pass the readiness test (§6).
 >
@@ -64,7 +79,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 |---|---|
 | "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](nebelhaus/modules/options.nix) — but 13 of those are the `sill.items` pill bools and 5 are `hush.slack.*`. The *shape* surface is more like 25. |
 | "rice sets ~19 macOS defaults" | ✅ 19 keys in [`den/default.nix:144-183`](nebelhaus/modules/den/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
-| "replace `prowl.apps` with a general app registry" | ⚠️ **Already done.** It's `nebelhaus.apps` — `attrsOf` a submodule, merges across modules, has `enable`/`order`/`cask`. Don't rebuild it; **extend** it (§3.4). |
+| "replace `prowl.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `nebelhaus.apps`; **rice#182 renamed it `nebelhaus.roster`** and grew it the multi-source install §5.4(a) asked for. `nebelhaus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
 | "add `haus plan` / `capture` / `diff` / `undo`" | ⚠️ **Partly exists in the installer.** `bootstrap.sh` has a read-only preflight audit, `NEBELHAUS_KEEP=dock,keyboard,finder` current-value capture, and cask adoption. The job is *promoting* those into `haus`, not greenfield. |
 | "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `den`+`theme`+`hearth`+`collar`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt`, `zscratch`, and a git-alias vocabulary. |
 
@@ -75,8 +90,8 @@ already exist, and one it treated as a detail is the actual root blocker.
    that's how pounce's "Install App" command writes config without a parallel
    JSON store. **This is the mechanism for a GUI-editable rice** (§3.7). It
    exists; it just needs generalizing past packages.
-2. **`nebelhaus.apps` merging means an app pack is shareable *today*.** A file
-   that only sets `nebelhaus.apps.*` composes cleanly across modules. That's a
+2. **Registry merging means an app pack is shareable *today*.** A file that only
+   sets `nebelhaus.roster.*` composes cleanly across modules. That's a
    zero-architecture v0 of the community (§6, Phase 0).
 
 ---
@@ -326,7 +341,7 @@ nebelhaus.theme = {
       `ports.meta.json` describing each one: `dest`, `install`
       (copy 42 / paste 5 / merge 5 / compile 1), how the theme is *selected*, and a
       `tier`. The rice reads that and drops the theme file for any app in
-      `nebelhaus.apps` it has a port for, in your flavor+contrast, on every rebuild.
+      your roster it has a port for, in your flavor+contrast, on every rebuild.
       Why it matters beyond theming: **this is §5.6's `reachability` designation,
       shipped as data** — the option promises the *file*, not the *effect*, because
       the metadata knows Ghostty reads a config key we own while Xcode/Warp/OBS need
@@ -412,8 +427,12 @@ contrast.
       "points" is silently coupled to `displays`, because a display mode changes
       what a point means.** Worth auditing `fonts.*.size` and prowl's gaps for the
       same interaction, and worth a line in whatever guide covers `large-print`.
-- [ ] Finder icon/sidebar size — typed and writable per the matrix, still unwired.
-      Note it needs the restart map (§4): nix-darwin restarts only Dock.
+- ◐ Finder **sidebar** size follows `ui.scale` (`NSTableViewDefaultSizeMode`,
+      rice#181); Finder **icon** size is still unwired. The same PR also gave the
+      rice its Finder restart — `killall Finder` in postActivation — because
+      Finder reads its domain once at launch and nix-darwin restarts only Dock.
+      That's the first entry in §4's restart map, written by hand rather than as
+      the map.
 - [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
       Sill's transitions directly. The macOS reduce-motion knob is locked
       (§4), so there is nothing to delegate to.
@@ -478,16 +497,33 @@ nebelhaus.fonts = {
       module, with the obvious injection question to answer first), not another
       `types.package` option.
 
-### 5.4 `nebelhaus.apps` v2 — install sources + a real workspace model · M · risk M
-The registry is good. Two concrete gaps:
+### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ◐ **(a) shipped as `roster` (rice#182), (b) untouched**
+The registry is good. Two concrete gaps — and the halves came apart: the install
+sources shipped without the workspace model, which is the right order (one is
+additive, the other is the schema migration).
 
-**(a) `cask` is the only install source.** Make it a tagged union:
+**(a) `cask` is the only install source.** ✅ **Shipped, differently than sketched.**
+rice#182 renamed `nebelhaus.apps` → **`nebelhaus.roster`** and gave each entry
+four parallel nullable source fields — `cask`, `brew`, `package` (+ `scope`),
+`appStoreId` — rather than the tagged union proposed here:
 
 ```nix
-install = { source = "homebrew-cask"; package = "obsidian"; };
-# nix-package | homebrew-cask | homebrew-formula | mas | builtin | flake | pwa | manual
+install = { source = "homebrew-cask"; package = "obsidian"; };  # NOT what shipped
 ```
-`mas` is already in `systemPackages` and unused by the registry — free win.
+
+Worth recording *why* the tagged union lost, because the reasoning generalises:
+a discriminated `{ source; package; }` reads better in a doc but is worse to
+**merge**, and merging is what a registry is for. Parallel nullable fields let
+two modules contribute to the same entry (one names the cask, another sets the
+workspace) under the module system's ordinary merge, while a tagged union makes
+every contributor restate the discriminator and turns a partial contribution
+into a type error. `installedBy` came along for the same reason — an entry needs
+to say *who* put it there once the rice itself ships bundles.
+
+Still not shipped from this sketch: the `flake` / `pwa` / `manual` sources. `mas`
+did land, gated behind `nebelhaus.appStore.install` — off by default, because it
+reaches the network and acts on your Apple Account, and `mas` can neither sign in
+nor buy a paid app, so it can never be complete.
 
 **(b) `workspace` is a *field on an app*, which bakes "one app per workspace"
 into the schema itself.** Role workspaces ("communication" = Mail + Slack +
@@ -499,12 +535,18 @@ nebelhaus.workspaces.comms = {
   apps = [ "slack" "mail" "messages" ];
 };
 ```
-…with `apps.<id>.workspace` kept as sugar that desugars into the above, so
+…with `roster.<id>.workspace` kept as sugar that desugars into the above, so
 existing hosts don't break.
 
-- [ ] Tagged-union `install`
-- [ ] First-class `workspaces`, `apps.*.workspace` becomes a back-compat alias
-- [ ] Window rules beyond assignment: `float`, `center`, `sticky`, title/role matchers
+- [x] Multi-source install — shipped as `roster`'s parallel source fields, not a
+      tagged union (see above)
+- [ ] First-class `workspaces`, `roster.*.workspace` becomes a back-compat alias.
+      **This is now the whole of §5.4, and the last unstarted Phase 3 item.**
+- [ ] Window rules beyond assignment: `float`, `center`, `sticky`, title/role
+      matchers. prowl generates assignment only (`move-node-to-workspace`); the
+      three `float` rules that exist are hardcoded in `aerospace.toml`, which is
+      the shape to generalise — and prowl still has exactly ONE option
+      (`prowl.enable`), so there is no surface to hang them on yet
 - [ ] Non-app installables the registry can't express: fonts, browser extensions,
       Quick Look / Finder / Share extensions, printers, network shares, VSTs
 
@@ -566,7 +608,7 @@ nebelhaus.keys = {
 - [ ] **Non-QWERTY is addressed but not TESTED.** `windowNav = "ctrl-alt"` exists
       precisely because ⌥+letter types accented characters on many layouts, but
       nobody has run the rice on such a layout. The launch-mode LETTERS
-      (`apps.*.key`) are still assumed to be where QWERTY puts them, which is the
+      (`roster.*.key`) are still assumed to be where QWERTY puts them, which is the
       next thing an international rice would hit.
 - [ ] **Found, not fixed** (predates this, and it's a product call): the shipped
       `everyday` preset sets `prowl.enable = false` with `tour.enable = true`, and
@@ -581,8 +623,8 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
 | Group | Notable gaps today |
 |---|---|
-| **Hot corners** | `dock.wvous-*` is typed by nix-darwin and the rice sets **none** — zero-risk, very ricer-y, ship it early |
-| **Screenshots** | folder, format, shadow, thumbnail — pure quality-of-life, all typed |
+| **Hot corners** | ✅ **`nebelhaus.hotCorners.*` — rice#198.** Action by name, not the integer macOS stores |
+| **Screenshots** | ✅ **`nebelhaus.screenshots.*` — rice#198.** Folder, format, shadow, thumbnail, date |
 | **Lock / login / screensaver** | idle lock delay, login window text, screensaver — matters for family + public-machine rices |
 | **Menu bar & Control Center** | clock format, seconds, battery %, Focus, Now Playing (only relevant when `sill.enable = false`) |
 | **Sound** | alert sound, volume feedback, startup chime (`nvram StartupMute`) — the whole audio layer is untouched |
@@ -590,6 +632,29 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 | **Power** | battery vs charger sleep, Low Power Mode, lid/docked behaviour |
 | **Security posture** | firewall, guest user, remote login, AirDrop — the "public Wi-Fi" rice |
 | **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) |
+
+The two shipped ones settled the group's **default policy**, which was the real
+open question and is worth stating once for the seven still to come: every leaf
+defaults to **null = write nothing**, and null is deliberately not the same as
+"off". Hot corners made that concrete — the machine this was developed on had
+three corners already set by hand, so a rice naming a corner it didn't care about
+would have erased one silently. A curated setting group is a place to make an
+opinion *available*, not to impose one; a preset is where an opinion belongs.
+
+They also each turned up one silent failure that reads as "the option doesn't
+work", which is the failure mode this whole section exists to avoid:
+
+- **A corner's MODIFIER is a separate key** (`wvous-*-modifier`) that nix-darwin
+  doesn't type, so a corner the rice declares inherits whatever modifier the
+  machine already had — correct corner, nothing happens, and you aren't holding
+  the key nobody mentioned. Setting a corner now clears it.
+- **`screencapture.location` is stored verbatim and the folder is not created.**
+  No `~` expansion, and a missing directory makes screencapture fall back to the
+  Desktop without a word — indistinguishable from the write being ignored.
+
+Generalising: for each remaining group, the thing to look for is not "is the key
+typed" but **"what second key or precondition makes the first one a lie"**. Both
+of these cost one probe to find and would have cost a bug report to discover.
 
 Each entry carries metadata from the §4 matrix:
 
@@ -675,14 +740,27 @@ break timer · storage pressure · NAS reachability · world clocks.
       design fork recorded there was *one schema now* vs *a key per stage*, resolved
       to one **because these ripple into `nebelhaus/modules/pounce` either way** —
       i.e. the rice-side option was a known consequence, not an afterthought.
-- [ ] **rice side, and it is the next cheap win in this section:**
-      `nebelhaus.pounce.items` (or `commands`) generating that map. Two facts decide
-      its shape: on the rice `config.json` is a **`/nix/store` symlink** (read-only,
-      so Nix is the only writer and there is no overlay/merge problem to solve),
-      while under Homebrew it is a plain writable file that a future settings UI
-      edits — so the rice must generate the *whole* map and never assume it can
-      round-trip user edits. `enabled = false` hiding a row **without** disarming its
-      hotkey is the wrinkle to name in the option description rather than paper over.
+- [x] ✅ **rice side shipped — rice#149.** `nebelhaus.pounce.items` generates that
+      map, keyed by the same `cmd:`/`app:`/`mode:` addresses, with `listed` /
+      `alias` / `caption` / `hotkey` per row. (This box sat unticked for four
+      days while the status block above already credited #149 — see §5.14.)
+      Three things about the shipped shape worth carrying:
+      **(a)** the option is named `listed`, not `enable`, precisely because of the
+      asymmetry this box predicted: pounce's `enabled = false` removes the ROW and
+      leaves the hotkey armed. Naming it `listed` makes the option say what it
+      does instead of documenting a surprise underneath a misleading name — the
+      cheaper of the two ways to handle a leaky abstraction.
+      **(b)** it validates at **eval** time what fails **silently** at runtime: a
+      key that names no real item shape (a `mode:` typo binds nothing at all),
+      and a chord already claimed by `keys.palette` or `keys.leader` (whoever
+      registers first wins, and it isn't always the same one). What it cannot
+      check is whether `cmd:<id>` names a command that exists, because command
+      scripts are discovered at runtime — so that half stayed pounce's job.
+      **(c)** the rice generates the WHOLE map and never round-trips: on the rice
+      `config.json` is a `/nix/store` symlink so Nix is the only writer, but under
+      Homebrew it's a plain writable file a future settings UI edits. Designing
+      for the read-only case and refusing to merge is what keeps those two futures
+      from needing different code.
 - [ ] Pounce command packs, with the *dev* commands moved into an opt-in pack. Now
       partly expressible without new mechanism: a pack is a set of `items.*.enabled`
       values, which is data — so "packs" may reduce to shipping preset fragments
@@ -734,9 +812,11 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
 - [ ] Model these as **`reachability = "needs-fda"`** options (§5.6's designation
       scheme), not as ordinary settings. A rice that silently behaves differently
       on two machines is exactly the failure a shared-rice format must not have.
-- [ ] `haus doctor` should **detect** FDA (strict read of an FDA-gated path — no
-      `ls` fallback, that bug cost a whole spike) and say plainly whether the
-      accessibility half of the current config can apply at all.
+- [x] ✅ **`haus doctor` detects FDA — shipped in rice#128** (`has_fda()`, a
+      strict `head -c1` read of the TCC database; no `ls` fallback, which is the
+      bug that cost a whole spike). It went further than this box asked: the same
+      predicate guards `haus rebuild`, so the warning arrives *before* the
+      activation it would abort rather than after.
 - [ ] **Do not** add options that write `com.apple.Accessibility` — that domain
       writes and does nothing. Still true, still the worst failure mode.
 - [ ] ⚠️ **Agent asymmetry:** Claude Code lacks FDA, Ghostty has it. Any of these
@@ -794,6 +874,51 @@ signal whose room is disabled.
 The hand-written authoring guide shipped in workshop#135; the generated public
 option family followed in workshop#137.
 
+### 5.14 How this doc drifts, and the one rule that fixes it
+
+Not an option family — a finding about the doc itself, recorded here because it
+cost real work. An audit on 2026-08-03 checked every open `- [ ]` in §5 against
+the actual repos. **Three had shipped and were never ticked**, and a fourth
+family had been renamed out from under the whole document:
+
+| Box | Actually shipped |
+|---|---|
+| §5.9 rice-side `pounce.items` | rice#149, 2026-07-30 |
+| §5.12 `haus doctor` detects FDA | rice#128 |
+| §5.2 Finder sidebar size | rice#181 |
+| §5.4(a) multi-source install | rice#182 — and it **renamed `nebelhaus.apps` → `nebelhaus.roster`** |
+
+The §5.9 one is the instructive case, because the doc **already knew**: the
+status block at the top credits rice#149 by number, while the checkbox 600 lines
+below still said "the next cheap win in this section". A reader picking work off
+the checkboxes — the way you actually use this file — would have rebuilt
+something that existed. That is exactly what happened.
+
+**The rule this leaves: a status-block edit is not a substitute for ticking the
+box, and the box is the source of truth.** The header summarises; the checkbox
+decides. When they disagree, believe the checkbox and then go check the repo,
+because the header is written by whoever last did a pass and the checkbox is
+written by whoever did the work.
+
+Two structural reasons this drifts more than a normal TODO list, both worth
+designing around rather than resolving to try harder:
+
+1. **The work happens in four repos and the doc lives in a fifth.** Nothing in
+   `nebelhaus`, `nebelung` or `pounce` CI can see this file, so a PR that closes
+   an item has no mechanical way to say so. Every other cross-repo seam in this
+   project got fixed by making the upstream repo emit data (`options-json`,
+   `wm-bindings-json`, `ports.meta.json` — see §7); this one is still prose on
+   both sides.
+2. **Items ship out of phase, from the app side.** §5.1's port metadata and
+   §5.9's item schema both arrived from downstream repos that wanted the data
+   structure for their own reasons — noted in Phase 4 as a good thing, and it is,
+   but it means the rice-side box goes stale without anyone in the rice touching
+   the item.
+
+The cheap mitigation, given both: **re-audit against the repos, not against
+memory, before treating any `- [ ]` as work to do.** The full pass took one
+session and would have been cheaper than the half-rebuild that prompted it.
+
 ---
 
 ## 6. Phasing
@@ -802,10 +927,15 @@ option family followed in workshop#137.
 - [x] `nebelhaus.fonts` (§5.3) — nebelhaus#91. Turned up a real bug on the way:
       sill named `Hack Nerd Font` in seven places and **nothing installed it**,
       so every fresh install had been drawing tofu across the whole bar.
-- [ ] Publish one shareable **app pack** `.nix` (only sets `nebelhaus.apps.*`) and
-      a short guide. Now cheaper than when this was written — `presets/README.md`
-      already defines the data-only format an app pack would use.
-- [ ] Hot corners + screenshot settings (§5.6) — typed, reversible, instantly felt
+- ◐ Publish one shareable **app pack** `.nix` (only sets `nebelhaus.roster.*`) and
+      a short guide. The **guide half is effectively done** —
+      `guides/sharing-a-rice.mdx` (workshop#138) defines the data-only format and
+      `guides/adding-apps.mdx` covers the four roster sources — but no importable
+      `.nix` file has been published, which is the half that makes it a *pack*.
+      `presets/` holds only whole rices.
+- [x] Hot corners + screenshot settings (§5.6) — **rice#198**. Nine leaves, all
+      defaulting to write-nothing; see §5.6 for the two silent failures they
+      turned up.
 
 **Phase 1 — structure (blocks everything else)** ✅ **done 2026-07-26**
 - [x] §3.1 split options (nebelhaus#92) — 752 → 122 lines, byte-identical derivation
@@ -849,11 +979,12 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       answer as much as progress; `flavor = "custom"` remains untouched.
 - [x] §5.5 `keys.*` (nebelhaus#108) — leader / palette / windowNav, each with a real
       `"none"`. Per-action `bindings` deferred; it wants an action vocabulary first.
-- [ ] §5.4 apps v2 + workspaces — **the last one, deliberately.** It's a schema
-      migration needing back-compat (`apps.*.workspace` desugaring into
-      `workspaces`), so it's the one item here that can break a live host, and it's
-      worth doing after the option surface stopped moving around it. Nothing else in
-      Phase 3 blocks on it.
+- ◐ §5.4 registry v2 — **half shipped, and the half left is the risky half.** The
+      multi-source install landed as `nebelhaus.roster` (rice#182). What remains is
+      `workspaces`: a schema migration needing back-compat (`roster.*.workspace`
+      desugaring into `workspaces`), so it's the one item here that can break a
+      live host, and it's worth doing after the option surface stopped moving
+      around it. Nothing else in Phase 3 blocks on it.
 - [x] §5.10 displays (nebelhaus#147) — the only working system-wide "make it
       bigger" lever, now part of `large-print`; docked multi-display validation
       remains before any `profiles.docked` design
@@ -974,6 +1105,24 @@ both bigger than the change:
    pass rather than three: the band was probed before anything was designed
    against it. **Measure the limit before deciding the option's shape.**
 
+**Re-audited 2026-08-03 against the repos rather than against this file** (§5.14
+has the method and why it was needed). Nothing in the readiness verdict moves —
+all three reference rices still pass, and the font-package format limit is still
+the one visible gap — but the count of what's *left* was overstated, and where
+the remaining work sits changed shape:
+
+- Phase 3 is closer to done than the boxes said: §5.4's install half shipped as
+  `roster`, leaving `workspaces` alone as the last Phase 3 item.
+- Phase 4 is emptier than it looks: §5.9's pounce half is fully landed on both
+  sides now, so what's left there is `sill.widgets` and command metadata.
+- Phase 5's §5.12 has its doctor half, so the accessibility line item is now
+  purely about the remaining unmeasured keys.
+- **Phase 0 is the one that's genuinely stalled**, and for a reason worth naming:
+  its remaining item (publish an importable app pack) needs no code at all — the
+  format, the guide and the four install sources all exist — which is precisely
+  why it keeps losing to items that do. It's the cheapest thing in the document
+  and has been open the longest.
+
 ---
 
 ## 7. Repo routing
@@ -987,7 +1136,8 @@ Per the workshop's routing table, this work is **not** one repo:
 | command packs, typed commands, palette-as-settings-app | `pounce` |
 | generated options reference, community rice gallery | `web` |
 
-Breaking option renames (e.g. `apps.*.workspace` → `workspaces`) couple a
+Breaking option renames (e.g. `roster.*.workspace` → `workspaces`, or the
+`apps` → `roster` rename itself in rice#182) couple a
 consumer lock-bump and a config edit into one PR — `bench ship` can't split
 them without breaking main mid-ripple.
 
