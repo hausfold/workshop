@@ -26,6 +26,12 @@ Notification Center with perfect compatibility."
   Motion respected; redacted privacy level.
 - Inbox window + minimal settings (login item, persistence, provider
   health, deep links to Apple's Notification/Focus settings).
+- `flick doctor [--all] [--notify] [--json]`: reads Apple's per-app
+  notification preferences read-only and reports the listed apps macOS
+  still banners or sounds itself (exit 4 when any). `--notify` reports as
+  banners whose one action opens a stepped helper panel beside System
+  Settings — animated, live-polled, one app at a time. flick never writes
+  another app's settings.
 
 ### M2 — rules that earn the name
 
@@ -78,6 +84,15 @@ retry/logs — capability-advertised per provider, never generic promises.
 11. Toggle "keep history" off: no new rows in flick.db (and no other file
     grows) while banners keep working.
 12. No sound plays for any event, including critical.
+13. Tick **Desktop** and **Play sound** for an app in System Settings, then
+    run `flick doctor --all`: it names that app and exits 4. Run
+    `flick doctor --notify` and click the banner: System Settings opens with
+    the helper beside it, showing that app's row to look for. Untick Desktop
+    and turn the sound off — the panel ticks it off within a second,
+    unprompted, and closes. `flick doctor` now exits 0. Nothing flick did
+    wrote the setting.
+14. Switch an app's "Allow notifications" off entirely: `flick doctor` stops
+    naming it, even though its Desktop and sound bits are still set.
 
 ## Non-goals (v1)
 

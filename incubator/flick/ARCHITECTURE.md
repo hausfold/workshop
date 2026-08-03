@@ -8,8 +8,12 @@
    broken pipeline. Supervision re-probes with capped backoff.
 3. Provider-native types stop at the provider boundary; everything past it
    is `NotificationEvent`.
-4. The Apple-owned `usernoted` store is opened read-only or not at all, and
-   only when its schema probe passes.
+4. Apple-owned stores — the `usernoted` db and the `com.apple.ncprefs`
+   preference domain — are read-only or not at all: the former only when its
+   schema probe passes, the latter decoding defensively and degrading to
+   "nothing to report" rather than to a wrong answer. flick never writes
+   either, so it can never quietly change a setting the user believes only
+   they control.
 5. Banner state lives in `BannerQueue`; panels are disposable and rebuilt on
    every display-topology change without event loss.
 6. Banners never take key focus and never make sound.
@@ -85,6 +89,42 @@ a Focus profile (owned by the rice) silences Apple's rendering while
 providers still see events; flick deep-links to Notification and Focus
 settings via `SystemIntegration` — the one file allowed to touch Apple's
 notification machinery.
+
+What flick *can* do is tell you when Apple is still drawing something it's
+also drawing. `NotificationSettingsAudit` reads `com.apple.ncprefs` — the
+private domain behind that pane — and decodes four bits per app: the on-screen
+alert (`1<<3` Temporary, `1<<4` Persistent, neither = the **Desktop** checkbox
+is clear), play-sound (`1<<2`), and **allow-notifications (`1<<25`)**.
+
+macOS 26 (Tahoe) reshaped the pane without moving the bits: the old
+None/Banners/Alerts radio became a Desktop checkbox plus a
+Temporary/Persistent choice that only applies while Desktop is ticked. Worth
+knowing because the helper *demonstrates* those controls — a demo miming a
+radio button that no longer exists is worse than no demo, so the vocabulary in
+`DesktopAlert` deliberately tracks the pane rather than the bit names.
+
+That last one is the one that matters most, and it was learned the expensive
+way. macOS leaves the style and sound bits frozen at their last values when
+the master switch goes off, so an audit that reads only style and sound
+reports every app the user has *already* silenced — the first cut of this
+shipped exactly that bug and told the user to go turn off Calendar, ghostty
+and Chrome, all long since off. It's now pinned in `NotificationSettingsAudit
+Tests` against 19 apps whose real state was read straight off the System
+Settings pane, with the single known miss (an app never prompted for
+authorization, `auth == 0`) asserted as a miss rather than hidden.
+
+Bits with plausible-but-uncorroborated community meanings are deliberately
+**not** read. Bit 29 is the cautionary tale: it looked like a fine candidate
+for the allow bit until its set turned out to match the community's
+"time-sensitive apps" list almost exactly — corroboration is what ruled it
+out, and nothing else would have.
+
+That audit is what `flick doctor` reports and what the stepped helper panel
+(`OnboardingAssistantView.Mode.nativeBanners`) polls once a second while the
+user works in System Settings. The panel is the Full Disk Access assistant's
+shape reused wholesale — non-activating, all-Spaces, deterministic height —
+because the constraint is identical: be readable *beside* System Settings
+without taking its focus.
 
 ## Planned extensions that fit existing seams
 

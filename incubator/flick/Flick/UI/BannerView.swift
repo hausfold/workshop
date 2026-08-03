@@ -36,6 +36,22 @@ struct BannerView: View {
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }
+                    // The banner body is the click target (`performDefault`
+                    // runs the first action), so a single-action event needs
+                    // to *say* what clicking does — otherwise the action is
+                    // real but invisible. Rides the existing row rather than
+                    // adding a button row: the banner's height is fixed.
+                    if let action = event.actions.first, event.actions.count == 1 {
+                        Text(action.label)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.tint)
+                            .lineLimit(1)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(
+                                Capsule().fill(Color.accentColor.opacity(0.14))
+                            )
+                    }
                     Spacer(minLength: 0)
                     if hovering {
                         Button(action: onDismiss) {

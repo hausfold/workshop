@@ -44,6 +44,25 @@ never into a broken pipeline. Corollaries:
   with a visible reason on any drift. It is opt-in, experimental, and the
   app must stay fully useful without it. No usernoted type or column name
   may appear outside `Providers/SystemMirror/`.
+- **flick reads Apple's settings; it never writes them.** `flick doctor` and
+  the "Silence Native Banners" helper decode the private
+  `com.apple.ncprefs` domain read-only (`Platform/NotificationSettingsAudit`)
+  to say which apps macOS still banners or sounds itself. Opening the pane
+  and animating the two clicks is the whole offer — do **not** add a "fix it
+  for me" that writes that plist, however easy it looks. Only the three
+  corroborated bits are read (on-screen alert `1<<3`/`1<<4`, sound `1<<2`, and
+  **allow-notifications `1<<25`**); don't extend to bits whose meaning is
+  folklore, and if you must, corroborate against real data first and say so in
+  the comment. **Never read style or sound without checking `1<<25` first** —
+  macOS freezes those bits at their last values when the master switch goes
+  off, so skipping it reports every app the user already silenced. That bug
+  shipped once. Bit 29 is the counter-example worth remembering: it looked
+  like the allow bit until its set turned out to be the community's
+  "time-sensitive apps" list. And when you touch the helper's demo, **check
+  the pane on the current macOS first** — Tahoe replaced None/Banners/Alerts
+  with a Desktop checkbox plus Temporary/Persistent, and the demo shipped once
+  miming controls that no longer existed. The bits didn't move; the words did,
+  and the words are the whole product here.
 - **The queue is the truth; panels are disposable.** Display topology
   rebuilds re-render from `BannerQueue` state. Never park event state in a
   panel or view.

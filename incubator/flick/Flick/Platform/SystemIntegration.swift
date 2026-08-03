@@ -167,12 +167,23 @@ enum SystemIntegration {
         )
     }
 
-    /// Launch the app-migration assistant for a given app (turn Apple's
-    /// native banners off for it once flick is rendering them instead).
-    static func presentAppMigrationAssistant(for bundleID: String, appName: String, onDismiss: (() -> Void)? = nil) {
-        openNotificationSettings(for: bundleID)
+    /// Walk the user through turning Apple's own banners and sounds off for
+    /// the apps an audit flagged — the same floating-panel-beside-System-
+    /// Settings shape the Full Disk Access flow uses.
+    ///
+    /// flick opens the pane and stands next to it; it never writes the
+    /// setting. There is no public API to change another app's notification
+    /// preferences, and the private store this reads is opened read-only on
+    /// purpose (see `NotificationSettingsAudit`) — quietly rewriting a pane
+    /// the user believes only they control is not a trade this app makes.
+    static func presentNativeBannerAssistant(
+        findings: [NativeNotificationSettings],
+        onDismiss: (() -> Void)? = nil
+    ) {
+        guard let first = findings.first else { return }
+        openNotificationSettings(for: first.bundleID)
         OnboardingAssistantPanelController.shared.present(
-            mode: .appMigration(bundleID: bundleID, appName: appName),
+            mode: .nativeBanners(findings: findings),
             onDismiss: onDismiss
         )
     }
