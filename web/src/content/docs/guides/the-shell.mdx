@@ -78,7 +78,9 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super ⇧P` | New pane, **stay here** — inherits cwd with no hop, so you get a shell right inside the worktree |
 | `Super T` | New tab at `$HOME` — born named `~` (fresh tabs are never `Tab #N`) |
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
-| `Super F` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
+| `Super F` / `Super /` | **Find** — full-text search over the focused pane, live as you type (see [Finding things](#finding-things)) |
+| `Super ⇧/` | The same overlay, across **every pane** in the session |
+| `Super ⏎` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super R` | **Reload the terminal stack** — gracefully quit/reopen Ghostty, then start a fresh zellij server with the same tabs, panes and working directories; live Claude Code panes resume their exact conversations |
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
@@ -99,6 +101,37 @@ stops before quitting Ghostty or deleting the session.
 A custom zellij link handler means <kbd>Option</kbd>-clicking a file path in the
 terminal opens a **new tab already `cd`'d there**. Great for jumping into a path
 a build tool just printed.
+</Aside>
+
+### Finding things
+
+`⌘F` (or `⌘/`) opens a floating search overlay for the focused pane; `⌘⇧/`
+opens the same overlay across every pane in the session. Results appear as you
+type, with a preview of the lines around each hit.
+
+Where the text comes from depends on the pane:
+
+- **Agent panes** — the session **transcript**, not the terminal. This isn't a
+  shortcut, it's the only thing that works: Claude Code renders in the
+  alt-screen here (`tui = "fullscreen"`), and the alt-screen has no scrollback,
+  so searching the terminal grid would find only what's on screen this second.
+  The transcript is also simply better — it's the whole conversation, including
+  text inside collapsed tool output, and it isn't capped by
+  `scroll_buffer_size`. The pane → transcript join is the one the
+  [Links picker](/reference/keybindings/#terminal--zellij-hearth) already uses,
+  maintained by the Claude statusline.
+- **Every other pane** — its full scrollback.
+
+Inside the overlay: `⏎` jumps to the pane the hit came from, `^y` copies the
+matched line, `^s` flips between this-pane and every-pane (your query survives
+the switch), `Esc` closes.
+
+<Aside type="note" title="zellij's own search is still there">
+This doesn't replace `Ctrl g` → `s` (or `/`). Native search is the only thing
+that highlights matches **in place** and walks them with `n` / `p` inside the
+real pane, which is nicer for a shell you're already reading — it just can't see
+an alt-screen agent pane, which is why the overlay exists next to it rather than
+instead of it. Its exits now return you to **Locked**, not Normal.
 </Aside>
 
 ### Layouts
