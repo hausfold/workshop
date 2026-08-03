@@ -406,6 +406,63 @@ is already running as root, so it neither prompts nor wedges.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
+## nebelhaus.apps
+
+The apps the rice picks for you, and the file types they claim — the ones a finished machine has rather than the ones a room needs to work. Each is one switch you can turn off; what it installs is a roster entry like any other, so you can retune or replace it by app id.
+
+### `nebelhaus.apps.videoPlayer.claimFileTypes`
+
+`boolean` · default `true`
+
+Make IINA the default handler for the everyday video extensions —
+mp4, m4v, mov, mpg, mpeg, mkv, webm, avi, wmv, flv, 3gp, ogv, vob —
+so double-clicking a video opens IINA instead of QuickTime Player, TV
+or a browser. Ignored unless the player is installed.
+
+A short list on purpose: it covers what you actually double-click,
+not everything IINA can decode. Dead, professional and DRM'd
+containers (qt, divx, asf, f4v, 3g2, ogm, rm, rmvb, mxf, dv, …) are
+left alone — they still play via Open With, they just don't get the
+default, and every extension the rice claims is a binding it
+re-asserts on every rebuild.
+
+Video only. Audio (mp3, flac, m4a, wav, …), `.gif` and playlists
+keep whatever owns them today, since "open videos in IINA" rarely
+means "and my music library too". The transport-stream extensions
+`.ts`, `.mts` and `.m2ts` are excluded too: on a developer's machine
+they are TypeScript far more often than video, and
+`nebelhaus.hearth.hijackFileAssociations` claims them for the editor.
+Claiming them here as well made macOS stop and ask which app should
+win on every single rebuild, because `.mts` and `.m2ts` share one
+UTI.
+
+This sets the USER default (via `duti`) — the same record Finder's
+Get Info ▸ Change All writes, so it is undoable by hand. Set false to
+install the app and leave every association alone.
+
+<small>Declared in [`modules/apps/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/apps/options.nix).</small>
+
+### `nebelhaus.apps.videoPlayer.enable`
+
+`boolean` · default `true`
+
+Install IINA — the rice's video player — as the roster entry `iina`.
+A nixpkgs build, so it lands in ~/Applications/Home Manager Apps
+rather than /Applications.
+
+On by default: macOS ships QuickTime Player, which refuses most of
+what you actually double-click (mkv, webm, and anything not in
+Apple's codec list), so "a video player that plays videos" is part
+of what the rice considers a finished machine.
+
+Set false and nothing is installed or rebound — bring your own
+player via the pounce "Install App" palette command or a roster
+entry. Once on it is a roster entry like any other: give it a leader
+letter with `nebelhaus.roster.iina.key`, or pin a different build
+with `nebelhaus.roster.iina.package`.
+
+<small>Declared in [`modules/apps/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/apps/options.nix).</small>
+
 ## nebelhaus.theme
 
 Colour and wallpaper.
@@ -877,7 +934,7 @@ Which coding-agent clients this machine installs, and which one the agent keybin
 `list of (one of "claude", "codex", "opencode")` · see below
 
 Which coding-agent clients to install. `claude` is Claude Code, `codex`
-is OpenAI Codex, `opencode` is OpenCode. The ⌘C terminal binding starts
+is OpenAI Codex, `opencode` is OpenCode. The ⌘A terminal binding starts
 whichever one `agents.default` names — Claude Code through its own
 `--worktree` hook, the others through `wt new`.
 
@@ -912,7 +969,7 @@ Example:
 `one of "claude", "codex", "opencode"` · default `"claude"`
 
 The coding agent started by Pounce's **Spawn Agent** commands, by the
-⌘C / Super-c zellij binds and the `c` shell alias, and used to reopen
+⌘A / Super-a zellij binds and the `c` shell alias, and used to reopen
 worktrees with no client recorded yet. Each spawned worktree records its
 own client, so changing this affects new work but never reopens an
 existing Codex or OpenCode task in Claude.
@@ -920,7 +977,7 @@ existing Codex or OpenCode task in Claude.
 Must be one of `agents.clients` — see there.
 
 Only `claude` can make its own worktree (its native `--worktree` flag,
-which fires the `wt` create hook); for `codex` and `opencode` ⌘C runs
+which fires the `wt` create hook); for `codex` and `opencode` ⌘A runs
 `wt new` instead, producing the same checkout, branch and registry entry
 from the outside. Resuming follows the client too: `codex` reopens its
 cwd-filtered `codex resume` picker, `opencode` continues its latest
@@ -928,7 +985,7 @@ session for that cwd. All three share one `wt` branch/parking/reap
 lifecycle, and all three light up the `agents` bar pill and the zellij
 tab-bar badge — the opencode plugin and the codex hooks are written for
 you; only Claude Code's stay yours to wire, because Claude owns its own
-settings.json (see `nebelhaus.sill.plugins`).
+settings.json (see `nebelhaus.sill.items.agents`).
 
 Example:
 
@@ -1213,8 +1270,8 @@ stop reaching whatever owned them inside a terminal. The surface is
 small now that the workspace throws moved to the leader: only hjkl,
 `/` `,`, `f`, `⇥`, `⇧⇥` and `⇧;`, none of which a roster letter can
 land on. (Under "ctrl-alt" that used to bite — the throws were `⌃⌥⇧` +
-an app's roster letter, so an app on `c` silently ate hearth's zellij
-`Ctrl Alt Shift c` in-place-agent bind. That collision is gone.)
+an app's roster letter, so an app on `a` silently ate hearth's zellij
+`Ctrl Alt Shift a` in-place-agent bind. That collision is gone.)
 Nothing on a stock macOS collides either: the only ⌃⌥ system hotkeys
 are input-source switching (⌃⌥Space, off by default) and hyper-F13.
 
@@ -1302,6 +1359,29 @@ Example:
 
 ```nix
 "compact"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+
+### `nebelhaus.sill.elgato.host`
+
+`string` · default `""`
+
+Which Elgato Key Light the `elgato` pill toggles — a hostname or IP,
+optionally with a `:port` (the light's HTTP API is on 9123).
+
+Empty (the default) means discover it: the pill browses mDNS for
+`_elg._tcp`, caches what it found in
+`~/.local/state/nebelhaus/elgato-host`, and re-browses at most once a
+minute whenever the light stops answering — so a light that took a new
+DHCP address comes back on its own, without a rebuild. Pin this when
+you have more than one light, when the light has a static lease, or
+when mDNS is unreliable on your network.
+
+Example:
+
+```nix
+"elgato-key-light-mini-57a3.local"
 ```
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
@@ -1415,7 +1495,7 @@ Total CPU load, as a percentage pill.
 
 `boolean` · default `false`
 
-Toggles an Elgato Key Light on the local network.
+Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `nebelhaus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 

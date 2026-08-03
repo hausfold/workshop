@@ -25,7 +25,7 @@ branch out from under the other, uncommitted edits collide, and closing a pane
 mid-thought can lose work. `wt` fixes both by giving **every agent its own
 checkout**.
 
-Press **`Super c` (⌘C)** in any repo's terminal tab and the rice spawns a fresh
+Press **`Super a` (⌘A)** in any repo's terminal tab and the rice spawns a fresh
 Claude Code session in an **isolated git worktree**:
 
 - its own checkout on a `worktree-<name>` branch, branched from the repo's local
@@ -35,13 +35,13 @@ Claude Code session in an **isolated git worktree**:
 - so any number of agents can hack in parallel without ever touching each
   other's branch — or yours.
 
-**`Super ⇧c` (⌘⇧C)** spawns exactly the same isolated agent, but **in place of
+**`Super ⇧a` (⌘⇧A)** spawns exactly the same isolated agent, but **in place of
 the focused pane** instead of splitting a new one beside it — for when the tab is
 already as subdivided as you want it and the pane you're looking at has done its
 job. The pane it replaces is only *suspended*, never killed: quit the agent and
 your shell comes back, focused, scrollback intact.
 
-`Ctrl Alt Shift c` is the resident variant: the one agent per tab that's allowed
+`Ctrl Alt Shift a` is the resident variant: the one agent per tab that's allowed
 to edit the checkout you're actually looking at.
 
 Prefer the launcher? **Spawn Agent** in Pounce (`⌘Space`, type "spawn") does the
@@ -54,7 +54,7 @@ into that repo's tab. Naming the branch from the prompt is the whole point; the
 palette is just the shortest path to it.
 
 <Aside type="tip" title="Closing a pane never loses work">
-When you close a `Super c` pane, the rice doesn't just delete the checkout. Any
+When you close a `Super a` pane, the rice doesn't just delete the checkout. Any
 uncommitted edits are first parked as a `wip:` commit on the branch, then the
 checkout is removed. **Only branches whose work has already merged get reaped** —
 everything unmerged survives on its branch, and the agent transcript survives
@@ -103,9 +103,9 @@ nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
 changes **new** spawns: a parked Codex task still reopens through `codex resume`,
 and an OpenCode task through `opencode --continue`.
 
-The option drives the ⌘C keybinds and the `c` shell alias too. Only Claude Code
+The option drives the ⌘A keybinds and the `c` shell alias too. Only Claude Code
 can make its own worktree (its native `--worktree` flag, which fires `wt`'s
-create hook); for Codex and OpenCode, ⌘C runs **`wt new`** instead — the same
+create hook); for Codex and OpenCode, ⌘A runs **`wt new`** instead — the same
 checkout, branch, registry entry and parent session, made from the outside.
 
 A separate option says which clients are **installed**:
@@ -353,7 +353,7 @@ Claude Code falls back to its visible scrollback.
 | `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
 | `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
 | `wt reship [name]` | The PR merged and the branch kept committing: push it and open the follow-up PR |
-| `wt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super c` runs when that client isn't Claude Code |
+| `wt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super a` runs when that client isn't Claude Code |
 | `wt create` / `wt remove` | The hooks Claude Code's `--worktree` fires — you don't call these by hand |
 | `wt agent default` | Print the configured spawn client |
 

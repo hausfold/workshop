@@ -83,7 +83,7 @@ CLAUDE.md](https://github.com/nebelhaus/nebelhaus/blob/main/CLAUDE.md) and the
 
 ## Agent worktrees (parallel agent sessions)
 
-Agent panes spawned with `Super c` (⌘C) run whichever client
+Agent panes spawned with `Super a` (⌘A) run whichever client
 `nebelhaus.agents.default` names — `claude`, `codex` or `opencode`. Claude Code
 is the only one that can make its own worktree (`claude --worktree`, which fires
 `wt`'s create hook); for Codex and OpenCode the keybind runs **`wt new`**
@@ -96,7 +96,7 @@ session gets its own checkout under `~/.cache/claude-worktrees/<repo>/<name>`
 rice, not `bench`, because the rice already ships the agent keybinds — and not
 every machine running `wt` has the workshop. Worktrees live OUTSIDE the repos so
 trees stay clean and `bench try`'s `path:` overrides never swallow them. (`Ctrl
-Alt Shift c` is the in-place variant: the one agent per tab allowed to edit the
+Alt Shift a` is the in-place variant: the one agent per tab allowed to edit the
 real checkout.)
 
 **Closing a pane never loses work, and every session is resumable.** `wt`'s
@@ -321,7 +321,7 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   `gh pr merge`; either way, never a direct push or local `git merge` into `main`)
   → **try switch** (on main, now that it holds the work) → **ship** → **release** (tagged repos
   only; CI does the rest). A single in-place agent editing the *main* checkout
-  directly (the `Ctrl Alt Shift c` mode, or a plain non-worktree session) can
+  directly (the `Ctrl Alt Shift a` mode, or a plain non-worktree session) can
   still drive a small fix straight through **ship** — the PR rule exists to keep
   *parallel* branches from clobbering each other, not to gate a lone editor on
   main; features pause for the user before ship; **release** always waits for

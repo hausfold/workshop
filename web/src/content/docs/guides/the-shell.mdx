@@ -63,8 +63,9 @@ nebelhaus.git.shellAliases = {
 Launching Ghostty drops you straight into a persistent zellij session called
 `main`. New panes and tabs inherit your working directory. A few conveniences:
 
-- Ghostty's `⌘T`, `⌘P`, `⌘Y`, `⌘C` and friends are **unbound** on purpose —
+- Ghostty's `⌘T`, `⌘P`, `⌘Y`, `⌘A` and friends are **unbound** on purpose —
   zellij owns those, so the same keys work whether or not you're multiplexed.
+  (`⌘C` is **not** one of them — it stayed with Ghostty as copy.)
 - `Ctrl-Tab` / `Ctrl-Shift-Tab` walk your tabs in **most-recently-used order**,
   browser-style — one tap bounces between your two hottest tabs; keep tapping
   to go further back. (Ghostty forwards the kitty-protocol encoding so zellij
