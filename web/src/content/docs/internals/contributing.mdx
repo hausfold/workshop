@@ -69,7 +69,7 @@ back to the pinned build.
 nebelhaus is built to be hacked on by several [Claude Code](https://claude.com/claude-code)
 agents at once. Each agent runs in its own **git worktree** — an isolated checkout
 on a `worktree-<name>` branch, living outside the repo — so agents never yank the
-branch out from under each other. That whole mechanism (spawning with `Super c`,
+branch out from under each other. That whole mechanism (spawning with `Super a`,
 never losing work when a pane closes, resuming a parked session, the statusline
 HUD) is the rice's [`wt` tool](/guides/claude-agents/), and it works for any repo.
 Two things matter specifically when the repo is a *family* one:
@@ -158,7 +158,7 @@ the launchd handoff.
 hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
-1. **hack** — edit in place, or let `Super c` agents draft on `worktree-*`
+1. **hack** — edit in place, or let `Super a` agents draft on `worktree-*`
    branches in parallel; the main checkouts never move.
 2. **test** — `./bench try` builds your real machine against the local checkouts
    (from inside a worktree, against *that* branch). `./bench try switch` activates

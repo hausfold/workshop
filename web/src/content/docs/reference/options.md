@@ -934,7 +934,7 @@ Which coding-agent clients this machine installs, and which one the agent keybin
 `list of (one of "claude", "codex", "opencode")` · see below
 
 Which coding-agent clients to install. `claude` is Claude Code, `codex`
-is OpenAI Codex, `opencode` is OpenCode. The ⌘C terminal binding starts
+is OpenAI Codex, `opencode` is OpenCode. The ⌘A terminal binding starts
 whichever one `agents.default` names — Claude Code through its own
 `--worktree` hook, the others through `wt new`.
 
@@ -969,7 +969,7 @@ Example:
 `one of "claude", "codex", "opencode"` · default `"claude"`
 
 The coding agent started by Pounce's **Spawn Agent** commands, by the
-⌘C / Super-c zellij binds and the `c` shell alias, and used to reopen
+⌘A / Super-a zellij binds and the `c` shell alias, and used to reopen
 worktrees with no client recorded yet. Each spawned worktree records its
 own client, so changing this affects new work but never reopens an
 existing Codex or OpenCode task in Claude.
@@ -977,7 +977,7 @@ existing Codex or OpenCode task in Claude.
 Must be one of `agents.clients` — see there.
 
 Only `claude` can make its own worktree (its native `--worktree` flag,
-which fires the `wt` create hook); for `codex` and `opencode` ⌘C runs
+which fires the `wt` create hook); for `codex` and `opencode` ⌘A runs
 `wt new` instead, producing the same checkout, branch and registry entry
 from the outside. Resuming follows the client too: `codex` reopens its
 cwd-filtered `codex resume` picker, `opencode` continues its latest
@@ -1270,8 +1270,8 @@ stop reaching whatever owned them inside a terminal. The surface is
 small now that the workspace throws moved to the leader: only hjkl,
 `/` `,`, `f`, `⇥`, `⇧⇥` and `⇧;`, none of which a roster letter can
 land on. (Under "ctrl-alt" that used to bite — the throws were `⌃⌥⇧` +
-an app's roster letter, so an app on `c` silently ate hearth's zellij
-`Ctrl Alt Shift c` in-place-agent bind. That collision is gone.)
+an app's roster letter, so an app on `a` silently ate hearth's zellij
+`Ctrl Alt Shift a` in-place-agent bind. That collision is gone.)
 Nothing on a stock macOS collides either: the only ⌃⌥ system hotkeys
 are input-source switching (⌃⌥Space, off by default) and hyper-F13.
 

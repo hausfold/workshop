@@ -77,9 +77,9 @@ cheatsheet always reflects the keys you actually have.
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt [` / `Alt ]` | Cycle swap layouts (grid → spiral → columns) — works locked too |
-| `Super C` | Spawn an isolated agent (own worktree) in a new pane — your [`agents.default`](/reference/options/) client: Claude Code via its own `--worktree`, Codex or Opencode via `wt new` |
-| `Super ⇧C` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
-| `Ctrl ⌥⇧C` | Spawn a resident agent (this checkout) |
+| `Super A` | Spawn an isolated agent (own worktree) in a new pane — your [`agents.default`](/reference/options/) client: Claude Code via its own `--worktree`, Codex or Opencode via `wt new` |
+| `Super ⇧A` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
+| `Ctrl ⌥⇧A` | Spawn a resident agent (this checkout) |
 
 **Find searches conversations, not just scrollback.** In a shell pane the
 overlay searches the full scrollback. In a **Claude Code** or **Opencode** pane
@@ -129,10 +129,19 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 ## Ghostty note
 
 Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`,
-`⌘⇧F`, `⌘⏎`, `⌘R`, `⌘C` and `⌘⇧C` so zellij owns them — the same keys work
-whether or not you're multiplexed. (`⌘⇧C`, `⌘⇧F` and `⌘⏎` are unbound
+`⌘⇧F`, `⌘⏎`, `⌘R`, `⌘A` and `⌘⇧A` so zellij owns them — the same keys work
+whether or not you're multiplexed. (`⌘⇧A`, `⌘⇧F` and `⌘⏎` are unbound
 pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
 way if a future release does.)
+
+`⌘C` is the one that stayed with **Ghostty**: it copies. The agent binds lived on
+`⌘C`/`⌘⇧C` back when Claude Code was the only client they could start; moving
+them to `⌘A` (*a* for agent, and it starts whichever client `agents.default`
+names) handed `⌘C` back to meaning what it means everywhere else. Day to day you
+still won't press it — zellij copies a mouse selection to the clipboard the
+moment you release it — but a `⇧`-drag makes a Ghostty-level selection, and `⌘C`
+copies that.
+
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
 
 `⌘D` and `⌘⇧D` are unbound too, but nothing takes them over: they do **nothing**.

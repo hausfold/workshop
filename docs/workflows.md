@@ -42,7 +42,7 @@ real machine config against the **local checkouts**, uncommitted edits and all:
 
 ## Parallel Claude agents
 
-`Super c` (⌘C) in any repo tab spawns a Claude session in its **own git
+`Super a` (⌘A) in any repo tab spawns a Claude session in its **own git
 worktree** — own checkout, own `worktree-*` branch, branched from local HEAD — so
 agents never yank the branch out from under each other, or you. The worktrees
 live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>`.
@@ -51,11 +51,11 @@ Claude Code's `WorktreeCreate` / `WorktreeRemove` hooks (in
 `~/.claude/settings.json`) delegate to `wt create` / `wt remove` — the standalone
 `wt` tool that ships in the rice (`nebelhaus/modules/den`), **not** a `bench`
 command. That's what keeps `git status` and `bench try`'s overrides clean.
-`Ctrl Alt Shift c` spawns the one agent allowed to edit the checkout you're
+`Ctrl Alt Shift a` spawns the one agent allowed to edit the checkout you're
 looking at.
 
 ```sh
-# Super-c (⌘C) panes hack away on their own branches; meanwhile:
+# Super-a (⌘A) panes hack away on their own branches; meanwhile:
 ./bench status               # …also lists agent worktrees + unmerged worktree-* branches
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
@@ -187,7 +187,7 @@ flag set in the rice's `CLAUDE.md`
 hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
-1. **hack** — edit in place, or let `Super c` (⌘C) agents draft on `worktree-*`
+1. **hack** — edit in place, or let `Super a` (⌘A) agents draft on `worktree-*`
    branches in parallel; the main checkouts never move.
 2. **test** — `./bench try` from wherever you are: it builds your real machine
    against the local checkouts (from inside an agent worktree, against *that*
