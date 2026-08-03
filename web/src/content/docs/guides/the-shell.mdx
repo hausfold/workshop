@@ -80,8 +80,8 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
 | `Super F` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super R` | **Reload the terminal stack** — gracefully quit/reopen Ghostty, then start a fresh zellij server with the same tabs, panes and working directories; live Claude Code panes resume their exact conversations |
-| `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
-| `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
+| `Super Y` | **yazi peek** — a floating browser with live previews, sized to cover the terminal window that summoned it; `Enter` on a directory opens a new tab there. Same **worktree hop** as `Super P` |
+| `Super ⇧Y` | **yazi peek, stay here** — the no-hop sibling, for browsing a `claude --worktree` checkout itself |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used) |
 | `Alt <` / `Alt >` | Cycle swap layouts (grid → spiral → columns) |
 
@@ -118,6 +118,12 @@ close a floating peek. In the `Super Y` peek overlay, `Enter` on a **file** page
 it fullscreen while `Enter` on a **directory** opens a new zellij tab there (use
 `l` / `→` to descend into a directory without leaving peek) — so peek doubles as
 the browse-and-pick "new tab" chooser.
+
+Peek opens as a separate Ghostty window (zellij's parser strips the kitty
+graphics protocol, so previews inside it would fall back to block art) sized and
+placed to **cover the terminal window that summoned it exactly** — it reads as
+that window switching into a file browser, not as a popup landing on top of it.
+Quit with `q` / `Esc` and the window closes, leaving your tiled layout untouched.
 
 ## Choosing your editor
 

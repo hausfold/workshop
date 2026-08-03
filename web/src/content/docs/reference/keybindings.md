@@ -70,8 +70,8 @@ cheatsheet always reflects the keys you actually have.
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
 | `Super R` | Reload the terminal stack — quit/reopen Ghostty and restart zellij with the same tabs, panes and cwds; live Claude panes resume (also `zreload` from a shell) |
-| `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
-| `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
+| `Super Y` | yazi peek — covers the terminal window it was summoned from (floating previews; `Enter` on a dir opens a new tab there; same worktree hop as `Super P`) |
+| `Super ⇧Y` | yazi peek, stay here (no worktree hop) |
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt [` / `Alt ]` | Cycle swap layouts (grid → spiral → columns) — works locked too |
