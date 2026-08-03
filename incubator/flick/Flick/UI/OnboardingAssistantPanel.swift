@@ -287,14 +287,17 @@ struct OnboardingAssistantView: View {
                 }
             }
 
-            Text("2 · Set it to look like this")
+            // `.init` so the bold markup is parsed — Text(String) renders it
+            // literally, Text(LocalizedStringKey) doesn't.
+            Text(.init(step2Instruction(for: finding)))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             NativeBannerDemo(
                 appName: appName,
                 bundleID: finding.bundleID,
-                needsStyleChange: finding.alertStyle != .none,
+                needsDesktopChange: finding.showsOnDesktop,
                 needsSoundChange: finding.playsSound
             )
 
@@ -319,6 +322,18 @@ struct OnboardingAssistantView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
+        }
+    }
+
+    /// Name only the controls this app actually needs touched. An app that's
+    /// merely loud shouldn't be told to untick Desktop, and one that's merely
+    /// visible shouldn't be sent hunting for a sound switch.
+    private func step2Instruction(for finding: NativeNotificationSettings) -> String {
+        switch (finding.showsOnDesktop, finding.playsSound) {
+        case (true, true): return "2 · Untick **Desktop**, and turn **Play sound** off"
+        case (true, false): return "2 · Untick **Desktop**"
+        case (false, true): return "2 · Turn **Play sound for notification** off"
+        case (false, false): return "2 · Nothing left to change"
         }
     }
 
@@ -565,30 +580,40 @@ private struct FlickSwitchDemo: View {
     }
 }
 
-// MARK: - Looping "turn Apple's banners off" demo
+// MARK: - Looping "stop drawing this on the Desktop" demo
 
 /// A silent, non-interactive re-enactment of what the user has to do in
-/// System Settings → Notifications → <app>: set the alert style to **None**,
-/// and turn **Play sound for notifications** off.
+/// System Settings → Notifications → <app>: untick **Desktop**, and turn
+/// **Play sound for notification** off.
+///
+/// This mirrors the macOS 26 (Tahoe) pane, which is not the one most
+/// write-ups describe. Tahoe replaced the old None/Banners/Alerts radio with
+/// three checkboxes — Desktop, Notification Center, Lock Screen — and a
+/// Temporary/Persistent radio that only applies while Desktop is ticked.
+/// "Turn the alert style to None" is no longer a thing anyone can do, so the
+/// demo must not mime it. **Desktop** is the one control that stops macOS
+/// drawing over your work, and the only one flick asks anyone to touch:
+/// Notification Center and Lock Screen stay ticked, because flick redraws the
+/// banner but does not replace the notification.
 ///
 /// Same reasoning as `FlickSwitchDemo`: it starts in the *wrong* state,
 /// because wrong is what they're looking at, and a mock already showing the
 /// destination illustrates the answer while hiding the move. A pointer glides
 /// in, clicks each control in turn, then the whole thing resets and loops.
 ///
-/// It only ever demonstrates the steps this app actually needs — an app whose
+/// It only demonstrates the steps this app actually needs — an app whose
 /// sound is already off never sees the sound step, so the loop can't teach a
 /// click that isn't there.
 private struct NativeBannerDemo: View {
     let appName: String
     let bundleID: String
-    let needsStyleChange: Bool
+    let needsDesktopChange: Bool
     let needsSoundChange: Bool
 
     /// Which control the pointer is currently over.
-    private enum Target { case parked, style, sound }
+    private enum Target { case parked, desktop, sound }
 
-    @State private var styleIsNone = false
+    @State private var desktopChecked = true
     @State private var soundIsOn = true
     @State private var target: Target = .parked
     @State private var cursorVisible = false
@@ -598,32 +623,27 @@ private struct NativeBannerDemo: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum Geo {
-        static let tileWidth: CGFloat = 94
-        static let tileHeight: CGFloat = 56
-        static let gap: CGFloat = 9
+        static let tileWidth: CGFloat = 92
+        static let gap: CGFloat = 8
         static let width: CGFloat = tileWidth * 3 + gap * 2
-        static let soundRowTop: CGFloat = tileHeight + 30
-        static let soundRowHeight: CGFloat = 28
+        /// Illustration + label + the checkbox under it.
+        static let tileHeight: CGFloat = 64
+        static let soundRowHeight: CGFloat = 26
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Alert style")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 4)
-
-            HStack(spacing: Geo.gap) {
-                styleTile(.none, label: "None", selected: styleIsNone)
-                styleTile(.banners, label: "Banners", selected: !styleIsNone)
-                styleTile(.alerts, label: "Alerts", selected: false)
+            HStack(alignment: .top, spacing: Geo.gap) {
+                destinationTile(.desktop, label: "Desktop", checked: desktopChecked)
+                destinationTile(.notificationCenter, label: "Notification\nCenter", checked: true)
+                destinationTile(.lockScreen, label: "Lock Screen", checked: true)
             }
 
             Divider()
                 .padding(.vertical, 8)
 
             HStack {
-                Text("Play sound for notifications")
+                Text("Play sound for notification")
                     .font(.caption)
                 Spacer()
                 Toggle("", isOn: .constant(soundIsOn))
@@ -642,69 +662,87 @@ private struct NativeBannerDemo: View {
         // Tied to the view's lifetime, so switching to the next app cancels
         // this loop and the new one starts from its own first step.
         .task(id: bundleID) { await runLoop() }
-        // The animation is decoration; the instructions are the two labels
-        // above. Say them once, plainly, for anyone not watching it.
+        // The animation is decoration; the instruction is the sentence. Say
+        // it once, plainly, for anyone not watching it.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
-            "In System Settings for \(appName), set alert style to None"
-                + (needsSoundChange ? ", and turn off play sound for notifications." : ".")
+            "In System Settings for \(appName), untick Desktop"
+                + (needsSoundChange ? ", and turn off play sound for notification." : ".")
         )
     }
 
     // MARK: Pieces
 
-    private enum Style { case none, banners, alerts }
+    private enum Destination { case desktop, notificationCenter, lockScreen }
 
+    /// One of Tahoe's three destination checkboxes: a little illustration of
+    /// where the notification lands, its name, and a checkbox underneath.
     @ViewBuilder
-    private func styleTile(_ style: Style, label: String, selected: Bool) -> some View {
-        VStack(spacing: 5) {
+    private func destinationTile(_ destination: Destination, label: String, checked: Bool) -> some View {
+        VStack(spacing: 4) {
             ZStack {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(Color.primary.opacity(0.07))
-                // A miniature of what that style looks like on screen: nothing
-                // for None, one banner for Banners, a banner with buttons for
-                // Alerts. Matches the illustrations Apple puts in the pane.
-                switch style {
-                case .none:
-                    Image(systemName: "slash.circle")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                case .banners:
-                    RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                        .fill(Color.primary.opacity(0.35))
-                        .frame(width: 40, height: 12)
-                        .offset(y: -4)
-                case .alerts:
-                    VStack(spacing: 2) {
-                        RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                            .fill(Color.primary.opacity(0.35))
-                            .frame(width: 40, height: 12)
-                        HStack(spacing: 2) {
-                            Capsule().fill(Color.primary.opacity(0.25)).frame(width: 18, height: 4)
-                            Capsule().fill(Color.primary.opacity(0.25)).frame(width: 18, height: 4)
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.accentColor.opacity(0.45), Color.purple.opacity(0.4)],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    )
+                switch destination {
+                case .desktop:
+                    // One banner, top-right, over an empty desktop.
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(.white.opacity(0.9))
+                        .frame(width: 18, height: 5)
+                        .offset(x: 12, y: -8)
+                case .notificationCenter:
+                    // The stack down the right edge.
+                    VStack(spacing: 1.5) {
+                        ForEach(0..<5, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .fill(.white.opacity(0.9))
+                                .frame(width: 18, height: 4)
                         }
                     }
+                    .offset(x: 12)
+                case .lockScreen:
+                    // A clock, centred.
+                    Text("9:41")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.95))
+                        .offset(y: -6)
                 }
             }
-            .frame(width: Geo.tileWidth - 18, height: 30)
+            .frame(width: Geo.tileWidth - 10, height: 30)
 
             Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(selected ? .primary : .secondary)
+                .font(.system(size: 8))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .frame(height: 16)
+
+            checkbox(checked: checked, emphasised: destination == .desktop)
         }
-        .frame(width: Geo.tileWidth, height: Geo.tileHeight)
-        .background(
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(selected ? Color.accentColor.opacity(0.16) : Color.clear)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .strokeBorder(
-                    selected ? Color.accentColor : Color.secondary.opacity(0.25),
-                    lineWidth: selected ? 1.5 : 1
-                )
-        )
-        .scaleEffect(pressed && target == .style && style == .none ? 0.95 : 1)
+        .frame(width: Geo.tileWidth, height: Geo.tileHeight, alignment: .top)
+    }
+
+    @ViewBuilder
+    private func checkbox(checked: Bool, emphasised: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(checked ? Color.accentColor : Color.primary.opacity(0.12))
+            .overlay {
+                if checked {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(checked ? 0 : 0.25), lineWidth: 1)
+            }
+            .frame(width: 14, height: 14)
+            .scaleEffect(pressed && emphasised && target == .desktop ? 0.85 : 1)
     }
 
     /// The pointer, plus the click ripple, positioned over whichever control
@@ -714,10 +752,10 @@ private struct NativeBannerDemo: View {
         ZStack(alignment: .topLeading) {
             Circle()
                 .strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 1.5)
-                .frame(width: 26, height: 26)
+                .frame(width: 24, height: 24)
                 .scaleEffect(ripple ? 1.7 : 0.4)
                 .opacity(ripple ? 0 : 0.9)
-                .offset(x: anchor.x - 13, y: anchor.y - 13)
+                .offset(x: anchor.x - 12, y: anchor.y - 12)
 
             Image(systemName: pressed ? "cursorarrow.click" : "cursorarrow")
                 .font(.system(size: 15))
@@ -730,19 +768,24 @@ private struct NativeBannerDemo: View {
     }
 
     /// Where the pointer sits for the current target, in the demo's own
-    /// coordinates (offset by the 10pt padding of the container).
+    /// coordinates (offset by the container's 10pt padding).
     private var anchor: CGPoint {
         let padding: CGFloat = 10
-        // "Alert style" caption sits above the tiles.
-        let tilesTop = padding + 17
         switch target {
-        case .style:
-            return CGPoint(x: padding + Geo.tileWidth / 2, y: tilesTop + Geo.tileHeight / 2)
+        case .desktop:
+            // The checkbox under the first tile.
+            return CGPoint(x: padding + Geo.tileWidth / 2, y: padding + Geo.tileHeight - 7)
         case .sound:
-            return CGPoint(x: padding + Geo.width - 14, y: tilesTop + Geo.soundRowTop)
+            return CGPoint(
+                x: padding + Geo.width - 14,
+                y: padding + Geo.tileHeight + 17 + Geo.soundRowHeight / 2
+            )
         case .parked:
             // Off the bottom-right corner, where it fades in and out of.
-            return CGPoint(x: padding + Geo.width - 4, y: tilesTop + Geo.soundRowTop + 46)
+            return CGPoint(
+                x: padding + Geo.width - 4,
+                y: padding + Geo.tileHeight + 17 + Geo.soundRowHeight + 30
+            )
         }
     }
 
@@ -750,16 +793,17 @@ private struct NativeBannerDemo: View {
 
     private func runLoop() async {
         // Under Reduce Motion the demo holds the *answer* still instead of
-        // animating toward it — the labels carry the instruction either way.
+        // animating toward it — the sentence above carries the instruction
+        // either way.
         guard !reduceMotion else {
-            styleIsNone = true
+            desktopChecked = false
             soundIsOn = false
             return
         }
 
         while !Task.isCancelled {
             withTransaction(Transaction(animation: nil)) {
-                styleIsNone = false
+                desktopChecked = true
                 soundIsOn = true
                 target = .parked
                 cursorVisible = false
@@ -768,11 +812,11 @@ private struct NativeBannerDemo: View {
             }
             if await sleep(0.6) { return }
 
-            if needsStyleChange {
+            if needsDesktopChange {
                 withAnimation(.easeOut(duration: 0.25)) { cursorVisible = true }
-                withAnimation(.easeInOut(duration: 0.7)) { target = .style }
+                withAnimation(.easeInOut(duration: 0.7)) { target = .desktop }
                 if await sleep(0.85) { return }
-                if await click({ styleIsNone = true }) { return }
+                if await click({ desktopChecked = false }) { return }
                 if await sleep(0.9) { return }
             }
 
@@ -811,6 +855,7 @@ private struct NativeBannerDemo: View {
         return Task.isCancelled
     }
 }
+
 
 // MARK: - Onboarding Assistant Panel Controller
 

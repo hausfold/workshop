@@ -10,15 +10,27 @@ import os.log
 /// mirrored notification that macOS also banners is a duplicate, and one it
 /// also sounds is a duplicate that beeps.
 struct NativeNotificationSettings: Sendable, Equatable, Codable {
-    /// The "Alert style" radio group. `none` means macOS puts the
-    /// notification in Notification Center but never draws it on screen —
-    /// which is exactly the state flick wants an app it mirrors to be in.
-    enum AlertStyle: String, Sendable, Codable {
-        case none, banners, alerts
+    /// Whether — and for how long — macOS draws this app on screen.
+    ///
+    /// macOS 26 (Tahoe) reshaped this pane: the old three-way "Alert style"
+    /// (None / Banners / Alerts) is now a **Desktop** checkbox plus a
+    /// two-way Temporary/Persistent radio that only matters while Desktop is
+    /// ticked. The underlying bits didn't move — bit 3 is Temporary, bit 4 is
+    /// Persistent, and clearing Desktop clears both — so `off` is still the
+    /// state flick wants an app it mirrors to be in. Only the words changed,
+    /// and the words are what the helper has to say out loud.
+    enum DesktopAlert: String, Sendable, Codable {
+        /// "Desktop" unchecked: it still reaches Notification Center, but
+        /// nothing is drawn over your work.
+        case off
+        /// Desktop ✓, Alert Style = Temporary (what used to be Banners).
+        case temporary
+        /// Desktop ✓, Alert Style = Persistent (what used to be Alerts).
+        case persistent
     }
 
     var bundleID: String
-    var alertStyle: AlertStyle
+    var desktopAlert: DesktopAlert
     var playsSound: Bool
     var badgesIcon: Bool
     /// The master "Allow notifications" switch. **Load-bearing**: macOS keeps
@@ -32,10 +44,14 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
     /// dead end.
     var hasSettingsRow: Bool
 
+    /// Is the **Desktop** checkbox ticked? That's the one that decides
+    /// whether macOS draws over your work, and so the one flick cares about.
+    var showsOnDesktop: Bool { desktopAlert != .off }
+
     /// The whole point of the audit. True when macOS will still draw or sound
     /// this app's notifications itself.
     var isNoisy: Bool {
-        allowsNotifications && (alertStyle != .none || playsSound)
+        allowsNotifications && (showsOnDesktop || playsSound)
     }
 
     /// The summary line System Settings puts under the app's name in
@@ -48,7 +64,7 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
         var parts: [String] = []
         if badgesIcon { parts.append("Badges") }
         if playsSound { parts.append("Sounds") }
-        if alertStyle != .none { parts.append("Desktop") }
+        if showsOnDesktop { parts.append("Desktop") }
         switch parts.count {
         case 0: return "Off"
         case 1: return parts[0]
@@ -57,17 +73,15 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
         }
     }
 
-    /// One line naming only what's still wrong, for a banner body or a CLI row.
+    /// One line naming only what's still wrong, in the words the current
+    /// System Settings pane uses — "Desktop" and "sound" are the two labels
+    /// the user is about to go looking for.
     var complaint: String? {
+        guard isNoisy else { return nil }
         var parts: [String] = []
-        switch alertStyle {
-        case .banners: parts.append("banners")
-        case .alerts: parts.append("alerts")
-        case .none: break
-        }
-        if playsSound { parts.append("sound") }
-        guard !parts.isEmpty else { return nil }
-        return "macOS still shows " + parts.joined(separator: " + ")
+        if showsOnDesktop { parts.append("on the Desktop") }
+        if playsSound { parts.append("with a sound") }
+        return "macOS still shows this " + parts.joined(separator: ", ")
     }
 }
 
@@ -112,9 +126,11 @@ enum NotificationSettingsAudit {
     /// guessing. Alert style and sound are the two that matter and the two
     /// that are solid.
     enum Flag {
-        /// Bits 3–5 hold the alert style; 3 = banners, 4 = alerts, neither = none.
-        static let banners: UInt64 = 1 << 3
-        static let alerts: UInt64 = 1 << 4
+        /// Bits 3–5 hold the on-screen alert. Neither set = the **Desktop**
+        /// checkbox is clear. Confirmed against a Tahoe pane showing
+        /// Desktop ✓ / Persistent for an app whose bit 4 is set.
+        static let temporary: UInt64 = 1 << 3
+        static let persistent: UInt64 = 1 << 4
         static let playSound: UInt64 = 1 << 2
         static let badgeAppIcon: UInt64 = 1 << 1
         /// "Allow notifications". Pinned against 19 apps whose real state was
@@ -147,17 +163,17 @@ enum NotificationSettingsAudit {
 
     /// Decode one app's flags word. Pure — the tests drive this directly.
     static func decode(bundleID: String, flags: UInt64) -> NativeNotificationSettings {
-        let style: NativeNotificationSettings.AlertStyle
-        if flags & Flag.banners != 0 {
-            style = .banners
-        } else if flags & Flag.alerts != 0 {
-            style = .alerts
+        let alert: NativeNotificationSettings.DesktopAlert
+        if flags & Flag.temporary != 0 {
+            alert = .temporary
+        } else if flags & Flag.persistent != 0 {
+            alert = .persistent
         } else {
-            style = .none
+            alert = .off
         }
         return NativeNotificationSettings(
             bundleID: bundleID,
-            alertStyle: style,
+            desktopAlert: alert,
             playsSound: flags & Flag.playSound != 0,
             badgesIcon: flags & Flag.badgeAppIcon != 0,
             allowsNotifications: flags & Flag.allowNotifications != 0,
@@ -298,7 +314,7 @@ enum NotificationSettingsAudit {
             .filter { $0.isNoisy && $0.bundleID != ownBundleID }
             .sorted { lhs, rhs in
                 let rank = { (s: NativeNotificationSettings) -> Int in
-                    (s.alertStyle == .alerts ? 2 : s.alertStyle == .banners ? 1 : 0)
+                    (s.desktopAlert == .persistent ? 2 : s.desktopAlert == .temporary ? 1 : 0)
                         + (s.playsSound ? 1 : 0)
                 }
                 if rank(lhs) != rank(rhs) { return rank(lhs) > rank(rhs) }

@@ -169,11 +169,12 @@ enum FlickCLI {
 
         print("flick doctor: \(findings.count) app(s) macOS still notifies for itself\n")
         for finding in findings {
-            let style = finding.alertStyle == .none ? "—" : finding.alertStyle.rawValue
+            let desktop = finding.showsOnDesktop
+                ? "on (\(finding.desktopAlert.rawValue))" : "off"
             print("  \(finding.bundleID)")
-            print("      alert style: \(style)   sound: \(finding.playsSound ? "on" : "off")")
+            print("      desktop: \(desktop)   sound: \(finding.playsSound ? "on" : "off")")
         }
-        print("\nFix: System Settings → Notifications → <app> → alert style None, Play sound off.")
+        print("\nFix: System Settings → Notifications → <app> → untick Desktop, Play sound off.")
         print("Or run `flick doctor --notify` and click the banner to be walked through it.")
         return 4
     }

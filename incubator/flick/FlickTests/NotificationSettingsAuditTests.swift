@@ -68,7 +68,7 @@ final class NotificationSettingsAuditTests: XCTestCase {
         let ghostty = NotificationSettingsAudit.decode(
             bundleID: "com.mitchellh.ghostty", flags: 276_832_270
         )
-        XCTAssertEqual(ghostty.alertStyle, .banners)
+        XCTAssertEqual(ghostty.desktopAlert, .temporary)
         XCTAssertTrue(ghostty.playsSound)
         XCTAssertFalse(ghostty.isNoisy, "notifications are off — the stale style bits don't matter")
     }
@@ -109,37 +109,38 @@ final class NotificationSettingsAuditTests: XCTestCase {
 
     // MARK: - Alert style
 
-    func testBannersStyleFromRealFlags() {
-        // com.tinyspeck.slackmacgap — banners, sound, badge, allowed.
+    func testTemporaryAlertFromRealFlags() {
+        // com.tinyspeck.slackmacgap — Desktop (temporary), sound, badge, allowed.
         let settings = decode(310_386_702)
-        XCTAssertEqual(settings.alertStyle, .banners)
+        XCTAssertEqual(settings.desktopAlert, .temporary)
         XCTAssertTrue(settings.playsSound)
         XCTAssertTrue(settings.badgesIcon)
         XCTAssertTrue(settings.isNoisy)
     }
 
-    func testAlertsStyleFromRealFlags() {
-        // com.apple.reminders — persistent alerts, and still allowed.
+    func testPersistentAlertFromRealFlags() {
+        // com.apple.reminders — Desktop ✓ / Persistent, confirmed against the
+        // Tahoe pane itself, and still allowed.
         let settings = decode(9_437_708_310)
-        XCTAssertEqual(settings.alertStyle, .alerts)
+        XCTAssertEqual(settings.desktopAlert, .persistent)
         XCTAssertTrue(settings.isNoisy)
     }
 
-    func testNoneStyleFromRealFlags() {
-        // com.apple.Home — alert style None.
+    func testDesktopUntickedFromRealFlags() {
+        // com.apple.Home — Desktop unticked.
         let settings = decode(2_986_868_742)
-        XCTAssertEqual(settings.alertStyle, .none)
+        XCTAssertEqual(settings.desktopAlert, .off)
     }
 
-    func testBannersWinsWhenBothStyleBitsAreSet() {
+    func testTemporaryWinsWhenBothAlertBitsAreSet() {
         // Not a state System Settings can produce, but the store is Apple's
         // and undocumented: decode it deterministically instead of trapping.
-        XCTAssertEqual(decode(0b11000).alertStyle, .banners)
+        XCTAssertEqual(decode(0b11000).desktopAlert, .temporary)
     }
 
     // MARK: - Sound and badge
 
-    func testSoundBitIsIndependentOfStyle() {
+    func testSoundBitIsIndependentOfTheDesktopAlert() {
         XCTAssertTrue(decode(0b00100).playsSound)
         XCTAssertFalse(decode(0b11011).playsSound)
     }
@@ -152,19 +153,19 @@ final class NotificationSettingsAuditTests: XCTestCase {
     // MARK: - Noisiness is the only question that matters
 
     func testSilentAppIsNotNoisy() {
-        // Style none, no sound: exactly the state the helper walks users to.
+        // Desktop unticked, no sound: the state the helper walks users to.
         let settings = decodeAllowed(0b00010)
         XCTAssertFalse(settings.isNoisy)
         XCTAssertNil(settings.complaint)
     }
 
     func testSoundAloneIsStillNoisy() {
-        // Alert style None but "Play sound" left on — the case a
-        // style-only check would miss.
+        // Desktop unticked but "Play sound" left on — the case a
+        // Desktop-only check would miss.
         let settings = decodeAllowed(0b00100)
-        XCTAssertEqual(settings.alertStyle, .none)
+        XCTAssertEqual(settings.desktopAlert, .off)
         XCTAssertTrue(settings.isNoisy)
-        XCTAssertEqual(settings.complaint, "macOS still shows sound")
+        XCTAssertEqual(settings.complaint, "macOS still shows this with a sound")
     }
 
     // MARK: - The System Settings summary line
@@ -183,7 +184,7 @@ final class NotificationSettingsAuditTests: XCTestCase {
     }
 
     func testComplaintNamesBothProblems() {
-        XCTAssertEqual(decodeAllowed(0b01100).complaint, "macOS still shows banners + sound")
+        XCTAssertEqual(decodeAllowed(0b01100).complaint, "macOS still shows this on the Desktop, with a sound")
     }
 
     // MARK: - The apps array
@@ -214,7 +215,7 @@ final class NotificationSettingsAuditTests: XCTestCase {
         let decoded = NotificationSettingsAudit.decode(appsArray: [
             entry("com.apple.MobileSMS", 9_490_137_102),
         ])
-        XCTAssertEqual(decoded.first?.alertStyle, .banners)
+        XCTAssertEqual(decoded.first?.desktopAlert, .temporary)
     }
 
     // MARK: - Scoping

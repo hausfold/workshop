@@ -50,7 +50,7 @@ never into a broken pipeline. Corollaries:
   to say which apps macOS still banners or sounds itself. Opening the pane
   and animating the two clicks is the whole offer — do **not** add a "fix it
   for me" that writes that plist, however easy it looks. Only the three
-  corroborated bits are read (alert style `1<<3`/`1<<4`, sound `1<<2`, and
+  corroborated bits are read (on-screen alert `1<<3`/`1<<4`, sound `1<<2`, and
   **allow-notifications `1<<25`**); don't extend to bits whose meaning is
   folklore, and if you must, corroborate against real data first and say so in
   the comment. **Never read style or sound without checking `1<<25` first** —
@@ -58,7 +58,11 @@ never into a broken pipeline. Corollaries:
   off, so skipping it reports every app the user already silenced. That bug
   shipped once. Bit 29 is the counter-example worth remembering: it looked
   like the allow bit until its set turned out to be the community's
-  "time-sensitive apps" list.
+  "time-sensitive apps" list. And when you touch the helper's demo, **check
+  the pane on the current macOS first** — Tahoe replaced None/Banners/Alerts
+  with a Desktop checkbox plus Temporary/Persistent, and the demo shipped once
+  miming controls that no longer existed. The bits didn't move; the words did,
+  and the words are the whole product here.
 - **The queue is the truth; panels are disposable.** Display topology
   rebuilds re-render from `BannerQueue` state. Never park event state in a
   panel or view.

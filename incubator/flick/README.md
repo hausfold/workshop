@@ -105,19 +105,27 @@ Three lanes, in order of honesty:
 Mirroring an app macOS is *also* drawing means seeing everything twice, so
 flick can at least tell you which apps those are. `flick doctor` reads Apple's
 own per-app notification preferences (read-only, and undocumented — see
-`NotificationSettingsAudit`) and reports every listed app whose alert style
-isn't **None** or whose **Play sound** is still on. Exit code 4 means it found
-some, so a rebuild hook can gate on it.
+`NotificationSettingsAudit`) and reports every listed app that still has
+**Desktop** ticked or **Play sound** on. Exit code 4 means it found some, so a
+rebuild hook can gate on it.
 
 "Listed" means the bundle-id-shaped `source` values in your `rules.json`;
 `--all` widens it to every app on the Mac, and naming bundle ids explicitly
 narrows it.
 
 `--notify` puts the findings on screen as banners with one action —
-**Silence Native Banners**. Clicking one opens System Settings on that app and
-floats a helper panel beside it that animates the two clicks you need (alert
-style → None, Play sound → off), ticks each app off the moment macOS agrees,
-and closes itself when they're all quiet. Same panel shape as the Full Disk
+**Silence Native Banners**. Clicking one opens System Settings and floats a
+helper panel beside it: step 1 replicates the app's row so you can find it in
+the list (Apple dropped per-app anchors from that deep link, so it always
+lands at the top of the pane), and step 2 animates the clicks you need —
+untick **Desktop**, turn **Play sound for notification** off. It ticks each
+app off the moment macOS agrees and closes itself when they're all quiet.
+
+Note that the pane changed shape in macOS 26 (Tahoe): the old
+None/Banners/Alerts radio is now a **Desktop** checkbox plus a
+Temporary/Persistent choice that only applies while Desktop is ticked.
+Notification Center and Lock Screen stay ticked — flick redraws the banner,
+it doesn't replace the notification. Same panel shape as the Full Disk
 Access assistant, and the same promise: **flick opens the pane, it never
 writes the setting.** There's no API to change another app's notification
 preferences, and silently rewriting a pane the user believes only they control

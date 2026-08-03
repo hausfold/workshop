@@ -92,9 +92,16 @@ notification machinery.
 
 What flick *can* do is tell you when Apple is still drawing something it's
 also drawing. `NotificationSettingsAudit` reads `com.apple.ncprefs` — the
-private domain behind that pane — and decodes four bits per app: alert style
-(banners `1<<3`, alerts `1<<4`, neither = None), play-sound (`1<<2`), and
-**allow-notifications (`1<<25`)**.
+private domain behind that pane — and decodes four bits per app: the on-screen
+alert (`1<<3` Temporary, `1<<4` Persistent, neither = the **Desktop** checkbox
+is clear), play-sound (`1<<2`), and **allow-notifications (`1<<25`)**.
+
+macOS 26 (Tahoe) reshaped the pane without moving the bits: the old
+None/Banners/Alerts radio became a Desktop checkbox plus a
+Temporary/Persistent choice that only applies while Desktop is ticked. Worth
+knowing because the helper *demonstrates* those controls — a demo miming a
+radio button that no longer exists is worse than no demo, so the vocabulary in
+`DesktopAlert` deliberately tracks the pane rather than the bit names.
 
 That last one is the one that matters most, and it was learned the expensive
 way. macOS leaves the style and sound bits frozen at their last values when
