@@ -43,16 +43,21 @@ because losing *your* work isn't *their* problem.
 is the spec for a Go rewrite of `wt`, 1295 lines of bash that has been running
 this author's machine as Claude Code's worktree hooks for months.
 
-Progress is measured against `test/holt.bats` — 77 black-box acceptance tests
-carried over from the bash implementation, which drive the binary with shim
-`gh`/`lsof` on `PATH` and never touch a real repo:
+**All 77 acceptance tests pass.** They are black-box, carried over from the bash
+implementation — they drive the binary with shim `gh`/`lsof` on `PATH` and never
+touch a real repo, so they describe the contract rather than the implementation:
 
 ```
-make score
+make test
 ```
 
-Implemented: `hook create`, `hook remove`, `park`, `unpark`, `list`, `reap`.
-Not yet: `resume`, `new`, `child`, `spawn`, `reship`, the agent-start seam.
+Every command in the list below is implemented. What 0.1 still needs before
+cutover is not features but *proof*: a week of dual-running against the shell
+version on a real machine, and the hook switch behind one revertible option.
+
+Then 0.2 — the adapter TOML that replaces the hardcoded client table, bootstrap
+hooks with APFS/btrfs reflink, and `holt overlap`. Then 0.3 — `batch`, with
+queue bisection. See [`SPEC.md`](SPEC.md).
 
 ## Non-goals
 

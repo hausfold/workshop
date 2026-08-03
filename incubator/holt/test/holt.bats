@@ -847,8 +847,18 @@ EOF
 @test "new: an uninstalled client is named, and the checkout survives to resume" {
   local b; b="$(mkrepo beta)"
   cd "$b"
-  # No shim for codex on PATH: it's the client that is missing, not the worktree.
-  run "$WT" new stranded codex
+  # No codex on PATH: it's the client that is missing, not the worktree.
+  # PATH is narrowed to the shim dir + git's own, because "not installed" cannot
+  # be asserted against the DEVELOPER's PATH — this box has a real codex, and
+  # both implementations found it and tried to exec it. The suite claims to be
+  # hermetic; for this one test it wasn't.
+  # …and git is symlinked into a dir of its own rather than PATH being narrowed
+  # to git's OWN directory: on a Nix box both binaries live in the same profile
+  # bindir, so keeping git would have kept codex too — which is exactly how this
+  # test passed in CI and quietly failed on the author's machine.
+  mkdir -p "$TMP/onlygit"
+  ln -sf "$(command -v git)" "$TMP/onlygit/git"
+  run env PATH="$BIN:$TMP/onlygit" "$WT" new stranded codex
   [ "$status" -ne 0 ]
   [[ "$output" == *"codex is unavailable"* ]]
   [ -e "$CLAUDE_WT_BASE/beta/stranded/.git" ]
@@ -865,7 +875,7 @@ EOF
   [[ "$output" == *"isn't inside a git repo"* ]]
   run "$WT" spawn "$b"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"usage: wt spawn"* ]]
+  [[ "$output" == *"usage: holt spawn"* ]]
 }
 
 # ── dangling checkouts (husks) ───────────────────────────────────────────────

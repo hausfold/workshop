@@ -2,6 +2,7 @@ package commands
 
 import (
 	"os"
+	"strings"
 
 	"github.com/nebelhaus/holt/internal/exitcode"
 )
@@ -63,6 +64,24 @@ func Run(args []string) error {
 	case "reap":
 		return env.Reap()
 
+	case "resume":
+		return env.Resume(argAt(args, 1))
+
+	case "new":
+		return env.New(argAt(args, 1), argAt(args, 2))
+
+	case "child":
+		return env.Child(argAt(args, 1), argAt(args, 2))
+
+	case "spawn":
+		return env.Spawn(argAt(args, 1), argAt(args, 2), argAt(args, 3))
+
+	case "agent":
+		return env.AgentCmd(args[1:])
+
+	case "reship":
+		return env.Reship(argAt(args, 1))
+
 	// `holt hook create` is the documented spelling. The bare `create` /
 	// `remove` verbs are kept because that is what the shipped Claude Code hook
 	// configuration calls today, and cutover must not require editing both the
@@ -82,7 +101,13 @@ func Run(args []string) error {
 		return env.HookRemove(os.Stdin)
 
 	default:
-		return exitcode.Usagef("unknown command %q — try `holt --help`", args[0])
+		// A bare token is a worktree name: `holt sparkle` resumes it. This is the
+		// spelling that gets typed, so an unknown one must fail the way resume
+		// does — naming the listing — not with a generic "unknown command".
+		if strings.HasPrefix(args[0], "-") {
+			return exitcode.Usagef("unknown flag %q — try `holt --help`", args[0])
+		}
+		return env.Resume(args[0])
 	}
 }
 

@@ -22,7 +22,7 @@ const (
 )
 
 // NoColor is set when stderr isn't a terminal or NO_COLOR is present.
-var NoColor = os.Getenv("NO_COLOR") != "" || !isTTY(os.Stderr)
+var NoColor = os.Getenv("NO_COLOR") != "" || !IsTTY(os.Stderr)
 
 func paint(col, glyph, msg string) string {
 	if NoColor {
@@ -52,7 +52,9 @@ func Out(format string, a ...any) {
 	fmt.Fprintf(os.Stdout, format, a...)
 }
 
-func isTTY(f *os.File) bool {
+// IsTTY reports whether f is a terminal. Callers use it to decide between
+// exec-ing an interactive client and printing the command to run instead.
+func IsTTY(f *os.File) bool {
 	fi, err := f.Stat()
 	if err != nil {
 		return false

@@ -77,10 +77,16 @@ func (e *Env) HookCreate(stdin io.Reader) error {
 	// The spawning pane's cwd is the parent, so a session can be shown only the
 	// worktrees IT spawned. This is Claude Code's own hook, so the client is
 	// known even when the machine-wide default is Codex or OpenCode.
-	_ = e.Reg.Put(registry.Row{
+	// NOT ignored. A checkout with no registry row is a worktree holt can no
+	// longer find, resume, or reap — the branch survives, but every affordance
+	// around it is gone. Say so loudly rather than let a lock timeout eat it
+	// silently; the caller still gets the path, because the checkout is real.
+	if err := e.Reg.Put(registry.Row{
 		Name: name, Main: main, Branch: "worktree-" + name,
 		Path: dir, Parent: base, Agent: "claude",
-	})
+	}); err != nil {
+		ui.Warn("the checkout exists but the registry row could not be written (%v) — `holt` won't list it until you re-run this", err)
+	}
 	ui.Out("%s\n", dir)
 	return nil
 }

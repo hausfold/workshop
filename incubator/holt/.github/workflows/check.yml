@@ -35,20 +35,7 @@ jobs:
       - name: vet
         run: go vet ./...
 
-      # PRE-0.1 GATE. The acceptance suite is the full 0.1 contract and holt does
-      # not meet all of it yet, so `score` reports rather than fails — but every
-      # remaining failure must be an UNIMPLEMENTED command, never a regression in
-      # an implemented one. The guard below enforces exactly that, and this whole
-      # step becomes a plain `make test` the day the suite goes green.
-      - name: score
-        run: make score
-      - name: no regressions in implemented commands
-        run: |
-          set -o pipefail
-          bats test/holt.bats 2>&1 | grep '^not ok' \
-            | grep -Ev '^not ok [0-9]+ (resume|new|child|spawn|reship|agent start|husk: resume|dispatch: a bare)' \
-            > /tmp/regressions || true
-          if [ -s /tmp/regressions ]; then
-            echo "a command that IS implemented broke:"; cat /tmp/regressions; exit 1
-          fi
-          echo "no regressions"
+      # The full 0.1 contract. It went green with `reship`, so this is a hard
+      # gate now rather than a score — a PR that breaks any of the 77 fails.
+      - name: acceptance suite
+        run: make test
