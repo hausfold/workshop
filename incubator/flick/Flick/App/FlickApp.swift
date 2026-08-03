@@ -151,6 +151,7 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
                     onRequestFullDiskAccess: { [weak self] in
                         self?.presentFullDiskAccessAssistant(runtime: runtime)
                     },
+                    listedApps: { [weak runtime] in runtime?.listedApps ?? [] },
                     celebrateUnlock: celebrateUnlock
                 )
             )

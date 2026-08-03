@@ -37,6 +37,17 @@ final class ActionRouter {
             // User-declared hooks arrive with the rules engine work
             // (PRD milestone 2); until then the action is inert.
             Self.log.info("command hooks not yet enabled (\(event.id, privacy: .public))")
+        case .silenceNative:
+            // A bundle id walks that one app; no target means "everything the
+            // audit just flagged", which is what the collapsed summary banner
+            // sends. Re-running the audit here rather than trusting the
+            // event's payload keeps the window honest about *now* — the user
+            // may have fixed one of them while the banner sat on screen.
+            let scope: NotificationSettingsAudit.Scope =
+                action.target.map { .only([$0]) } ?? .everything
+            SystemIntegration.presentNativeBannerAssistant(
+                findings: NotificationSettingsAudit.findings(scope: scope)
+            )
         }
     }
 

@@ -90,7 +90,11 @@ struct DraggableAppTile: NSViewRepresentable {
 struct OnboardingAssistantView: View {
     enum Mode {
         case fullDiskAccess
-        case appMigration(bundleID: String, appName: String)
+        /// Walk the user through turning Apple's own banners off, one app at a
+        /// time. Carries the whole worklist rather than a single app: the
+        /// audit usually finds several, and four panels opening in sequence
+        /// is the notification pile-up flick exists to stop.
+        case nativeBanners(findings: [NativeNotificationSettings])
     }
 
     let mode: Mode
@@ -102,6 +106,13 @@ struct OnboardingAssistantView: View {
 
     @State private var pollTimer: Timer?
     @State private var selectedTab = 0
+    /// Bundle ids the poll has since seen go quiet. Kept as a set rather than
+    /// a cursor because the user is free to fix them in any order — or to fix
+    /// three at once in a pane they already had open.
+    @State private var resolved: Set<String> = []
+    /// Briefly true when the last app goes quiet, so the panel can say so
+    /// before it closes instead of just vanishing.
+    @State private var allClear = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -122,8 +133,8 @@ struct OnboardingAssistantView: View {
             switch mode {
             case .fullDiskAccess:
                 fullDiskAccessContent
-            case .appMigration(let bundleID, let appName):
-                appMigrationContent(bundleID: bundleID, appName: appName)
+            case .nativeBanners(let findings):
+                nativeBannersContent(findings: findings)
             }
         }
         .padding(16)
@@ -134,8 +145,9 @@ struct OnboardingAssistantView: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .background(.ultraThinMaterial)
         .onAppear {
-            if case .fullDiskAccess = mode {
-                startFDAPolling()
+            switch mode {
+            case .fullDiskAccess: startFDAPolling()
+            case .nativeBanners(let findings): startNativeBannerPolling(findings: findings)
             }
         }
         .onDisappear {
@@ -146,14 +158,14 @@ struct OnboardingAssistantView: View {
     private var modeIcon: String {
         switch mode {
         case .fullDiskAccess: return "lock.shield"
-        case .appMigration: return "bell.slash"
+        case .nativeBanners: return "bell.slash"
         }
     }
 
     private var modeTitle: String {
         switch mode {
         case .fullDiskAccess: return "Full Disk Access Setup"
-        case .appMigration(_, let appName): return "Migrate \(appName) Banners"
+        case .nativeBanners: return "Silence Native Banners"
         }
     }
 
@@ -223,32 +235,138 @@ struct OnboardingAssistantView: View {
         .padding(.top, 4)
     }
 
+    // MARK: - Native banners
+
+    /// The app the panel is currently pointed at: the first one the poll
+    /// hasn't yet seen go quiet. Derived rather than stored, so a user who
+    /// fixes the third app first simply skips it.
+    private func currentFinding(in findings: [NativeNotificationSettings])
+        -> NativeNotificationSettings?
+    {
+        findings.first { !resolved.contains($0.bundleID) }
+    }
+
     @ViewBuilder
-    private func appMigrationContent(bundleID: String, appName: String) -> some View {
-        Text("Prevent duplicate banners by adjusting Apple's notification settings for **\(appName)**:")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+    private func nativeBannersContent(findings: [NativeNotificationSettings]) -> some View {
+        if allClear || currentFinding(in: findings) == nil {
+            allClearContent(total: findings.count)
+        } else if let finding = currentFinding(in: findings) {
+            let appName = NotificationSettingsAudit.displayName(for: finding.bundleID)
 
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Keep \"Allow Notifications\" ON", systemImage: "checkmark.circle")
+            // Only worth saying when there's more than one; "1 of 1" is noise.
+            if findings.count > 1 {
+                stepIndicator(findings: findings)
+            }
+
+            Text("macOS is drawing **\(appName)**'s notifications itself, so you'd see each one twice. Turn Apple's off — flick keeps showing them.")
                 .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            NativeBannerDemo(
+                appName: appName,
+                bundleID: finding.bundleID,
+                needsStyleChange: finding.alertStyle != .none,
+                needsSoundChange: finding.playsSound
+            )
+
+            HStack(spacing: 6) {
+                Image(systemName: "bolt.horizontal.circle")
+                    .font(.caption)
+                    .foregroundStyle(.tint)
+                Text("Picked up the instant you change it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+
+            Button {
+                SystemIntegration.openNotificationSettings(for: finding.bundleID)
+            } label: {
+                Label("Open \(appName) Settings", systemImage: "arrow.up.forward.app")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+        }
+    }
+
+    /// One dot per app, filled as each goes quiet. Deliberately not a
+    /// percentage or a progress bar — the list is short and countable, and a
+    /// bar would imply flick is doing the work rather than the user.
+    @ViewBuilder
+    private func stepIndicator(findings: [NativeNotificationSettings]) -> some View {
+        let done = findings.filter { resolved.contains($0.bundleID) }.count
+        HStack(spacing: 6) {
+            ForEach(findings, id: \.bundleID) { finding in
+                let isDone = resolved.contains(finding.bundleID)
+                let isCurrent = currentFinding(in: findings)?.bundleID == finding.bundleID
+                Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 11))
+                    .foregroundStyle(isDone ? Color.green : (isCurrent ? Color.accentColor : Color.secondary.opacity(0.4)))
+            }
+            Spacer()
+            Text("\(done) of \(findings.count) silenced")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .contentTransition(.numericText())
+        }
+    }
+
+    @ViewBuilder
+    private func allClearContent(total: Int) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title2)
                 .foregroundStyle(.green)
-            Label("Uncheck \"Banners\"", systemImage: "xmark.circle")
-                .font(.caption)
-                .foregroundStyle(.orange)
-            Label("Uncheck \"Play Sound\"", systemImage: "speaker.slash")
-                .font(.caption)
-                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(total > 1 ? "All \(total) apps are quiet" : "That's it — it's quiet")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text("macOS has stopped drawing them. flick has it from here.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
         }
-        .padding(8)
-        .background(Color.primary.opacity(0.05))
-        .cornerRadius(6)
+        .padding(.vertical, 4)
+    }
 
-        Button("Open \(appName) Settings") {
-            SystemIntegration.openNotificationSettings(for: bundleID)
+    /// Re-reads Apple's own preferences once a second and ticks apps off as
+    /// they go quiet. Polling rather than watching the file: the store is
+    /// cfprefsd-owned and undocumented, and a one-second poll of a small
+    /// plist costs nothing next to guessing at a change-notification
+    /// mechanism Apple doesn't promise.
+    private func startNativeBannerPolling(findings: [NativeNotificationSettings]) {
+        // Anything already quiet by the time the panel opens (the user got
+        // there first) starts ticked.
+        refreshResolved(findings: findings)
+
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            Task { @MainActor in
+                refreshResolved(findings: findings)
+                guard resolved.count >= findings.count, !allClear else { return }
+                pollTimer?.invalidate()
+                pollTimer = nil
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { allClear = true }
+                // Long enough to read, short enough that it doesn't become a
+                // window the user has to dismiss.
+                try? await Task.sleep(nanoseconds: 2_200_000_000)
+                onClose()
+            }
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.small)
+    }
+
+    private func refreshResolved(findings: [NativeNotificationSettings]) {
+        let current = NotificationSettingsAudit.readAll()
+        let quiet = findings
+            .filter { finding in current[finding.bundleID]?.isNoisy != true }
+            .map(\.bundleID)
+        guard !quiet.isEmpty else { return }
+        withAnimation(.easeOut(duration: 0.25)) {
+            resolved.formUnion(quiet)
+        }
     }
 
     /// The grant is the end of this panel's job. Rather than swapping in a
@@ -368,6 +486,253 @@ private struct FlickSwitchDemo: View {
     }
 }
 
+// MARK: - Looping "turn Apple's banners off" demo
+
+/// A silent, non-interactive re-enactment of what the user has to do in
+/// System Settings → Notifications → <app>: set the alert style to **None**,
+/// and turn **Play sound for notifications** off.
+///
+/// Same reasoning as `FlickSwitchDemo`: it starts in the *wrong* state,
+/// because wrong is what they're looking at, and a mock already showing the
+/// destination illustrates the answer while hiding the move. A pointer glides
+/// in, clicks each control in turn, then the whole thing resets and loops.
+///
+/// It only ever demonstrates the steps this app actually needs — an app whose
+/// sound is already off never sees the sound step, so the loop can't teach a
+/// click that isn't there.
+private struct NativeBannerDemo: View {
+    let appName: String
+    let bundleID: String
+    let needsStyleChange: Bool
+    let needsSoundChange: Bool
+
+    /// Which control the pointer is currently over.
+    private enum Target { case parked, style, sound }
+
+    @State private var styleIsNone = false
+    @State private var soundIsOn = true
+    @State private var target: Target = .parked
+    @State private var cursorVisible = false
+    @State private var pressed = false
+    @State private var ripple = false
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private enum Geo {
+        static let tileWidth: CGFloat = 94
+        static let tileHeight: CGFloat = 56
+        static let gap: CGFloat = 9
+        static let width: CGFloat = tileWidth * 3 + gap * 2
+        static let soundRowTop: CGFloat = tileHeight + 30
+        static let soundRowHeight: CGFloat = 28
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Alert style")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 4)
+
+            HStack(spacing: Geo.gap) {
+                styleTile(.none, label: "None", selected: styleIsNone)
+                styleTile(.banners, label: "Banners", selected: !styleIsNone)
+                styleTile(.alerts, label: "Alerts", selected: false)
+            }
+
+            Divider()
+                .padding(.vertical, 8)
+
+            HStack {
+                Text("Play sound for notifications")
+                    .font(.caption)
+                Spacer()
+                Toggle("", isOn: .constant(soundIsOn))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .allowsHitTesting(false)
+            }
+            .frame(height: Geo.soundRowHeight)
+        }
+        .frame(width: Geo.width, alignment: .leading)
+        .padding(10)
+        .background(Color.primary.opacity(0.06))
+        .cornerRadius(8)
+        .overlay(alignment: .topLeading) { pointer }
+        // Tied to the view's lifetime, so switching to the next app cancels
+        // this loop and the new one starts from its own first step.
+        .task(id: bundleID) { await runLoop() }
+        // The animation is decoration; the instructions are the two labels
+        // above. Say them once, plainly, for anyone not watching it.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            "In System Settings for \(appName), set alert style to None"
+                + (needsSoundChange ? ", and turn off play sound for notifications." : ".")
+        )
+    }
+
+    // MARK: Pieces
+
+    private enum Style { case none, banners, alerts }
+
+    @ViewBuilder
+    private func styleTile(_ style: Style, label: String, selected: Bool) -> some View {
+        VStack(spacing: 5) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(Color.primary.opacity(0.07))
+                // A miniature of what that style looks like on screen: nothing
+                // for None, one banner for Banners, a banner with buttons for
+                // Alerts. Matches the illustrations Apple puts in the pane.
+                switch style {
+                case .none:
+                    Image(systemName: "slash.circle")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                case .banners:
+                    RoundedRectangle(cornerRadius: 2.5, style: .continuous)
+                        .fill(Color.primary.opacity(0.35))
+                        .frame(width: 40, height: 12)
+                        .offset(y: -4)
+                case .alerts:
+                    VStack(spacing: 2) {
+                        RoundedRectangle(cornerRadius: 2.5, style: .continuous)
+                            .fill(Color.primary.opacity(0.35))
+                            .frame(width: 40, height: 12)
+                        HStack(spacing: 2) {
+                            Capsule().fill(Color.primary.opacity(0.25)).frame(width: 18, height: 4)
+                            Capsule().fill(Color.primary.opacity(0.25)).frame(width: 18, height: 4)
+                        }
+                    }
+                }
+            }
+            .frame(width: Geo.tileWidth - 18, height: 30)
+
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(selected ? .primary : .secondary)
+        }
+        .frame(width: Geo.tileWidth, height: Geo.tileHeight)
+        .background(
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .fill(selected ? Color.accentColor.opacity(0.16) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .strokeBorder(
+                    selected ? Color.accentColor : Color.secondary.opacity(0.25),
+                    lineWidth: selected ? 1.5 : 1
+                )
+        )
+        .scaleEffect(pressed && target == .style && style == .none ? 0.95 : 1)
+    }
+
+    /// The pointer, plus the click ripple, positioned over whichever control
+    /// the current step is about.
+    @ViewBuilder
+    private var pointer: some View {
+        ZStack(alignment: .topLeading) {
+            Circle()
+                .strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 1.5)
+                .frame(width: 26, height: 26)
+                .scaleEffect(ripple ? 1.7 : 0.4)
+                .opacity(ripple ? 0 : 0.9)
+                .offset(x: anchor.x - 13, y: anchor.y - 13)
+
+            Image(systemName: pressed ? "cursorarrow.click" : "cursorarrow")
+                .font(.system(size: 15))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.6), radius: 1.5, y: 0.5)
+                .offset(x: anchor.x, y: anchor.y)
+        }
+        .opacity(cursorVisible ? 1 : 0)
+        .allowsHitTesting(false)
+    }
+
+    /// Where the pointer sits for the current target, in the demo's own
+    /// coordinates (offset by the 10pt padding of the container).
+    private var anchor: CGPoint {
+        let padding: CGFloat = 10
+        // "Alert style" caption sits above the tiles.
+        let tilesTop = padding + 17
+        switch target {
+        case .style:
+            return CGPoint(x: padding + Geo.tileWidth / 2, y: tilesTop + Geo.tileHeight / 2)
+        case .sound:
+            return CGPoint(x: padding + Geo.width - 14, y: tilesTop + Geo.soundRowTop)
+        case .parked:
+            // Off the bottom-right corner, where it fades in and out of.
+            return CGPoint(x: padding + Geo.width - 4, y: tilesTop + Geo.soundRowTop + 46)
+        }
+    }
+
+    // MARK: The loop
+
+    private func runLoop() async {
+        // Under Reduce Motion the demo holds the *answer* still instead of
+        // animating toward it — the labels carry the instruction either way.
+        guard !reduceMotion else {
+            styleIsNone = true
+            soundIsOn = false
+            return
+        }
+
+        while !Task.isCancelled {
+            withTransaction(Transaction(animation: nil)) {
+                styleIsNone = false
+                soundIsOn = true
+                target = .parked
+                cursorVisible = false
+                pressed = false
+                ripple = false
+            }
+            if await sleep(0.6) { return }
+
+            if needsStyleChange {
+                withAnimation(.easeOut(duration: 0.25)) { cursorVisible = true }
+                withAnimation(.easeInOut(duration: 0.7)) { target = .style }
+                if await sleep(0.85) { return }
+                if await click({ styleIsNone = true }) { return }
+                if await sleep(0.9) { return }
+            }
+
+            if needsSoundChange {
+                if !cursorVisible {
+                    withAnimation(.easeOut(duration: 0.25)) { cursorVisible = true }
+                }
+                withAnimation(.easeInOut(duration: 0.6)) { target = .sound }
+                if await sleep(0.75) { return }
+                if await click({ soundIsOn = false }) { return }
+                if await sleep(1.2) { return }
+            }
+
+            withAnimation(.easeIn(duration: 0.3)) {
+                cursorVisible = false
+                target = .parked
+            }
+            if await sleep(1.1) { return }
+        }
+    }
+
+    /// Press, ripple, commit the change, release. Returns true if cancelled.
+    private func click(_ commit: @escaping () -> Void) async -> Bool {
+        withAnimation(.easeIn(duration: 0.08)) { pressed = true }
+        withAnimation(.easeOut(duration: 0.5)) { ripple = true }
+        if await sleep(0.13) { return true }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { commit() }
+        withAnimation(.easeOut(duration: 0.15)) { pressed = false }
+        withTransaction(Transaction(animation: nil)) { ripple = false }
+        return false
+    }
+
+    /// `true` when the view went away mid-sleep and the loop should stop.
+    private func sleep(_ seconds: Double) async -> Bool {
+        try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+        return Task.isCancelled
+    }
+}
+
 // MARK: - Onboarding Assistant Panel Controller
 
 @MainActor
@@ -396,8 +761,11 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         switch mode {
         case .fullDiskAccess:
             height = SystemIntegration.permissionPersistenceWarning == nil ? 264 : 320
-        case .appMigration:
-            height = 300
+        case .nativeBanners(let findings):
+            // Header, blurb, the demo (fixed size by construction), status
+            // line and button — plus one row for the step dots, which only
+            // exist when there's more than one app to get through.
+            height = findings.count > 1 ? 404 : 380
         }
 
         let newPanel = NSPanel(

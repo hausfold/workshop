@@ -8,8 +8,12 @@
    broken pipeline. Supervision re-probes with capped backoff.
 3. Provider-native types stop at the provider boundary; everything past it
    is `NotificationEvent`.
-4. The Apple-owned `usernoted` store is opened read-only or not at all, and
-   only when its schema probe passes.
+4. Apple-owned stores — the `usernoted` db and the `com.apple.ncprefs`
+   preference domain — are read-only or not at all: the former only when its
+   schema probe passes, the latter decoding defensively and degrading to
+   "nothing to report" rather than to a wrong answer. flick never writes
+   either, so it can never quietly change a setting the user believes only
+   they control.
 5. Banner state lives in `BannerQueue`; panels are disposable and rebuilt on
    every display-topology change without event loss.
 6. Banners never take key focus and never make sound.
@@ -85,6 +89,25 @@ a Focus profile (owned by the rice) silences Apple's rendering while
 providers still see events; flick deep-links to Notification and Focus
 settings via `SystemIntegration` — the one file allowed to touch Apple's
 notification machinery.
+
+What flick *can* do is tell you when Apple is still drawing something it's
+also drawing. `NotificationSettingsAudit` reads `com.apple.ncprefs` — the
+private domain behind that pane — and decodes three bits per app: alert style
+(banners `1<<3`, alerts `1<<4`, neither = None) and play-sound (`1<<2`). The
+layout is reverse-engineered, so it was corroborated two independent ways
+before being trusted: against the long-standing community tool
+(`drewdiver/ncprefs.py`) and empirically across a real 92-app store, where
+`(flags >> 3) & 0b11` took only the values 0/1/2 — a two-bit field, not three
+loose booleans. Bits with plausible-but-uncorroborated community meanings
+(lock screen, time-sensitive, critical) are deliberately **not** read: acting
+on them would be guessing.
+
+That audit is what `flick doctor` reports and what the stepped helper panel
+(`OnboardingAssistantView.Mode.nativeBanners`) polls once a second while the
+user works in System Settings. The panel is the Full Disk Access assistant's
+shape reused wholesale — non-activating, all-Spaces, deterministic height —
+because the constraint is identical: be readable *beside* System Settings
+without taking its focus.
 
 ## Planned extensions that fit existing seams
 

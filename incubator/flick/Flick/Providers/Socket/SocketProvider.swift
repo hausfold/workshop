@@ -9,17 +9,26 @@ struct SocketProvider: NotificationProvider {
     let capabilities = ProviderCapabilities(canOpenSource: false, canDismissAtSource: false)
 
     /// One JSON object per line. `v` is the wire version.
-    struct Request: Codable {
+    struct Request: Codable, Equatable {
         var v: Int?
-        /// "send" | "ping"
+        /// "send" | "ping" | "doctor"
         var verb: String
         var event: NotificationEvent?
+        /// doctor: audit exactly these bundle ids.
+        var apps: [String]?
+        /// doctor: audit every app macOS holds preferences for.
+        var all: Bool?
+        /// doctor: put the findings on screen as banners, not just in the reply.
+        var notify: Bool?
     }
 
     struct Response: Codable {
         var ok: Bool
         var id: String?
         var error: String?
+        /// doctor only. Optional, so a `send`/`ping` reply is byte-identical
+        /// to what older CLIs already parse.
+        var findings: [NativeNotificationSettings]?
     }
 
     static func defaultSocketPath() -> String {
@@ -27,8 +36,17 @@ struct SocketProvider: NotificationProvider {
     }
 
     private let path: String
-    init(path: String = SocketProvider.defaultSocketPath()) {
+    /// Resolves "a listed app" for a `doctor` request that didn't name any.
+    /// Injected rather than read here so the provider keeps knowing nothing
+    /// about rules — `AppRuntime` owns the hot-reloaded `RuleSet`.
+    private let listedApps: @Sendable () -> [String]
+
+    init(
+        path: String = SocketProvider.defaultSocketPath(),
+        listedApps: @escaping @Sendable () -> [String] = { [] }
+    ) {
         self.path = path
+        self.listedApps = listedApps
     }
 
     func probe() async -> ProviderHealth {
@@ -46,6 +64,7 @@ struct SocketProvider: NotificationProvider {
         AsyncStream { continuation in
             let decoder = JSONDecoder.flick
             let encoder = JSONEncoder.flick
+            let listedApps = self.listedApps
 
             let server = SocketServer(path: path) { line, reply in
                 let response: Response
@@ -55,6 +74,18 @@ struct SocketProvider: NotificationProvider {
                     response = Response(ok: true, id: event.id, error: nil)
                 case .ping:
                     response = Response(ok: true, id: nil, error: nil)
+                case .doctor(let request):
+                    // The *daemon* runs the audit, never the caller: a CLI
+                    // that could hand us findings could hand us fabricated
+                    // ones, and this reply is what pops banners.
+                    let scope = request.scope ?? .only(listedApps())
+                    let findings = NotificationSettingsAudit.findings(scope: scope)
+                    if request.notify {
+                        for event in NotificationSettingsAudit.bannerEvents(for: findings) {
+                            continuation.yield(event.normalized())
+                        }
+                    }
+                    response = Response(ok: true, id: nil, error: nil, findings: findings)
                 case .failure(let message):
                     response = Response(ok: false, id: nil, error: message)
                 }
@@ -73,10 +104,23 @@ struct SocketProvider: NotificationProvider {
         }
     }
 
-    enum Handled {
+    enum Handled: Equatable {
         case send(NotificationEvent)
         case ping
+        case doctor(DoctorRequest)
         case failure(String)
+    }
+
+    /// A parsed `doctor` request: what to audit, and whether to say it out
+    /// loud. Kept separate from the wire `Request` so the parse is testable.
+    ///
+    /// A nil `scope` means "whatever this daemon considers a listed app" —
+    /// the caller declined to say, so the *daemon* answers it from its own
+    /// hot-reloaded rules. That's deliberate: a rebuild hook running `flick
+    /// doctor` shouldn't have to know where `rules.json` lives.
+    struct DoctorRequest: Equatable, Sendable {
+        var scope: NotificationSettingsAudit.Scope?
+        var notify: Bool
     }
 
     /// Pure request handling, testable without a socket.
@@ -96,6 +140,19 @@ struct SocketProvider: NotificationProvider {
                 return .failure("event.title must not be empty")
             }
             return .send(event.normalized())
+        case "doctor":
+            // An explicit app list always wins over `--all`; asking for both
+            // is a caller being specific, not a caller being ambiguous.
+            let named = (request.apps ?? []).filter { !$0.isEmpty }
+            let scope: NotificationSettingsAudit.Scope?
+            if !named.isEmpty {
+                scope = .only(named)
+            } else if request.all == true {
+                scope = .everything
+            } else {
+                scope = nil // the daemon's own listed apps
+            }
+            return .doctor(DoctorRequest(scope: scope, notify: request.notify == true))
         case let other:
             return .failure("unknown verb '\(other)'")
         }

@@ -36,6 +36,12 @@ struct NotificationEvent: Codable, Sendable, Identifiable, Equatable {
             case openURL = "open_url"
             /// Run a user-configured hook command (opt-in, rules-declared).
             case command
+            /// Open the helper that walks the user through turning Apple's
+            /// own banners off for an app. `target` is a bundle id, or nil to
+            /// walk every app the audit flagged. flick never writes those
+            /// settings itself — this only opens System Settings and stands
+            /// beside it.
+            case silenceNative = "silence_native"
         }
 
         var id: String

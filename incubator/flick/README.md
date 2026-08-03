@@ -69,6 +69,10 @@ echo '{"title":"Backup complete","body":"3.8 GB copied","source":"backups","urge
   | flick send --json
 
 flick ping   # is the daemon up?
+
+flick doctor            # which listed apps does macOS still notify for itself?
+flick doctor --all      # …check every app on the Mac, not just the listed ones
+flick doctor --notify   # …and put the findings on screen, click to be walked through
 ```
 
 ```jsonc
@@ -95,6 +99,29 @@ Three lanes, in order of honesty:
    moves. flick stays fully useful without it.
 3. **Suppressing Apple's own banners** is Focus + per-app settings — flick
    deep-links you there but never pretends to own that dial.
+
+### `flick doctor` — the duplicate-banner check
+
+Mirroring an app macOS is *also* drawing means seeing everything twice, so
+flick can at least tell you which apps those are. `flick doctor` reads Apple's
+own per-app notification preferences (read-only, and undocumented — see
+`NotificationSettingsAudit`) and reports every listed app whose alert style
+isn't **None** or whose **Play sound** is still on. Exit code 4 means it found
+some, so a rebuild hook can gate on it.
+
+"Listed" means the bundle-id-shaped `source` values in your `rules.json`;
+`--all` widens it to every app on the Mac, and naming bundle ids explicitly
+narrows it.
+
+`--notify` puts the findings on screen as banners with one action —
+**Silence Native Banners**. Clicking one opens System Settings on that app and
+floats a helper panel beside it that animates the two clicks you need (alert
+style → None, Play sound → off), ticks each app off the moment macOS agrees,
+and closes itself when they're all quiet. Same panel shape as the Full Disk
+Access assistant, and the same promise: **flick opens the pane, it never
+writes the setting.** There's no API to change another app's notification
+preferences, and silently rewriting a pane the user believes only they control
+isn't a trade this app makes.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the invariants and
 [PRD.md](./PRD.md) for the milestones.

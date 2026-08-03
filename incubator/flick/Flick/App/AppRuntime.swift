@@ -51,8 +51,13 @@ final class AppRuntime {
             }
         }
 
-        Task { [repository, weak self] in
-            await repository.supervise(SocketProvider())
+        Task { [repository, rulesWatcher, weak self] in
+            // `flick doctor` with no app list audits whatever the current
+            // rules name — read live, so an edited rules.json changes the
+            // next audit without a restart.
+            await repository.supervise(SocketProvider(listedApps: {
+                NotificationSettingsAudit.listedBundleIDs(in: rulesWatcher.current())
+            }))
             // Always probed, regardless of the toggle: Settings gates the
             // toggle itself on Full Disk Access being granted, which it can
             // only know by reading this provider's health.
@@ -92,6 +97,13 @@ final class AppRuntime {
     }
 
     var inboxDatabase: AppDatabase? { database }
+
+    /// The bundle ids the current rules name — what both `flick doctor` and
+    /// the Settings audit mean by "a listed app". Read live, so an edited
+    /// rules.json is reflected without a restart.
+    var listedApps: [String] {
+        NotificationSettingsAudit.listedBundleIDs(in: rulesWatcher.current())
+    }
 }
 
 /// Loads `~/.config/flick/rules.json` and reloads it when it changes.

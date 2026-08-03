@@ -44,6 +44,15 @@ never into a broken pipeline. Corollaries:
   with a visible reason on any drift. It is opt-in, experimental, and the
   app must stay fully useful without it. No usernoted type or column name
   may appear outside `Providers/SystemMirror/`.
+- **flick reads Apple's settings; it never writes them.** `flick doctor` and
+  the "Silence Native Banners" helper decode the private
+  `com.apple.ncprefs` domain read-only (`Platform/NotificationSettingsAudit`)
+  to say which apps macOS still banners or sounds itself. Opening the pane
+  and animating the two clicks is the whole offer — do **not** add a "fix it
+  for me" that writes that plist, however easy it looks. Only the three
+  corroborated bits are read (alert style `1<<3`/`1<<4`, sound `1<<2`);
+  don't extend to bits whose meaning is folklore, and if you must, corroborate
+  against real data first and say so in the comment.
 - **The queue is the truth; panels are disposable.** Display topology
   rebuilds re-render from `BannerQueue` state. Never park event state in a
   panel or view.
