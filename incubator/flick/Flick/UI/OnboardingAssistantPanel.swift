@@ -263,6 +263,22 @@ struct OnboardingAssistantView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
+            // Apple dropped per-app anchors from the Notifications deep link:
+            // the URL lands on the top of the pane no matter which app id it
+            // carries. So the first real step is *finding* the row, and the
+            // honest thing is to show exactly what it looks like — icon,
+            // name, and the same summary line System Settings writes under it.
+            VStack(alignment: .leading, spacing: 4) {
+                Text("1 · Find this row under Application Notifications")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                settingsRowMock(for: finding, appName: appName)
+            }
+
+            Text("2 · Set it to look like this")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
             NativeBannerDemo(
                 appName: appName,
                 bundleID: finding.bundleID,
@@ -283,12 +299,51 @@ struct OnboardingAssistantView: View {
             Button {
                 SystemIntegration.openNotificationSettings(for: finding.bundleID)
             } label: {
-                Label("Open \(appName) Settings", systemImage: "arrow.up.forward.app")
+                // Not "Open <App> Settings" — it can't do that, and a button
+                // that overpromises by one step is what sends someone hunting
+                // for a pane that never opened.
+                Label("Open Notification Settings", systemImage: "arrow.up.forward.app")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
         }
+    }
+
+    /// A replica of the app's row in System Settings → Notifications, down to
+    /// the summary line, so the user can scan the list for a shape they've
+    /// already seen rather than a name they have to remember.
+    @ViewBuilder
+    private func settingsRowMock(for finding: NativeNotificationSettings, appName: String) -> some View {
+        HStack(spacing: 8) {
+            if let icon = NotificationSettingsAudit.icon(for: finding.bundleID) {
+                Image(nsImage: icon)
+                    .resizable()
+                    .frame(width: 26, height: 26)
+            } else {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.secondary.opacity(0.2))
+                    .frame(width: 26, height: 26)
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(appName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                Text(finding.settingsSubtitle)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.primary.opacity(0.06))
+        )
     }
 
     /// Past this many apps the dots stop being countable at a glance and
@@ -774,10 +829,10 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         case .fullDiskAccess:
             height = SystemIntegration.permissionPersistenceWarning == nil ? 264 : 320
         case .nativeBanners(let findings):
-            // Header, blurb, the demo (fixed size by construction), status
-            // line and button — plus one row for the step dots, which only
-            // exist when there's more than one app to get through.
-            height = findings.count > 1 ? 404 : 380
+            // Header, blurb, the row replica, the demo (fixed size by
+            // construction), status line and button — plus one row for the
+            // step dots, which only exist when there's more than one app.
+            height = findings.count > 1 ? 500 : 476
         }
 
         let newPanel = NSPanel(

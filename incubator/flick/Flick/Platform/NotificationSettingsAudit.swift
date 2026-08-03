@@ -26,6 +26,24 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
     /// this app's notifications itself.
     var isNoisy: Bool { alertStyle != .none || playsSound }
 
+    /// The summary line System Settings puts under the app's name in
+    /// Application Notifications ("Badges, Sounds, and Desktop"). Rebuilt
+    /// from the same bits so the helper can show the user the exact row to
+    /// look for — the per-app deep link lands on the top of the pane, not on
+    /// the app, so scanning for the row is the step that actually happens.
+    var settingsSubtitle: String {
+        var parts: [String] = []
+        if badgesIcon { parts.append("Badges") }
+        if playsSound { parts.append("Sounds") }
+        if alertStyle != .none { parts.append("Desktop") }
+        switch parts.count {
+        case 0: return "Off"
+        case 1: return parts[0]
+        case 2: return "\(parts[0]) and \(parts[1])"
+        default: return parts.dropLast().joined(separator: ", ") + ", and " + parts[parts.count - 1]
+        }
+    }
+
     /// One line naming only what's still wrong, for a banner body or a CLI row.
     var complaint: String? {
         var parts: [String] = []
@@ -288,6 +306,14 @@ enum NotificationSettingsAudit {
     }
 
     // MARK: - Naming
+
+    /// The app's icon, for the "find this row" replica. nil when nothing on
+    /// this Mac claims the id.
+    static func icon(for bundleID: String) -> NSImage? {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
+        else { return nil }
+        return NSWorkspace.shared.icon(forFile: url.path)
+    }
 
     /// A human name for a bundle id, or the id back when nothing on this Mac
     /// claims it (an app that was uninstalled still has a preferences row).

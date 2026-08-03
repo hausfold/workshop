@@ -70,6 +70,21 @@ final class NotificationSettingsAuditTests: XCTestCase {
         XCTAssertEqual(settings.complaint, "macOS still shows sound")
     }
 
+    // MARK: - The System Settings summary line
+
+    func testSubtitleMatchesTheStringSystemSettingsWrites() {
+        // Real ghostty flags: badge + sound + banners.
+        XCTAssertEqual(decode(276_832_270).settingsSubtitle, "Badges, Sounds, and Desktop")
+    }
+
+    func testSubtitleTwoPartsUsesAndWithoutAComma() {
+        XCTAssertEqual(decode(0b00110).settingsSubtitle, "Badges and Sounds")
+    }
+
+    func testSubtitleOfASilencedAppIsOff() {
+        XCTAssertEqual(decode(0).settingsSubtitle, "Off")
+    }
+
     func testComplaintNamesBothProblems() {
         XCTAssertEqual(decode(0b01100).complaint, "macOS still shows banners + sound")
     }
