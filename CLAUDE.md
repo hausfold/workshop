@@ -265,7 +265,13 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   version number is ever typed by hand — the date IS the version, so there's
   nothing to bump before releasing. Never hand-bump the formula's url/sha lines.
   Ship first, then release (the date-stamp moves HEAD, so `bench ship` again
-  afterward to ripple that lock downstream).
+  afterward to ripple that lock downstream — or `bench release <repo> --ship`
+  to do both). **`bench release` BLOCKS** until the CI run finishes, drawing
+  its jobs live, and exits non-zero if the run goes red. That wait is
+  load-bearing, not decoration: trill's and perch's runs commit `nix/release.nix`
+  back to the repo, so returning early would leave a checkout behind origin and
+  a `bench ship` that ripples a superseded rev. It fast-forwards for you when
+  the run goes green.
 - Don't cross-edit: a color hex in `nebelhaus`, or launchd logic in `pounce`,
   is in the wrong repo even if it would work. Each repo's CLAUDE.md enforces
   its own boundary — respect it from up here too.
