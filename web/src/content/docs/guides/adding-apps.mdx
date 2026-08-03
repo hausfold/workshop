@@ -312,8 +312,22 @@ ordinary roster entry, so you can give IINA a launcher key
 the list everything else lives in.
 
 The file types are the ordinary user default — the same record Finder's *Get
-Info ▸ Change All* writes — so nothing here is hard to undo. Audio, `.gif`,
-playlists and `.ts` are never touched.
+Info ▸ Change All* writes — so nothing here is hard to undo. The claimed list is
+short on purpose (mp4, m4v, mov, mpg, mpeg, mkv, webm, avi, wmv, flv, 3gp, ogv,
+vob): audio, `.gif`, playlists and dead or professional containers like `.rm`,
+`.mxf` and `.dv` are never touched, and neither is the transport-stream trio
+`.ts`/`.mts`/`.m2ts` — on a developer's machine those are TypeScript far more
+often than video, so the [editor
+hijack](/reference/options/#nebelhaushearthhijackfileassociations) owns them.
+
+<Aside type="caution" title="One owner per type">
+That last exclusion is a rule, not a preference. Two rice-owned apps claiming
+the same file type never settles into a winner: both claims are re-applied on
+every activation, so macOS stops and asks you which app should win — on every
+single rebuild. `.mts` really did sit in both lists, and because `.mts` and
+`.m2ts` share one AVCHD UTI, the prompt covered both. If you add an extension to
+either list, check it against the other **by UTI, not by spelling**.
+</Aside>
 
 ---
 
