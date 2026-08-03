@@ -93,10 +93,34 @@ allows, and add a row.
   idempotent and safe to run by hand. If a flake command says Nix is missing,
   that's the fix.
 
-## Not done yet
+## The rest of the family
 
-The child repos (`nebelhaus`, `nebelung`, `pounce`, `trill`, `perch`,
-`.github`, `homebrew-tap`) still carry a lone `CLAUDE.md`. Converting each one
-is the same three moves as here: `git mv CLAUDE.md AGENTS.md`, leave a
-`CLAUDE.md` holding `@AGENTS.md`, and move any `.claude/hooks/*` script to
-`.agents/`. Do it per repo, in that repo's own PR.
+Every repo now carries this layer, one PR each: the rice (`nebelhaus`),
+`nebelung`, `pounce`, `trill`, `perch`, `org-profile` (the `nebelhaus/.github`
+repo), `homebrew-tap`, the incubating `incubator/flick`, and the consumer
+config (`~/.config/nix`). Each keeps its **own** rules — only the shape is
+shared. The differences worth knowing:
+
+- **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a
+  flake, so there is nothing to bootstrap; their `.agents/README.md` records
+  that as a decision rather than leaving a gap-shaped silence. Every other repo
+  carries the same script, adapted only in its opening comment.
+- **`~/.config/nix` also moved a flow**, not just instructions:
+  `.claude/commands/rebuild.md` → `.agents/skills/rebuild/SKILL.md`, symlinked
+  into `.claude/skills/` and `.opencode/skills/` exactly as `ship` and
+  `docs-sync` are here. Its `.claude/settings.local.json` stays put — a
+  pre-approved tool-call allowlist is machine-local permission state, not a
+  project rule.
+- **`incubator/flick` has no `.github/copilot-instructions.md` yet.** It's still
+  inside this repo's tree, and `incubator/flick/.github/` is not a path GitHub
+  resolves; it's on the eject checklist in its `BOOTSTRAP.md`.
+- **The rice ships this shape to users, too.** `nebelhaus.claude.skill` now
+  installs a `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather
+  than a lone `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one
+  layer out.
+
+Adding a new repo to the family? Copy the *pattern* from any of them, never the
+text: `git mv CLAUDE.md AGENTS.md`, leave a `CLAUDE.md` holding `@AGENTS.md` plus
+its client-only wiring table, move any `.claude/hooks/*` script to
+`.agents/setup.sh`, and add the `GEMINI.md` symlink, `opencode.json` and real
+`.github/copilot-instructions.md`.

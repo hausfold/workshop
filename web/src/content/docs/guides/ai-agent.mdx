@@ -27,7 +27,8 @@ Every rebuild writes a Claude Code **skill** to `~/.claude/skills/nebelhaus`:
 | `references/options.md` | Every `nebelhaus.*` option — **generated from the exact rice revision you're pinned to**. |
 | `references/this-machine.md` | Your host: hostname, host-file path, which rooms are on, your theme and keys, your app roster and its taken leader keys. |
 | `references/recipes.md` | Worked examples for the common asks. |
-| `consumer-CLAUDE.md` | A starter `CLAUDE.md` for your config repo (see below). |
+| `consumer-AGENTS.md` | A starter `AGENTS.md` for your config repo — the rules themselves (see below). |
+| `consumer-CLAUDE.md` | Its one-line `@AGENTS.md` pointer, for the client that reads only `CLAUDE.md`. |
 
 The option reference being *generated* is the point. A hand-written cheatsheet
 goes stale the first time an option is added, and a confidently-wrong option name
@@ -36,8 +37,9 @@ your revision — and `haus update` regenerates it along with the rice.
 
 <Aside type="tip" title="Check it's there">
 `haus doctor` has an **Agents** section that reports whether the skill is
-installed, whether your config repo has a `CLAUDE.md`, and whether the app you're
-running from can write macOS's protected settings.
+installed, whether your config repo has an `AGENTS.md` (and the `CLAUDE.md`
+pointer beside it), and whether the app you're running from can write macOS's
+protected settings.
 </Aside>
 
 ## The loop it follows
@@ -115,16 +117,24 @@ macOS system settings a rebuild wrote (Dock, keyboard, Finder), and it does not
 rewind Homebrew casks — those live outside Nix generations entirely. A good agent
 says which kind of change it's about to make.
 
-## A CLAUDE.md for your config
+## An AGENTS.md for your config
 
-`~/.config/nix` is your own git repo — your machine in text. Dropping a
-`CLAUDE.md` in it orients any agent you open there, whether or not it found the
-skill. A starter ships inside the skill; nothing writes it for you, because it's
-your repo and you should own the file:
+`~/.config/nix` is your own git repo — your machine in text. Dropping an
+`AGENTS.md` in it orients any agent you open there, whether or not it found the
+skill. A starter pair ships inside the skill; nothing writes it for you, because
+it's your repo and you should own the files:
 
 ```sh
+cp ~/.claude/skills/nebelhaus/consumer-AGENTS.md ~/.config/nix/AGENTS.md
 cp ~/.claude/skills/nebelhaus/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
 ```
+
+Two files, because the tools disagree about the filename. **`AGENTS.md` is the
+one that carries the rules** — Codex, OpenCode, Cursor, Zed, Copilot and
+everything else that speaks [agents.md](https://agents.md) read it directly.
+Claude Code reads only `CLAUDE.md`, so the second file is a one-line
+`@AGENTS.md` import and nothing else. Copy just one and you orient some of your
+tools and not others.
 
 ## Other tools, and before you've installed
 

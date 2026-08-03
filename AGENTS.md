@@ -15,9 +15,9 @@ which tool reads which file is [`.agents/README.md`](./.agents/README.md).
 
 ## Master routing table
 
-Every task belongs to exactly one repo. Go there first; each has its own agent
-instructions (`AGENTS.md`, or still `CLAUDE.md` in the repos that haven't
-converted yet) with the deep rules.
+Every task belongs to exactly one repo. Go there first; each carries its own
+`AGENTS.md` with the deep rules (and a `CLAUDE.md` beside it that is nothing but
+an `@AGENTS.md` import — put rules in the former, never the latter).
 
 | Want to change… | Repo |
 |---|---|
@@ -26,7 +26,7 @@ converted yet) with the deep rules.
 | the trill Messages client (UI, providers over `chat.db`) | `./trill` |
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
-| the org's GitHub front page | `./.github` (the `nebelhaus/.github` repo; `bench clone` maps the alias `org-profile` to it) |
+| the org's GitHub front page | `./org-profile` — the checkout of the `nebelhaus/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the flick notification compositor (quiet banners, rules, `flick` CLI) | `./incubator/flick` — **incubating**: a complete repo-to-be awaiting eject to `nebelhaus/flick` (see its `BOOTSTRAP.md`); after eject, `./flick` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
@@ -78,7 +78,7 @@ its own Ghostty window, so the working multiplexer is untouched (`zscratch
 reaps it). Feel it there; the real `bench try switch` happens once, at the end,
 already knowing it works. It's not a `bench` command — the full flag set + the
 permission-cache gotchas live in the [rice's
-CLAUDE.md](https://github.com/nebelhaus/nebelhaus/blob/main/CLAUDE.md) and the
+AGENTS.md](https://github.com/nebelhaus/nebelhaus/blob/main/AGENTS.md) and the
 `zscratch.sh` header ([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
 
 ## Agent worktrees (parallel agent sessions)
@@ -180,8 +180,8 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/nebelhaus/.git` (the workshop), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `assets`, `web/`). The family
-sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `perch/`, `.github/`,
-`homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
+sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `perch/`,
+`org-profile/`, `homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
 is an independent repo that lives only beside the workshop's main checkout.
@@ -215,7 +215,7 @@ preferred.)
 
 Not a worktree, not a cloud session — this is where most work happens, and the
 worktree/cloud restrictions above do **not** apply here. The child repos
-(`nebelhaus`, `nebelung`, `pounce`, `trill`, `perch`, `.github`, `homebrew-tap`) are
+(`nebelhaus`, `nebelung`, `pounce`, `trill`, `perch`, `org-profile`, `homebrew-tap`) are
 `.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
 full, independent repo I own solo, and from the main checkout you drive it
 end-to-end:
