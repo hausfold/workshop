@@ -68,8 +68,8 @@ cheatsheet always reflects the keys you actually have.
 | `Super ⇧P` | New pane, stay here (inherits cwd, no worktree hop) |
 | `Super T` | New tab at `$HOME` (born named `~`) |
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
-| `Super F` / `Super /` | **Find** — full-text search over the focused pane, live as you type |
-| `Super ⇧/` | The same overlay, opened across **every pane** in the session |
+| `Super F` | **Find** — full-text search over the focused pane, live as you type |
+| `Super ⇧F` | The same overlay, opened across **every pane** in the session |
 | `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
 | `Super R` | Reload the terminal stack — quit/reopen Ghostty and restart zellij with the same tabs, panes and cwds; live Claude panes resume (also `zreload` from a shell) |
 | `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
@@ -127,15 +127,10 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 ## Ghostty note
 
 Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`,
-`⌘/`, `⌘⇧/`, `⌘⏎`, `⌘R`, `⌘C` and `⌘⇧C` so zellij owns them — the same keys work
-whether or not you're multiplexed. (`⌘⇧C` and `⌘⏎` are unbound pre-emptively:
-Ghostty claims nothing there today, and the unbind keeps it that way if a future
-release does.)
-
-`⌘⇧/` is also `⌘?`, the shortcut macOS puts on every app's Help menu. Ghostty's
-binding should win, but if a future macOS takes the chord back nothing is lost —
-`^s` toggles scope from inside the overlay, so `⌘/` still reaches every-pane
-search in two keystrokes.
+`⌘⇧F`, `⌘⏎`, `⌘R`, `⌘C` and `⌘⇧C` so zellij owns them — the same keys work
+whether or not you're multiplexed. (`⌘⇧C`, `⌘⇧F` and `⌘⏎` are unbound
+pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
+way if a future release does.)
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
 
 `⌘D` and `⌘⇧D` are unbound too, but nothing takes them over: they do **nothing**.

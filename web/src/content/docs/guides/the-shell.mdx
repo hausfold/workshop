@@ -78,8 +78,8 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super ⇧P` | New pane, **stay here** — inherits cwd with no hop, so you get a shell right inside the worktree |
 | `Super T` | New tab at `$HOME` — born named `~` (fresh tabs are never `Tab #N`) |
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
-| `Super F` / `Super /` | **Find** — full-text search over the focused pane, live as you type (see [Finding things](#finding-things)) |
-| `Super ⇧/` | The same overlay, across **every pane** in the session |
+| `Super F` | **Find** — full-text search over the focused pane, live as you type (see [Finding things](#finding-things)) |
+| `Super ⇧F` | The same overlay, across **every pane** in the session |
 | `Super ⏎` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super R` | **Reload the terminal stack** — gracefully quit/reopen Ghostty, then start a fresh zellij server with the same tabs, panes and working directories; live Claude Code panes resume their exact conversations |
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
@@ -105,9 +105,9 @@ a build tool just printed.
 
 ### Finding things
 
-`⌘F` (or `⌘/`) opens a floating search overlay for the focused pane; `⌘⇧/`
-opens the same overlay across every pane in the session. Results appear as you
-type, with a preview of the lines around each hit.
+`⌘F` opens a floating search overlay for the focused pane; `⌘⇧F` opens the same
+overlay across every pane in the session. Results appear as you type, with a
+preview of the lines around each hit.
 
 Where the text comes from depends on the pane:
 
