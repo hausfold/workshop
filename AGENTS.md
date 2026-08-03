@@ -28,7 +28,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
 | the org's GitHub front page | `./org-profile` — the checkout of the `nebelhaus/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the flick notification compositor (quiet banners, rules, `flick` CLI) | `./incubator/flick` — **incubating**: a complete repo-to-be awaiting eject to `nebelhaus/flick` (see its `BOOTSTRAP.md`); after eject, `./flick` |
-| holt — the worktree-lifecycle substrate (`wt` extracted as its own Go product) | `./holt` — its own repo now ([nebelhaus/holt](https://github.com/nebelhaus/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice ships it on PATH and ⌘A already runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)); `wt` in `./nebelhaus/modules/den/wt.sh` is **frozen** (bugfixes only) and stays beside it — both write the same `registry.tsv` — until the Claude Code worktree hooks in `~/.claude/settings.json` are repointed by hand. |
+| holt — the worktree-lifecycle substrate (`wt` extracted as its own Go product) | `./holt` — its own repo now ([nebelhaus/holt](https://github.com/nebelhaus/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt` in `./nebelhaus/modules/den/wt.sh` is **frozen** (bugfixes only) and stays beside it — both write the same `registry.tsv`, so the rollback is repointing a caller back. Don't add new `wt` callers. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
@@ -86,36 +86,50 @@ AGENTS.md](https://github.com/nebelhaus/nebelhaus/blob/main/AGENTS.md) and the
 
 Agent panes spawned with `Super a` (⌘A) run whichever client
 `nebelhaus.agents.default` names — `claude`, `codex` or `opencode`. Claude Code
-is the only one that can make its own worktree (`claude --worktree`, which fires
-`wt`'s create hook); for Codex and OpenCode the keybind runs **`wt new`**
-instead, producing the identical checkout from the outside. Either way the
-session gets its own checkout under `~/.cache/claude-worktrees/<repo>/<name>`
-(the path name is historical — every client shares it) on branch
-`worktree-<name>`, branched from the repo's **local HEAD**. The plumbing is
-`wt` — a standalone, repo-agnostic, client-agnostic tool that ships in the
-**rice** (`nebelhaus/modules/den`, next to `haus`) on PATH. It lives in the
-rice, not `bench`, because the rice already ships the agent keybinds — and not
-every machine running `wt` has the workshop. Worktrees live OUTSIDE the repos so
-trees stay clean and `bench try`'s `path:` overrides never swallow them. (`Ctrl
-Alt Shift a` is the in-place variant: the one agent per tab allowed to edit the
-real checkout.)
+is the only one that can make its own worktree (`claude --worktree`, its native
+flag, which fires the `WorktreeCreate` hook → **`holt hook create`**); for Codex
+and OpenCode the keybind runs **`holt new`** instead, producing the identical
+checkout from the outside. Either way the session gets its own checkout under
+`~/.cache/claude-worktrees/<repo>/<name>` (the path name is historical — every
+client shares it) on branch `worktree-<name>`, branched from the repo's **local
+HEAD**. The plumbing is `holt` — a standalone, repo-agnostic, client-agnostic Go
+tool with [its own repo](https://github.com/nebelhaus/holt), which the **rice**
+takes as a flake input and ships on PATH. It isn't part of `bench`, because the
+rice already ships the agent keybinds — and not every machine running `holt` has
+the workshop. Worktrees live OUTSIDE the repos so trees stay clean and `bench
+try`'s `path:` overrides never swallow them. (`Ctrl Alt Shift a` is the in-place
+variant: the one agent per tab allowed to edit the real checkout.)
 
-**Closing a pane never loses work, and every session is resumable.** `wt`'s
+**`wt` is the same tool's predecessor and is frozen** (bugfixes only). It stays
+on PATH in `nebelhaus/modules/den/wt.sh` and reads/writes the **same**
+`registry.tsv`, so an old habit or an old line in a script still works — but
+`holt` is what the rice calls and what these instructions mean. Anything below
+spelled `holt` can be spelled `wt`; don't add new `wt` callers.
+
+**Closing a pane never loses work, and every session is resumable.** `holt`'s
 remove path parks any uncommitted edits as a WIP commit on the branch before
 deleting the checkout (only *merged* branches get reaped), so the checkout dir
 is disposable — the branch + your client's transcript are the real persistence.
-Run `wt` to list every parked/live agent worktree across **all** repos, and
-`wt <name>` (or `wt <repo>/<name>`) to rebuild a parked checkout and drop back
-into the client that worktree was made with (`claude --resume`, `codex resume`,
-`opencode --continue` — `wt` recorded which). This is `wt`'s job, not `bench`'s.
+Run `holt` to list every parked/live agent worktree across **all** repos, and
+`holt <name>` (or `holt <repo>/<name>`) to rebuild a parked checkout and drop
+back into the client that worktree was made with (`claude --resume`, `codex
+resume`, `opencode --continue` — `holt` recorded which). This is `holt`'s job,
+not `bench`'s; `bench status` only *reports* family worktrees, reading that same
+registry to tell a real parked session from a branch that outlived its PR.
 
-**Setting work aside uses `wt park`, never `git stash`.** The stash stack lives
+**Setting work aside uses `holt park`, never `git stash`.** The stash stack lives
 in the shared `.git` dir, so every worktree of a repo *and* the main checkout pop
-the same stack — parallel agents clobber each other there. `wt park [label]`
+the same stack — parallel agents clobber each other there. `holt park [label]`
 commits the whole dirty tree as one `wip:` commit on your branch alone (the
-on-demand form of what the remove hook does); `wt unpark` rewinds it, putting the
-changes back uncommitted. It refuses to unpark a wip commit you've already
-pushed.
+on-demand form of what the remove hook does); `holt unpark` rewinds it, putting
+the changes back uncommitted. It refuses to unpark a wip commit you've already
+pushed, so it can never turn into a force-push.
+
+**A session that keeps committing after its PR merged needs `holt reship`.**
+GitHub deletes the head branch on merge, so those later commits have no remote
+and no PR — and `holt` deliberately won't reap that branch. It marks the session
+`+N` in the state column (`live+3`), and `holt reship [name]` pushes the branch
+and opens the follow-up PR.
 
 If YOU are running in a worktree (check: `git rev-parse --git-common-dir`
 points outside your toplevel):
@@ -172,14 +186,14 @@ points outside your toplevel):
   stops and reports. It does **not** close this pane and does **not** spawn a new
   one — leave the pane exactly where it is; I close panes myself. The now-merged
   worktree is **not** reaped here (you're still sitting in it) — it's cleaned up
-  when I close the pane, or by a later `wt reap`.
+  when I close the pane, or by a later `holt reap`.
 - When done, push the branch, open the PR, and — if I didn't say ship — tell me
   the PR link. The worktree dies with the pane; the branch + PR survive until
   merged (and `bench status` nags about the branch).
 
 **A worktree is of whichever repo the pane sat in — and a *workshop* worktree
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
-points at `…/nebelhaus/.git` (the workshop), your tree holds ONLY the workshop's
+points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `assets`, `web/`). The family
 sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `perch/`,
 `org-profile/`, `homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
@@ -190,14 +204,14 @@ So the moment a task turns out to belong to a child repo (per the routing table)
 don't grep, edit, or hunt for those files in *this* tree, and don't report them as
 "hidden by gitignore." **You have standing permission — no need to ask — to make a
 dedicated worktree of that child repo and do the work there.** That's the default
-path from a workshop worktree; use `wt child` — **not** a raw `git worktree add`:
+path from a workshop worktree; use `holt child` — **not** a raw `git worktree add`:
 
 ```sh
 workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
-cd "$(wt child "$workshop_root/<repo>")"
+cd "$(holt child "$workshop_root/<repo>")"
 ```
 
-`wt child` does the `git worktree add` **and registers it** with this pane as the
+`holt child` does the `git worktree add` **and registers it** with this pane as the
 parent, so the statusline HUD can see the child's PR — a raw `git worktree add`
 skips the registry, and the refresher then never queries that repo's GitHub, so
 the PR is invisible in the bar (this is a real gotcha we hit). It names the child

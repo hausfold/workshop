@@ -126,7 +126,7 @@ bootstrap in [`.agents/`](./.agents/README.md).
 ## more
 
 - [Workflows](./docs/workflows.md) — daily driving, parallel agents, batch-testing, releasing
-- [The four CLIs](./docs/workflows.md#the-four-clis) — `haus` vs `bench` vs `wt` vs `zscratch`
+- [The four CLIs](./docs/workflows.md#the-four-clis) — `haus` vs `bench` vs `holt` vs `zscratch`
 - [nebelhaus.com](https://nebelhaus.com) — the user-facing docs this repo publishes
 
 ## roadmap

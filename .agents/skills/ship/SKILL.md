@@ -97,31 +97,32 @@ Not mergeable (conflicts / non-fast-forward)? `git fetch origin && git rebase or
 push, retry. On conflicts you can't cleanly resolve, **stop and show them** — never
 force-push `main`. On the current worktree's own branch the *local* delete may be skipped
 because you're standing on it — fine, leave it: the merged branch + checkout are reaped when
-I close this pane myself (`wt`'s remove path fires on the client's graceful teardown) or by a
-later `wt reap`. `/ship` no longer closes the pane, so there's nothing to race here.
+I close this pane myself (`holt`'s remove path fires on the client's graceful teardown) or by
+a later `holt reap`. `/ship` no longer closes the pane, so there's nothing to race here.
 
 ## Step 4 — clean up every worktree this session spun up
 
 A workshop worktree can't see the child repos, so when a task belongs to one you
-hand-create a child-repo worktree (`wt child …`) to do the work. The `WorktreeRemove` hook
+hand-create a child-repo worktree (`holt child …`) to do the work. The `WorktreeRemove` hook
 never reaps children, so confirm each one's branch is merged (open + merge its PR as in
-Step 3), then let `wt reap` sweep them all at once:
+Step 3), then let `holt reap` sweep them all at once:
 
 ```bash
-wt reap        # removes every LANDED worktree across all repos: parked ones + clean,
+holt reap      # removes every LANDED worktree across all repos: parked ones + clean,
                # merged live checkouts that NO pane is sitting in (dirty / unmerged /
                # occupied — including the pane you're in — are kept and listed)
 ```
 
-`wt reap` is idempotent: it only touches checkouts whose PR has merged, whose tree is
+`holt reap` is idempotent: it only touches checkouts whose PR has merged, whose tree is
 clean, and that no live process is cwd'd into — so it can't drop live work *or* yank a
 sibling agent's checkout out from under its open pane (nebelhaus#137; before that fix it
 could, and did). Anything it spares for occupancy is reported as `⏸ kept …`, so a quiet
 run is never a silent skip. Fall back to a targeted
 `git -C <child-repo-main-checkout> worktree remove <path>` only if you need to
-force-remove a child you *know* is clean. `wt` lists every agent worktree across all
+force-remove a child you *know* is clean. `holt` lists every agent worktree across all
 repos — run it after to confirm nothing you created is left. Don't delete worktrees you
-didn't create.
+didn't create. (Frozen `wt` still answers to all of these and shares the registry, but
+`holt` is the live spelling.)
 
 ## Step 5 — ripple the locks
 
@@ -202,7 +203,7 @@ is the reliable copy.
   `bench try switch` — there's nothing to make live. Either way, **don't touch the pane.**
   The now-merged worktree you're sitting in is left exactly as-is — reaping it would pull the
   checkout out from under this live pane — and gets cleaned up when I close the pane myself
-  (the `wt` remove hook), or by a later `wt reap`. (Other landed worktrees this session
+  (the `holt` remove hook), or by a later `holt reap`. (Other landed worktrees this session
   spawned were already swept in Step 4, which runs from the worktree cwd so its guard keeps
   *this* one.) Don't wait on CI unless CI is what this thread was about.
 
