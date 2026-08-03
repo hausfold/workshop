@@ -890,8 +890,8 @@ paint_live() { # paint_live <frame>
 release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
   # A tag push takes a few seconds to materialise as a run, and gh keys tag runs
   # by --branch (head_branch is the tag name for a tag push).
-  local repo="$1" tag="$2" i id
-  for i in $(seq 1 20); do
+  local repo="$1" tag="$2" id _
+  for _ in $(seq 1 20); do
     id="$(gh run list --repo "$GH_ORG/$repo" --workflow release --branch "$tag" \
             --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
     [ -n "$id" ] && [ "$id" != "null" ] && { echo "$id"; return 0; }
