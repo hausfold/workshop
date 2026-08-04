@@ -160,6 +160,16 @@ points outside your toplevel):
   (no worktree involved, so no gate): `cd "$main" &&
   bench try switch` (no pane spawned; see the ship skill's Step 7). `bench
   release` is always gated.
+- **Run the pre-PR assurance pass before `gh pr create` — every PR, not just
+  `/ship`s.** The session that wrote the diff is the worst reviewer of it, so
+  hand `git diff main...HEAD` to a **clean-context subagent** whose only inputs
+  are that diff and the edited repo's `AGENTS.md`. It checks the family
+  invariants that only bite after merge — wrong-repo routing, docs drift on a
+  user-facing option or keybind, a breaking option rename split across PRs,
+  hotkey collisions, new `wt`/raw-`git worktree add` callers, release blast
+  radius. The full checklist is the ship skill's **Step 2.5**. It's **advisory,
+  never a gate**: fix anything ≥3/5 before opening the PR, carry the rest into
+  the **Watch out** block, and say so in one line when it comes back clean.
 - **Land your work through a PR — never a direct push or a local `git merge`
   into `main`.** When the branch is ready: push it and open a PR (`gh pr
   create`) against `main` — give it a **What / Why / Verify / Watch-out** body
@@ -332,6 +342,8 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)
   → **test** (`bench try`, worktree-aware — and `bench try switch` from that same
   worktree when I want to *feel* one branch alone; that switch is mine to run)
+  → **assure** (a clean-context subagent reads `git diff main...HEAD` against the
+  repo's own `AGENTS.md`; advisory, ship skill Step 2.5)
   → **PR** (the worktree agent pushes
   its branch and opens a PR against `main`) → **batch-test** (main checkout only:
   `bench try-batch` feels the whole review queue — every open PR — in ONE rebuild,

@@ -155,7 +155,7 @@ the launchd handoff.
 ## The whole life of a change
 
 ```
-hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
+hack ──► test ──► assure ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
 1. **hack** — edit in place, or let `Super a` agents draft on `worktree-*`
@@ -163,15 +163,22 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
 2. **test** — `./bench try` builds your real machine against the local checkouts
    (from inside a worktree, against *that* branch). `./bench try switch` activates
    it, from a worktree too — that's how one branch gets felt on its own.
-3. **PR** — push the branch and open a PR against `main`; never push to or
+3. **assure** — before the PR exists, an agent hands `git diff main...HEAD` to a
+   **clean-context subagent** that has read nothing but that diff and the edited
+   repo's `AGENTS.md`. The session that wrote the change is the worst reviewer of
+   it, so this pass looks for what only bites after merge: a change sitting in the
+   wrong repo, docs left stale by a renamed option or keybind, a breaking rename
+   split across two PRs, a colliding hotkey. It's advisory — anything serious gets
+   fixed before the PR opens, the rest goes into the PR's **Watch out** block.
+4. **PR** — push the branch and open a PR against `main`; never push to or
    `git merge` into `main` directly.
-4. **batch-test** — `./bench try-batch` feels the whole open-PR queue in one
+5. **batch-test** — `./bench try-batch` feels the whole open-PR queue in one
    rebuild, `main` untouched — so you verify *before* landing anything.
-5. **merge** — merge the PRs that passed (on GitHub, or `gh pr merge`); leave the
+6. **merge** — merge the PRs that passed (on GitHub, or `gh pr merge`); leave the
    rest open.
-6. **ship** — `./bench ship` pushes upstream→downstream, rippling every
+7. **ship** — `./bench ship` pushes upstream→downstream, rippling every
    `flake.lock` in dependency order.
-7. **release** — `./bench release <repo>`; CI does the rest, and the command
+8. **release** — `./bench release <repo>`; CI does the rest, and the command
    waits with you while it happens. Three repos are releasable: **pounce**
    (GitHub release + Homebrew formula bump), **perch** (Homebrew cask bump + the
    rice's flake pin), and **nebelhaus** (the tag becomes what
