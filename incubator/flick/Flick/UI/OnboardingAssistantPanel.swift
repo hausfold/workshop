@@ -125,7 +125,7 @@ struct OnboardingAssistantView: View {
     /// the larger type (see `HelperType`) — the panel got taller when the
     /// text grew, and re-wrapping into an extra line each would have made it
     /// taller still. The controller sizes the window from the same constant.
-    static let panelWidth: CGFloat = 400
+    nonisolated static let panelWidth: CGFloat = 400
 
     let mode: Mode
     /// Fires once, when the probe first sees Full Disk Access land — the
@@ -652,10 +652,13 @@ private struct NativeBannerDemo: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum Geo {
-        /// Sized off the panel rather than a bare number: the replica should
-        /// fill the width it's given, and it grew with the type scale.
-        static let tileWidth: CGFloat = 106
         static let gap: CGFloat = 8
+        /// Derived, not hand-picked: three tiles and two gaps fill whatever
+        /// the panel leaves after its own 16pt padding on each side and this
+        /// box's 10pt — so widening `panelWidth` widens the replica instead
+        /// of leaving it stranded in the corner.
+        static let tileWidth: CGFloat =
+            (OnboardingAssistantView.panelWidth - 2 * 16 - 2 * 10 - gap * 2) / 3
         static let width: CGFloat = tileWidth * 3 + gap * 2
         /// Illustration + label + the checkbox under it, and the 4pt gaps
         /// between: 34 + 4 + 26 + 4 + 16. Kept exact because the pointer
@@ -919,26 +922,31 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         // that guesses wrong clips the content or leaves a dead band under
         // it. The ad-hoc-signing warning is the only conditional block.
         //
-        // These were re-measured after the type scale (`HelperType`) grew, by
-        // hosting each mode in an off-screen `NSHostingView` at `panelWidth`
-        // and reading `fittingSize` once — a single static layout, which is
-        // the one case that read is trustworthy (it goes stale only against a
-        // same-turn state change). Content came out at 233 / 452 / 479.
+        // Measured, not guessed — and re-measured when the type scale
+        // (`HelperType`) grew. Each mode was hosted in an off-screen
+        // `NSHostingView` at `panelWidth` and its `fittingSize` read once: a
+        // single static layout is the one case that read is trustworthy, it
+        // goes stale only against a same-turn state change. Content came out
+        // at 233 (Full Disk Access), 452 (one app) and 479 (several), and the
+        // ad-hoc-signing warning adds 61 + 12pt of stack spacing on top of
+        // the first.
+        //
+        // Every constant below is a measurement plus ~20pt, because the
+        // measured layouts used one short app name and the blurb names the
+        // app: a long one buys a line. Slack falls to the bottom of the
+        // panel; being short clips the button off it.
         let height: CGFloat
         switch mode {
         case .fullDiskAccess:
-            height = SystemIntegration.permissionPersistenceWarning == nil ? 256 : 320
+            height = SystemIntegration.permissionPersistenceWarning == nil ? 256 : 328
         case .nativeBanners(let findings):
             // Header, blurb, the row replica, the demo (fixed size by
             // construction), status line and button — plus one row for the
             // step dots, which only exist when there's more than one app.
             var banners: CGFloat = findings.count > 1 ? 504 : 476
-            // The blurb names the app, so a long name buys an extra line;
-            // the measurement above used a short one. Slack lands at the
-            // bottom, a wrong guess the other way clips the button.
+            // Not in either measurement: the "macOS doesn't list this app"
+            // warning, which only an explicitly-named app ever reaches.
             if findings.contains(where: { !$0.hasSettingsRow }) {
-                // Plus the "macOS doesn't list this app" warning, which only
-                // an explicitly-named app can reach.
                 banners += 40
             }
             height = banners
