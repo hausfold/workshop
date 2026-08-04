@@ -81,7 +81,7 @@ pointer, and whose rows carry the window's workspace.
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt [` / `Alt ]` | Cycle swap layouts (grid → spiral → columns) — works locked too |
-| `Super A` | Spawn an isolated agent (own worktree) in a new pane — your [`agents.default`](/reference/options/) client: Claude Code via its own `--worktree`, Codex or Opencode via `wt new` |
+| `Super A` | Spawn an isolated agent (own worktree) in a new pane — your [`agents.default`](/reference/options/) client: Claude Code via its own `--worktree`, Codex or Opencode via `holt new` |
 | `Super ⇧A` | The same agent, **in place of** the focused pane instead of beside it — the replaced pane is suspended, not killed, and comes back when the agent quits |
 | `Ctrl ⌥⇧A` | Spawn a resident agent (this checkout) |
 

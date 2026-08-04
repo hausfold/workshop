@@ -70,7 +70,8 @@ agents at once. Each agent runs in its own **git worktree** — an isolated chec
 on a `worktree-<name>` branch, living outside the repo — so agents never yank the
 branch out from under each other. That whole mechanism (spawning with `Super a`,
 never losing work when a pane closes, resuming a parked session, the statusline
-HUD) is the rice's [`wt` tool](/guides/claude-agents/), and it works for any repo.
+HUD) is [`holt`](/guides/claude-agents/), which the rice ships, and it works for
+any repo.
 Two things matter specifically when the repo is a *family* one:
 
 - **`bench try` is worktree-aware.** Run it from inside a worktree and that repo's
@@ -97,7 +98,7 @@ matter where you cloned the workshop:
 
 ```sh
 workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
-cd "$(wt child "$workshop_root/nebelung")" # replace nebelung with the repo you need
+cd "$(holt child "$workshop_root/nebelung")" # replace nebelung with the repo you need
 ```
 
 That registers the child so its PR shows in the statusline, which a raw

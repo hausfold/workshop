@@ -248,20 +248,20 @@ Whether this app participates in the shared launcher roster.
 `null or string` · default `null`
 
 The nebelhaus module that puts this app on disk, when none of the
-four sources above describes it: trill, pounce and perch copy a
+four sources above describes it: pounce and perch copy a
 notarized bundle into /Applications from their own activation
 step, which is neither a cask nor a package you can list.
 
 Set BY the rice, not by you. It exists so the roster can still
 answer "who installed this?" for those apps — without it, a host
-adding a leader key for Trill had to KNOW the rice already ships
+adding a leader key for Perch had to KNOW the rice already ships
 it, leave every source field null, and leave a comment explaining
 the hole. This is that comment, as data.
 
 Example:
 
 ```nix
-"nebelhaus.trill"
+"nebelhaus.perch"
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
@@ -533,7 +533,7 @@ tests actually assert.
 
 Honest scope. This recolours what the rice injects colours into:
 Ghostty, bat, delta, lsd, yazi, zellij, glow, starship, lazygit, the
-bar, pounce and trill (at runtime, via ~/.config/{pounce,trill}/themes/ —
+bar, pounce and perch (at runtime, via ~/.config/{pounce,perch}/themes/ —
 and unlike `flavor`, contrast reaches both on BOTH halves of their
 light/dark pair), Zen and Obsidian. It does NOT reach:
 
@@ -579,11 +579,11 @@ whiskers takes different branches for a light flavor (terminal ANSI
 
 What does NOT follow it:
 
-  - pounce and trill, by default. Both read their palette at runtime and
+  - pounce and perch, by default. Both read their palette at runtime and
     can pick per polarity, so nebelhaus.pounce.followSystemAppearance
-    and nebelhaus.trill.followSystemAppearance (default true) hand that
+    and nebelhaus.perch.followSystemAppearance (default true) hand that
     choice to macOS Light/Dark instead: the rice installs every rendered
-    variant into ~/.config/{pounce,trill}/themes/ and writes the
+    variant into ~/.config/{pounce,perch}/themes/ and writes the
     dark/light PAIR at your `contrast`. Set either option false to pin
     that app to this flavor like everything else.
   - macOS's own Light/Dark appearance. Turning ON dark mode is one typed
@@ -592,7 +592,7 @@ What does NOT follow it:
     leaves system appearance alone in both directions and you set it in
     System Settings ▸ Appearance. A latte rice on a dark macOS looks
     half-done, and that half is currently yours — except in pounce and
-    trill, which read the appearance themselves.
+    perch, which read the appearance themselves.
   - the desktop wallpaper (nebelhaus.theme.wallpaper). The three hand-made
     looks have the dark palette baked in; only "bold" is generated, and it
     follows theme.accent rather than the flavor.
@@ -958,7 +958,7 @@ Which coding-agent clients this machine installs, and which one the agent keybin
 Which coding-agent clients to install. `claude` is Claude Code, `codex`
 is OpenAI Codex, `opencode` is OpenCode. The ⌘A terminal binding starts
 whichever one `agents.default` names — Claude Code through its own
-`--worktree` hook, the others through `wt new`.
+`--worktree` hook, the others through `holt new`.
 
 A list rather than one bool per client, matching `developer.languages`
 — a fourth client later doesn't change this option's shape.
@@ -999,11 +999,11 @@ existing Codex or OpenCode task in Claude.
 Must be one of `agents.clients` — see there.
 
 Only `claude` can make its own worktree (its native `--worktree` flag,
-which fires the `wt` create hook); for `codex` and `opencode` ⌘A runs
-`wt new` instead, producing the same checkout, branch and registry entry
-from the outside. Resuming follows the client too: `codex` reopens its
-cwd-filtered `codex resume` picker, `opencode` continues its latest
-session for that cwd. All three share one `wt` branch/parking/reap
+which fires `holt hook create`); for `codex` and `opencode` ⌘A runs
+`holt new` instead, producing the same checkout, branch and registry
+entry from the outside. Resuming follows the client too: `codex` reopens
+its cwd-filtered `codex resume` picker, `opencode` continues its latest
+session for that cwd. All three share one `holt` branch/parking/reap
 lifecycle, and all three light up the `agents` bar pill and the zellij
 tab-bar badge — the opencode plugin and the codex hooks are written for
 you; only Claude Code's stay yours to wire, because Claude owns its own
@@ -1631,7 +1631,7 @@ shows whichever provider reported most recently), or one of
 `claude`, `codex`, `opencode`.
 Clicking the pill always displays the full dropdown with all reporting providers.
 
-Note this is about *usage readouts*, not about which client `wt` can
+Note this is about *usage readouts*, not about which client `holt` can
 spawn: a provider reports here whenever it has data for your account —
 Codex notably does so from a ChatGPT login alone, with no CLI installed
 — so it is deliberately not tied to `nebelhaus.agents.clients`.
@@ -2144,40 +2144,6 @@ this default is safe on a fresh, not-yet-granted install. false leaves
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-## nebelhaus.trill
-
-The Messages client.
-
-### `nebelhaus.trill.enable`
-
-`boolean` · default `true`
-
-The trill Messages client, installed via the trill flake (copied to /Applications).
-
-<small>Declared in [`modules/trill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/trill/options.nix).</small>
-
-### `nebelhaus.trill.followSystemAppearance`
-
-`boolean` · default `true`
-
-Let trill's palette follow macOS Light/Dark Mode instead of pinning one
-polarity: trill gets the nebelung variant AND its latte counterpart at
-your nebelhaus.theme.contrast, and picks between them itself — no
-rebuild, no relaunch.
-
-Same honest scope as the pounce option of the same name: with this on,
-trill does NOT follow nebelhaus.theme.flavor, because asking to follow
-the system says the polarity is macOS's call. The contrast axis still
-applies to both halves. Set it false to pin trill to theme.flavor like
-every other themed tool.
-
-Either way this writes only the DEFAULT: a palette chosen in trill's own
-Settings ▸ Theme wins over what the rice writes, and so does trill's
-appearance preference (Follow macOS / Dark / Light), which lives in its
-settings rather than here.
-
-<small>Declared in [`modules/trill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/trill/options.nix).</small>
-
 ## nebelhaus.perch
 
 The notch file shelf.
@@ -2199,15 +2165,15 @@ one polarity: perch gets the nebelung variant AND its latte counterpart
 at your nebelhaus.theme.contrast, and picks between them itself — no
 rebuild, no relaunch.
 
-Same honest scope as the trill and pounce options of the same name: with
+Same honest scope as the pounce option of the same name: with
 this on, perch does NOT follow nebelhaus.theme.flavor, because asking to
 follow the system says the polarity is macOS's call. The contrast axis
 still applies to both halves. Set it false to pin the shelf to
 theme.flavor like every other themed tool.
 
 Perch has no theme picker of its own — the shelf is a five-second
-surface with nowhere to put one — so unlike trill, this is the only word
-on its colors.
+surface with nowhere to put one — so this is the only word on its
+colors.
 
 <small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
 
@@ -2465,7 +2431,7 @@ The developer pack: the CLI toolbelt, Git tooling, coding-agent tooling, and lan
 
 `boolean` · default `config.nebelhaus.developer.enable`
 
-Coding-agent *tooling*: `wt` (agent worktrees), `agent-state` (the
+Coding-agent *tooling*: `holt` (agent worktrees), `agent-state` (the
 pane-status writer behind the `agents` bar pill and the zellij tab
 badge), `zscratch`, the agent-worktree statusline, and the client
 config hearth writes (Claude Code's settings.json keys, opencode's
@@ -2473,7 +2439,7 @@ agent-state plugin). Which clients get installed is `agents.clients`.
 
 Off is right for any machine not running coding agents — it's a large
 surface a non-developer never sees. It also empties `agents.clients`,
-since a client with no `wt` to park it is not the deal on offer.
+since a client with no `holt` to park it is not the deal on offer.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
