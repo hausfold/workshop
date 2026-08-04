@@ -4,7 +4,8 @@
 [nebelhaus](https://github.com/nebelhaus) family, plus the `bench` script that
 moves changes between them. This folder's own repo holds the README, this file,
 `bench`, `web/` (the nebelhaus.com Astro Starlight docs site + its Cloudflare
-Worker), plus `assets/` and `test/`; the subdirectories are independent git repos.
+Worker), `hausfold/` (the hausfold.co placeholder page), plus `assets/` and
+`test/`; the subdirectories are independent git repos.
 
 **This file is the one set of instructions, for every agent.** Claude Code,
 Codex, OpenCode, Cursor, Copilot — TUI or GUI — all read *this*, directly or
@@ -31,6 +32,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
+| the hausfold.co placeholder page | `./hausfold` — one static `index.html` on its own Cloudflare Worker. Deployed by hand (`cd hausfold && npx wrangler deploy`), **not** by CI — see its README. |
 | pounce's Homebrew formula / perch's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
 
 ## The one gotcha that explains everything

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>hausfold</title>
+    <meta name="description" content="hausfold" />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'></svg>"
+    />
+    <style>
+      :root {
+        --bg: #fbfbfa;
+        --fg: #16161a;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e0e11;
+          --fg: #e9e9ec;
+        }
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.75rem, 7vw, 3rem);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>hausfold</h1>
+  </body>
+</html>
