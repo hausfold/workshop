@@ -7,12 +7,29 @@ this was written the option surface could express none of them; `full`,
 `everyday` and `large-print` now all pass the readiness test in §6, and what's
 left is tracked against it there. (Passing is not finishing — §6 records the
 three limits the test exposed, which are the most useful findings in this doc.
-Limit 1 is closed; limit 3, composition, is the one a stranger hits first.)
+Limit 1 is closed; limit 3, composition, is the one a stranger hits first — and
+its candidate fix is now measured rather than guessed at.)
 
 This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-04 (third pass) — limit 3's proposed fix was RUN, and it has
+> exactly one correct implementation.** The two passes below both ended by
+> naming the same next step: try option 1 (ship packs at a lower priority) on
+> `packs/writing.nix`. Done — the real pack composed against a host that already
+> owns Obsidian, through `lib.evalModules` over the pure-lib option surface (§8's
+> technique, no darwin system needed). Results in §6's limit-3 section; the
+> headline is that **`mkDefault` on the whole `roster` attrset silently drops
+> three of the pack's four apps**, while `mkDefault` per leaf does precisely what
+> was wanted — and a data-only pack can write *neither*, because `checkRice`
+> refuses a file that takes `lib`. So option 1 is a property of the import seam,
+> not of the pack file, and the obvious version of it fails silently. Nothing
+> shipped: this changes what every published pack means, so the decision is
+> deliberately left open with the measurements attached.
+> (Repos re-read first, per §5.14: nothing roadmap-relevant landed after rice#220
+> — #219 is a comment fix and #221 is a pounce command.)
+>
 > **Status, 2026-08-04 — the readiness test's last visible gap is closed, and
 > the test found a new one.** Re-audited against the repos first (§5.14's rule),
 > which is what turned up everything below.
@@ -1241,6 +1258,14 @@ point-valued options silently coupled to `displays`, §5.6's "what second key
 makes the first one a lie", and every "what this does NOT reach" paragraph in
 §5.1 and §5.2.
 
+**A fourth candidate arrived with limit 3's measurements: a pack's SURFACE.**
+Nothing enforces that a pack touches only `nebelhaus.roster` — `checkRice` bounds
+it to `nebelhaus.*` and stops there, which is why `packs/writing.nix` opens with
+a comment explaining the narrower rule instead of a check enforcing it. It costs
+nothing today and would cost real confusion the moment the seam in §6's option 1
+exists, because that wrapper silently drops whatever it wasn't written to carry.
+The check is the same shape as `checkRice`, one level in.
+
 ---
 
 ## 6. Phasing
@@ -1519,9 +1544,73 @@ weighing before publishing the format:
    all.
 3. **Accept it and document it**, which is where rice#203 left things.
 
-Worth testing option 1 on `packs/writing.nix` before publishing anything: it is
-the only one that changes what a stranger *experiences*, and the readiness test
-has never once been run with two files that overlap.
+#### ★ Option 1, measured (2026-08-04) — it works, at exactly one depth, and only from the seam
+
+The trial the previous revision of this section asked for. The real
+`packs/writing.nix`, composed against a host that already declares
+`roster.obsidian` on its own letter, evaluated through `lib.evalModules` over
+`modules/options-modules.nix` — the pure-lib option surface, no darwin system,
+the same trick §8 uses to diff the surface without a build. Re-runnable, in
+seconds: [`probes/pack-priority.nix`](probes/pack-priority.nix). Five
+compositions:
+
+| what the pack ships | `[ pack host ]` evaluates to |
+|---|---|
+| today — plain values | **conflict error** on `roster.obsidian.key` |
+| `mkDefault` on the whole `roster` attrset | **one app, silently.** Obsidian only, on the host's letter, with the pack's `workspace` and `barIcon` gone — and Zotero, Anki, calibre never installed. No error, no warning. |
+| `mkDefault` on every leaf | all four apps; the host's `key = "n"` wins; the pack's `workspace` / `barIcon` / `cask` survive intact |
+| two leaf-`mkDefault` packs naming one app | **conflict error** — still loud |
+| leaf-`mkDefault` + a host that wants the app with `key = null` | all four apps, no letter claimed, no `mkForce` needed |
+
+Three things fall out, and the middle one is why this had to be run rather than
+reasoned about:
+
+**(a) A pack cannot lower its own priority — so option 1 is a property of the
+IMPORT PATH, not of the file.** `checkRice` throws on a file that is a function,
+and the data-only rule is precisely "takes no arguments"; `mkDefault` is
+`lib.mkDefault`. So "ship packs at `mkDefault`" can only ever be done *to* a
+pack, at the seam that imports it, never *in* one. `nebelhaus.packs.writing`
+could carry it; a stranger's pack fetched as a gist and dropped straight into
+`extraModules` would not, and would behave differently from the identical file
+consumed through the flake — the worst kind of difference, because the file is
+byte-identical. Shipping option 1 therefore means shipping the seam as public
+API too (`nebelhaus.lib.pack ./their-pack.nix`, beside `checkRice`), and
+`packs.<name>` stops being a path — today it is one, and
+`checkRice nebelhaus.packs.writing` works on it.
+
+**(b) The obvious implementation is the broken one, and it fails silently.**
+`mkDefault` on the whole `nebelhaus.roster` attrset is the one-line version of
+the same idea, and it *deletes three quarters of the pack*: `roster` is where
+the option boundary sits, so the priority attaches to the entire definition, and
+one normal-priority field anywhere in the host outranks all of it. The consumer
+gets no error — just a Mac missing three apps they asked for. **Wrap below the
+option leaf and you are setting a priority; wrap at or above it and you are
+replacing a value.** That boundary is invisible from a pack, which only ever
+sees an attribute path. This is limit 3's own class one level down: valid parts
+composing into an outcome nobody chose.
+→ The corollary generalises past packs: the leaf trick is safe for `roster`
+because it is `attrsOf submodule` the whole way down. It is **not** a general
+preset mechanism — an option whose value is a plain list or attrset
+(`hearth.obsidianVaults`, `theme.ports.handled`, `agents.clients`, and
+`theme.palette` when §5.1 builds it) would end up with override markers buried
+*inside* its value, which is a type error rather than a priority.
+
+**(c) The asymmetry it produces is the right one.** A host outranks a pack
+silently; two packs stay peers and still collide loudly. That is what you would
+design if asked: the consumer is the party who can't be expected to know what a
+pack contains, while two pack authors are equals whose collision nobody else can
+resolve for them.
+
+So option 1 is buildable and cheap — a `mapAttrs` at the seam, plus a
+`checkPack`-shaped guard that a pack sets nothing outside `roster`, because the
+wrapper would silently drop anything else it found (§5.14's rule: the finding
+leaves a check, not a paragraph). What it costs is what this section predicted:
+a pack can no longer *mean* a field, and a consumer who deliberately set the
+same letter the pack wanted is no longer told they agreed.
+
+**Deliberately not shipped.** It changes what every published pack means, and
+the readiness test has now been run with two overlapping files exactly once — in
+an evaluator, not on a machine.
 
 ### What the readiness test can and can't see, after limit 1 closed
 
@@ -1539,15 +1628,26 @@ found so far came from BUILDING one.**
   nothing was wrong with the *configuration* — the rice simply had nothing to
   draw and said so to nobody. That is the same class as limit 3: a composition of
   valid parts producing an experience nobody chose.
+- **But composition itself is cheap to test, which nothing here had noticed.**
+  Limit 3's five compositions were answered by `lib.evalModules` over
+  `modules/options-modules.nix` and the pack file — seconds, no darwin system,
+  and pure lib, so it runs on Linux CI beside `keymap` / `theme-variants` /
+  `data-only-surface`. The readiness test evaluates each rice **alone**; a
+  compose-two-and-look check is the same machinery with a second module in the
+  list, and it is the one thing that would have caught limit 3 before a real
+  host did. Cheap enough that "we've never run the test with two overlapping
+  files" should stop being true regardless of what happens to option 1.
 - So the honest scoreboard reads: **the surface is no longer the constraint.**
   What's left is breadth (§5.6's seven uncurated groups), one schema migration
   (§5.4's `workspaces`, still the last unstarted Phase 3 item), trust (§5.11) —
   and limit 3, which is the only one a stranger hits on day one.
 
 **The next real finding is on a machine, not in this file.** Limit 3's option 1
-wants trying on `packs/writing.nix`; the third reference rice — the mouse-first
-writer — is still represented by a pack nobody who writes for a living has
-installed.
+has since been tried on `packs/writing.nix` — in an evaluator, which was enough
+to settle the *mechanism* (see the measurements above) and is not enough to
+settle whether a stranger prefers it. What is still only on paper: the third
+reference rice — the mouse-first writer — is represented by a pack nobody who
+writes for a living has installed.
 
 **Surface drift worth knowing when reading the rest of this document.** §1
 counted ~44 leaves; there are **130** now. Four rooms appear nowhere above:

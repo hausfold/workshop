@@ -1,7 +1,10 @@
-# macOS capability probes
+# Capability probes
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
+(One probe here isn't about macOS at all — `pack-priority.nix`, at the bottom —
+but it earns the same shelf: a claim in a notes file, with the command that
+proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -93,3 +96,23 @@ It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
 effect) from keys with none (persistence only — it pauses ~10s so you can look).
 That split is deliberate: "the write succeeded" was never sufficient evidence
 here, since `com.apple.Accessibility` writes succeed and change nothing.
+
+## `pack-priority.nix` — the one probe that isn't about macOS
+
+Evidence for [`../options-roadmap.md`](../options-roadmap.md) §6's limit 3
+instead of the matrix: what a shared **pack** must ship so a consumer's own host
+wins, rather than colliding with it.
+
+```sh
+nix-instantiate --eval --strict --json notes/probes/pack-priority.nix
+nix-instantiate --eval --strict --json notes/probes/pack-priority.nix \
+  --arg rice ~/code/workshop/nebelhaus      # from a workshop worktree
+```
+
+No machine, no darwin system, no build — it evaluates the rice's pure-lib option
+surface with the real `packs/writing.nix` and a fake host, in seconds. It is
+here because it belongs to the same family as the rest: **the obvious answer is
+the one that fails silently.** `mkDefault` on the whole `roster` attrset looks
+like the cheap version and drops three of the pack's four apps without an error;
+only per-leaf priority does what the roadmap wanted. Six compositions, verdicts
+in the file header.
