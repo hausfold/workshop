@@ -320,8 +320,38 @@ final class NotificationSettingsAuditTests: XCTestCase {
         let events = NotificationSettingsAudit.bannerEvents(for: many)
         XCTAssertEqual(events.count, 1)
         XCTAssertTrue(events[0].title.contains("\(many.count) apps"))
-        // No target: the helper opens on the whole worklist.
-        XCTAssertNil(events[0].actions.first?.target)
+        // The summary still names every app it counted, so the click walks
+        // exactly those — not whatever a fresh whole-Mac audit turns up.
+        XCTAssertEqual(
+            NotificationSettingsAudit.scope(forActionTarget: events[0].actions.first?.target),
+            .only(many.map(\.bundleID))
+        )
+    }
+
+    func testASummaryBannerNeverWidensTheScopeItWasAuditedWith() {
+        // The audit that produced the banner was scoped to one listed app;
+        // the other noisy app on this Mac was never listed. The banner's
+        // target has to carry that scope, or the click re-audits the lot.
+        let listed = NotificationSettingsAudit.findings(
+            scope: .only(["com.tinyspeck.slackmacgap"]),
+            settings: fixture,
+            isInstalled: { _ in true }
+        )
+        let target = NotificationSettingsAudit.actionTarget(for: listed)
+        XCTAssertEqual(
+            NotificationSettingsAudit.scope(forActionTarget: target),
+            .only(["com.tinyspeck.slackmacgap"])
+        )
+        // com.apple.reminders is noisy in the fixture and deliberately absent.
+        XCTAssertFalse(target.contains("com.apple.reminders"))
+    }
+
+    func testATargetlessSilenceActionNamesNothing() {
+        // nil is the one honest answer here: the caller decides what to fall
+        // back to (the listed apps), and it is never "every app".
+        XCTAssertNil(NotificationSettingsAudit.scope(forActionTarget: nil))
+        XCTAssertNil(NotificationSettingsAudit.scope(forActionTarget: ""))
+        XCTAssertNil(NotificationSettingsAudit.scope(forActionTarget: " , "))
     }
 
     func testBannersShareAThreadSoTheyCoalesceRatherThanPileUp() {

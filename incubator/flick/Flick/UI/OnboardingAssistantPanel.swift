@@ -79,6 +79,30 @@ struct DraggableAppTile: NSViewRepresentable {
     func updateNSView(_ nsView: DraggableAppTileNSView, context: Context) {}
 }
 
+// MARK: - Type scale
+
+/// One type scale for the whole helper.
+///
+/// This panel is not an inspector — it's read at arm's length, mid-task,
+/// while the user's eyes are mostly on System Settings and their hand is on
+/// the mouse. The first cut used `.caption`/`.caption2` (10pt) throughout,
+/// which is the size you reach for when text sits *beside* the thing it
+/// describes; here the text **is** the product, so everything moved up a
+/// couple of steps and the panel widened to carry it.
+private enum HelperType {
+    /// The panel's own header.
+    static let title = Font.title3
+    /// The sentences that carry the instruction — the ones that have to be
+    /// readable without leaning in.
+    static let body = Font.body
+    /// Supporting detail beside an instruction: step labels, warnings,
+    /// the status line.
+    static let detail = Font.callout
+    /// Incidentals inside the System Settings replica, where matching Apple's
+    /// own row proportions matters more than legibility.
+    static let micro = Font.caption
+}
+
 // MARK: - Onboarding Assistant View
 
 /// The floating helper that rides alongside System Settings during a
@@ -96,6 +120,12 @@ struct OnboardingAssistantView: View {
         /// is the notification pile-up flick exists to stop.
         case nativeBanners(findings: [NativeNotificationSettings])
     }
+
+    /// Wide enough that the instruction sentences hold their line count at
+    /// the larger type (see `HelperType`) — the panel got taller when the
+    /// text grew, and re-wrapping into an extra line each would have made it
+    /// taller still. The controller sizes the window from the same constant.
+    static let panelWidth: CGFloat = 400
 
     let mode: Mode
     /// Fires once, when the probe first sees Full Disk Access land — the
@@ -124,7 +154,8 @@ struct OnboardingAssistantView: View {
                     .foregroundStyle(.tint)
                     .font(.title2)
                 Text(modeTitle)
-                    .font(.headline)
+                    .font(HelperType.title)
+                    .fontWeight(.semibold)
                 Spacer()
             }
 
@@ -141,7 +172,7 @@ struct OnboardingAssistantView: View {
         // The panel's height is fixed per mode (it can't be measured — see
         // the controller), so any slack goes to the bottom rather than being
         // split into two gaps around vertically-centred content.
-        .frame(width: 350, alignment: .top)
+        .frame(width: Self.panelWidth, alignment: .top)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(.ultraThinMaterial)
         .onAppear {
@@ -176,7 +207,7 @@ struct OnboardingAssistantView: View {
         // Say so here rather than letting the user re-grant forever.
         if let warning = SystemIntegration.permissionPersistenceWarning {
             Label(warning, systemImage: "exclamationmark.triangle.fill")
-                .font(.caption2)
+                .font(HelperType.detail)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -186,12 +217,11 @@ struct OnboardingAssistantView: View {
             Text("If Missing").tag(1)
         }
         .pickerStyle(.segmented)
-        .controlSize(.small)
 
         if selectedTab == 0 {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Find **Flick** in System Settings and turn its switch **ON**. If Apple prompts, click **Later**:")
-                    .font(.caption)
+                    .font(HelperType.body)
                     .foregroundStyle(.secondary)
 
                 FlickSwitchDemo()
@@ -199,7 +229,7 @@ struct OnboardingAssistantView: View {
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Drag the tile below into System Settings (or click **+**):")
-                    .font(.caption)
+                    .font(HelperType.body)
                     .foregroundStyle(.secondary)
 
                 HStack {
@@ -220,16 +250,16 @@ struct OnboardingAssistantView: View {
         // squarely in the user's court.
         HStack(spacing: 6) {
             Image(systemName: "bolt.horizontal.circle")
-                .font(.caption)
+                .font(HelperType.detail)
                 .foregroundStyle(.tint)
             Text("Picked up the instant you flip it.")
-                .font(.caption)
+                .font(HelperType.detail)
                 .foregroundStyle(.secondary)
             Spacer()
             Button("Open Settings") {
                 SystemIntegration.openFullDiskAccessSettings()
             }
-            .font(.caption)
+            .font(HelperType.detail)
             .buttonStyle(.borderless)
         }
         .padding(.top, 4)
@@ -259,7 +289,7 @@ struct OnboardingAssistantView: View {
             }
 
             Text("macOS is drawing **\(appName)**'s notifications itself, so you'd see each one twice. Turn Apple's off — flick keeps showing them.")
-                .font(.caption)
+                .font(HelperType.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -270,7 +300,7 @@ struct OnboardingAssistantView: View {
             // name, and the same summary line System Settings writes under it.
             VStack(alignment: .leading, spacing: 4) {
                 Text("1 · Find this row under Application Notifications")
-                    .font(.caption2)
+                    .font(HelperType.detail)
                     .foregroundStyle(.secondary)
                 settingsRowMock(for: finding, appName: appName)
                 // Reached by naming the app explicitly — `--all` filters these
@@ -281,7 +311,7 @@ struct OnboardingAssistantView: View {
                         "macOS doesn't list \(appName) here — there's no row to change.",
                         systemImage: "exclamationmark.triangle.fill"
                     )
-                    .font(.caption2)
+                    .font(HelperType.detail)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -290,7 +320,7 @@ struct OnboardingAssistantView: View {
             // `.init` so the bold markup is parsed — Text(String) renders it
             // literally, Text(LocalizedStringKey) doesn't.
             Text(.init(step2Instruction(for: finding)))
-                .font(.caption2)
+                .font(HelperType.detail)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -303,10 +333,10 @@ struct OnboardingAssistantView: View {
 
             HStack(spacing: 6) {
                 Image(systemName: "bolt.horizontal.circle")
-                    .font(.caption)
+                    .font(HelperType.detail)
                     .foregroundStyle(.tint)
                 Text("Picked up the instant you change it.")
-                    .font(.caption)
+                    .font(HelperType.detail)
                     .foregroundStyle(.secondary)
                 Spacer()
             }
@@ -321,7 +351,6 @@ struct OnboardingAssistantView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.small)
         }
     }
 
@@ -346,23 +375,23 @@ struct OnboardingAssistantView: View {
             if let icon = NotificationSettingsAudit.icon(for: finding.bundleID) {
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 26, height: 26)
+                    .frame(width: 30, height: 30)
             } else {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(Color.secondary.opacity(0.2))
-                    .frame(width: 26, height: 26)
+                    .frame(width: 30, height: 30)
             }
             VStack(alignment: .leading, spacing: 0) {
                 Text(appName)
-                    .font(.caption)
+                    .font(HelperType.detail)
                     .fontWeight(.medium)
                 Text(finding.settingsSubtitle)
-                    .font(.caption2)
+                    .font(HelperType.micro)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.caption2)
+                .font(HelperType.micro)
                 .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 10)
@@ -391,17 +420,17 @@ struct OnboardingAssistantView: View {
                     let isDone = resolved.contains(finding.bundleID)
                     let isCurrent = currentFinding(in: findings)?.bundleID == finding.bundleID
                     Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 11))
+                        .font(.system(size: 13))
                         .foregroundStyle(isDone ? Color.green : (isCurrent ? Color.accentColor : Color.secondary.opacity(0.4)))
                 }
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 11))
+                    .font(.system(size: 13))
                     .foregroundStyle(done > 0 ? Color.green : Color.secondary.opacity(0.4))
             }
             Spacer()
             Text("\(done) of \(findings.count) silenced")
-                .font(.caption2)
+                .font(HelperType.detail)
                 .foregroundStyle(.secondary)
                 .contentTransition(.numericText())
         }
@@ -415,10 +444,10 @@ struct OnboardingAssistantView: View {
                 .foregroundStyle(.green)
             VStack(alignment: .leading, spacing: 2) {
                 Text(total > 1 ? "All \(total) apps are quiet" : "That's it — it's quiet")
-                    .font(.subheadline)
+                    .font(HelperType.title)
                     .fontWeight(.semibold)
                 Text("macOS has stopped drawing them. flick has it from here.")
-                    .font(.caption)
+                    .font(HelperType.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -507,9 +536,9 @@ private struct FlickSwitchDemo: View {
         HStack(spacing: 12) {
             Image(nsImage: appIcon)
                 .resizable()
-                .frame(width: 28, height: 28)
+                .frame(width: 30, height: 30)
             Text("Flick")
-                .font(.subheadline)
+                .font(HelperType.body)
                 .bold()
             Spacer()
             Toggle("", isOn: .constant(isOn))
@@ -623,12 +652,16 @@ private struct NativeBannerDemo: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum Geo {
-        static let tileWidth: CGFloat = 92
+        /// Sized off the panel rather than a bare number: the replica should
+        /// fill the width it's given, and it grew with the type scale.
+        static let tileWidth: CGFloat = 106
         static let gap: CGFloat = 8
         static let width: CGFloat = tileWidth * 3 + gap * 2
-        /// Illustration + label + the checkbox under it.
-        static let tileHeight: CGFloat = 64
-        static let soundRowHeight: CGFloat = 26
+        /// Illustration + label + the checkbox under it, and the 4pt gaps
+        /// between: 34 + 4 + 26 + 4 + 16. Kept exact because the pointer
+        /// anchors below are measured off it.
+        static let tileHeight: CGFloat = 84
+        static let soundRowHeight: CGFloat = 28
     }
 
     var body: some View {
@@ -644,12 +677,12 @@ private struct NativeBannerDemo: View {
 
             HStack {
                 Text("Play sound for notification")
-                    .font(.caption)
+                    .font(HelperType.detail)
                 Spacer()
                 Toggle("", isOn: .constant(soundIsOn))
                     .labelsHidden()
                     .toggleStyle(.switch)
-                    .controlSize(.mini)
+                    .controlSize(.small)
                     .allowsHitTesting(false)
             }
             .frame(height: Geo.soundRowHeight)
@@ -708,18 +741,21 @@ private struct NativeBannerDemo: View {
                 case .lockScreen:
                     // A clock, centred.
                     Text("9:41")
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.white.opacity(0.95))
                         .offset(y: -6)
                 }
             }
-            .frame(width: Geo.tileWidth - 10, height: 30)
+            .frame(width: Geo.tileWidth - 10, height: 34)
 
             Text(label)
-                .font(.system(size: 8))
+                .font(.system(size: 10))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-                .frame(height: 16)
+                // Two lines' worth: "Notification / Center" is the widest
+                // label, and a height that only fits one truncates it to
+                // "Notification…" rather than wrapping.
+                .frame(height: 26)
 
             checkbox(checked: checked, emphasised: destination == .desktop)
         }
@@ -733,7 +769,7 @@ private struct NativeBannerDemo: View {
             .overlay {
                 if checked {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.white)
                 }
             }
@@ -741,7 +777,7 @@ private struct NativeBannerDemo: View {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .strokeBorder(Color.primary.opacity(checked ? 0 : 0.25), lineWidth: 1)
             }
-            .frame(width: 14, height: 14)
+            .frame(width: 16, height: 16)
             .scaleEffect(pressed && emphasised && target == .desktop ? 0.85 : 1)
     }
 
@@ -773,8 +809,9 @@ private struct NativeBannerDemo: View {
         let padding: CGFloat = 10
         switch target {
         case .desktop:
-            // The checkbox under the first tile.
-            return CGPoint(x: padding + Geo.tileWidth / 2, y: padding + Geo.tileHeight - 7)
+            // The checkbox under the first tile — half its 16pt height up
+            // from the tile's bottom edge.
+            return CGPoint(x: padding + Geo.tileWidth / 2, y: padding + Geo.tileHeight - 8)
         case .sound:
             return CGPoint(
                 x: padding + Geo.width - 14,
@@ -881,19 +918,35 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         // SwiftUI (`fittingSize` can read stale on macOS 26) — an NSPanel
         // that guesses wrong clips the content or leaves a dead band under
         // it. The ad-hoc-signing warning is the only conditional block.
+        //
+        // These were re-measured after the type scale (`HelperType`) grew, by
+        // hosting each mode in an off-screen `NSHostingView` at `panelWidth`
+        // and reading `fittingSize` once — a single static layout, which is
+        // the one case that read is trustworthy (it goes stale only against a
+        // same-turn state change). Content came out at 233 / 452 / 479.
         let height: CGFloat
         switch mode {
         case .fullDiskAccess:
-            height = SystemIntegration.permissionPersistenceWarning == nil ? 264 : 320
+            height = SystemIntegration.permissionPersistenceWarning == nil ? 256 : 320
         case .nativeBanners(let findings):
             // Header, blurb, the row replica, the demo (fixed size by
             // construction), status line and button — plus one row for the
             // step dots, which only exist when there's more than one app.
-            height = findings.count > 1 ? 500 : 476
+            var banners: CGFloat = findings.count > 1 ? 504 : 476
+            // The blurb names the app, so a long name buys an extra line;
+            // the measurement above used a short one. Slack lands at the
+            // bottom, a wrong guess the other way clips the button.
+            if findings.contains(where: { !$0.hasSettingsRow }) {
+                // Plus the "macOS doesn't list this app" warning, which only
+                // an explicitly-named app can reach.
+                banners += 40
+            }
+            height = banners
         }
 
+        let width = OnboardingAssistantView.panelWidth
         let newPanel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 350, height: height),
+            contentRect: NSRect(x: 0, y: 0, width: width, height: height),
             styleMask: [.titled, .closable, .utilityWindow, .nonactivatingPanel, .hudWindow],
             backing: .buffered,
             defer: false
@@ -930,7 +983,7 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         let pointerScreen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) }
         if let screen = pointerScreen ?? NSScreen.main {
             let visibleFrame = screen.visibleFrame
-            let x = visibleFrame.maxX - 360
+            let x = visibleFrame.maxX - (width + 10)
             let y = visibleFrame.minY + 40
             newPanel.setFrameOrigin(NSPoint(x: x, y: y))
         } else {

@@ -256,9 +256,18 @@ enum NotificationSettingsAudit {
         /// Exactly these bundle ids (a `flick doctor com.foo.bar` invocation,
         /// or the sources named in `rules.json`).
         case only([String])
-        /// Every non-system app macOS holds preferences for. What `--all`
-        /// means, and the honest default once System Mirror is on: mirroring
-        /// redraws *everything*, so everything noisy is a duplicate.
+        /// Every non-system app macOS holds preferences for. **Only ever
+        /// reached by asking for it** — `flick doctor --all`, and nothing
+        /// else.
+        ///
+        /// It is deliberately *not* the default, not even with System Mirror
+        /// on. flick's offer is "the apps you told me about stay quiet", not
+        /// "turn macOS's notifications off"; a helper that walks someone
+        /// through silencing sixty apps they never listed is asking them to
+        /// dismantle their Mac's notifications on flick's say-so. Anything
+        /// that picks a scope on the user's behalf picks `.only` — see
+        /// `SocketProvider` (the daemon's own listed apps), `SettingsView`,
+        /// and `ActionRouter`.
         case everything
     }
 
@@ -329,6 +338,30 @@ enum NotificationSettingsAudit {
     /// notification storm flick exists to prevent.
     static let individualBannerLimit = 3
 
+    /// A `silenceNative` action's target: one bundle id, or several joined by
+    /// commas when one banner stands for a whole worklist. Bundle ids can't
+    /// contain a comma, so the join is unambiguous.
+    ///
+    /// The list is carried explicitly rather than left for the click to
+    /// re-derive, because the audit that produced the banner had a *scope* —
+    /// usually the listed apps — and re-auditing from scratch on click would
+    /// silently widen it to the whole Mac.
+    static func actionTarget(for findings: [NativeNotificationSettings]) -> String {
+        findings.map(\.bundleID).joined(separator: ",")
+    }
+
+    /// The scope an action target names, or nil when it names nothing (an
+    /// event authored by hand, or one from an older flick). Callers decide
+    /// what nil means; none of them may answer `.everything`.
+    static func scope(forActionTarget target: String?) -> Scope? {
+        guard let target else { return nil }
+        let ids = target
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        return ids.isEmpty ? nil : .only(ids)
+    }
+
     /// The banner(s) `flick doctor --notify` puts on screen. Pure, so the
     /// wording and the collapse threshold are testable without a display.
     ///
@@ -339,7 +372,7 @@ enum NotificationSettingsAudit {
     static func bannerEvents(for findings: [NativeNotificationSettings]) -> [NotificationEvent] {
         guard !findings.isEmpty else { return [] }
 
-        func action(target: String?) -> NotificationEvent.Action {
+        func action(target: String) -> NotificationEvent.Action {
             .init(id: "silence", label: "Silence Native Banners", kind: .silenceNative, target: target)
         }
 
@@ -352,7 +385,8 @@ enum NotificationSettingsAudit {
                 body: "macOS is drawing these itself, so you'll see everything twice.",
                 symbol: "bell.badge.slash",
                 thread: "flick-doctor",
-                actions: [action(target: nil)]
+                // The exact apps this banner counted — not "re-audit and see".
+                actions: [action(target: actionTarget(for: findings))]
             )]
         }
 
@@ -363,7 +397,7 @@ enum NotificationSettingsAudit {
                 body: finding.complaint,
                 symbol: "bell.badge.slash",
                 thread: "flick-doctor",
-                actions: [action(target: finding.bundleID)]
+                actions: [action(target: actionTarget(for: [finding]))]
             )
         }
     }

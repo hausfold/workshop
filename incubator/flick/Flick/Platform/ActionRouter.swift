@@ -9,6 +9,15 @@ import os.log
 final class ActionRouter {
     private static let log = Logger(subsystem: "com.nebelhaus.flick", category: "actions")
 
+    /// The bundle ids flick is meant to keep macOS quiet for — the sources
+    /// the current `rules.json` names. Injected because the router must never
+    /// fall back to "every app on this Mac": see `silenceNative` below.
+    private let listedApps: () -> [String]
+
+    init(listedApps: @escaping () -> [String] = { [] }) {
+        self.listedApps = listedApps
+    }
+
     /// Click on the banner body: first declared action wins, falling back to
     /// activating the source app when the event's source looks like a
     /// bundle id.
@@ -38,16 +47,23 @@ final class ActionRouter {
             // (PRD milestone 2); until then the action is inert.
             Self.log.info("command hooks not yet enabled (\(event.id, privacy: .public))")
         case .silenceNative:
-            // A bundle id walks that one app; no target means "everything the
-            // audit just flagged", which is what the collapsed summary banner
-            // sends. Re-running the audit here rather than trusting the
-            // event's payload keeps the window honest about *now* — the user
-            // may have fixed one of them while the banner sat on screen.
-            let scope: NotificationSettingsAudit.Scope =
-                action.target.map { .only([$0]) } ?? .everything
-            SystemIntegration.presentNativeBannerAssistant(
-                findings: NotificationSettingsAudit.findings(scope: scope)
-            )
+            // The target names the apps this banner was about — one id, or the
+            // whole worklist the collapsed summary counted. A target-less
+            // event (hand-authored, or from an older flick) falls back to the
+            // apps `rules.json` lists, never to every app on the Mac: flick
+            // asks people to silence what it's been told to redraw, not to
+            // switch macOS's notifications off wholesale.
+            let scope = NotificationSettingsAudit.scope(forActionTarget: action.target)
+                ?? .only(listedApps())
+            // Re-running the audit rather than trusting the event's payload
+            // keeps the window honest about *now* — the user may have fixed
+            // one of them while the banner sat on screen.
+            let findings = NotificationSettingsAudit.findings(scope: scope)
+            guard !findings.isEmpty else {
+                Self.log.info("silence action for \(event.id, privacy: .public): nothing left to silence")
+                return
+            }
+            SystemIntegration.presentNativeBannerAssistant(findings: findings)
         }
     }
 

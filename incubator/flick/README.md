@@ -121,6 +121,13 @@ lands at the top of the pane), and step 2 animates the clicks you need —
 untick **Desktop**, turn **Play sound for notification** off. It ticks each
 app off the moment macOS agrees and closes itself when they're all quiet.
 
+The helper only ever walks the apps the audit that opened it named — the
+banner carries them with it, so a summary banner standing for four listed
+apps still walks those four and not the sixty-odd others macOS holds
+preferences for. flick asks you to silence what you told it to redraw; it
+does not ask you to switch macOS's notifications off wholesale. Widening
+that is `--all`, and it takes typing `--all`.
+
 Note that the pane changed shape in macOS 26 (Tahoe): the old
 None/Banners/Alerts radio is now a **Desktop** checkbox plus a
 Temporary/Persistent choice that only applies while Desktop is ticked.
