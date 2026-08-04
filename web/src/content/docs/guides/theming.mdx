@@ -80,11 +80,10 @@ The default is `mauve`. Any of the 14 Catppuccin accent names works:
 
 See their exact hex values on the [palette reference](/reference/palette/).
 
-<Aside type="tip" title="Pounce, Trill and Perch follow too">
-The [Pounce](/guides/pounce/) launcher, the [Trill](/guides/trill/) Messages
-client and the Perch notch shelf compile the nebelung variants in, so their UI
-matches the rest of the rice out of the box — and each loads any other palette at
-runtime, from `~/.config/pounce/themes/`, `~/.config/trill/themes/` and
+<Aside type="tip" title="Pounce and Perch follow too">
+The [Pounce](/guides/pounce/) launcher and the Perch notch shelf compile the
+nebelung variants in, so their UI matches the rest of the rice out of the box —
+and each loads any other palette at runtime, from `~/.config/pounce/themes/` and
 `~/.config/perch/themes/`. The rice installs every nebelung variant in each and
 names the one `theme.flavor` / `theme.contrast` select, so they follow those
 options like every other tool — no rebuild involved. Trill also exposes the choice
@@ -152,11 +151,11 @@ to match. (This isn't laziness: turning dark mode *on* is one declarative
 setting, but turning it *off* means deleting a default rather than writing one,
 which nix-darwin has no way to express.)
 
-**Pounce** and **Trill** are the exception in the other direction: both read
+**Pounce** and **Perch** are the exception in the other direction: both read
 their palette at runtime and follow macOS's Light/Dark themselves, so on a dark
 Mac they stay dark even under `flavor = "latte"`. Pin them to the flavor with
 `nebelhaus.pounce.followSystemAppearance = false` /
-`nebelhaus.trill.followSystemAppearance = false`.
+`nebelhaus.perch.followSystemAppearance = false`.
 
 The three hand-made [wallpapers](/reference/options/#nebelhausthemewallpaper) do
 keep their dark palette — their pixels are already coloured. `wallpaper = "bold"`

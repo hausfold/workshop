@@ -61,22 +61,25 @@ if [ -n "$_bench_common" ]; then ROOT="$(dirname "$_bench_common")"; else ROOT="
 CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
-# trill and perch sit before nebelhaus: both are flake inputs of the rice (which
-# installs them via Nix, not Homebrew), so their lock edges ripple downstream
-# like the others. holt sits there too — the rice takes it as an input and ships
-# it on PATH, so a holt commit is invisible to this machine until nebelhaus's
-# lock moves, exactly like every other edge here.
+# perch sits before nebelhaus: it's a flake input of the rice (which installs it
+# via Nix, not Homebrew), so its lock edge ripples downstream like the others.
+# holt sits there too — the rice takes it as an input and ships it on PATH, so a
+# holt commit is invisible to this machine until nebelhaus's lock moves, exactly
+# like every other edge here. trill is still listed so `bench status` reports the
+# checkout, but the rice dropped it (nebelhaus#213) and its repo is archived, so
+# it has no lock edge below it and no release path above it.
 FAMILY=(nebelung pounce trill perch holt nebelhaus)
 GH_ORG="nebelhaus"
 
 # The family repos that are flake INPUTS of the rice, so `overrides()` can point
-# them at a local checkout. trill and perch are Xcode apps whose flakes wrap a
-# CI-built *release* binary (macOS 26 blocks a from-source Nix build), so a plain
-# override still installs the last released .app — but for a local SOURCE branch
-# bench builds a signed .app in your login session and injects it via the flake's
-# `prebuilt` input (see ensure_trill_dev_app / ensure_perch_dev_app), so they
-# feel-test at source level like the pure-Nix repos.
-OVERRIDABLE=(nebelung pounce trill perch holt nebelhaus)
+# them at a local checkout. perch is an Xcode app whose flake wraps a CI-built
+# *release* binary (macOS 26 blocks a from-source Nix build), so a plain override
+# still installs the last released .app — but for a local SOURCE branch bench
+# builds a signed .app in your login session and injects it via the flake's
+# `prebuilt` input (see ensure_perch_dev_app), so it feel-tests at source level
+# like the pure-Nix repos. trill is absent: the rice no longer takes it as an
+# input, so there is nothing to override it into.
+OVERRIDABLE=(nebelung pounce perch holt nebelhaus)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -140,7 +143,6 @@ EDGES=(
   "pounce nebelung nebelung"
   "nebelhaus nebelung nebelung"
   "nebelhaus pounce pounce"
-  "nebelhaus trill trill"
   "nebelhaus perch perch"
   "nebelhaus holt holt"
   "consumer nebelhaus nebelhaus"
@@ -195,85 +197,24 @@ agent_driving() { # true when an AI coding agent is the one running bench
 }
 
 overrides() { # every family input redirected at the local checkouts
-  # trill and perch can't build from source in Nix (macOS 26 walls off the
-  # _nixbld user — see ensure_{trill,perch}_dev_app), so when there's local SOURCE
-  # to test we hand each flake a login-session-built .app via its `prebuilt`
-  # input. Empty otherwise → the flake wraps the release, unchanged.
-  local trill_prebuilt=""
-  [ -n "$TRILL_DEV_APP_DIR" ] \
-    && trill_prebuilt=" --override-input nebelhaus/trill/prebuilt path:$TRILL_DEV_APP_DIR"
+  # perch can't build from source in Nix (macOS 26 walls off the _nixbld user —
+  # see ensure_perch_dev_app), so when there's local SOURCE to test we hand its
+  # flake a login-session-built .app via the `prebuilt` input. Empty otherwise →
+  # the flake wraps the release, unchanged.
   local perch_prebuilt=""
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input nebelhaus/perch/prebuilt path:$PERCH_DEV_APP_DIR"
   echo "--override-input nebelhaus path:$(local_src nebelhaus) \
         --override-input nebelhaus/nebelung path:$(local_src nebelung) \
         --override-input nebelhaus/pounce path:$(local_src pounce) \
-        --override-input nebelhaus/trill path:$(local_src trill)$trill_prebuilt \
         --override-input nebelhaus/perch path:$(local_src perch)$perch_prebuilt \
         --override-input nebelhaus/holt path:$(local_src holt)"
 }
 
-# trill is the one family repo Nix can't build from source: it's an Xcode project
-# with ~15 SwiftPM packages, and macOS 26 refuses to let the session-less _nixbld
-# build user apply SwiftPM's manifest sandbox, so a from-source derivation dies
-# at package resolution (pounce dodges this only by being plain `swiftc`). So when
-# `bench try`/`try-batch` has local trill SOURCE to feel-test (an agent worktree,
-# or a batch integration tree), build Trill.app HERE in your login session — where
-# xcodebuild works fine — and inject it into the flake via its `prebuilt` input
-# (see the trill repo). Idempotent per run; a no-op when trill's source is just
-# the pinned main checkout (then the flake wraps the release as always).
-TRILL_DEV_APP_DIR=""
-ensure_trill_dev_app() {
-  local src; src="$(local_src trill)"
-  [ "$src" = "$ROOT/trill" ] && return 0             # no local trill source → release
-  [ -n "$TRILL_DEV_APP_DIR" ] && return 0            # already built this run
-  [ -f "$src/Trill.xcodeproj/project.pbxproj" ] || return 0
-
-  # A STABLE signing identity so the dev build's Full Disk Access grant persists
-  # across rebuilds — ad-hoc/unsigned changes identity every build and macOS would
-  # re-prompt each time. Prefer Developer ID (needs no provisioning profile); fall
-  # back to an Apple Development cert.
-  local ident
-  ident="$(security find-identity -v -p codesigning 2>/dev/null \
-             | sed -n 's/.*"\(Developer ID Application[^"]*\)".*/\1/p' | head -1)"
-  [ -n "$ident" ] || ident="$(security find-identity -v -p codesigning 2>/dev/null \
-             | sed -n 's/.*"\(Apple Development[^"]*\)".*/\1/p' | head -1)"
-  [ -n "$ident" ] || die "trill dev build needs a stable signing identity (Developer ID or Apple Development) in your keychain so its Full Disk Access grant survives rebuilds — open Xcode once to create one."
-
-  # A `<version>-dev` marketing version so Trill's About window reads e.g.
-  # "2026.07.23-1-dev" at a glance — otherwise it shows the stale MARKETING_VERSION
-  # baked into project.pbxproj and you can't tell the dev build from the release.
-  local ver; ver="$(tr -d '[:space:]' < "$src/VERSION" 2>/dev/null || true)"
-  [ -n "$ver" ] && ver="${ver}-dev" || ver="dev"
-
-  # Persistent DerivedData → incremental rebuilds; a real (non-symlinked) temp dir
-  # for the .app because Nix's path: fetcher rejects a symlinked component (/tmp
-  # is a symlink on macOS, so mktemp there breaks — hence pwd -P).
-  local dd="${XDG_CACHE_HOME:-$HOME/.cache}/bench/trill-dd"
-  local out; out="$(cd "$(mktemp -d "${TMPDIR:-/private/tmp}/bench-trill-dev.XXXXXX")" && pwd -P)"
-  mkdir -p "$dd"
-
-  say "trill: building a signed dev app from $src"
-  say "       (bundle com.nebelhaus.trill.dev, version $ver, $ident) — first run is slow…"
-  if ! ( cd "$src" && /usr/bin/xcodebuild \
-           -project Trill.xcodeproj -scheme Trill -configuration Debug \
-           -destination 'platform=macOS' -derivedDataPath "$dd" \
-           -skipMacroValidation \
-           PRODUCT_BUNDLE_IDENTIFIER=com.nebelhaus.trill.dev \
-           MARKETING_VERSION="$ver" \
-           CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$ident" \
-           build >/dev/null ); then
-    die "trill dev build failed — re-run that xcodebuild in $src by hand to see why."
-  fi
-  /usr/bin/ditto "$dd/Build/Products/Debug/Trill.app" "$out/Trill.app"
-  TRILL_DEV_APP_DIR="$out"
-  say "trill: dev app built. On first activation, grant Full Disk Access to"
-  say "       com.nebelhaus.trill.dev ONCE (fixture mode needs none); the grant"
-  say "       then sticks for every future dev build."
-}
-
-# perch is the other family repo Nix can't build from source (same macOS 26
-# SwiftPM manifest-sandbox wall as trill). So when `bench try`/`try-batch` has
+# perch is the one family repo Nix can't build from source: it's an Xcode project
+# whose SwiftPM manifest sandbox macOS 26 refuses to let the session-less _nixbld
+# build user apply, so a from-source derivation dies at package resolution
+# (pounce dodges this only by being plain `swiftc`). So when `bench try`/`try-batch` has
 # local perch SOURCE to feel-test (an agent worktree, or a batch integration
 # tree), build Perch.app HERE in your login session — where xcodebuild works —
 # and inject it into the flake via its `prebuilt` input (see the perch repo).
@@ -335,11 +276,11 @@ latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if non
   git -C "$(repo_dir "$1")" tag --list 'v*' --sort=-v:refname 2>/dev/null | head -1
 }
 commits_since() { # commits_since <repo> <tag> — user-facing commits on HEAD the tag lacks
-  # Discount the release bot's own commits. trill wraps a notarized ZIP, so its
+  # Discount the release bot's own commits. perch wraps a notarized ZIP, so its
   # release.yml `bump-flake` job rewrites nix/release.nix with that ZIP's sha256
   # in a commit pushed AFTER the tag — a pin can't predate the artifact it hashes,
   # so it sits 1 commit past the latest tag forever without being new work. Left
-  # in, it flags every freshly-released trill as "1 commit behind main" for good.
+  # in, it flags every freshly-released perch as "1 commit behind main" for good.
   local dir; dir="$(repo_dir "$1")"
   local total; total="$(git -C "$dir" rev-list --count "$2..HEAD" 2>/dev/null)" || { echo "?"; return; }
   local bot; bot="$(git -C "$dir" rev-list --count --author='haus-release' "$2..HEAD" 2>/dev/null || echo 0)"
@@ -499,13 +440,12 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce trill perch nebelhaus; do
+  for name in pounce perch nebelhaus; do
     local dir tag behind audience
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
-      trill)     audience="brew + the rice's flake pin" ;;
       perch)     audience="brew + the rice's flake pin" ;;
       nebelhaus) audience="nebelhaus.com/init.sh" ;;
     esac
@@ -663,8 +603,7 @@ cmd_try() {
     say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
   fi
   local host; host="$(host_name)"
-  ensure_trill_dev_app   # if trill is the local source, build + inject its dev app
-  ensure_perch_dev_app   # likewise for perch
+  ensure_perch_dev_app   # if perch is the local source, build + inject its dev app
   say "building $host against the LOCAL checkouts (uncommitted edits included)…"
   # shellcheck disable=SC2046
   (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
@@ -713,9 +652,8 @@ cmd_try_batch() {
   command -v gh >/dev/null 2>&1 || die "bench try-batch needs the gh CLI to find your open PRs."
 
   # Which repos to sweep: any overridable repos named as args, else all of them.
-  # trill and perch are overridable too — their PRs build a signed dev app
-  # injected into the flake (ensure_{trill,perch}_dev_app), so they feel-test
-  # like the rest.
+  # perch is overridable too — its PRs build a signed dev app injected into the
+  # flake (ensure_perch_dev_app), so it feel-tests like the rest.
   local -a want_repos=()
   if [ "$#" -gt 0 ]; then
     local a
@@ -797,8 +735,7 @@ cmd_try_batch() {
     return 0
   fi
 
-  ensure_trill_dev_app   # if trill's PRs were batched, build + inject its dev app
-  ensure_perch_dev_app   # likewise for perch
+  ensure_perch_dev_app   # if perch's PRs were batched, build + inject its dev app
   say "building $host against ${#BATCH_SRC[@]} batched integration tree(s)…"
   # shellcheck disable=SC2046
   (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
@@ -932,10 +869,13 @@ cmd_pull() {
   done
 }
 
+# trill is deliberately absent from all three: its repo is ARCHIVED (read-only
+# on GitHub as of 2026-08-04), so a tag can't be pushed to it. `bench status`
+# still reports its release edge — the last cask stays installable — but there
+# is no release path left to describe.
 version_file() { # version_file <repo> — WHERE a releasable repo's version lives
   case "$1" in
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
-    trill)     echo "$(repo_dir "$1")/VERSION" ;;
     perch)     echo "$(repo_dir "$1")/VERSION" ;;
     nebelhaus) echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
@@ -946,7 +886,6 @@ read_version() { # read_version <repo> — the version string that repo tags at
   local f; f="$(version_file "$1")" || return 1
   case "$1" in
     pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
-    trill)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     perch)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     nebelhaus) tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
@@ -960,7 +899,6 @@ write_version() { # write_version <repo> <version> — stamp the version source 
     # file rather than `sed -i` — GNU (Linux/CI) and BSD (macOS) disagree on the
     # -i suffix arg, so the portable path is redirect + mv.
     pounce)    local t; t="$(mktemp)"; sed -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" >"$t" && mv "$t" "$f" ;;
-    trill)     printf '%s\n' "$2" > "$f" ;;
     perch)     printf '%s\n' "$2" > "$f" ;;
     nebelhaus) printf '%s\n' "$2" > "$f" ;;
   esac
@@ -987,14 +925,14 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 
 # ── Watching the release run ──────────────────────────────────────────────────
 # `bench release` BLOCKS on CI rather than handing you a URL, and that's a
-# correctness fix as much as a nicety: trill's and perch's release workflows
-# push a `bump-flake` commit BACK to the repo (the notarized ZIP's sha256), so
+# correctness fix as much as a nicety: perch's release workflow pushes a
+# `bump-flake` commit BACK to the repo (the notarized ZIP's sha256), so
 # the instant the tag lands your checkout is behind origin. Returning early
 # hands you a shell where `bench ship` would ripple a rev CI is about to
 # supersede. Blocking, then fast-forwarding, closes that window.
 #
 # There is exactly ONE workflow to watch — each repo's `release`, holding 1–3
-# jobs (nebelhaus: publish; pounce: publish + bump-tap; trill/perch: those plus
+# jobs (nebelhaus: publish; pounce: publish + bump-tap; perch: those plus
 # bump-flake). The tap bump is a plain push into homebrew-tap, which has no
 # workflows of its own, so when this run goes green the release IS live —
 # nothing further to chase.
@@ -1229,13 +1167,13 @@ cmd_release() {
     esac
     shift
   done
-  [ -n "$name" ] || die "usage: bench release <repo> [--ship]   (releasable: pounce, trill, perch, nebelhaus)"
+  [ -n "$name" ] || die "usage: bench release <repo> [--ship]   (releasable: pounce, perch, nebelhaus)"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   local verfile
   verfile="$(version_file "$name")" \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, trill, perch, nebelhaus)"
+    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, nebelhaus)"
   [ -z "$(git -C "$dir" status --porcelain)" ] \
     || die "$name is dirty — commit (and bench ship) first"
   git -C "$dir" fetch -q --tags 2>/dev/null || true
@@ -1279,8 +1217,8 @@ cmd_release() {
   fi
   printf '\n'
 
-  # trill and perch have CI commit nix/release.nix back to the repo, so origin
-  # moved while we watched. Fast-forward before anything reads this HEAD.
+  # perch has CI commit nix/release.nix back to the repo, so origin moved while
+  # we watched. Fast-forward before anything reads this HEAD.
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
   say "$name $version is live — https://github.com/$GH_ORG/$name/releases/tag/$tag"

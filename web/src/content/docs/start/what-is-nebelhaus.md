@@ -47,7 +47,6 @@ command makes reality match them.
 | Shell & terminal | **hearth** | zsh + starship + [Ghostty](https://ghostty.org) + zellij + yazi + helix, all themed |
 | Touch-ID sudo | **collar** | fingerprint auth for `sudo` — even inside a terminal multiplexer |
 | Command palette | **pounce** | a native ⌘Space launcher where every command is a file |
-| Messages client | **trill** | a native iMessage/SMS/RCS window, reading `chat.db` read-only |
 | File shelf | **perch** | a native tray that grows out of the notch to catch drag-drops and fling them out as a group |
 | The colours | **nebelung** | one silver-mist palette rendered onto 20+ tools |
 | System core | **den** | macOS defaults, Homebrew policy, the `haus` CLI |
