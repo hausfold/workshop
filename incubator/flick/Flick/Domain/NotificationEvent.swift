@@ -37,10 +37,12 @@ struct NotificationEvent: Codable, Sendable, Identifiable, Equatable {
             /// Run a user-configured hook command (opt-in, rules-declared).
             case command
             /// Open the helper that walks the user through turning Apple's
-            /// own banners off for an app. `target` is a bundle id, or nil to
-            /// walk every app the audit flagged. flick never writes those
-            /// settings itself — this only opens System Settings and stands
-            /// beside it.
+            /// own banners off. `target` names the apps to walk: one bundle
+            /// id, or several comma-joined when one banner stands for a whole
+            /// worklist. A nil target names nothing, and the helper falls back
+            /// to the apps `rules.json` lists — never to every app on the Mac.
+            /// flick never writes those settings itself — this only opens
+            /// System Settings and stands beside it.
             case silenceNative = "silence_native"
         }
 

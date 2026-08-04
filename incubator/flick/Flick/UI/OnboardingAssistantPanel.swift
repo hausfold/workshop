@@ -79,6 +79,67 @@ struct DraggableAppTile: NSViewRepresentable {
     func updateNSView(_ nsView: DraggableAppTileNSView, context: Context) {}
 }
 
+// MARK: - Walkthrough state
+
+/// Which apps in a worklist are done, and how each of them got there.
+///
+/// Pulled out of the view because it decides two things worth testing: when
+/// the walkthrough ends, and which of two endings it shows. The distinction
+/// between the sets is the whole point — `confirmed` is macOS agreeing the app
+/// went quiet, `advanced` is the user saying so — and only the first earns a
+/// green dot or the "macOS has stopped drawing them" line.
+struct Walkthrough: Equatable {
+    /// Apps the audit has since read as quiet.
+    var confirmed: Set<String> = []
+    /// Apps the user marked done. flick never checked these.
+    var advanced: Set<String> = []
+
+    func isFinished(_ bundleID: String) -> Bool {
+        confirmed.contains(bundleID) || advanced.contains(bundleID)
+    }
+
+    func current(in worklist: [NativeNotificationSettings]) -> NativeNotificationSettings? {
+        worklist.first { !isFinished($0.bundleID) }
+    }
+
+    func remaining(in worklist: [NativeNotificationSettings]) -> Int {
+        worklist.filter { !isFinished($0.bundleID) }.count
+    }
+
+    func done(in worklist: [NativeNotificationSettings]) -> Int {
+        worklist.count - remaining(in: worklist)
+    }
+
+    /// True only when macOS confirmed every one of them. A single
+    /// user-advanced app is enough to make the closing card stop claiming
+    /// macOS stopped drawing anything.
+    var everythingWasConfirmed: Bool { advanced.isEmpty }
+}
+
+// MARK: - Type scale
+
+/// One type scale for the whole helper.
+///
+/// This panel is not an inspector — it's read at arm's length, mid-task,
+/// while the user's eyes are mostly on System Settings and their hand is on
+/// the mouse. The first cut used `.caption`/`.caption2` (10pt) throughout,
+/// which is the size you reach for when text sits *beside* the thing it
+/// describes; here the text **is** the product, so everything moved up a
+/// couple of steps and the panel widened to carry it.
+private enum HelperType {
+    /// The panel's own header.
+    static let title = Font.title3
+    /// The sentences that carry the instruction — the ones that have to be
+    /// readable without leaning in.
+    static let body = Font.body
+    /// Supporting detail beside an instruction: step labels, warnings,
+    /// the status line.
+    static let detail = Font.callout
+    /// Incidentals inside the System Settings replica, where matching Apple's
+    /// own row proportions matters more than legibility.
+    static let micro = Font.caption
+}
+
 // MARK: - Onboarding Assistant View
 
 /// The floating helper that rides alongside System Settings during a
@@ -97,6 +158,12 @@ struct OnboardingAssistantView: View {
         case nativeBanners(findings: [NativeNotificationSettings])
     }
 
+    /// Wide enough that the instruction sentences hold their line count at
+    /// the larger type (see `HelperType`) — the panel got taller when the
+    /// text grew, and re-wrapping into an extra line each would have made it
+    /// taller still. The controller sizes the window from the same constant.
+    nonisolated static let panelWidth: CGFloat = 400
+
     let mode: Mode
     /// Fires once, when the probe first sees Full Disk Access land — the
     /// caller commits the setting through `AppSettings` so it's flushed to
@@ -106,13 +173,34 @@ struct OnboardingAssistantView: View {
 
     @State private var pollTimer: Timer?
     @State private var selectedTab = 0
-    /// Bundle ids the poll has since seen go quiet. Kept as a set rather than
+    /// Which apps are done, and how each got there. Kept as sets rather than
     /// a cursor because the user is free to fix them in any order — or to fix
     /// three at once in a pane they already had open.
-    @State private var resolved: Set<String> = []
+    ///
+    /// **`confirmed` can stay empty on a Mac where everything went right.** macOS 26
+    /// doesn't write `com.apple.ncprefs` when you change the pane — usernoted
+    /// takes the change and the file is only flushed much later (a 92-app
+    /// store measured byte-identical to a 17-day-old copy, across a change
+    /// made and System Settings quit). So the poll is a *bonus* confirmation,
+    /// not the mechanism: `advanced` is what actually moves the walkthrough.
+    /// Both sets, and the queries over them, live in `Walkthrough` — pure and
+    /// tested, because when the walkthrough ends and which ending it shows are
+    /// the two things here worth getting wrong.
+    @State private var walkthrough = Walkthrough()
     /// Briefly true when the last app goes quiet, so the panel can say so
     /// before it closes instead of just vanishing.
     @State private var allClear = false
+    /// What macOS says *right now* about the apps in this worklist, refreshed
+    /// by the same one-second poll. The panel reads live state rather than the
+    /// findings it was handed, so the row, the instruction and the demo all
+    /// narrow themselves as the user flips switches — the panel showing the
+    /// change is what tells them it was picked up. It used to say so in words
+    /// instead ("Picked up the instant you change it"), which is a promise
+    /// where this is a demonstration.
+    @State private var live: [String: NativeNotificationSettings] = [:]
+    /// True while System Settings is the frontmost app. flick opened it, so
+    /// the button to open it is dead weight until they've navigated away.
+    @State private var settingsIsFrontmost = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -124,8 +212,15 @@ struct OnboardingAssistantView: View {
                     .foregroundStyle(.tint)
                     .font(.title2)
                 Text(modeTitle)
-                    .font(.headline)
+                    .font(HelperType.title)
+                    .fontWeight(.semibold)
                 Spacer()
+                // Progress lives in the header rather than in a row of its
+                // own: it's context, not a step, and a line that only says
+                // "0 of 4" is a line the panel can do without.
+                if case .nativeBanners(let findings) = mode, findings.count > 1 {
+                    stepIndicator(findings: findings)
+                }
             }
 
             Divider()
@@ -141,7 +236,7 @@ struct OnboardingAssistantView: View {
         // The panel's height is fixed per mode (it can't be measured — see
         // the controller), so any slack goes to the bottom rather than being
         // split into two gaps around vertically-centred content.
-        .frame(width: 350, alignment: .top)
+        .frame(width: Self.panelWidth, alignment: .top)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(.ultraThinMaterial)
         .onAppear {
@@ -176,7 +271,7 @@ struct OnboardingAssistantView: View {
         // Say so here rather than letting the user re-grant forever.
         if let warning = SystemIntegration.permissionPersistenceWarning {
             Label(warning, systemImage: "exclamationmark.triangle.fill")
-                .font(.caption2)
+                .font(HelperType.detail)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -186,12 +281,11 @@ struct OnboardingAssistantView: View {
             Text("If Missing").tag(1)
         }
         .pickerStyle(.segmented)
-        .controlSize(.small)
 
         if selectedTab == 0 {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Find **Flick** in System Settings and turn its switch **ON**. If Apple prompts, click **Later**:")
-                    .font(.caption)
+                    .font(HelperType.body)
                     .foregroundStyle(.secondary)
 
                 FlickSwitchDemo()
@@ -199,7 +293,7 @@ struct OnboardingAssistantView: View {
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Drag the tile below into System Settings (or click **+**):")
-                    .font(.caption)
+                    .font(HelperType.body)
                     .foregroundStyle(.secondary)
 
                 HStack {
@@ -220,16 +314,16 @@ struct OnboardingAssistantView: View {
         // squarely in the user's court.
         HStack(spacing: 6) {
             Image(systemName: "bolt.horizontal.circle")
-                .font(.caption)
+                .font(HelperType.detail)
                 .foregroundStyle(.tint)
             Text("Picked up the instant you flip it.")
-                .font(.caption)
+                .font(HelperType.detail)
                 .foregroundStyle(.secondary)
             Spacer()
             Button("Open Settings") {
                 SystemIntegration.openFullDiskAccessSettings()
             }
-            .font(.caption)
+            .font(HelperType.detail)
             .buttonStyle(.borderless)
         }
         .padding(.top, 4)
@@ -237,62 +331,56 @@ struct OnboardingAssistantView: View {
 
     // MARK: - Native banners
 
-    /// The app the panel is currently pointed at: the first one the poll
-    /// hasn't yet seen go quiet. Derived rather than stored, so a user who
-    /// fixes the third app first simply skips it.
+    /// The app the panel is currently pointed at: the first one that's
+    /// neither confirmed quiet nor already marked done. Derived rather than
+    /// stored, so a user who fixes the third app first simply skips it.
     private func currentFinding(in findings: [NativeNotificationSettings])
         -> NativeNotificationSettings?
     {
-        findings.first { !resolved.contains($0.bundleID) }
+        findings.first { !isFinished($0.bundleID) }
+    }
+
+    private func isFinished(_ bundleID: String) -> Bool {
+        walkthrough.isFinished(bundleID)
     }
 
     @ViewBuilder
     private func nativeBannersContent(findings: [NativeNotificationSettings]) -> some View {
         if allClear || currentFinding(in: findings) == nil {
             allClearContent(total: findings.count)
-        } else if let finding = currentFinding(in: findings) {
+        } else if let listed = currentFinding(in: findings) {
+            // Live state wins over the finding the panel was handed: the user
+            // is changing these *while looking at this*, and a panel still
+            // demonstrating a click they already made is the panel being
+            // wrong on screen.
+            let finding = live[listed.bundleID] ?? listed
             let appName = NotificationSettingsAudit.displayName(for: finding.bundleID)
 
-            // Only worth saying when there's more than one; "1 of 1" is noise.
-            if findings.count > 1 {
-                stepIndicator(findings: findings)
-            }
+            // The app's own row, as System Settings draws it — the deep link
+            // lands at the top of the pane (Apple dropped per-app anchors),
+            // so this is what they're scanning the list for. Its subtitle is
+            // the same string macOS writes, and it shortens as they go.
+            appRow(for: finding, appName: appName)
 
-            Text("macOS is drawing **\(appName)**'s notifications itself, so you'd see each one twice. Turn Apple's off — flick keeps showing them.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            // Reached by naming an app explicitly — `--all` filters these out.
+            // Say it plainly rather than letting someone scroll for a row
+            // macOS never puts there.
+            if !finding.hasSettingsRow {
+                Label(
+                    "macOS doesn't list \(appName) here — there's no row to change.",
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+                .font(HelperType.detail)
+                .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
-
-            // Apple dropped per-app anchors from the Notifications deep link:
-            // the URL lands on the top of the pane no matter which app id it
-            // carries. So the first real step is *finding* the row, and the
-            // honest thing is to show exactly what it looks like — icon,
-            // name, and the same summary line System Settings writes under it.
-            VStack(alignment: .leading, spacing: 4) {
-                Text("1 · Find this row under Application Notifications")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                settingsRowMock(for: finding, appName: appName)
-                // Reached by naming the app explicitly — `--all` filters these
-                // out. Say it plainly rather than letting someone scroll a
-                // list for a row macOS never puts there.
-                if !finding.hasSettingsRow {
-                    Label(
-                        "macOS doesn't list \(appName) here — there's no row to change.",
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
-                }
             }
 
             // `.init` so the bold markup is parsed — Text(String) renders it
             // literally, Text(LocalizedStringKey) doesn't.
-            Text(.init(step2Instruction(for: finding)))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            Text(.init(instruction(for: finding)))
+                .font(HelperType.body)
                 .fixedSize(horizontal: false, vertical: true)
+                .animation(.easeOut(duration: 0.2), value: finding)
 
             NativeBannerDemo(
                 appName: appName,
@@ -301,76 +389,118 @@ struct OnboardingAssistantView: View {
                 needsSoundChange: finding.playsSound
             )
 
-            HStack(spacing: 6) {
-                Image(systemName: "bolt.horizontal.circle")
-                    .font(.caption)
-                    .foregroundStyle(.tint)
-                Text("Picked up the instant you change it.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
+            Spacer(minLength: 0)
 
-            Button {
-                SystemIntegration.openNotificationSettings(for: finding.bundleID)
-            } label: {
-                // Not "Open <App> Settings" — it can't do that, and a button
-                // that overpromises by one step is what sends someone hunting
-                // for a pane that never opened.
-                Label("Open Notification Settings", systemImage: "arrow.up.forward.app")
-                    .frame(maxWidth: .infinity)
+            HStack(spacing: 8) {
+                // flick already opened the pane. This is only for the case
+                // where they closed it or wandered off — so it appears when
+                // System Settings isn't in front, and stays out of the way
+                // when it is.
+                Button {
+                    SystemIntegration.openNotificationSettings(for: finding.bundleID)
+                } label: {
+                    // Not "Open <App> Settings" — it can't do that, and a
+                    // button that overpromises by one step is what sends
+                    // someone hunting for a pane that never opened.
+                    Label("Open Settings", systemImage: "arrow.up.forward.app")
+                }
+                .opacity(settingsIsFrontmost ? 0 : 1)
+                .disabled(settingsIsFrontmost)
+                .animation(.easeInOut(duration: 0.2), value: settingsIsFrontmost)
+
+                Spacer(minLength: 0)
+
+                // The advance. macOS 26 doesn't tell anyone when the pane
+                // changes (see `walkthrough`), so the user does — a button that
+                // waits on a confirmation that never arrives is worse than
+                // one that trusts them.
+                Button {
+                    markDone(finding.bundleID, in: findings)
+                } label: {
+                    Text(remaining(in: findings) > 1 ? "Done — Next" : "Done")
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
         }
     }
 
-    /// Name only the controls this app actually needs touched. An app that's
-    /// merely loud shouldn't be told to untick Desktop, and one that's merely
-    /// visible shouldn't be sent hunting for a sound switch.
-    private func step2Instruction(for finding: NativeNotificationSettings) -> String {
+    private func remaining(in findings: [NativeNotificationSettings]) -> Int {
+        walkthrough.remaining(in: findings)
+    }
+
+    /// Mark the current app done and move on — or finish, if it was the last.
+    private func markDone(_ bundleID: String, in findings: [NativeNotificationSettings]) {
+        withAnimation(.easeOut(duration: 0.25)) {
+            walkthrough.advanced.insert(bundleID)
+        }
+        guard remaining(in: findings) == 0 else { return }
+        finish()
+    }
+
+    /// The end of the walkthrough: say so, then close. Shared by the button
+    /// and by the poll, so a Mac whose store *does* update still ends the
+    /// same way — one path, whichever way the last app got ticked.
+    private func finish() {
+        guard !allClear else { return }
+        pollTimer?.invalidate()
+        pollTimer = nil
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { allClear = true }
+        Task { @MainActor in
+            // Long enough to read, short enough that it doesn't become a
+            // window the user has to dismiss.
+            try? await Task.sleep(nanoseconds: 2_200_000_000)
+            onClose()
+        }
+    }
+
+    /// Name only the controls this app still needs touched, in the words on
+    /// the pane. Re-derived from live state every poll, so finishing one
+    /// leaves the other standing alone rather than leaving the user to work
+    /// out which half of the sentence is still theirs to do.
+    private func instruction(for finding: NativeNotificationSettings) -> String {
         switch (finding.showsOnDesktop, finding.playsSound) {
-        case (true, true): return "2 · Untick **Desktop**, and turn **Play sound** off"
-        case (true, false): return "2 · Untick **Desktop**"
-        case (false, true): return "2 · Turn **Play sound for notification** off"
-        case (false, false): return "2 · Nothing left to change"
+        case (true, true): return "Untick **Desktop**, then turn **Play sound** off"
+        case (true, false): return "Untick **Desktop**"
+        case (false, true): return "Turn **Play sound for notification** off"
+        case (false, false): return "Done"
         }
     }
 
-    /// A replica of the app's row in System Settings → Notifications, down to
-    /// the summary line, so the user can scan the list for a shape they've
-    /// already seen rather than a name they have to remember.
+    /// The app's row in System Settings → Notifications: icon, name, and the
+    /// same summary line macOS writes under it. Live — the subtitle drops
+    /// "Desktop" the moment they untick it, which is the panel proving it's
+    /// watching without a sentence claiming so.
     @ViewBuilder
-    private func settingsRowMock(for finding: NativeNotificationSettings, appName: String) -> some View {
-        HStack(spacing: 8) {
+    private func appRow(for finding: NativeNotificationSettings, appName: String) -> some View {
+        HStack(spacing: 10) {
             if let icon = NotificationSettingsAudit.icon(for: finding.bundleID) {
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 26, height: 26)
+                    .frame(width: 32, height: 32)
             } else {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(Color.secondary.opacity(0.2))
-                    .frame(width: 26, height: 26)
+                    .frame(width: 32, height: 32)
             }
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(appName)
-                    .font(.caption)
+                    .font(HelperType.body)
                     .fontWeight(.medium)
                 Text(finding.settingsSubtitle)
-                    .font(.caption2)
+                    .font(HelperType.detail)
                     .foregroundStyle(.secondary)
+                    .contentTransition(.opacity)
             }
             Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.primary.opacity(0.06))
         )
+        .animation(.easeOut(duration: 0.25), value: finding)
     }
 
     /// Past this many apps the dots stop being countable at a glance and
@@ -384,24 +514,29 @@ struct OnboardingAssistantView: View {
     /// drop to the count alone, which stays honest at any length.
     @ViewBuilder
     private func stepIndicator(findings: [NativeNotificationSettings]) -> some View {
-        let done = findings.filter { resolved.contains($0.bundleID) }.count
-        HStack(spacing: 6) {
-            if findings.count <= Self.dottedStepLimit {
+        let done = walkthrough.done(in: findings)
+        if findings.count <= Self.dottedStepLimit {
+            HStack(spacing: 5) {
                 ForEach(findings, id: \.bundleID) { finding in
-                    let isDone = resolved.contains(finding.bundleID)
                     let isCurrent = currentFinding(in: findings)?.bundleID == finding.bundleID
-                    Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 11))
-                        .foregroundStyle(isDone ? Color.green : (isCurrent ? Color.accentColor : Color.secondary.opacity(0.4)))
+                    Circle()
+                        // Green only where macOS actually confirmed it. An
+                        // app the user marked done is filled, not green —
+                        // flick was told, it didn't check, and the dot
+                        // shouldn't claim otherwise.
+                        .fill(
+                            walkthrough.confirmed.contains(finding.bundleID) ? Color.green
+                                : walkthrough.advanced.contains(finding.bundleID) ? Color.secondary.opacity(0.7)
+                                : isCurrent ? Color.accentColor
+                                : Color.secondary.opacity(0.3)
+                        )
+                        .frame(width: 7, height: 7)
                 }
-            } else {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 11))
-                    .foregroundStyle(done > 0 ? Color.green : Color.secondary.opacity(0.4))
             }
-            Spacer()
-            Text("\(done) of \(findings.count) silenced")
-                .font(.caption2)
+            .animation(.easeOut(duration: 0.25), value: done)
+        } else {
+            Text("\(done) of \(findings.count)")
+                .font(HelperType.detail)
                 .foregroundStyle(.secondary)
                 .contentTransition(.numericText())
         }
@@ -409,16 +544,24 @@ struct OnboardingAssistantView: View {
 
     @ViewBuilder
     private func allClearContent(total: Int) -> some View {
+        // Two different endings, because they're two different facts. macOS
+        // confirming every app is worth a green tick; the user telling flick
+        // they're done is worth thanks and nothing more — claiming "macOS has
+        // stopped drawing them" off a button press would be flick inventing a
+        // confirmation it never got.
+        let confirmed = walkthrough.everythingWasConfirmed
         HStack(spacing: 10) {
-            Image(systemName: "checkmark.circle.fill")
+            Image(systemName: confirmed ? "checkmark.circle.fill" : "checkmark.circle")
                 .font(.title2)
-                .foregroundStyle(.green)
+                .foregroundStyle(confirmed ? Color.green : Color.secondary)
             VStack(alignment: .leading, spacing: 2) {
-                Text(total > 1 ? "All \(total) apps are quiet" : "That's it — it's quiet")
-                    .font(.subheadline)
+                Text(total > 1 ? "That's all \(total)" : "That's it")
+                    .font(HelperType.title)
                     .fontWeight(.semibold)
-                Text("macOS has stopped drawing them. flick has it from here.")
-                    .font(.caption)
+                Text(confirmed
+                    ? "macOS has stopped drawing them. flick has it from here."
+                    : "flick has it from here.")
+                    .font(HelperType.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -427,9 +570,18 @@ struct OnboardingAssistantView: View {
         .padding(.vertical, 4)
     }
 
-    /// Re-reads Apple's own preferences once a second and ticks apps off as
-    /// they go quiet. Polling rather than watching the file: the store is
-    /// cfprefsd-owned and undocumented, and a one-second poll of a small
+    /// Re-reads Apple's own preferences once a second: it ticks an app off if
+    /// the store agrees it's gone quiet, and — every second, regardless —
+    /// refreshes the live reading the row, the sentence and the demo are
+    /// drawn from, plus whether System Settings is still in front.
+    ///
+    /// **The tick-off is opportunistic, not the mechanism.** On macOS 26 that
+    /// store simply doesn't move when the user changes the pane (see
+    /// `walkthrough`), so it advances on the user's own "Done" and
+    /// this poll is the bonus that fires where it still works: older macOS,
+    /// an app silenced before the panel opened, or after macOS eventually
+    /// flushes. Polling rather than watching the file because the store is
+    /// cfprefsd-owned and undocumented, and a one-second read of a small
     /// plist costs nothing next to guessing at a change-notification
     /// mechanism Apple doesn't promise.
     private func startNativeBannerPolling(findings: [NativeNotificationSettings]) {
@@ -440,26 +592,38 @@ struct OnboardingAssistantView: View {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             Task { @MainActor in
                 refreshResolved(findings: findings)
-                guard resolved.count >= findings.count, !allClear else { return }
-                pollTimer?.invalidate()
-                pollTimer = nil
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { allClear = true }
-                // Long enough to read, short enough that it doesn't become a
-                // window the user has to dismiss.
-                try? await Task.sleep(nanoseconds: 2_200_000_000)
-                onClose()
+                guard remaining(in: findings) == 0 else { return }
+                finish()
             }
         }
     }
 
     private func refreshResolved(findings: [NativeNotificationSettings]) {
-        let current = NotificationSettingsAudit.readAll()
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        // Without Full Disk Access there's nothing to read, so nothing is
+        // confirmed and nothing is claimed — the user's "Done" is the only
+        // thing that moves the walkthrough. Still track the frontmost app,
+        // which is what the "Open Settings" button keys off.
+        guard let current = NotificationSettingsAudit.readAll() else {
+            withAnimation(.easeOut(duration: 0.25)) {
+                settingsIsFrontmost = front == SystemIntegration.systemSettingsBundleID
+            }
+            return
+        }
+        // Keep the live reading for every app in the worklist, not just the
+        // verdict: the row's subtitle, the instruction and the demo are all
+        // drawn from it, so a half-finished app shows exactly what's left.
+        let worklist = Dictionary(
+            findings.compactMap { f in current[f.bundleID].map { (f.bundleID, $0) } },
+            uniquingKeysWith: { _, last in last }
+        )
         let quiet = findings
             .filter { finding in current[finding.bundleID]?.isNoisy != true }
             .map(\.bundleID)
-        guard !quiet.isEmpty else { return }
         withAnimation(.easeOut(duration: 0.25)) {
-            resolved.formUnion(quiet)
+            live = worklist
+            settingsIsFrontmost = front == SystemIntegration.systemSettingsBundleID
+            walkthrough.confirmed.formUnion(quiet)
         }
     }
 
@@ -507,9 +671,9 @@ private struct FlickSwitchDemo: View {
         HStack(spacing: 12) {
             Image(nsImage: appIcon)
                 .resizable()
-                .frame(width: 28, height: 28)
+                .frame(width: 30, height: 30)
             Text("Flick")
-                .font(.subheadline)
+                .font(HelperType.body)
                 .bold()
             Spacer()
             Toggle("", isOn: .constant(isOn))
@@ -623,12 +787,24 @@ private struct NativeBannerDemo: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum Geo {
-        static let tileWidth: CGFloat = 92
         static let gap: CGFloat = 8
+        /// Derived, not hand-picked: three tiles and two gaps fill whatever
+        /// the panel leaves after its own 16pt padding on each side and this
+        /// box's 10pt — so widening `panelWidth` widens the replica instead
+        /// of leaving it stranded in the corner.
+        static let tileWidth: CGFloat =
+            (OnboardingAssistantView.panelWidth - 2 * 16 - 2 * 10 - gap * 2) / 3
         static let width: CGFloat = tileWidth * 3 + gap * 2
-        /// Illustration + label + the checkbox under it.
-        static let tileHeight: CGFloat = 64
-        static let soundRowHeight: CGFloat = 26
+        /// The artwork's own proportions (88 × 58 in the system asset). Drawn
+        /// any squatter and it reads as a cropped picture rather than a small
+        /// screen — which is exactly how the first cut looked.
+        static let artWidth: CGFloat = 88
+        static let artHeight: CGFloat = 58
+        /// Illustration + label + the checkbox under it, and the 4pt gaps
+        /// between: 58 + 4 + 26 + 4 + 16. Kept exact because the pointer
+        /// anchors below are measured off it.
+        static let tileHeight: CGFloat = 108
+        static let soundRowHeight: CGFloat = 28
     }
 
     var body: some View {
@@ -644,12 +820,12 @@ private struct NativeBannerDemo: View {
 
             HStack {
                 Text("Play sound for notification")
-                    .font(.caption)
+                    .font(HelperType.detail)
                 Spacer()
                 Toggle("", isOn: .constant(soundIsOn))
                     .labelsHidden()
                     .toggleStyle(.switch)
-                    .controlSize(.mini)
+                    .controlSize(.small)
                     .allowsHitTesting(false)
             }
             .frame(height: Geo.soundRowHeight)
@@ -659,21 +835,109 @@ private struct NativeBannerDemo: View {
         .background(Color.primary.opacity(0.06))
         .cornerRadius(8)
         .overlay(alignment: .topLeading) { pointer }
-        // Tied to the view's lifetime, so switching to the next app cancels
-        // this loop and the new one starts from its own first step.
-        .task(id: bundleID) { await runLoop() }
+        // Keyed on the app *and* on what's left to do: finishing the Desktop
+        // half mid-loop has to restart the demo on the sound step alone, or
+        // it keeps miming a click the user already made.
+        .task(id: "\(bundleID)|\(needsDesktopChange)|\(needsSoundChange)") { await runLoop() }
         // The animation is decoration; the instruction is the sentence. Say
         // it once, plainly, for anyone not watching it.
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "In System Settings for \(appName), untick Desktop"
-                + (needsSoundChange ? ", and turn off play sound for notification." : ".")
-        )
+        .accessibilityLabel(accessibilityInstruction)
+    }
+
+    /// What VoiceOver hears — the same narrowing the sentence above the demo
+    /// does, so it never reads out a step that's already done.
+    private var accessibilityInstruction: String {
+        switch (needsDesktopChange, needsSoundChange) {
+        case (true, true):
+            return "In System Settings for \(appName), untick Desktop, and turn off play sound for notification."
+        case (true, false):
+            return "In System Settings for \(appName), untick Desktop."
+        case (false, true):
+            return "In System Settings for \(appName), turn off play sound for notification."
+        case (false, false):
+            return "\(appName) is already quiet."
+        }
     }
 
     // MARK: Pieces
 
-    private enum Destination { case desktop, notificationCenter, lockScreen }
+    private enum Destination {
+        case desktop, notificationCenter, lockScreen
+
+        /// macOS ships these three thumbnails inside the Notifications
+        /// settings extension, at the exact size the pane draws them. Reading
+        /// them is a **read of a system resource with a fallback**, in the
+        /// same spirit as the rest of flick's Apple-facing code: if Apple
+        /// renames the asset, moves the extension, or drops the artwork, this
+        /// returns nil and `drawnTile` takes over — the demo goes back to
+        /// being an impression, never to being blank.
+        var systemArtwork: NSImage? {
+            NativeBannerDemo.systemArtwork[self]
+        }
+
+        var assetName: String {
+            switch self {
+            case .desktop: return "notificationPresence-desktop"
+            case .notificationCenter: return "notificationPresence-notificationCenter"
+            case .lockScreen: return "notificationPresence-lockScreen"
+            }
+        }
+    }
+
+    /// Loaded once per launch, not per redraw: three `Bundle.image` lookups a
+    /// second, for a view that repaints on a 60Hz animation, is a disk hit in
+    /// a loop for artwork that cannot change while the app runs.
+    private static let systemArtwork: [Destination: NSImage] = {
+        let path = "/System/Library/ExtensionKit/Extensions/NotificationsSettings.appex"
+        guard let bundle = Bundle(path: path) else { return [:] }
+        var loaded: [Destination: NSImage] = [:]
+        for destination in [Destination.desktop, .notificationCenter, .lockScreen] {
+            if let image = bundle.image(forResource: destination.assetName) {
+                loaded[destination] = image
+            }
+        }
+        return loaded
+    }()
+
+    /// The hand-drawn stand-in for when macOS's own artwork can't be read: a
+    /// gradient "screen" with the one detail that distinguishes each
+    /// destination. Deliberately crude — it exists to keep the layout honest,
+    /// not to pass for the real thing.
+    @ViewBuilder
+    private func drawnTile(_ destination: Destination) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.36, green: 0.62, blue: 0.78),
+                                 Color(red: 0.55, green: 0.44, blue: 0.63)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+            switch destination {
+            case .desktop:
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(.white.opacity(0.9))
+                    .frame(width: 26, height: 8)
+                    .offset(x: 22, y: -18)
+            case .notificationCenter:
+                VStack(spacing: 2) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(.white.opacity(0.9))
+                            .frame(width: 26, height: 7)
+                    }
+                }
+                .offset(x: 22)
+            case .lockScreen:
+                Text("9:41")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.95))
+                    .offset(y: -6)
+            }
+        }
+    }
 
     /// One of Tahoe's three destination checkboxes: a little illustration of
     /// where the notification lands, its name, and a checkbox underneath.
@@ -681,45 +945,28 @@ private struct NativeBannerDemo: View {
     private func destinationTile(_ destination: Destination, label: String, checked: Bool) -> some View {
         VStack(spacing: 4) {
             ZStack {
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.accentColor.opacity(0.45), Color.purple.opacity(0.4)],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
-                switch destination {
-                case .desktop:
-                    // One banner, top-right, over an empty desktop.
-                    RoundedRectangle(cornerRadius: 1.5)
-                        .fill(.white.opacity(0.9))
-                        .frame(width: 18, height: 5)
-                        .offset(x: 12, y: -8)
-                case .notificationCenter:
-                    // The stack down the right edge.
-                    VStack(spacing: 1.5) {
-                        ForEach(0..<5, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 1.5)
-                                .fill(.white.opacity(0.9))
-                                .frame(width: 18, height: 4)
-                        }
-                    }
-                    .offset(x: 12)
-                case .lockScreen:
-                    // A clock, centred.
-                    Text("9:41")
-                        .font(.system(size: 8, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.95))
-                        .offset(y: -6)
+                if let art = destination.systemArtwork {
+                    // macOS's own artwork, read out of the Notifications
+                    // settings extension — the replica is only useful if it
+                    // looks like the thing they're staring at, and this is
+                    // that thing rather than an impression of it.
+                    Image(nsImage: art)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    drawnTile(destination)
                 }
             }
-            .frame(width: Geo.tileWidth - 10, height: 30)
+            .frame(width: Geo.artWidth, height: Geo.artHeight)
 
             Text(label)
-                .font(.system(size: 8))
+                .font(.system(size: 10))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-                .frame(height: 16)
+                // Two lines' worth: "Notification / Center" is the widest
+                // label, and a height that only fits one truncates it to
+                // "Notification…" rather than wrapping.
+                .frame(height: 26)
 
             checkbox(checked: checked, emphasised: destination == .desktop)
         }
@@ -733,7 +980,7 @@ private struct NativeBannerDemo: View {
             .overlay {
                 if checked {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.white)
                 }
             }
@@ -741,7 +988,7 @@ private struct NativeBannerDemo: View {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .strokeBorder(Color.primary.opacity(checked ? 0 : 0.25), lineWidth: 1)
             }
-            .frame(width: 14, height: 14)
+            .frame(width: 16, height: 16)
             .scaleEffect(pressed && emphasised && target == .desktop ? 0.85 : 1)
     }
 
@@ -773,8 +1020,9 @@ private struct NativeBannerDemo: View {
         let padding: CGFloat = 10
         switch target {
         case .desktop:
-            // The checkbox under the first tile.
-            return CGPoint(x: padding + Geo.tileWidth / 2, y: padding + Geo.tileHeight - 7)
+            // The checkbox under the first tile — half its 16pt height up
+            // from the tile's bottom edge.
+            return CGPoint(x: padding + Geo.tileWidth / 2, y: padding + Geo.tileHeight - 8)
         case .sound:
             return CGPoint(
                 x: padding + Geo.width - 14,
@@ -881,19 +1129,40 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         // SwiftUI (`fittingSize` can read stale on macOS 26) — an NSPanel
         // that guesses wrong clips the content or leaves a dead band under
         // it. The ad-hoc-signing warning is the only conditional block.
+        //
+        // Measured, not guessed — and re-measured whenever the layout moves.
+        // Each mode is hosted in an off-screen `NSHostingView` at `panelWidth`
+        // and its `fittingSize` read once: a single static layout is the one
+        // case that read is trustworthy, it goes stale only against a
+        // same-turn state change. Content comes out at 233 (Full Disk Access)
+        // and 387 (an app), and the ad-hoc-signing warning adds 61 + 12pt of
+        // stack spacing on top of the first.
+        //
+        // Every constant below is a measurement plus ~20pt of slack, which
+        // falls to the bottom of the panel; being short clips the button off
+        // it instead.
         let height: CGFloat
         switch mode {
         case .fullDiskAccess:
-            height = SystemIntegration.permissionPersistenceWarning == nil ? 264 : 320
+            height = SystemIntegration.permissionPersistenceWarning == nil ? 256 : 328
         case .nativeBanners(let findings):
-            // Header, blurb, the row replica, the demo (fixed size by
-            // construction), status line and button — plus one row for the
-            // step dots, which only exist when there's more than one app.
-            height = findings.count > 1 ? 500 : 476
+            // Header, the app's row, one instruction, the replica, and a
+            // button that keeps its space whether or not it's showing — so
+            // the height doesn't have to change under the user when they
+            // leave System Settings. The step dots ride in the header, so a
+            // worklist of four is the same height as one.
+            var banners: CGFloat = 408
+            // Not in the measurement: the "macOS doesn't list this app"
+            // warning, which only an explicitly-named app ever reaches.
+            if findings.contains(where: { !$0.hasSettingsRow }) {
+                banners += 40
+            }
+            height = banners
         }
 
+        let width = OnboardingAssistantView.panelWidth
         let newPanel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 350, height: height),
+            contentRect: NSRect(x: 0, y: 0, width: width, height: height),
             styleMask: [.titled, .closable, .utilityWindow, .nonactivatingPanel, .hudWindow],
             backing: .buffered,
             defer: false
@@ -930,7 +1199,7 @@ final class OnboardingAssistantPanelController: NSObject, NSWindowDelegate {
         let pointerScreen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) }
         if let screen = pointerScreen ?? NSScreen.main {
             let visibleFrame = screen.visibleFrame
-            let x = visibleFrame.maxX - 360
+            let x = visibleFrame.maxX - (width + 10)
             let y = visibleFrame.minY + 40
             newPanel.setFrameOrigin(NSPoint(x: x, y: y))
         } else {

@@ -8,6 +8,12 @@ struct SettingsView: View {
     let providerStatus: [String: String?]
     var fetchProviderStatus: (() async -> [String: String?])? = nil
     let onRequestFullDiskAccess: () -> Void
+    /// The same grant, asked for from the audit rather than from System
+    /// Mirror — and *only* the grant. Separate closure because the System
+    /// Mirror button switches that provider on when the grant lands, and a
+    /// user who came here to make `doctor` work never asked to turn an
+    /// experimental provider on.
+    var onRequestAuditAccess: () -> Void = {}
     /// The bundle ids flick is meant to keep macOS quiet for. Supplied by the
     /// caller (which owns the live rule set) so this view stays ignorant of
     /// where "listed" comes from.
@@ -24,6 +30,9 @@ struct SettingsView: View {
     /// different answer from "checked, all quiet", and the one that should
     /// send the user to rules.json rather than reassure them.
     @State private var auditScopeIsEmpty = true
+    /// True when macOS's settings store couldn't be read at all — the answer
+    /// is "can't tell", which is not the same as "nothing to fix".
+    @State private var auditUnreadable = false
 
     private var currentStatus: [String: String?] {
         liveStatus ?? providerStatus
@@ -89,10 +98,14 @@ struct SettingsView: View {
         .task {
             while !Task.isCancelled {
                 let listed = listedApps()
-                let findings = NotificationSettingsAudit.findings(scope: .only(listed))
+                let findings = NotificationSettingsAudit.liveFindings(scope: .only(listed))
                 withAnimation(.easeOut(duration: 0.25)) {
                     auditScopeIsEmpty = listed.isEmpty
-                    auditFindings = findings
+                    // nil is "couldn't read", which is a third answer — not an
+                    // empty worklist. Rendering it as "all quiet" would be
+                    // flick reassuring someone about a file it never opened.
+                    auditUnreadable = findings == nil
+                    auditFindings = findings ?? []
                 }
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
             }
@@ -112,7 +125,28 @@ struct SettingsView: View {
     /// none of them writes a preference (see `NotificationSettingsAudit`).
     @ViewBuilder
     private var nativeBannerAudit: some View {
-        if auditFindings.isEmpty {
+        if auditUnreadable {
+            // The store lives in an Apple group container, which is
+            // TCC-protected — the same grant System Mirror needs. Say that
+            // rather than showing a reassuring green tick flick can't stand
+            // behind.
+            VStack(alignment: .leading, spacing: 6) {
+                Label(
+                    "Can't tell — flick needs Full Disk Access to read macOS's notification settings.",
+                    systemImage: "questionmark.circle"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+                // Its own button, not a pointer at the System Mirror one:
+                // that grant flips System Mirror on when it lands, and a user
+                // who came here to make the audit work didn't ask for an
+                // experimental provider.
+                Button("Grant Full Disk Access…", action: onRequestAuditAccess)
+                    .controlSize(.small)
+            }
+        } else if auditFindings.isEmpty {
             Label(
                 auditScopeIsEmpty
                     ? "No apps listed in rules.json yet — nothing to check."

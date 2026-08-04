@@ -42,7 +42,9 @@ struct RuleSet: Codable, Sendable, Equatable {
             case drop
 
             // Encoded as {"delivery": "digest", "digest": "work"} alongside
-            // the rule's other keys — flat JSON a human writes by hand.
+            // the rule's other keys — flat JSON a human writes by hand. The
+            // `Rule` extension below is what makes "alongside" true; without
+            // it these keys land one level down and the file won't parse.
         }
 
         var match: Match
@@ -68,6 +70,39 @@ struct RuleSet: Codable, Sendable, Equatable {
     var quietHours: QuietHours?
 
     static let empty = RuleSet(rules: [], quietHours: nil)
+}
+
+/// A rule's `delivery` is written **flat**, beside `match`:
+///
+///     { "match": { "source": "ads" }, "delivery": "drop" }
+///     { "match": { "source": "slack" }, "delivery": "digest", "digest": "work" }
+///
+/// which is the shape the README documents and the shape anyone writing this
+/// file by hand produces. That takes a hand-rolled `Codable`: the synthesized
+/// one would hand `Delivery` the *value* of the `delivery` key and expect it
+/// to be an object of its own, so a plain `"drop"` failed to decode and the
+/// watcher fell back to the previous (empty) rule set — every rule in the
+/// file silently ignored, one log line the user never sees.
+///
+/// The old round-trip test passed straight through that: it encoded and
+/// decoded with the same nested convention, and never read a line of the
+/// documented format.
+extension RuleSet.Rule {
+    private enum CodingKeys: String, CodingKey { case match }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        match = try container.decodeIfPresent(Match.self, forKey: .match) ?? Match()
+        // The same decoder, not a nested one: `delivery`/`digest` are the
+        // rule's own keys.
+        delivery = try Delivery(from: decoder)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(match, forKey: .match)
+        try delivery.encode(to: encoder)
+    }
 }
 
 extension RuleSet.Rule.Delivery {

@@ -93,6 +93,41 @@ final class PolicyEngineTests: XCTestCase {
         XCTAssertFalse(window.contains(minuteOfDay: 12 * 60))
     }
 
+    /// The shape the README documents and a human actually writes: `delivery`
+    /// flat beside `match`, not nested in an object of its own. The round-trip
+    /// test below can't catch a regression here — it agrees with itself
+    /// whatever convention the encoder picks — and the first cut of this
+    /// decoder failed every hand-written file while logging one line about it.
+    func testTheRulesFileTheREADMEDocumentsActuallyDecodes() throws {
+        let json = Data("""
+        {
+          "rules": [
+            { "match": { "source": "slack", "titleContains": "mentioned" }, "delivery": "banner" },
+            { "match": { "source": "slack" }, "delivery": "digest", "digest": "work" },
+            { "match": { "source": "ads" }, "delivery": "drop" },
+            { "match": { "source": "com.apple.reminders" }, "delivery": "inbox" }
+          ]
+        }
+        """.utf8)
+
+        let decoded = try JSONDecoder.flick.decode(RuleSet.self, from: json)
+        XCTAssertEqual(decoded.rules.count, 4)
+        XCTAssertEqual(decoded.rules[0].delivery, .banner)
+        XCTAssertEqual(decoded.rules[0].match.titleContains, "mentioned")
+        XCTAssertEqual(decoded.rules[1].delivery, .digest("work"))
+        XCTAssertEqual(decoded.rules[2].delivery, .drop)
+        XCTAssertEqual(decoded.rules[3].delivery, .inbox)
+        XCTAssertEqual(decoded.rules[3].match.source, "com.apple.reminders")
+    }
+
+    /// A rule the daemon can't read must not take the rest of the file with
+    /// it silently — the decode fails loudly enough for `RulesWatcher` to keep
+    /// the last good set and log why.
+    func testAnUnknownDeliveryIsARejectedFileNotASilentDrop() {
+        let json = Data(#"{"rules":[{"match":{"source":"ads"},"delivery":"shred"}]}"#.utf8)
+        XCTAssertThrowsError(try JSONDecoder.flick.decode(RuleSet.self, from: json))
+    }
+
     func testRuleSetRoundTripsThroughJSON() throws {
         let original = RuleSet(rules: [
             .init(match: .init(source: "slack", titleContains: "mention"), delivery: .digest("work")),
