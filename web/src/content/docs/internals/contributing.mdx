@@ -33,7 +33,6 @@ Each change belongs to exactly one repo. Start in the right one:
 |---|---|
 | colours / palette / how a tool is themed | `nebelung` |
 | the launcher app or a generic command | `pounce` |
-| the Messages client (trill) | `trill` |
 | the notch file shelf (perch) | `perch` |
 | macOS defaults, tiling, bar, shell, Touch ID | `nebelhaus` |
 | your own machine's apps / identity / secrets | `~/.config/nix` |
@@ -172,9 +171,9 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
 6. **ship** — `./bench ship` pushes upstream→downstream, rippling every
    `flake.lock` in dependency order.
 7. **release** — `./bench release <repo>`; CI does the rest, and the command
-   waits with you while it happens. Four repos are releasable: **pounce**
-   (GitHub release + Homebrew formula bump), **trill** and **perch** (Homebrew
-   cask bump + the rice's flake pin), and **nebelhaus** (the tag becomes what
+   waits with you while it happens. Three repos are releasable: **pounce**
+   (GitHub release + Homebrew formula bump), **perch** (Homebrew cask bump + the
+   rice's flake pin), and **nebelhaus** (the tag becomes what
    `nebelhaus.com/init.sh` serves to new installs).
 
 <Aside type="note" title="Releases ride tags">
@@ -197,7 +196,7 @@ three jobs — and `bench release` draws them live rather than handing you a URL
 
 It exits non-zero if the run goes red (with the `gh run view --log-failed` to
 run), and on green it fast-forwards your checkout — which is the actual reason
-it blocks. trill's and perch's runs commit `nix/release.nix` back to the repo,
+it blocks. perch's run commits `nix/release.nix` back to the repo,
 so a command that returned at the tag push would leave you a checkout behind
 origin and a `bench ship` that ripples a rev CI is about to supersede. Pass
 `--ship` to ripple that new lock edge downstream in the same breath; without it

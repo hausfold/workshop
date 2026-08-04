@@ -17,8 +17,9 @@ or private automation that Messages.app doesn't expose. They were never coming.
 The Beeper adapter that would have added other networks depended on an
 experimental third-party API and was frozen with it.
 
-It is also **no longer part of a default rice**: `nebelhaus.trill.enable`
-defaults to `false`. Set it true and everything below still applies.
+The rice **no longer installs it at all**: `nebelhaus.trill.enable` was removed
+on 2026-08-04. Everything below still applies to a Homebrew or drag install —
+that is now the only way in.
 </Aside>
 
 **trill** is your Messages, native. A fast, flat, keyboard-first client for
@@ -35,9 +36,8 @@ the whole trust story: it reads everything, changes nothing.
 
 ## Install
 
-trill is opt-in in the rice (`nebelhaus.trill.enable = true` — see
-[options](/reference/options/#nebelhaustrillenable)); it is not installed on a
-default machine. To install it standalone, or on a Mac without the rice:
+The rice doesn't install trill — the option that used to is gone. Install it
+yourself, with or without nebelhaus:
 
 ```sh
 brew install --cask nebelhaus/tap/trill
@@ -58,9 +58,10 @@ trill checks GitHub for a new release hourly (and when you bring the app
 forward), and when one is out it floats a card at the bottom of the sidebar plus
 at most one notification a day. What the **Update** button does follows how you
 installed it: a drag-install downloads the release and swaps itself out; a
-Homebrew cask defers to `brew upgrade --cask trill`; a rice or Nix install is
-*told* the command to run (`haus update`) rather than overwritten, since the next
-rebuild would revert it.
+Homebrew cask defers to `brew upgrade --cask trill`; an older Nix-installed copy
+(from back when the rice shipped it) is *told* to run `haus update` rather than
+overwritten — remove `/Library/Application Support/nebelhaus/trill.installed-from`
+and it goes back to updating itself.
 
 Turn the poll off in **Settings ▸ Updates**; **Trill ▸ Check for Updates…**
 always works on demand. The self-update quits trill first so your draft flushes,
@@ -168,10 +169,10 @@ curl -o ~/.config/trill/themes/my-palette.json https://example.com/palette.json
 ```
 
 A file **shadows a built-in of the same name**, so naming yours `nebelung.json`
-replaces trill's idea of nebelung. That's how the rice keeps an installed trill
-current: on nebelhaus it writes every rendered variant there and names the pair
-your [`theme.flavor` / `theme.contrast`](/guides/theming/) select, so trill
-follows the house palette. Your own pick in Settings still wins.
+replaces trill's idea of nebelung. The rice used to write every rendered variant
+there for you; now that it no longer ships trill, dropping in a palette by hand
+is how you keep it matching the [house colours](/guides/theming/). Your own pick
+in Settings still wins.
 
 ## Export a conversation (or all of them)
 

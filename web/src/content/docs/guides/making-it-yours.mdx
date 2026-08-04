@@ -188,16 +188,15 @@ These are policy knobs only — the apps themselves belong in `nebelhaus.roster`
 including the ones you don't want a launcher key for (just omit `key`). See
 [Adding apps & tools](/guides/adding-apps/#one-list-nebelhausroster).
 
-<Aside type="tip" title="Keeping casks current (e.g. trill)">
+<Aside type="tip" title="Keeping casks current">
 `autoUpdate` and `upgrade` are **off by default** so a rebuild is
 reproducible — it installs a cask once, then pins whatever version brew first
 laid down. That's why a cask app can sit on an old version even though your
 config is fully synced: a rebuild keeps it *installed*, not *current*. To
-pick up new releases of a date-versioned family app like
-[trill](/guides/trill/), either upgrade it on demand —
+pick up new releases of a fast-moving cask, either upgrade it on demand —
 
 ```sh
-brew upgrade --cask trill
+brew upgrade --cask zen
 ```
 
 — or set both knobs to `true` so every rebuild tracks upstream latest:

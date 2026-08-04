@@ -13,7 +13,7 @@ ties them together, but pounce, trill, perch, and nebelung stand alone too.
 |---|---|---|
 | 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
 | 🐾 [**pounce**](https://github.com/nebelhaus/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
-| 🐦 [**trill**](https://github.com/nebelhaus/trill) | the messages — a native iMessage/SMS/RCS client reading `chat.db` read-only. **Archived, and opt-in in the rice** | you want to change the Messages client |
+| 🐦 [**trill**](https://github.com/nebelhaus/trill) | the messages — a native iMessage/SMS/RCS client reading `chat.db` read-only. **Archived; the rice no longer installs it** | you want to change the Messages client |
 | 🐈 [**perch**](https://github.com/nebelhaus/perch) | the shelf — a native notch file tray that stages dropped files and drags them out as one group | you want to change the file shelf |
 | 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
 | 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every release |
