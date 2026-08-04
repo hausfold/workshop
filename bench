@@ -773,14 +773,42 @@ cmd_ship() {
     fi
   done
 
+  # Fast-forward every checkout to origin BEFORE reading a single HEAD. The lock
+  # bump below is computed from `head_rev`, and right after `gh pr merge` each
+  # main checkout is behind origin by exactly the squash commit — so a ship that
+  # skips this pins the PRE-merge rev, prints "shipped", and `bench status` then
+  # calls the edge ✓ current, because it compares the lock against that same
+  # stale local HEAD. Nothing in the output distinguishes it from a real ripple.
+  # This has bitten every /ship that merged a PR in a repo the chain touches.
+  for name in "${FAMILY[@]}" consumer; do
+    local dir; dir="$(repo_dir "$name")"
+    [ -d "$dir/.git" ] || continue
+    git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1 || continue
+    # A fetch that fails (offline) is a warning, not a death — shipping from the
+    # local state still works, and the per-edge verify below is the real guard.
+    git -C "$dir" fetch --quiet 2>/dev/null || { warn "$name: fetch failed — reading the local checkout as-is"; continue; }
+    local behind; behind="$(git -C "$dir" rev-list --count 'HEAD..@{u}')"
+    [ "$behind" != "0" ] || continue
+    if git -C "$dir" merge --ff-only '@{u}' >/dev/null 2>&1; then
+      say "$name: fast-forwarded $behind commit(s) from origin"
+    else
+      die "$name is $behind commit(s) behind origin and won't fast-forward (diverged) — resolve it by hand, then re-run bench ship."
+    fi
+  done
+
   # Agent branches never block a ship (main is main), but don't let them rot silently.
   for name in "${FAMILY[@]}"; do
+    # Guarded like every other loop here: an absent child repo (a workshop clone
+    # that hasn't run `bench clone` yet) makes the `git -C` inside exit 128 under
+    # `set -e`, killing the ship with no output at all.
+    [ -d "$(repo_dir "$name")/.git" ] || continue
     local unmerged; unmerged="$(unmerged_agent_branches "$name" | tr '\n' ' ')"
     if [ -n "${unmerged// /}" ]; then
       warn "$name has unmerged agent branches (not shipping them — open a PR to land): $unmerged"
     fi
   done
 
+  local stale=()
   for name in "${FAMILY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
@@ -790,13 +818,31 @@ cmd_ship() {
     for edge in "${EDGES[@]}"; do
       read -r holder input source <<<"$edge"
       [ "$holder" = "$name" ] || continue
-      if [ "$(locked_rev "$holder" "$input")" != "$(head_rev "$source")" ]; then
-        say "$name: updating lock for ${input}…"
-        (cd "$dir" && nix flake update "$input")
+      local want; want="$(head_rev "$source")"
+      [ "$(locked_rev "$holder" "$input")" != "$want" ] || continue
+      say "$name: updating lock for ${input}…"
+      (cd "$dir" && nix flake update "$input")
+      # `nix flake update` can resolve the input from the flake cache, see "no
+      # change", and leave the lock on the old rev — exiting 0 the whole way.
+      # Never take its word for it: read the lock back, and only then treat the
+      # hop as bumped. (--refresh bypasses that cache; it usually works and has
+      # once not, hence the second read rather than a second assumption.)
+      if [ "$(locked_rev "$holder" "$input")" != "$want" ]; then
+        warn "$name: lock for $input didn't move — retrying with --refresh"
+        (cd "$dir" && nix flake update "$input" --refresh)
+      fi
+      if [ "$(locked_rev "$holder" "$input")" = "$want" ]; then
         bumped+=("$input")
+      else
+        stale+=("$name→$input")
+        warn "$name: lock for $input still pins $(locked_rev "$holder" "$input" | cut -c1-7), not ${want:0:7} — leaving it rather than committing a lie"
       fi
     done
-    if [ "${#bumped[@]}" -gt 0 ]; then
+    # Guard the commit on the lock having actually changed: a `bumped` list plus
+    # an unchanged tree makes `git commit` exit 1, and under `set -e` that kills
+    # every remaining hop of the chain — the ripple aborts halfway and the run
+    # never even reaches its "shipped" line.
+    if [ "${#bumped[@]}" -gt 0 ] && [ -n "$(git -C "$dir" status --porcelain -- flake.lock)" ]; then
       (cd "$dir" && git add flake.lock && git commit -m "Update flake inputs (${bumped[*]})")
     fi
 
@@ -810,6 +856,9 @@ cmd_ship() {
     fi
   done
 
+  if [ "${#stale[@]}" -gt 0 ]; then
+    die "shipped what it could, but these edges are STILL stale: ${stale[*]} — bump each by hand (cd <repo> && nix flake update <input>) and re-run, or downstream builds the old code."
+  fi
   say "shipped. Apply it to this machine with: bench rebuild"
 }
 

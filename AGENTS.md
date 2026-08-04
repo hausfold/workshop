@@ -65,8 +65,12 @@ Never hand-walk that ripple; the tooling does it:
   at those trees, and builds/activates the whole queue in ONE rebuild — main
   untouched. Ends with a tick-off checklist; you merge only the PRs that pass.
   Test-then-merge, not merge-then-test.
-- `./bench ship` — after commits exist: pushes upstream→downstream, running
-  `nix flake update` + a lock-bump commit at each hop.
+- `./bench ship` — after commits exist: fast-forwards every checkout to origin
+  first (a merged PR leaves the local main behind, and a lock bump computed from
+  a stale HEAD pins the pre-merge rev while reporting success), then pushes
+  upstream→downstream, running `nix flake update` + a lock-bump commit at each
+  hop. It re-reads each lock afterwards and refuses to end on `shipped` if an
+  edge didn't actually move, so a silent no-op ripple can't pass for a real one.
 
 **Iterating on a zellij edit — skip the ripple entirely.** A zellij change
 (`config.kdl`, a layout, a freshly-built plugin `.wasm`) doesn't even need
