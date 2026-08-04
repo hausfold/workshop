@@ -59,6 +59,10 @@ nix eval --impure --expr \
   '(builtins.getFlake "github:nebelhaus/nebelhaus").lib.checkRice ./writer.nix'
 ```
 
+If the file is an app **pack** — only `nebelhaus.roster`, the apps on a machine —
+run `lib.checkPack` instead. It is the same rule one level in, and it is what
+makes the pack safe to import through `lib.pack` below.
+
 It prints `true`, or throws with the top-level key that escaped the data-only
 boundary. `checkRice` is the trust-boundary check; it does not prove that every
 option name or value is valid.
@@ -94,12 +98,28 @@ Before publishing, try:
 
 - the rice by itself;
 - the rice plus an unrelated layer;
-- a host value overriding one of the rice's choices;
+- a host value set on top of one of the rice's own choices;
 - each combination of rooms you turn off.
 
-If the result depends on an exact module order, narrow the rice until ordinary
-Nix merging is enough. Later modules can win conflicts, but order should not be
-the rice's hidden organizing principle.
+**Import order carries no priority.** Two definitions of one option at the same
+priority *conflict* — the build stops naming the option and both files — so
+"imported after, therefore wins" is not a mechanism you can lean on, in either
+direction. A consumer overrides a field your rice sets with `lib.mkForce` in
+their host; that line belongs in your README for every field you set that a
+reasonable person might disagree with.
+
+So narrow the rice until ordinary Nix merging is enough: every optional field
+you set is one a consumer has to force. A layer that leaves unrelated choices
+alone composes; one that restates a whole machine collides with the next layer
+along.
+
+<Aside type="note" title="App packs are the exception">
+A pack — a rice narrowed to `nebelhaus.roster`, the apps on a machine — is
+imported through `nebelhaus.lib.pack`, which lowers every field it sets so the
+consumer's own host wins with a plain assignment and no `mkForce`. That is a
+property of the seam, not of the file: the same pack imported as a bare path
+still conflicts. Presets are deliberately not wrapped that way.
+</Aside>
 
 ## Publish something inspectable
 
@@ -146,7 +166,9 @@ different trust model and should be labelled as one.
 - [ ] `checkRice` prints `true`.
 - [ ] A real host configuration evaluates.
 - [ ] The rice composes with an unrelated layer.
-- [ ] Host overrides still win.
+- [ ] Every field the rice sets is listed in its README with the `lib.mkForce`
+      line a consumer needs to override it — or, for a pack, imported through
+      `nebelhaus.lib.pack` so they don't.
 - [ ] Disabled rooms agree with dependent features, including
       [`tour.steps`](/guides/making-it-yours/#the-first-run-tour).
 - [ ] The README states the audience, scope, tested revision, and limits.
