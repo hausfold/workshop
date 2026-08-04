@@ -22,7 +22,7 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **nebelhaus** (rice) | free | MIT | The destination. What the other doors convert into. |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
 | **trill** | not monetized | MIT | Frozen. Archive decision still open — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). |
-| **hausfold** | — | — | Brand/umbrella only. No product, no code. See §5. |
+| **hausfold** | — | — | The umbrella — commercial identity only, no product and no code. It's the seller, nebelhaus is the brand. See §6. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
 perch's positioning, so it's now **five**, and one of them is paid:
@@ -147,17 +147,40 @@ cat") — same event, same mechanism, zero extra infrastructure.
 
 ## 6. What hausfold is for
 
-Currently a claimed name, a placeholder page and a channel register, and it
-should stay that way until it has a job. The two candidate jobs:
+**Decided 2026-08-04: hausfold is the umbrella — the commercial identity, not a
+product brand.** It fits what was already true: `hausfold/PRESENCE.md` says the
+`hausfold` GitHub org is deliberately separate and *nothing in the nebelhaus
+family belongs there*.
 
-- **Umbrella / commercial identity** — the name on the Paddle merchant account,
-  `support@`, future products that aren't macOS ricing. This is the one that
-  fits what's already true: `PRESENCE.md` says the `hausfold` GitHub org is
-  deliberately separate and *nothing in the nebelhaus family belongs there*.
-- **A second product brand** — undefined, no code, no thesis.
+The split that falls out of it:
 
-It is **not** the gallery (see §5). Two known exposures either way:
-`hausfold.com` isn't held, and no trademark work exists.
+| | **nebelhaus** | **hausfold** |
+|---|---|---|
+| Is | the brand people love | the entity that sells |
+| Carries | products, docs, the family, the gallery | billing, terms, refunds, press, future non-rice products |
+| Customer sees it | constantly | on a receipt |
+
+Consequences to honor:
+
+- **Product support stays `support@nebelhaus.com`.** People bought *perch*, a
+  nebelhaus product; routing them to a name they've never seen is friction for
+  no gain. hausfold owns the *commercial* surface — the seller name on perch's
+  terms/refund page, press contact, and whatever isn't macOS ricing later.
+  ([`perch-monetization.md` Phase 3](./perch-monetization.md#3-phases) already
+  says nebelhaus for support — that stays correct.)
+- **Nothing in the family migrates to the hausfold org.** Not the gallery (§5),
+  not holt, not a repo, ever. The register already says this; the decision makes
+  it load-bearing rather than incidental.
+- **Paddle will ask who the seller is, and "hausfold" is a name, not an
+  entity.** No incorporation and no trademark work exists. Selling as an
+  individual with hausfold as a trading name is the low-friction path; that's a
+  real decision but it belongs to the Paddle application, not here.
+- **It is not the gallery** (§5), and it stays a placeholder page until it has
+  something to say. A dormant channel reads as reserved; a half-fed one reads as
+  dead.
+
+One known exposure: `hausfold.com` isn't held, and an entity name gets spoken
+aloud in receipts and terms — see §9.
 
 ## 7. Measurement without adding telemetry
 
@@ -191,7 +214,7 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | Open — §6. Blocks nothing until Paddle asks for a merchant name. |
+| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | **Decided 2026-08-04: umbrella** — §6. Successor question: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
 | 2 | Archive trill? | Open since 2026-08-04 — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). Leaning yes. Blocks the free launch: an unmaintained app shipped by default sets the family's quality bar in front of every new tester. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
 | 4 | `hausfold.com` — buy it or accept the `.co`? | Open, cheap, gets more expensive with brand value. |

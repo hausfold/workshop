@@ -7,6 +7,15 @@ re-registers something we already hold.
 The site itself is still [a placeholder](./README.md) — this file exists ahead of
 it, because names are claimed defensively long before there's anything to post.
 
+**What hausfold is, decided 2026-08-04: the umbrella — the commercial identity
+behind the products, not a product brand of its own.** nebelhaus is what
+customers love and where support lives; hausfold is the seller on a receipt,
+the name on terms and refunds, the press contact, and the home for anything
+later that isn't macOS ricing. It is explicitly **not** the nebelhaus rice
+gallery — that belongs on nebelhaus.com, one domain away from `haus rebuild`.
+The reasoning and its consequences are
+[`notes/go-to-market.md` §6](../notes/go-to-market.md).
+
 **Status of this file:** handles were recorded from memory on 2026-08-04 and are
 **not yet verified against the live platforms**. Treat the Handle column as "what
 we believe we took" until someone walks the list and ticks it off. Anything marked
@@ -36,9 +45,10 @@ we believe we took" until someone walks the list and ticks it off. Anything mark
 
 ## Which channel for what
 
-Assume hausfold ends up as a product/brand with both a visual surface and a
-technical one — the register above covers both, so pick by *what you're
-announcing*, not by "post everywhere":
+Most of these channels are held, not fed — an umbrella identity has little to
+announce in its own voice, and product news goes out under nebelhaus. Keep the
+table for the day something *is* hausfold's to say, and pick by *what you're
+announcing*, never by "post everywhere":
 
 | If the thing is… | Reach for | Skip |
 |---|---|---|
