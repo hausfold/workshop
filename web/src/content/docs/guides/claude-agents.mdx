@@ -1,28 +1,36 @@
 ---
-title: Coding agents (wt)
-description: The rice ships wt — safe, resumable agent worktrees for any git repo and any of Claude Code, Codex or OpenCode, with a live statusline HUD. A productivity feature, not a nebelhaus-only tool.
+title: Coding agents (holt)
+description: The rice ships holt — safe, resumable agent worktrees for any git repo and any of Claude Code, Codex or OpenCode, with a live statusline HUD. A productivity feature, not a nebelhaus-only tool.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 If you drive [Claude Code](https://claude.com/claude-code) from a nebelhaus
-machine, the rice hands you a small tool called **`wt`** — it makes running
+machine, the rice hands you a small tool called **`holt`** — it makes running
 several agents at once safe, and makes closing a pane something you never have
 to think about. It works on **any git repo**, not just nebelhaus, and you get it
 for free the moment the rice is on your `PATH`.
 
-<Aside type="note" title="Where wt sits among the CLIs">
-`wt` is one of the [rice's four CLIs](/start/the-family/#the-clis-at-a-glance).
-It's the one that isn't *about* nebelhaus at all — it's a general Claude Code
-productivity tool the rice happens to ship, the same way it ships `haus` for
-your machine. You don't need to be a nebelhaus contributor to use it.
+<Aside type="note" title="Where holt sits among the CLIs">
+`holt` is one of the [rice's four CLIs](/start/the-family/#the-clis-at-a-glance),
+and the only one that isn't *about* nebelhaus at all: it's
+[its own product](https://github.com/nebelhaus/holt), a worktree-lifecycle
+substrate the rice merely takes as a flake input and puts on your `PATH`. You
+don't need to be a nebelhaus contributor — or a nebelhaus user — to use it.
+</Aside>
+
+<Aside type="note" title="`wt` still answers, and is frozen">
+`holt` grew out of `wt`, the shell tool that did this job before it. Both ship,
+and both read and write the **same** registry, so an old habit or an old line in
+a script still works. `wt` is frozen at bugfixes; `holt` is what the rice calls
+and what this page documents.
 </Aside>
 
 ## The problem it solves
 
 Run two Claude agents in the same checkout and they fight: one switches the
 branch out from under the other, uncommitted edits collide, and closing a pane
-mid-thought can lose work. `wt` fixes both by giving **every agent its own
+mid-thought can lose work. `holt` fixes both by giving **every agent its own
 checkout**.
 
 Press **`Super a` (⌘A)** in any repo's terminal tab and the rice spawns a fresh
@@ -64,26 +72,26 @@ too. The checkout dir is disposable; your work isn't.
 ## Resuming a session
 
 Because the work lives on the branch (and the chat in your client’s transcript),
-a closed pane is never a dead end. Run `wt` bare to see everything you can pick
+a closed pane is never a dead end. Run `holt` bare to see everything you can pick
 back up, across **every** repo:
 
 ```sh
-wt                    # list every parked / live agent worktree, all repos
+holt                  # list every parked / live agent worktree, all repos
 ```
 
 ```
-🌫  agent worktrees you can resume (wt <name>, or <repo>/<name>)
+🌫  agent worktrees you can resume (holt <name>, or <repo>/<name>)
   repo         name                       state  agent  last commit
   nebelung     sparkle                    parked claude 2 hours ago — wip: auto-saved on pane close
   pounce       quick-emoji                live   codex  10 min ago — add fuzzy weights
 ```
 
-To pick one back up, name it — `wt` rebuilds the checkout and reopens the chat
+To pick one back up, name it — `holt` rebuilds the checkout and reopens the chat
 in the same directory, so that worktree's client resumes with its full history:
 
 ```sh
-wt sparkle            # rebuild the checkout + reopen the chat (that worktree's client)
-wt nebelung/sparkle   # qualify with the repo when a name exists in two repos
+holt sparkle          # rebuild the checkout + reopen the chat (that worktree's client)
+holt nebelung/sparkle # qualify with the repo when a name exists in two repos
 ```
 
 ## Spawn from Pounce — and choose the default client
@@ -99,14 +107,16 @@ Set the client declaratively:
 nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
 ```
 
-`wt` records that client with the worktree. Changing the option therefore only
+`holt` records that client with the worktree. Changing the option therefore only
 changes **new** spawns: a parked Codex task still reopens through `codex resume`,
 and an OpenCode task through `opencode --continue`.
 
 The option drives the ⌘A keybinds and the `c` shell alias too. Only Claude Code
-can make its own worktree (its native `--worktree` flag, which fires `wt`'s
-create hook); for Codex and OpenCode, ⌘A runs **`wt new`** instead — the same
-checkout, branch, registry entry and parent session, made from the outside.
+can make its own worktree (its native `--worktree` flag, which fires
+`holt hook create`); for Codex and OpenCode, ⌘A runs **`holt new`** instead — the
+same checkout, branch, registry entry and parent session, made from the outside.
+Spawn Agent takes a third door, `holt spawn`, because the palette has no pane to
+be a child of — same worktree, named after your prompt.
 
 A separate option says which clients are **installed**:
 
@@ -136,16 +146,16 @@ prompt so they can inspect it. Keeping it as a separate palette entry matters:
 a task whose text happens to contain “screenshot” can never steal Return in the
 free-text prompt field.
 
-## Cross-repo work: `wt child`
+## Cross-repo work: `holt child`
 
 Sometimes an agent working in one repo needs to change **another** one — say a
 session in the workshop that has to touch a sub-repo. Don't reach for a raw
-`git worktree add`: that skips `wt`'s registry, so the statusline never learns to
-track it and its PR goes invisible. Use `wt child` instead:
+`git worktree add`: that skips the registry, so the statusline never learns to
+track it and its PR goes invisible. Use `holt child` instead:
 
 ```sh
 workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
-cd "$(wt child "$workshop_root/nebelung")"
+cd "$(holt child "$workshop_root/nebelung")"
 ```
 
 That creates a worktree of the *other* repo, **registers it as a child of your
@@ -155,51 +165,51 @@ workshop root through Git keeps the command independent of where you cloned it.
 
 ## Cleaning up
 
-Most cleanup is automatic: closing a pane reaps a merged branch, and every `wt`
+Most cleanup is automatic: closing a pane reaps a merged branch, and every `holt`
 listing first self-heals by sweeping parked branches whose PR has since merged.
 But some things end a pane *without* the graceful hook — a reboot, a crash, or a
-`wt child` checkout (which the hook never owns, since the pane that made it isn't
-the one it belongs to). For those, sweep on demand:
+`holt child` checkout (which the hook never owns, since the pane that made it
+isn't the one it belongs to). For those, sweep on demand:
 
 ```sh
-wt reap               # reap every LANDED worktree now — parked ones, plus
+holt reap             # reap every LANDED worktree now — parked ones, plus
                       # clean & merged live checkouts no pane is open in
 ```
 
-`wt reap` is deliberately conservative: it leaves anything **dirty**, anything
+`holt reap` is deliberately conservative: it leaves anything **dirty**, anything
 **unmerged**, and any checkout a **pane is still open in** — not only yours but
 any other session's, because a just-merged branch looks exactly like a finished
 one while its agent is still sitting in it. Only landed work that nobody is
 standing in gets removed.
 
-## When a session outran its PR: `wt reship`
+## When a session outran its PR: `holt reship`
 
 You merge the PR, keep talking to the agent, and it makes a few more commits.
 Those commits are now in an odd place: **the PR that covered them is closed, and
 GitHub deleted the branch's remote counterpart when it merged** — so they're
 committed, unpushed, and unreviewed, on a branch nothing is watching.
 
-`wt` never reaps such a branch (a merged PR only counts as landed when the
+`holt` never reaps such a branch (a merged PR only counts as landed when the
 branch tip is still the exact commit it merged), and it says so everywhere:
 
 - the listing marks the row **`live+3`** — three commits past the merge — and
   prints a one-line legend under the table;
-- `wt reap` names it instead of sweeping it: `⏏ kept sparkle (nebelhaus) —
+- `holt reap` names it instead of sweeping it: `⏏ kept sparkle (nebelhaus) —
   merged PR #12, 3 commit(s) since`;
 - the statusline shows an **orange `3^`** where it used to show `⏏`.
 
 One command clears it:
 
 ```sh
-wt reship              # push this branch, open the follow-up PR
-wt reship sparkle      # …or name one, from anywhere
+holt reship            # push this branch, open the follow-up PR
+holt reship sparkle    # …or name one, from anywhere
 ```
 
 It pushes the branch (re-creating the remote GitHub deleted) and opens a PR
 against the default branch, with the commits since the merge listed in the body.
 If a PR is already open for the branch, it just pushes to it.
 
-## Setting work aside: `wt park`, never `git stash`
+## Setting work aside: `holt park`, never `git stash`
 
 `git stash` looks like it belongs to the checkout you're standing in. It doesn't.
 The stash stack lives in the repo's shared `.git` dir, so **every agent worktree
@@ -210,20 +220,20 @@ asked for it, which is a confusing mess at best and lost edits at worst.
 So park instead of stashing:
 
 ```sh
-wt park "half-done refactor"   # whole dirty tree → one wip: commit on THIS branch
-wt unpark                      # rewind it — changes back, uncommitted
+holt park "half-done refactor" # whole dirty tree → one wip: commit on THIS branch
+holt unpark                    # rewind it — changes back, uncommitted
 ```
 
-`wt park` commits everything — tracked edits, untracked files, deletions — as a
+`holt park` commits everything — tracked edits, untracked files, deletions — as a
 single `wip:` commit on the branch only this pane has checked out. It's the same
 thing the pane-close hook does automatically, just on demand. Nothing is shared,
-so no other agent can touch it; it survives a pane close; and `wt` lists it as
-that worktree's last commit. `wt unpark` puts the changes back in the working
+so no other agent can touch it; it survives a pane close; and `holt` lists it as
+that worktree's last commit. `holt unpark` puts the changes back in the working
 tree, uncommitted, exactly as they were.
 
 <Aside type="caution" title="unpark won't rewrite what you've pushed">
 If the `wip:` commit has already been pushed — it's visible in an open PR —
-`wt unpark` refuses, because rewinding it locally turns a file restore into a
+`holt unpark` refuses, because rewinding it locally turns a file restore into a
 force-push. It prints the manual escape hatch (`git reset --mixed HEAD^`) and
 leaves the commit alone. Parking on a branch that isn't a `worktree-*` one
 (say, `main`) works, but warns: a `wip:` commit shouldn't drift onto a branch
@@ -274,7 +284,7 @@ Claude agent you killed, or one that crashed.
 
 ## The statusline HUD
 
-The rice points Claude Code's status bar at a small HUD driven off `wt`'s
+The rice points Claude Code's status bar at a small HUD driven off the worktree
 registry, so you can see where every agent stands without leaving the pane.
 **Row one is this session's own worktree** — its name, a status token, and its
 GitHub PR pill. The **rows below are the worktrees this session spawned** (across
@@ -292,7 +302,7 @@ The token is one mutually-exclusive slot:
 |---|---|
 | `⏏` | branch is merged into `main` — closing the pane reaps the worktree |
 | `N^` | `N` commits on the branch, not merged yet |
-| `N^` *(orange)* | the PR merged and `N` commits landed **since** — no PR covers them, nothing is pushed. [`wt reship`](#when-a-session-outran-its-pr-wt-reship) |
+| `N^` *(orange)* | the PR merged and `N` commits landed **since** — no PR covers them, nothing is pushed. [`holt reship`](#when-a-session-outran-its-pr-holt-reship) |
 | `+A -D` | uncommitted line changes, when nothing's committed yet |
 | *(nothing)* | identical to `main` — no news is good news |
 
@@ -356,17 +366,21 @@ Claude Code falls back to its visible scrollback.
 
 | Command | What it does |
 |---|---|
-| `wt` | List every parked/live agent worktree across all repos (self-heals first) |
-| `wt <name>` | Resume one: rebuild its checkout and reopen its recorded agent chat |
-| `wt resume <name>` | The same thing, spelled out |
-| `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
-| `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
-| `wt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
-| `wt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
-| `wt reship [name]` | The PR merged and the branch kept committing: push it and open the follow-up PR |
-| `wt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super a` runs when that client isn't Claude Code |
-| `wt create` / `wt remove` | The hooks Claude Code's `--worktree` fires — you don't call these by hand |
-| `wt agent default` | Print the configured spawn client |
+| `holt` | List every parked/live agent worktree across all repos (self-heals first) |
+| `holt <name>` | Resume one: rebuild its checkout and reopen its recorded agent chat |
+| `holt resume <name>` | The same thing, spelled out |
+| `holt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
+| `holt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
+| `holt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
+| `holt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |
+| `holt reship [name]` | The PR merged and the branch kept committing: push it and open the follow-up PR |
+| `holt new [name]` | Make a worktree of **this** repo and open the default client in it — what `Super a` runs when that client isn't Claude Code |
+| `holt agent default` | Print the configured spawn client |
+| `holt spawn <repo> <name>` | A named worktree for a spawner with no pane of its own — what Pounce's Spawn Agent calls |
+| `holt hook create` / `holt hook remove` | The hooks Claude Code's `--worktree` fires — you don't call these by hand |
+
+Add `--json` to the listing for a machine-readable version, `--version` for
+holt's own.
 
 <Aside type="note" title="Related shell touches">
 New panes born inside a worktree hop back to the repo's **main checkout** by

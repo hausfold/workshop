@@ -59,7 +59,7 @@ haus doctor      # if something still looks off
 more, each for a different job — see [the CLIs at a glance](/start/the-family/#the-clis-at-a-glance)
 for the full map:
 
-- **[`wt`](/guides/claude-agents/)** — agent worktrees (Claude Code, Codex, OpenCode) for any repo.
+- **[`holt`](/guides/claude-agents/)** — agent worktrees (Claude Code, Codex, OpenCode) for any repo.
   Also on your `PATH` (it ships in the rice), and useful to anyone who runs Claude
   Code, contributor or not.
 - **[`bench`](/internals/contributing/)** — the contributor CLI in the workshop
