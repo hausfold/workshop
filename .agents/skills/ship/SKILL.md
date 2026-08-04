@@ -2,7 +2,9 @@
 name: ship
 description: >-
   Finish a piece of work in the nebelhaus family and land it: commit stragglers, verify
-  with `bench try`, open a PR and merge it, clean up every worktree the session spun up,
+  with `bench try`, run the pre-PR assurance pass (Step 2.5 — a clean-context subagent
+  over `git diff main...HEAD`, which every PR in the family runs, not just /ship'd ones),
+  open a PR and merge it, clean up every worktree the session spun up,
   ripple the flake locks with `bench ship`, then activate on the main checkout with
   `bench try switch`. Use when I say /ship, "ship it", "land this", or want to wrap up a
   change across the nebelung → pounce → nebelhaus → config chain. Worktree-aware: invoking
@@ -57,6 +59,55 @@ bench try            # build the machine against the LOCAL checkouts (worktree-a
 `bench try` overrides whichever repo your worktree belongs to with YOUR checkout, so it
 proves the branch before anyone merges. Read Nix errors bottom-up; don't proceed on a
 broken build.
+
+## Step 2.5 — pre-PR assurance pass (a subagent that hasn't read this thread)
+
+**The session that wrote the diff is the worst reviewer of it** — same context, same
+blind spot, and it will happily confirm its own assumptions. So before the PR exists,
+hand the whole branch to a **clean-context subagent** whose only inputs are the diff and
+the edited repo's own `AGENTS.md`. Not the transcript, not your summary of it.
+
+```bash
+git diff main...HEAD --stat     # scope first
+git diff main...HEAD            # the whole branch, exactly as the reviewer sees it
+```
+
+Spawn **one** subagent with your client's mechanism (Claude Code: the Agent tool,
+`general-purpose`; Codex: a fresh `codex exec`; OpenCode: a sub-session). Pass it the
+diff, the path to `<repo>/AGENTS.md`, and the checklist below. This is not generic code
+review — bugs and logic are what `/code-review` is for. This pass hunts the **family
+invariants**, the ones that only bite after merge:
+
+| Check | The failure it catches |
+|---|---|
+| **Routing** | the change is in the wrong repo — a color hex landing in `nebelhaus` instead of `nebelung`, launchd logic in `pounce` instead of the rice. The workshop's routing table decides, and "it works here" is not a defence. |
+| **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `web/src/content/docs/` (the SOT), `reference/options.md`, `reference/keybindings.md`, or the repo's README. An option a user can set and can't discover is a bug. |
+| **Atomicity** | a breaking `nebelhaus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
+| **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(prowl) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
+| **Frozen paths** | a new caller of frozen `wt` where `holt` is the live spelling; a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
+| **Release blast radius** | the diff touches `homebrew-tap`, changes what `bench release` would stamp, moves a flake-input edge, or touches secrets / `~/.config/nix` identity. Any of those is ≥3/5 by definition and belongs in the PR body loudly. |
+| **PR body** | the What/Why/Verify/Watch-out blocks are actually filled in, and **Verify** is concrete and observable — a cold agent with only `gh pr view` must be able to run it. |
+
+Two properties that make this worth doing rather than ritual:
+
+- **It reads the reviewed repo's own `AGENTS.md`**, not the workshop's. A `pounce` PR is
+  judged by pounce's boundary rules; a rice PR by the rice's.
+- **It's advisory, never a gate.** It does not block `gh pr create`. A false positive
+  that stops a ship trains you to skip the step, and a skipped step assures nothing.
+
+What you do with the findings:
+
+- **≥3/5** (routing violation, split atomic rename, docs drift on a user-facing option,
+  a hotkey collision) — **fix it now**, before the PR exists. That's the whole point of
+  running pre-PR rather than in review.
+- **Everything else** — carry it verbatim into the PR body's **Watch out** block in
+  Step 3, so it survives the pane and reaches whoever feel-tests this.
+- **Nothing found** — say so in one line and move on. A clean pass is a normal outcome;
+  don't manufacture a finding to justify the step.
+
+This pass runs before **every** PR in the family, not only inside `/ship` — the usual
+flow stops at "PR open" and never reaches Step 3's merge, so a PR opened outside `/ship`
+runs Step 2.5 too.
 
 ## Step 3 — open the PR (with a cold-boot body) and merge it
 
@@ -210,6 +261,7 @@ is the reliable copy.
 ## The whole lifecycle (for context)
 
 **hack** (agents draft on `worktree-*` branches) → **test** (`bench try`, worktree-aware) →
+**assure** (Step 2.5 — clean-context subagent over `git diff main...HEAD`, advisory) →
 **PR** (push + `gh pr create`) → **merge** (/ship merges the PR — `gh pr merge`) →
 **try switch** (activate — from the main checkout, which now holds the merged work) →
 **ship** (`bench ship` ripples locks) →
