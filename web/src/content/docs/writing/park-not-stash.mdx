@@ -1,0 +1,110 @@
+---
+title: "Your stash stack was never yours"
+description: git worktrees isolate almost everything — but the stash stack is one shared ref, and parallel agents pop each other's work. The footgun nobody documents, and why holt parks instead.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+*August 2026*
+
+Git worktrees promise isolation. Each checkout gets its own working tree, its
+own index, its own `HEAD`, its own branch that no other worktree may even check
+out. Run five coding agents in five worktrees of one repo and each believes —
+correctly, mostly — that it has a private copy of the world.
+
+`git stash` is where "mostly" bites.
+
+## One ref, one stack, everybody's hands in it
+
+The stash isn't a per-checkout scratch space. It's a single ref — `refs/stash`
+— and the "stack" is nothing more than that ref's reflog. And git's list of
+refs that are private to a worktree is short and closed: `HEAD`,
+`refs/bisect/*`, `refs/worktree/*`, `refs/rewritten/*`. `refs/stash` is not on
+it. Like every other ref, it lives in the shared `.git` directory that all
+worktrees of a repo hang off.
+
+So every worktree — and the main checkout — pushes and pops **the same stack**:
+
+```sh
+# worktree A (an agent, mid-refactor)
+git stash
+
+# worktree B (another agent, seconds later)
+git stash pop     # receives A's half-refactor into a tree
+                  # that has never seen those files
+```
+
+Three distinct races fall out of this, and each one is worse than the last:
+
+- **Pop steals.** `git stash pop` takes `stash@{0}` — the most recent entry
+  from *any* worktree. Agent B gets agent A's changes, files its session has no
+  context for, and the entry is gone from the stack the moment it lands. A goes
+  looking for its work later and finds nothing.
+- **The careful form is racy too.** `stash@{1}` is positional. It names a
+  different entry the instant any parallel session pushes or drops one, so even
+  a session that diligently remembers "mine is `stash@{1}`" can apply someone
+  else's.
+- **A conflicted pop forks ownership.** When `pop` hits a conflict, git applies
+  what it can, leaves markers, and keeps the entry on the stack "in case you
+  need it again". Now the same change exists half-applied in one tree *and*
+  poppable from every other — two sessions can each believe they own it.
+
+## Why nobody documents this
+
+Because for twenty years it didn't matter. A solo human is one popper on one
+stack: you stash, you pop, the stack behaves exactly like the private
+scratchpad it appears to be. The `git-stash` man page never mentions worktrees;
+the `git-worktree` man page notes, in general terms, that refs are shared —
+and no one connects the two, because no one had a reason to.
+
+Worktrees making sessions *parallel* is what arms the footgun. And parallel
+sessions in worktrees of one repo is precisely the shape coding agents brought:
+every vendor now spawns agents into their own worktrees, several at a time, and
+every one of those agents learned `git stash` from the same twenty years of
+solo-human material. The first tool many of them reach for when they need a
+clean tree is the one tool in the worktree that isn't theirs.
+
+## Park instead
+
+The fix was always sitting there: **a commit on your own branch**. Git lets a
+branch be checked out in exactly one worktree at a time — that exclusivity is
+the one genuinely private place a worktree has. A stash is, mechanically, a
+commit anyway; the only thing the stash machinery adds is the shared stack.
+
+So [holt](https://github.com/nebelhaus/holt) — the worktree-lifecycle substrate
+this rice ships — has `park`:
+
+```sh
+holt park [label]   # the whole dirty tree, untracked files included,
+                    # becomes ONE wip: commit on this branch
+holt unpark         # rewinds it — the changes come back uncommitted
+```
+
+Three details carry the design:
+
+- **Untracked files ride along, ignored ones never.** "Set the tree aside"
+  has to include the half-written new file, or it isn't setting the tree
+  aside. But a `.gitignore`d secret must stay ignored — park refuses to sweep
+  those in, so parking can never smuggle credentials into history.
+- **Unpark refuses a pushed wip.** If the wip commit has already left the
+  machine, rewinding it locally would set you up for a force-push. Park would
+  rather leave a `wip:` commit on the branch than rewrite anything shared.
+- **It's the same code path as closing a pane.** holt's remove hook parks
+  automatically before it retires a worktree — that's how closing an agent's
+  pane never loses work. `holt park` is just that invariant, on demand.
+
+No stack. No positions. No race. Your parked work is on the one ref no other
+worktree can touch, findable by `git log` forever, and `holt` lists it as a
+resumable session rather than a numbered entry in a shared pile.
+
+<Aside type="tip" title="The house rule">
+In nebelhaus repos the rule is absolute: **never `git stash`, always `holt
+park`** — agents are told so in the repo instructions, and the muscle memory is
+worth adopting even outside agent work. A stash is invisible to `git log` on
+your branch; a `wip:` commit isn't.
+</Aside>
+
+If you run coding agents in worktrees — any agent, any repo, this rice or not —
+holt is [its own standalone tool](https://github.com/nebelhaus/holt), and the
+[coding-agents guide](/guides/claude-agents/) shows the rest of the lifecycle:
+create, park, resume, reap, reship.
