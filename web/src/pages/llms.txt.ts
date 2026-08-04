@@ -17,11 +17,10 @@ import { sidebar } from '../lib/sidebar.js';
 const SITE = 'https://nebelhaus.com';
 
 // Pages outside the docs collection — the landing page and the per-product
-// pages, which a model asking "what is trill" should still be able to find.
+// pages, which a model asking "what is pounce" should still be able to find.
 const EXTRA = [
   { label: 'nebelhaus', path: '/', description: 'The project landing page.' },
   { label: 'pounce', path: '/pounce/', description: 'The command palette — product page.' },
-  { label: 'trill', path: '/guides/trill/', description: 'The Messages client — archived, no longer developed. Guide kept for anyone still running it.' },
   { label: 'perch', path: '/perch/', description: 'The notch file shelf — product page.' },
 ];
 

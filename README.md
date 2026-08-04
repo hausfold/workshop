@@ -26,9 +26,9 @@ what's out of sync and `./bench ship` makes it right.**
 
 - 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) — the house. the whole rice, one Nix flake. start here.
 - 🐾 [**pounce**](https://github.com/nebelhaus/pounce) — the palette. keyboard-first launcher; every command a file.
-- 🐦 [**trill**](https://github.com/nebelhaus/trill) — the messages. native iMessage/SMS/RCS, read from `chat.db`.
 - 🪺 [**perch**](https://github.com/nebelhaus/perch) — the shelf. files, caught in the notch.
 - 🌫️ [**nebelung**](https://github.com/nebelhaus/nebelung) — the theme. the silver-mist palette.
+- 🪵 [**holt**](https://github.com/nebelhaus/holt) — the worktrees. parallel coding agents, safely, in any repo.
 - 🧰 [**workshop**](https://github.com/nebelhaus/workshop) — the bench. where the family is built. *(you are here)*
 
 Each one stands alone. Together they're a house.
