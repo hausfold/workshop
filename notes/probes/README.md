@@ -54,14 +54,22 @@ machine it sat unchanged for two weeks while the real settings moved. `--legacy`
 prints the drift (9 apps disagreed the day this was written, including the one
 under test). Anything built on ncprefs reports confidently wrong state.
 
-Two bits matter, both verified against the live UI:
+Three bits matter, all verified against the live UI:
 
 | bit | mask | switch |
 |---|---|---|
-| 3 | `0x8` | **Desktop** — the on-screen banner |
+| 3 | `0x8` | **Desktop**, Temporary style — a banner |
+| 4 | `0x10` | **Desktop**, Persistent style — an alert |
 | 2 | `0x4` | **Play sound for notification** |
 
-Both clear = silent, drawing nothing, still reaching Notification Center. That
+Bits 3 and 4 are one control in two styles, and this table said only bit 3
+until 2026-08-04, which reports every Persistent app as quiet while macOS is
+still drawing alerts for it. Corrected against live data: no app in a 108-app
+store carries both bits, and unticking Desktop on a Persistent app clears bit
+4 (Reminders, `9437708310` → `9437708358`, watched as the switch moved).
+**Desktop is on when either bit is set.**
+
+All three clear = silent, drawing nothing, still reaching Notification Center. That
 is the end state to steer an app to when something else is rendering its
 banners; turning *Allow notifications* off instead would stop the events
 reaching the store at all.

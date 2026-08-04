@@ -45,8 +45,8 @@ never into a broken pipeline. Corollaries:
   app must stay fully useful without it. No usernoted type or column name
   may appear outside `Providers/SystemMirror/`.
 - **flick reads Apple's settings; it never writes them.** `flick doctor` and
-  the "Silence Native Banners" helper decode the private
-  `com.apple.ncprefs` domain read-only (`Platform/NotificationSettingsAudit`)
+  the "Silence Native Banners" helper decode the private per-app store
+  read-only (`Platform/NotificationSettingsAudit`)
   to say which apps macOS still banners or sounds itself. Opening the pane
   and animating the two clicks is the whole offer — do **not** add a "fix it
   for me" that writes that plist, however easy it looks. Only the three
@@ -63,6 +63,24 @@ never into a broken pipeline. Corollaries:
   with a Desktop checkbox plus Temporary/Persistent, and the demo shipped once
   miming controls that no longer existed. The bits didn't move; the words did,
   and the words are the whole product here.
+- **Read the store macOS actually writes, and admit when you can't.** On
+  macOS 26 the per-app switches live in
+  `~/Library/Group Containers/group.com.apple.usernoted/Library/Preferences/group.com.apple.usernoted.plist`.
+  **`com.apple.ncprefs` is a stale mirror** — same `apps` array, same
+  plausible `flags`, not what System Settings writes. Measured here:
+  byte-identical to a 17-day-old copy across a change made in the pane and 45
+  minutes of watching, while the group container took that change within
+  seconds. Every write-up online names ncprefs, which is exactly why it's a
+  trap; flick shipped it once and the helper panel looked broken as a result.
+  That container is TCC-protected, so the read needs **Full Disk Access** —
+  and therefore the audit has **three** verdicts, not two: noisy, quiet, and
+  *can't tell*. `readAll()` returns nil for the third; rendering it as "all
+  quiet" is the bug that must never come back (`flick doctor` exits **5**,
+  Settings says "can't tell", the helper still walks but confirms nothing).
+- **The helper advances on the user's word, not on a watch.** Because that
+  store needs FDA and can't be assumed readable, the walkthrough's **Done**
+  button is the mechanism and the poll is a bonus that ticks apps off where
+  it can. Don't "fix" the panel by making it wait for confirmation again.
 - **The queue is the truth; panels are disposable.** Display topology
   rebuilds re-render from `BannerQueue` state. Never park event state in a
   panel or view.

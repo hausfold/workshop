@@ -360,6 +360,44 @@ final class NotificationSettingsAuditTests: XCTestCase {
         XCTAssertEqual(threads, ["flick-doctor"])
     }
 
+    // MARK: - Can't-tell is a third answer
+
+    /// The store moved on macOS 26 — `com.apple.ncprefs` is a stale mirror,
+    /// and the real one lives in an Apple group container behind Full Disk
+    /// Access. So a reader without the grant gets nothing, and the one thing
+    /// it must never do is call that "quiet".
+    func testAnUnreadableStoreIsNilNotAnEmptyWorklist() {
+        // Whatever this machine's grant state, the two answers must not be
+        // the same shape: nil means "couldn't look", [] means "looked, all
+        // quiet". This pins the type, which is what stops the confusion.
+        let live: [NativeNotificationSettings]? = NotificationSettingsAudit.liveFindings(
+            scope: .only(["com.example.definitely.not.installed"]),
+            isInstalled: { _ in true }
+        )
+        if let live {
+            // Store readable: an app macOS has no row for is simply absent.
+            XCTAssertTrue(live.isEmpty)
+            XCTAssertNil(NotificationSettingsAudit.unreadableReason())
+        } else {
+            // Store unreadable: there must be a reason to show the user, and
+            // it must name the grant they need.
+            let reason = NotificationSettingsAudit.unreadableReason()
+            XCTAssertNotNil(reason)
+            XCTAssertTrue(reason?.contains("Full Disk Access") == true)
+        }
+    }
+
+    /// An app flick couldn't read is walked through as if both controls were
+    /// on: naming a switch that's already off costs a glance, staying quiet
+    /// about one that's on costs the duplicate banner.
+    func testAnUnknownAppAsksForBothControls() {
+        let unknown = NativeNotificationSettings.unknown(bundleID: "com.example.app")
+        XCTAssertTrue(unknown.showsOnDesktop)
+        XCTAssertTrue(unknown.playsSound)
+        XCTAssertTrue(unknown.isNoisy)
+        XCTAssertTrue(unknown.hasSettingsRow)
+    }
+
     // MARK: - The doctor wire verb
 
     private func doctorRequest(_ json: String) -> SocketProvider.DoctorRequest? {

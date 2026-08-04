@@ -29,6 +29,10 @@ struct SocketProvider: NotificationProvider {
         /// doctor only. Optional, so a `send`/`ping` reply is byte-identical
         /// to what older CLIs already parse.
         var findings: [NativeNotificationSettings]?
+        /// doctor only. Set when the audit couldn't read macOS's settings at
+        /// all — the reply then means "can't tell", and `findings` being empty
+        /// says nothing. Optional so older CLIs keep parsing.
+        var auditUnavailable: String?
     }
 
     static func defaultSocketPath() -> String {
@@ -79,13 +83,24 @@ struct SocketProvider: NotificationProvider {
                     // that could hand us findings could hand us fabricated
                     // ones, and this reply is what pops banners.
                     let scope = request.scope ?? .only(listedApps())
-                    let findings = NotificationSettingsAudit.findings(scope: scope)
-                    if request.notify {
-                        for event in NotificationSettingsAudit.bannerEvents(for: findings) {
-                            continuation.yield(event.normalized())
+                    if let findings = NotificationSettingsAudit.liveFindings(scope: scope) {
+                        if request.notify {
+                            for event in NotificationSettingsAudit.bannerEvents(for: findings) {
+                                continuation.yield(event.normalized())
+                            }
                         }
+                        response = Response(ok: true, id: nil, error: nil, findings: findings)
+                    } else {
+                        // Couldn't read the store: answer "can't tell". Not an
+                        // error — the daemon is fine, it just can't see — and
+                        // emphatically not an empty findings list, which any
+                        // caller would read as "all quiet".
+                        response = Response(
+                            ok: true, id: nil, error: nil, findings: nil,
+                            auditUnavailable: NotificationSettingsAudit.unreadableReason()
+                                ?? "macOS's notification settings are unreadable"
+                        )
                     }
-                    response = Response(ok: true, id: nil, error: nil, findings: findings)
                 case .failure(let message):
                     response = Response(ok: false, id: nil, error: message)
                 }

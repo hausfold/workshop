@@ -58,7 +58,19 @@ final class ActionRouter {
             // Re-running the audit rather than trusting the event's payload
             // keeps the window honest about *now* — the user may have fixed
             // one of them while the banner sat on screen.
-            let findings = NotificationSettingsAudit.findings(scope: scope)
+            guard let findings = NotificationSettingsAudit.liveFindings(scope: scope) else {
+                // Can't read the store (no Full Disk Access). The walkthrough
+                // still works — it just can't tick anything off by itself —
+                // so open it on the apps the banner named rather than
+                // swallowing the click.
+                Self.log.info("silence action for \(event.id, privacy: .public): settings unreadable, walking blind")
+                if case .only(let ids) = scope, !ids.isEmpty {
+                    SystemIntegration.presentNativeBannerAssistant(
+                        findings: ids.map(NativeNotificationSettings.unknown(bundleID:))
+                    )
+                }
+                return
+            }
             guard !findings.isEmpty else {
                 Self.log.info("silence action for \(event.id, privacy: .public): nothing left to silence")
                 return

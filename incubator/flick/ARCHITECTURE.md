@@ -91,10 +91,28 @@ settings via `SystemIntegration` — the one file allowed to touch Apple's
 notification machinery.
 
 What flick *can* do is tell you when Apple is still drawing something it's
-also drawing. `NotificationSettingsAudit` reads `com.apple.ncprefs` — the
-private domain behind that pane — and decodes four bits per app: the on-screen
+also drawing. `NotificationSettingsAudit` reads the private per-app store
+behind that pane and decodes four bits per app: the on-screen
 alert (`1<<3` Temporary, `1<<4` Persistent, neither = the **Desktop** checkbox
 is clear), play-sound (`1<<2`), and **allow-notifications (`1<<25`)**.
+
+**Which file that is, is the whole trap.** On macOS 26 it's
+`~/Library/Group Containers/group.com.apple.usernoted/Library/Preferences/group.com.apple.usernoted.plist`.
+`com.apple.ncprefs` — the domain every article names, and the one flick
+shipped against first — is a *stale mirror*: it still carries an `apps` array
+of plausible `flags`, so nothing about reading it looks wrong. Measured on a
+26.6 machine: the entire 92-app store was byte-identical to a copy 17 days
+old, across a settings change and 45 minutes of watching, while the group
+container took that same change within seconds. A helper panel polling
+ncprefs for "did you flip it yet?" therefore never says yes.
+
+The group container is TCC-protected, so this read needs **Full Disk
+Access** — the same grant System Mirror wants. That gives the audit **three**
+verdicts rather than two: noisy, quiet, and *can't tell*. `readAll()` returns
+nil for the third, `flick doctor` exits 5, Settings says "can't tell", and the
+helper still walks the user through but confirms nothing. "Can't tell"
+rendering as "all clear" would be flick reassuring someone about a file it
+never opened.
 
 macOS 26 (Tahoe) reshaped the pane without moving the bits: the old
 None/Banners/Alerts radio became a Desktop checkbox plus a

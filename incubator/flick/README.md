@@ -109,17 +109,30 @@ own per-app notification preferences (read-only, and undocumented — see
 **Desktop** ticked or **Play sound** on. Exit code 4 means it found some, so a
 rebuild hook can gate on it.
 
+Those preferences live in an Apple group container, which is TCC-protected —
+so **`doctor` needs Full Disk Access**, the same grant System Mirror wants.
+Without it there is no answer to give, and flick gives that one: `can't
+tell`, exit code **5**. A check that quietly exited 0 while blind would make
+every un-granted Mac look clean.
+
 "Listed" means the bundle-id-shaped `source` values in your `rules.json`;
 `--all` widens it to every app on the Mac, and naming bundle ids explicitly
 narrows it.
 
 `--notify` puts the findings on screen as banners with one action —
 **Silence Native Banners**. Clicking one opens System Settings and floats a
-helper panel beside it: step 1 replicates the app's row so you can find it in
-the list (Apple dropped per-app anchors from that deep link, so it always
-lands at the top of the pane), and step 2 animates the clicks you need —
-untick **Desktop**, turn **Play sound for notification** off. It ticks each
-app off the moment macOS agrees and closes itself when they're all quiet.
+helper panel beside it: the app's row as macOS draws it (Apple dropped per-app
+anchors from that deep link, so it always lands at the top of the pane and
+finding the row is the real work), one sentence naming what's left to change,
+and a replica that animates the clicks — untick **Desktop**, turn **Play
+sound for notification** off.
+
+**Done** moves to the next app. flick asks rather than watches because it
+can't rely on watching: the store needs Full Disk Access, and on a Mac that
+hasn't granted it there is nothing to observe. Where flick *can* read, the
+panel ticks apps off by itself as macOS agrees — the row's subtitle shortens,
+the sentence narrows to what's left, and the replica drops the step you've
+already done.
 
 The helper only ever walks the apps the audit that opened it named — the
 banner carries them with it, so a summary banner standing for four listed

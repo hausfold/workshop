@@ -151,8 +151,21 @@ enum FlickCLI {
 
     /// Human-readable by default, `--json` for anything scripting this.
     /// Exit code is the useful part for a rebuild hook: 0 = everything quiet,
-    /// 4 = apps are still noisy.
+    /// 4 = apps are still noisy, 5 = flick couldn't read macOS's settings.
+    ///
+    /// 5 exists because a hook that gates on this must be able to tell "quiet"
+    /// from "blind". Silently exiting 0 when the store is unreadable would
+    /// make every un-granted machine look clean.
     private static func renderDoctor(_ response: SocketProvider.Response, json: Bool) -> Int32 {
+        if let unavailable = response.auditUnavailable {
+            if json {
+                print(#"{"auditUnavailable":"\#(unavailable)"}"#)
+            } else {
+                print("flick doctor: can't tell — \(unavailable)")
+                print("Grant it in System Settings → Privacy & Security → Full Disk Access.")
+            }
+            return 5
+        }
         let findings = response.findings ?? []
         if json {
             let encoder = JSONEncoder.flick

@@ -73,6 +73,22 @@ struct NativeNotificationSettings: Sendable, Equatable, Codable {
         }
     }
 
+    /// A stand-in for an app whose real settings flick couldn't read (no Full
+    /// Disk Access). Both controls read as on, which is the safe assumption:
+    /// the walkthrough then names both, and naming a switch that's already off
+    /// costs a glance — while staying silent about one that's on costs the
+    /// duplicate banner this whole flow exists to stop.
+    static func unknown(bundleID: String) -> NativeNotificationSettings {
+        NativeNotificationSettings(
+            bundleID: bundleID,
+            desktopAlert: .temporary,
+            playsSound: true,
+            badgesIcon: false,
+            allowsNotifications: true,
+            hasSettingsRow: true
+        )
+    }
+
     /// One line naming only what's still wrong, in the words the current
     /// System Settings pane uses — "Desktop" and "sound" are the two labels
     /// the user is about to go looking for.
@@ -154,10 +170,29 @@ enum NotificationSettingsAudit {
         static let noSettingsRow: UInt64 = 1 << 7
     }
 
-    /// The preference domain, and the file it lands in. Read through
-    /// CFPreferences first so a change made in System Settings a second ago is
-    /// visible without waiting for cfprefsd to flush.
-    private static let domain = "com.apple.ncprefs"
+    /// **Where the switches actually live on macOS 26.**
+    ///
+    /// `com.apple.ncprefs` — the domain every write-up on the internet names,
+    /// and the one flick shipped against — is a **stale mirror** on Tahoe. It
+    /// still holds an `apps` array of plausible `flags`, so nothing about
+    /// reading it looks wrong; it is simply not the file System Settings
+    /// writes. Measured on this machine: the whole 92-app store was
+    /// byte-identical to a copy 17 days old, across a change made in the pane
+    /// and 45 minutes of watching, while the group-container store below
+    /// picked the same change up within seconds. That is what made the helper
+    /// panel look broken — it polled a file that no longer moves.
+    ///
+    /// The group container is TCC-protected, so this read needs **Full Disk
+    /// Access**, the same grant System Mirror asks for. That is why every
+    /// reader here is optional: a process without the grant must answer
+    /// "can't tell", never "all quiet" (see `readAll`).
+    private static var settingsStore: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(
+                "Library/Group Containers/group.com.apple.usernoted/Library/Preferences/"
+                    + "group.com.apple.usernoted.plist"
+            )
+    }
 
     // MARK: - Pure decoding (tested)
 
@@ -206,37 +241,41 @@ enum NotificationSettingsAudit {
 
     // MARK: - Reading the live store
 
-    /// Every app macOS has notification preferences for, keyed by bundle id.
-    /// Empty when the store can't be read or has changed shape — never a
-    /// partial guess.
-    static func readAll() -> [String: NativeNotificationSettings] {
+    /// Every app macOS has notification preferences for, keyed by bundle id —
+    /// or **nil when the store can't be read**, which on a Mac that hasn't
+    /// granted Full Disk Access is the normal answer.
+    ///
+    /// Optional on purpose. An audit has three verdicts, not two: noisy,
+    /// quiet, and *can't tell* — and "can't tell" rendered as "all clear" is
+    /// the one failure mode that has flick telling someone their
+    /// notifications are fine while macOS doubles every banner.
+    static func readAll() -> [String: NativeNotificationSettings]? {
         guard let apps = readAppsArray() else {
-            log.info("ncprefs unreadable or reshaped — audit reporting nothing")
-            return [:]
+            log.info("notification settings unreadable — audit answering 'unknown'")
+            return nil
         }
         let decoded = decode(appsArray: apps)
         return Dictionary(decoded.map { ($0.bundleID, $0) }, uniquingKeysWith: { _, last in last })
     }
 
+    /// Why the store couldn't be read, in words a user can act on — nil when
+    /// it reads fine.
+    static func unreadableReason() -> String? {
+        readAppsArray() == nil
+            ? "flick needs Full Disk Access to read macOS's notification settings."
+            : nil
+    }
+
+    /// Read straight off the file, fresh every time.
+    ///
+    /// Not through CFPreferences: the group container isn't served under its
+    /// plain domain name (`defaults export group.com.apple.usernoted` comes
+    /// back with nothing), and there is no entitlement flick could hold for
+    /// one of Apple's own app groups. A fresh read per poll is the point
+    /// regardless — this file moves within seconds of a switch being flipped,
+    /// which is the entire question the helper panel asks.
     private static func readAppsArray() -> [[String: Any]]? {
-        // cfprefsd holds the authoritative copy; the on-disk plist can lag it
-        // by minutes after a change in System Settings, which for a flow whose
-        // whole job is "did you flip it yet?" would read as flick being wrong.
-        //
-        // The synchronize is load-bearing, not hygiene: CFPreferences caches
-        // another process's domain in *ours*, so without it the helper panel
-        // would poll a snapshot taken before the user touched anything and
-        // never notice the fix.
-        CFPreferencesAppSynchronize(domain as CFString)
-        if let live = CFPreferencesCopyAppValue("apps" as CFString, domain as CFString)
-            as? [[String: Any]], !live.isEmpty {
-            return live
-        }
-        // Fallback for the case where cfprefsd declines to answer for another
-        // process's domain: read the file ourselves.
-        let url = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Preferences/\(domain).plist")
-        guard let data = try? Data(contentsOf: url),
+        guard let data = try? Data(contentsOf: settingsStore),
               let plist = try? PropertyListSerialization.propertyList(
                   from: data, options: [], format: nil
               ) as? [String: Any],
@@ -299,12 +338,22 @@ enum NotificationSettingsAudit {
 
     /// The noisy apps in scope, worst first (alerts before banners, sound
     /// breaking ties), then alphabetical so the order is stable between runs.
+    /// The live audit, or **nil when the store can't be read** — the caller
+    /// must render that as "can't tell", never as "nothing to do".
+    static func liveFindings(
+        scope: Scope,
+        isInstalled: (String) -> Bool = bundleIsInstalled
+    ) -> [NativeNotificationSettings]? {
+        guard let all = readAll() else { return nil }
+        return findings(scope: scope, settings: all, isInstalled: isInstalled)
+    }
+
     static func findings(
         scope: Scope,
-        settings: [String: NativeNotificationSettings]? = nil,
+        settings: [String: NativeNotificationSettings],
         isInstalled: (String) -> Bool = bundleIsInstalled
     ) -> [NativeNotificationSettings] {
-        let all = settings ?? readAll()
+        let all = settings
         let candidates: [NativeNotificationSettings]
         switch scope {
         case .only(let ids):

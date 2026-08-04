@@ -139,7 +139,17 @@ struct OnboardingAssistantView: View {
     /// Bundle ids the poll has since seen go quiet. Kept as a set rather than
     /// a cursor because the user is free to fix them in any order — or to fix
     /// three at once in a pane they already had open.
+    ///
+    /// **This can stay empty on a Mac where everything went right.** macOS 26
+    /// doesn't write `com.apple.ncprefs` when you change the pane — usernoted
+    /// takes the change and the file is only flushed much later (a 92-app
+    /// store measured byte-identical to a 17-day-old copy, across a change
+    /// made and System Settings quit). So the poll is a *bonus* confirmation,
+    /// not the mechanism: `advanced` is what actually moves the walkthrough.
     @State private var resolved: Set<String> = []
+    /// Bundle ids the user marked done themselves. The panel can't watch the
+    /// pane on Tahoe, so it doesn't pretend to — it asks, and believes them.
+    @State private var advanced: Set<String> = []
     /// Briefly true when the last app goes quiet, so the panel can say so
     /// before it closes instead of just vanishing.
     @State private var allClear = false
@@ -284,13 +294,17 @@ struct OnboardingAssistantView: View {
 
     // MARK: - Native banners
 
-    /// The app the panel is currently pointed at: the first one the poll
-    /// hasn't yet seen go quiet. Derived rather than stored, so a user who
-    /// fixes the third app first simply skips it.
+    /// The app the panel is currently pointed at: the first one that's
+    /// neither confirmed quiet nor already marked done. Derived rather than
+    /// stored, so a user who fixes the third app first simply skips it.
     private func currentFinding(in findings: [NativeNotificationSettings])
         -> NativeNotificationSettings?
     {
-        findings.first { !resolved.contains($0.bundleID) }
+        findings.first { !isFinished($0.bundleID) }
+    }
+
+    private func isFinished(_ bundleID: String) -> Bool {
+        resolved.contains(bundleID) || advanced.contains(bundleID)
     }
 
     @ViewBuilder
@@ -340,22 +354,66 @@ struct OnboardingAssistantView: View {
 
             Spacer(minLength: 0)
 
-            // flick already opened the pane. This is only for the case where
-            // they closed it or wandered off — so it appears when System
-            // Settings isn't in front, and stays out of the way when it is.
-            Button {
-                SystemIntegration.openNotificationSettings(for: finding.bundleID)
-            } label: {
-                // Not "Open <App> Settings" — it can't do that, and a button
-                // that overpromises by one step is what sends someone hunting
-                // for a pane that never opened.
-                Label("Open Notification Settings", systemImage: "arrow.up.forward.app")
-                    .frame(maxWidth: .infinity)
+            HStack(spacing: 8) {
+                // flick already opened the pane. This is only for the case
+                // where they closed it or wandered off — so it appears when
+                // System Settings isn't in front, and stays out of the way
+                // when it is.
+                Button {
+                    SystemIntegration.openNotificationSettings(for: finding.bundleID)
+                } label: {
+                    // Not "Open <App> Settings" — it can't do that, and a
+                    // button that overpromises by one step is what sends
+                    // someone hunting for a pane that never opened.
+                    Label("Open Settings", systemImage: "arrow.up.forward.app")
+                }
+                .opacity(settingsIsFrontmost ? 0 : 1)
+                .disabled(settingsIsFrontmost)
+                .animation(.easeInOut(duration: 0.2), value: settingsIsFrontmost)
+
+                Spacer(minLength: 0)
+
+                // The advance. macOS 26 doesn't tell anyone when the pane
+                // changes (see `resolved`), so the user does — a button that
+                // waits on a confirmation that never arrives is worse than
+                // one that trusts them.
+                Button {
+                    markDone(finding.bundleID, in: findings)
+                } label: {
+                    Text(remaining(in: findings) > 1 ? "Done — Next" : "Done")
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
             }
-            .buttonStyle(.borderedProminent)
-            .opacity(settingsIsFrontmost ? 0 : 1)
-            .disabled(settingsIsFrontmost)
-            .animation(.easeInOut(duration: 0.2), value: settingsIsFrontmost)
+        }
+    }
+
+    private func remaining(in findings: [NativeNotificationSettings]) -> Int {
+        findings.filter { !isFinished($0.bundleID) }.count
+    }
+
+    /// Mark the current app done and move on — or finish, if it was the last.
+    private func markDone(_ bundleID: String, in findings: [NativeNotificationSettings]) {
+        withAnimation(.easeOut(duration: 0.25)) {
+            advanced.insert(bundleID)
+        }
+        guard remaining(in: findings) == 0 else { return }
+        finish()
+    }
+
+    /// The end of the walkthrough: say so, then close. Shared by the button
+    /// and by the poll, so a Mac whose store *does* update still ends the
+    /// same way — one path, whichever way the last app got ticked.
+    private func finish() {
+        guard !allClear else { return }
+        pollTimer?.invalidate()
+        pollTimer = nil
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { allClear = true }
+        Task { @MainActor in
+            // Long enough to read, short enough that it doesn't become a
+            // window the user has to dismiss.
+            try? await Task.sleep(nanoseconds: 2_200_000_000)
+            onClose()
         }
     }
 
@@ -419,18 +477,26 @@ struct OnboardingAssistantView: View {
     /// drop to the count alone, which stays honest at any length.
     @ViewBuilder
     private func stepIndicator(findings: [NativeNotificationSettings]) -> some View {
-        let done = findings.filter { resolved.contains($0.bundleID) }.count
+        let done = findings.filter { isFinished($0.bundleID) }.count
         if findings.count <= Self.dottedStepLimit {
             HStack(spacing: 5) {
                 ForEach(findings, id: \.bundleID) { finding in
-                    let isDone = resolved.contains(finding.bundleID)
                     let isCurrent = currentFinding(in: findings)?.bundleID == finding.bundleID
                     Circle()
-                        .fill(isDone ? Color.green : (isCurrent ? Color.accentColor : Color.secondary.opacity(0.3)))
+                        // Green only where macOS actually confirmed it. An
+                        // app the user marked done is filled, not green —
+                        // flick was told, it didn't check, and the dot
+                        // shouldn't claim otherwise.
+                        .fill(
+                            resolved.contains(finding.bundleID) ? Color.green
+                                : advanced.contains(finding.bundleID) ? Color.secondary.opacity(0.7)
+                                : isCurrent ? Color.accentColor
+                                : Color.secondary.opacity(0.3)
+                        )
                         .frame(width: 7, height: 7)
                 }
             }
-            .animation(.easeOut(duration: 0.25), value: resolved)
+            .animation(.easeOut(duration: 0.25), value: done)
         } else {
             Text("\(done) of \(findings.count)")
                 .font(HelperType.detail)
@@ -441,15 +507,23 @@ struct OnboardingAssistantView: View {
 
     @ViewBuilder
     private func allClearContent(total: Int) -> some View {
+        // Two different endings, because they're two different facts. macOS
+        // confirming every app is worth a green tick; the user telling flick
+        // they're done is worth thanks and nothing more — claiming "macOS has
+        // stopped drawing them" off a button press would be flick inventing a
+        // confirmation it never got.
+        let confirmed = advanced.isEmpty
         HStack(spacing: 10) {
-            Image(systemName: "checkmark.circle.fill")
+            Image(systemName: confirmed ? "checkmark.circle.fill" : "checkmark.circle")
                 .font(.title2)
-                .foregroundStyle(.green)
+                .foregroundStyle(confirmed ? Color.green : Color.secondary)
             VStack(alignment: .leading, spacing: 2) {
-                Text(total > 1 ? "All \(total) apps are quiet" : "That's it — it's quiet")
+                Text(total > 1 ? "That's all \(total)" : "That's it")
                     .font(HelperType.title)
                     .fontWeight(.semibold)
-                Text("macOS has stopped drawing them. flick has it from here.")
+                Text(confirmed
+                    ? "macOS has stopped drawing them. flick has it from here."
+                    : "flick has it from here.")
                     .font(HelperType.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -459,9 +533,18 @@ struct OnboardingAssistantView: View {
         .padding(.vertical, 4)
     }
 
-    /// Re-reads Apple's own preferences once a second and ticks apps off as
-    /// they go quiet. Polling rather than watching the file: the store is
-    /// cfprefsd-owned and undocumented, and a one-second poll of a small
+    /// Re-reads Apple's own preferences once a second: it ticks an app off if
+    /// the store agrees it's gone quiet, and — every second, regardless —
+    /// refreshes the live reading the row, the sentence and the demo are
+    /// drawn from, plus whether System Settings is still in front.
+    ///
+    /// **The tick-off is opportunistic, not the mechanism.** On macOS 26 that
+    /// store simply doesn't move when the user changes the pane (see
+    /// `resolved`), so the walkthrough advances on the user's own "Done" and
+    /// this poll is the bonus that fires where it still works: older macOS,
+    /// an app silenced before the panel opened, or after macOS eventually
+    /// flushes. Polling rather than watching the file because the store is
+    /// cfprefsd-owned and undocumented, and a one-second read of a small
     /// plist costs nothing next to guessing at a change-notification
     /// mechanism Apple doesn't promise.
     private func startNativeBannerPolling(findings: [NativeNotificationSettings]) {
@@ -472,20 +555,24 @@ struct OnboardingAssistantView: View {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             Task { @MainActor in
                 refreshResolved(findings: findings)
-                guard resolved.count >= findings.count, !allClear else { return }
-                pollTimer?.invalidate()
-                pollTimer = nil
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { allClear = true }
-                // Long enough to read, short enough that it doesn't become a
-                // window the user has to dismiss.
-                try? await Task.sleep(nanoseconds: 2_200_000_000)
-                onClose()
+                guard remaining(in: findings) == 0 else { return }
+                finish()
             }
         }
     }
 
     private func refreshResolved(findings: [NativeNotificationSettings]) {
-        let current = NotificationSettingsAudit.readAll()
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        // Without Full Disk Access there's nothing to read, so nothing is
+        // confirmed and nothing is claimed — the user's "Done" is the only
+        // thing that moves the walkthrough. Still track the frontmost app,
+        // which is what the "Open Settings" button keys off.
+        guard let current = NotificationSettingsAudit.readAll() else {
+            withAnimation(.easeOut(duration: 0.25)) {
+                settingsIsFrontmost = front == SystemIntegration.systemSettingsBundleID
+            }
+            return
+        }
         // Keep the live reading for every app in the worklist, not just the
         // verdict: the row's subtitle, the instruction and the demo are all
         // drawn from it, so a half-finished app shows exactly what's left.
@@ -493,7 +580,6 @@ struct OnboardingAssistantView: View {
             findings.compactMap { f in current[f.bundleID].map { (f.bundleID, $0) } },
             uniquingKeysWith: { _, last in last }
         )
-        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         let quiet = findings
             .filter { finding in current[finding.bundleID]?.isNoisy != true }
             .map(\.bundleID)

@@ -17,10 +17,18 @@
 # diffing, rather than by trusting the flag tables in circulation:
 #
 #   bit 2 (0x4)  Play sound for notification
-#   bit 3 (0x8)  Desktop — the on-screen banner. THE bit flick cares about.
+#   bit 3 (0x8)  Desktop, Temporary style — an on-screen banner
+#   bit 4 (0x10) Desktop, Persistent style — an on-screen alert
 #
-# Both cleared = that app is silent and drawing nothing, while notifications
-# still flow to Notification Center for flick to mirror.
+# Bits 3 and 4 are ONE control in two styles, not a control and a detail:
+# no app on a 108-app store has both, and unticking Desktop for an app set to
+# Persistent clears bit 4 (watched live, 2026-08-04 — Reminders went
+# 9437708310 → 9437708358). An earlier version of this header called bit 3
+# "THE bit", which reports every Persistent app as quiet while macOS is still
+# drawing alerts for it. Desktop is on when EITHER bit is set.
+#
+# Bits 3, 4 and 2 all cleared = that app is silent and drawing nothing, while
+# notifications still flow to Notification Center for flick to mirror.
 #
 # TCC: the group container is protected, so reading this needs Full Disk
 # Access. A terminal that already holds FDA will read it without complaint and
@@ -94,7 +102,7 @@ fi
 python3 - "$USERNOTED" "${1:-}" <<-'PY'
 	import plistlib, sys
 
-	SOUND, DESKTOP = 1 << 2, 1 << 3
+	SOUND, DESKTOP = 1 << 2, (1 << 3) | (1 << 4)  # temporary OR persistent
 	path, match = sys.argv[1], (sys.argv[2] if len(sys.argv) > 2 else "")
 
 	apps = [a for a in plistlib.load(open(path, "rb")).get("apps", [])
@@ -116,7 +124,8 @@ python3 - "$USERNOTED" "${1:-}" <<-'PY'
 	print(f"{'BUNDLE ID':<46}{'FLAGS':>12}  {'DESKTOP':<8}{'SOUND':<7}VERDICT")
 	for bid, f, d, s, v in rows:
 	    print(f"{bid:<46}{f:>12}  {d:<8}{s:<7}{v}")
-	print("\nbit 3 (0x8) Desktop banner · bit 2 (0x4) Play sound")
-	print("quiet = both clear: silent, drawing nothing, still reaching "
+	print("\nDesktop = bit 3 (0x8, temporary) OR bit 4 (0x10, persistent) "
+	      "· sound = bit 2 (0x4)")
+	print("quiet = all three clear: silent, drawing nothing, still reaching "
 	      "Notification Center")
 PY
