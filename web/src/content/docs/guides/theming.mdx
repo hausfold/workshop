@@ -38,7 +38,38 @@ nebelhaus.theme.accent = "sapphire";
 Then `haus rebuild`. The accent re-tints the tools that render per-accent
 variants — **lazygit** borders, **fzf** highlights, **yazi**, and the **Zen
 browser** — while the single-file dotfiles (Ghostty, starship, tmux, bat,
-zellij) keep their built-in theme.
+zellij) keep their built-in theme. The `bold` wallpaper is generated from the
+accent hex, so it follows too, as does any app in your
+[roster](/guides/adding-apps/) whose nebelung port ships a per-accent matrix
+(`zed`, `gh-dash`, `mpv`).
+
+That list is not prose anyone has to keep true by hand: the rice's
+`accent-reach` check fingerprints every one of those surfaces under three
+different accents on each `nix flake check`, and fails if one starts — or stops
+— following the accent.
+
+<Aside type="caution" title="Zen means Zen's UI, not the web">
+The accent moves Zen's own chrome. It does **not** re-tint github.com or
+youtube.com, because those aren't styled by anything the rice writes: the
+Catppuccin userstyles are LESS, compiled inside the browser, so they live in the
+**Stylus** extension's storage rather than in a stylesheet — each carrying its
+own accent variable that defaults to `mauve`.
+
+Declare the extension and the rice closes that loop:
+
+```nix
+nebelhaus.zen.extensions.stylus = { };
+```
+
+It deploys Stylus (via Firefox's enterprise-policy file — `nebelhaus.roster`
+can't install add-ons) and stamps nebelung's userstyle bundle from **your**
+theme: the accent, the flavor, and the contrast it's rendered for. All three
+axes on this page reach the web.
+
+The import itself stays a click — Stylus has no file interface — so whenever you
+change one of them, activation prints a one-time nudge and you do:
+**Stylus ▸ Manage ▸ Import ▸ `~/.config/nebelhaus/nebelung-stylus.json`**.
+</Aside>
 
 ### Available accents
 

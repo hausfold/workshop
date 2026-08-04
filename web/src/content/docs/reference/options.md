@@ -477,11 +477,33 @@ flavors — the hue you pick follows nebelhaus.theme.flavor). It recolours
 the tools nebelhaus injects colours into — lazygit, fzf, yazi, and the Zen
 browser — via the matching Nebelung per-accent ports.
 
+Two more things follow it: the `bold` wallpaper (generated from the
+accent hex — see nebelhaus.theme.wallpaper), and any roster app whose
+Nebelung port ships a per-accent matrix (zed, gh-dash, mpv), placed by
+nebelhaus.theme.ports. Those ports name the theme file after the accent,
+so changing the accent renames the file the app's own `theme` key points
+at — re-pick it in the app, or it falls back to stock.
+
 Honest scope: this moves the accent on those tools, NOT literally
 everything. Single-file dotfiles that bake the palette at their own
 theme slot (ghostty, starship, tmux, bat, zellij, …) keep their built-in
 colour and don't follow this option. The base palette stays the same
 Nebelung grey either way — only the accent hue changes.
+
+Zen means Zen's own UI, and the web is a separate story. The rice places
+the Nebelung userChrome/userContent pair, but userContent only styles
+`about:` pages — github.com and youtube.com are themed by the Stylus
+extension, whose Catppuccin-derived styles carry their OWN `accentColor`
+var (default mauve) inside the extension's storage, where no stylesheet
+can reach it. Declare `nebelhaus.zen.extensions.stylus` and the rice
+stamps that var with this accent and tells you, once, when there's a new
+bundle to import; the import itself stays a click, because Stylus has no
+file interface. Until you make it, the web keeps the accent you last
+imported.
+
+Both halves of that are pinned by the `accent-reach` flake check, which
+fingerprints every surface under three accents and fails if one starts
+or stops following the accent without anyone deciding it should.
 
 Example:
 
@@ -2633,3 +2655,130 @@ Upgrade outdated Homebrew packages on every rebuild. Off by default
 for the same reproducibility reason as autoUpdate.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+## nebelhaus.zen
+### `nebelhaus.zen.extensions`
+
+`attribute set of (submodule)` · default `{ }`
+
+Browser extensions to deploy into Zen, by a stable id of your choosing.
+
+The mechanism is Firefox's enterprise-policy file — the rice renders
+`Zen/distribution/policies.json` with an `ExtensionSettings` block — so
+it reaches Zen the way an IT department reaches Firefox, without a
+profile to hand-edit. `nebelhaus.roster` deliberately cannot do this: a
+roster entry installs from a cask, a brew, a nixpkgs package or the App
+Store, and a browser add-on is none of those.
+
+The rice knows the id and slug of the extensions it themes
+(stylus),
+so those need only be named. Everything else needs `id` — see that
+option for where to find it.
+
+Naming `stylus` here also turns on the stamped userstyle bundle (see
+nebelhaus.theme.accent): the Catppuccin-derived styles Stylus imports
+carry their own accent and flavor variables, which no palette file can
+reach, so the rice stamps the bundle from your theme — accent, flavor,
+and the contrast it's rendered for — and tells you when there's a new
+one to import.
+
+Example:
+
+```nix
+{
+  # Known to the rice — id and slug are filled in.
+  stylus = { };
+  # Anything else: bring the id.
+  ublock-origin = {
+    id = "uBlock0@raymondhill.net";
+    slug = "ublock-origin";
+  };
+}
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.zen.extensions.<name>.enable`
+
+`boolean` · default `true`
+
+Whether to deploy this extension. Set false to remove one an imported rice added.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.zen.extensions.<name>.id`
+
+`null or string` · default `null`
+
+The extension's own id — the key Firefox's policy engine
+matches on, NOT its AMO slug. Usually a brace-wrapped UUID,
+sometimes an email-shaped string (`addon@example.org`).
+
+Find it by installing the add-on once and reading `Extension
+ID` under about:debugging ▸ This Firefox, or from the
+`browser_specific_settings` block of its source. Wrong id and
+the policy silently installs nothing — which is why this has
+no guessable default.
+
+Example:
+
+```nix
+"{7a7a4a92-a2a0-41d1-9fd7-1e92480d612d}"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.zen.extensions.<name>.mode`
+
+`one of "force_installed", "normal_installed", "allowed", "blocked"` · default `"force_installed"`
+
+Firefox's `installation_mode`. `force_installed` installs it
+and stops the user removing it (the point, for a rice that
+wants an extension present); `normal_installed` installs it
+but leaves it removable.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.zen.extensions.<name>.slug`
+
+`null or string` · default `null`
+
+The add-on's AMO slug — the last path segment of its
+addons.mozilla.org URL. Only used to build the default
+`url`; set `url` directly and this is ignored.
+
+Example:
+
+```nix
+"styl-us"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.zen.extensions.<name>.url`
+
+`string` · default `""`
+
+Where the .xpi comes from. Defaults to AMO's "latest" endpoint
+for `slug`, so the add-on updates itself; point it at a pinned
+version or a self-hosted file to freeze it.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.zen.extraPolicies`
+
+`attribute set` · default `{ }`
+
+Anything else to put in Zen's policy file, merged beside the
+`ExtensionSettings` block `nebelhaus.zen.extensions` renders. The rice
+OWNS that file, so this is the escape hatch for the rest of the policy
+surface rather than a reason to take the file back by hand. Keys here
+win over the rice's on a collision.
+
+Example:
+
+```nix
+{ DisableTelemetry = true; }
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
