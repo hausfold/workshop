@@ -16,6 +16,7 @@ ties them together, but pounce, trill, perch, and nebelung stand alone too.
 | 🐦 [**trill**](https://github.com/nebelhaus/trill) | the messages — a native iMessage/SMS/RCS client reading `chat.db` read-only. **Archived; the rice no longer installs it** | you want to change the Messages client |
 | 🐈 [**perch**](https://github.com/nebelhaus/perch) | the shelf — a native notch file tray that stages dropped files and drags them out as one group | you want to change the file shelf |
 | 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
+| 🪵 [**holt**](https://github.com/nebelhaus/holt) | the worktree substrate — agent worktrees for any repo and any client, which the rice takes as a flake input | you want to change how agent worktrees are made, parked or reaped |
 | 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every release |
 | 🧰 [**workshop**](https://github.com/nebelhaus/workshop) | every repo checked out side-by-side + the `bench` dev CLI | you're hacking on the family itself |
 

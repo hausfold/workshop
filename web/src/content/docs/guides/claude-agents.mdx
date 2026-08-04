@@ -275,7 +275,20 @@ remove> <client>`, which the rice puts on your `PATH`:
 |---|---|---|
 | **OpenCode** | `~/.config/opencode/plugin/nebelhaus-agent-state.js` | the rice, for you |
 | **Codex** | `UserPromptSubmit` / `PermissionRequest` / `Stop` in `~/.codex/hooks.json` | the rice, for you — Codex then asks you to **review and trust** those hooks the first time it starts, which the rice deliberately doesn't bypass |
-| **Claude Code** | `UserPromptSubmit` / `Notification` / `Stop` / `SessionEnd` hooks in `~/.claude/settings.json` | you — Claude owns that file and rewrites it, so the rice never touches your hooks |
+| **Claude Code** | `UserPromptSubmit` / `Notification` / `Stop` / `SessionEnd` hooks in `~/.claude/settings.json` | you — these four are yours to wire, and the rice leaves them alone |
+
+<Aside type="note" title="What the rice *does* write into `~/.claude/settings.json`">
+Those four agent-state hooks are yours. The **worktree** hooks aren't: the rice
+declares `WorktreeCreate` / `WorktreeRemove` (pointing at `holt hook create` /
+`holt hook remove`) and re-asserts them on every rebuild, along with the
+statusline, `permissions.defaultMode` and a few TUI keys. It merges into the
+file rather than replacing it, and touches no other hook event.
+
+That's deliberate. Claude Code rewrites its own `settings.json` on its own
+schedule, and a hand-written hook it doesn't know about can go with it — you'd
+find out at pane close, by losing a worktree's parking. Declared, the worst case
+is one `haus rebuild` instead of silent data loss.
+</Aside>
 
 A pane's row also disappears on its own once the pane is gone, whether or not its
 client said goodbye. That matters most for Codex, whose hooks have no
