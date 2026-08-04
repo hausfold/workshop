@@ -17,6 +17,11 @@ export default defineConfig({
   // keeps HTML revalidating (belt-and-suspenders, and it freshens hashed JS), but
   // rendering no longer depends on any cache header being honored by any client.
   build: { inlineStylesheets: 'always' },
+  // /trill/ was a product landing page until trill was archived (2026-08-04).
+  // The page is gone, but the URL was printed in a README, a cask and the app's
+  // own about box, so it redirects to the guide rather than 404ing — the guide
+  // still tells anyone running trill how it works and that it's finished.
+  redirects: { '/trill': '/guides/trill/', '/trill/': '/guides/trill/' },
   // Custom landing page lives at src/pages/index.astro; Starlight owns the rest.
   integrations: [
     starlight({
