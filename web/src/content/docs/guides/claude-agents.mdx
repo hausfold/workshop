@@ -341,6 +341,15 @@ mark, told apart by how many chevrons it has rather than by colour alone:
 **Model.** A short family + version tag — `O5`, `S5`, `H45`, `F5` — always
 present, so you can tell at a glance which pane is on which model.
 
+On **Fable** and **Mythos** the tag also isn't the only signal: the whole HUD
+block picks up a dark magenta background, painted edge to edge across every row
+it draws. Two characters at the far right of one row is the wrong place to
+answer "which of these panes is on the expensive model", and that's the question
+you actually ask when you're looking at a screen full of them. The tag stays —
+the tint is a second reading of the same fact, so a terminal that drops
+backgrounds loses nothing. It's drawn per pane, so a mixed fleet genuinely shows
+a mixed set of panes.
+
 These two work together. Switching to a model that has no auto mode drops you to
 `default` without announcing it; the `⏵` tells you the mode changed and the model
 chip tells you why.
