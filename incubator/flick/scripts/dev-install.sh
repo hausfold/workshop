@@ -17,6 +17,25 @@
 # (88M28542LQ) instead of a hash — so the grant survives every rebuild, and
 # you grant Full Disk Access once, ever.
 #
+# THE OTHER HALF, FOUND 2026-08-04: that only holds while nothing else claims
+# the same bundle id. TCC keys Full Disk Access by **bundle id**, one row, and
+# rewrites that row's stored requirement to whichever binary asked last. The
+# Debug build — Apple-Development-signed under automatic signing — used to
+# carry `com.nebelhaus.flick` too, so every `xcodebuild test` launched a host
+# app that asked for FDA, failed to match, and took the row over:
+#
+#   Failed to match existing code requirement for subject com.nebelhaus.flick
+#     stored:    … certificate leaf[subject.OU] = "88M28542LQ"        (installed)
+#     presented: … "Apple Development: … (6NGM8QR7J9)"                (test host)
+#   Service kTCCServiceSystemPolicyAllFiles does not allow prompting; recording denied.
+#
+# The next launch of the installed app then failed to match *that*, and was
+# denied silently — this service never prompts. The fix is in the project, not
+# here: Debug builds are `com.nebelhaus.flick.debug` (`PRODUCT_BUNDLE_IDENTIFIER`
+# per configuration), so they can never touch the release row. If a grant does
+# go missing, remove flick from Privacy & Security ▸ Full Disk Access and
+# re-add this app, or `sudo tccutil reset SystemPolicyAllFiles com.nebelhaus.flick`.
+#
 # The other half of the same bug: several stale `Flick.app` copies
 # (DerivedData, `build/`, old installs) all claim `com.nebelhaus.flick`, and
 # Apple's own "Quit & Reopen" button relaunches **by bundle id** — so it can

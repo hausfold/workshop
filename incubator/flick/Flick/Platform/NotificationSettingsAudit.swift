@@ -327,7 +327,11 @@ enum NotificationSettingsAudit {
     /// flick's own row is in this store too, and telling the user to silence
     /// flick's banners in order to stop duplicate flick banners is a loop.
     private static var ownBundleID: String {
-        Bundle.main.bundleIdentifier ?? "com.nebelhaus.flick"
+        // A Debug build is `…flick.debug` (see `AppPaths`), and the row it
+        // must skip is still the installed app's — otherwise a debug `--all`
+        // audit cheerfully tells you to go silence flick.
+        (Bundle.main.bundleIdentifier ?? "com.nebelhaus.flick")
+            .replacingOccurrences(of: ".debug", with: "")
     }
 
     /// Does something on this Mac actually claim this bundle id? Injectable

@@ -118,6 +118,17 @@ Geometry, policy, queue, and wire-format logic are all testable headless —
 keep it that way: anything that *can* be a pure function with a test should
 be. Feel-testing banners needs a real session: build, run, `flick send`.
 
+**Debug builds carry their own bundle id (`com.nebelhaus.flick.debug`) — leave
+it that way.** TCC keys Full Disk Access by *bundle id*, one row per id, and
+rewrites that row's stored code requirement to whichever binary asked last.
+While the Debug build shared the release id, every `xcodebuild test` launched
+an Apple-Development-signed host that asked for FDA, failed to match, and took
+the row over — after which the installed Developer-ID app was denied, silently,
+because `kTCCServiceSystemPolicyAllFiles` never prompts. It cost an afternoon
+of "the grant keeps dropping" and looked like a signing bug. The Debug build
+also gets its own `Application Support/Flick (debug)` so a test run can't bind
+the installed daemon's socket or write its database.
+
 **Feel-test with `scripts/dev-install.sh`, not a bare `xcodebuild`.** A
 `CODE_SIGNING_ALLOWED=NO` build is ad-hoc signed, and macOS pins a TCC grant
 (Full Disk Access) to an ad-hoc bundle's **cdhash** — so the switch in System

@@ -175,9 +175,19 @@ struct SocketProvider: NotificationProvider {
 }
 
 enum AppPaths {
+    /// A Debug build carries its own bundle id (`…flick.debug`) so it can't
+    /// fight the installed app over one TCC row — see the note in
+    /// `scripts/dev-install.sh`. Give it its own writable state too: a test
+    /// run that boots the app would otherwise bind the *installed* daemon's
+    /// socket and write its database, which is a second daemon answering
+    /// `flick send` from a checkout nobody installed.
+    private static var isDebugBuild: Bool {
+        Bundle.main.bundleIdentifier?.hasSuffix(".debug") == true
+    }
+
     static var supportDirectory: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Flick", isDirectory: true)
+            .appendingPathComponent(isDebugBuild ? "Flick (debug)" : "Flick", isDirectory: true)
     }
 
     static var configDirectory: URL {
