@@ -5,11 +5,27 @@ description: A native, keyboard-first iMessage/SMS/RCS client that reads chat.db
 
 import { Aside, Steps } from '@astrojs/starlight/components';
 
+<Aside type="caution" title="Archived — no longer developed">
+trill is **finished, not maintained**. The [repository](https://github.com/nebelhaus/trill)
+is archived as of 2026-08-04: no new features, no releases, no issues or pull
+requests. What's installed keeps working exactly as described here, and the last
+release stays downloadable.
+
+Why: trill reads and sends, and the features past that — tapbacks, threaded
+replies, marking conversations read upstream — need write access to `chat.db`
+or private automation that Messages.app doesn't expose. They were never coming.
+The Beeper adapter that would have added other networks depended on an
+experimental third-party API and was frozen with it.
+
+It is also **no longer part of a default rice**: `nebelhaus.trill.enable`
+defaults to `false`. Set it true and everything below still applies.
+</Aside>
+
 **trill** is your Messages, native. A fast, flat, keyboard-first client for
 iMessage, SMS, and RCS in a real macOS window — it reads your real conversations
 straight from Apple's `chat.db` (**always read-only**) and sends by driving
 Messages.app. It's themed in [nebelung](/reference/palette/) like the rest of the
-house, ships by default in the rice, and also stands alone on any Mac.
+house, and stands alone on any Mac.
 
 <Aside type="note" title="Read-only by design">
 trill's own code never writes to `chat.db` — every connection is opened
@@ -19,9 +35,9 @@ the whole trust story: it reads everything, changes nothing.
 
 ## Install
 
-trill rides in the rice by default (`nebelhaus.trill.enable = true` — see
-[options](/reference/options/#nebelhaustrillenable)). To install it standalone,
-or on a Mac without the rice:
+trill is opt-in in the rice (`nebelhaus.trill.enable = true` — see
+[options](/reference/options/#nebelhaustrillenable)); it is not installed on a
+default machine. To install it standalone, or on a Mac without the rice:
 
 ```sh
 brew install --cask nebelhaus/tap/trill

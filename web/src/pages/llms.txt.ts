@@ -21,7 +21,7 @@ const SITE = 'https://nebelhaus.com';
 const EXTRA = [
   { label: 'nebelhaus', path: '/', description: 'The project landing page.' },
   { label: 'pounce', path: '/pounce/', description: 'The command palette — product page.' },
-  { label: 'trill', path: '/trill/', description: 'The Messages client — product page.' },
+  { label: 'trill', path: '/guides/trill/', description: 'The Messages client — archived, no longer developed. Guide kept for anyone still running it.' },
   { label: 'perch', path: '/perch/', description: 'The notch file shelf — product page.' },
 ];
 
