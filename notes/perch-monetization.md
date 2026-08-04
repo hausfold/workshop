@@ -30,6 +30,7 @@ itself carries the gate.**
 | License validation | **Offline** — Ed25519-signed license file, public key baked into the app | The README's load-bearing sentence — "the only network call is the hourly release check" — survives. No activation server, no phone-home, works on an air-gapped Mac. Paddle/LS built-in key activation is exactly the call we refuse to add. |
 | Price | **$19**, renewal $9 for another update year | NotchNook $25 / Yoink $9 / Dropover $5; perch's "dependability and restraint" positioning sits above the impulse tier, below the category king. |
 | Rice door | **No special-casing** — rice installs hit the same in-app gate | One code path, and no "why do nix users get it free" resentment. FSL permits personal builds from source (non-compete use), so the bare-nix door stays legal too — someone determined to not pay $19 was never a customer. |
+| Merchant of record | **Paddle** (re-confirmed 2026-08-04) | 5% + 50¢ = $1.45 on $19, MoR handles VAT/GST, mature enough to outlive an update year, and its overlay checkout is the one Phase 3 wants. Fallback is **Polar** — see [§2.1](#21-why-paddle-and-not-the-other-four). |
 
 ## 2. The license file format — design it once, for both apps
 
@@ -55,6 +56,25 @@ format, the signer, and the mail template untouched:
 - Private key: a Cloudflare Worker secret + one offline backup. Public key:
   a constant in the app. A keygen/sign script lives in `web/scripts/`.
 
+### 2.1 Why Paddle, and not the other four
+
+Because the Worker signs its own licenses, **every provider's license-key and
+entitlement system is dead weight** — the only surface that matters is a signed
+webhook carrying buyer email, product id and date, which all five have. That
+collapses the comparison to fee, vendor survival, and approval friction:
+
+| Provider | Fee on $19 | Why not |
+|---|---|---|
+| **Paddle** | 5% + 50¢ = **$1.45** (7.6%) | — the pick. |
+| Polar | 5% + 50¢ = $1.45 | Best DX (open source, API-first), same fee — but a startup that raised prices 25% in May 2026 (4%+40¢ → 5%+50¢, old rate grandfathered only for pre-2026-05-27 accounts). Fine as the fallback; reversal is cheap until launch. |
+| Lemon Squeezy | 5% + 50¢ = $1.45 | **Not dead, but stagnant.** Signups open and pricing unchanged, yet Stripe (which acquired it) is steering users to Stripe Managed Payments and its own founders promise "less frequent product updates". Don't build a new rail on a product whose roadmap is a migration path. |
+| Stripe Managed Payments | 6.4% + 30¢ domestic, 8%+ international | LS's actual successor and the likely long-term default, but still rolling out and US-business-gated in 2026. Too early; revisit at renewal time. |
+| Gumroad | 10% + 50¢ **plus** 2.9% + 30¢ processing ≈ **$2.75** (14.5%) | ~2× Paddle's take, ~$1.30/sale — more than the license layer costs to build, at any volume worth having. |
+
+The one operational catch: **Paddle reviews an account before it can take live
+payments**, and that gate sits in front of Phase 2. Sandbox works immediately,
+so the application runs in parallel with Phase 1, not after it.
+
 ## 3. Phases
 
 **Phase 0 — relicense, before any paid build exists** *(one session; do first —
@@ -78,15 +98,22 @@ it's the only step that gets harder after revenue)*
       coverage ("covered through 2027.08 — renew to update").
 - [ ] `DEBUG` builds: always licensed, same as the update check's guard.
 
-**Phase 2 — commerce rails** *(~1 session)*
-- [ ] Merchant of record: **Paddle** (recommended — mature, MoR insulates from
-      the exact Stripe-withholding story that hit NotchNook; LemonSqueezy is
-      the fallback, reversal is cheap until launch).
-- [ ] Worker webhook `/api/license/issue`: Paddle event → sign license → email
-      the file (the Worker already owns `/download/*` + `/api/release/*`;
-      this is a third route, not a new service).
+**Phase 2 — commerce rails** *(~1 session of work, but see the approval wait)*
+- [ ] **Apply to Paddle during Phase 1, not after it.** Approval is days, not
+      minutes, and it wants a live nebelhaus.com/perch page (even pre-rewrite)
+      with refund + terms links. MoR also insulates from the exact
+      Stripe-withholding story that hit NotchNook. Rationale + the rejected
+      alternatives: [§2.1](#21-why-paddle-and-not-the-other-four).
+- [ ] Worker webhook `/api/license/issue`: verify Paddle's HMAC signature
+      *first*, then `transaction.completed` → sign license → email the file
+      (the Worker already owns `/download/*` + `/api/release/*`; this is a
+      third route, not a new service).
 - [ ] Renewal SKU = same product, re-issues the file with a new `purchased`.
-- [ ] Test-mode purchase end-to-end before touching copy.
+      Two Paddle products, one route: `perch` $19, `perch-renewal` $9.
+- [ ] Build and test against the **sandbox** while approval runs; a real
+      purchase end-to-end before touching copy.
+- [ ] Payout minimum is $100 by default — ≈6 sales before the first wire.
+      Silence early on is the threshold, not a broken webhook.
 
 **Phase 3 — the storefront** *(~1–2 sessions)*
 - [ ] nebelhaus.com/perch rewritten in consumer voice — outcomes, not lingo:
