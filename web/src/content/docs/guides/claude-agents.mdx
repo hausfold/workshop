@@ -280,7 +280,11 @@ registry, so you can see where every agent stands without leaving the pane.
 GitHub PR pill. The **rows below are the worktrees this session spawned** (across
 whatever repos they live in), each with its repo, name, token, and PR state. The
 cross-repo GitHub lookups run detached and cached, so the bar never stalls your
-prompt.
+prompt. Your own row doesn't wait on that cache to warm: Claude Code tracks the
+current branch's open PR itself and hands it to the statusline, so a PR you just
+opened gets its pill — with the real GitHub URL behind it — right away, while the
+cache stays the source for the states Claude Code stops reporting (merged,
+closed).
 
 The token is one mutually-exclusive slot:
 
@@ -319,12 +323,19 @@ These two work together. Switching to a model that has no auto mode drops you to
 chip tells you why.
 
 :::note
-The mode chip updates at **turn boundaries**, not while you cycle `shift+tab`.
-Claude Code only records the permission mode when a turn is submitted, and
-exposes it nowhere else — no statusline field, no hook — so the chip means "the
-mode as of your last submitted turn". That's what makes it good at catching a
-mode that changed *under* you, and why it sits still if you cycle modes while
-idle.
+On stock Claude Code the mode chip updates at **turn boundaries**, not while you
+cycle `shift+tab`. Claude Code re-runs the statusline on every flip, but it
+doesn't put the mode in what it hands the statusline — it only *records* the mode
+when a turn is submitted, and there's no hook for it either. So the chip means
+"the mode as of your last submitted turn": good at catching a mode that changed
+*under* you, and still while you cycle modes idle.
+
+The gap is one field wide, and it can be closed downstream: the statusline
+prefers a `permission_mode` key in its stdin payload and only falls back to the
+transcript when it's missing. Claude Code's own payload builder already receives
+the live mode, so a build that emits it — the author's host patches the binary to
+do exactly that — gets a chip that tracks `shift+tab` as you press it, no turn
+needed.
 :::
 
 ## Links — every URL a pane's session saw
