@@ -8,6 +8,10 @@ uploads `public/` and Cloudflare serves it.
 Every path returns the same page (`not_found_handling = "single-page-application"`),
 so nothing 404s while the real site doesn't exist yet.
 
+[`PRESENCE.md`](./PRESENCE.md) is the register of every account, handle and
+namespace claimed under the hausfold name — what we hold, what's still a gap,
+and which channel to reach for when there's something to announce.
+
 ## Deploy
 
 ```sh
