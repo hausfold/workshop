@@ -156,7 +156,7 @@ that lap with its own instructions while staying data-only:
 ```nix
 nebelhaus.tour.steps = [
   {
-    hint = "Press ⌘Space, type tour, then hit ↵";
+    hint = "Press {palette}, type tour, then hit ↵";
     detect = "palette";
   }
   {
@@ -171,6 +171,20 @@ Steps run in order and advance from signals the rice already emits — `launch`,
 The first four need prowl; `palette` needs Pounce. A left-click skips the current
 step, and the module warns during a rebuild if a step depends on a room you
 disabled. Leave `tour.steps` at its default `null` to keep the built-in tour.
+
+Write keys as the placeholders `{palette}`, `{leader}` and `{leaderName}` rather
+than a literal chord: they expand to what *that* machine resolved, so a tour you
+share still names the right keys on a rice that moved `keys.palette`. A hardcoded
+`⌘Space` would be wrong there — and wrong invisibly, since the author never sees
+the consumer's bar. A misspelled placeholder renders as typed, and the rebuild
+warns and names it.
+
+<Aside type="caution" title="Tour with prowl off">
+The built-in tour is leader moves plus the palette, so turning prowl off leaves
+it nothing to teach: `tour.enable` on a `prowl.enable = false` rice draws no pill
+at all unless you author `tour.steps` yourself. The `everyday` preset does exactly
+that — one step, the launcher.
+</Aside>
 
 ### Homebrew behaviour
 
@@ -248,7 +262,17 @@ darwinConfigurations.myhost = nebelhaus.mkNebelhaus {
 };
 ```
 
-Your host file is imported *after*, so anything you set there still wins.
+Your host file can override anything a preset sets — but not by being imported
+*after* it. Import order carries no priority in Nix's module system: an option
+the preset leaves alone is yours to set plainly; an option it *also* sets is a
+*conflict*, not a silent win, until you reach for `lib.mkForce`:
+
+```nix
+{ lib, ... }:                              # add lib to your host's args
+{
+  nebelhaus.ui.scale = lib.mkForce 1.0;    # large-print sets this — force to win
+}
+```
 
 | Preset | For |
 |---|---|

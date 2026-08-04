@@ -30,7 +30,7 @@ The file evaluates to an attribute set whose only top-level key is
 
     tour.steps = [
       {
-        hint = "Press ⌘Space, type tour, then hit ↵";
+        hint = "Press {palette}, type tour, then hit ↵";
         detect = "palette";
       }
     ];
@@ -94,12 +94,13 @@ Before publishing, try:
 
 - the rice by itself;
 - the rice plus an unrelated layer;
-- a host value overriding one of the rice's choices;
+- a host `lib.mkForce` overriding one of the rice's choices;
 - each combination of rooms you turn off.
 
 If the result depends on an exact module order, narrow the rice until ordinary
-Nix merging is enough. Later modules can win conflicts, but order should not be
-the rice's hidden organizing principle.
+Nix merging is enough. Order carries no priority: two plain definitions of the
+same option conflict no matter which is imported last, and only `lib.mkForce`
+resolves it — so module order should never be a rice's hidden organizing principle.
 
 ## Publish something inspectable
 
@@ -146,7 +147,7 @@ different trust model and should be labelled as one.
 - [ ] `checkRice` prints `true`.
 - [ ] A real host configuration evaluates.
 - [ ] The rice composes with an unrelated layer.
-- [ ] Host overrides still win.
+- [ ] A host `lib.mkForce` still beats the rice's choices.
 - [ ] Disabled rooms agree with dependent features, including
       [`tour.steps`](/guides/making-it-yours/#the-first-run-tour).
 - [ ] The README states the audience, scope, tested revision, and limits.
