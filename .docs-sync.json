@@ -1,29 +1,32 @@
 {
   "repos": {
     "workshop": {
-      "rev": "2ab712eb3daac4ad2d3cdaf13ff60f88fb71b19a"
+      "rev": "436a163ea89b289ef934ebdf999f094e5decbc7b"
     },
     "nebelung": {
-      "rev": "a34cc809a8786cc3862d913e1362c50e3df2d218"
+      "rev": "06f942904e2d73344e63ee43b34d0d2777dc16d8"
     },
     "pounce": {
-      "rev": "75e0d54ee9cef17da4f47ae94c215fcdfcffcdfc"
+      "rev": "89cd8f6480050e53a1d110f89c1b122baba9220b"
     },
     "trill": {
-      "rev": "1c4e1df3e467a6f48d8797304341ea17b806af78"
+      "rev": "88a4ddda69e1789e3c8230b7c1f5d25f8549416f"
     },
     "nebelhaus": {
-      "rev": "7072a2214ccef87e079836202c388f3c15663944"
+      "rev": "4df638058ca57e3a0b130447fc851573edba3742"
     },
     "org-profile": {
-      "rev": "7bc79f13af7f783eed536147aff7591fc9dda5d7"
+      "rev": "1a65e36ab3dc20f763593e4111f8e9de201443bd"
     },
     "homebrew-tap": {
-      "rev": "e7514afa3a15af98a0b9a2b19ab82a306eed38d8"
+      "rev": "c961d7d0ed3badeefcaf589fe979738582314b45"
     },
     "perch": {
-      "rev": "a9f1ff76ff4bd5d467a39c1c9285eb5b46b9e4b0"
+      "rev": "05259304a8ee7fe182639a75c876104b6d2c3dca"
+    },
+    "holt": {
+      "rev": "27ad7e586e6d2fb8ac181460d853aa9d41fe2078"
     }
   },
-  "last_run": "2026-08-03T12:31:29+00:00"
+  "last_run": "2026-08-04T06:41:27-05:00"
 }
