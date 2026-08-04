@@ -12,6 +12,51 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-04 — the readiness test's last visible gap is closed, and
+> the test found a new one.** Re-audited against the repos first (§5.14's rule),
+> which is what turned up everything below.
+>
+> **The package-type format limit is FIXED (rice#215).** `packageName` — an
+> attribute path into nixpkgs written as a string — now sits beside both
+> package-typed options, so a data-only rice can change the font *family*
+> (§5.3's own motivating example, unexpressible until today) and an app pack can
+> install from Nixpkgs (§5.4). Three things worth carrying:
+> **(a)** the fix is one convention, not two options: `<option>Name`, resolved by
+> `modules/lib/pkg-by-name.nix`, and `nix flake check`'s new
+> **`data-only-surface`** fails when a package-typed `nebelhaus.*` leaf is added
+> without its string sibling — because the third one gets added by someone who
+> never read the note explaining the first two.
+> **(b)** the mechanical audit this doc kept asking for was finally run, and the
+> answer was small: **three** typed leaves in 128, of which two were the known
+> package pair and the third (`hush.hooks`, a path) is *fine* — a rice can ship a
+> script beside itself and say `./thing`, which stays data. The audit that
+> sounded like a project was a `jq` one-liner.
+> **(c)** the trust line got sharper by being written down: naming a package is
+> still data (the resolver walks `pkgs` by attribute path — no `import`, no
+> string that becomes code), and it was never a claim that the software is
+> vetted, since `cask` could always fetch anything. "You can read a rice and know
+> what it does" ≠ "a rice can only install safe things."
+>
+> **★ And the readiness test has a new limit, which is bigger than the one it
+> replaces (rice#203): composing rices is NOT the free operation §6 claimed.**
+> The module system has no import-order priority — two definitions of one option
+> at equal priority *conflict*, they don't override. So `[ everyday minimal ]`
+> fails on `pounce.enable`, and a pack naming an app the consumer already has
+> fails with a raw conflict error that never reaches the friendly roster
+> assertion the pack advertises. `everyday + large-print` composes only because
+> the two files happen not to overlap. Three READMEs said otherwise and are
+> corrected; the consumer-side fix is `lib.mkForce`. **The composition story is
+> now the format's sharpest limit** — it's the one a stranger hits on their first
+> real pack, and unlike the package-type limit it has no fix in hand.
+>
+> Also landed since the last pass, none of it predicted here: **the accent's
+> reach is a golden table** (`accent-reach`, rice#208 — seventeen surfaces × three
+> accents, so a dropped accent wire fails loudly instead of silently), Zen's
+> accent finally reaches **the actual web** via a declared Stylus bundle
+> (rice#208/#211 + nebelung#22), and **trill is out of the rice entirely**
+> (rice#212 opt-in → rice#213 removed) — "a supported option nobody should turn
+> on is a lie in the option reference" is the sentence to reuse.
+>
 > **Status, 2026-08-03 — read §5.14 first.** An audit of every open box against
 > the actual repos found **three items that had shipped and were never ticked**
 > (§5.9's rice-side `pounce.items` in rice#149, §5.12's FDA detection in rice#128,
@@ -128,6 +173,10 @@ keep `modules/options.nix` as the cross-cutting/identity file. Purely
 mechanical, no behaviour change. **Do this first or everything else compounds.**
 
 - [x] `modules/{den,hearth,prowl,sill,pounce,hush,theme,trill,secrets,snippets}/options.nix`
+      (the room list has moved since: `roster`, `displays`, `apps` and `perch`
+      joined it, and `trill` is gone — rice#213 removed the module and its flake
+      input, two days after rice#212 made it opt-in. The sentence to reuse: *a
+      supported option nobody should turn on is a lie in the option reference.*)
 - [x] `modules/options.nix` keeps `apps` + `developer` (752 → 122 lines). `git`/`claude` went to hearth, which owns them.
 - [x] Verified as a pure move: the example host's derivation is byte-identical and all 39 leaf option paths are unchanged.
 
@@ -304,6 +353,34 @@ nebelhaus.theme = {
       and the three hand-made wallpapers — a much better place for the line to sit,
       because both of those are honestly *not ours*, whereas pounce baking its own
       was only ever a limitation of how it was built.
+      → ✅ **And the line is a GOLDEN TABLE now, not prose — rice#208.**
+      `accent-reach` fingerprints seventeen surfaces under **three** accents
+      (three, not two, so a fingerprint that merely happens to differ once can't
+      pass; anything neither all-different nor all-identical reads `PARTIAL` and
+      fails). Seven move, ten hold. This is the answer to the failure mode that
+      makes an "honest scope" sentence rot: drop the accent wire from lazygit in
+      an unrelated refactor and *nothing errors* — the accent just quietly stops
+      arriving. **A documented boundary that isn't executable is a boundary that
+      moves without anyone deciding to move it.** Generalise it: every "this
+      option reaches exactly these things" claim in the surface is a candidate for
+      the same treatment.
+      → Two things the table's own construction taught: a roster **port** had to
+      be added to the check (zed) or the accent-matrix path had no subject at all,
+      and its row pins a real gotcha — the port renames its theme file per accent,
+      so the app's own `theme` key ends up naming the old file. And trill's row is
+      simply gone with rice#213; pounce and perch cover runtime-palette theming.
+      → ★ **"and the Zen browser" was being read as "and the web", and it wasn't
+      true** (rice#208's second half + rice#211 + nebelung#22). Switching to
+      sapphire left github.com and youtube.com mauve: the rice places Zen's
+      `userChrome`/`userContent` per accent, but `userContent` only styles
+      `about:` pages. Real sites are **Stylus's** job, and its Catppuccin-derived
+      styles carry their own accent var in the extension's storage, which no file
+      the rice writes can reach. Fixed by declaring the extension and stamping a
+      bundle (`nebelhaus.zen.extensions.stylus`) — which then also gave
+      `high-contrast/` and `latte*/` a stylus dir to read, so flavor and contrast
+      reach the web too. The lesson is the wording one: a scope sentence naming an
+      *app* implies everything that app shows you, and a browser is the one app
+      where that's wrong.
 - [x] ✅ **Felt on the real machine, 2026-07-27: 19.9:1 reads CRISP, not harsh.**
       That was the one open question a ratio couldn't answer, and it's the answer
       the high-contrast axis needed before anything could be built on it — so
@@ -491,26 +568,49 @@ nebelhaus.fonts = {
 - [x] Assert the mono font is a Nerd Font (or warn loudly) — starship/lsd/yazi tofu
       otherwise. Shipped as a warning when `name` is set without `package`.
 - [x] `ui.scale` multiplies `fonts.*.size` by default
-- [ ] ⚠️ **`sans` never landed, and the reason now matters.** The example in the
-      block above — Atkinson Hyperlegible for a large-print machine — is **not
-      expressible as a preset at all**, because `fonts.mono.package` takes a
-      `types.package` and reaching `pkgs` is exactly what a data-only rice forbids
-      (§3.3). So a shared rice can make the existing font bigger but cannot change
-      the family. This is the sharpest limit the readiness test has found, and it's
-      a *format* limit rather than a missing option: the fix is a way to name a
-      package without evaluating one (a string resolved against `pkgs` by the
-      module, with the obvious injection question to answer first), not another
-      `types.package` option.
-      → ★ **Confirmed as a property of the format, not a fonts quirk (2026-08-03).**
-      `packs/writing.nix` hit the identical wall from a different family:
-      `roster.*.package` is also `types.package`, so a pack can install from
-      Homebrew and the App Store but never from Nixpkgs. **Two families is the
-      point at which this stops being a workaround-per-option and becomes one fix.**
-      The audit to run before publishing the format is mechanical — every leaf in
-      `options-json` whose type is package, derivation or path-to-store is
-      invisible to a data-only rice — and it's worth running as a CHECK rather
-      than a one-off, because the next option typed that way will be added by
-      someone who has never read this paragraph.
+- [x] ✅ **The format limit is FIXED — rice#215 — and `sans` is a separate,
+      still-open item.** The two were tangled in this box; they're not the same
+      thing. The limit: `fonts.mono.package` takes a `types.package` and reaching
+      `pkgs` is exactly what a data-only rice forbids (§3.3), so a shared rice
+      could make the existing font bigger but never change the family — Atkinson
+      Hyperlegible for a large-print machine, the example this section opens with,
+      was unexpressible as a preset.
+      → ★ **It was a property of the FORMAT, confirmed from a second family
+      (2026-08-03):** `roster.*.package` is `types.package` too, so a pack could
+      install from Homebrew and the App Store but never from Nixpkgs. Two families
+      is where a workaround-per-option stops being cheaper than one fix.
+      → **The fix (2026-08-04): name the package, don't evaluate it.**
+      `packageName` takes an attribute path into nixpkgs as a string
+      (`"nerd-fonts.fira-code"`, `"python3Packages.black"`), resolved by
+      `modules/lib/pkg-by-name.nix`. The package-typed option stays — it's still
+      the precise way to say it from a module that has `pkgs` — and setting both
+      is *refused* rather than ranked, because one source written two ways with a
+      silent winner is the failure mode this repo keeps re-finding.
+      Four things worth carrying:
+      **(a)** the injection question this box flagged has a boring answer: the
+      resolver walks `pkgs` by attribute path and does nothing else — no `import`,
+      no string that becomes code. The property the format sells is "you can read
+      a rice and know what it does", and that survives. It was never "a rice can
+      only install vetted software" — `cask` could always fetch anything, and
+      naming a nixpkgs attribute is the same trust, not a new one. Worth stating
+      in the README rather than leaving as a vibe.
+      **(b)** the mechanical audit is **run, and it's a `jq` one-liner**: three
+      package/derivation/path-typed leaves out of 128, of which the two package
+      ones are now paired and the third (`hush.hooks`) is fine — `types.path`
+      accepts `./thing` beside the rice file, which is still data. The thing this
+      doc kept describing as an audit to schedule was ten seconds of work.
+      **(c)** it's a CHECK now, exactly as this box asked: `data-only-surface` in
+      `nix flake check` fails when a package-typed `nebelhaus.*` leaf has no string
+      sibling named `<option>Name`. It reads the same evaluated option tree the
+      docs render from — so it sees the public surface by construction — and it's
+      pure lib, so it runs on Linux CI beside `keymap`/`theme-variants`.
+      **(d)** ONE convention beat two names. `nixpkgs` would have fitted roster's
+      source vocabulary (`cask`/`brew`/`appStoreId`) better than `packageName`,
+      but the rule being enforced is a *format* rule, and a check can only enforce
+      a rule that's uniform — `<option>Name` everywhere is what makes the next
+      package-typed option a one-line fix instead of a design conversation.
+- [ ] `sans` still doesn't exist (only `fonts.mono` does). Nothing blocks it now
+      that naming a package is possible; it's just unbuilt.
 
 ### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ◐ **(a) shipped as `roster` (rice#182), (b) untouched**
 The registry is good. Two concrete gaps — and the halves came apart: the install
@@ -534,6 +634,14 @@ workspace) under the module system's ordinary merge, while a tagged union makes
 every contributor restate the discriminator and turns a partial contribution
 into a type error. `installedBy` came along for the same reason — an entry needs
 to say *who* put it there once the rice itself ships bundles.
+
+**Update 2026-08-04 (rice#215): a fifth field, `packageName`,** which is the same
+Nixpkgs source named as a string rather than evaluated — the one an app pack can
+actually write (§5.3). It resolves into `package` before any check reads the
+entry, deliberately: multi-source detection, the empty-entry warning and the
+install path all see one field and never learn which way it arrived, so the
+pack-authored half is not a second code path. Only the both-set assertion reads
+the raw entries, because after resolution the two would look like agreement.
 
 Still not shipped from this sketch: the `flake` / `pwa` / `manual` sources. `mas`
 did land, gated behind `nebelhaus.appStore.install` — off by default, because it
@@ -620,6 +728,15 @@ nebelhaus.keys = {
       drift). Both now come from the resolved keymap, and `"none"` empties the
       cheatsheet page along with the bindings so it never advertises an unbound key.
       The first-run tour's prompts follow too, via the generated `tour_config.sh`.
+- [x] A binding was **retired** rather than rebound, and the surface handled it
+      (rice#210): ⌥⇥ workspace back-and-forth is gone, because pounce's ⌘⇥
+      switcher answers the same question better (its rows carry the window's
+      AeroSpace workspace, so it crosses workspaces on its own) and the
+      single-previous-workspace pointer was what stranded you on a space you'd
+      just emptied. Left deliberately **unbound**, not refilled. Relevant here
+      only because it's the first removal since the keymap became generated: the
+      cheatsheet, the tour prompts and the docs all followed from the data with
+      nothing to hand-edit, which is what §5.5's last box was for.
 - [ ] **Non-QWERTY is addressed but not TESTED.** `windowNav = "ctrl-alt"` exists
       precisely because ⌥+letter types accented characters on many layouts, but
       nobody has run the rice on such a layout. The launch-mode LETTERS
@@ -684,6 +801,22 @@ generalization of something that already ships.
 
 `hosts/<host>/packages/*.nix` is already auto-imported and already written by a
 pounce command. Extend that to a general `hosts/<host>/settings/*.nix`, and:
+
+**Prior art arrived from pounce while this waited — pounce#54.** `pounce config
+init` writes `~/.config/pounce/config.json` with **every** setting present at its
+default and commented out, AeroSpace-style: you learn the surface by reading your
+own config and make it minimal by deleting lines. Three details that transfer
+directly to `haus set`, all of them non-obvious:
+**(a)** each entry reads its default off a live settings object rather than a
+written-down table, because *a confident wrong number in a file that looks
+authoritative* is the one drift a template makes worse than no template;
+**(b)** it refuses outright when the target is a symlink into the Nix store —
+under the rice that file is generated from `nebelhaus.pounce.*`, so a copy
+written beside it would be silently reverted by the next rebuild. `haus set`
+faces the identical two-writers question from the other side;
+**(c)** every commented line carries its own trailing comma (the config is read
+as JSONC now), so *any subset* can be uncommented without fixing punctuation —
+otherwise the file's promise breaks on your second edit.
 
 - [ ] `haus set theme.accent teal` → writes one small ordinary Nix file → rebuild
 - [ ] `haus get` / `haus unset` / `haus reset <path>`
@@ -934,6 +1067,23 @@ The cheap mitigation, given both: **re-audit against the repos, not against
 memory, before treating any `- [ ]` as work to do.** The full pass took one
 session and would have been cheaper than the half-rebuild that prompted it.
 
+**Second pass, 2026-08-04 — the rule held, and it found a failure it doesn't
+cover.** Re-auditing first this time cost ten minutes and turned up no
+shipped-but-unticked box (one day of drift, so that's expected). What it *did*
+turn up is a different shape of staleness the checkbox rule can't catch: **a
+shipped PR that falsifies a CLAIM in the prose.** rice#203 didn't close any item
+here — it corrected the composition story §6 and Phase 0 were built on, and both
+of those are ticked boxes and running text, not open ones. So:
+
+- an open `- [ ]` goes stale when work ships → fixed by auditing the repos;
+- a **closed** item goes stale when someone learns the thing it asserted was
+  wrong → nothing catches that but reading the commit messages.
+
+Both were found by the same act — reading every commit since the last pass rather
+than diffing the checkbox list — which is the actual rule worth keeping. The
+commit bodies in these repos are long on purpose; **the audit is reading them,
+not grepping them.**
+
 ---
 
 ## 6. Phasing
@@ -949,6 +1099,11 @@ session and would have been cheaper than the half-rebuild that prompted it.
       composes rather than competes: `[ everyday large-print writing ]` is a
       sentence — what kind of machine, how you see it, what's on it — and none of
       the three files knows about the other two.
+      → ⚠️ **That sentence was too strong, and rice#203 corrected it.** Touching
+      one family makes an *overlap* unlikely, not impossible, and an overlap is a
+      **conflict**, not an override — see the composition finding in §6. The
+      three above compose because they don't collide; `[ everyday minimal ]`
+      doesn't compose at all.
       Three things it taught, all of which needed writing one to find:
       **(a) it found a real bug.** `z` is the obvious letter for Zotero and also a
       built-in leader action; the rice ACCEPTED that and emitted two `z =`
@@ -1096,13 +1251,17 @@ separate "a Mac for someone who doesn't write code" from "a Mac you can read".
 **Passing is not the same as finished, and the test's real value was the two
 limits it exposed:**
 
-1. **A shared rice cannot change the font family.** `fonts.mono.package` takes a
-   `types.package`, and reaching `pkgs` is precisely what data-only forbids — so
-   §5.3's own motivating example (Atkinson Hyperlegible for a large-print machine)
-   is unexpressible as a preset. This is a **format** limit, not a missing option,
-   and it generalises: any option typed as a package, derivation or path-to-store
-   is invisible to the community format. Worth auditing the whole surface for
-   others before publishing it.
+1. ~~**A shared rice cannot change the font family.**~~ ✅ **Closed 2026-08-04
+   (rice#215).** It was a **format** limit rather than a missing option —
+   `fonts.mono.package` is a `types.package` and reaching `pkgs` is precisely what
+   data-only forbids — and it generalised exactly as predicted: `roster.*.package`
+   had it too. `packageName` (a nixpkgs attribute path, as a string) answers both,
+   and `data-only-surface` in `nix flake check` now fails on the next
+   package-typed option added without one. The surface audit it asked for came out
+   at **three typed leaves in 128**, two of them the pair just fixed and the third
+   a `types.path` that a data-only rice can legitimately satisfy with `./thing`.
+   The scary-sounding audit was a one-liner; the part worth the work was making it
+   a check.
 2. **There was no system-wide size lever in the preset.** macOS's own workable
    lever is display resolution (§5.10), not its broken declarative text-size
    setting. That gap is now closed by `displays.main.uiScale = "larger-text"` in
@@ -1112,7 +1271,8 @@ limits it exposed:**
 So the honest reading now: the option surface can express all three reference
 rices, and `large-print` reaches both the rice and the whole Mac. Its one
 remaining visible gap is the font-package format limit above — not §5.2, and not
-§5.4.
+§5.4. *(Superseded 2026-08-04: that gap is closed, and a third limit — composition
+— took its place. See below.)*
 
 **Re-checked 2026-07-30 after rice#147/#149.** Displays and the rice-side pounce
 item generator both landed. That left the sizing pass as the next coherent piece:
@@ -1160,6 +1320,50 @@ the remaining work sits changed shape:
   and had been open the longest. **Cheap and unblocked is not the same as
   likely-to-happen**; if anything it's the opposite, because nothing forces the
   issue. The lesson for whatever ends up last in Phase 5.
+
+**Updated 2026-08-04 — limit 1 is closed (rice#215) and limit 3 is worse than
+limit 1 ever was.**
+
+### ★ Limit 3: composing rices is not the free operation this document assumed
+
+Found by rice#203, while composing `packs.writing` onto a real host that already
+had Obsidian — *the likely case, not an exotic one*, since a pack is worth
+publishing precisely when its apps are popular.
+
+**Import order carries no priority in the module system.** Two definitions of the
+same option at the same priority *conflict*; the build stops. Everything this
+doc (and three READMEs) said about "later ones win" was false:
+
+- `[ everyday minimal ]` doesn't compose at all — they collide on
+  `pounce.enable`.
+- `[ everyday large-print ]` composes **only because the two files happen not to
+  overlap**, which is luck the format was taking credit for.
+- A pack naming an app the consumer already has fails with a raw module-system
+  conflict error — and it never reaches the friendly roster assertion the pack
+  advertises, because the module system stops first, per field. The suggested fix
+  (`lib.mkForce`) appeared in none of the docs.
+
+The consumer-side fix is one line (`nebelhaus.roster.zotero.key = lib.mkForce
+"y";`) and the pack-author-side guidance is "leave optional fields null — every
+field you set is one a consumer may have to force". Both are now written down.
+But note what remains unsolved: **a stranger's first real pack collides with a
+stranger's existing rice, and the error they see is a nix conflict trace rather
+than anything this project wrote.** That is the format's sharpest limit now, and
+unlike the package-type limit it has no fix in hand — only three candidates worth
+weighing before publishing the format:
+
+1. **Ship packs at a lower priority** (`mkDefault` inside every pack) so a host
+   wins by default. Cheap; costs the ability to say "this pack *means* it".
+2. **Detect and translate** — an assertion that turns the raw conflict into "your
+   host and pack X both set `roster.obsidian.key`; add `lib.mkForce`". The module
+   system stops before our assertions run, so this needs the conflict caught
+   somewhere earlier, which may not be possible from inside the module system at
+   all.
+3. **Accept it and document it**, which is where rice#203 left things.
+
+Worth testing option 1 on `packs/writing.nix` before publishing anything: it is
+the only one that changes what a stranger *experiences*, and the readiness test
+has never once been run with two files that overlap.
 
 ---
 
@@ -1257,8 +1461,10 @@ surrounding style by hand, and don't reformat existing ones.
 ## 9. Naming (optional, low stakes)
 
 The family speaks cat-and-house (`nebelung`, `pounce`, `prowl`, `sill`, `den`,
-`hearth`, `collar`, `hush`, `trill`, `perch`, `haus`, `wt`). New rooms could
-keep it:
+`hearth`, `collar`, `hush`, `perch`, `haus`, `holt`). New rooms could keep it —
+minus two names this table can no longer have: **`perch` is a shipped product**
+(the notch file shelf), and `trill` left the rice entirely in rice#213. Names in
+this family get taken while a table like this sits still:
 
 | Room | Candidate | Why |
 |---|---|---|
@@ -1266,7 +1472,7 @@ keep it:
 | accessibility — motor | `paws` | |
 | accessibility — hearing | `ears` | |
 | keymap | `claws` | what the leader key is |
-| displays / multi-monitor | `perch` | where the cat sits and looks out |
+| displays / multi-monitor | ~~`perch`~~ | taken — it's the notch file shelf now, and the room shipped as `nebelhaus.displays` anyway (§5.10) |
 | scenes | `moods` | the states the cat is in; `hush` becomes one |
 | dev pack extracted from hearth | `quarry` / `kit` | weakest of the set — probably just call it `developer` |
 
