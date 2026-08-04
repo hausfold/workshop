@@ -55,27 +55,45 @@ final class ActionRouter {
             // switch macOS's notifications off wholesale.
             let scope = NotificationSettingsAudit.scope(forActionTarget: action.target)
                 ?? .only(listedApps())
-            // Re-running the audit rather than trusting the event's payload
-            // keeps the window honest about *now* — the user may have fixed
-            // one of them while the banner sat on screen.
-            guard let findings = NotificationSettingsAudit.liveFindings(scope: scope) else {
+            var named: [String] = []
+            if case .only(let ids) = scope { named = ids }
+
+            // A click must always *do* something. The banner is still on
+            // screen; a click that logs and opens no window reads as flick
+            // being broken, whatever the reason was.
+            guard let store = NotificationSettingsAudit.readAll() else {
                 // Can't read the store (no Full Disk Access). The walkthrough
                 // still works — it just can't tick anything off by itself —
-                // so open it on the apps the banner named rather than
-                // swallowing the click.
+                // so open it on the apps the banner named.
                 Self.log.info("silence action for \(event.id, privacy: .public): settings unreadable, walking blind")
-                if case .only(let ids) = scope, !ids.isEmpty {
+                if named.isEmpty {
+                    SystemIntegration.openNotificationSettings()
+                } else {
                     SystemIntegration.presentNativeBannerAssistant(
-                        findings: ids.map(NativeNotificationSettings.unknown(bundleID:))
+                        findings: named.map(NativeNotificationSettings.unknown(bundleID:))
                     )
                 }
                 return
             }
-            guard !findings.isEmpty else {
-                Self.log.info("silence action for \(event.id, privacy: .public): nothing left to silence")
+            // Re-running the audit rather than trusting the event's payload
+            // keeps the window honest about *now* — the user may have fixed
+            // one of them while the banner sat on screen.
+            let findings = NotificationSettingsAudit.findings(scope: scope, settings: store)
+            guard findings.isEmpty else {
+                SystemIntegration.presentNativeBannerAssistant(findings: findings)
                 return
             }
-            SystemIntegration.presentNativeBannerAssistant(findings: findings)
+            // Fixed while the banner sat there. Open on those same apps
+            // anyway: every one is quiet now, so the panel goes straight to
+            // its all-clear card and closes itself — which is the answer to
+            // "what happened to the thing I clicked".
+            Self.log.info("silence action for \(event.id, privacy: .public): nothing left to silence")
+            let quiet = named.compactMap { store[$0] }
+            if quiet.isEmpty {
+                SystemIntegration.openNotificationSettings()
+            } else {
+                SystemIntegration.presentNativeBannerAssistant(findings: quiet)
+            }
         }
     }
 

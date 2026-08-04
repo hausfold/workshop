@@ -8,6 +8,12 @@ struct SettingsView: View {
     let providerStatus: [String: String?]
     var fetchProviderStatus: (() async -> [String: String?])? = nil
     let onRequestFullDiskAccess: () -> Void
+    /// The same grant, asked for from the audit rather than from System
+    /// Mirror — and *only* the grant. Separate closure because the System
+    /// Mirror button switches that provider on when the grant lands, and a
+    /// user who came here to make `doctor` work never asked to turn an
+    /// experimental provider on.
+    var onRequestAuditAccess: () -> Void = {}
     /// The bundle ids flick is meant to keep macOS quiet for. Supplied by the
     /// caller (which owns the live rule set) so this view stays ignorant of
     /// where "listed" comes from.
@@ -124,13 +130,22 @@ struct SettingsView: View {
             // TCC-protected — the same grant System Mirror needs. Say that
             // rather than showing a reassuring green tick flick can't stand
             // behind.
-            Label(
-                "Can't tell — flick needs Full Disk Access to read macOS's notification settings.",
-                systemImage: "questionmark.circle"
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 6) {
+                Label(
+                    "Can't tell — flick needs Full Disk Access to read macOS's notification settings.",
+                    systemImage: "questionmark.circle"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+                // Its own button, not a pointer at the System Mirror one:
+                // that grant flips System Mirror on when it lands, and a user
+                // who came here to make the audit work didn't ask for an
+                // experimental provider.
+                Button("Grant Full Disk Access…", action: onRequestAuditAccess)
+                    .controlSize(.small)
+            }
         } else if auditFindings.isEmpty {
             Label(
                 auditScopeIsEmpty

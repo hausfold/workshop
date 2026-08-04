@@ -79,6 +79,43 @@ struct DraggableAppTile: NSViewRepresentable {
     func updateNSView(_ nsView: DraggableAppTileNSView, context: Context) {}
 }
 
+// MARK: - Walkthrough state
+
+/// Which apps in a worklist are done, and how each of them got there.
+///
+/// Pulled out of the view because it decides two things worth testing: when
+/// the walkthrough ends, and which of two endings it shows. The distinction
+/// between the sets is the whole point — `confirmed` is macOS agreeing the app
+/// went quiet, `advanced` is the user saying so — and only the first earns a
+/// green dot or the "macOS has stopped drawing them" line.
+struct Walkthrough: Equatable {
+    /// Apps the audit has since read as quiet.
+    var confirmed: Set<String> = []
+    /// Apps the user marked done. flick never checked these.
+    var advanced: Set<String> = []
+
+    func isFinished(_ bundleID: String) -> Bool {
+        confirmed.contains(bundleID) || advanced.contains(bundleID)
+    }
+
+    func current(in worklist: [NativeNotificationSettings]) -> NativeNotificationSettings? {
+        worklist.first { !isFinished($0.bundleID) }
+    }
+
+    func remaining(in worklist: [NativeNotificationSettings]) -> Int {
+        worklist.filter { !isFinished($0.bundleID) }.count
+    }
+
+    func done(in worklist: [NativeNotificationSettings]) -> Int {
+        worklist.count - remaining(in: worklist)
+    }
+
+    /// True only when macOS confirmed every one of them. A single
+    /// user-advanced app is enough to make the closing card stop claiming
+    /// macOS stopped drawing anything.
+    var everythingWasConfirmed: Bool { advanced.isEmpty }
+}
+
 // MARK: - Type scale
 
 /// One type scale for the whole helper.
@@ -136,20 +173,20 @@ struct OnboardingAssistantView: View {
 
     @State private var pollTimer: Timer?
     @State private var selectedTab = 0
-    /// Bundle ids the poll has since seen go quiet. Kept as a set rather than
+    /// Which apps are done, and how each got there. Kept as sets rather than
     /// a cursor because the user is free to fix them in any order — or to fix
     /// three at once in a pane they already had open.
     ///
-    /// **This can stay empty on a Mac where everything went right.** macOS 26
+    /// **`confirmed` can stay empty on a Mac where everything went right.** macOS 26
     /// doesn't write `com.apple.ncprefs` when you change the pane — usernoted
     /// takes the change and the file is only flushed much later (a 92-app
     /// store measured byte-identical to a 17-day-old copy, across a change
     /// made and System Settings quit). So the poll is a *bonus* confirmation,
     /// not the mechanism: `advanced` is what actually moves the walkthrough.
-    @State private var resolved: Set<String> = []
-    /// Bundle ids the user marked done themselves. The panel can't watch the
-    /// pane on Tahoe, so it doesn't pretend to — it asks, and believes them.
-    @State private var advanced: Set<String> = []
+    /// Both sets, and the queries over them, live in `Walkthrough` — pure and
+    /// tested, because when the walkthrough ends and which ending it shows are
+    /// the two things here worth getting wrong.
+    @State private var walkthrough = Walkthrough()
     /// Briefly true when the last app goes quiet, so the panel can say so
     /// before it closes instead of just vanishing.
     @State private var allClear = false
@@ -304,7 +341,7 @@ struct OnboardingAssistantView: View {
     }
 
     private func isFinished(_ bundleID: String) -> Bool {
-        resolved.contains(bundleID) || advanced.contains(bundleID)
+        walkthrough.isFinished(bundleID)
     }
 
     @ViewBuilder
@@ -374,7 +411,7 @@ struct OnboardingAssistantView: View {
                 Spacer(minLength: 0)
 
                 // The advance. macOS 26 doesn't tell anyone when the pane
-                // changes (see `resolved`), so the user does — a button that
+                // changes (see `walkthrough`), so the user does — a button that
                 // waits on a confirmation that never arrives is worse than
                 // one that trusts them.
                 Button {
@@ -389,13 +426,13 @@ struct OnboardingAssistantView: View {
     }
 
     private func remaining(in findings: [NativeNotificationSettings]) -> Int {
-        findings.filter { !isFinished($0.bundleID) }.count
+        walkthrough.remaining(in: findings)
     }
 
     /// Mark the current app done and move on — or finish, if it was the last.
     private func markDone(_ bundleID: String, in findings: [NativeNotificationSettings]) {
         withAnimation(.easeOut(duration: 0.25)) {
-            advanced.insert(bundleID)
+            walkthrough.advanced.insert(bundleID)
         }
         guard remaining(in: findings) == 0 else { return }
         finish()
@@ -477,7 +514,7 @@ struct OnboardingAssistantView: View {
     /// drop to the count alone, which stays honest at any length.
     @ViewBuilder
     private func stepIndicator(findings: [NativeNotificationSettings]) -> some View {
-        let done = findings.filter { isFinished($0.bundleID) }.count
+        let done = walkthrough.done(in: findings)
         if findings.count <= Self.dottedStepLimit {
             HStack(spacing: 5) {
                 ForEach(findings, id: \.bundleID) { finding in
@@ -488,8 +525,8 @@ struct OnboardingAssistantView: View {
                         // flick was told, it didn't check, and the dot
                         // shouldn't claim otherwise.
                         .fill(
-                            resolved.contains(finding.bundleID) ? Color.green
-                                : advanced.contains(finding.bundleID) ? Color.secondary.opacity(0.7)
+                            walkthrough.confirmed.contains(finding.bundleID) ? Color.green
+                                : walkthrough.advanced.contains(finding.bundleID) ? Color.secondary.opacity(0.7)
                                 : isCurrent ? Color.accentColor
                                 : Color.secondary.opacity(0.3)
                         )
@@ -512,7 +549,7 @@ struct OnboardingAssistantView: View {
         // they're done is worth thanks and nothing more — claiming "macOS has
         // stopped drawing them" off a button press would be flick inventing a
         // confirmation it never got.
-        let confirmed = advanced.isEmpty
+        let confirmed = walkthrough.everythingWasConfirmed
         HStack(spacing: 10) {
             Image(systemName: confirmed ? "checkmark.circle.fill" : "checkmark.circle")
                 .font(.title2)
@@ -540,7 +577,7 @@ struct OnboardingAssistantView: View {
     ///
     /// **The tick-off is opportunistic, not the mechanism.** On macOS 26 that
     /// store simply doesn't move when the user changes the pane (see
-    /// `resolved`), so the walkthrough advances on the user's own "Done" and
+    /// `walkthrough`), so it advances on the user's own "Done" and
     /// this poll is the bonus that fires where it still works: older macOS,
     /// an app silenced before the panel opened, or after macOS eventually
     /// flushes. Polling rather than watching the file because the store is
@@ -586,7 +623,7 @@ struct OnboardingAssistantView: View {
         withAnimation(.easeOut(duration: 0.25)) {
             live = worklist
             settingsIsFrontmost = front == SystemIntegration.systemSettingsBundleID
-            resolved.formUnion(quiet)
+            walkthrough.confirmed.formUnion(quiet)
         }
     }
 

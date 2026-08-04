@@ -16,6 +16,10 @@
 # Verified empirically by holding one app's switches in a known state and
 # diffing, rather than by trusting the flag tables in circulation:
 #
+#   bit 25 (0x2000000)  Allow notifications — the master switch. READ IT FIRST:
+#                       macOS freezes the bits below at their last values when
+#                       it goes off, so an audit that skips it reports every
+#                       app you silenced years ago as noisy.
 #   bit 2 (0x4)  Play sound for notification
 #   bit 3 (0x8)  Desktop, Temporary style — an on-screen banner
 #   bit 4 (0x10) Desktop, Persistent style — an on-screen alert
@@ -102,7 +106,7 @@ fi
 python3 - "$USERNOTED" "${1:-}" <<-'PY'
 	import plistlib, sys
 
-	SOUND, DESKTOP = 1 << 2, (1 << 3) | (1 << 4)  # temporary OR persistent
+	SOUND, DESKTOP, ALLOW = 1 << 2, (1 << 3) | (1 << 4), 1 << 25
 	path, match = sys.argv[1], (sys.argv[2] if len(sys.argv) > 2 else "")
 
 	apps = [a for a in plistlib.load(open(path, "rb")).get("apps", [])
@@ -113,19 +117,26 @@ python3 - "$USERNOTED" "${1:-}" <<-'PY'
 	rows, noisy = [], 0
 	for a in sorted(apps, key=lambda a: a["bundle-id"]):
 	    f = a["flags"]
-	    d, s = bool(f & DESKTOP), bool(f & SOUND)
+	    # "Allow notifications" first, always. macOS freezes the style and
+	    # sound bits at their last values when that master switch goes off, so
+	    # reading them without it reports every app the user silenced years
+	    # ago — the exact bug flick shipped once, and this probe is what an
+	    # agent uses to corroborate flick, so the two have to agree.
+	    allowed = bool(f & ALLOW)
+	    d, s = allowed and bool(f & DESKTOP), allowed and bool(f & SOUND)
 	    if d or s:
 	        noisy += 1
 	    rows.append((a["bundle-id"], f, "on" if d else "off",
 	                 "on" if s else "off",
-	                 "NOISY" if d else ("sound" if s else "quiet")))
+	                 "NOISY" if d else ("sound" if s else ("quiet" if allowed else "off"))))
 
 	print(f"{len(rows)} apps · {noisy} still drawing a banner and/or sounding\n")
 	print(f"{'BUNDLE ID':<46}{'FLAGS':>12}  {'DESKTOP':<8}{'SOUND':<7}VERDICT")
 	for bid, f, d, s, v in rows:
 	    print(f"{bid:<46}{f:>12}  {d:<8}{s:<7}{v}")
-	print("\nDesktop = bit 3 (0x8, temporary) OR bit 4 (0x10, persistent) "
-	      "· sound = bit 2 (0x4)")
-	print("quiet = all three clear: silent, drawing nothing, still reaching "
-	      "Notification Center")
+	print("\nallow = bit 25 (0x2000000, read FIRST) · Desktop = bit 3 (0x8, "
+	      "temporary) OR bit 4 (0x10, persistent) · sound = bit 2 (0x4)")
+	print("quiet = allowed, both drawing bits clear: silent and drawing "
+	      "nothing, still reaching Notification Center")
+	print("off   = allow bit clear: macOS isn't notifying for it at all")
 PY
