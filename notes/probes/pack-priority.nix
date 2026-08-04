@@ -29,6 +29,9 @@
 #   leaf-mkDefault pack + host         four apps; host's key wins; the pack's
 #                                      workspace/barIcon/cask survive
 #   two leaf-mkDefault packs           EVAL FAILED — pack-vs-pack still loud
+#   …and a host naming that app        four apps, host's letter — a PLAIN host
+#                                      assignment settles a pack-vs-pack
+#                                      collision; it outranks both packs
 #   leaf-mkDefault + host key = null   four apps, no letter claimed, no mkForce
 #
 # The middle row is the point. `mkDefault` on the whole `nebelhaus.roster`
@@ -130,6 +133,11 @@ in
   (probe "two leaf-mkDefault packs overlapping" [
     packLeafDefault
     otherPackLeafDefault
+  ])
+  (probe "two overlapping packs + a host naming the app" [
+    packLeafDefault
+    otherPackLeafDefault
+    host
   ])
   (probe "leaf-mkDefault pack + host asking for no letter" [
     packLeafDefault

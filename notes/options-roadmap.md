@@ -24,9 +24,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > three of the pack's four apps**, while `mkDefault` per leaf does precisely what
 > was wanted — and a data-only pack can write *neither*, because `checkRice`
 > refuses a file that takes `lib`. So option 1 is a property of the import seam,
-> not of the pack file, and the obvious version of it fails silently. Nothing
-> shipped: this changes what every published pack means, so the decision is
-> deliberately left open with the measurements attached.
+> not of the pack file, and the obvious version of it fails silently.
+> **Then shipped, same day — rice#222**: `nebelhaus.lib.pack` + `checkPack`, and
+> a `packs` check that composes a pack with a conflicting host and fails if the
+> host doesn't win — the first check here that pins a *relationship between two
+> rices* rather than one rice's table. **Limit 3 is closed for packs**; presets
+> still collide, deliberately.
 > (Repos re-read first, per §5.14: nothing roadmap-relevant landed after rice#220
 > — #219 is a comment fix and #221 is a pounce command.)
 >
@@ -1258,13 +1261,15 @@ point-valued options silently coupled to `displays`, §5.6's "what second key
 makes the first one a lie", and every "what this does NOT reach" paragraph in
 §5.1 and §5.2.
 
-**A fourth candidate arrived with limit 3's measurements: a pack's SURFACE.**
-Nothing enforces that a pack touches only `nebelhaus.roster` — `checkRice` bounds
-it to `nebelhaus.*` and stops there, which is why `packs/writing.nix` opens with
-a comment explaining the narrower rule instead of a check enforcing it. It costs
-nothing today and would cost real confusion the moment the seam in §6's option 1
-exists, because that wrapper silently drops whatever it wasn't written to carry.
-The check is the same shape as `checkRice`, one level in.
+**A fourth candidate arrived with limit 3's measurements, and closed within the
+hour: a pack's SURFACE.** Nothing enforced that a pack touches only
+`nebelhaus.roster` — `checkRice` bounds it to `nebelhaus.*` and stopped there,
+which is why `packs/writing.nix` opened with a comment explaining the narrower
+rule instead of a check enforcing it. It cost nothing until §6's seam existed,
+and would have cost real confusion the moment it did, because the wrapper
+silently drops whatever it wasn't written to carry. `checkPack` (rice#222) is
+the same shape as `checkRice`, one level in. **Two ★ findings in this file are
+now checks that can break, and this is the third** — the rule is holding.
 
 ---
 
@@ -1608,9 +1613,34 @@ leaves a check, not a paragraph). What it costs is what this section predicted:
 a pack can no longer *mean* a field, and a consumer who deliberately set the
 same letter the pack wanted is no longer told they agreed.
 
-**Deliberately not shipped.** It changes what every published pack means, and
-the readiness test has now been run with two overlapping files exactly once — in
-an evaluator, not on a machine.
+**★ Shipped the same day — rice#222, and the seam turned out to be public API.**
+Option 1, per leaf, as `nebelhaus.lib.pack`: `packs.<name>` arrives pre-wrapped,
+a vendored pack gets the same by being imported through it, and `packFiles.<name>`
+keeps the raw paths for tooling (`packs.<name>` was a path and is a module now —
+the one breaking change). `checkPack` joins `checkRice` for the narrower rule a
+pack has to obey, because the wrapper carries only `roster` through and would
+drop the rest without a word.
+
+Two things worth carrying out of building it:
+
+**The check that came with it composes TWO rices, which nothing here had done.**
+`nix flake check`'s new `packs` evaluates the shipped pack against a host that
+redefines one field and reads three properties back — host won, other entries
+survived, rest of the entry survived. It is **mutation-checked**: swapping the
+per-leaf `mkDefault` for the family-level one fails it with *"left 1 of 4
+entries"*, which is the whole finding turned into a failure message. Every check
+in this repo that pins a table pins one rice; this one pins a **relationship**,
+and the readiness test's blind spot was always relationships.
+
+**A plain host assignment settles a pack-vs-pack collision too** — measured
+while writing the docs, not predicted. Two packs at `mkDefault` naming one app
+still conflict, but a host that names the same app outranks both at once and the
+conflict never arises. So the escape hatch for the one case that still stops the
+build is "say what you want", not "learn `mkForce`".
+
+What it costs, stated in the option's own docs rather than discovered: a pack
+author is no longer told when a consumer disagrees with them. A pack proposes;
+the machine's owner decides.
 
 ### What the readiness test can and can't see, after limit 1 closed
 
@@ -1635,8 +1665,11 @@ found so far came from BUILDING one.**
   `data-only-surface`. The readiness test evaluates each rice **alone**; a
   compose-two-and-look check is the same machinery with a second module in the
   list, and it is the one thing that would have caught limit 3 before a real
-  host did. Cheap enough that "we've never run the test with two overlapping
-  files" should stop being true regardless of what happens to option 1.
+  host did. ✅ **It exists now** — `nix flake check`'s `packs` (rice#222)
+  composes each pack with a host that fights it. "We've never run the test with
+  two overlapping files" has stopped being true; the remaining gap is
+  preset-vs-preset, where colliding is the intended answer and the check would
+  have to assert the collision rather than its absence.
 - So the honest scoreboard reads: **the surface is no longer the constraint.**
   What's left is breadth (§5.6's seven uncurated groups), one schema migration
   (§5.4's `workspaces`, still the last unstarted Phase 3 item), trust (§5.11) —
