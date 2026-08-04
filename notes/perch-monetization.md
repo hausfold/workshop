@@ -152,8 +152,26 @@ public beta (§5.4).
 |---|---|---|
 | Price | **$39**, renewal $19 for another update year | Working number from the market eval. A daily-driver comms app sits above perch's $19 utility tier. Same one-time + 1-year-of-updates model, same CalVer entitlement — nothing new to build. |
 | License file | Identical, `"product": "trill"` | The format is already product-scoped. Signer, Worker route, mail template, Settings pane shape all reused verbatim. |
-| Gate shape | **Feature tier, not a cap and not a trial timer** — *proposed, needs a call* | A conversation cap is unusable (people would just reopen Messages.app) and a timer is resettable state. The honest split is **free = read, reply, search, one window** and **paid = the organizer layer**: folders/tags, VIP, snooze/archive/mute, saved messages, multi-tab, exports, stats. Light users stay free forever; the people who make trill their inbox convert. |
+| Gate shape | **Feature tier — the organizer layer.** Decided 2026-08-04. Not a cap, not a trial timer | A conversation cap is unusable (people would just reopen Messages.app) and a timer is resettable state. Free = read, reply, search, one window. Paid = the layer trill *adds*. Light users stay free forever; the people who make trill their inbox convert. Stateless and honest, like perch's cap. |
 | What is **never** behind the gate | Beeper aggregation | Gating it would make the paid tier depend on someone else's beta API. It is a bullet, not a SKU. |
+
+**The split, concretely.** It lands almost exactly on the overlay database
+(`Persistence/AppDatabase`) — which is the point: *you pay for what trill adds,
+not for what Apple already gave you.* One seam, one place to gate.
+
+| Free forever | Paid |
+|---|---|
+| Inbox, conversation view, composer, replies | Folders and tags |
+| Search + the command palette | VIP |
+| Notifications with inline reply | Snooze / archive / mute |
+| Pins (incl. ⌘1–9), drafts, read marks | Saved messages |
+| Menu-bar inbox | Multi-tab |
+| Every theme, accent, density, zoom | Library (media / links / files) |
+| Beeper aggregation, if configured | Exports and stats |
+
+Gating themes would be sour on a rice app, and gating pins or drafts would make
+the free tier worse than Messages.app — the free tier has to be a client
+someone would genuinely keep (§5.4).
 | Rice door | No special-casing, same as perch | But see §5.4 — trill ships by default in the rice, so this one is felt harder. |
 
 ### 5.3 Phase 0 for trill — do it now
