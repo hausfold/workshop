@@ -35,13 +35,6 @@
           "keys": "⌥ f"
         },
         {
-          "action": "Back and forth",
-          "binds": {
-            "alt-tab": "workspace-back-and-forth"
-          },
-          "keys": "⌥ ⇥"
-        },
-        {
           "action": "Move workspace to next monitor",
           "binds": {
             "alt-shift-tab": "move-workspace-to-monitor --wrap-around next"

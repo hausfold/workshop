@@ -1006,10 +1006,11 @@ Claude Code integration.
 Contents of Claude Code's global memory file, written to
 ~/.claude/CLAUDE.md (hearth wires it into home-manager). This is your
 personal, cross-project operating context. When set, the rice prepends
-one short section of its own — the `wt child` worktree rule, since the
-rice ships `wt` and that rule is what keeps it working — then your text.
-Leave it empty to manage ~/.claude/CLAUDE.md fully by hand (nothing is
-written, so the rice never clobbers a by-hand file).
+two short sections of its own — a note that the file is generated and
+where to actually edit it, and the `holt` worktree etiquette, since the
+rice ships `holt` and that rule is what keeps it working — then your
+text. Leave it empty to manage ~/.claude/CLAUDE.md fully by hand
+(nothing is written, so the rice never clobbers a by-hand file).
 
 Example:
 
@@ -1256,8 +1257,8 @@ Example:
 The modifier vocabulary for prowl's window chords — one setting rather
 than a bind-per-action, because what people need to move is the
 modifier, not the letters. It drives focus (`<mod>` + hjkl), layouts
-(`<mod>` + `/` `,`), fullscreen, workspace back-and-forth, moving a
-workspace to the next monitor (`<mod>⇧⇥`), and entering service mode
+(`<mod>` + `/` `,`), fullscreen, moving a workspace to the next
+monitor (`<mod>⇧⇥`), and entering service mode
 (`<mod>⇧;`). Anything that names a workspace — focusing one, or
 throwing the focused window there — hangs off `leader` instead, not
 this option.
@@ -1270,9 +1271,11 @@ exists.
 Whatever you pick, AeroSpace claims those chords **globally**, so they
 stop reaching whatever owned them inside a terminal. The surface is
 small now that the workspace throws moved to the leader: only hjkl,
-`/` `,`, `f`, `⇥`, `⇧⇥` and `⇧;`, none of which a roster letter can
-land on. (Under "ctrl-alt" that used to bite — the throws were `⌃⌥⇧` +
-an app's roster letter, so an app on `a` silently ate hearth's zellij
+`/` `,`, `f`, `⇧⇥` and `⇧;`, none of which a roster letter can land
+on — and `<mod>⇥` is free again, since workspace back-and-forth
+retired in favour of pounce's cross-workspace ⌘⇥ switcher. (Under
+"ctrl-alt" that used to bite — the throws were `⌃⌥⇧` + an app's roster
+letter, so an app on `a` silently ate hearth's zellij
 `Ctrl Alt Shift a` in-place-agent bind. That collision is gone.)
 Nothing on a stock macOS collides either: the only ⌃⌥ system hotkeys
 are input-source switching (⌃⌥Space, off by default) and hyper-F13.
@@ -1291,6 +1294,290 @@ Example:
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+## nebelhaus.hotCorners
+
+What each corner of the screen does when the pointer reaches it. Every corner is unset by default, so the rice never overwrites one you set yourself.
+
+### `nebelhaus.hotCorners.bottomLeft`
+
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+
+What happens when the pointer reaches the bottom-left corner of the main
+display.
+
+```
+              disabled  nothing happens — the corner is explicitly claimed and left inert
+       mission-control  Mission Control: every window and Space, zoomed out
+   application-windows  App Exposé: every window of the app you're in
+               desktop  push all windows aside and show the desktop
+             launchpad  the grid of installed apps (on macOS 26 this opens the Apps view)
+   notification-center  slide out Notification Center and its widgets
+            quick-note  start a Quick Note — Apple's own default for the bottom-right corner
+          screen-saver  start the screen saver immediately
+  prevent-screen-saver  hold the screen saver off while the pointer rests here
+         sleep-display  put the display to sleep (the machine keeps running)
+           lock-screen  lock the screen and return to the login window
+```
+
+null (the default) writes nothing at all, which is not the same as
+"disabled": corners are a setting people have usually already made by
+hand, and a rice that names one it doesn't care about would silently
+erase it. Use `"disabled"` to explicitly claim a corner and make it inert.
+
+Setting a corner also clears its MODIFIER key. macOS stores "hold ⌘ for
+this corner" separately (`wvous-*-modifier`), and a leftover modifier from
+an earlier setup makes a corner the rice just declared look broken —
+nothing happens, because you weren't holding the key nobody told you
+about. Corners the rice leaves at null keep whatever modifier they have.
+
+Worth knowing if you also run tiling: `mission-control` and `desktop` are
+macOS's own window and Space management, which prowl replaces. They still
+work, they just show you a view of the windows prowl is arranging.
+
+Example:
+
+```nix
+"mission-control"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.hotCorners.bottomRight`
+
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+
+What happens when the pointer reaches the bottom-right corner of the main
+display.
+
+```
+              disabled  nothing happens — the corner is explicitly claimed and left inert
+       mission-control  Mission Control: every window and Space, zoomed out
+   application-windows  App Exposé: every window of the app you're in
+               desktop  push all windows aside and show the desktop
+             launchpad  the grid of installed apps (on macOS 26 this opens the Apps view)
+   notification-center  slide out Notification Center and its widgets
+            quick-note  start a Quick Note — Apple's own default for the bottom-right corner
+          screen-saver  start the screen saver immediately
+  prevent-screen-saver  hold the screen saver off while the pointer rests here
+         sleep-display  put the display to sleep (the machine keeps running)
+           lock-screen  lock the screen and return to the login window
+```
+
+null (the default) writes nothing at all, which is not the same as
+"disabled": corners are a setting people have usually already made by
+hand, and a rice that names one it doesn't care about would silently
+erase it. Use `"disabled"` to explicitly claim a corner and make it inert.
+
+Setting a corner also clears its MODIFIER key. macOS stores "hold ⌘ for
+this corner" separately (`wvous-*-modifier`), and a leftover modifier from
+an earlier setup makes a corner the rice just declared look broken —
+nothing happens, because you weren't holding the key nobody told you
+about. Corners the rice leaves at null keep whatever modifier they have.
+
+Worth knowing if you also run tiling: `mission-control` and `desktop` are
+macOS's own window and Space management, which prowl replaces. They still
+work, they just show you a view of the windows prowl is arranging.
+
+Example:
+
+```nix
+"mission-control"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.hotCorners.topLeft`
+
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+
+What happens when the pointer reaches the top-left corner of the main
+display.
+
+```
+              disabled  nothing happens — the corner is explicitly claimed and left inert
+       mission-control  Mission Control: every window and Space, zoomed out
+   application-windows  App Exposé: every window of the app you're in
+               desktop  push all windows aside and show the desktop
+             launchpad  the grid of installed apps (on macOS 26 this opens the Apps view)
+   notification-center  slide out Notification Center and its widgets
+            quick-note  start a Quick Note — Apple's own default for the bottom-right corner
+          screen-saver  start the screen saver immediately
+  prevent-screen-saver  hold the screen saver off while the pointer rests here
+         sleep-display  put the display to sleep (the machine keeps running)
+           lock-screen  lock the screen and return to the login window
+```
+
+null (the default) writes nothing at all, which is not the same as
+"disabled": corners are a setting people have usually already made by
+hand, and a rice that names one it doesn't care about would silently
+erase it. Use `"disabled"` to explicitly claim a corner and make it inert.
+
+Setting a corner also clears its MODIFIER key. macOS stores "hold ⌘ for
+this corner" separately (`wvous-*-modifier`), and a leftover modifier from
+an earlier setup makes a corner the rice just declared look broken —
+nothing happens, because you weren't holding the key nobody told you
+about. Corners the rice leaves at null keep whatever modifier they have.
+
+Worth knowing if you also run tiling: `mission-control` and `desktop` are
+macOS's own window and Space management, which prowl replaces. They still
+work, they just show you a view of the windows prowl is arranging.
+
+Example:
+
+```nix
+"mission-control"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.hotCorners.topRight`
+
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+
+What happens when the pointer reaches the top-right corner of the main
+display.
+
+```
+              disabled  nothing happens — the corner is explicitly claimed and left inert
+       mission-control  Mission Control: every window and Space, zoomed out
+   application-windows  App Exposé: every window of the app you're in
+               desktop  push all windows aside and show the desktop
+             launchpad  the grid of installed apps (on macOS 26 this opens the Apps view)
+   notification-center  slide out Notification Center and its widgets
+            quick-note  start a Quick Note — Apple's own default for the bottom-right corner
+          screen-saver  start the screen saver immediately
+  prevent-screen-saver  hold the screen saver off while the pointer rests here
+         sleep-display  put the display to sleep (the machine keeps running)
+           lock-screen  lock the screen and return to the login window
+```
+
+null (the default) writes nothing at all, which is not the same as
+"disabled": corners are a setting people have usually already made by
+hand, and a rice that names one it doesn't care about would silently
+erase it. Use `"disabled"` to explicitly claim a corner and make it inert.
+
+Setting a corner also clears its MODIFIER key. macOS stores "hold ⌘ for
+this corner" separately (`wvous-*-modifier`), and a leftover modifier from
+an earlier setup makes a corner the rice just declared look broken —
+nothing happens, because you weren't holding the key nobody told you
+about. Corners the rice leaves at null keep whatever modifier they have.
+
+Worth knowing if you also run tiling: `mission-control` and `desktop` are
+macOS's own window and Space management, which prowl replaces. They still
+work, they just show you a view of the windows prowl is arranging.
+
+Example:
+
+```nix
+"mission-control"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+## nebelhaus.screenshots
+
+Where ⇧⌘4 puts its files, in what format, and whether it draws a window shadow or a preview thumbnail. Unset by default, so macOS's own choices stand.
+
+### `nebelhaus.screenshots.format`
+
+`null or one of "png", "jpg", "pdf", "tiff", "heic", "gif"` · default `null`
+
+The image format new screenshots are saved in. null (the default)
+leaves macOS's own choice alone, which is png.
+
+png is lossless and the right default for UI and text — a jpg
+screenshot of a terminal has visible ringing around every glyph. jpg
+is worth choosing only when you screenshot photographs often enough
+for the file sizes to matter.
+
+Example:
+
+```nix
+"png"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.screenshots.includeDate`
+
+`null or boolean` · default `null`
+
+Whether filenames carry the date and time ("Screenshot 2026-08-03 at
+13.37.20.png") or just a counter ("Screenshot 1.png"). null (the
+default) leaves macOS's own choice alone, which is to include it.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.screenshots.location`
+
+`null or string` · default `null`
+
+Where ⇧⌘3 / ⇧⌘4 / ⇧⌘5 write their files. null (the default) leaves
+macOS's own choice alone, which is the Desktop.
+
+Absolute, or starting with `~/` — the rice expands the `~` for you and
+CREATES the directory during activation. Both halves matter: macOS
+stores this string verbatim and expands nothing, and if the path does
+not exist screencapture silently falls back to the Desktop, so a
+typo'd or not-yet-created folder looks exactly like the setting having
+been ignored.
+
+Example:
+
+```nix
+"~/Pictures/Screenshots"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.screenshots.shadow`
+
+`null or boolean` · default `null`
+
+Whether a window capture (⇧⌘4 then Space) keeps macOS's big soft drop
+shadow. null (the default) leaves macOS's own choice alone, which is
+to include it.
+
+false is the setting to want if screenshots go into documentation: the
+shadow is transparent padding, so it adds a wide invisible margin that
+every layout then has to fight. Holding ⌥ while you click suppresses
+it for one capture either way.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.screenshots.thumbnail`
+
+`null or boolean` · default `null`
+
+Whether the floating preview thumbnail appears in the bottom-right
+corner after a capture. null (the default) leaves macOS's own choice
+alone, which is to show it.
+
+false writes the file immediately instead of after the ~5s the
+thumbnail waits around — the setting to want if you screenshot in
+quick succession, or if you script anything that reads the file. The
+cost is losing the markup/drag affordance the thumbnail offers.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
 ## nebelhaus.prowl
 
@@ -1433,7 +1720,7 @@ Example:
 
 `boolean` · default `false`
 
-A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice never touches your hooks. A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
+A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
@@ -2228,9 +2515,10 @@ Example:
 
 `boolean` · default `config.nebelhaus.developer.enable`
 
-The terminal toolbelt: bat, fzf, fd, yazi, zoxide, lsd, glow, jq,
-tree, chafa, ttyd and fastfetch — the themed replacements for cat,
-find, ls and friends that the rice's shell is built around.
+The terminal toolbelt: bat, fzf, fd, ripgrep, yazi, zoxide, lsd,
+glow, jq, tree, chafa, ttyd and fastfetch — the themed replacements
+for cat, find, grep, ls and friends that the rice's shell is built
+around.
 
 Off leaves a plain shell. The prompt (starship) and the colour scheme
 stay: these are the *tools*, not the appearance.

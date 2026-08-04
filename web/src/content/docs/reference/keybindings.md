@@ -25,10 +25,14 @@ cheatsheet always reflects the keys you actually have.
 | `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
 | `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
 | `⌥F` | Toggle fullscreen |
-| `⌥Tab` | Previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move workspace to next monitor |
 | `⌥⇧;` | Enter service mode |
 | `⌘Space` | Open Pounce |
+| `⌘Tab` | MRU **window** switcher, crosses workspaces ([pounce](/guides/pounce/#a-window-switcher-not-an-app-switcher-opt-in)) |
+
+`⌥Tab` is deliberately unbound — workspace back-and-forth retired in favour of
+`⌘Tab`, which is most-recently-used rather than a single previous-workspace
+pointer, and whose rows carry the window's workspace.
 
 ## Launch mode — tap ⇪ (prowl)
 

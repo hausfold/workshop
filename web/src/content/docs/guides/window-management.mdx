@@ -68,7 +68,6 @@ first-run tour describe the keys you actually have, not these defaults.
 | `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
 | `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
 | `⌥F` | Toggle fullscreen |
-| `⌥Tab` | Jump to the previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move the workspace to the next monitor |
 | `⌥⇧;` | Enter **service mode** |
 | `⌘Space` | Open [Pounce](/guides/pounce/) |
@@ -79,7 +78,15 @@ Nothing here names a *workspace* — those are all leader actions. Tap
 motion whether you're heading to a scratch space or to an app, and the two
 halves of the thought are one `⇧` apart — either way you end up on the
 workspace you named. To send a window somewhere and stay put, throw it and
-then `⌥Tab` straight back.
+then `⌘Tab` straight back.
+
+`⌥Tab` is **deliberately unbound**. It used to be AeroSpace's
+`workspace-back-and-forth`, which knew exactly one previous workspace — and
+that single pointer is what kept stranding you on a space you'd just emptied.
+[Pounce's `⌘Tab` switcher](/guides/pounce/#a-window-switcher-not-an-app-switcher-opt-in)
+answers the same question better: it's most-recently-used, it goes as far back
+as you like, and its rows carry the window's workspace, so landing on one
+takes you there. One switcher instead of two that disagree.
 
 ## Launch mode — tap ⇪
 
