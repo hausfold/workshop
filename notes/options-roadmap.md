@@ -12,6 +12,34 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-04 — the readiness test has no visible gap left.** A second
+> repo audit (§5.14's rule, run again one day later because the last one paid
+> for itself) found the doc's *sharpest* open finding already closed:
+> **rice#215 shipped `packageName`**, so a data-only rice can name a nixpkgs
+> package as a string, and §5.3's own motivating example — Atkinson Hyperlegible
+> on a machine you can read — is expressible from a preset. That was the one
+> limit §6's scoreboard still listed against all three reference rices.
+>
+> It shipped the doc's suggested mitigation too, and that is the bigger news:
+> **`nix flake check`'s `data-only-surface` fails when a package-typed
+> `nebelhaus.*` leaf has no string sibling.** §5.14 said this roadmap's problem
+> was that it lives in a fifth repo where no CI can see it, and that every other
+> cross-repo seam here got fixed by making the upstream repo emit something
+> mechanical. This is the first time a roadmap *rule* became a check in the repo
+> that can break it — see §5.14's new closing note, because it is the pattern to
+> copy for every remaining generalisation in this file.
+>
+> Also closed or moved since 2026-08-03: §5.1's honest-scope line is a **golden
+> test** now (`accent-reach`, rice#208) rather than prose, and it exposed that
+> the accent reaches Zen's UI but never the *web* — fixed by a room this doc
+> never predicted (`zen.extensions`, rice#211 + nebelung#22). §5.7's *reading*
+> half shipped twice from two directions (rice#184's annotated host file +
+> `haus options`, pounce#54's `config init`) while its writing half is untouched.
+> §5.5's everyday-tour box turned out to be **half fixed and half worse** — the
+> hang is gone, but the preset was drawing no tour at all; closed in rice#220,
+> which also made `everyday` the first customer of §5.13's community-tour
+> mechanism. Details in each section; the count of what's left is smaller again.
+>
 > **Status, 2026-08-03 — read §5.14 first.** An audit of every open box against
 > the actual repos found **three items that had shipped and were never ticked**
 > (§5.9's rice-side `pounce.items` in rice#149, §5.12's FDA detection in rice#128,
@@ -86,7 +114,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 | "rice sets ~19 macOS defaults" | ✅ 19 keys in [`den/default.nix:144-183`](nebelhaus/modules/den/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
 | "replace `prowl.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `nebelhaus.apps`; **rice#182 renamed it `nebelhaus.roster`** and grew it the multi-source install §5.4(a) asked for. `nebelhaus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
 | "add `haus plan` / `capture` / `diff` / `undo`" | ⚠️ **Partly exists in the installer.** `bootstrap.sh` has a read-only preflight audit, `NEBELHAUS_KEEP=dock,keyboard,finder` current-value capture, and cask adoption. The job is *promoting* those into `haus`, not greenfield. |
-| "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `den`+`theme`+`hearth`+`collar`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt`, `zscratch`, and a git-alias vocabulary. |
+| "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `den`+`theme`+`hearth`+`collar`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt` (now `holt`), `zscratch`, and a git-alias vocabulary. |
 
 **Two mechanisms already in the repo that the brainstorm missed, and that change the plan:**
 
@@ -139,7 +167,7 @@ nebelhaus.developer = {
   enable = true;          # the whole dev pack — off means a non-dev Mac
   shell.toolbelt = true;  # bat/delta/lazygit/lsd/fzf/zoxide/yazi
   multiplexer = "zellij"; # zellij | none
-  agents.enable = true;   # wt, zscratch, claude statusline, worktree binds
+  agents.enable = true;   # holt (was wt), zscratch, statusline, worktree binds
   git.enable = true;      # aliases, delta, lazygit, signing
   languages = [ "node" ]; # fnm/bun; extensible
 };
@@ -304,6 +332,31 @@ nebelhaus.theme = {
       and the three hand-made wallpapers — a much better place for the line to sit,
       because both of those are honestly *not ours*, whereas pounce baking its own
       was only ever a limitation of how it was built.
+      → ★ **The line is a GOLDEN TEST now, not prose — `accent-reach` (rice#208).**
+      This box's whole content was a *description* that could silently stop being
+      true: drop the accent wire from lazygit in a hearth refactor and nothing
+      errors, the accent just quietly stops arriving. The check fingerprints
+      **seventeen** surfaces under **three** accents — six must move (fzf, lazygit,
+      yazi, Zen, the `bold` wallpaper, a roster port's accent-matrix filename),
+      eleven must hold. Three rather than two so a fingerprint that merely happens
+      to differ once can't pass; anything neither all-different nor all-identical
+      reads PARTIAL and fails loudly.
+      **The generalisable move: an honest-scope line is a claim about behaviour, so
+      it belongs in CI, not in a description.** Same lesson as §5.3's
+      `data-only-surface`, arrived at independently a week apart — which is the
+      argument for doing it to the rest of this document's "what this does NOT
+      reach" paragraphs.
+      → ⚠️ **And it found the sharpest version of this section's scope problem.**
+      Switching to sapphire left github.com and youtube.com mauve. Not a broken
+      wire: Zen's `userContent.css` is entirely `@-moz-document url-prefix("about:")`,
+      so it never touched a real site. The web is styled by the Catppuccin
+      **userstyles**, which are LESS compiled *in the browser* and therefore cannot
+      be injected as CSS at all — they live in the Stylus extension's own storage,
+      each carrying an `accentColor` var defaulting to mauve. **No number of
+      rebuilds could ever have moved it.** The option had merely been letting "and
+      the Zen browser" be read as "and the web". Fixed by declaring Zen's
+      extensions — `nebelhaus.zen.extensions` (rice#211) plus nebelung#22 giving
+      Stylus a light-mode and contrast-aware build, a room this doc never predicted.
 - [x] ✅ **Felt on the real machine, 2026-07-27: 19.9:1 reads CRISP, not harsh.**
       That was the one open question a ratio couldn't answer, and it's the answer
       the high-contrast axis needed before anything could be built on it — so
@@ -371,14 +424,19 @@ nebelhaus.theme = {
       **format** wrinkle before designing it — a data-only preset can hold an attrs
       of hexes fine, but nebelung renders ports in a derivation, so a custom palette
       either re-renders at rebuild time or is limited to the Nix-injected tools.
-- [ ] ✅ **Pair `contrast = "high"` with the OS lever.** The sweep proved
+- [x] ✅ **Pair `contrast = "high"` with the OS lever — SHIPPED, and this box's
+      `- [ ] ✅` was itself an instance of §5.14's drift.** The sweep proved
       `increaseContrast` (and `differentiateWithoutColor`) write *and take
-      effect* — and neither is typed by nix-darwin, so they're reachable today
-      via `system.defaults.CustomUserPreferences."com.apple.universalaccess"`,
-      no upstream change needed. That makes a high-contrast rice cover *native*
-      apps too, not just the tools nebelung themes — the missing half.
-      Carries the FDA caveat (§5.12), so it must degrade cleanly: the palette
-      side works for everyone, the OS side sharpens it when FDA is granted.
+      effect*, and neither is typed by nix-darwin, so they're reachable via
+      `system.defaults.CustomUserPreferences."com.apple.universalaccess"` with no
+      upstream change. Both are real options now — `nebelhaus.accessibility.increaseContrast`
+      and `.differentiateWithoutColor` — and `presets/large-print.nix` sets the
+      first, which is what makes that preset reach *native* apps and not only the
+      tools nebelung themes. It degrades exactly as required: the palette half
+      works for everyone, the OS half sharpens it where FDA is granted, and the
+      option's own description carries the reachability caveat in prose
+      (see §5.12 — that designation never became a typed field, and probably
+      shouldn't).
 
 ### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done**
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
@@ -491,26 +549,43 @@ nebelhaus.fonts = {
 - [x] Assert the mono font is a Nerd Font (or warn loudly) — starship/lsd/yazi tofu
       otherwise. Shipped as a warning when `name` is set without `package`.
 - [x] `ui.scale` multiplies `fonts.*.size` by default
-- [ ] ⚠️ **`sans` never landed, and the reason now matters.** The example in the
-      block above — Atkinson Hyperlegible for a large-print machine — is **not
-      expressible as a preset at all**, because `fonts.mono.package` takes a
-      `types.package` and reaching `pkgs` is exactly what a data-only rice forbids
-      (§3.3). So a shared rice can make the existing font bigger but cannot change
-      the family. This is the sharpest limit the readiness test has found, and it's
-      a *format* limit rather than a missing option: the fix is a way to name a
-      package without evaluating one (a string resolved against `pkgs` by the
-      module, with the obvious injection question to answer first), not another
-      `types.package` option.
-      → ★ **Confirmed as a property of the format, not a fonts quirk (2026-08-03).**
-      `packs/writing.nix` hit the identical wall from a different family:
-      `roster.*.package` is also `types.package`, so a pack can install from
-      Homebrew and the App Store but never from Nixpkgs. **Two families is the
-      point at which this stops being a workaround-per-option and becomes one fix.**
-      The audit to run before publishing the format is mechanical — every leaf in
-      `options-json` whose type is package, derivation or path-to-store is
-      invisible to a data-only rice — and it's worth running as a CHECK rather
-      than a one-off, because the next option typed that way will be added by
-      someone who has never read this paragraph.
+- [x] ★ **The FORMAT limit is closed — `packageName` (rice#215).** This box spent
+      a month as the sharpest thing the readiness test had found: `fonts.mono.package`
+      takes a `types.package`, reaching `pkgs` is exactly what a data-only rice
+      forbids (§3.3), so a shared rice could make the font bigger but never change
+      the family — and §5.3's own motivating example, Atkinson Hyperlegible for a
+      large-print machine, was unexpressible. `packs/writing.nix` then hit the
+      identical wall from `roster.*.package` (2026-08-03), which is what made it
+      one fix rather than a workaround per option.
+      A package can be **named** now: `packageName` is an attribute path into
+      nixpkgs written as a string (`"nerd-fonts.atkynson-mono"`), resolved by
+      `modules/lib/pkg-by-name.nix`. Four things worth carrying:
+      **(a)** the `types.package` option **stays** — it's still the precise way to
+      say it from a module that has `pkgs` — and setting both is *refused* rather
+      than ranked, because they're one source written two ways and a silent winner
+      is the failure mode this repo keeps rediscovering.
+      **(b)** the resolver walks `pkgs` by attribute path and does nothing else: no
+      import, no string that becomes code. That's the property the format sells
+      ("you can read a rice and know what it does") and it is deliberately **not** a
+      claim the software is vetted — `cask` could always fetch anything.
+      **(c)** roster resolves the name into `package` *before* any check reads the
+      entry, so the pack-authored half is not a second code path. Only the
+      both-set assertion reads raw entries, because after resolution it would see
+      agreement.
+      **(d)** ★ **the rule became a CHECK, and that's the transferable part.**
+      `nix flake check`'s `data-only-surface` fails when a package/derivation-typed
+      `nebelhaus.*` leaf has no string sibling of the same name + `"Name"`. It reads
+      the same evaluated option tree the docs render from, so it sees exactly the
+      public surface, and it's pure `lib` like `keymap`/`theme-variants` so it runs
+      on Linux CI. The next option typed that way will be added by someone who has
+      never read this paragraph — which was the whole argument for a check over a
+      note. See §5.14.
+- [ ] **`sans` still never landed**, and it is now a plain missing option rather
+      than a format problem — `fonts.sans` and `fonts.extraPackages` are both
+      absent from the 130-leaf surface. `large-print` leaves the family alone by
+      **choice** now (rice#220 moved that line out of its "cannot reach" list and
+      in beside the light-mode one), which is the right call for a legibility
+      layer but leaves the option itself unbuilt.
 
 ### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ◐ **(a) shipped as `roster` (rice#182), (b) untouched**
 The registry is good. Two concrete gaps — and the halves came apart: the install
@@ -562,8 +637,17 @@ existing hosts don't break.
       three `float` rules that exist are hardcoded in `aerospace.toml`, which is
       the shape to generalise — and prowl still has exactly ONE option
       (`prowl.enable`), so there is no surface to hang them on yet
-- [ ] Non-app installables the registry can't express: fonts, browser extensions,
-      Quick Look / Finder / Share extensions, printers, network shares, VSTs
+- ◐ Non-app installables the registry can't express: fonts, browser extensions,
+      Quick Look / Finder / Share extensions, printers, network shares, VSTs.
+      **Two of the five have answers now and NEITHER went into the registry:**
+      fonts are `fonts.mono.packageName` (rice#215) and browser extensions are
+      `nebelhaus.zen.extensions` (rice#211), each its own surface.
+      ★ That's three losses in a row for the instinct behind this bullet — the
+      third being §5.9's command metadata, which landed in nebelung's `ports.meta.json`
+      rather than in a rice-side table. **The registry is for apps.** Read this
+      line as "each of these will get its own room", not "the roster must grow to
+      swallow them" — and note that both answers were *cheaper* than a schema
+      migration would have been, which is the actual argument.
 
 ### 5.5 `nebelhaus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (nebelhaus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This
@@ -625,12 +709,33 @@ nebelhaus.keys = {
       nobody has run the rice on such a layout. The launch-mode LETTERS
       (`roster.*.key`) are still assumed to be where QWERTY puts them, which is the
       next thing an international rice would hit.
-- [ ] **Found, not fixed** (predates this, and it's a product call): the shipped
-      `everyday` preset sets `prowl.enable = false` with `tour.enable = true`, and
-      three of the tour's four steps wait on AeroSpace mode events that can then
-      never fire — so that tour hangs at step 1. #108 warns about the equivalent new
-      combination (`tour.enable` + `keys.leader = "none"`) and leaves the preset
-      alone.
+- [x] ★ **`everyday`'s tour — half fixed, half quietly WORSE, now closed (rice#220).**
+      This box said the tour *hangs* at step 1 on a preset with `prowl.enable = false`.
+      It doesn't any more: #156's `tourWired` gates the pill on prowl-or-authored-steps,
+      so nothing hangs. What it does instead is draw **nothing at all** — the
+      generated `tour_item.sh` was its header comment and no item — while
+      `everyday` still set `tour.enable = true` and its own comment block explained
+      at length why a first-run tutor was right for exactly that person. **A preset
+      asking for a tutor and shipping none, silently.**
+      ★ **The finding worth keeping is the shape, not the bug: a "can't work here"
+      that degrades to silence still reads as a broken option.** §5.6 states this
+      rule for *macOS* settings — look for the second key or precondition that
+      makes the first one a lie — and it turns out to bind the rice's own options
+      just as hard. A degrade path needs a destination, not just an exit.
+      Closed by authoring the step from the data side, which made `everyday` the
+      **first customer of §5.13's own community-tour mechanism** — shipped six days
+      earlier, and nobody noticed the rice's own preset was the case it fixed.
+      → **Second-order finding, and it generalises past tours:** an authored hint
+      is a literal string, so a community tour could not name the keys the machine
+      resolved — the built-in lap interpolates `$TOUR_PALETTE`, an authored one
+      could only hardcode "⌘ Space", wrong on any rice that moved `keys.palette`
+      and wrong *invisibly*, because the author never sees the consumer's bar.
+      §5.13's box called "the community file remains data-only" a virtue; the cost
+      of data-only is that data cannot interpolate. Fixed with placeholders
+      (`{palette}` / `{leader}` / `{leaderName}`, expanded at render time from
+      values `tour_config.sh` already carried) plus an eval warning for unknown
+      ones. **Any future option that takes authored user-facing TEXT will need the
+      same seam** — that's the reusable part.
 
 ### 5.6 Curate macOS settings into behaviour groups · M · risk M (gated on §4)
 Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
@@ -685,6 +790,35 @@ generalization of something that already ships.
 `hosts/<host>/packages/*.nix` is already auto-imported and already written by a
 pounce command. Extend that to a general `hosts/<host>/settings/*.nix`, and:
 
+★ **Split this item — the READING half shipped, twice, from two directions
+(2026-08-04), while the writing half is untouched.** This section framed the
+goal as *writing* config from the palette; what actually arrived first was
+being able to *read* the whole surface out of your own file:
+
+- **rice#184** renders `hosts/<host>/options.nix` — every settable option at its
+  default, with its description, type and docs anchor, all commented out — from
+  the same `options.json` nebelhaus.com and the agent skill render from, plus
+  `haus options` to refresh it after `haus update`. The shape is AeroSpace's
+  default config: you learn the surface by reading your own config and make it
+  minimal by deleting what you never touched, with no doc-site round trip.
+- **pounce#54** shipped `pounce config init` doing exactly the same for pounce's
+  own `config.json`, for its own reasons — the third time an app has landed a
+  piece of this roadmap ahead of its phase (§5.1's port metadata, §5.9's item
+  schema).
+
+Two things follow. **(a)** "a Mac you can configure without opening the docs" and
+"a Mac you can configure without opening an editor" are different bars, and only
+the first is met; `haus set` is still what the palette-as-settings-app needs.
+**(b)** the *one deliberate departure* from AeroSpace is where this touched a
+live bug: every line is commented out, because a file spelling out every default
+would collide with every preset. rice#184 stated that as "your host file is
+applied AFTER any preset, so it would silently beat it" — the model rice#203
+refuted. It's a **conflict**, not a silent win, and the host template's header
+ships to every user. Corrected in rice#220, along with `bootstrap.sh` and one
+surviving sentence at the bottom of the very `presets/README.md` #203 fixed at
+the top. **A refuted model outlives its correction wherever the correction was
+scoped to the files that prompted it** — grep for the claim, not for the file.
+
 - [ ] `haus set theme.accent teal` → writes one small ordinary Nix file → rebuild
 - [ ] `haus get` / `haus unset` / `haus reset <path>`
 - [ ] Pounce commands wrapping it: **"Make text bigger"**, "Switch to light mode",
@@ -719,7 +853,9 @@ power source, display attach.
       the declarative half is cheap, the trigger daemon is not
 
 ### 5.9 Open up Sill widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
-`sill.items` is a closed submodule of 13 bools. Pounce commands were
+`sill.items` is a closed submodule of 15 bools (13 when this was written — it
+grows by one every time a pill lands, which is the argument this box makes).
+Pounce commands were
 script-discovery only with **no Nix option at all**; as of pounce#43 the
 *app* has the schema and the **rice** is what's missing — which flips this item
 from "design a surface" to "generate a file", the cheapest it will ever be.
@@ -934,6 +1070,51 @@ The cheap mitigation, given both: **re-audit against the repos, not against
 memory, before treating any `- [ ]` as work to do.** The full pass took one
 session and would have been cheaper than the half-rebuild that prompted it.
 
+### The second pass, one day later — and the answer to reason 1
+
+Run again on **2026-08-04**, and it paid for itself twice over, which settles
+that this is a standing routine rather than a one-off correction:
+
+| Box | Actually true |
+|---|---|
+| §5.3 the package-type format limit | **closed** — rice#215, plus the CHECK this doc asked for |
+| §5.1 "pair `contrast` with the OS lever" | **shipped** — and the box read `- [ ] ✅`, drift wearing a tick |
+| §5.1 honest-scope line | **pinned in CI** — `accent-reach`, rice#208 |
+| §5.7 discoverability | **shipped from two repos at once** — rice#184 + pounce#54 |
+| §5.5 the `everyday` tour | **wrong in both directions** — no longer hangs, but drew nothing at all |
+| §5.4 non-app installables | **two of five answered**, neither via the registry |
+| §5.9 `sill.items` is 13 bools | 15 |
+
+Note the *kinds* of error. The first pass found boxes that were stale (work
+done, tick missing). This one found two boxes that were **wrong**, not stale:
+§5.1's carried a ✅ *inside* an open checkbox, and §5.5's described a failure
+mode that had been replaced by a different one. A summary can be behind; a
+description can be **false**, and re-reading the doc will never tell you which.
+
+**Reason 1 has a mechanical answer now, and rice#215 is the proof.** §5.14
+observed that every other cross-repo seam in this project got fixed by making
+the upstream repo emit data (`options-json`, `wm-bindings-json`,
+`ports.meta.json`), while this one stayed prose on both sides. rice#215's
+`data-only-surface` check is the first time a **roadmap rule** became a check in
+the repo that can break it: the finding "a package-typed leaf is invisible to a
+data-only rice" no longer lives here as a warning to a future contributor, it
+lives in `nix flake check` as a failure. rice#208's `accent-reach` is the same
+move from the other side — an honest-scope paragraph turned into a fingerprint
+table.
+
+**So the rule this section leaves gains a second half:**
+
+1. The checkbox is the source of truth; a status-block edit is not a substitute
+   for ticking it. When header and box disagree, believe the box, then go check
+   the repo.
+2. **When a finding generalises, leave a CHECK behind, not a paragraph.** Ask of
+   every ★ in this file: what would fail if someone did this wrong tomorrow?
+   If the answer is "nothing — they'd have to have read the roadmap", the
+   finding isn't finished. Both checks that exist are pure `lib`, run on Linux
+   CI, and cost one PR each. The remaining candidates are §5.2's point-valued
+   options coupled to `displays`, §5.6's "what second key makes the first a
+   lie", and every "what this does NOT reach" paragraph in §5.1 and §5.2.
+
 ---
 
 ## 6. Phasing
@@ -1072,7 +1253,22 @@ that visible, and turned up two things that were already broken:
       plists**; a plist-only diff would have called both no-op writes "applied"
 - [ ] §5.8 scenes · §5.12 accessibility doctor checklist
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
-      workshop#135/#137
+      workshop#135/#137. **Its first real customer turned up in the rice itself
+      six days later** (`everyday`, rice#220) and exposed the one thing the
+      mechanism was missing: an authored hint couldn't name the keys the machine
+      resolved. See §5.5.
+
+**Cross-phase — the option surface is 130 leaves, and four rooms aren't in this
+document at all.** §1 counted ~44. What's grown since, and is only findable by
+reading `options-json` rather than this file: `agents.*` (which client the ⌘A
+keybind spawns), `apps.*` (the rice's editorial picks, e.g. the video player and
+its file types), `perch.*`, `zen.*`, plus the ones this doc *did* predict —
+`displays`, `accessibility.*`, `hotCorners.*`, `screenshots.*`, `roster.*`.
+Going the other way, **`trill` is out of the rice entirely** (rice#212 made it
+opt-in, rice#213 removed the module and the flake input): its development is
+frozen and perch is the app the house is betting on, so a supported option
+nobody should turn on was a lie in the option reference. Read §7's routing table
+and §9's naming list with that in mind.
 
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
@@ -1084,8 +1280,9 @@ Scoreboard, 2026-07-27: **all three now exist and pass.** `full`, `everyday` and
 `nebelhaus.*`), and none needed a `system.defaults` escape hatch or a
 hand-written activation script — which was the whole point of not faking it.
 
-`presets/large-print.nix` is three options (`ui.scale`, `theme.contrast`,
-`accessibility.increaseContrast`) and it is a **layer, not a whole rice**: it
+`presets/large-print.nix` is four options (`ui.scale`, `theme.contrast`,
+`accessibility.increaseContrast`, `displays.main.uiScale` — it was three before
+§5.10 landed) and it is a **layer, not a whole rice**: it
 describes seeing, not the person, so `[ everyday large-print ]` composes with
 nothing lost either way (measured: stock `1.0 / 19pt` → large-print `1.4 / 27pt /
 contrast high` → stacked, plus developer off, prowl off, pounce on). That layer
@@ -1096,13 +1293,18 @@ separate "a Mac for someone who doesn't write code" from "a Mac you can read".
 **Passing is not the same as finished, and the test's real value was the two
 limits it exposed:**
 
-1. **A shared rice cannot change the font family.** `fonts.mono.package` takes a
-   `types.package`, and reaching `pkgs` is precisely what data-only forbids — so
-   §5.3's own motivating example (Atkinson Hyperlegible for a large-print machine)
-   is unexpressible as a preset. This is a **format** limit, not a missing option,
-   and it generalises: any option typed as a package, derivation or path-to-store
-   is invisible to the community format. Worth auditing the whole surface for
-   others before publishing it.
+1. ~~**A shared rice cannot change the font family.**~~ **CLOSED 2026-08-04 —
+   rice#215.** `fonts.mono.package` takes a `types.package`, and reaching `pkgs`
+   is precisely what data-only forbids, so §5.3's own motivating example
+   (Atkinson Hyperlegible for a large-print machine) was unexpressible as a
+   preset. `packageName` — an attribute path written as a string — closes it, and
+   the generalisation this entry made ("any option typed as a package, derivation
+   or path-to-store is invisible to the community format") became
+   `data-only-surface` in `nix flake check` rather than the audit it asked for.
+   Verified end to end: `[ everyday large-print ]` plus two lines naming
+   `nerd-fonts.atkynson-mono` — Atkinson Hyperlegible's monospaced sibling — puts
+   that font on a real system at 27 pt with zero warnings, and `checkRice` still
+   passes over it. **This was the readiness test's last visible gap.**
 2. **There was no system-wide size lever in the preset.** macOS's own workable
    lever is display resolution (§5.10), not its broken declarative text-size
    setting. That gap is now closed by `displays.main.uiScale = "larger-text"` in
@@ -1112,7 +1314,8 @@ limits it exposed:**
 So the honest reading now: the option surface can express all three reference
 rices, and `large-print` reaches both the rice and the whole Mac. Its one
 remaining visible gap is the font-package format limit above — not §5.2, and not
-§5.4.
+§5.4. **(Superseded 2026-08-04: that gap is closed, and the test now has no
+visible gap at all. See the closing pass below.)**
 
 **Re-checked 2026-07-30 after rice#147/#149.** Displays and the rice-side pounce
 item generator both landed. That left the sizing pass as the next coherent piece:
@@ -1161,6 +1364,31 @@ the remaining work sits changed shape:
   likely-to-happen**; if anything it's the opposite, because nothing forces the
   issue. The lesson for whatever ends up last in Phase 5.
 
+**Re-audited again 2026-08-04, one day later, and the verdict finally moves.**
+The readiness test has **no visible gap left**: rice#215 closed the font-package
+format limit, which had been the single named exception since the scoreboard was
+written. All three reference rices still pass, still data-only, still with no
+`system.defaults` escape hatch. What that changes about how to read the rest of
+this document:
+
+- **The remaining work is no longer "can the format express it".** It's
+  breadth (§5.6's seven uncurated setting groups), one schema migration (§5.4's
+  `workspaces`, still the last unstarted Phase 3 item), and trust (§5.11). None
+  of those is a limit the reference rices run into — they're things nobody has
+  built yet, which is a different and much better problem.
+- **The two limits the test DID expose both ended up as CI checks, not prose.**
+  The font-package one became `data-only-surface`; §5.1's honest-scope line
+  became `accent-reach`. That is now the strongest pattern in this document and
+  §5.14 states it as a rule: when a finding generalises, leave a check behind.
+- **What the test still cannot see is the third reference rice's actual user.**
+  `full`, `everyday` and `large-print` all pass, but the mouse-first
+  writer/creative setup is represented by `packs/writing.nix` — a pack, not a
+  rice, and one that has never been installed by somebody who writes for a
+  living. Every limit this test has found so far was found by *building* the
+  rice, not by reasoning about the surface (the tour that drew nothing is the
+  latest: it passed `checkRice`, passed `nix flake check`, and shipped no pill).
+  **The next real finding is on a machine, not in this file.**
+
 ---
 
 ## 7. Repo routing
@@ -1169,10 +1397,16 @@ Per the workshop's routing table, this work is **not** one repo:
 
 | Work | Repo |
 |---|---|
-| every `nebelhaus.*` option, `developer.enable`, presets, `haus` | `nebelhaus` |
-| theme flavors, light mode, high-contrast palette, contrast CI | `nebelung` |
-| command packs, typed commands, palette-as-settings-app | `pounce` |
-| generated options reference, community rice gallery | `web` |
+| every `nebelhaus.*` option, `developer.enable`, presets, packs, `haus` | `nebelhaus` |
+| theme flavors, light mode, high-contrast palette, port metadata, contrast CI | `nebelung` |
+| command packs, typed commands, per-item settings, palette-as-settings-app | `pounce` |
+| generated options reference, community rice gallery, the guides | `web` |
+
+**Not `trill`, any more.** It was in this table's orbit through §5.1's
+"bakes its own colours" list; rice#212/#213 removed the module and the flake
+input outright (development frozen, perch is the bet), so nothing in this
+roadmap routes there. `perch` inherited the prose — it's the example of a
+bundle-copying room now.
 
 Breaking option renames (e.g. `roster.*.workspace` → `workspaces`, or the
 `apps` → `roster` rename itself in rice#182) couple a
