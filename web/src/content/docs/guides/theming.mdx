@@ -62,12 +62,13 @@ nebelhaus.zen.extensions.stylus = { };
 ```
 
 It deploys Stylus (via Firefox's enterprise-policy file — `nebelhaus.roster`
-can't install add-ons), stamps nebelung's userstyle bundle with **your** accent,
-and prints a one-time nudge whenever there's a new one to import. The import
-itself stays a click — Stylus has no file interface — so after an accent change:
-**Stylus ▸ Manage ▸ Import ▸ `~/.config/nebelhaus/nebelung-stylus.json`**. That
-bundle follows `theme.accent` only; nebelung renders it once, so it doesn't
-track `theme.flavor` or `theme.contrast`.
+can't install add-ons) and stamps nebelung's userstyle bundle from **your**
+theme: the accent, the flavor, and the contrast it's rendered for. All three
+axes on this page reach the web.
+
+The import itself stays a click — Stylus has no file interface — so whenever you
+change one of them, activation prints a one-time nudge and you do:
+**Stylus ▸ Manage ▸ Import ▸ `~/.config/nebelhaus/nebelung-stylus.json`**.
 </Aside>
 
 ### Available accents
