@@ -28,6 +28,7 @@ The `hausfold.co` zone had no DNS records at all. A plain Workers route
 
 ## Watch-out
 
-The zone's **Always Use HTTPS is off**, so `http://hausfold.co/` serves 200
-directly rather than redirecting to `https://`. Both work. Flip it in the
-Cloudflare dashboard (SSL/TLS → Edge Certificates) if you'd rather force TLS.
+**Always Use HTTPS is on** for this zone, so `http://hausfold.co/` 301s to
+`https://` (same for `www.`). That's a Cloudflare dashboard setting
+(SSL/TLS → Edge Certificates), not something this config carries — if the
+redirect ever disappears, look there first, not here.
