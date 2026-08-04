@@ -5,7 +5,9 @@ MacWhisper / NotchNook / ONCE / Beeper — see the PR that added this file for
 sources). Perch goes first because its category has an existence proof
 (NotchNook, ~$100k on $25 one-time) and because every rail built here is
 trill's for free — `UpdateCheck` was ported trill→perch, and the license layer
-rides the same seam back.
+rides the same seam back. Perch is now the *whole* bet, not the warm-up:
+**[§5](#5-trill--why-it-isnt-the-bet) records why trill isn't monetized**, since
+that was the original flagship and the reasoning is worth not re-deriving.
 
 **The one principle: the paywall lives in the binary, never in the
 distribution.** Perch ships through four doors (cask, direct ZIP, rice copy,
@@ -100,8 +102,8 @@ it's the only step that gets harder after revenue)*
 - [ ] First FSL + gated build ships via the normal `bench release perch`.
 - [ ] Announce: the fair-source angle is itself the story for HN/lobste.rs;
       the notch angle is the story for the Mac press that covered NotchNook.
-- [ ] Later, not launch: Setapp application as channel #2; the $49
-      whole-house bundle once trill is paid too.
+- [ ] Later, not launch: Setapp application as channel #2. (A whole-house
+      bundle needs a second paid app, which trill is not — see §5.)
 
 ## 4. Watch-outs
 
@@ -113,10 +115,97 @@ it's the only step that gets harder after revenue)*
 - **Old builds keep working forever.** The gate never expires a build someone's
   license covered — CalVer makes "covered" a fact about dates, not a server's
   opinion.
-- **Trill inherits everything** — format, signer, Worker route, Settings pane
-  shape. When trill's turn comes, its only new work is its own gate shape
-  (caps don't map to a messages client; likely trial-or-nag) and its own
-  landing page.
+- **Trill is not a second product** — the format, signer and Worker route are
+  still built so a second product is cheap, but trill isn't it. See
+  [§5](#5-trill--why-it-isnt-the-bet).
 - **`bench release` stays untouched end-to-end.** If any phase finds itself
   editing the release pipeline, the paywall is leaking out of the binary —
   stop and re-read the principle at the top.
+## 5. Trill — why it isn't the bet
+
+**Decided 2026-08-04.** Trill was the intended flagship: highest potential in
+the family eval, ~$39 one-time, positioned as "your local, private aggregator".
+It is now **not a monetized product**, and its Beeper track is frozen
+(`trill/docs/beeper-client-refactor.md`). Perch is the whole bet, not the
+warm-up.
+
+This section is kept, rather than deleted, so the reasoning doesn't have to be
+re-derived the next time trill looks tempting.
+
+### 5.1 What changed
+
+Nothing about trill's code. What changed is understanding what it offers.
+
+- **The aggregation is Beeper's.** It needs their app installed, signed in and
+  running; its networks route through their *cloud* bridges; the API is an
+  experimental public beta owned by Automattic, who also own the aggregator
+  client we'd compete with. "Local, private aggregator" was three claims and
+  only "local" was fully ours.
+- **"Why not just use Beeper Desktop?" has no good answer.** For anyone who
+  already runs Beeper, trill is a nicer face on their free product. That is not
+  a $39 pitch.
+- **The native half is structurally limited.** Read and send, and that's it —
+  no tapbacks, no threaded replies, no upstream mark-read, no edits, ever, from
+  the native path. AppleScript is the only send surface Messages.app exposes. A
+  paying customer hits that wall in week one.
+- **Highest dependency surface in the family, lowest control.** Apple's private
+  `chat.db` schema, three TCC permissions, AppleScript, and a third party's
+  beta API. Perch depends on nothing but AppKit.
+- **The author doesn't use it daily.** An app its own maker reaches past is not
+  the one to ask strangers to pay for.
+
+### 5.2 The gate design is what killed it
+
+Worth recording, because the exercise did its job: designing the paywall is
+what made the value legible.
+
+The gate landed on the overlay database (`Persistence/AppDatabase`) — free =
+read, reply, search; paid = folders and tags, VIP, snooze/archive/mute, saved
+messages, multi-tab, library, exports and stats. Elegant seam, honest split.
+Then read it back in plain words: **$39 for a nicer inbox on top of a free
+app.** No amount of positioning fixes that sentence, and writing it down is
+what surfaced it — before a lifetime license was sold against a third party's
+beta, which is the point at which this becomes expensive rather than merely
+disappointing.
+
+### 5.3 Consequences
+
+- **No FSL relicense for trill.** It stays MIT — Phase 0 exists to protect
+  revenue, and there is none. One session saved.
+- **No license layer, no landing page, no $39.** §1–§4 remain perch-only.
+- **The Beeper track is frozen**, not deleted: shipped code stays and is inert
+  (no token ⇒ the provider isn't constructed). Reversing a decision is cheaper
+  than rebuilding an adapter.
+- **Trill is a free MIT rice app** for now. Whether it stays in the rice by
+  default, in the marketing copy, and unarchived on GitHub is the open call in
+  §5.5.
+
+### 5.4 The lesson that generalizes
+
+Add a column to the next family eval: **what does this depend on that I don't
+control?** Trill scores worst (Apple's private schema, TCC, AppleScript, a
+third party's beta). Perch scores best (self-contained, no permissions, no
+network beyond its own release check). The old eval ranked by market size and
+put trill first; ranking by controllable surface inverts it — and the second
+ranking is the one that predicts whether the work is finishable by one person.
+
+Run perch first regardless. One shipped product teaches more about whether
+people pay than another eval will, and the eval keeps.
+
+### 5.5 Open: archive trill?
+
+Leaning yes as of 2026-08-04, deliberately not decided in the same sitting as
+the freeze. It touches five places and wants a *"no longer maintained, and
+why"* note rather than a silent flip:
+
+- [ ] The rice ships it by default (`nebelhaus/modules/trill`,
+      `nebelhaus.trill.enable`) — an unmaintained app installed by default sets
+      the family's quality bar. This is the one that actually matters.
+- [ ] Marketing copy: `web/` (nebelhaus.com), workshop README, org profile.
+- [ ] `homebrew-tap`'s `Casks/trill.rb` — **CI-owned**; removing a cask is not
+      the same operation as bumping one, and existing installs keep working
+      either way.
+- [ ] A final release or a README banner, so anyone who installed it learns the
+      status from the app's own repo.
+- [ ] Then archive on GitHub. The code stays readable; the read-only `chat.db`
+      reader and typedstream decoder are the parts worth keeping legible.
