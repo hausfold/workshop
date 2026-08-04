@@ -1,13 +1,28 @@
-# Options reference drift tripwire — fails when reference/options.md no longer
-# matches the rice's module system.
+# Options reference drift tripwire — keeps reference/options.md matching the
+# rice's module system.
 #
 # Unlike the keybindings tripwire next door, the fix here is mechanical: the
-# page is GENERATED, so red means "re-run the generator and commit", not "write
-# some prose". The rice is the single source of truth for every option's type,
-# default, example and description.
+# page is GENERATED, so drift means "re-run the generator", not "write some
+# prose". The rice is the single source of truth for every option's type,
+# default, example and description. That difference is why this workflow does
+# two different things depending on who woke it:
 #
-# Runs weekly (drift comes from RICE pushes, which can't trigger this repo's
-# CI), on demand, and whenever the generator or the page itself changes.
+#   push / pull_request → hard fail. Someone is editing the page or the
+#     generator in a branch, and that branch is where it gets fixed.
+#
+#   schedule / workflow_dispatch → there is no branch to fix. Drift here comes
+#     from RICE pushes, which can't trigger this repo's CI, so the failure mode
+#     was a red weekly run that turned into an email and then into toil: a human
+#     re-running the generator by hand and opening a PR. Nine options
+#     (nebelhaus.hotCorners, nebelhaus.screenshots) once sat undocumented
+#     because that email arrived on a Monday nobody was reading email. So the
+#     scheduled run regenerates and opens the PR ITSELF, and stays green — the
+#     signal is a PR waiting for you, not a failure you have to act on.
+#
+# Deliberately NOT extended to keybindings-drift.yml: that snapshot is
+# human-gated on purpose. Red there means "someone writes prose in
+# keybindings.md, THEN refreshes the snapshot" — auto-updating it would
+# rubber-stamp exactly the drift it exists to catch.
 name: options drift
 
 on:
@@ -25,6 +40,11 @@ on:
       - 'web/src/content/docs/reference/options.md'
       - '.github/workflows/options-drift.yml'
 
+# Only the scheduled path needs these; a push/PR run just reads.
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   drift:
     runs-on: ubuntu-latest
@@ -35,7 +55,91 @@ jobs:
           repository: nebelhaus/nebelhaus
           path: .rice
       - uses: DeterminateSystems/nix-installer-action@main
+
       # Evaluates only the rice's per-room options files — no darwin system, so
       # this builds fine on Linux. That property is why the generator can run
       # here at all; see the comment on `options-json` in the rice's flake.
-      - run: node web/scripts/gen-options.mjs --rice .rice --check
+      - name: Check the page is current
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        run: node web/scripts/gen-options.mjs --rice .rice --check
+
+      - name: Regenerate the page
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: node web/scripts/gen-options.mjs --rice .rice
+
+      # One long-lived branch, force-pushed, so a month of Mondays is ONE open
+      # PR that keeps moving rather than four stale ones. Nothing but this
+      # workflow ever writes `ci/options-drift`, which is what makes the force
+      # safe.
+      #
+      # Opening the PR needs an ORG setting the nebelhaus org currently has OFF:
+      # Settings → Actions → General → Workflow permissions → "Allow GitHub
+      # Actions to create and approve pull requests". A repo-level toggle can't
+      # override it (PUT .../actions/permissions/workflow 409s), so until
+      # someone flips it org-wide this step pushes the prepared branch and then
+      # fails with a compare link — the toil drops from "clone, install node,
+      # run the generator, commit, push, open a PR" to one click. Flip the org
+      # setting and the same code goes fully automatic with no edit here.
+      #
+      # Watch-out for that automatic path: a PR opened with GITHUB_TOKEN does
+      # not itself trigger workflows, so it arrives without its own check runs.
+      # Tolerable precisely here — the page is generated, and the run that
+      # opened the PR *is* the check. Merging to main still fires deploy-web.
+      - name: Open or update the drift PR
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          page=web/src/content/docs/reference/options.md
+          if git diff --quiet -- "$page"; then
+            echo "options reference is current — nothing to open."
+            exit 0
+          fi
+
+          rice_sha=$(git -C .rice rev-parse --short HEAD)
+          branch=ci/options-drift
+
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add "$page"
+          git commit -m "docs: regenerate the options reference (rice ${rice_sha})"
+          git push --force origin "$branch"
+
+          compare="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/main...${branch}?expand=1"
+
+          if [ -n "$(gh pr list --head "$branch" --state open --json number -q '.[].number')" ]; then
+            echo "existing PR updated with rice ${rice_sha}."
+            exit 0
+          fi
+
+          cat > /tmp/pr-body.md <<BODY
+          \`reference/options.md\` had drifted from the rice's module system. This PR is
+          the regenerated page — opened by \`options-drift.yml\`'s weekly run, against
+          rice [\`${rice_sha}\`](https://github.com/nebelhaus/nebelhaus/commit/${rice_sha}).
+
+          Nothing here was written by hand: \`web/scripts/gen-options.mjs\` renders the
+          whole page from the rice's own options, so the diff is whatever option docs
+          moved upstream since the last regeneration. Skim it for surprises, then merge.
+
+          If the diff looks wrong, the fix belongs in the rice's \`options.nix\` files,
+          not here — this page has no independent copy to correct.
+
+          This branch is force-pushed by CI every Monday it finds drift, so it stays a
+          single moving PR rather than a stack of stale ones.
+          BODY
+
+          if gh pr create --base main --head "$branch" \
+               --title 'docs: regenerate the options reference' \
+               --body-file /tmp/pr-body.md; then
+            exit 0
+          fi
+
+          # Couldn't open it — almost certainly the org's "Actions may create
+          # pull requests" setting (see the comment above this step). The branch
+          # is already pushed and correct, so hand over a one-click link and go
+          # red, which is the signal a human needs.
+          echo "::warning::could not open the PR automatically — flip 'Allow GitHub Actions to create and approve pull requests' in the org's Actions settings"
+          echo "::notice::branch ${branch} is pushed and ready: ${compare}"
+          exit 1
