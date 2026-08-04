@@ -5,7 +5,9 @@ MacWhisper / NotchNook / ONCE / Beeper — see the PR that added this file for
 sources). Perch goes first because its category has an existence proof
 (NotchNook, ~$100k on $25 one-time) and because every rail built here is
 trill's for free — `UpdateCheck` was ported trill→perch, and the license layer
-rides the same seam back.
+rides the same seam back. **[§5](#5-trill--the-second-product) carries trill's
+own plan**: it inherits everything here except its positioning, its gate shape
+and its price, and it has one dependency perch doesn't.
 
 **The one principle: the paywall lives in the binary, never in the
 distribution.** Perch ships through four doors (cask, direct ZIP, rice copy,
@@ -114,9 +116,89 @@ it's the only step that gets harder after revenue)*
   license covered — CalVer makes "covered" a fact about dates, not a server's
   opinion.
 - **Trill inherits everything** — format, signer, Worker route, Settings pane
-  shape. When trill's turn comes, its only new work is its own gate shape
-  (caps don't map to a messages client; likely trial-or-nag) and its own
-  landing page.
+  shape. Its own work is positioning, gate shape and price: see [§5](#5-trill--the-second-product).
 - **`bench release` stays untouched end-to-end.** If any phase finds itself
   editing the release pipeline, the paywall is leaking out of the binary —
   stop and re-read the principle at the top.
+
+## 5. Trill — the second product
+
+Everything in §1–§4 applies unchanged unless contradicted here. Perch still
+ships first; this section exists so the decisions taken while trill's Beeper
+work was fresh don't have to be re-derived later.
+
+### 5.1 Positioning — decided 2026-08-04
+
+**The headline is the native client. Beeper is a bullet below the fold.**
+
+The earlier pitch was "your local, private aggregator". Building the Beeper
+adapter established that this is two claims and only one of them is fully ours:
+
+| Claim | Reality |
+|---|---|
+| **Local** | True, strongly. iMessage/SMS/RCS is read-only `chat.db`, in-process, no account, no server, no network call to read a message. |
+| **Private** | True for the native half. Beeper networks route through Beeper's **cloud** bridges — not our architecture, and not something we can fix. |
+| **Aggregator** | The aggregation is *Beeper's*. It needs their app installed, signed in, running, with the dev API enabled. |
+
+So the promise we can keep is "the fast, flat, keyboard-first Messages client
+for macOS" — finished, ours, owes nothing to anyone. "Works with your Beeper
+networks too" sits underneath it. This is not modesty; it is what keeps a
+**lifetime** license honest when the thing underneath it is a third party's
+public beta (§5.4).
+
+### 5.2 Price and gate shape
+
+| Decision | Choice | Why |
+|---|---|---|
+| Price | **$39**, renewal $19 for another update year | Working number from the market eval. A daily-driver comms app sits above perch's $19 utility tier. Same one-time + 1-year-of-updates model, same CalVer entitlement — nothing new to build. |
+| License file | Identical, `"product": "trill"` | The format is already product-scoped. Signer, Worker route, mail template, Settings pane shape all reused verbatim. |
+| Gate shape | **Feature tier, not a cap and not a trial timer** — *proposed, needs a call* | A conversation cap is unusable (people would just reopen Messages.app) and a timer is resettable state. The honest split is **free = read, reply, search, one window** and **paid = the organizer layer**: folders/tags, VIP, snooze/archive/mute, saved messages, multi-tab, exports, stats. Light users stay free forever; the people who make trill their inbox convert. |
+| What is **never** behind the gate | Beeper aggregation | Gating it would make the paid tier depend on someone else's beta API. It is a bullet, not a SKU. |
+| Rice door | No special-casing, same as perch | But see §5.4 — trill ships by default in the rice, so this one is felt harder. |
+
+### 5.3 Phase 0 for trill — do it now
+
+Same reasoning as perch's: it is the only step that gets harder after revenue,
+and it is independent of everything Beeper.
+
+- [ ] Verify authorship with `git shortlog -sne` (expected: Julien's two
+      identities + `haus-release[bot]`, same as perch).
+- [ ] `LICENSE` MIT → FSL-1.1-Apache-2.0. Every shipped MIT release stays MIT;
+      FSL applies from the next tag.
+- [ ] README badge + "why fair source" paragraph; note it on nebelhaus.com.
+- [ ] `AGENTS.md`'s conventions line says "MIT, public" — update it in the same
+      commit or the next agent will re-assert MIT.
+
+Public artifacts stay public, so the cask and `nix/release.nix` are unaffected:
+FSL forbids redistributing *competing builds*, not downloading ours.
+
+### 5.4 Watch-outs specific to trill
+
+- **The Beeper Desktop API is an experimental public beta, and Automattic owns
+  it.** They also own Texts.app — the aggregator client is *their* product. A
+  lifetime license must never promise a feature they can withdraw. This is the
+  single strongest reason §5.1 went the way it did.
+- **Disclose the Beeper dependency on the storefront, above the fold of the
+  FAQ.** It is free for up to 5 networks and $9.99/mo beyond that (Beeper
+  Plus), and it requires *their* app running. A customer who buys "one inbox"
+  and discovers a second app to install is a refund, and with a merchant of
+  record that is a chargeback.
+- **Perch's privacy sentence does not port.** "The only network call is the
+  hourly release check" is false for trill — update check, link previews, and
+  Beeper when configured. Write trill's own sentence and make it equally
+  load-bearing: *reads your Messages database read-only, never writes to it,
+  and sends nothing anywhere you didn't configure.*
+- **One binary, one signing identity, forever.** macOS keys Full Disk Access to
+  the signature, and `UpdateCheck` already refuses a download whose identity
+  differs from the running app. A separate "paid build" or a changed bundle id
+  would silently cost every user their FDA grant. The gate goes *inside* the
+  same bundle — which is the top-of-document principle, with teeth.
+- **The rice ships trill by default** (`nebelhaus.trill.enable`), so unlike
+  perch the gate lands on rice users at their next rebuild without them having
+  chosen to install anything. Same code path — but the free tier has to be
+  genuinely usable, or a rebuild feels like a downgrade.
+- **Don't sell the aggregation until §5's ship gate closes.** It is still
+  unvalidated against a live Beeper Server — see
+  `trill/docs/beeper-client-refactor.md` §5 and
+  `scripts/beeper-contract-check.sh`. Closing it is free: install Beeper
+  Desktop, enable Settings → Developers, run the script.
