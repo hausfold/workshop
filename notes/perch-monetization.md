@@ -85,24 +85,41 @@ so the application runs in parallel with Phase 1, not after it.
 
 **Phase 0 — relicense, before any paid build exists** *(one session; do first —
 it's the only step that gets harder after revenue)*
-- [ ] Authorship verified 2026-08-03: `git shortlog -sne` shows only Julien
+✅ **Phase 0 is DONE — perch#26, 2026-08-03.** It was the gate on the tester
+round ([`launch-phase-1.md` §0](./launch-phase-1.md)), so everyone invited now
+installs a fair-source perch rather than an MIT one.
+- [x] Authorship verified 2026-08-03: `git shortlog -sne` shows only Julien
       (both identities) + haus-release[bot] — relicense is a commit, not a CLA hunt.
-- [ ] `LICENSE` → FSL-1.1-Apache-2.0 (text from fsl.software), README badge +
-      "why fair source" paragraph, `docs/` + nebelhaus.com/perch note.
-- [ ] Leave every shipped MIT release alone — FSL applies from the next tag.
+- [x] `LICENSE` → FSL-1.1-ALv2 (text from fsl.software), README badge +
+      "why fair source" paragraph.
+      ⚠️ **The docs-site half was missed for two days**: nebelhaus.com's
+      `start/the-family.md` still read *"All of nebelhaus is MIT-licensed"*
+      after org-profile#14 had already corrected the identical sentence in the
+      GitHub footer. Fixed 2026-08-05. **A relicense is a claim to grep for,
+      not a file to edit** — it appears wherever anyone once summarised the
+      family, which is more places than the repo that changed.
+- [x] Leave every shipped MIT release alone — FSL applies from the next tag,
+      and 2026.08.04 is the first one.
 
-**Phase 1 — the license layer in the app** *(~2–3 sessions; the big one)*
-- [ ] `Perch/Platform/License.swift`: parse + verify + covered-date logic,
-      unit-tested against known-good/known-bad fixtures (mirror
-      `UpdateCheckTests` style).
-- [ ] Free-tier cap: shelf accepts 3 tiles unlicensed; the 4th slides in a
-      strip (reuse the update-strip surface) — never block a drag mid-flight,
-      never lose a drop. The cap message is the whole marketing funnel; write
-      it kindly.
-- [ ] Settings → License pane: state, seat count, covered-through date, import
-      button. Update nudge grows one line when the newer build is outside
-      coverage ("covered through 2027.08 — renew to update").
-- [ ] `DEBUG` builds: always licensed, same as the update check's guard.
+**Phase 1 — the license layer in the app** ✅ **shipped in perch#27, and
+deliberately INERT** *(~2–3 sessions; the big one)*
+- [x] `Perch/Platform/License.swift` + `LicenseStore.swift`: parse + verify +
+      covered-date logic against a baked-in Ed25519 key, no server, no sign-in,
+      no network call. `PerchTests/LicenseTests.swift`, 20 tests.
+- [x] Free-tier cap — **2 tiles, not 3.** Admission is decided in `ShelfStore`
+      *before* staging, so a refused item is never copied and no drag is
+      interrupted. The arithmetic test pins the SHAPE of the rule against
+      `freeTierCapacity` rather than literals, plus a guard that it can never
+      reach zero (a free tier of zero is a hard paywall in a free tier's
+      clothes).
+- [x] Settings → License pane, gated on `LicenseStore.canSell` — which is
+      `false` until the public key constant lands in Phase 2. **The cap and the
+      ability to honour a license are ONE switch**: a paywall with no
+      purchasable door is worse than no paywall.
+- [x] `DEBUG` builds: always licensed, same as the update check's guard.
+- [ ] Still Phase 2's, and the reason none of the above is visible to a user
+      yet: mint the keypair, bake the public key, and flip `canSell`.
+      `perch/docs/going-paid.md` is the runbook for that day.
 
 **Phase 2 — commerce rails** *(~1 session of work, but see the approval wait)*
 - [ ] **Apply to Paddle during Phase 1, not after it.** Approval is days, not
@@ -225,20 +242,23 @@ ranking is the one that predicts whether the work is finishable by one person.
 Run perch first regardless. One shipped product teaches more about whether
 people pay than another eval will, and the eval keeps.
 
-### 5.5 Open: archive trill?
+### 5.5 ✅ Settled: trill is archived
 
-Leaning yes as of 2026-08-04, deliberately not decided in the same sitting as
-the freeze. It touches five places and wants a *"no longer maintained, and
-why"* note rather than a silent flip:
+Decided the day after this section was written, and decided by **removal rather
+than by the note** it proposed — which turned out to be the better answer, since
+nothing now hands a tester an unmaintained app in the first place.
 
-- [ ] The rice ships it by default (`nebelhaus/modules/trill`,
-      `nebelhaus.trill.enable`) — an unmaintained app installed by default sets
-      the family's quality bar. This is the one that actually matters.
-- [ ] Marketing copy: `web/` (nebelhaus.com), workshop README, org profile.
-- [ ] `homebrew-tap`'s `Casks/trill.rb` — **CI-owned**; removing a cask is not
-      the same operation as bumping one, and existing installs keep working
-      either way.
-- [ ] A final release or a README banner, so anyone who installed it learns the
-      status from the app's own repo.
-- [ ] Then archive on GitHub. The code stays readable; the read-only `chat.db`
-      reader and typedstream decoder are the parts worth keeping legible.
+- [x] The rice: **rice#212** made it opt-in, **rice#213** deleted the module and
+      the flake input a day later. The sentence worth reusing is #213's — *a
+      supported option nobody should turn on is a lie in the option reference.*
+- [x] Marketing copy: workshop#204 (nebelhaus.com + the family lists),
+      org-profile#14 (the GitHub front page).
+- [x] `homebrew-tap`'s `Casks/trill.rb` — **tap#10** deprecated the cask,
+      **tap#11** stopped naming the final version in prose. Existing installs
+      keep working, as predicted.
+- [x] A final release: 2026.08.04 / 2026.08.04-1 shipped through the tap with
+      the deprecation, so anyone who installed it learns the status from
+      `brew`.
+- [x] Archived on GitHub. The read-only `chat.db` reader and the typedstream
+      decoder stay readable, which was the point of archiving rather than
+      deleting.

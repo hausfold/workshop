@@ -85,4 +85,8 @@ nebelhaus stands on the shoulders of excellent open-source projects:
 - [Catppuccin](https://github.com/catppuccin) — the colour framework nebelung is derived from
 - [Ghostty](https://ghostty.org), [zellij](https://zellij.dev), [yazi](https://yazi-rs.github.io), [helix](https://helix-editor.com), [starship](https://starship.rs) — the terminal stack
 
-All of nebelhaus is MIT-licensed.
+nebelhaus is MIT-licensed, with one exception: **perch** is *fair source* —
+[FSL-1.1-ALv2](https://fsl.software), the Functional Source License with an
+Apache-2.0 future licence, so every release becomes Apache-2.0 two years after
+it ships. You can read it, build it, and change it for yourself; you can't sell
+it as a competing product.
