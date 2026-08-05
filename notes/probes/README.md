@@ -2,9 +2,9 @@
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
-(One probe here isn't about macOS at all — `pack-priority.nix`, at the bottom —
-but it earns the same shelf: a claim in a notes file, with the command that
-proves it beside it.)
+(Two probes here aren't about macOS at all — `pack-priority.nix` and
+`preset-composition.nix`, at the bottom — but they earn the same shelf: a claim
+in a notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -124,3 +124,21 @@ the one that fails silently.** `mkDefault` on the whole `roster` attrset looks
 like the cheap version and drops three of the pack's four apps without an error;
 only per-leaf priority does what the roadmap wanted. Six compositions, verdicts
 in the file header.
+
+## `preset-composition.nix` — the other half of the same question
+
+What happens when two whole **rices** meet, rather than a pack and a host.
+`lib.pack` fixed host-vs-pack; this measures the case the roadmap left open and
+the one a gallery produces.
+
+```sh
+nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
+  --arg rice ~/code/workshop/nebelhaus
+```
+
+All six pairs of the four shipped presets, both escape hatches, and two candidate
+seams. Same family lesson as the rest of this shelf, twice: **the assumption
+nobody ran was wrong** (overlap isn't collision, and the conflict error names
+both files), and **the quiet outcome is the dangerous one** — two rices' list
+options merge with no error at all, so a pair that "composes" may just be one
+that blends.
