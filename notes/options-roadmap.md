@@ -43,8 +43,13 @@ already exist, and one it treated as a detail is the actual root blocker.
 > tour steps concatenate, in reverse import order, no warning. **Composing two
 > strangers' rices has two failure modes and this doc only described the loud
 > one.**
-> Whether to ship the `compose` seam is the open decision; the fallback is to
-> publish the rule now that it's known. (Repos re-read first, per §5.14: since
+> **✅ Decided the same day: publish the rule, don't build `compose`** — the
+> measurement that made the seam buildable also removed the reason for it, since
+> the error a colliding consumer meets is already attributed. The rule now ships
+> in `presets/README.md` and `guides/sharing-a-rice.mdx`, including the clause
+> nobody knew: **a list- or set-valued option never conflicts, it combines,
+> silently.** Adding `lib.compose` later is additive; removing it once a gallery
+> depends on ordering is not. (Repos re-read first, per §5.14: since
 > rice#222 nothing changed the option surface — 130 leaves, unmoved. rice#223–227
 > are hearth/den/pounce surfaces, and the one roadmap-adjacent commit is
 > §5.7's — the rice now generates `~/.config/holt/config.toml` from
@@ -1812,14 +1817,29 @@ attrs-valued one — `tour.steps` (§5.13's whole mechanism), `roster`,
 The loud one is the one we have been designing against, and it is the one that
 can't hurt anybody.
 
-**What this leaves as the decision**, stated rather than resolved: whether the
-format ships a `compose` seam at all. It is cheap (one `mkOverride` walk beside
-`lib.pack`), it makes the sentence three READMEs already believed *true*, and it
-buys a gallery where any two rices stack — at the price of the last silent
-override in a format whose entire pitch is that you can read a rice and know what
-it does. The alternative is to publish the rule as it is, now that it is actually
-known: **rices compose unless they disagree; when they disagree you get a named
-option, two named files, and `mkForce`.**
+**✅ Decided 2026-08-05: publish the rule, don't build `compose`.** The seam is
+cheap and would make the sentence three READMEs already believed true — but the
+measurement that made it buildable is the same measurement that removed the
+reason to build it. Option 4 was proposed while limit 3 believed a colliding
+consumer got an unattributed trace; they get a named option, two named files and
+the fix. What the seam would add on top of that is a *blend nobody chose* —
+exactly the failure class this document keeps re-finding — in a format whose
+whole pitch is that you can read a rice and know what it does. **The rule
+shipped instead, in both places a stranger meets it** (rice `presets/README.md`,
+`guides/sharing-a-rice.mdx`):
+
+> **Two rices compose unless they disagree.** Same option, same value: merges.
+> Same option, different values: the build stops, naming the option, both files
+> and `lib.mkForce`. And an option holding a list or a set never conflicts at
+> all — those definitions are **combined**, silently.
+
+The asymmetry is what settled it rather than the argument: adding `lib.compose`
+later is additive and breaks nobody, while removing it after a gallery has rices
+that depend on ordering breaks strangers' configs. Waiting costs a line of docs;
+shipping early costs the option to change our mind.
+
+The last clause is the half nobody knew, and it is now the more useful warning
+of the two: the loud failure mode is the one that can't hurt anybody.
 
 ### What the readiness test can and can't see, after limit 1 closed
 

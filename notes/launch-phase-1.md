@@ -24,14 +24,27 @@ Nothing below works if a tester hits a wall on step one.
 - [x] **A documented exit path exists** — `web/src/content/docs/guides/leaving.mdx`
       is live. Re-read it as a stranger before the invites go out; "how do I
       undo this" is the first question a cautious tester asks.
-- [ ] **Do perch Phase 0 (FSL relicense) first.** Testers installing the house
-      install perch. Every one of them is an MIT install if you wait. See
-      [`perch-monetization.md` Phase 0](./perch-monetization.md#3-phases).
-- [ ] **Settle the trill question.** The rice ships it by default and it's
-      frozen; testers shouldn't be handed an unmaintained app as part of their
-      first impression. Either drop it from the default roster or ship the
-      "no longer maintained, and why" note.
-      ([§5.5](./perch-monetization.md#55-open-archive-trill))
+- [x] ✅ **perch Phase 0 (FSL relicense) is done** — perch#26 relicensed
+      MIT → FSL-1.1-ALv2 and perch#27 landed the offline-Ed25519 layer with a
+      2-tile free tier (inert until the public key ships in Phase 2). Every
+      tester now installs a fair-source perch, which was the whole point of
+      doing this before the invites rather than after.
+      ⚠️ **One half was missed and is fixed here:** nebelhaus.com still said
+      *"All of nebelhaus is MIT-licensed"* on
+      [`start/the-family.md`](../web/src/content/docs/start/the-family.md).
+      org-profile#14 corrected the same claim in the GitHub footer four days
+      ago and the docs site was never grepped — the roadmap's rule again,
+      **grep for the claim, not for the file.**
+- [x] ✅ **The trill question is settled — it was decided by removal, not by a
+      note.** rice#212 made it opt-in, rice#213 deleted the module and the flake
+      input, homebrew-tap#10/#11 deprecated the cask, workshop#204 and
+      org-profile#14 took it out of the family lists, and the repo is
+      **archived on GitHub**. So no tester is handed it at all, which is a
+      better answer than the "no longer maintained, and why" note this box
+      asked for. ([§5.5](./perch-monetization.md#55-open-archive-trill), all
+      five of its boxes now ticked.)
+      The sentence worth keeping, from rice#213: *a supported option nobody
+      should turn on is a lie in the option reference.*
 - [ ] **Carry-over, unresolved:** an earlier session flagged a "`.bak`
       discrepancy" with no detail. The only `.bak` in the docs is the Codex
       OAuth token rewrite at `web/src/content/docs/guides/the-bar.mdx:128` —

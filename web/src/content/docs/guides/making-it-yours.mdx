@@ -264,8 +264,10 @@ darwinConfigurations.myhost = nebelhaus.mkNebelhaus {
 
 Your host file can override anything a preset sets — but not by being imported
 *after* it. Import order carries no priority in Nix's module system: an option
-the preset leaves alone is yours to set plainly; an option it *also* sets is a
-*conflict*, not a silent win, until you reach for `lib.mkForce`:
+the preset leaves alone is yours to set plainly; an option it also sets to a
+*different* value is a *conflict*, not a silent win, until you reach for
+`lib.mkForce`. (Setting one to the value it already holds is fine — identical
+definitions merge, so restating a preset's own choice costs you nothing.)
 
 ```nix
 { lib, ... }:                              # add lib to your host's args

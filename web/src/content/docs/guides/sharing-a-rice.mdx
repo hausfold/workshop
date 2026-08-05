@@ -101,17 +101,43 @@ Before publishing, try:
 - a host value set on top of one of the rice's own choices;
 - each combination of rooms you turn off.
 
-**Import order carries no priority.** Two definitions of one option at the same
-priority *conflict* — the build stops naming the option and both files — so
-"imported after, therefore wins" is not a mechanism you can lean on, in either
-direction. A consumer overrides a field your rice sets with `lib.mkForce` in
-their host; that line belongs in your README for every field you set that a
-reasonable person might disagree with.
+### The composition rule, in one line
+
+**Two rices compose unless they *disagree*.** Import order carries no priority,
+so "imported after, therefore wins" is not a mechanism you can lean on in either
+direction — but naming the same option is not the problem people assume it is:
+
+- **Same option, same value** — fine. Nix merges identical definitions, so a
+  rice that restates a value the consumer already holds costs them nothing.
+- **Same option, different values** — the build stops, and tells you plenty:
+
+  ```text
+  error: The option `nebelhaus.sill.enable' has conflicting definition values:
+         - In `…/presets/minimal.nix': false
+         - In `…/presets/everyday.nix': true
+         Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
+  ```
+
+  The option, both files, and the fix. A consumer resolves it with `lib.mkForce`
+  in their host — and that line belongs in your README for every field you set
+  that a reasonable person might disagree with.
 
 So narrow the rice until ordinary Nix merging is enough: every optional field
 you set is one a consumer has to force. A layer that leaves unrelated choices
 alone composes; one that restates a whole machine collides with the next layer
 along.
+
+<Aside type="caution" title="The quiet half: list and attribute options merge">
+The conflict above only happens for options that hold a single value. An option
+holding a **list or a set** — `tour.steps`, `roster`, `theme.ports.handled` —
+never conflicts at all: the definitions are **combined**, with no error and no
+warning. Two rices that each author one tour step produce a tour with both, in
+an order neither author chose.
+
+That is the failure mode worth testing for, because nothing will tell you about
+it. If your rice authors a tour, say so in its README, and say whether it expects
+to be the only one.
+</Aside>
 
 <Aside type="note" title="App packs are the exception">
 A pack — a rice narrowed to `nebelhaus.roster`, the apps on a machine — is
@@ -166,6 +192,8 @@ different trust model and should be labelled as one.
 - [ ] `checkRice` prints `true`.
 - [ ] A real host configuration evaluates.
 - [ ] The rice composes with an unrelated layer.
+- [ ] If it sets a list or set option — `tour.steps`, `roster` — the README says
+      so, because a second rice setting the same one merges into it silently.
 - [ ] Every field the rice sets is listed in its README with the `lib.mkForce`
       line a consumer needs to override it — or, for a pack, imported through
       `nebelhaus.lib.pack` so they don't.
