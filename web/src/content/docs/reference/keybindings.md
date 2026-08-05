@@ -4,8 +4,10 @@ description: Every default shortcut across tiling, the launcher, the terminal, a
 ---
 
 Every default binding in nebelhaus, grouped by where it lives. The same list is
-available live in-system: tap **⇪** then **/** to open Pounce's cheatsheet,
-generated from your actual app roster.
+available live in-system: tap **⇪** then **/** to open Pounce's cheatsheet —
+generated from your own machine's tables (your app roster, prowl's window
+chords, hearth's terminal keys), so it describes the keys you actually have
+rather than the ones the docs assume.
 
 Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `⇪` Caps-Lock.
 
