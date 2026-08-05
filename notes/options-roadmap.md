@@ -7,13 +7,50 @@ this was written the option surface could express none of them; `full`,
 `everyday` and `large-print` now all pass the readiness test in §6, and what's
 left is tracked against it there. (Passing is not finishing — §6 records the
 three limits the test exposed, which are the most useful findings in this doc.
-Limit 1 is closed; limit 3, composition, is the one a stranger hits first — and
-its candidate fix is now measured rather than guessed at.)
+Limit 1 is closed; limit 3, composition, is the one a stranger hits first — it is
+closed for packs, and its preset half is now measured rather than assumed, which
+falsified three of this document's own claims about it.)
 
 This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-05 (fourth pass) — limit 3's PRESET half is measured, and
+> three of the things this document says about composing rices are wrong.**
+> The last pass closed limit 3 for packs and left preset-vs-preset as the gap,
+> excused as "colliding is the intended answer". Nobody had run it. Running it
+> (`probes/preset-composition.nix` — the four shipped presets, all six pairs, the
+> escape hatches, and two candidate seams; same `lib.evalModules` trick as the
+> pack probe, seconds, no darwin system) turned up, in §6's limit-3 section:
+> **(a)** overlap is **not** collision — `mergeEqualOption` accepts identical
+> definitions, so the rule is *two rices compose iff they never disagree*, and
+> half the pairs that "happen not to overlap" actually overlap and merge;
+> **(b)** the conflict error **names the option, both files and `mkForce`** when
+> a rice arrives as a path, which falsifies the "raw trace rather than anything
+> this project wrote" premise option 2 was built on — **except through
+> `lib.pack`**, whose wrapper erases the filename, so the one collision rice#222
+> deliberately kept loud reports ``<unknown-file>`` twice — **fixed the same day
+> in rice#228** (`_file`, plus a third `packs` rule, because that failure is
+> invisible until two packs a *stranger* installed disagree);
+> **(c)** the pack escape hatch (a plain host assignment) does **not** transfer
+> to presets — it's a third normal definition and the build still stops;
+> **(d)** presets at `mkDefault` wouldn't help either: equal priorities collide;
+> **(e) ★** but **priority by list position works** — one `mkOverride` at a
+> `compose` seam makes "the later rice wins" true, in both directions. It costs
+> a *blend*, not a winner: `compose [ everyday minimal ]` keeps everyday's
+> `tour.steps` because minimal never mentions steps;
+> **(f) ★** and the options that don't collide **merge silently** — two rices'
+> tour steps concatenate, in reverse import order, no warning. **Composing two
+> strangers' rices has two failure modes and this doc only described the loud
+> one.**
+> Whether to ship the `compose` seam is the open decision; the fallback is to
+> publish the rule now that it's known. (Repos re-read first, per §5.14: since
+> rice#222 nothing changed the option surface — 130 leaves, unmoved. rice#223–227
+> are hearth/den/pounce surfaces, and the one roadmap-adjacent commit is
+> §5.7's — the rice now generates `~/.config/holt/config.toml` from
+> `nebelhaus.agents.default`, a third instance of the two-writers seam, correctly
+> labelled *edit that option, not here*.)
+>
 > **Status, 2026-08-04 (third pass) — limit 3's proposed fix was RUN, and it has
 > exactly one correct implementation.** The two passes below both ended by
 > naming the same next step: try option 1 (ship packs at a lower priority) on
@@ -935,6 +972,17 @@ rendered from, and refreshed by `haus options` after `haus update`. Two
 independent repos reached the same shape within days of each other, which is
 about as strong a signal as this document gets that the shape is right.
 
+**A third instance landed 2026-08-04, from the other direction:** the rice now
+generates `~/.config/holt/config.toml` from `nebelhaus.agents.default`, because a
+zellij server or a launchd daemon outlives the environment that started it, so
+`holt new` has to resolve a file rather than inherit a stale selection. Holt owns
+that file when installed standalone — so this is the same two-writers question as
+(b), answered the third way: the rice writes it, and the file's first line says
+*edit that option, not here*. Three instances now (pounce's `config init`, the
+host's `options.nix`, holt's config), and the pattern across all of them is that
+**whoever generates the file has to say so IN the file** — the store symlink only
+protects the cases where Nix is the writer.
+
 But note what that means for the goal: §5.7 framed it as *writing* config from
 the palette, and what arrived first was being able to *read* the surface out of
 your own file. **"Configure without opening the docs" and "configure without
@@ -1270,6 +1318,28 @@ and would have cost real confusion the moment it did, because the wrapper
 silently drops whatever it wasn't written to carry. `checkPack` (rice#222) is
 the same shape as `checkRice`, one level in. **Two ★ findings in this file are
 now checks that can break, and this is the third** — the rule is holding.
+
+**Fourth pass, 2026-08-05 — the falsified-claim shape fired again, and this time
+the falsified claim was one of MINE.** §6's limit 3 asserted that a colliding
+consumer "meets a raw nix conflict trace rather than anything this project
+wrote". Nobody had read the trace. It names the option, both files and the fix
+(§6). The rule from the second pass — *a closed claim goes stale when someone
+learns the thing it asserted was wrong* — was written about other people's
+commits; the sharper version is that **this document's own unmeasured
+justifications are the most likely thing in it to be false**, because nothing
+downstream ever executes them. Both of the last two passes ended by naming a
+measurement as the next step, and both times the measurement contradicted the
+paragraph that proposed it.
+
+A fifth check candidate, from the same pass: **a `presets` check** in the shape
+of `packs`, with the twist that it must assert a **collision** as well as its
+absence — the pairs the docs advertise as stackable have to keep composing, and
+the pairs advertised as alternatives have to keep failing. And a **fourth
+finding that became a check the same day** (rice#228): *a wrapper applied to
+someone else's module owes it a `_file`* — `lib.pack` dropped it, so the
+collision it deliberately preserves was anonymous, and rule 3 of the `packs`
+check now fails if it goes missing again. **Four ★ findings in this file are
+now checks that can break.**
 
 ---
 
@@ -1642,6 +1712,115 @@ What it costs, stated in the option's own docs rather than discovered: a pack
 author is no longer told when a consumer disagrees with them. A pack proposes;
 the machine's owner decides.
 
+#### ★ The preset half, measured (2026-08-05) — and three of this section's own claims were wrong
+
+rice#222 closed limit 3 for **packs** and left preset-vs-preset named as the
+remaining gap, with "colliding is the intended answer" as the reason to leave it.
+That reason was never measured. It is now, by the same machinery one file over:
+[`probes/preset-composition.nix`](probes/preset-composition.nix) — the four
+shipped presets, all six pairs, plus the escape hatches, through `lib.evalModules`
+over the pure-lib option surface. Seconds, no darwin system, Linux-CI-capable.
+
+| pair | overlap | disagree | verdict |
+|---|---|---|---|
+| `[ full minimal ]` | 5 | 4 | conflict on pounce/prowl/sill/tour — **`developer.enable` overlaps and does not collide** |
+| `[ everyday full ]` | 5 | 2 | conflict on `developer.enable`, `prowl.enable` only |
+| `[ everyday minimal ]` | 5 | 4 | conflict on developer/pounce/sill/tour — they **agree** prowl is off |
+| `[ everyday large-print ]` | 0 | 0 | composes |
+| `[ full large-print ]` | 0 | 0 | composes |
+| `[ large-print minimal ]` | 0 | 0 | composes |
+
+**(a) Overlap is not collision — `mergeEqualOption` accepts identical
+definitions.** Every sentence in this document about two rices "happening not to
+overlap" was describing the wrong property. The real rule is **two rices compose
+iff they never *disagree***, which is a far weaker requirement and a far better
+story to publish: a gallery rice that restates a value you already hold costs you
+nothing. Three of the six pairs above overlap and still compose *partially* — the
+conflict is per option, not per file.
+
+**(b) ★ The error is better than this section said, and the fix made it worse.**
+Limit 3 was written as "the error they see is a nix conflict trace rather than
+anything this project wrote". Measured, with the rices imported **as paths** —
+which is exactly what `extraModules = [ nebelhaus.presets.everyday … ]` is:
+
+```
+error: The option `nebelhaus.sill.enable' has conflicting definition values:
+       - In `…/presets/minimal.nix': false
+       - In `…/presets/everyday.nix': true
+       Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
+```
+
+That names the option, both files and the fix. It is not friendly, but the
+premise for option 2 ("detect and translate") was that the consumer is told
+nothing — and they are told nearly everything.
+→ **But a seam that TRANSFORMS a rice erases the filename.** `lib.pack` builds a
+new attrset out of the pack's data, so its definitions have no file, and the one
+case rice#222 deliberately left loud — two packs naming one app — reports
+``- In `<unknown-file>'`` **twice**: loud and anonymous, with nothing to tell the
+consumer which two packs disagreed. Measured, then **shipped in rice#228** —
+`_file = toString path` in the module `pack` returns, verified end to end, with
+a third rule in the `packs` check because nothing on this machine would ever
+notice it regress. **Any wrapper applied to someone else's module owes it a
+`_file`.** So the seam built to improve the collision story had, for four days,
+made the one collision it deliberately keeps strictly worse than doing nothing —
+which is the argument for measuring a fix's *failure* path, not only its success
+path.
+
+**(c) The pack escape hatch does not transfer.** rice#222 found that a plain host
+assignment settles a *pack-vs-pack* collision, because both packs sit at
+`mkDefault` and a normal definition outranks them both. Between two **presets**
+the same host line is a *third* normal definition and the build still stops — on
+all five options, one more than before. The consumer needs `lib.mkForce`, at the
+exact moment they are least equipped to know it.
+
+**(d) Presets at `mkDefault` would not help either** — two equal-priority
+defaults conflict exactly like two equal-priority values (measured: still four
+collisions). Option 1 is a fix for **host-vs-rice**, and can never be one for
+rice-vs-rice.
+
+**(e) ★ Option 4, which this section never considered: priority by LIST
+POSITION.** The refuted model — *imported later wins* — is false as a
+description of the module system and perfectly implementable as a mechanism on
+top of it. `compose [ a b ]` stamps each rice one `mkOverride` weaker than the
+one after it; the last definition of any option outranks every earlier one and
+everything non-overlapping survives. Measured in both directions, so it is order
+rather than luck: `compose [ everyday minimal ]` resolves the rooms to minimal's,
+`compose [ minimal everyday ]` to everyday's, and `compose [ everyday
+large-print ]` keeps all nine values.
+
+Two costs, both measured rather than predicted:
+
+- **It composes at the OPTION level, not the RICE level, so you get a blend.**
+  `compose [ everyday minimal ]` yields minimal's rooms **plus everyday's
+  `tour.steps`**, because minimal never mentions steps — a machine with the tour
+  off carrying the other rice's authored tour step. That is limit 3's own class
+  again: valid parts composing into something nobody chose.
+- **The wrapper has to find the option boundary, not count levels.**
+  `pack-priority.nix` hand-rolled two `mapAttrs` because it only ever walked
+  `roster`; a preset sets arbitrary paths, so the wrapper must walk the data
+  against the evaluated `options` tree and descend through `attrsOf` submodules.
+  Wrap above the boundary and you replace a value instead of setting a priority
+  — the silent three-quarters-of-the-pack failure, one family up.
+
+**(f) ★ And some options never conflict at all — they MERGE, silently.** Two
+rices each authoring one `tour.steps` entry produce **both**, concatenated, in
+*reverse* import order, with no error and no warning. So composing two strangers'
+rices has two failure modes and this document only ever described one: a **loud
+conflict** on scalar options, and a **silent blend** on every list- or
+attrs-valued one — `tour.steps` (§5.13's whole mechanism), `roster`,
+`theme.ports.handled`, `agents.clients`, and `theme.palette` when §5.1 builds it.
+The loud one is the one we have been designing against, and it is the one that
+can't hurt anybody.
+
+**What this leaves as the decision**, stated rather than resolved: whether the
+format ships a `compose` seam at all. It is cheap (one `mkOverride` walk beside
+`lib.pack`), it makes the sentence three READMEs already believed *true*, and it
+buys a gallery where any two rices stack — at the price of the last silent
+override in a format whose entire pitch is that you can read a rice and know what
+it does. The alternative is to publish the rule as it is, now that it is actually
+known: **rices compose unless they disagree; when they disagree you get a named
+option, two named files, and `mkForce`.**
+
 ### What the readiness test can and can't see, after limit 1 closed
 
 Three things fall out of running the audit twice in one day, and they're really
@@ -1667,9 +1846,18 @@ found so far came from BUILDING one.**
   list, and it is the one thing that would have caught limit 3 before a real
   host did. ✅ **It exists now** — `nix flake check`'s `packs` (rice#222)
   composes each pack with a host that fights it. "We've never run the test with
-  two overlapping files" has stopped being true; the remaining gap is
-  preset-vs-preset, where colliding is the intended answer and the check would
-  have to assert the collision rather than its absence.
+  two overlapping files" has stopped being true; the remaining gap was
+  preset-vs-preset, where colliding was assumed to be the intended answer.
+  ✅ **Measured 2026-08-05** (`probes/preset-composition.nix`, all six pairs of
+  the shipped presets) — and the assumption was three-quarters wrong: overlap
+  isn't collision, the error names both files, the pack escape hatch doesn't
+  transfer, and the options that *don't* collide blend silently. See limit 3's
+  preset half above. **A `presets` check has the same shape as `packs` and one
+  extra requirement: it has to assert a collision as well as its absence**, so
+  it pins which pairs are advertised as stackable (`[ everyday large-print ]`)
+  and which are advertised as alternatives (`[ everyday minimal ]`) — today
+  nothing would notice a preset growing a field that quietly breaks the pair
+  the README tells people to use.
 - So the honest scoreboard reads: **the surface is no longer the constraint.**
   What's left is breadth (§5.6's seven uncurated groups), one schema migration
   (§5.4's `workspaces`, still the last unstarted Phase 3 item), trust (§5.11) —
