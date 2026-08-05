@@ -32,7 +32,7 @@ cheatsheet always reflects the keys you actually have.
 
 `⌥Tab` is deliberately unbound — workspace back-and-forth retired in favour of
 `⌘Tab`, which is most-recently-used rather than a single previous-workspace
-pointer, and whose rows carry the window's workspace.
+pointer, and whose rows are gathered by workspace under a header each.
 
 ## Launch mode — tap ⇪ (prowl)
 

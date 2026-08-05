@@ -79,6 +79,41 @@ query=$(printf '' | pounce --chain -p "App Store — type a search, then Enter")
 
 Anything you can pipe into `pounce` becomes a picker. Which brings us to…
 
+## A step that takes a paragraph
+
+A step whose answer is a *sentence* — "what should the agent do?" — wants more
+than a filter box. Three flags turn a `pounce` step into one; the rice's **Spawn
+Agent** is the worked example.
+
+**More than one verb.** Return on text that matched no row hands it back as
+`<action>\ttext`, where the action is `enter` / `cmd` / `opt` / `ctrl` — the same
+shape a row commit uses. So one prompt can offer several things to do with what
+was typed. `--actions` labels them in the bar, which is otherwise drawn only for
+a selected row (i.e. never on a rowless step):
+
+```sh
+sel=$(printf '' | pounce --chain enter,opt --draft my-prompt \
+        --actions "Go|shift:New line|cmd:With a screenshot|opt:Drafts" \
+        -p "What should it do?")
+case "$(printf '%s' "$sel" | cut -f1)" in
+  enter) go   "$(printf '%s' "$sel" | cut -f2-)" ;;
+  cmd)   shot "$(printf '%s' "$sel" | cut -f2-)" ;;
+  opt)   show_drafts ;;
+esac
+```
+
+**More than one line.** `⇧↵` inserts a newline (plain `↵` still commits) and the
+box grows with the text. A `shift:` label in `--actions` only renders `⇧↵` in the
+bar — it is never delivered as an action.
+
+**Not losing it.** The palette dismisses on `Esc` and on a click into another
+app — unforgiving for a paragraph. `--draft <key>` files the query on every
+dismissal that isn't a commit (and `Esc` clears the box before a second `Esc`
+dismisses it); `pounce drafts <key> get <i>` hands the full multi-line text back,
+and `--query <text>` reopens the box pre-filled so a draft can be edited rather
+than just re-run. The [CLI reference](/reference/pounce/) has the full `drafts`
+verb set.
+
 ## Pounce as a generic picker
 
 Beyond commands, `pounce` is a dmenu-style picker: pipe it lines, it returns the
