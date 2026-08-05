@@ -333,10 +333,39 @@ Roster order; lower values appear first. Ties are sorted by app id.
 Nixpkgs package that installs this entry. Where it lands is
 `scope`'s call.
 
+A shared rice or app pack can't set this one — it needs `pkgs`, and a
+data-only rice has no arguments. Use `packageName` there.
+
 Example:
 
 ```nix
 pkgs.orbstack
+```
+
+<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+
+### `nebelhaus.roster.<name>.packageName`
+
+`null or string` · default `null`
+
+The same source as `package`, NAMED rather than evaluated: an
+attribute path into nixpkgs, so "orbstack" means `pkgs.orbstack` and
+"python3Packages.black" means what it says. `scope` applies to it
+identically.
+
+This is the source a shared app pack can use (packs/README.md).
+Without it a pack could install from Homebrew and the App Store but
+never from Nixpkgs, because reaching `pkgs` is exactly what the
+data-only format forbids — the one gap in the four sources.
+
+Set this or `package`, never both; and it counts as a source like any
+other, so pairing it with `cask` is the same mistake as pairing
+`cask` with `brew`.
+
+Example:
+
+```nix
+"orbstack"
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
@@ -693,10 +722,38 @@ Set this whenever you change `name`, or the family simply won't exist
 on the machine and Ghostty will silently fall back — the rice warns if
 it spots that combination.
 
+A shared rice can't set this one — it needs `pkgs`, and a data-only
+rice has no arguments. Use `packageName` there.
+
 Example:
 
 ```nix
 pkgs.nerd-fonts.fira-code
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.fonts.mono.packageName`
+
+`null or string` · default `null`
+
+The same thing as `package`, NAMED rather than evaluated: an
+attribute path into nixpkgs, so "nerd-fonts.fira-code" means
+`pkgs.nerd-fonts.fira-code`.
+
+This exists so a data-only rice (presets/README.md) can change the
+font FAMILY and not just its size — reaching `pkgs` is precisely what
+that format forbids, which made `fonts.mono.package` unreachable to
+every shared rice. A name is data; a package is code.
+
+Set one or the other, never both. A name that resolves to nothing, or
+to a set of packages rather than a package, fails at eval with the
+spelling to try instead.
+
+Example:
+
+```nix
+"nerd-fonts.fira-code"
 ```
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
@@ -990,7 +1047,7 @@ Example:
 
 `one of "claude", "codex", "opencode"` · default `"claude"`
 
-The coding agent started by Pounce's **Spawn Agent** commands, by the
+The coding agent started by Pounce's **Spawn Agent** command, by the
 ⌘A / Super-a zellij binds and the `c` shell alias, and used to reopen
 worktrees with no client recorded yet. Each spawned worktree records its
 own client, so changing this affects new work but never reopens an
@@ -2132,9 +2189,16 @@ is still the compact layout, just readable from further away.
 Replace the stock ⌘Tab app switcher with pounce's MRU *window* switcher:
 tap ⌘⇥ to toggle to the last window (across workspaces), hold ⌘ and keep
 tapping ⇥ to walk older ones, type while holding to fuzzy-filter
-(frecency-ranked). Rows carry the window's AeroSpace workspace, and
-focusing goes through `aerospace focus --window-id` so a window parked
-on another workspace surfaces correctly.
+(frecency-ranked). Rows are gathered by AeroSpace workspace under a
+header each, and focusing goes through `aerospace focus --window-id` so
+a window parked on another workspace surfaces correctly.
+
+Because prowl is tiling here, a bare tap deliberately looks past the
+workspace you're on and takes the most recent window on a different
+one — with two panes tiled side by side the most recent window is one
+you're already looking at, so landing there wouldn't be a switch.
+Moving between visible tiles stays windowNav's focus keys; the skipped
+siblings are still the rows just below you in the list.
 
 Needs the daemon to hold an Accessibility grant — in practice, set
 nebelhaus.pounce.signingIdentity so the grant survives rebuilds. Without
@@ -2378,13 +2442,18 @@ Detection reuses signals the rice already emits. `launch`, `workspace`,
 `navigate` and `resize` need prowl; `palette` needs Pounce and its palette
 binding. The module warns when a chosen detector's room is disabled.
 
+Authoring a tour is also the ONLY way to have one without prowl: the
+built-in lap is three leader moves plus the palette, so `tour.enable` on a
+rice with `prowl.enable = false` draws nothing at all. `presets/everyday.nix`
+is the worked example — one step, the launcher.
+
 Example:
 
 ```nix
 [
   {
     detect = "palette";
-    hint = "Press ⌘Space, type tour, then hit ↵";
+    hint = "Press {palette}, type tour, then hit ↵";
   }
 ]
 ```
@@ -2415,10 +2484,17 @@ Example:
 
 The instruction shown in the tour pill for this step.
 
+Name keys with the placeholders `{palette}`, `{leader}` and
+`{leaderName}` rather than typing a chord: they expand to what
+THIS machine resolved, so a tour written once still teaches the
+right keys on a rice that moved `keys.palette` or `keys.leader`.
+A hardcoded "⌘Space" is wrong on that machine and the author
+never sees it — the consumer does.
+
 Example:
 
 ```nix
-"Press ⌘Space, type calendar, then hit ↵"
+"Press {palette}, type calendar, then hit ↵"
 ```
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>

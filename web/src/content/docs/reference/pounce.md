@@ -285,7 +285,11 @@ pounce --check-bluetooth          # exit 0 / prints true when granted
 |---|---|
 | `-p`, `--placeholder` | Prompt text for the search field |
 | `-i`, `--icon` | SF Symbol icon for the picker |
-| `--chain` | Mark a free-text Enter as feeding another `pounce` step — holds the window with the loading skeleton instead of fading. See [two-step commands](/guides/pounce-commands/#two-step-commands-submenus) |
+| `--chain [keys]` | Mark a free-text commit as feeding another `pounce` step — holds the window with the loading skeleton instead of fading. Optional comma-separated action list (`--chain enter,opt`) chains on some Returns and not others; bare `--chain` means `enter`. See [two-step commands](/guides/pounce-commands/#two-step-commands-submenus) and [a step that takes a paragraph](/guides/pounce-commands/#a-step-that-takes-a-paragraph) |
+| `--actions <spec>` | Label the action bar on a step that shows no rows: `"Go\|shift:New line\|cmd:Screenshot\|opt:Drafts"`. See [a step that takes a paragraph](/guides/pounce-commands/#a-step-that-takes-a-paragraph) |
+| `--draft <key>` | Keep the typed text on any dismissal that isn't a commit, filed under `<key>`; read it back with `drafts` |
+| `--query <text>` | Open with the box already holding `<text>`, caret at the end — a draft handed back to edit, not a filter to replace |
+| `drafts <key> <op>` | Read back what `--draft` kept: `save` (from stdin), `list` (one line each), `get <i>`, `rm <i>`, `clear`. Live in `~/.local/state/pounce/drafts/<key>.tsv`, newest first, capped at 20 |
 | `run <item-key>` | Run one item by the key `items` uses (`cmd:emoji`, `mode:clipboard`, `app:/…`), for binders that own the keystroke |
 | `--launcher` | Apps + commands mode |
 | `--max-empty N` | Rows shown before any query is typed |
