@@ -127,7 +127,8 @@ pass and leave the rest open. This is test-then-merge, not merge-then-test.
 ## Feel-testing a zellij edit (zscratch)
 
 One rice change escapes the ripple entirely. A zellij edit — a keybind, a theme
-colour, a freshly-built plugin `.wasm` — doesn't need `bench try switch` at all:
+colour, a freshly-built plugin `.wasm`, or a candidate zellij binary — doesn't
+need `bench try switch` at all:
 that restarts the `main` zellij session and nukes every open tab. The rice ships
 **`zscratch`** for exactly this. It renders your candidate over a copy of your
 live `~/.config/zellij` into a temp config dir and boots a throwaway session in
@@ -138,6 +139,7 @@ zscratch --config config.kdl             # try a candidate config.kdl
 zscratch --layout my-layout.kdl          # …or a layout
 zscratch --theme  nebelung.kdl           # …or a theme
 zscratch --plugin tab-bar=tab-bar.wasm   # …or swap a freshly-built plugin
+zscratch --bin /path/to/zellij           # …or a binary-level zellij patch
 zscratch clean                           # kill the scratch session + temp dir
 ```
 

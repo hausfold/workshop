@@ -151,8 +151,30 @@ enum FlickCLI {
 
     /// Human-readable by default, `--json` for anything scripting this.
     /// Exit code is the useful part for a rebuild hook: 0 = everything quiet,
-    /// 4 = apps are still noisy.
+    /// 4 = apps are still noisy, 5 = flick couldn't read macOS's settings.
+    ///
+    /// 5 exists because a hook that gates on this must be able to tell "quiet"
+    /// from "blind". Silently exiting 0 when the store is unreadable would
+    /// make every un-granted machine look clean.
     private static func renderDoctor(_ response: SocketProvider.Response, json: Bool) -> Int32 {
+        if let unavailable = response.auditUnavailable {
+            if json {
+                // Encoded, not interpolated: one quote in the reason would
+                // otherwise emit invalid JSON at the exact moment a script is
+                // trying to find out what went wrong. Note this is an object
+                // where success is an array — `jq` consumers should branch on
+                // the exit code (5) before indexing.
+                struct Unavailable: Encodable { let auditUnavailable: String }
+                if let data = try? JSONEncoder.flick.encode(Unavailable(auditUnavailable: unavailable)),
+                   let line = String(data: data, encoding: .utf8) {
+                    print(line)
+                }
+            } else {
+                print("flick doctor: can't tell — \(unavailable)")
+                print("Grant it in System Settings → Privacy & Security → Full Disk Access.")
+            }
+            return 5
+        }
         let findings = response.findings ?? []
         if json {
             let encoder = JSONEncoder.flick
@@ -270,7 +292,12 @@ enum FlickCLI {
     --notify puts the findings on screen as banners you can click to be walked
     through the fix. flick never changes another app's settings itself.
 
+    Those settings live in a TCC-protected container, so doctor needs Full
+    Disk Access. Without it there is no answer to give and it says so (5)
+    rather than exiting 0 while blind.
+
     exit codes: 0 ok · 1 bad usage · 2 daemon unreachable · 3 daemon refused
                 4 doctor found apps still notifying natively
+                5 doctor could not read macOS's settings (needs Full Disk Access)
     """
 }

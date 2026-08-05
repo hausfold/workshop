@@ -151,6 +151,9 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
                     onRequestFullDiskAccess: { [weak self] in
                         self?.presentFullDiskAccessAssistant(runtime: runtime)
                     },
+                    onRequestAuditAccess: { [weak self] in
+                        self?.presentFullDiskAccessAssistant(runtime: runtime, enablesSystemMirror: false)
+                    },
                     listedApps: { [weak runtime] in runtime?.listedApps ?? [] },
                     celebrateUnlock: celebrateUnlock
                 )
@@ -160,7 +163,12 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func presentFullDiskAccessAssistant(runtime: AppRuntime) {
+    /// `enablesSystemMirror` is what tells the two callers apart. The grant is
+    /// the same one either way, but only the System Mirror button is a request
+    /// to *turn that provider on* — the audit needs the grant and nothing
+    /// else, and switching an experimental provider on because someone wanted
+    /// `doctor` to work would be flick answering a question it wasn't asked.
+    private func presentFullDiskAccessAssistant(runtime: AppRuntime, enablesSystemMirror: Bool = true) {
         runtime.settings.reopenSettingsOnLaunch = true
         fdaGrantLanded = false
         reopenDisarmTask?.cancel()
@@ -184,7 +192,9 @@ final class FlickAppDelegate: NSObject, NSApplicationDelegate {
         // path still shows Settings, from `applicationDidFinishLaunching`.
         SystemIntegration.presentFullDiskAccessAssistant(
             onGrantConfirmed: { [weak self] in
-                runtime.settings.systemMirrorEnabled = true
+                if enablesSystemMirror {
+                    runtime.settings.systemMirrorEnabled = true
+                }
                 self?.fdaGrantLanded = true
             },
             onDismiss: { [weak self] in

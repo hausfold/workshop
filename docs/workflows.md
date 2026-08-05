@@ -166,15 +166,17 @@ afterward to ripple that lock downstream.)
 ## zscratch — iterating on zellij without a rebuild
 
 The rice's `modules/den` ships one more dev CLI worth knowing here. `zscratch`
-feel-tests a zellij edit (`config.kdl`, a layout, a freshly-built plugin `.wasm`)
-in a throwaway session in its own Ghostty window, so you skip the `bench try
-switch` + `main`-session restart that would nuke every open tab.
+feel-tests a zellij edit (`config.kdl`, a layout, a freshly-built plugin `.wasm`,
+or a candidate binary) in a throwaway session in its own Ghostty window, so you
+skip the `bench try switch` + `main`-session restart that would nuke every open
+tab.
 
 ```sh
 zscratch --config FILE
 zscratch --layout FILE
 zscratch --theme FILE
 zscratch --plugin tab-bar=WASM
+zscratch --bin /path/to/zellij
 zscratch clean            # reap the throwaway session
 ```
 

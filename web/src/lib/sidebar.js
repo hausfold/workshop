@@ -55,4 +55,10 @@ export const sidebar = [
       { label: 'Contributing & worktrees', slug: 'internals/contributing' },
     ],
   },
+  {
+    label: 'Writing',
+    items: [
+      { label: 'Your stash stack was never yours', slug: 'writing/park-not-stash' },
+    ],
+  },
 ];

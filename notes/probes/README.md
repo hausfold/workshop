@@ -1,7 +1,10 @@
-# macOS capability probes
+# Capability probes
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
+(Two probes here aren't about macOS at all — `pack-priority.nix` and
+`preset-composition.nix`, at the bottom — but they earn the same shelf: a claim
+in a notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -54,14 +57,22 @@ machine it sat unchanged for two weeks while the real settings moved. `--legacy`
 prints the drift (9 apps disagreed the day this was written, including the one
 under test). Anything built on ncprefs reports confidently wrong state.
 
-Two bits matter, both verified against the live UI:
+Three bits matter, all verified against the live UI:
 
 | bit | mask | switch |
 |---|---|---|
-| 3 | `0x8` | **Desktop** — the on-screen banner |
+| 3 | `0x8` | **Desktop**, Temporary style — a banner |
+| 4 | `0x10` | **Desktop**, Persistent style — an alert |
 | 2 | `0x4` | **Play sound for notification** |
 
-Both clear = silent, drawing nothing, still reaching Notification Center. That
+Bits 3 and 4 are one control in two styles, and this table said only bit 3
+until 2026-08-04, which reports every Persistent app as quiet while macOS is
+still drawing alerts for it. Corrected against live data: no app in a 108-app
+store carries both bits, and unticking Desktop on a Persistent app clears bit
+4 (Reminders, `9437708310` → `9437708358`, watched as the switch moved).
+**Desktop is on when either bit is set.**
+
+All three clear = silent, drawing nothing, still reaching Notification Center. That
 is the end state to steer an app to when something else is rendering its
 banners; turning *Allow notifications* off instead would stop the events
 reaching the store at all.
@@ -93,3 +104,41 @@ It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
 effect) from keys with none (persistence only — it pauses ~10s so you can look).
 That split is deliberate: "the write succeeded" was never sufficient evidence
 here, since `com.apple.Accessibility` writes succeed and change nothing.
+
+## `pack-priority.nix` — the one probe that isn't about macOS
+
+Evidence for [`../options-roadmap.md`](../options-roadmap.md) §6's limit 3
+instead of the matrix: what a shared **pack** must ship so a consumer's own host
+wins, rather than colliding with it.
+
+```sh
+nix-instantiate --eval --strict --json notes/probes/pack-priority.nix
+nix-instantiate --eval --strict --json notes/probes/pack-priority.nix \
+  --arg rice ~/code/workshop/nebelhaus      # from a workshop worktree
+```
+
+No machine, no darwin system, no build — it evaluates the rice's pure-lib option
+surface with the real `packs/writing.nix` and a fake host, in seconds. It is
+here because it belongs to the same family as the rest: **the obvious answer is
+the one that fails silently.** `mkDefault` on the whole `roster` attrset looks
+like the cheap version and drops three of the pack's four apps without an error;
+only per-leaf priority does what the roadmap wanted. Six compositions, verdicts
+in the file header.
+
+## `preset-composition.nix` — the other half of the same question
+
+What happens when two whole **rices** meet, rather than a pack and a host.
+`lib.pack` fixed host-vs-pack; this measures the case the roadmap left open and
+the one a gallery produces.
+
+```sh
+nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
+  --arg rice ~/code/workshop/nebelhaus
+```
+
+All six pairs of the four shipped presets, both escape hatches, and two candidate
+seams. Same family lesson as the rest of this shelf, twice: **the assumption
+nobody ran was wrong** (overlap isn't collision, and the conflict error names
+both files), and **the quiet outcome is the dangerous one** — two rices' list
+options merge with no error at all, so a pair that "composes" may just be one
+that blends.

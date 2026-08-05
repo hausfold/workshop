@@ -189,7 +189,9 @@ enum SystemIntegration {
     }
 
     /// Every deep link above lands in this one app.
-    private static let systemSettingsBundleID = "com.apple.systempreferences"
+    /// Also read by the helper panel, which shows its "open the pane" button
+    /// only when System Settings *isn't* the app in front.
+    static let systemSettingsBundleID = "com.apple.systempreferences"
 
     private static var raiseTask: Task<Void, Never>?
 

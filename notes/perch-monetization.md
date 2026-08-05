@@ -9,6 +9,12 @@ rides the same seam back. Perch is now the *whole* bet, not the warm-up:
 **[§5](#5-trill--why-it-isnt-the-bet) records why trill isn't monetized**, since
 that was the original flagship and the reasoning is worth not re-deriving.
 
+This file owns **how perch charges**. *When* it launches relative to the free
+family — and what every other repo is for — is
+[`go-to-market.md`](./go-to-market.md). One thing that file asks of this one:
+**Phase 0 runs before the free launch, not after it**, so the MIT install base
+never grows past you.
+
 **The one principle: the paywall lives in the binary, never in the
 distribution.** Perch ships through four doors (cask, direct ZIP, rice copy,
 bare nix), all fed by public GitHub release artifacts, with a CI-owned tap bump

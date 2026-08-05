@@ -137,10 +137,18 @@ It's **off by default** because it needs the Accessibility grant to install an
 event tap. Turn it on with the `windows` block in
 [config](/reference/pounce/#config-file) (or
 [`nebelhaus.pounce.windowSwitcher`](/reference/options/#nebelhauspouncewindowswitcher)
-in the rice, where it defaults on). If you run AeroSpace, rows carry the
-window's workspace and focusing goes through `aerospace focus --window-id` so a
-window parked elsewhere surfaces properly; without it, everything degrades to
-plain focus.
+in the rice, where it defaults on). If you run AeroSpace, rows are gathered by
+workspace under a header each — workspace order is itself most-recently-used, so
+the list reads "here, then where I was before that" — and focusing goes through
+`aerospace focus --window-id` so a window parked elsewhere surfaces properly.
+Without AeroSpace, everything degrades to plain focus and a flat list.
+
+One deliberate wrinkle under AeroSpace: a bare tap-and-release looks past the
+workspace you're on and takes the most recent window on a **different** one.
+With two windows tiled side by side the most recent is one you're already
+looking at, so landing there wouldn't be a switch — moving between visible tiles
+is [windowNav's focus keys](/guides/window-management/), not the switcher's job.
+The skipped siblings are still the rows right below you.
 
 ## Two-step commands (submenus)
 

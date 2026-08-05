@@ -29,6 +29,10 @@ struct SocketProvider: NotificationProvider {
         /// doctor only. Optional, so a `send`/`ping` reply is byte-identical
         /// to what older CLIs already parse.
         var findings: [NativeNotificationSettings]?
+        /// doctor only. Set when the audit couldn't read macOS's settings at
+        /// all — the reply then means "can't tell", and `findings` being empty
+        /// says nothing. Optional so older CLIs keep parsing.
+        var auditUnavailable: String?
     }
 
     static func defaultSocketPath() -> String {
@@ -79,13 +83,24 @@ struct SocketProvider: NotificationProvider {
                     // that could hand us findings could hand us fabricated
                     // ones, and this reply is what pops banners.
                     let scope = request.scope ?? .only(listedApps())
-                    let findings = NotificationSettingsAudit.findings(scope: scope)
-                    if request.notify {
-                        for event in NotificationSettingsAudit.bannerEvents(for: findings) {
-                            continuation.yield(event.normalized())
+                    if let findings = NotificationSettingsAudit.liveFindings(scope: scope) {
+                        if request.notify {
+                            for event in NotificationSettingsAudit.bannerEvents(for: findings) {
+                                continuation.yield(event.normalized())
+                            }
                         }
+                        response = Response(ok: true, id: nil, error: nil, findings: findings)
+                    } else {
+                        // Couldn't read the store: answer "can't tell". Not an
+                        // error — the daemon is fine, it just can't see — and
+                        // emphatically not an empty findings list, which any
+                        // caller would read as "all quiet".
+                        response = Response(
+                            ok: true, id: nil, error: nil, findings: nil,
+                            auditUnavailable: NotificationSettingsAudit.unreadableReason()
+                                ?? "macOS's notification settings are unreadable"
+                        )
                     }
-                    response = Response(ok: true, id: nil, error: nil, findings: findings)
                 case .failure(let message):
                     response = Response(ok: false, id: nil, error: message)
                 }
@@ -160,9 +175,19 @@ struct SocketProvider: NotificationProvider {
 }
 
 enum AppPaths {
+    /// A Debug build carries its own bundle id (`…flick.debug`) so it can't
+    /// fight the installed app over one TCC row — see the note in
+    /// `scripts/dev-install.sh`. Give it its own writable state too: a test
+    /// run that boots the app would otherwise bind the *installed* daemon's
+    /// socket and write its database, which is a second daemon answering
+    /// `flick send` from a checkout nobody installed.
+    private static var isDebugBuild: Bool {
+        Bundle.main.bundleIdentifier?.hasSuffix(".debug") == true
+    }
+
     static var supportDirectory: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Flick", isDirectory: true)
+            .appendingPathComponent(isDebugBuild ? "Flick (debug)" : "Flick", isDirectory: true)
     }
 
     static var configDirectory: URL {

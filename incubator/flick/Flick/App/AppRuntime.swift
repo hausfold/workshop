@@ -34,7 +34,15 @@ final class AppRuntime {
         )
 
         queue = BannerQueue()
-        windowSystem = BannerWindowSystem(queue: queue, actionRouter: ActionRouter())
+        // The router needs the listed apps for the same reason `flick doctor`
+        // does: a "Silence Native Banners" click that can't tell which apps it
+        // was about must fall back to the ones the rules name, not the Mac.
+        windowSystem = BannerWindowSystem(
+            queue: queue,
+            actionRouter: ActionRouter(listedApps: {
+                NotificationSettingsAudit.listedBundleIDs(in: watcher.current())
+            })
+        )
     }
 
     func start() {
