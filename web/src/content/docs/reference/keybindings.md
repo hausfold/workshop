@@ -72,6 +72,7 @@ pointer, and whose rows are gathered by workspace under a header each.
 |---|---|
 | `Super P` | New pane (inherits cwd; hops to the main checkout inside a worktree) |
 | `Super ⇧P` | New pane, stay here (inherits cwd, no worktree hop) |
+| `Super W` | Close the focused pane — and the tab with it when it's the tab's last pane |
 | `Super T` | New tab at `$HOME` (born named `~`) |
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | **Find** — full-text search over the focused pane, live as you type |
@@ -140,10 +141,16 @@ URL is hidden in the terminal escape sequence rather than shown on screen.
 ## Ghostty note
 
 Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`,
-`⌘⇧F`, `⌘⏎`, `⌘R`, `⌘A` and `⌘⇧A` so zellij owns them — the same keys work
+`⌘⇧F`, `⌘⏎`, `⌘R`, `⌘W`, `⌘A` and `⌘⇧A` so zellij owns them — the same keys work
 whether or not you're multiplexed. (`⌘⇧A`, `⌘⇧F` and `⌘⏎` are unbound
 pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
 way if a future release does.)
+
+`⌘W` is the one where handing the key over is also a **fix**. Ghostty's default
+there is `close_surface`, and since the rice sets `confirm-close-surface = false`,
+a stray `⌘W` from any pane silently took the whole window — and the zellij client
+in it — with no prompt. Now it closes just the focused pane. `⌘⇧W` is left alone
+as Ghostty's `close_window`, so closing the real window keeps a key of its own.
 
 `⌘C` is the one that stayed with **Ghostty**: it copies. The agent binds lived on
 `⌘C`/`⌘⇧C` back when Claude Code was the only client they could start; moving
