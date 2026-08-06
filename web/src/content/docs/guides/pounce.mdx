@@ -27,6 +27,9 @@ it up as a login daemon and re-signs it so its permissions survive rebuilds.
 
 - **⌘Space** — the default hotkey. Registered in-process by the daemon, so it
   opens instantly. (nebelhaus disables Spotlight's ⌘Space so Pounce can own it.)
+- **Fn/Globe** — on nebelhaus, a lone tap opens the emoji and symbols grid.
+  Fn combinations keep working; this binding reuses Pounce's Accessibility
+  grant and replaces the stock Globe action only while the daemon is armed.
 - Change it in [config](/reference/pounce/#config-file): the `hotkey` object
   takes a `key` and `modifiers`.
 
@@ -226,7 +229,7 @@ device list appears; the plugin walks you there if the dialog was dismissed.
 brew tap nebelhaus/tap
 brew install pounce
 brew services start pounce        # start the daemon
-pounce --request-accessibility    # one-time, for paste-back features
+pounce --request-accessibility    # one-time, for paste-back and event-tap bindings
 ```
 
 The formula installs a prebuilt `Pounce.app` signed with our Apple **Developer
@@ -239,10 +242,11 @@ Because that signing identity is stable, the Accessibility grant **survives
 
 Or with Nix: `nix run github:nebelhaus/pounce -- --help`.
 
-## Grant Accessibility (for paste-back)
+## Grant Accessibility
 
 Clipboard auto-paste and emoji paste synthesize a ⌘V into your previous app,
-which macOS gates behind Accessibility:
+while modifier-only bindings such as a lone Fn/Globe tap use a keyboard event
+tap. macOS gates both paths behind Accessibility:
 
 ```sh
 pounce --request-accessibility    # approve the dialog

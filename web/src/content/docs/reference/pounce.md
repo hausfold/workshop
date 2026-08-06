@@ -214,6 +214,14 @@ search shorthand, give it a global key. Each entry is keyed by an **item key**:
   the key, the rest modifiers (`cmd`/`shift`/`opt`/`ctrl`); the
   `{"key": …, "modifiers": …}` object form works here too.
 
+  The laptop **Fn/Globe key** is the special one-step form: for example,
+  `"mode:emoji": { "hotkey": "fn" }`. Since Fn is modifier-only, this opt-in
+  binding uses a keyboard event tap and needs Pounce's Accessibility grant. It
+  fires only on a lone tap, so Fn combinations keep working, and it replaces
+  macOS's stock Globe action only while armed. `"globe"` and `"function"` are
+  accepted aliases. nebelhaus ships this emoji binding by default; set
+  `nebelhaus.pounce.items."mode:emoji".hotkey = null` to leave Globe native.
+
 ### Leader sequences
 
 Add a **space** for a two-step key: whitespace separates steps, `+` separates

@@ -59,8 +59,9 @@ list also lives at [Keybindings](/reference/keybindings/).
 
 ## Grant Accessibility to Pounce (one-time)
 
-Some Pounce features (clipboard auto-paste, emoji paste) synthesize keystrokes,
-which macOS gates behind Accessibility:
+Some Pounce features (clipboard auto-paste, emoji paste, and the rice's lone
+Fn/Globe tap for the emoji picker) use macOS's Accessibility-gated keyboard
+path:
 
 ```sh
 pounce --request-accessibility   # approve the system dialog
@@ -70,8 +71,8 @@ pounce --check-accessibility     # prints true when it's granted
 <Aside type="note">
 If you set `nebelhaus.pounce.signingIdentity` in your host file, this grant
 **survives rebuilds** — the rice re-signs a stable copy of the app so macOS
-keeps trusting it. Without it, the palette still works; only the paste-back
-features are off. See [Pounce config](/reference/pounce/).
+keeps trusting it. Without it, the palette still works; paste-back is off and
+Fn/Globe keeps its native macOS action. See [Pounce config](/reference/pounce/).
 </Aside>
 
 ## Make it yours

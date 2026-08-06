@@ -30,6 +30,7 @@ cheatsheet always reflects the keys you actually have.
 | `⌥⇧Tab` | Move workspace to next monitor |
 | `⌥⇧;` | Enter service mode |
 | `⌘Space` | Open Pounce |
+| `fn` *(tap alone)* | Open Pounce's emoji picker |
 | `⌘Tab` | MRU **window** switcher, crosses workspaces ([pounce](/guides/pounce/#a-window-switcher-not-an-app-switcher-opt-in)) |
 
 `⌥Tab` is deliberately unbound — workspace back-and-forth retired in favour of
