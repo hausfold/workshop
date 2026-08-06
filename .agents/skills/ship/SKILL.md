@@ -87,9 +87,8 @@ diff, the path to `<repo>/AGENTS.md`, and the checklist below.
 > subagent mechanism at all — and then say so in one line rather than dropping it
 > silently.
 
-This is not generic code
-review — bugs and logic are what `/code-review` is for. This pass hunts the **family
-invariants**, the ones that only bite after merge:
+This is not generic code review — bugs and logic are what `/code-review` is for. This
+pass hunts the **family invariants**, the ones that only bite after merge:
 
 | Check | The failure it catches |
 |---|---|
