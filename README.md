@@ -17,8 +17,7 @@ the bench — every repo in one place, and the tool that moves changes between t
 This directory is the working checkout of the whole
 [nebelhaus](https://github.com/nebelhaus) org. Each subdirectory is its own repo;
 this folder itself is a small repo holding this README, an `AGENTS.md`, the
-`bench` script, `web/` (nebelhaus.com) and `hausfold/` (the hausfold.co
-placeholder page), plus `assets/` and `test/`.
+`bench` script and `web/` (nebelhaus.com), plus `assets/` and `test/`.
 
 If you remember one thing: **work anywhere, then `./bench status` tells you
 what's out of sync and `./bench ship` makes it right.**
@@ -34,11 +33,14 @@ what's out of sync and `./bench ship` makes it right.**
 
 Each one stands alone. Together they're a house.
 
-Two more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
-(the org's GitHub front page) and 🍺
+Three more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
+(the org's GitHub front page), 🍺
 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) (CI bumps it on
-every release — you almost never touch it). Your private `~/.config/nix` lives
-outside this dir entirely.
+every release — you almost never touch it), and ⌂
+[**hausfold**](https://github.com/hausfold/website) — hausfold.co, the umbrella
+that sells this stuff. That last one is the only checkout here that *isn't* in
+the nebelhaus org, and the only private one. Your `~/.config/nix` lives outside
+this dir entirely.
 
 ## the one gotcha
 

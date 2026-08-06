@@ -1,4 +1,5 @@
 # The family repos live inside this dir but are their own git repos.
+/hausfold/
 /holt/
 /nebelhaus/
 /nebelung/
