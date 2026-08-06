@@ -150,6 +150,12 @@ next:
 | `⌘↵` | Grab a screenshot first (`screencapture -i`), then spawn — cancel the capture and you're back in the box with your text intact |
 | `⌥↵` | Your drafts — the box is kept on any dismissal, so a paragraph lost to a stray click into another app lands here |
 
+`⌘↵` and `⌥↵` work on an **empty** box, which is the point of both: opening your
+drafts is what you do *instead* of typing, and a screenshot is usually the thing
+you're about to describe. Hit `⌘↵` with nothing typed and you get the crosshair
+first, then the box back with the shot attached, waiting for the task. Only plain
+`↵` on an empty box means "never mind".
+
 The screenshot is saved under `~/.cache/nebelhaus-agent-screenshots/`: Codex
 receives it as an initial image, Claude and OpenCode get its path in the first
 prompt. This used to be a separate **Spawn Agent with Screenshot** command, but a
