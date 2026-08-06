@@ -18,8 +18,12 @@
          hausfold.co — landing concept, sheet 01. Not deployed: wrangler
          uploads ./public only, and this lives beside it on purpose.
 
-         Palette: nebelung's neutral ramp verbatim in dark; a paper-warm
-                  mirror in light. No accent, anywhere — that's the point.
+         Palette: nebelung's neutral ramp in dark, every value pushed one
+                  step outward for contrast (crust/subtext1/overlay2/
+                  surface1; the text step is extrapolated one rung above
+                  #d7d7d7, following the ramp's own ~0x14 spacing). A
+                  paper-warm mirror in light, pushed the same distance.
+                  No accent, anywhere — that's the point.
          Type:    New York (ui-serif) + SF Mono. The Mac's own faces, which
                   is the thesis of the page set in the page.
          ---------------------------------------------------------------- */
@@ -28,44 +32,44 @@
         color-scheme: light dark;
 
         /* paper */
-        --ground: #f3f2f0;
-        --ink: #1c1c1c;
-        --ink-2: #4a4a4a;
-        --ink-3: #7d7b78;
-        --rule: #d3d0cc;
+        --ground: #faf9f7;
+        --ink: #0e0e0e;
+        --ink-2: #35332f;
+        --ink-3: #66645f;
+        --rule: #c4c0bb;
 
         --measure: 41rem;
         --step: clamp(0.94rem, 0.9rem + 0.2vw, 1.02rem);
       }
 
-      /* nebelung ramp: mantle / base / text / subtext0 / overlay1 / surface0 */
+      /* nebelung ramp, one step out: crust / (text +1) / subtext1 / overlay2 / surface1 */
       @media (prefers-color-scheme: dark) {
         :root {
           color-scheme: dark;
-          --ground: #191919;
-          --ink: #d7d7d7;
-          --ink-2: #aeaeae;
-          --ink-3: #858585;
-          --rule: #343434;
+          --ground: #121212;
+          --ink: #ebebeb;
+          --ink-2: #c3c3c3;
+          --ink-3: #9a9a9a;
+          --rule: #494949;
         }
       }
 
       :root[data-theme="dark"] {
         color-scheme: dark;
-        --ground: #191919;
-        --ink: #d7d7d7;
-        --ink-2: #aeaeae;
-        --ink-3: #858585;
-        --rule: #343434;
+        --ground: #121212;
+        --ink: #ebebeb;
+        --ink-2: #c3c3c3;
+        --ink-3: #9a9a9a;
+        --rule: #494949;
       }
 
       :root[data-theme="light"] {
         color-scheme: light;
-        --ground: #f3f2f0;
-        --ink: #1c1c1c;
-        --ink-2: #4a4a4a;
-        --ink-3: #7d7b78;
-        --rule: #d3d0cc;
+        --ground: #faf9f7;
+        --ink: #0e0e0e;
+        --ink-2: #35332f;
+        --ink-3: #66645f;
+        --rule: #c4c0bb;
       }
 
       * {
@@ -233,7 +237,6 @@
         text-decoration-color: var(--ink-3);
         text-decoration-thickness: 1px;
         text-underline-offset: 0.25em;
-        transition: text-decoration-color 140ms ease;
       }
 
       a:hover,
@@ -244,44 +247,6 @@
       a:focus-visible {
         outline: 2px solid var(--ink-3);
         outline-offset: 3px;
-      }
-
-      /* --- load --------------------------------------------------------- */
-
-      @media (prefers-reduced-motion: no-preference) {
-        .sheet > *,
-        .masthead > * {
-          animation: rise 620ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
-        }
-        .masthead > *:nth-child(1) {
-          animation-delay: 40ms;
-        }
-        .masthead > *:nth-child(2) {
-          animation-delay: 110ms;
-        }
-        .masthead > *:nth-child(3) {
-          animation-delay: 170ms;
-        }
-        .masthead > *:nth-child(4) {
-          animation-delay: 230ms;
-        }
-        .sheet > *:nth-child(2) {
-          animation-delay: 320ms;
-        }
-        .sheet > *:nth-child(3) {
-          animation-delay: 400ms;
-        }
-      }
-
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(6px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
       }
     </style>
   </head>
