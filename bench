@@ -834,7 +834,7 @@ cmd_ship() {
       if [ "$(locked_rev "$holder" "$input")" = "$want" ]; then
         bumped+=("$input")
       else
-        stale+=("$name→$input")
+        stale+=("${name}→${input}")
         warn "$name: lock for $input still pins $(locked_rev "$holder" "$input" | cut -c1-7), not ${want:0:7} — leaving it rather than committing a lie"
       fi
     done
