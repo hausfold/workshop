@@ -112,11 +112,6 @@ workspace act, not a submode. The rest of zellij's `Alt` row stays inert while
 locked on purpose: `Alt h/j/k/l` and `Alt`-arrows are word motions the shell and
 your editor want. Flip it with [`nebelhaus.hearth.zellijStartLocked`](/reference/options/#nebelhaushearthzellijstartlocked).
 
-**Long drag selections autoscroll before the window edge.** Sweep at least three
-rows, then hold the pointer in either three-row pane-edge margin; zellij keeps
-scrolling without needing to leave Ghostty or jiggle the mouse. A short selection
-near an edge stays precise, and releasing the button stops the scroll immediately.
-
 **Clickable links** work across two modifiers. `⌥`-click a file path (or a
 visible URL / bare domain) in the terminal to open it — a path opens a new tab
 `cd`'d there, a link opens in the browser. `⌘`-click opens any web link,
