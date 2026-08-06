@@ -73,19 +73,31 @@ Never hand-walk that ripple; the tooling does it:
   hop. It re-reads each lock afterwards and refuses to end on `shipped` if an
   edge didn't actually move, so a silent no-op ripple can't pass for a real one.
 
-**Iterating on a zellij edit — skip the ripple entirely.** A zellij change
-(`config.kdl`, a layout, a freshly-built plugin `.wasm`) doesn't even need
-`bench try switch`: that restarts the `main` session and nukes every open tab.
-Instead use **`zscratch`** — a rice dev CLI (`nebelhaus/modules/den`, next to
-`wt`, on PATH) that renders your candidate over a copy of the live
-`~/.config/zellij` into a temp `--config-dir` and boots a throwaway session in
-its own Ghostty window, so the working multiplexer is untouched (`zscratch
---config`/`--layout`/`--theme FILE`, `--plugin tab-bar=WASM`; `zscratch clean`
-reaps it). Feel it there; the real `bench try switch` happens once, at the end,
-already knowing it works. It's not a `bench` command — the full flag set + the
-permission-cache gotchas live in the [rice's
-AGENTS.md](https://github.com/nebelhaus/nebelhaus/blob/main/AGENTS.md) and the
-`zscratch.sh` header ([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
+**Iterating on a zellij edit — two cases, and only one of them costs anything.**
+
+- **`config.kdl` (keybinds, theme, options) hot-reloads — just `bench try
+  switch`.** zellij watches its active config and applies most fields to the
+  *running* server in about a second; tabs, panes and live agent sessions stay
+  put. This works only because hearth installs `~/.config/zellij/config.kdl` as
+  a real file with a live mtime rather than a home-manager symlink: zellij gates
+  the reload on mtime, and every `/nix/store` file is stamped epoch 1, so a
+  symlinked config makes each rebuild look *older* than what zellij already read
+  and nothing reloads. That stat is why rebuilds used to need `zellij
+  delete-all-sessions`, and why `Super r`/`zreload` existed at all (both now
+  removed).
+- **Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that
+  already exist do NOT hot-reload** — a running server caches plugin wasm in
+  memory for its whole lifetime, so these need a fresh server. Use **`zscratch`**
+  — a rice dev CLI (`nebelhaus/modules/den`, next to `wt`, on PATH) that renders
+  your candidate over a copy of the live `~/.config/zellij` into a temp
+  `--config-dir` and boots a throwaway session in its own Ghostty window, so the
+  working multiplexer is untouched (`zscratch --config`/`--layout`/`--theme
+  FILE`, `--plugin tab-bar=WASM`, `--bin /path/to/zellij`; `zscratch clean` reaps
+  it). Feel it there; the real `bench try switch` happens once, at the end. It's
+  not a `bench` command — the full flag set + the permission-cache gotchas live
+  in the [rice's
+  AGENTS.md](https://github.com/nebelhaus/nebelhaus/blob/main/AGENTS.md) and the
+  `zscratch.sh` header ([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
 
 ## Agent worktrees (parallel agent sessions)
 

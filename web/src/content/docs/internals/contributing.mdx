@@ -144,15 +144,22 @@ zscratch clean                           # kill the scratch session + temp dir
 ```
 
 Feel it there; the real `bench try switch` happens once, at the end, already
-knowing it works. After that activation, press `Super R` (or run `zreload`) to
-gracefully quit/reopen Ghostty and load the installed zellij config and plugin
-wasm through a fresh server without rebuilding the workspace by hand. The
-destructive half runs in a launchd agent outside the terminal, so it survives
-both processes going away. Tabs, panes and working directories return; live
-Claude Code panes resume their exact conversations. Pane identity comes from a
-generation-scoped manifest rather than zellij's foreground-command label (which
-can temporarily be an LSP or tool); an unclassified command pane aborts before
-the launchd handoff.
+knowing it works — and that activation costs you nothing, because zellij watches
+its config and applies a new `config.kdl` to the *running* server in about a
+second. Tabs, panes and live Claude Code conversations stay exactly where they
+are; there is nothing to press afterwards.
+
+That only works because hearth installs `~/.config/zellij/config.kdl` as a real
+file with a current mtime (`home.activation.zellijLiveConfig`) rather than as a
+home-manager symlink. zellij decides "changed" from the file's mtime, and every
+`/nix/store` file carries mtime = epoch 1 — so a symlinked config makes each
+rebuild look *older* than what zellij already parsed, and nothing reloads at all.
+That single stat is why a rebuild used to mean tearing the whole session down.
+
+Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that already
+exist still cannot hot-reload — a running server caches plugin wasm in memory for
+its lifetime. That is exactly the gap `zscratch` fills, which is why it is the
+tool above and not an afterthought.
 
 ## The whole life of a change
 
