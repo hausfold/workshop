@@ -17,8 +17,7 @@ the bench — every repo in one place, and the tool that moves changes between t
 This directory is the working checkout of the whole
 [nebelhaus](https://github.com/nebelhaus) org. Each subdirectory is its own repo;
 this folder itself is a small repo holding this README, an `AGENTS.md`, the
-`bench` script, `web/` (nebelhaus.com) and `hausfold/` (the hausfold.co
-placeholder page), plus `assets/` and `test/`.
+`bench` script and `web/` (nebelhaus.com), plus `assets/` and `test/`.
 
 If you remember one thing: **work anywhere, then `./bench status` tells you
 what's out of sync and `./bench ship` makes it right.**

@@ -1390,6 +1390,18 @@ cmd_clone() {
       git clone "https://github.com/$GH_ORG/$repo.git" "$ROOT/$name"
     fi
   done
+
+  # hausfold is the one checkout here that isn't in $GH_ORG: it's the commercial
+  # umbrella's own site, in the hausfold org, deliberately apart from the product
+  # family (PRESENCE.md's GitHub row). Not in FAMILY — it's no flake input, so
+  # try/try-batch/ship must never walk it — but the workshop dir is still where
+  # it lives, so clone it here.
+  if [ -d "$ROOT/hausfold/.git" ]; then
+    say "hausfold already here"
+  else
+    say "cloning hausfold…"
+    git clone "https://github.com/hausfold/website.git" "$ROOT/hausfold"
+  fi
 }
 
 # When sourced with HAUS_LIB=1 (the bats test harness), stop here: the caller

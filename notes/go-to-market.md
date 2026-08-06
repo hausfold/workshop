@@ -175,9 +175,17 @@ Consequences to honor:
   entity.** No incorporation and no trademark work exists. Selling as an
   individual with hausfold as a trading name is the low-friction path; that's a
   real decision but it belongs to the Paddle application, not here.
-- **It is not the gallery** (§5), and it stays a placeholder page until it has
-  something to say. A dormant channel reads as reserved; a half-fed one reads as
-  dead.
+- **It is not the gallery** (§5). ~~And it stays a placeholder page until it has
+  something to say.~~ **Reversed 2026-08-06:** hausfold.co is now a one-sheet
+  index of the five products plus revena, in a maker's voice. The dormant-channel
+  logic still holds for the *social* accounts — it was the page it stopped
+  applying to, because a domain that says one word says nothing, while a page
+  that links straight out to nebelhaus.com and GitHub adds no hop to any funnel.
+  Everything else in this section stands: support at nebelhaus.com, nothing in
+  the family migrating to the hausfold org, hausfold as the seller on the
+  receipt. The page and the register now live in
+  [hausfold/website](https://github.com/hausfold/website), split out of this
+  repo the same day.
 
 One known exposure: `hausfold.com` isn't held, and an entity name gets spoken
 aloud in receipts and terms — see §9.
