@@ -142,3 +142,9 @@ nobody ran was wrong** (overlap isn't collision, and the conflict error names
 both files), and **the quiet outcome is the dangerous one** — two rices' list
 options merge with no error at all, so a pair that "composes" may just be one
 that blends.
+
+✅ **The pinnable subset of this moves into the rice** as `nix flake check`'s
+`preset-composition` (rice#239, open when this was written), so the pairs the
+docs advertise as stackable can't quietly stop stacking. The probe stays for the questions a golden table
+can't ask — it prints resolved values and the `compose []` ordering experiment,
+which is what you want the first time, not the hundredth.

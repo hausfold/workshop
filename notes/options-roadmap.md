@@ -15,6 +15,48 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-06 (fifth pass) — the fifth check candidate is written, and
+> the audit found no drift at all, which has never happened before.**
+> The last pass ended by naming a `presets` check "in the shape of `packs`, with
+> the twist that it must assert a **collision** as well as its absence". Built as
+> **`preset-composition`** — **rice#239, open when this was written**, so
+> everything below that reads as shipped is contingent on it landing; if it
+> doesn't, this block is what to strike. It composes all six pairs of the shipped
+> presets, plus a host that agrees, one that disagrees, one that says `mkForce`,
+> one that joins an argument two presets are already having, and two rices that
+> each add a tour step and an app, and diffs the result against a golden table. It
+> is pure lib, so it runs on Linux CI beside `packs`. Three things worth carrying:
+> **what it actually pins is `presets/README.md`'s NUMBERS** — "they share
+> five options and disagree about four" was a sentence with arithmetic in it that
+> nothing kept true, and the table is generated from `presetFiles`, so a fifth
+> preset cannot be added without its four new pairs appearing and someone stating
+> what they do;
+> **★ derive the fixture from the rice, never name it** — the first draft
+> hardcoded which option the host contradicts, and the row for "a plain host does
+> NOT settle a preset collision" then quietly measured the wrong thing, landing
+> on an option `everyday` and `minimal` *already* disagreed about, so the host
+> changed nothing and the row read 4 where the finding is 5. Deriving *the option
+> those two presets agree on* makes that row impossible to make vacuous, and it
+> prints which option it used. **A golden table should print its own subject**;
+> otherwise it can keep passing while testing nothing;
+> and **the obvious name was taken**, by a check that answers a different
+> question — `presets` evaluates each rice **alone** into a real darwin system
+> (darwin-only), `preset-composition` asks what happens when one meets another.
+> That split is the readiness test's blind spot, named twice in §6, now visible in
+> the check list itself.
+> **And the audit (§5.14's rule, run first) turned up nothing** — rice#229–#237 are
+> hearth/den/pounce surfaces, and the option surface is unmoved. This time that
+> was *measured* rather than asserted, and the measurement is better than a count:
+> `options-json` built from rice#228 and from HEAD is **the same store path**, so
+> the surface is identical rather than merely the same size. It holds **130**
+> options (`jq '[keys[]|select(startswith("nebelhaus."))]|length'` over
+> `share/doc/nixos/options.json` — the raw file has 131 keys, `_module.args`
+> being the extra), which is the number this document has been quoting — worth
+> pinning down, because three other defensible ways of counting the same tree
+> give 203, 160 and 135, all true. **The number here is the one the options page
+> renders, and nothing else**; a count without its method is not a checkable
+> claim.
+>
 > **Status, 2026-08-05 (fourth pass) — limit 3's PRESET half is measured, and
 > three of the things this document says about composing rices are wrong.**
 > The last pass closed limit 3 for packs and left preset-vs-preset as the gap,
@@ -1303,8 +1345,11 @@ something mechanical, while this one stayed prose on both sides. Two roadmap
 findings are now **checks in the repo that can break them**: `data-only-surface`
 fails when a package-typed `nebelhaus.*` leaf has no string sibling (§5.3), and
 `accent-reach` fingerprints seventeen surfaces under three accents so §5.1's
-honest-scope paragraph can't silently stop being true. Both are pure `lib`, run
-on Linux CI, and cost one PR each.
+honest-scope paragraph can't silently stop being true. Both cost one PR each.
+*(Corrected on the fifth pass: only `data-only-surface` is pure `lib` and runs on
+Linux CI. `accent-reach` fingerprints a real evaluated system, so it is
+darwin-guarded and runs on nobody's CI — it fires on this machine, or not at
+all. Worth knowing before counting it as a tripwire.)*
 
 **So the rule gains a second half: when a finding generalises, leave a CHECK
 behind, not a paragraph.** Ask of every ★ in this file — *what would fail if
@@ -1346,6 +1391,36 @@ collision it deliberately preserves was anonymous, and rule 3 of the `packs`
 check now fails if it goes missing again. **Four ★ findings in this file are
 now checks that can break.**
 
+**Fifth pass, 2026-08-06 — the fifth candidate is written, and the audit was
+empty.** `preset-composition` (rice#239, open when this was written) is that
+check; §6's limit-3 section has
+what it pins. **That makes five ★ findings in this file that are checks which can break** —
+five once #239 lands, four until then.
+The remaining candidates, unchanged and now the whole list: §5.2's point-valued
+options silently coupled to `displays`, §5.6's "what second key makes the first
+one a lie", and §5.2's "what this does NOT reach" paragraph (§5.1's is covered by
+`accent-reach`).
+
+Two things this pass adds to the drift rule itself:
+
+- **The audit found nothing, for the first time in five passes.** Not because the
+  repos were quiet — eight rice PRs landed — but because none of them touched the
+  option surface. That is worth writing down as a *result*: the rule's cost is
+  one session, and a clean pass is the outcome that tells you the document has
+  stopped being the family's slowest-moving artifact.
+- **★ A number in this file is a claim, and a claim needs its method.** The fourth
+  pass asserted "130 leaves, unmoved". Re-deriving it, three defensible ways of
+  counting the same option tree give **203** (every doc-list leaf, including
+  submodule sub-options), **160** (visible only) and **135** (visible, no
+  `<name>` placeholders) — and **130** is what `nix build .#options-json` emits,
+  which is the surface the options page renders. All four are true; only one is
+  the number this document means. So the rule gains a small third clause:
+  **when the doc quotes a count, quote the command that produced it** — otherwise
+  the next pass either reproduces it by luck or "corrects" it to something else
+  true. And where a derivation exists, prefer it to a count outright: building
+  `options-json` at two revisions and comparing **store paths** answers "did the
+  surface move" exactly, with no counting convention to get wrong.
+
 ---
 
 ## 6. Phasing
@@ -1375,6 +1450,18 @@ now checks that can break.**
       entries and knows nothing about window management. **The check existed in
       one direction only**, and a shared rice is exactly what makes the other
       direction likely: a pack author doesn't know the leader vocabulary.
+      → **★ Sequel, rice#236 (2026-08-06): the assertion was right and a UI still
+      offered the collision.** Pounce's "Install App" picker proposed a free
+      leader letter by reading the *cheatsheet*, where the built-in actions render
+      as display glyphs (`v / e`), so no bare letter ever matched them — it
+      offered `v`, wrote the roster entry, and the rebuild it had just started
+      died on the very assertion above. Fixed by reading the generated
+      `aerospace.toml`'s `[mode.launch.binding]` table, i.e. **the same artifact
+      the assertion guards**. The rule generalises past this bug and is the
+      offering-side twin of §5.14's "leave a check behind": *anything that OFFERS
+      a choice must read the table the check reads, not a rendering of it* — a
+      rendering is lossy in exactly the places a human reader doesn't notice, and
+      the cost lands after the write, mid-rebuild.
       **(b) `appId` is the field a pack structurally can't fill in** — it isn't in
       Homebrew's cask metadata and a guessed bundle id produces a rule that
       silently never matches. Leaving it null costs *only* auto-assignment, so the
@@ -1841,6 +1928,63 @@ shipping early costs the option to change our mind.
 The last clause is the half nobody knew, and it is now the more useful warning
 of the two: the loud failure mode is the one that can't hurt anybody.
 
+#### ★ And the rule is a check now — `preset-composition` (rice#239, 2026-08-06)
+
+Deciding not to build `compose` left the rule as prose in two READMEs, which is
+exactly the shape §5.14 says a finding should not be left in. It is a golden
+table now, in `nix flake check`, pure lib beside `packs`:
+
+```
+[ everyday full ] overlap 5 disagree 2 stops on developer.enable, prowl.enable
+[ everyday large-print ] overlap 0 disagree 0 composes
+[ everyday minimal ] overlap 5 disagree 4 stops on developer.enable, pounce.enable, sill.enable, tour.enable
+[ full large-print ] overlap 0 disagree 0 composes
+[ full minimal ] overlap 5 disagree 4 stops on pounce.enable, prowl.enable, sill.enable, tour.enable
+[ large-print minimal ] overlap 0 disagree 0 composes
+a host restating full's developer.enable composes
+a host contradicting full's developer.enable stops on developer.enable
+the same, with lib.mkForce composes, host wins (developer.enable = false)
+[ everyday minimal ] plus a plain host contradicting the prowl.enable they agree on
+    stops on developer.enable, pounce.enable, prowl.enable, sill.enable, tour.enable
+two rices, one tour step each: B, A (merged, no error)
+two rices, one app each: obsidian, zotero (merged, no error)
+```
+
+(The tenth row is one line, wrapped here.) Every clause of the published rule is
+a row: overlap-without-disagreement composes — row 1 shares five options and
+stops on two, and row 7 is a host restating what a preset already holds —
+disagreement stops the build and names the
+option, `mkForce` settles it, a plain host does **not** settle a *preset*
+collision — and it makes it worse by one, which is finding (c) of the 2026-08-05
+measurement above turned into a number — and the list-valued options blend with
+no error, in reverse import
+order. The pairs are generated from `presetFiles`, so a fifth preset arrives with
+four new rows that somebody has to fill in.
+
+Three things from building it, none of them predicted:
+
+**(a) ★ Derive the fixture from the rice; never name it.** The first draft
+hardcoded which option the host contradicts. The "a plain host does not settle
+it" row then measured the wrong thing — the option it picked was one `everyday`
+and `minimal` *already* disagreed about, so the host joined an argument instead
+of starting one, and the row read 4 where the finding is 5. Deriving *the option
+those two presets agree on* fixes it permanently and prints the option into the
+row. **A golden table should print its own subject**, or it can go on passing
+while testing nothing — the vacuous-check failure mode, which is the same class
+as everything else limit 3 keeps turning up.
+
+**(b) The obvious name was taken, and by something that answers a different
+question.** `presets` already existed: it evaluates each rice **alone** into a
+real darwin system, and it's darwin-only. `preset-composition` asks what happens
+when one meets another, and is pure lib. §6 has said twice that the readiness
+test's blind spot is relationships; the check list now shows that split at a
+glance instead of only in this file.
+
+**(c) The rice's pinned `nixfmt` still reformats what it didn't touch** — 50
+unrelated lines in `flake.nix` at HEAD. Same trap as §8's, from the other side:
+`nix fmt` on a repo that isn't fmt-clean buries the change. Format, keep only the
+new region, restore the rest.
+
 ### What the readiness test can and can't see, after limit 1 closed
 
 Three things fall out of running the audit twice in one day, and they're really
@@ -1875,9 +2019,14 @@ found so far came from BUILDING one.**
   preset half above. **A `presets` check has the same shape as `packs` and one
   extra requirement: it has to assert a collision as well as its absence**, so
   it pins which pairs are advertised as stackable (`[ everyday large-print ]`)
-  and which are advertised as alternatives (`[ everyday minimal ]`) — today
+  and which are advertised as alternatives (`[ everyday minimal ]`) — ~~today
   nothing would notice a preset growing a field that quietly breaks the pair
-  the README tells people to use.
+  the README tells people to use.~~
+  ✅ **Answered 2026-08-06 — `preset-composition`, rice#239** — see the
+  subsection below. Mutation-checked the way `packs` is: adding one line to
+  `everyday` that `large-print` also sets fails it with
+  `[ everyday large-print ] overlap 1 disagree 1 stops on ui.scale`, which is
+  precisely the sentence the README would have quietly stopped meaning.
 - So the honest scoreboard reads: **the surface is no longer the constraint.**
   What's left is breadth (§5.6's seven uncurated groups), one schema migration
   (§5.4's `workspaces`, still the last unstarted Phase 3 item), trust (§5.11) —

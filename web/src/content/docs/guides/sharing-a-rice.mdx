@@ -101,6 +101,14 @@ Before publishing, try:
 - a host value set on top of one of the rice's own choices;
 - each combination of rooms you turn off.
 
+For the middle two of those you need neither a Mac nor a build. The nebelhaus
+repo checks its own presets exactly that way — `nix flake check`'s
+`preset-composition` composes every pair of them through `lib.evalModules` over
+the option surface alone, in seconds, and diffs the answers against a table.
+(Evaluating a rice *by itself* is a different check, `presets`, and that one does
+raise a whole darwin system.) Composition is the one property a rice cannot have
+on its own, which is what makes it the one worth testing before you publish.
+
 ### The composition rule, in one line
 
 **Two rices compose unless they *disagree*.** Import order carries no priority,

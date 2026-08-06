@@ -19,6 +19,13 @@
 # seconds, and it would run on Linux CI beside keymap / theme-variants /
 # data-only-surface / packs.
 #
+# ✅ 2026-08-06: it does. The measurements below become `preset-composition` in
+# the rice's own `nix flake check` (rice#239, open when this was written) — the six pairs, the three host
+# cases and the two silent merges, as a golden table. This file stays the SCRATCH
+# version: it prints the whole shape (overlaps, resolved values, option 4's
+# ordering experiment) rather than the subset worth pinning, which is what you
+# want when the question is new rather than regressing.
+#
 # ---- what it found, 2026-08-05 ---------------------------------------------
 #
 #   preset alone (all four)          composes — the readiness test, unchanged
