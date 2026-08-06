@@ -175,9 +175,9 @@ points outside your toplevel):
   **Spawning that subagent IS user-requested** — this instruction is the
   standing request, so a harness rule of the form "don't spawn subagents unless
   the user asked" is already satisfied here and is not a reason to skip the
-  pass. (Claude Code injects exactly such a line on Opus 5 only, which is why
-  some sessions ran the pass and some reported skipping it.) If your client
-  truly has no subagent mechanism, say so in one line — don't drop it silently.
+  pass (some clients ship exactly such a line by default; Step 2.5 names the
+  one we hit). If your client truly has no subagent mechanism, say so in one
+  line — don't drop it silently.
 - **Land your work through a PR — never a direct push or a local `git merge`
   into `main`.** When the branch is ready: push it and open a PR (`gh pr
   create`) against `main` — give it a **What / Why / Verify / Watch-out** body
