@@ -807,7 +807,15 @@ What it currently moves:
   - the type in Sill's menu bar — pill labels, icons and popup rows —
     up to a ceiling; see below
   - the Dock icon size (system.defaults.dock.tilesize)
+  - Finder's sidebar rows (NSTableViewDefaultSizeMode) — a threshold
+    rather than a multiplier, and it is set at every scale: at or below
+    1.0 the rice picks SMALL rows (more fits in a tiled window), above
+    1.0 it picks Apple's large ones
   - prowl's window gaps
+
+That list is pinned by `nix flake check`'s `scale-reach`, which
+fingerprints every surface it names at four scales — so a wire dropped
+in a refactor fails a check instead of quietly ceasing to arrive.
 
 Where it stops, and why it isn't a gap waiting to be filled:
 
@@ -819,6 +827,13 @@ Where it stops, and why it isn't a gap waiting to be filled:
     (1.25x) and then stops, silently: past that a rice simply gets the
     ceiling. The only way to make the whole bar bigger is to change what
     a point MEANS — the display's scaled resolution, below.
+  - perch, the notch shelf. It sizes itself from the SCREEN — a fraction
+    of the display's width, clamped — which is the right answer for a
+    thing hanging off the notch, and it means NEITHER lever moves it: a
+    scaled display shrinks the shelf's width in points by the same
+    factor that makes a point bigger, so it stays the same physical
+    size while everything around it grows. A large-print rice gets a
+    normal-sized shelf, and there is no option here that changes that.
   - anything outside nebelhaus. macOS has no system-wide UI scale, so
     third-party apps follow only a display-resolution change.
 
