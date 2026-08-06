@@ -29,12 +29,10 @@
 
         /* paper */
         --ground: #f3f2f0;
-        --ground-2: #eae8e5;
         --ink: #1c1c1c;
         --ink-2: #4a4a4a;
         --ink-3: #7d7b78;
         --rule: #d3d0cc;
-        --rule-soft: #e2dfdb;
 
         --measure: 41rem;
         --step: clamp(0.94rem, 0.9rem + 0.2vw, 1.02rem);
@@ -45,35 +43,29 @@
         :root {
           color-scheme: dark;
           --ground: #191919;
-          --ground-2: #202020;
           --ink: #d7d7d7;
           --ink-2: #aeaeae;
           --ink-3: #858585;
           --rule: #343434;
-          --rule-soft: #262626;
         }
       }
 
       :root[data-theme="dark"] {
         color-scheme: dark;
         --ground: #191919;
-        --ground-2: #202020;
         --ink: #d7d7d7;
         --ink-2: #aeaeae;
         --ink-3: #858585;
         --rule: #343434;
-        --rule-soft: #262626;
       }
 
       :root[data-theme="light"] {
         color-scheme: light;
         --ground: #f3f2f0;
-        --ground-2: #eae8e5;
         --ink: #1c1c1c;
         --ink-2: #4a4a4a;
         --ink-3: #7d7b78;
         --rule: #d3d0cc;
-        --rule-soft: #e2dfdb;
       }
 
       * {
@@ -89,15 +81,6 @@
         line-height: 1.62;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
-      }
-
-      .visually-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-        white-space: nowrap;
       }
 
       .sheet {
@@ -197,104 +180,54 @@
         padding: 0;
         display: flex;
         flex-direction: column;
+        gap: 0.72rem;
+        max-width: 58ch;
       }
 
-      .row {
-        display: grid;
-        grid-template-columns: 8.5rem 1fr auto;
-        gap: 0.35rem 1.25rem;
-        align-items: baseline;
-        padding: 0.82rem 0;
-        border-bottom: 1px solid var(--rule-soft);
+      .index li {
+        padding-left: 1.5rem;
+        text-indent: -1.5rem;
+        color: var(--ink-2);
+        line-height: 1.5;
       }
 
-      .row:last-child {
-        border-bottom: 0;
+      /* Hanging mono marker, so wrapped explainers align under the name
+         rather than under the bullet. */
+      .index li::before {
+        content: "·";
+        display: inline-block;
+        width: 1.5rem;
+        text-indent: 0;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        color: var(--ink-3);
       }
 
-      .row-name {
+      .index-name {
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-size: 0.92rem;
         color: var(--ink);
       }
 
-      .row-role {
-        color: var(--ink-2);
-        line-height: 1.45;
-      }
-
-      .row-state {
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 0.72rem;
-        letter-spacing: 0.06em;
-        color: var(--ink-3);
-        font-variant-numeric: tabular-nums;
-        white-space: nowrap;
-      }
-
-      .index-note {
-        margin: 0;
-        padding-top: 1.1rem;
-        border-top: 1px solid var(--rule);
-        color: var(--ink-3);
-        font-size: 0.88rem;
-        line-height: 1.5;
-        max-width: 58ch;
-      }
-
-      @media (max-width: 34rem) {
-        .row {
-          grid-template-columns: 1fr auto;
-        }
-        .row-name {
-          grid-column: 1;
-        }
-        .row-state {
-          grid-column: 2;
-          grid-row: 1;
-        }
-        .row-role {
-          grid-column: 1 / -1;
-        }
-      }
-
-      /* --- the workshop block ----------------------------------------- */
-
-      .workshop {
-        background: var(--ground-2);
-        border: 1px solid var(--rule);
-        padding: clamp(1.25rem, 4vw, 1.75rem);
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-      }
-
-      .workshop h3 {
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 1.05rem;
-        font-weight: 400;
-        margin: 0;
-        letter-spacing: 0.01em;
-      }
-
-      .workshop p {
-        margin: 0;
-        color: var(--ink-2);
-        max-width: 54ch;
-      }
-
       /* --- title block -------------------------------------------------- */
 
       /* 1px grid gap over a ruled ground draws the cell borders, so wrapped
-         rows never double up the way border-right + :last-child did. */
+         rows never double up the way border-right + :last-child did. Column
+         counts are exact divisors of the four cells on purpose — auto-fit
+         left a half-empty row that rendered as a solid block of --rule. */
       .titleblock {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         gap: 1px;
         margin: 0;
         background: var(--rule);
         border: 1px solid var(--rule);
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+
+      @media (max-width: 34rem) {
+        .titleblock {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
 
       .cell {
@@ -362,10 +295,7 @@
           animation-delay: 320ms;
         }
         .sheet > *:nth-child(3) {
-          animation-delay: 380ms;
-        }
-        .sheet > *:nth-child(4) {
-          animation-delay: 440ms;
+          animation-delay: 400ms;
         }
       }
 
@@ -407,91 +337,35 @@
       <section class="block">
         <div class="eyebrow"><h2>The index</h2><span>Six pieces</span></div>
         <ul class="index">
-          <li class="row">
-            <span class="row-name">nebelhaus</span>
-            <span class="row-role"
-              >The workspace. A whole macOS desktop in one declarative
-              file.</span
-            >
-            <span class="row-state"
-              ><span class="visually-hidden">Price and licence: </span>Free ·
-              MIT</span
-            >
+          <li>
+            <a class="index-name" href="https://nebelhaus.com">nebelhaus</a> —
+            the whole desktop, declared in one file.
           </li>
-          <li class="row">
-            <span class="row-name">pounce</span>
-            <span class="row-role"
-              >The launcher. Native, instant, and teachable — you write the
-              commands.</span
-            >
-            <span class="row-state"
-              ><span class="visually-hidden">Price and licence: </span>Free ·
-              MIT</span
-            >
+          <li>
+            <a class="index-name" href="https://nebelhaus.com/pounce">pounce</a>
+            — a launcher you teach your own commands.
           </li>
-          <li class="row">
-            <span class="row-name">perch</span>
-            <span class="row-role"
-              >The shelf. Files park in the notch on their way somewhere else.
-              Free up to three.</span
-            >
-            <span class="row-state"
-              ><span class="visually-hidden">Price and licence: </span>$19 ·
-              once</span
-            >
+          <li>
+            <a class="index-name" href="https://nebelhaus.com/perch">perch</a> —
+            files park in the notch on their way somewhere else.
           </li>
-          <li class="row">
-            <span class="row-name">nebelung</span>
-            <span class="row-role"
-              >The palette. A quieter set of colours, one theme, every
-              tool.</span
+          <li>
+            <a class="index-name" href="https://github.com/nebelhaus/nebelung"
+              >nebelung</a
             >
-            <span class="row-state"
-              ><span class="visually-hidden">Price and licence: </span>Free ·
-              MIT</span
-            >
+            — a quieter set of colours, shared by everything.
           </li>
-          <li class="row">
-            <span class="row-name">holt</span>
-            <span class="row-role"
-              >The substrate. Parallel coding agents, isolated, in any
-              repo.</span
+          <li>
+            <a class="index-name" href="https://github.com/nebelhaus/holt"
+              >holt</a
             >
-            <span class="row-state"
-              ><span class="visually-hidden">Price and licence: </span>Free ·
-              MIT</span
-            >
+            — parallel coding agents that never collide.
           </li>
-          <li class="row">
-            <span class="row-name">revena</span>
-            <span class="row-role"
-              >The builder. Answer a few questions, walk away with your
-              machine.</span
-            >
-            <span class="row-state"
-              ><span class="visually-hidden">Status: </span>In the
-              workshop</span
-            >
+          <li>
+            <span class="index-name">revena</span> — a rice builder. Still in
+            the workshop.
           </li>
         </ul>
-        <p class="index-note">
-          Everything free is MIT and stays that way. perch is $19 once, which
-          includes a year of updates; keeping them after that is $9 a year, and
-          the copy you bought keeps working either way.
-        </p>
-      </section>
-
-      <section class="block">
-        <div class="eyebrow"><h2>In the workshop</h2><span>No date</span></div>
-        <div class="workshop">
-          <h3>revena</h3>
-          <p>
-            A rice builder for people who want the workspace without learning
-            the system underneath it. Pick a palette, pick your tools, answer a
-            handful of questions — revena writes the file that builds your Mac,
-            and hands it to you to keep. Early, and honest about it.
-          </p>
-        </div>
       </section>
 
       <footer>

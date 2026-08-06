@@ -22,8 +22,13 @@ live domain. Open it as a local file to look at it.
 
 Two things to settle before any of it is promoted into `public/`: it makes
 hausfold speak as a maker, which [`notes/go-to-market.md`
-§6](../notes/go-to-market.md) decided it wouldn't, and it names an unregistered
-product (`revena`) that has no row in `PRESENCE.md` yet.
+§6](../notes/go-to-market.md) decided it wouldn't, and it mentions an
+unregistered product name (`revena`) that has no row in `PRESENCE.md` yet.
+
+The index deliberately carries **no prices and no licences** — every piece is one
+line and one link out to where it actually lives. Pricing copy on this page would
+be a second place for the perch terms to drift from
+[`notes/perch-monetization.md`](../notes/perch-monetization.md).
 
 ## Deploy
 
