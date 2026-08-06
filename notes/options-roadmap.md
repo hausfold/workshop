@@ -15,13 +15,49 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-06 (sixth pass) — §5.2's two unmeasured claims were
+> measured, and the bigger one was aimed one layer off.**
+> The fifth pass left three check candidates. Two of them were §5.2's — "every
+> point-valued option is silently coupled to `displays`" and the honest-scope
+> paragraph naming what `ui.scale` does *not* reach — and one measurement
+> ([`probes/scale-reach.nix`](probes/scale-reach.nix)) answered both, then became
+> **`scale-reach`** in the rice's `nix flake check`. Three things worth carrying:
+> **★ the point-valued SURFACE is one option.** Six numeric leaves in the 130 the
+> options page renders (plus four internal `_roster`/`_launchers` mirrors it
+> doesn't), and exactly one is in points (`fonts.mono.size`); the rest are
+> multipliers, ids, an ordering and a percent. Every other point-valued number in the rice — prowl's
+> gaps, the Dock tile, the bar's type, pounce's panel widths — is *internal to a
+> module*, so a rule written about the option surface governs a set of size one,
+> and §5.2's "audit `fonts.*.size` and prowl's gaps" was asking about something
+> that isn't an option.
+> **★ And that one cannot clip *while prowl tiles it*** — a bigger font on a
+> `larger-text` display buys fewer columns, never a window wider than the screen.
+> (Read off the code, not measured; the precondition is load-bearing, since a
+> floating window or a rice with `prowl.enable = false` has no such guarantee —
+> which is §5.6's own "what second key makes the first one a lie", one room over.) The sharper rule: **a point-valued number only meets
+> `displays` when something SIZES ITSELF from it**, which in this family is
+> pounce (clamped, pounce#53), perch (proportional to `screen.frame.width`, so
+> guarded by construction — and blind to `ui.scale` entirely) and the bar (bounded
+> by a band that is itself in points). Tiled and OS-managed surfaces absorb it.
+> **★ A ceiling needs its own verdict.** `accent-reach`'s moves/pinned/PARTIAL
+> can't express a surface that changes and then stops, and `ui.scale` has two of
+> them — so `scale-reach` evaluates **four** systems (1.0, 1.4, and two past every
+> ceiling) and prints the generated numbers rather than a verdict word. A ceiling
+> that regressed into a plain multiplier and a multiplier that grew a ceiling both
+> fail now; mutation-checked in both directions.
+> **The audit was empty again** — rice#239 merged, nothing has landed since, and
+> `options-json` built either side of it is **the same store path** (130 leaves,
+> unmoved). Two passes in a row where the option surface didn't move.
+> **One correction to the pass below:** `nix fmt` with no arguments is a **silent
+> no-op** in the rice (the formatter is bare `nixfmt`, which ignores a directory),
+> so "I ran the formatter and nothing changed" proves nothing — see §8.
+>
 > **Status, 2026-08-06 (fifth pass) — the fifth check candidate is written, and
 > the audit found no drift at all, which has never happened before.**
 > The last pass ended by naming a `presets` check "in the shape of `packs`, with
 > the twist that it must assert a **collision** as well as its absence". Built as
-> **`preset-composition`** — **rice#239, open when this was written**, so
-> everything below that reads as shipped is contingent on it landing; if it
-> doesn't, this block is what to strike. It composes all six pairs of the shipped
+> **`preset-composition`** — rice#239, ~~open when this was written~~ **merged
+> 2026-08-06**, so nothing in this block is contingent any more. It composes all six pairs of the shipped
 > presets, plus a host that agrees, one that disagrees, one that says `mkForce`,
 > one that joins an argument two presets are already having, and two rices that
 > each add a tour step and an app, and diffs the result against a golden table. It
@@ -668,6 +704,40 @@ contrast.
       "points" is silently coupled to `displays`, because a display mode changes
       what a point means.** Worth auditing `fonts.*.size` and prowl's gaps for the
       same interaction, and worth a line in whatever guide covers `large-print`.
+      → ★ **Audited 2026-08-06, and the sentence above is aimed one layer off**
+      ([`probes/scale-reach.nix`](probes/scale-reach.nix)). The surface holds
+      **six numeric leaves in the 130 the options page renders — plus four
+      internal `_roster`/`_launchers` mirrors that page never shows — and exactly
+      one is in points**: `fonts.mono.size`. `ui.scale` and `pounce.scale` are multipliers,
+      `roster.*.order` / `appStoreId` are an ordering and an id, and
+      `sill.battery.hideOver` is a percent. **Prowl's gaps are not an option at
+      all** — they, the Dock tile, the bar's type and pounce's panel widths are
+      internal numbers computed from `ui.scale` inside a module. So the rule as
+      written governs a set of size one.
+      → ★ **And that one cannot clip *while prowl tiles it*.** A 27pt terminal
+      font on a `larger-text` display buys fewer columns, never a window wider
+      than the screen — read off the code rather than measured, and the
+      precondition is the interesting part: a **floating** window (prowl's float
+      rules, a `zscratch` throwaway) or a rice with `prowl.enable = false` has no
+      such guarantee. That is §5.6's "what second key or precondition makes the
+      first one a lie", arriving in a room that isn't macOS settings. The failure the coupling actually
+      produces needs something that **sizes itself** in points, and the family has
+      exactly three: **pounce** (fixed pt panels → clamped to the visible frame,
+      pounce#53), **perch** (`screen.frame.width * 0.42`, clamped 360–640 — so
+      coupled to the display *by construction*, and blind to `ui.scale` entirely:
+      a large-print Mac gets a normal-sized shelf, which is a real if small gap),
+      and **sill** (bounded by a band that is itself in points). The rule worth
+      carrying is the narrow one: *a point-valued number only meets `displays`
+      when something sizes itself from it* — tiled and OS-managed surfaces absorb
+      the change.
+      → **Follow-up this turned up and did not fix:** the honest-scope prose in
+      `ui.scale`'s own description (and so the generated options page) lists where
+      the scale stops as *sill's bar height* and *anything outside nebelhaus* —
+      **perch is inside nebelhaus and is missing from that list**, and
+      `scale-reach` cannot pin it either, because perch sizes itself at runtime
+      rather than through a file the rice writes. A one-line description fix in
+      the rice plus an options-page regen; it is a docs change, so it belongs
+      with `/docs-sync` rather than inside the check's PR.
 - ◐ Finder **sidebar** size follows `ui.scale` (`NSTableViewDefaultSizeMode`,
       rice#181); Finder **icon** size is still unwired. The same PR also gave the
       rice its Finder restart — `killall Finder` in postActivation — because
@@ -707,9 +777,36 @@ contrast.
       is a better answer than either a broken multiplier or a refusal — but only
       if the limit is *measured*. The reason this took one pass instead of three is
       that the band was probed rather than reasoned about.
-- [ ] **Honest scope line:** this changes *nebelhaus's own* UI reliably and Dock/
-      Finder sizes reliably. System-wide text size is reachable **only** via
+      → ✅ **And the ceiling is a check now (`scale-reach`, 2026-08-06):**
+      `FS_ICON` reads `17.0 21.0 21.0 21.0` across four scales, so raising
+      `lib/bar.nix`'s ceiling — or losing it in a refactor — fails with three sill
+      rows flipping from `ceiling` to `moves`. A stated ceiling is only the better
+      answer while it *is* one, and nothing errors the day it stops being.
+- [x] ✅ **Honest scope line — and it's a GOLDEN TABLE now, `scale-reach`
+      (2026-08-06).** The prose: this changes *nebelhaus's own* UI reliably and
+      Dock/Finder sizes reliably. System-wide text size is reachable **only** via
       display mode (§5.10) — macOS 26's per-app `FontSizeCategory` is locked.
+      The check is `accent-reach`'s shape applied to the other fan-out option,
+      with one word added. Four evaluated systems — 1.0, 1.4 (large-print's) and
+      **two past every ceiling** — classify each surface `moves` / `ceiling` /
+      `pinned`, PARTIAL failing loudly:
+      **(a) a ceiling needs its own verdict.** `accent-reach`'s three-way
+      vocabulary reads "changes and then stops" as PARTIAL, and stopping is the
+      deliberate answer here twice over — the bar's type at 1.25× (the menu-bar
+      band) and pounce at its own 2.0 clamp. Two scales can't tell a ceiling from
+      a multiplier at all; four can.
+      **(b) the numeric rows print the NUMBER, not a verdict** — `19 27 48 57` is
+      checkable by eye and "moves" is not (the same lesson `preset-composition`
+      learned about printing a table's own subject). The clamp is legible as a
+      value that repeats.
+      **(c) the file rows are derived from the whole home-file set** with the
+      pinned ones dropped, so a surface that *starts* following the scale appears
+      as a new row rather than going unnoticed in a curated list — the failure
+      `accent-reach`'s hand-listed surfaces still have.
+      Mutation-checked both ways: raising `modules/lib/bar.nix`'s ceiling to 3.0
+      flips three sill rows to `moves`; pinning pounce's default at 1.0 flips its
+      two rows to `pinned`. Darwin-only, like `accent-reach` — it fingerprints a
+      real evaluated system, so it fires on this machine or not at all.
 
 ### 5.3 `nebelhaus.fonts` · S · risk L
 **Cheapest big win in the doc, and nobody has asked for it because it's
@@ -1338,6 +1435,7 @@ catch:
 | closed claim, later falsified | reading the commit messages |
 | marker and body disagree | reading the two as separate claims |
 | description replaced by a *different* truth | building the thing and looking |
+| claim true, but about the wrong **layer** *(added on the sixth pass — see below)* | trying to write the check it implies |
 
 ★ **The structural fix for reason 1, and it exists now.** §5.14 observed that
 every other cross-repo seam here got fixed by making the upstream repo emit
@@ -1392,10 +1490,9 @@ check now fails if it goes missing again. **Four ★ findings in this file are
 now checks that can break.**
 
 **Fifth pass, 2026-08-06 — the fifth candidate is written, and the audit was
-empty.** `preset-composition` (rice#239, open when this was written) is that
+empty.** `preset-composition` (rice#239, **merged the same day**) is that
 check; §6's limit-3 section has
-what it pins. **That makes five ★ findings in this file that are checks which can break** —
-five once #239 lands, four until then.
+what it pins. **That makes five ★ findings in this file that are checks which can break.**
 The remaining candidates, unchanged and now the whole list: §5.2's point-valued
 options silently coupled to `displays`, §5.6's "what second key makes the first
 one a lie", and §5.2's "what this does NOT reach" paragraph (§5.1's is covered by
@@ -1420,6 +1517,37 @@ Two things this pass adds to the drift rule itself:
   true. And where a derivation exists, prefer it to a count outright: building
   `options-json` at two revisions and comparing **store paths** answers "did the
   surface move" exactly, with no counting convention to get wrong.
+
+**Sixth pass, 2026-08-06 — two of the three remaining candidates fell to one
+measurement, and the larger one was aimed at the wrong layer.** §5.2's coupling
+warning and §5.2's honest-scope paragraph were both answered by
+[`probes/scale-reach.nix`](probes/scale-reach.nix) and are now the rice's
+`scale-reach` check. **Seven ★ findings in this file are checks that can break,
+living in five checks** — the two counts have drifted apart because `packs`
+carries two findings and `scale-reach` closes two candidates, and the fifth
+pass's own rule applies to this number as much as to a leaf count: say which
+one you mean. The whole remaining list is §5.6's "what second key or precondition makes the
+first one a lie", which is the one candidate here that is a *design rule for
+options not yet written* rather than a property of one that exists — worth saying
+out loud, because that is why it has outlived every other candidate. This pass
+also hit a fresh instance of it outside macOS settings: "the terminal font can't
+clip" is true only *while prowl tiles the window* (§5.2), which is the same
+shape — a claim whose second precondition is the thing that makes it a lie.
+
+**A fifth shape, added as a row to the table above rather than kept beside it** —
+a one-row table nobody consults is the same hazard the table exists to fix:
+*a claim that is true, but about the wrong layer.*
+
+§5.2 said "every point-valued option is silently coupled to `displays` — worth
+auditing `fonts.*.size` and prowl's gaps". Nothing in it is false; it is simply
+about numbers *inside modules*, while the sentence is phrased as a rule about the
+option surface, where the set has one member and prowl's gaps aren't in it. **The
+thing that exposed the mismatch was trying to turn the paragraph into a check** —
+you cannot write a golden table without deciding what its rows are, and the rows
+were not where the paragraph said. That is a second argument for §5.14's "leave a
+check behind, not a paragraph" beyond regression-catching: **the check is a
+type-check on the finding.** Prose can be true at no particular altitude; a table
+cannot.
 
 ---
 
@@ -2140,9 +2268,23 @@ only nebelhaus-org repos are in scope.
   behind `optionalAttrs isDarwin`.
 
 **One trap.** `nixfmt` from the tarball is 1.4.0 and the repo is formatted with an
-older one — 137 lines of churn on `flake.nix` at `HEAD` alone. Running it would
+older one — 137 lines of churn on `flake.nix` at `HEAD` alone. *(Re-measured
+2026-08-06: 108 lines, and with the rice's OWN pinned 1.4.0 — so the version gap
+was never the whole story. The real cause is the paragraph below: the tree has
+never actually been formatted, because the command everyone runs doesn't.)*
+Running it would
 bury a change in reformatting, so: check new files for cleanliness, match the
 surrounding style by hand, and don't reformat existing ones.
+
+★ **And the obvious way to check that is a false green: `nix fmt` with no
+arguments formats NOTHING in the rice.** The flake's `formatter` is bare
+`nixfmt`, which ignores a directory argument and exits 0, so `nix fmt` on the
+tree is a silent no-op while `nix fmt path/to/file.nix` really formats. Anyone
+concluding "the formatter changed nothing, so my hunk is clean" has measured the
+no-op. The way to check one region without reformatting the file: copy it, run
+`nixfmt` on the copy, `diff`, and hand-apply only the hunks inside your own
+region. (Making `nix fmt` recurse is a one-line formatter change plus a ~108-line
+reformat commit — worth doing deliberately, not inside another change.)
 
 ---
 

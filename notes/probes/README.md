@@ -2,9 +2,9 @@
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
-(Two probes here aren't about macOS at all — `pack-priority.nix` and
-`preset-composition.nix`, at the bottom — but they earn the same shelf: a claim
-in a notes file, with the command that proves it beside it.)
+(Three probes here aren't about macOS at all — `pack-priority.nix`,
+`preset-composition.nix` and `scale-reach.nix`, at the bottom — but they earn the
+same shelf: a claim in a notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -105,7 +105,7 @@ effect) from keys with none (persistence only — it pauses ~10s so you can look
 That split is deliberate: "the write succeeded" was never sufficient evidence
 here, since `com.apple.Accessibility` writes succeed and change nothing.
 
-## `pack-priority.nix` — the one probe that isn't about macOS
+## `pack-priority.nix` — the first probe that isn't about macOS
 
 Evidence for [`../options-roadmap.md`](../options-roadmap.md) §6's limit 3
 instead of the matrix: what a shared **pack** must ship so a consumer's own host
@@ -144,7 +144,41 @@ options merge with no error at all, so a pair that "composes" may just be one
 that blends.
 
 ✅ **The pinnable subset of this moves into the rice** as `nix flake check`'s
-`preset-composition` (rice#239, open when this was written), so the pairs the
+`preset-composition` (rice#239, merged 2026-08-06), so the pairs the
 docs advertise as stackable can't quietly stop stacking. The probe stays for the questions a golden table
 can't ask — it prints resolved values and the `compose []` ordering experiment,
 which is what you want the first time, not the hundredth.
+
+## `scale-reach.nix` — what `ui.scale` reaches, and where it stops
+
+The third non-macOS probe, and the one that needs a Mac anyway: it evaluates four
+whole darwin systems rather than the pure-lib option surface. **Rerun it on a
+macOS bump too** — two of its rows are nix-darwin defaults (`dock.tilesize`,
+`NSTableViewDefaultSizeMode`), which is exactly the kind of thing a release moves.
+
+```sh
+nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
+  --arg rice ~/code/workshop/nebelhaus
+```
+
+Evidence for [`../options-roadmap.md`](../options-roadmap.md) §5.2's two
+unmeasured claims — that every point-valued option is silently coupled to
+`nebelhaus.displays`, and the "honest scope" paragraph naming what `ui.scale`
+does and doesn't move. Both turned out to be one measurement apart:
+
+- **the point-valued surface is ONE option** (`fonts.mono.size`). Six numeric
+  leaves in the 130 the options page renders (plus four internal mirrors it
+  doesn't), and the rest are multipliers, ids, an ordering and a percent —
+  every other point-valued number in the rice is internal to a module;
+- **that one can't clip while prowl tiles it** — floating windows and
+  `prowl.enable = false` are the precondition, and it's read off the code. The
+  coupling only bites something that *sizes itself* in points, which is pounce
+  (clamped), perch (proportional to the screen, and blind to `ui.scale`) and the
+  bar (bounded by a band that is itself in points);
+- **the reach table needs a third verdict.** Two surfaces change and then STOP,
+  and a ceiling reads as `PARTIAL` under `accent-reach`'s vocabulary while being
+  the deliberate answer.
+
+✅ The pinnable subset shipped the same day as the rice's `scale-reach` check —
+four scales, `moves` / `ceiling` / `pinned`, darwin-guarded beside `accent-reach`.
+This file keeps the census and the resolved values.
