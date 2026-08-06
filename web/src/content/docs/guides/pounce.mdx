@@ -229,7 +229,7 @@ device list appears; the plugin walks you there if the dialog was dismissed.
 brew tap nebelhaus/tap
 brew install pounce
 brew services start pounce        # start the daemon
-pounce --request-accessibility    # one-time, for paste-back features
+pounce --request-accessibility    # one-time, for paste-back and event-tap bindings
 ```
 
 The formula installs a prebuilt `Pounce.app` signed with our Apple **Developer
@@ -242,10 +242,11 @@ Because that signing identity is stable, the Accessibility grant **survives
 
 Or with Nix: `nix run github:nebelhaus/pounce -- --help`.
 
-## Grant Accessibility (for paste-back)
+## Grant Accessibility
 
 Clipboard auto-paste and emoji paste synthesize a ⌘V into your previous app,
-which macOS gates behind Accessibility:
+while modifier-only bindings such as a lone Fn/Globe tap use a keyboard event
+tap. macOS gates both paths behind Accessibility:
 
 ```sh
 pounce --request-accessibility    # approve the dialog
