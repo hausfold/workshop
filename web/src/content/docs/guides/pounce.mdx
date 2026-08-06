@@ -27,6 +27,9 @@ it up as a login daemon and re-signs it so its permissions survive rebuilds.
 
 - **⌘Space** — the default hotkey. Registered in-process by the daemon, so it
   opens instantly. (nebelhaus disables Spotlight's ⌘Space so Pounce can own it.)
+- **Fn/Globe** — on nebelhaus, a lone tap opens the emoji and symbols grid.
+  Fn combinations keep working; this binding reuses Pounce's Accessibility
+  grant and replaces the stock Globe action only while the daemon is armed.
 - Change it in [config](/reference/pounce/#config-file): the `hotkey` object
   takes a `key` and `modifiers`.
 
