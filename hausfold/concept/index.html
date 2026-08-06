@@ -1,0 +1,432 @@
+<title>hausfold — concept</title>
+<style>
+  /* ------------------------------------------------------------------
+     hausfold.co — landing concept, sheet 01
+     Palette: nebelung's neutral ramp, accents deliberately omitted.
+     Type:    New York (ui-serif) + SF Mono — the Mac's own faces, which
+              is the thesis of the page set in the page.
+     ------------------------------------------------------------------ */
+
+  :root {
+    color-scheme: light dark;
+
+    /* paper */
+    --ground: #f3f2f0;
+    --ground-2: #eae8e5;
+    --ink: #1c1c1c;
+    --ink-2: #4a4a4a;
+    --ink-3: #7d7b78;
+    --rule: #d3d0cc;
+    --rule-soft: #e2dfdb;
+
+    --measure: 41rem;
+    --step: clamp(0.94rem, 0.9rem + 0.2vw, 1.02rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* nebelung ramp, verbatim */
+      --ground: #191919;   /* mantle */
+      --ground-2: #202020; /* base   */
+      --ink: #d7d7d7;      /* text   */
+      --ink-2: #aeaeae;    /* subtext0 */
+      --ink-3: #858585;    /* overlay1 */
+      --rule: #343434;     /* surface0 */
+      --rule-soft: #262626;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #191919;
+    --ground-2: #202020;
+    --ink: #d7d7d7;
+    --ink-2: #aeaeae;
+    --ink-3: #858585;
+    --rule: #343434;
+    --rule-soft: #262626;
+  }
+
+  :root[data-theme="light"] {
+    --ground: #f3f2f0;
+    --ground-2: #eae8e5;
+    --ink: #1c1c1c;
+    --ink-2: #4a4a4a;
+    --ink-3: #7d7b78;
+    --rule: #d3d0cc;
+    --rule-soft: #e2dfdb;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: ui-serif, "New York", Georgia, "Iowan Old Style", serif;
+    font-size: var(--step);
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .sheet {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: clamp(3.5rem, 9vw, 7.5rem) clamp(1.4rem, 5vw, 2rem)
+      clamp(2.5rem, 6vw, 4rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3rem, 7vw, 4.75rem);
+  }
+
+  /* --- masthead ------------------------------------------------------ */
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+
+  .mark {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: clamp(3.4rem, 11vw, 5rem);
+    line-height: 0.9;
+    color: var(--ink-3);
+    font-weight: 300;
+    user-select: none;
+  }
+
+  .wordmark {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: clamp(1.5rem, 5vw, 1.95rem);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .standfirst {
+    font-size: clamp(1.28rem, 4vw, 1.72rem);
+    line-height: 1.32;
+    font-weight: 400;
+    letter-spacing: -0.014em;
+    margin: 0;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+
+  .lede {
+    display: flex;
+    flex-direction: column;
+    gap: 1.05rem;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+
+  .lede p {
+    margin: 0;
+  }
+
+  .lede strong {
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  /* --- section scaffolding ------------------------------------------- */
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  /* --- the index ------------------------------------------------------ */
+
+  .index {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr auto;
+    gap: 0.35rem 1.25rem;
+    align-items: baseline;
+    padding: 0.82rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .row:last-child {
+    border-bottom: 0;
+  }
+
+  .row-name {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+
+  .row-role {
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+
+  .row-state {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 34rem) {
+    .row {
+      grid-template-columns: 1fr auto;
+    }
+    .row-name {
+      grid-column: 1;
+    }
+    .row-state {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .row-role {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* --- the workshop block --------------------------------------------- */
+
+  .workshop {
+    background: var(--ground-2);
+    border: 1px solid var(--rule);
+    padding: clamp(1.25rem, 4vw, 1.75rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .workshop h3 {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 1.05rem;
+    font-weight: 400;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  .workshop p {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: 54ch;
+  }
+
+  /* --- title block ----------------------------------------------------- */
+
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    border: 1px solid var(--rule);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  .cell {
+    padding: 0.85rem 0.95rem;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 0.34rem;
+    min-width: 0;
+  }
+
+  .cell:last-child {
+    border-right: 0;
+  }
+
+  .cell dt {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .cell dd {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    transition: border-color 140ms ease;
+  }
+
+  a:hover,
+  a:focus-visible {
+    border-bottom-color: var(--ink);
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--ink-3);
+    outline-offset: 3px;
+  }
+
+  /* --- load ------------------------------------------------------------ */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet > *,
+    .masthead > * {
+      animation: rise 620ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+    }
+    .masthead > *:nth-child(1) {
+      animation-delay: 40ms;
+    }
+    .masthead > *:nth-child(2) {
+      animation-delay: 110ms;
+    }
+    .masthead > *:nth-child(3) {
+      animation-delay: 170ms;
+    }
+    .masthead > *:nth-child(4) {
+      animation-delay: 230ms;
+    }
+    .sheet > *:nth-child(2) {
+      animation-delay: 320ms;
+    }
+    .sheet > *:nth-child(3) {
+      animation-delay: 380ms;
+    }
+    .sheet > *:nth-child(4) {
+      animation-delay: 440ms;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<main class="sheet">
+  <header class="masthead">
+    <div class="mark" aria-hidden="true">⌂</div>
+    <h1 class="wordmark">hausfold</h1>
+    <p class="standfirst">We rebuild the Mac.</p>
+    <div class="lede">
+      <p>
+        hausfold makes the software that turns a Mac into a workspace someone
+        actually designed. <strong>The whole desktop</strong> — tiling, launcher,
+        bar, shell, terminal, colours — declared once in a single file and themed
+        end to end, plus the small native tools that live inside it.
+      </p>
+      <p>
+        None of it is a skin. It is the machine, rebuilt: reproducible on any Mac
+        you sit down at, and reversible the moment you change your mind. Take it
+        as it comes, or take it apart.
+      </p>
+    </div>
+  </header>
+
+  <section>
+    <h2 class="eyebrow"><span>The index</span><span>Six pieces</span></h2>
+    <div class="index">
+      <div class="row">
+        <span class="row-name">nebelhaus</span>
+        <span class="row-role"
+          >The workspace. A whole macOS desktop in one declarative file.</span
+        >
+        <span class="row-state">Free · MIT</span>
+      </div>
+      <div class="row">
+        <span class="row-name">pounce</span>
+        <span class="row-role"
+          >The launcher. Native, instant, and teachable — you write the
+          commands.</span
+        >
+        <span class="row-state">Free · MIT</span>
+      </div>
+      <div class="row">
+        <span class="row-name">perch</span>
+        <span class="row-role"
+          >The shelf. Files park in the notch on their way somewhere else.</span
+        >
+        <span class="row-state">$19 · once</span>
+      </div>
+      <div class="row">
+        <span class="row-name">nebelung</span>
+        <span class="row-role"
+          >The palette. A quieter set of colours, one theme, every tool.</span
+        >
+        <span class="row-state">Free · MIT</span>
+      </div>
+      <div class="row">
+        <span class="row-name">holt</span>
+        <span class="row-role"
+          >The substrate. Parallel coding agents, isolated, in any repo.</span
+        >
+        <span class="row-state">Free · MIT</span>
+      </div>
+      <div class="row">
+        <span class="row-name">revena</span>
+        <span class="row-role"
+          >The builder. Answer a few questions, walk away with your machine.</span
+        >
+        <span class="row-state">In the workshop</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="eyebrow"><span>In the workshop</span><span>No date</span></h2>
+    <div class="workshop">
+      <h3>revena</h3>
+      <p>
+        A rice builder for people who want the workspace without learning the
+        system underneath it. Pick a palette, pick your tools, answer a handful
+        of questions — revena writes the file that builds your Mac, and hands it
+        to you to keep. Early, and honest about it.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <dl class="titleblock">
+      <div class="cell">
+        <dt>Sheet</dt>
+        <dd>01 · concept</dd>
+      </div>
+      <div class="cell">
+        <dt>Issue</dt>
+        <dd>2026.08</dd>
+      </div>
+      <div class="cell">
+        <dt>Contact</dt>
+        <dd><a href="mailto:hi@hausfold.co">hi@hausfold.co</a></dd>
+      </div>
+      <div class="cell">
+        <dt>Made by</dt>
+        <dd>hausfold</dd>
+      </div>
+    </dl>
+  </footer>
+</main>
