@@ -4,8 +4,9 @@ Every account, handle and namespace claimed under the **hausfold** name, in one
 place, so a launch never stalls on "wait, do we have a TikTok?" and nobody
 re-registers something we already hold.
 
-The site itself is still [a placeholder](./README.md) — this file exists ahead of
-it, because names are claimed defensively long before there's anything to post.
+The site is [a real page](./README.md) as of 2026-08-06 — a one-sheet index of
+what we're making. This file predates it, because names are claimed defensively
+long before there's anything to post.
 
 **What hausfold is, decided 2026-08-04: the umbrella — the commercial identity
 behind the products, not a product brand of its own.** nebelhaus is what
@@ -14,7 +15,16 @@ the name on terms and refunds, the press contact, and the home for anything
 later that isn't macOS ricing. It is explicitly **not** the nebelhaus rice
 gallery — that belongs on nebelhaus.com, one domain away from `haus rebuild`.
 The reasoning and its consequences are
-[`notes/go-to-market.md` §6](../notes/go-to-market.md).
+[`notes/go-to-market.md` §6](https://github.com/nebelhaus/workshop/blob/main/notes/go-to-market.md)
+in the workshop.
+
+**Amended 2026-08-06:** §6 also said the page "stays a placeholder until it has
+something to say", and the live page now speaks in a maker's voice and indexes
+all six products. That part is reversed; the rest of §6 — support stays at
+nebelhaus.com, nothing in the family migrates to this org, hausfold is the seller
+on the receipt — stands unchanged. The page links outward to nebelhaus.com and
+GitHub rather than trying to hold traffic, which is what keeps the reversal from
+reopening §5's gallery question.
 
 **Status of this file:** handles were recorded from memory on 2026-08-04 and are
 **not yet verified against the live platforms**. Treat the Handle column as "what
@@ -25,7 +35,7 @@ we believe we took" until someone walks the list and ticks it off. Anything mark
 
 | Channel | Handle / namespace | Verified | Notes |
 |---|---|---|---|
-| **Domain** | `hausfold.co` (+ `www.`) | ✅ live | Cloudflare Worker, placeholder page. `.com` **not** held. |
+| **Domain** | `hausfold.co` (+ `www.`) | ✅ live | Cloudflare Worker serving [`public/index.html`](./public/index.html), deployed by CI on push to `main`. `.com` **not** held. |
 | **Email** | `*@hausfold.co` | ✅ live | Catch-all on the zone — any local part works, so per-channel addresses (`press@`, `hi@`, `noreply@`) cost nothing. Use a distinct one per signup; it's free spam attribution. |
 | **Bluesky** | `hausfold.co` | ✅ | Domain-as-handle, proven by a DNS TXT record on the zone (`_atproto`). **Don't delete that record** — the handle reverts to a `*.bsky.social` one if the TXT ever goes. |
 | **Instagram** | `hausfold.co` | — | `hausfold` itself was unavailable, hence the `.co` suffix. Keep the suffix consistent wherever IG is linked. |
@@ -39,7 +49,7 @@ we believe we took" until someone walks the list and ticks it off. Anything mark
 | **Reddit** | — | — | Account (not a subreddit) unless noted otherwise — confirm which. |
 | **Discord** | Server created | — | Server exists; no permanent invite / vanity URL recorded. |
 | **Product Hunt** | — | — | Maker/account only; no product posted. |
-| **GitHub** | org `hausfold` | — | Separate from the `nebelhaus` org — nothing in the nebelhaus family belongs here. |
+| **GitHub** | org `hausfold`, repo `hausfold/website` | ✅ | Separate from the `nebelhaus` org — nothing in the nebelhaus family belongs here. `website` is this repo, split out of `nebelhaus/workshop` on 2026-08-06 with its history; it's the org's only repo and the only one that should be. |
 | **npm** | scope `hausfold` | — | Org/scope reservation. Nothing published. |
 | **PyPI** | account only | — | **Account, not a project name.** PyPI has no namespace reservation — a package name is only yours once you publish it, and squatting-by-placeholder is against policy. So `hausfold` on PyPI is *not* secured; if a Python package is ever the plan, publish a real `0.0.1` to hold it. |
 
@@ -80,6 +90,12 @@ Two rules that save the most grief:
   registry that only recognises published artifacts.
 - **No trademark work** has been done; this register is name-squatting hygiene,
   not brand protection.
+- **`revena` is named on the live page and claimed nowhere.** It's the last line
+  of the index — "a rice builder. Still in the workshop." — and as of 2026-08-06
+  nobody has checked the domain, a GitHub org, npm, or a single social handle.
+  It has no row in the register above because there is nothing to record yet.
+  The page is public, so the name is now findable; either claim it or rename it
+  before it's spoken anywhere louder than this.
 
 ## Housekeeping
 

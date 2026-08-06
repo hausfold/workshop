@@ -4,47 +4,328 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>hausfold</title>
-    <meta name="description" content="hausfold" />
+    <meta
+      name="description"
+      content="hausfold makes the software that turns a Mac into a workspace someone actually designed."
+    />
     <meta name="color-scheme" content="light dark" />
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'></svg>"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' x='2' font-size='13' font-family='monospace'>%E2%8C%82</text></svg>"
     />
     <style>
+      /* ----------------------------------------------------------------
+         hausfold.co — the landing page. Served as-is: this Worker has no
+         build step, so what's in ./public is what's on the domain.
+
+         Palette: nebelung's neutral ramp in dark, every value pushed one
+                  step outward for contrast (crust/subtext1/overlay2/
+                  surface1; the text step is extrapolated one rung above
+                  #d7d7d7, following the ramp's own ~0x14 spacing). A
+                  paper-warm mirror in light, pushed the same distance.
+                  No accent, anywhere — that's the point.
+         Type:    New York (ui-serif) + SF Mono. The Mac's own faces, which
+                  is the thesis of the page set in the page.
+         ---------------------------------------------------------------- */
+
       :root {
-        --bg: #fbfbfa;
-        --fg: #16161a;
+        color-scheme: light dark;
+
+        /* paper */
+        --ground: #faf9f7;
+        --ink: #0e0e0e;
+        --ink-2: #35332f;
+        --ink-3: #66645f;
+        --rule: #c4c0bb;
+
+        --measure: 41rem;
+        --step: clamp(0.94rem, 0.9rem + 0.2vw, 1.02rem);
       }
+
+      /* nebelung ramp, one step out: crust / (text +1) / subtext1 / overlay2 / surface1 */
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #0e0e11;
-          --fg: #e9e9ec;
+          color-scheme: dark;
+          --ground: #121212;
+          --ink: #ebebeb;
+          --ink-2: #c3c3c3;
+          --ink-3: #9a9a9a;
+          --rule: #494949;
         }
       }
-      html,
-      body {
-        height: 100%;
+
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --ground: #121212;
+        --ink: #ebebeb;
+        --ink-2: #c3c3c3;
+        --ink-3: #9a9a9a;
+        --rule: #494949;
       }
+
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --ground: #faf9f7;
+        --ink: #0e0e0e;
+        --ink-2: #35332f;
+        --ink-3: #66645f;
+        --rule: #c4c0bb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
-        display: grid;
-        place-items: center;
-        background: var(--bg);
-        color: var(--fg);
-        font-family:
-          ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-          "Helvetica Neue", Arial, sans-serif;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: ui-serif, "New York", Georgia, "Iowan Old Style", serif;
+        font-size: var(--step);
+        line-height: 1.62;
         -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
-      h1 {
+
+      .sheet {
+        max-width: var(--measure);
+        margin: 0 auto;
+        padding: clamp(3.5rem, 9vw, 7.5rem) clamp(1.4rem, 5vw, 2rem)
+          clamp(2.5rem, 6vw, 4rem);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(3rem, 7vw, 4.75rem);
+      }
+
+      /* --- masthead ------------------------------------------------- */
+
+      .masthead {
+        display: flex;
+        flex-direction: column;
+        gap: 1.6rem;
+      }
+
+      .mark {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: clamp(3.4rem, 11vw, 5rem);
+        line-height: 0.9;
+        color: var(--ink-3);
+        font-weight: 300;
+        user-select: none;
+      }
+
+      .wordmark {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: clamp(1.5rem, 5vw, 1.95rem);
+        font-weight: 400;
+        letter-spacing: 0.02em;
         margin: 0;
-        font-size: clamp(1.75rem, 7vw, 3rem);
-        font-weight: 500;
-        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+
+      .standfirst {
+        font-size: clamp(1.28rem, 4vw, 1.72rem);
+        line-height: 1.32;
+        font-weight: 400;
+        letter-spacing: -0.014em;
+        margin: 0;
+        max-width: 22ch;
+        text-wrap: balance;
+      }
+
+      .lede {
+        display: flex;
+        flex-direction: column;
+        gap: 1.05rem;
+        color: var(--ink-2);
+        max-width: 62ch;
+      }
+
+      .lede p {
+        margin: 0;
+      }
+
+      .lede strong {
+        font-weight: 400;
+        color: var(--ink);
+      }
+
+      /* --- the index -------------------------------------------------- */
+
+      .index {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.72rem;
+        max-width: 58ch;
+      }
+
+      .index li {
+        padding-left: 1.5rem;
+        text-indent: -1.5rem;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+
+      /* Hanging mono marker, so wrapped explainers align under the name
+         rather than under the bullet. */
+      .index li::before {
+        content: "·";
+        display: inline-block;
+        width: 1.5rem;
+        text-indent: 0;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        color: var(--ink-3);
+      }
+
+      .index-name {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.92rem;
+        color: var(--ink);
+      }
+
+      /* --- title block -------------------------------------------------- */
+
+      /* 1px grid gap over a ruled ground draws the cell borders, so wrapped
+         rows never double up the way border-right + :last-child did. Column
+         counts are exact divisors of the four cells on purpose — auto-fit
+         left a half-empty row that rendered as a solid block of --rule. */
+      .titleblock {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        margin: 0;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+
+      @media (max-width: 34rem) {
+        .titleblock {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .cell {
+        background: var(--ground);
+        padding: 0.85rem 0.95rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.34rem;
+        min-width: 0;
+      }
+
+      .cell dt {
+        font-size: 0.62rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      .cell dd {
+        margin: 0;
+        font-size: 0.82rem;
+        color: var(--ink);
+        overflow-wrap: anywhere;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: var(--ink-3);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.25em;
+      }
+
+      a:hover,
+      a:focus-visible {
+        text-decoration-color: currentColor;
+      }
+
+      a:focus-visible {
+        outline: 2px solid var(--ink-3);
+        outline-offset: 3px;
       }
     </style>
   </head>
+
   <body>
-    <h1>hausfold</h1>
+    <main class="sheet">
+      <header class="masthead">
+        <div class="mark" aria-hidden="true">⌂</div>
+        <h1 class="wordmark">hausfold</h1>
+        <p class="standfirst">We rebuild the Mac.</p>
+        <div class="lede">
+          <p>
+            hausfold makes the software that turns a Mac into a workspace
+            someone actually designed. <strong>The whole desktop</strong> —
+            tiling, launcher, bar, shell, terminal, colours — declared once in a
+            single file and themed end to end, plus the small native tools that
+            live inside it.
+          </p>
+          <p>
+            None of it is a skin. It is the machine, rebuilt: reproducible on any
+            Mac you sit down at, and reversible the moment you change your mind.
+            Take it as it comes, or take it apart.
+          </p>
+        </div>
+      </header>
+
+      <section>
+        <ul class="index">
+          <li>
+            <a class="index-name" href="https://nebelhaus.com">nebelhaus</a> —
+            the whole desktop, declared in one file.
+          </li>
+          <li>
+            <a class="index-name" href="https://nebelhaus.com/pounce">pounce</a>
+            — a launcher you teach your own commands.
+          </li>
+          <li>
+            <a class="index-name" href="https://nebelhaus.com/perch">perch</a> —
+            files park in the notch on their way somewhere else.
+          </li>
+          <li>
+            <a class="index-name" href="https://github.com/nebelhaus/nebelung"
+              >nebelung</a
+            >
+            — a quieter set of colours, shared by everything.
+          </li>
+          <li>
+            <a class="index-name" href="https://github.com/nebelhaus/holt"
+              >holt</a
+            >
+            — parallel coding agents that never collide.
+          </li>
+          <li>
+            <span class="index-name">revena</span> — a rice builder. Still in
+            the workshop.
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        <dl class="titleblock">
+          <div class="cell">
+            <dt>Sheet</dt>
+            <dd>01</dd>
+          </div>
+          <div class="cell">
+            <dt>Issue</dt>
+            <dd>2026.08</dd>
+          </div>
+          <div class="cell">
+            <dt>Contact</dt>
+            <dd><a href="mailto:hi@hausfold.co">hi@hausfold.co</a></dd>
+          </div>
+          <div class="cell">
+            <dt>Products</dt>
+            <dd><a href="https://nebelhaus.com">nebelhaus.com</a></dd>
+          </div>
+        </dl>
+      </footer>
+    </main>
   </body>
 </html>
