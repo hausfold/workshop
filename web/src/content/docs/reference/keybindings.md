@@ -77,7 +77,6 @@ pointer, and whose rows are gathered by workspace under a header each.
 | `Super F` | **Find** — full-text search over the focused pane, live as you type |
 | `Super ⇧F` | The same overlay, opened across **every pane** in the session |
 | `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
-| `Super R` | Reload the terminal stack — quit/reopen Ghostty and restart zellij with the same tabs, panes and cwds; live Claude panes resume (also `zreload` from a shell) |
 | `Super Y` | yazi peek — covers the terminal window it was summoned from (floating previews; `Enter` on a dir opens a new tab there; same worktree hop as `Super P`) |
 | `Super ⇧Y` | yazi peek, stay here (no worktree hop) |
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
@@ -143,7 +142,8 @@ Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘⇧P`, `⌘Y`, `⌘⇧Y`, `
 `⌘⇧F`, `⌘⏎`, `⌘R`, `⌘A` and `⌘⇧A` so zellij owns them — the same keys work
 whether or not you're multiplexed. (`⌘⇧A`, `⌘⇧F` and `⌘⏎` are unbound
 pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
-way if a future release does.)
+way if a future release does. `⌘R` is now unbound on both sides — it used to
+reach zellij as a session-reload chord, which a rebuild no longer needs.)
 
 `⌘C` is the one that stayed with **Ghostty**: it copies. The agent binds lived on
 `⌘C`/`⌘⇧C` back when Claude Code was the only client they could start; moving
