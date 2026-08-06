@@ -12,6 +12,19 @@ so nothing 404s while the real site doesn't exist yet.
 namespace claimed under the hausfold name — what we hold, what's still a gap,
 and which channel to reach for when there's something to announce.
 
+## `concept/` is not served
+
+[`concept/index.html`](./concept/index.html) is a draft of what could replace the
+placeholder — a landing page teasing the products, plus a first pass at a visual
+identity for the umbrella. It sits **beside** `public/`, not inside it, because
+`wrangler.toml` uploads `./public` alone; nothing under `concept/` reaches the
+live domain. Open it as a local file to look at it.
+
+Two things to settle before any of it is promoted into `public/`: it makes
+hausfold speak as a maker, which [`notes/go-to-market.md`
+§6](../notes/go-to-market.md) decided it wouldn't, and it names an unregistered
+product (`revena`) that has no row in `PRESENCE.md` yet.
+
 ## Deploy
 
 ```sh
