@@ -22,7 +22,7 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **nebelhaus** (rice) | free | MIT | The destination. What the other doors convert into. |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
 | **trill** | not monetized | MIT | Frozen. Archive decision still open — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). |
-| **hausfold** | — | — | The umbrella — commercial identity only, no product and no code. It's the seller, nebelhaus is the brand. See §6. |
+| **hausfold** | — | — | The umbrella — commercial identity, not a product. It's the seller, nebelhaus is the brand. Since 2026-08-06 it has a *page* (a one-sheet index of everything above, in [hausfold/website](https://github.com/hausfold/website)) but still no product and no code of its own. See §6. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
 perch's positioning, so it's now **five**, and one of them is paid:
@@ -120,7 +120,7 @@ Three reasons it isn't first:
 
 - **A gallery's value is the number of rices in it, and there is currently one.**
   Launching an empty store is worse than launching no store — it reads as
-  abandoned, which is exactly the failure mode `hausfold/PRESENCE.md` warns
+  abandoned, which is exactly the failure mode hausfold's `PRESENCE.md` warns
   about for dormant channels.
 - **The supply comes from the testers.** The format already exists and is
   documented ([Sharing a rice](../web/src/content/docs/guides/sharing-a-rice.mdx)
@@ -148,7 +148,7 @@ cat") — same event, same mechanism, zero extra infrastructure.
 ## 6. What hausfold is for
 
 **Decided 2026-08-04: hausfold is the umbrella — the commercial identity, not a
-product brand.** It fits what was already true: `hausfold/PRESENCE.md` says the
+product brand.** It fits what was already true: hausfold's `PRESENCE.md` says the
 `hausfold` GitHub org is deliberately separate and *nothing in the nebelhaus
 family belongs there*.
 

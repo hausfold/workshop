@@ -33,11 +33,14 @@ what's out of sync and `./bench ship` makes it right.**
 
 Each one stands alone. Together they're a house.
 
-Two more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
-(the org's GitHub front page) and 🍺
+Three more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
+(the org's GitHub front page), 🍺
 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) (CI bumps it on
-every release — you almost never touch it). Your private `~/.config/nix` lives
-outside this dir entirely.
+every release — you almost never touch it), and ⌂
+[**hausfold**](https://github.com/hausfold/website) — hausfold.co, the umbrella
+that sells this stuff. That last one is the only checkout here that *isn't* in
+the nebelhaus org, and the only private one. Your `~/.config/nix` lives outside
+this dir entirely.
 
 ## the one gotcha
 

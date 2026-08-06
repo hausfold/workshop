@@ -265,7 +265,8 @@ preferred.)
 
 Not a worktree, not a cloud session — this is where most work happens, and the
 worktree/cloud restrictions above do **not** apply here. The child repos
-(`nebelhaus`, `nebelung`, `pounce`, `perch`, `holt`, `org-profile`, `homebrew-tap`) are
+(`nebelhaus`, `nebelung`, `pounce`, `perch`, `holt`, `org-profile`, `homebrew-tap`,
+`hausfold`) are
 `.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
 full, independent repo I own solo, and from the main checkout you drive it
 end-to-end:

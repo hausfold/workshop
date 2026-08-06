@@ -894,7 +894,10 @@ cmd_pull() {
   # want a fresh local checkout: `bench status` diffs them, and a stale
   # homebrew-tap clone hides cask/formula bumps CI already pushed (the
   # "released but not installed" trap). Superset of cmd_ship's repo set.
-  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap consumer)
+  # hausfold rides along too: bench plants that checkout (cmd_clone) and it's
+  # the one repo here whose deploys happen on push, so a stale local copy is a
+  # live-site footgun. It stays out of FAMILY — it's no flake input.
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap hausfold consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
   if [ "$#" -gt 0 ]; then
@@ -1400,7 +1403,14 @@ cmd_clone() {
     say "hausfold already here"
   else
     say "cloning hausfold…"
-    git clone "https://github.com/hausfold/website.git" "$ROOT/hausfold"
+    # `gh repo clone`, not `git clone`: this is the only PRIVATE repo bench
+    # touches, so an anonymous https clone prompts for a username on a fresh
+    # machine — and under `set -e` that takes the whole command down at its last
+    # step. gh already carries the auth bench assumes everywhere else. Warn
+    # rather than die: a missing hausfold checkout shouldn't fail a bootstrap
+    # whose real job is the family.
+    gh repo clone hausfold/website "$ROOT/hausfold" \
+      || warn "hausfold: clone failed — it's a private repo; check \`gh auth status\`"
   fi
 }
 
