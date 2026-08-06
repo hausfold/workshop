@@ -78,7 +78,7 @@ pointer, and whose rows are gathered by workspace under a header each.
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | **Find** — full-text search over the focused pane, live as you type |
 | `Super ⇧F` | The same overlay, opened across **every pane** in the session |
-| `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
+| `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) — or **Ctrl-click** the pane body, see below |
 | `Super Y` | yazi peek — covers the terminal window it was summoned from (floating previews; `Enter` on a dir opens a new tab there; same worktree hop as `Super P`) |
 | `Super ⇧Y` | yazi peek, stay here (no worktree hop) |
 | `Super L` | Open Links picker (every URL from focused pane's transcript/scrollback) |
@@ -111,6 +111,11 @@ regardless of the lock, and so do `Alt [` / `Alt ]` — picking a layout is a
 workspace act, not a submode. The rest of zellij's `Alt` row stays inert while
 locked on purpose: `Alt h/j/k/l` and `Alt`-arrows are word motions the shell and
 your editor want. Flip it with [`nebelhaus.hearth.zellijStartLocked`](/reference/options/#nebelhaushearthzellijstartlocked).
+
+**Ctrl-click a pane body** zooms it fullscreen — the same toggle as `Super ⏎`,
+for when your hand's already on the trackpad. Click again (or `Super ⏎`) to drop
+back into the tiled layout. Only clicks *inside* the pane zoom; a drag on the
+frame still resizes, and the program running in the pane never sees the click.
 
 **Clickable links** work across two modifiers. `⌥`-click a file path (or a
 visible URL / bare domain) in the terminal to open it — a path opens a new tab
