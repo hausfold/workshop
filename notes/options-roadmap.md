@@ -15,6 +15,109 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-07 (ninth pass) — §5.11 Reversibility built and felt: `haus
+> plan`/`capture`/`diff`/`revert-settings` are real subcommands, and the headline
+> risk they exist to catch (a settings diff that trusts the plist) was reproduced
+> and caught on this machine, not just reasoned about.**
+>
+> **What shipped.** All four promote exactly what §5.11 named as already existing
+> ad hoc: bootstrap.sh's `preflight_audit` → `haus plan`, its `NEBELHAUS_KEEP`
+> current-value reader → `haus capture`, plus two genuinely new commands,
+> `haus diff` and `haus revert-settings`. The comparison engine underneath
+> `plan`/`diff` (`declared_defaults`) does **not** hand-map nix-darwin's ~193
+> typed keys to plist domains — the matrix's own count of that surface was a
+> warning that a hand-copied table would drift the moment upstream added one.
+> Instead it parses the **built activation script itself** (`defaults write
+> DOMAIN KEY '<xml…>'`, one uniform shape nix-darwin's own generator emits) —
+> ground truth that can't go stale, verified against the real `/run/current-
+> system/activate` on this Mac: all 47 `defaults write` calls it currently
+> contains parsed correctly, one of them a dict value (`FXInfoPanesExpanded`)
+> that the parser correctly flags as un-comparable rather than silently
+> mis-reading.
+>
+> **★ The §4/§8 finding — "diff must compare effective state, not plists" — is
+> now executable, not just documented.** A new probe binary, `hausax` (same
+> compile-with-xcrun shape as `hausdisp`), wraps the exact `NSWorkspace` read
+> the matrix's spike used, and `haus diff`/`haus plan` route the four keys
+> measured to have a write-vs-effect gap through it instead of `defaults read`.
+> Proved with a synthetic activation script exercising all four verdicts at
+> once on the real machine: a plain key mismatch (`dock.orientation`) printed
+> as an ordinary change; `universalaccess.reduceMotion` declared `true` against
+> `hausax`'s real (false) reading was caught and reported as a **NSWorkspace
+> mismatch, not a plist one**; a `com.apple.Accessibility` write was flagged
+> **"KNOWN SILENT NO-OP"** without comparing it at all, since the matrix proved
+> that domain lies regardless of what the plist says; and
+> `mouseDriverCursorSize` (persists, effect never confirmed) was reported as
+> **unconfirmed** rather than either a false match or a false mismatch. Four
+> distinct, correct verdicts from one real run — this is the concrete
+> reproduction of the exact failure mode §4 found (`haus rebuild` succeeding,
+> the plist agreeing, the Mac unchanged) that a plist-only diff would have
+> silently called "applied."
+>
+> **★ A `set -e` bug the design itself would have hidden, caught only by
+> running it.** `defaults read` on an unset key — the common case for
+> `unconfirmed`-class keys like `mouseDriverCursorSize`, which nothing on this
+> machine sets — exits non-zero, and under `haus.sh`'s existing
+> `set -euo pipefail` that aborted `settings_diff` **silently partway through**,
+> before printing anything for the keys after it. Every `defaults read` call
+> and the two `grep | while` extractors now have an explicit `|| true`, with a
+> comment at each site naming why ("an unset key is the common case, not a
+> script error"). This is the sharpest reason to distrust an untested read of
+> this exact code: the bug was invisible in the diff, only visible in the
+> terminal. A second instance — `revert-settings`'s own `killall Dock/Finder`
+> and `activateSettings` calls, the same `[ cond ] && risky-command` shape —
+> was caught the other way, by re-reading the diff against `den/default.nix`'s
+> own `|| true` convention for the identical calls, not by running it. Neither
+> method alone would have found both.
+>
+> **`haus capture` generalises past the three named categories, not just past
+> "runs once at install."** `dock`/`keyboard`/`finder` still emit the same
+> typed `system.defaults.<room>.<key>` lines bootstrap.sh always did (ported,
+> not reinvented — bootstrap keeps its own copy since it runs before `haus` is
+> on PATH). Any other argument containing a `.` is read as a literal plist
+> domain and emitted through `system.defaults.CustomUserPreferences` — the
+> escape hatch nix-darwin already ships for exactly this — with nested
+> (array/dict) values called out as a comment rather than silently emitted,
+> since JSON's `[a, b]` isn't valid nix list syntax and a broken generated file
+> would be a worse failure than an honest gap. Felt against this machine's real
+> `com.apple.screencapture` domain: three scalars captured correctly (a string,
+> a bool, a float), one nested key correctly flagged instead of miscompiled.
+>
+> **`haus revert-settings` was proved to actually revert.** Not a design
+> read-through: a scratch domain was set to a known value, `haus capture`
+> snapshotted it (`defaults export`, byte-for-byte, not a replay of individual
+> key writes), the value was changed again, and `haus revert-settings` put the
+> *original* value back — read back and confirmed equal. The FDA-gated skip
+> (`com.apple.universalaccess`/`com.apple.Accessibility` need Full Disk Access
+> to restore, same as to write) and the partial-failure reporting (one domain
+> restored, one missing file correctly reported as "restore failed", overall
+> exit code non-zero) were both exercised directly, though with `has_fda`
+> stubbed rather than this pane's own real TCC state — the logic is proved, the
+> live FDA-denied path from an actual agent pane is not, which matches the
+> asymmetry the matrix already named.
+>
+> **What this does and doesn't clear.** A real `bench try` (darwin-system
+> build, not an evaluator) succeeded with these changes, and `nix-store -q
+> --references` on the built `system-path.drv` confirms `hausax` lands beside
+> `haus`/`haus-activate`/`hausdisp` exactly where `environment.systemPackages`
+> puts it — so this is felt through the actual builder, the same bar the eighth
+> pass set for limit 3. `nix flake check` is unaffected (still green: presets,
+> packs, data-only-surface, preset-composition, keymap, theme-variants,
+> accent-reach, font-reach, scale-reach). What is **not** felt: `bench try
+> switch` and a real `haus plan`/`haus diff` invocation through the installed
+> binary on a running generation — activation is Julien's call, not an agent
+> worktree's, so that last mile is still open the way §6 would expect.
+>
+> **Left open, honestly.** §5.11's other two boxes — `haus doctor` growing a
+> System Settings deep-link checklist, and restart/logout/reboot annotations
+> from the §4 matrix surfacing anywhere — were not touched this pass. `haus
+> plan`'s "packages" section is a bare closure diff (proven correct, reused
+> verbatim from `haus rebuild`'s own mechanism) rather than a script-level
+> preview of *what will restart* — the restart-map idea §4 raised is still
+> unbuilt, and `plan`'s "scripts" promise from §5.11's own line is really just
+> "settings + packages + casks" today, not a narrated list of what activation
+> scripts will run.
+>
 > **Status, 2026-08-07 (eighth pass) — limit 3 was felt on a machine, not just
 > an evaluator, and it held; plus an audit of everything that landed since the
 > seventh pass.**
@@ -410,7 +513,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 | "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](nebelhaus/modules/options.nix) — but 13 of those are the `sill.items` pill bools and 5 are `hush.slack.*`. The *shape* surface is more like 25. |
 | "rice sets ~19 macOS defaults" | ✅ 19 keys in [`den/default.nix:144-183`](nebelhaus/modules/den/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
 | "replace `prowl.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `nebelhaus.apps`; **rice#182 renamed it `nebelhaus.roster`** and grew it the multi-source install §5.4(a) asked for. `nebelhaus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
-| "add `haus plan` / `capture` / `diff` / `undo`" | ⚠️ **Partly exists in the installer.** `bootstrap.sh` has a read-only preflight audit, `NEBELHAUS_KEEP=dock,keyboard,finder` current-value capture, and cask adoption. The job is *promoting* those into `haus`, not greenfield. |
+| "add `haus plan` / `capture` / `diff` / `undo`" | ✅ **Promoted, 2026-08-07 (ninth pass, §5.11).** `haus plan`/`capture`/`diff`/`revert-settings` (`undo`'s real name) are real subcommands now, built on a probe of activation-script output rather than a hand-maintained domain map. `bootstrap.sh` keeps its own copy of the capture logic (it runs before `haus` is on PATH). |
 | "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `den`+`theme`+`hearth`+`collar`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt` (now `holt`), `zscratch`, and a git-alias vocabulary. |
 
 **Two mechanisms already in the repo that the brainstorm missed, and that change the plan:**
@@ -1394,16 +1497,29 @@ nebelhaus.displays.internal.uiScale = "larger-text";
 - [ ] Multi-display arrangement is still untested (only one display was attached).
       Test on the dock before designing `profiles.docked`
 
-### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M
+### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M · ◐ **the four commands shipped and were felt; two boxes remain**
 Before strangers' configs run arbitrary `defaults write` and activation scripts:
 
-- [ ] `haus plan` — promote bootstrap's preflight audit; show exact settings,
-      packages, and scripts that will change
-- [ ] `haus capture` — promote the `NEBELHAUS_KEEP` current-value reader into a
-      general "turn this Mac into config" command
-- [ ] `haus diff` — declared vs live
-- [ ] `haus revert-settings` — restore the pre-activation preference snapshot
-      (the installer already admits Nix rollback doesn't undo macOS defaults)
+- [x] `haus plan` — promote bootstrap's preflight audit; show exact settings,
+      packages, and scripts that will change. **Settings and packages**, felt
+      through a real `bench try` build; the "scripts" half (a restart-map
+      preview) is still just "what packages and casks change" — see the ninth
+      pass above.
+- [x] `haus capture` — promote the `NEBELHAUS_KEEP` current-value reader into a
+      general "turn this Mac into config" command. Generalised past the three
+      named categories via `system.defaults.CustomUserPreferences` for any
+      literal plist domain; felt against this machine's real
+      `com.apple.screencapture` domain.
+- [x] `haus diff` — declared vs live. Routes the four keys with a measured
+      write-vs-effect gap through `hausax` (a new `NSWorkspace` probe), not the
+      plist — reproduced and caught the exact "writes, no effect" failure §4
+      found, on this machine, with a synthetic activation script exercising
+      all four verdicts (match / effective mismatch / known no-op /
+      unconfirmed).
+- [x] `haus revert-settings` — restore the pre-activation preference snapshot
+      (the installer already admits Nix rollback doesn't undo macOS defaults).
+      Proved end-to-end: captured a scratch domain, changed it, reverted it,
+      read back the original value.
 - [ ] `haus doctor` grows a permission checklist with System Settings deep links
 - [ ] Restart/logout/reboot annotations from the §4 matrix
 
