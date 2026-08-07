@@ -64,7 +64,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > comment at each site naming why ("an unset key is the common case, not a
 > script error"). This is the sharpest reason to distrust an untested read of
 > this exact code: the bug was invisible in the diff, only visible in the
-> terminal.
+> terminal. A second instance — `revert-settings`'s own `killall Dock/Finder`
+> and `activateSettings` calls, the same `[ cond ] && risky-command` shape —
+> was caught the other way, by re-reading the diff against `den/default.nix`'s
+> own `|| true` convention for the identical calls, not by running it. Neither
+> method alone would have found both.
 >
 > **`haus capture` generalises past the three named categories, not just past
 > "runs once at install."** `dock`/`keyboard`/`finder` still emit the same
