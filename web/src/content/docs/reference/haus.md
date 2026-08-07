@@ -21,7 +21,7 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus status` | Show the current generation and how stale the pinned rice is. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
 | `haus options` | Refresh the annotated catalogue of every `nebelhaus.*` option on this machine's pinned rice. |
-| `haus set <path> <value>` | Write one machine override as ordinary Nix, type-check it, then rebuild. `theme.accent` and `nebelhaus.theme.accent` are equivalent. |
+| `haus set <path> <value>` | Write and stage one machine override as ordinary Nix, type-check it, then rebuild. `theme.accent` and `nebelhaus.theme.accent` are equivalent. |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
 | `haus unset <path>` | Explicitly set a nullable option to `null`, then rebuild. |
 | `haus reset <path>` | Remove one machine override, inherit the host/preset/rice value again, then rebuild. |
@@ -43,11 +43,14 @@ haus get theme.accent       # teal
 haus reset theme.accent     # inherit the preset/rice value again
 ```
 
-`haus set` writes a small module at
+`haus set` writes and stages a small module at
 `~/.config/nix/hosts/<hostname>/settings/theme.accent.nix`. `mkNebelhaus`
 auto-imports every `.nix` file in that directory, just as it already imports
 Pounce's generated `packages/*.nix` app declarations. The file is the setting:
 there is no JSON database beside it, and it is safe to inspect, edit, or commit.
+Staging is required because a git-backed flake ignores untracked files; `haus
+reset` stages the deletion for the same reason. Neither command commits or
+pushes your config repo.
 
 The overlay uses `lib.mkForce` because a machine choice must be able to override
 a preset deliberately. That makes `unset` and `reset` distinct:
@@ -60,7 +63,10 @@ a preset deliberately. That makes `unset` and `reset` distinct:
 Only `nebelhaus.*` paths are accepted. The prefix is optional for convenience;
 passing `system.defaults.*`, `homebrew.*`, or an unknown option fails before a
 file is written. Values use the obvious shell form for strings (`teal`) and JSON
-syntax for booleans, numbers, lists, and attribute sets.
+syntax for booleans, numbers, lists, and attribute sets. A type-invalid value is
+written and staged only long enough to evaluate the real module; on rejection,
+the previous file is restored and that path is staged before any rebuild or
+activation.
 
 Pounce's **Haus Settings** command is the same mechanism with three intent-sized
 buttons: **Make text bigger**, **Switch to light mode**, and **High contrast on**.
