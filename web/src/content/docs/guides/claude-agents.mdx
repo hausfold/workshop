@@ -306,13 +306,15 @@ The rice points Claude Code's status bar at a small HUD driven off the worktree
 registry, so you can see where every agent stands without leaving the pane.
 **Row one is this session's own worktree** — its name, a status token, and its
 GitHub PR pill. The **rows below are the worktrees this session spawned** (across
-whatever repos they live in), each with its repo, name, token, and PR state. The
-cross-repo GitHub lookups run detached and cached, so the bar never stalls your
-prompt. Your own row doesn't wait on that cache to warm: Claude Code tracks the
-current branch's open PR itself and hands it to the statusline, so a PR you just
-opened gets its pill — with the real GitHub URL behind it — right away, while the
-cache stays the source for the states Claude Code stops reporting (merged,
-closed).
+whatever repos they live in), each led by its status token as the row's bullet,
+then its repo, PR state, and name. Rows that still need attention stay above the
+landed `⏏` rows, so Claude Code clipping the bottom of a long HUD can only hide
+worktrees that are already reapable. The cross-repo GitHub lookups run detached
+and cached, so the bar never stalls your prompt. Your own row doesn't wait on
+that cache to warm: Claude Code tracks the current branch's open PR itself and
+hands it to the statusline, so a PR you just opened gets its pill — with the real
+GitHub URL behind it — right away, while the cache stays the source for the states
+Claude Code stops reporting (merged, closed).
 
 The token is one mutually-exclusive slot:
 
