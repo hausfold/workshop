@@ -15,6 +15,62 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-07 (thirteenth pass) — §5.4's last open box, a real workspace
+> model, is shipped: Phase 3 now has no unstarted item.**
+>
+> **What shipped ([nebelhaus#253](https://github.com/nebelhaus/nebelhaus/pull/253)
+> + a paired, currently-draft [nix-config#45](https://github.com/JulienMartel/nix-config/pull/45)).**
+> `nebelhaus.workspaces` is a real, first-class option now: `roster.*.workspace`
+> and `roster.*.barIcon` are gone — a workspace names its own member apps
+> (`apps = [ "slack" "mail" "messages" ]`) instead of one app claiming a
+> workspace, so a role or project workspace is representable for the first
+> time. `roster.*.float` (+ `titleRegex`) also generalizes the second half of
+> this box — window rules beyond assignment — replacing the three hand-hardcoded
+> always-float `aerospace.toml` rules with the same data-driven shape
+> auto-assignment already used.
+>
+> **★ No back-compat alias, and that was the risky part §5.4's own text warned
+> about — done anyway, on instruction.** The original sketch proposed
+> `roster.<id>.workspace` desugaring into the new option so existing hosts
+> wouldn't break; Julien is the only consumer of this rice and said explicitly
+> not to bother — a clean rename, migrate his own host file, no sugar nobody
+> but him would ever use. That's the harder-to-undo version of this migration,
+> which is why it stayed §5.4's last box through ten prior passes: "the one
+> item here that can break a live host if done carelessly" (this section's own
+> earlier words) meant reading the whole section before touching a line, not
+> just the open checkboxes — the shift-throw binding namespace had to move off
+> the app entirely (a workspace's own `key`, not its one owning app's), which
+> the sketch above never mentioned and only surfaced from tracing every
+> consumer (prowl, sill, the doc generator, pounce's `add-app.sh`, the shipped
+> `packs/writing.nix` example) by hand.
+>
+> **`center` and `sticky` are checked off as verified-infeasible, not shipped.**
+> AeroSpace has no command to position or resize a floating window's geometry,
+> and no primitive for a window visible across every workspace — its own docs
+> call sticky windows "not yet supported." Confirmed against upstream before
+> writing either off, so the box closes on a citation instead of staying open
+> because nobody got to it.
+>
+> **What this does and doesn't close.** A pack still can't claim a workspace
+> for its own apps — `checkPack` only carries `nebelhaus.roster` through
+> `lib.pack`, and extending it to `nebelhaus.workspaces` (where `apps` needs
+> list-merge semantics every other pack field doesn't) is real follow-up work,
+> not done here; `packs/writing.nix` and its README now say so explicitly
+> rather than silently going stale. `monitor` / `layout` from the original
+> sketch didn't ship either — nothing needed them this pass, and per-workspace
+> monitor pinning is its own feature with its own risk (bridging AeroSpace's
+> monitor matching against `nebelhaus.displays`' UUID vocabulary).
+>
+> Verified on the real machine, not just through an evaluator: a full build of
+> the actual `mbp` host against this branch finished with zero warnings, the
+> generated `aerospace.toml` and `sketchybar/workspaces.sh` were read back and
+> checked against pre-migration output line-for-line, and `nix flake check
+> --all-systems` stayed green throughout (`presets`, `packs`,
+> `data-only-surface`, `preset-composition`, `keymap`, `theme-variants`,
+> `accent-reach`, `font-reach`, `scale-reach`). §5.4 has the full account,
+> including the five new assertions each exercised by hand and why the
+> consumer-side PR is deliberately a draft rather than red.
+>
 > **Status, 2026-08-07 (twelfth pass) — §5.7 is built: the machine-writable
 > overlay is ordinary Nix, and the palette has its first settings front door.**
 >
@@ -1246,7 +1302,7 @@ nebelhaus.fonts = {
       every surface the rice draws now takes the mono family on purpose (the bar
       mixes Nerd Font icon glyphs into its labels).
 
-### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ◐ **(a) shipped as `roster` (rice#182), (b) untouched**
+### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ✅ **(a) shipped as `roster` (rice#182), (b) shipped (nebelhaus#253)**
 The registry is good. Two concrete gaps — and the halves came apart: the install
 sources shipped without the workspace model, which is the right order (one is
 additive, the other is the schema migration).
@@ -1295,15 +1351,96 @@ nebelhaus.workspaces.comms = {
 …with `roster.<id>.workspace` kept as sugar that desugars into the above, so
 existing hosts don't break.
 
+**Update 2026-08-07 (nebelhaus#253): shipped, and NOT the way the sketch above
+proposed.** Julien is the only consumer of this rice — he asked explicitly for a
+clean rename over a back-compat alias, so `roster.*.workspace` and
+`roster.*.barIcon` are **gone**, not deprecated. What shipped is otherwise the
+sketch's inversion: `nebelhaus.workspaces.<id>` owns `key`, `icon` and `apps`
+(the roster ids that live there); prowl and sill resolve an app's workspace
+through a new internal `nebelhaus._appWorkspace` lookup (roster id → workspace
+id) rather than reading a field off the app. `monitor` / `layout` from the
+sketch did **not** ship — nothing in this pass needed them, and per-workspace
+monitor pinning would mean bridging AeroSpace's monitor-pattern matching
+against `nebelhaus.displays`' own UUID vocabulary, a separate feature with its
+own risk. Left for whoever needs it.
+
+The workspace-throw key moved off the app too: `shift-<key>` used to throw to
+*the app's own* workspace, which stops meaning anything once a workspace can
+hold several apps. It's `shift-<workspace's-own-key>` now — a NEW binding
+namespace, not a renamed one, with its own collision assertions (two
+workspaces claiming one key; a workspace key colliding with the fixed
+numbered-workspace `⇧` throws). Plain `<key>` stays exactly what it always
+was: a roster app's launch letter, never a workspace's.
+
+Also finished the second, previously-unstarted box: `nebelhaus.roster.*.float`
+(+ optional `titleRegex`, scoped to AeroSpace's `window-title-regex-substring`)
+generalises the "float" half of window rules — the shape the three
+hand-hardcoded `aerospace.toml` rules (FaceTime, Flick, Ghostty) were asking to
+become. FaceTime and Flick are now ordinary `float = true` roster entries
+(`modules/prowl/default.nix`); Ghostty's rule stays hand-written on purpose —
+it's genuinely bespoke (assign-once-at-startup vs. float-always-at-runtime),
+racing the same AX-title-lands-late problem `titleRegex`'s own docs warn about,
+so generating it would just move the bespoke-ness into the generator.
+
+**`center` and `sticky` did not ship, and it's not a scope cut — verified
+against AeroSpace's own docs first.** No command exists to position or resize
+a floating window's geometry at all (nothing to hang `center` on), and
+sticky/pin-across-every-workspace has no primitive either — the upstream docs'
+own words are "not yet supported." Closing this the way the doc's own ground-
+truth rule asks: a checked box that says "verified infeasible, here's the
+citation" beats an unchecked one that looks like nobody got to it.
+
+**A real gap this surfaced, not designed in: a pack can't claim a workspace.**
+`checkPack` only lets a pack set `nebelhaus.roster` (packs/README.md), and
+`lib.pack` only lowers *that* option's priority on the way into a consumer.
+`packs/writing.nix` can no longer give Obsidian or Zotero a workspace itself —
+its README now tells the consumer to add the two-line `nebelhaus.workspaces`
+entry by hand. Extending `checkPack`/`lib.pack` to carry `nebelhaus.workspaces`
+through too — with `apps` needing list-merge semantics where every other field
+wants `mkDefault`, per that option's own docs — is follow-up work, not done
+here.
+
+**Measured, not assumed:** a full build of the real `mbp` host (this machine)
+against nebelhaus#253's branch, `--override-input`'d in for `nebelhaus`,
+finished with **zero warnings** (`nix eval
+.#darwinConfigurations.mbp.config.warnings` → `[]`) — every one of the seven
+migrated single-app workspaces (`N`/`R`/`S`/`H`/`C`/`D`/`X`) still resolves.
+The generated `aerospace.toml` (persistent-workspaces, the `shift-<key>`
+throws, the `[[on-window-detected]]` auto-assign + float blocks) and
+`sketchybar/workspaces.sh` (pill icons, launcher keys) were read back and
+checked line-for-line against pre-migration output: byte-for-byte the same
+behavior for every existing app. `nix flake check --all-systems` — `presets`,
+`packs`, `data-only-surface`, `preset-composition`, `keymap`, `theme-variants`,
+`accent-reach`, `font-reach`, `scale-reach` — all green. The five new
+assertions (duplicate workspace keys, a workspace key colliding with a
+numbered workspace's throw, one roster app named in two workspaces, `float`
+with no `appId`, an unknown app id in `apps`) were each exercised by hand
+during the eval, not just written and trusted.
+
+The consumer half of the migration (`~/.config/nix`'s `hosts/mbp/default.nix`)
+is a **paired, currently-draft PR** (nix-config#45) — it can't bump
+`flake.lock`'s `nebelhaus` input until nebelhaus#253 actually merges (a lock
+bump computed against an unmerged rev pins nothing real), so it's blocked
+rather than red. Same shape every breaking rename here takes: the lock bump
+and the config edit that depends on it land together, in one PR, once there's
+a real merged rev to point at — never split across the merge boundary.
+
+`holt` currently fails to build from the workshop's own main checkout
+independent of any of this (`sdk/go`'s nested `go.mod` collides with the root
+module under `buildGoModule` — reproduced building `holt` alone, zero
+nebelhaus involvement) — worked around for verification by overriding
+`nebelhaus/holt` to a pre-SDK rev. Not this pass's bug to fix; flagging it
+here so it isn't mistaken for fallout of this migration.
+
 - [x] Multi-source install — shipped as `roster`'s parallel source fields, not a
       tagged union (see above)
-- [ ] First-class `workspaces`, `roster.*.workspace` becomes a back-compat alias.
-      **This is now the whole of §5.4, and the last unstarted Phase 3 item.**
-- [ ] Window rules beyond assignment: `float`, `center`, `sticky`, title/role
-      matchers. prowl generates assignment only (`move-node-to-workspace`); the
-      three `float` rules that exist are hardcoded in `aerospace.toml`, which is
-      the shape to generalise — and prowl still has exactly ONE option
-      (`prowl.enable`), so there is no surface to hang them on yet
+- [x] First-class `workspaces` — shipped nebelhaus#253, **no** back-compat
+      alias (single-user rice, clean rename per instruction — see above).
+      **§5.4 is now fully checked off.**
+- [x] Window rules beyond assignment — shipped nebelhaus#253 as `float` +
+      `titleRegex`. `center` and `sticky` are verified-infeasible against
+      AeroSpace itself (see above), not shipped, and that's the closed state
+      for both — there's no upstream primitive to build them on.
 - ◐ Non-app installables the registry can't express: fonts, browser extensions,
       Quick Look / Finder / Share extensions, printers, network shares, VSTs.
       **Two of the five have answers now and NEITHER went into the registry:**
@@ -2101,12 +2238,13 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       answer as much as progress; `flavor = "custom"` remains untouched.
 - [x] §5.5 `keys.*` (nebelhaus#108) — leader / palette / windowNav, each with a real
       `"none"`. Per-action `bindings` deferred; it wants an action vocabulary first.
-- ◐ §5.4 registry v2 — **half shipped, and the half left is the risky half.** The
-      multi-source install landed as `nebelhaus.roster` (rice#182). What remains is
-      `workspaces`: a schema migration needing back-compat (`roster.*.workspace`
-      desugaring into `workspaces`), so it's the one item here that can break a
-      live host, and it's worth doing after the option surface stopped moving
-      around it. Nothing else in Phase 3 blocks on it.
+- [x] §5.4 registry v2 — **fully shipped 2026-08-07 (nebelhaus#253).** The
+      multi-source install landed first as `nebelhaus.roster` (rice#182); the
+      risky half — `workspaces` — landed as a **clean rename, no back-compat
+      alias** (single-user rice, Julien's explicit call), not the
+      `roster.*.workspace`-desugars-into-`workspaces` sketch this line
+      originally described. See §5.4 for what was measured before calling the
+      live host safe.
 - [x] §5.10 displays (nebelhaus#147) — the only working system-wide "make it
       bigger" lever, now part of `large-print`; docked multi-display validation
       remains before any `profiles.docked` design
@@ -2613,9 +2751,11 @@ found so far came from BUILDING one.**
   `[ everyday large-print ] overlap 1 disagree 1 stops on ui.scale`, which is
   precisely the sentence the README would have quietly stopped meaning.
 - So the honest scoreboard reads: **the surface is no longer the constraint.**
-  What's left is breadth (§5.6's seven uncurated groups), one schema migration
-  (§5.4's `workspaces`, still the last unstarted Phase 3 item), trust (§5.11) —
-  and limit 3, which is the only one a stranger hits on day one.
+  What's left is breadth (§5.6's seven uncurated groups), ~~one schema
+  migration (§5.4's `workspaces`, still the last unstarted Phase 3 item)~~,
+  trust (§5.11) — and limit 3, which is the only one a stranger hits on day
+  one. ✅ **§5.4 shipped 2026-08-07 (nebelhaus#253)** — see that section; Phase
+  3 has no unstarted item left.
 
 **The next real finding is on a machine, not in this file.** Limit 3's option 1
 has since been tried on `packs/writing.nix` — in an evaluator, which was enough
