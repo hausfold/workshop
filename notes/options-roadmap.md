@@ -15,6 +15,61 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-07 (tenth pass) — §4's last open box, the restart map, is
+> built and generalized past the one hand-rolled fix it started from.**
+>
+> **What shipped ([nebelhaus#249](https://github.com/nebelhaus/nebelhaus/pull/249),
+> `modules/lib/restart-map.nix` + `modules/den/default.nix`).** The matrix's own finding — nix-darwin restarts
+> only Dock, and only when a `dock.*` option changed, so Finder/menu-bar/Control
+> Center writes silently wait for a logout — had exactly one fix in the repo
+> before this pass: rice#181's hardcoded `killall Finder`, called out in §5.2's
+> own text as "the first entry in §4's restart map, written by hand rather than
+> as the map." It's now a declared table: every plist domain the rice writes
+> maps to `killall <process>` / `activateSettings`-only / `none` / `logout`, and
+> den's postActivation generates its restart commands from that table against
+> whichever domains the built configuration actually has (typed domains the
+> rice always sets via `mkDefault`, plus whatever `CustomUserPreferences`
+> top-level keys any module or host contributed — read out of `config`, not
+> hardcoded, so a future module gets this for free).
+>
+> **★ The generalization has teeth, not just a data file — and the first
+> version of those teeth was too sharp.** A first draft made an undeclared
+> domain a hard `assertions` failure; the **pre-PR assurance pass caught that
+> this breaks a real, documented workflow**: `haus capture <domain>` lets a
+> consumer snapshot *any* plist domain into their own host file's
+> `CustomUserPreferences`, which the map has no way to know about in advance,
+> so the hard assertion would fail their `haus rebuild` over a file inside the
+> pinned nebelhaus flake input they cannot edit. Fixed the same PR, one commit
+> later: an undeclared domain is now `warnings`, matching the pattern the
+> `universalaccess` block already uses just below it in the same file — "don't
+> block a config that would otherwise work." **A generalized check still needs
+> to ask who it can fail on**, not just whether it fires correctly — the same
+> lesson §5.14 has drawn from drift before, from the opposite direction (a
+> check too soft to catch anything) rather than this one (a check hard enough
+> to break someone else's rebuild).
+>
+> Proved on the real machine both ways, not just read through: a clean `bench
+> try` (real `darwin-system` build, not an evaluator) went green, the generated
+> `activate` script's `killall -qu … Finder` line was traced straight to this
+> mechanism in the built output, and deliberately deleting a domain from the
+> map reproduced the intended signal in both forms — a build failure with the
+> hard-assertion draft, then a warning with the build still succeeding after
+> the fix. Same mutation-check discipline `accent-reach`/`data-only-surface`
+> already use elsewhere in this doc, applied to a spike finding instead of an
+> option — and this time the mutation check is also what caught the check's
+> own design mistake.
+>
+> **What this does and doesn't close.** `WindowManager` stays tagged `logout`
+> in the map — the matrix found no live-reload path for that domain on macOS
+> 26 and this pass didn't find one either, so it's declared rather than
+> attempted. `haus revert-settings` (§5.11) still hand-rolls its own
+> Dock/Finder/`activateSettings` triad in `haus.sh` rather than reading this
+> same map — a second hand-maintained copy of the identical logic, left as-is
+> since it's bash reading a Nix table and out of this pass's scope, but it's
+> the next place this exact "one fix, not yet the pattern" shape could recur.
+> §4 itself is now fully checked; §5.6 (curated settings groups) was gated on
+> this landing and can proceed.
+>
 > **Status, 2026-08-07 (ninth pass) — §5.11 Reversibility built and felt: `haus
 > plan`/`capture`/`diff`/`revert-settings` are real subcommands, and the headline
 > risk they exist to catch (a settings diff that trusts the plist) was reproduced
@@ -1955,7 +2010,9 @@ that visible, and turned up two things that were already broken:
 
 **Phase 4 — the non-dev Mac**
 - [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups
-- [ ] the restart map (§4) — nix-darwin only restarts Dock, so this is ours
+- [x] the restart map (§4) — nix-darwin only restarts Dock, so this is ours.
+      **Done, 2026-08-07 — see the tenth-pass status note at the top of this
+      file.**
 - ◐ **§5.9's pounce half arrived early, from the app side** (pounce#43), because
   pounce wanted a Raycast-style settings list for its own reasons. That's the second
   time an app shipped a piece of this roadmap ahead of its phase (the first:

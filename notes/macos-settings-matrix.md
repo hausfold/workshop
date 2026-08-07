@@ -328,8 +328,13 @@ WindowManager, ControlCenter and menu-bar changes land in the plist and wait for
 a manual restart or logout. **The rice has to own this** — it's exactly the kind
 of "it didn't work / oh, log out" papercut that makes a shared rice feel broken.
 
-- [ ] `nebelhaus` should own a post-activation restart map (which domain → which
-      `killall` / "needs logout"), since upstream won't
+- [x] `nebelhaus` should own a post-activation restart map (which domain → which
+      `killall` / "needs logout"), since upstream won't. **Done, 2026-08-07 —
+      `modules/lib/restart-map.nix` (nebelhaus), keyed by exactly the domain
+      names in this matrix's tables; `com.apple.controlcenter` and
+      `com.apple.WindowManager` are declared (`ControlCenter` / `logout`)
+      ahead of the rice ever writing into them. See
+      options-roadmap.md's tenth-pass status note.**
 
 ### Display scaling: reachable, and with no Homebrew dependency
 
