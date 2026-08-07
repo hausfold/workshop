@@ -18,7 +18,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **Status, 2026-08-07 (twelfth pass) — §5.7 is built: the machine-writable
 > overlay is ordinary Nix, and the palette has its first settings front door.**
 >
-> **What shipped ([nebelhaus#252](https://github.com/nebelhaus/nebelhaus/pull/252)).** `mkNebelhaus` now auto-imports
+> **What shipped ([nebelhaus#252](https://github.com/nebelhaus/nebelhaus/pull/252),
+> docs [workshop#247](https://github.com/nebelhaus/workshop/pull/247)).** `mkNebelhaus` now auto-imports
 > `hosts/<host>/settings/*.nix` beside the existing `packages/*.nix` seam.
 > `haus set theme.accent teal` writes one managed module there, stages it so a
 > git-backed flake can see it, evaluates the machine's own option tree to reject
