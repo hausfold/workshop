@@ -503,8 +503,9 @@ Colour and wallpaper.
 The accent colour, by Catppuccin name (the Nebelung palette is a
 grey-tinted Catppuccin, so the fourteen names are the same in both
 flavors — the hue you pick follows nebelhaus.theme.flavor). It recolours
-the tools nebelhaus injects colours into — lazygit, fzf, yazi, and the Zen
-browser — via the matching Nebelung per-accent ports.
+the tools nebelhaus injects colours into — lazygit, fzf, yazi (including
+glow-rendered Markdown headings), and the Zen browser — via the matching
+Nebelung per-accent ports.
 
 Two more things follow it: the `bold` wallpaper (generated from the
 accent hex — see nebelhaus.theme.wallpaper), and any roster app whose
