@@ -503,8 +503,9 @@ Colour and wallpaper.
 The accent colour, by Catppuccin name (the Nebelung palette is a
 grey-tinted Catppuccin, so the fourteen names are the same in both
 flavors — the hue you pick follows nebelhaus.theme.flavor). It recolours
-the tools nebelhaus injects colours into — lazygit, fzf, yazi, and the Zen
-browser — via the matching Nebelung per-accent ports.
+the tools nebelhaus injects colours into — lazygit, fzf, yazi (including
+glow-rendered Markdown headings), and the Zen browser — via the matching
+Nebelung per-accent ports.
 
 perch follows it too, and is the one surface handed the NAME rather than
 a hex: the shelf resolves it against whichever half of its dark/light
@@ -973,6 +974,22 @@ Example:
 
 ```nix
 "nvim"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `nebelhaus.hearth.ghDash.enable`
+
+`boolean` · default `false`
+
+Whether to enable the themed gh-dash GitHub dashboard and its Cmd-G
+fullscreen Zellij overlay. Hosts can compose their own queue through
+home-manager's `programs.gh-dash.settings`.
+
+Example:
+
+```nix
+true
 ```
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
@@ -2030,12 +2047,12 @@ ordinary global hotkey for a couple of seconds rather than tapping events).
 
 Two things this checks at build time, because both fail SILENTLY at
 runtime: a key that names no real item shape (a "mode:" typo binds
-nothing at all), and a chord already claimed by nebelhaus.keys.palette or
-nebelhaus.keys.leader (whoever registers first wins, and it isn't always
-the same one). What it can't check is whether `cmd:<id>` names a command
-that exists — command scripts are discovered at runtime, so pounce warns
-about that itself when the daemon starts, and `pounce doctor` lists any
-binding that failed to arm.
+nothing at all), and a chord already claimed by nebelhaus.keys.palette,
+nebelhaus.keys.leader, or a terminal binding (whoever registers first
+wins, and it isn't always the same one). What it can't check is whether
+`cmd:<id>` names a command that exists — command scripts are discovered
+at runtime, so pounce warns about that itself when the daemon starts, and
+`pounce doctor` lists any binding that failed to arm.
 
 Example:
 

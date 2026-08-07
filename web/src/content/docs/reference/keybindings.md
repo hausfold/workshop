@@ -78,6 +78,7 @@ pointer, and whose rows are gathered by workspace under a header each.
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | **Find** — full-text search over the focused pane, live as you type |
 | `Super ⇧F` | The same overlay, opened across **every pane** in the session |
+| `Super G` | **gh-dash** — GitHub review queue in a clean fullscreen overlay (when [`hearth.ghDash.enable`](/reference/options/) is on) |
 | `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) — or **Ctrl-click** the pane body, see below |
 | `Super Y` | yazi peek — covers the terminal window it was summoned from (floating previews; `Enter` on a dir opens a new tab there; same worktree hop as `Super P`) |
 | `Super ⇧Y` | yazi peek, stay here (no worktree hop) |
@@ -146,6 +147,10 @@ whether or not you're multiplexed. (`⌘⇧A`, `⌘⇧F` and `⌘⏎` are unboun
 pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
 way if a future release does. `⌘R` is now unbound on both sides — it used to
 reach zellij as a session-reload chord, which a rebuild no longer needs.)
+
+When `nebelhaus.hearth.ghDash.enable` is on, Ghostty also hands `⌘G` to
+zellij for the dashboard overlay. That intentionally replaces Ghostty's stock
+search-next binding; `⌘F` still opens Hearth's full-text search.
 
 `⌘W` is the one where handing the key over is also a **fix**. Ghostty's default
 there is `close_surface`, and since the rice sets `confirm-close-surface = false`,
