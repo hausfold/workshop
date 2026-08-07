@@ -28,7 +28,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
 | the org's GitHub front page | `./org-profile` — the checkout of the `nebelhaus/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the flick notification compositor (quiet banners, rules, `flick` CLI) | `./incubator/flick` — **incubating**: a complete repo-to-be awaiting eject to `nebelhaus/flick` (see its `BOOTSTRAP.md`); after eject, `./flick` |
-| holt — the worktree-lifecycle substrate (`wt` extracted as its own Go product) | `./holt` — its own repo now ([nebelhaus/holt](https://github.com/nebelhaus/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt` in `./nebelhaus/modules/den/wt.sh` is **frozen** (bugfixes only) and stays beside it — both write the same `registry.tsv`, so the rollback is repointing a caller back. Don't add new `wt` callers. |
+| holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([nebelhaus/holt](https://github.com/nebelhaus/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/nebelhaus/nebelhaus/pull/245)) — there is no fallback to roll back to. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
@@ -88,7 +88,7 @@ Never hand-walk that ripple; the tooling does it:
 - **Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that
   already exist do NOT hot-reload** — a running server caches plugin wasm in
   memory for its whole lifetime, so these need a fresh server. Use **`zscratch`**
-  — a rice dev CLI (`nebelhaus/modules/den`, next to `wt`, on PATH) that renders
+  — a rice dev CLI (`nebelhaus/modules/den`, next to `holt`, on PATH) that renders
   your candidate over a copy of the live `~/.config/zellij` into a temp
   `--config-dir` and boots a throwaway session in its own Ghostty window, so the
   working multiplexer is untouched (`zscratch --config`/`--layout`/`--theme
@@ -117,11 +117,10 @@ the workshop. Worktrees live OUTSIDE the repos so trees stay clean and `bench
 try`'s `path:` overrides never swallow them. (`Ctrl Alt Shift a` is the in-place
 variant: the one agent per tab allowed to edit the real checkout.)
 
-**`wt` is the same tool's predecessor and is frozen** (bugfixes only). It stays
-on PATH in `nebelhaus/modules/den/wt.sh` and reads/writes the **same**
-`registry.tsv`, so an old habit or an old line in a script still works — but
-`holt` is what the rice calls and what these instructions mean. Anything below
-spelled `holt` can be spelled `wt`; don't add new `wt` callers.
+Its bash predecessor `wt.sh` (`nebelhaus/modules/den/wt.sh`) has been retired
+entirely — `holt` is the only worktree-lifecycle tool the family ships, and
+every caller (Claude Code's hooks, pounce's Spawn Agent, `bench status`) is
+already on it.
 
 **Closing a pane never loses work, and every session is resumable.** `holt`'s
 remove path parks any uncommitted edits as a WIP commit on the branch before
@@ -180,7 +179,7 @@ points outside your toplevel):
   are that diff and the edited repo's `AGENTS.md`. It checks the family
   invariants that only bite after merge — wrong-repo routing, docs drift on a
   user-facing option or keybind, a breaking option rename split across PRs,
-  hotkey collisions, new `wt`/raw-`git worktree add` callers, release blast
+  hotkey collisions, new raw-`git worktree add` callers, release blast
   radius. The full checklist is the ship skill's **Step 2.5**. It's **advisory,
   never a gate**: fix anything ≥3/5 before opening the PR, carry the rest into
   the **Watch out** block, and say so in one line when it comes back clean.
