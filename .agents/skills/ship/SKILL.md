@@ -96,7 +96,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 | **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `web/src/content/docs/` (the SOT), `reference/options.md`, `reference/keybindings.md`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `nebelhaus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(prowl) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
-| **Frozen paths** | a new caller of frozen `wt` where `holt` is the live spelling; a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
+| **Raw worktree adds** | a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
 | **Release blast radius** | the diff touches `homebrew-tap`, changes what `bench release` would stamp, moves a flake-input edge, or touches secrets / `~/.config/nix` identity. Any of those is ≥3/5 by definition and belongs in the PR body loudly. |
 | **PR body** | the What/Why/Verify/Watch-out blocks are actually filled in, and **Verify** is concrete and observable — a cold agent with only `gh pr view` must be able to run it. |
 
@@ -184,8 +184,7 @@ run is never a silent skip. Fall back to a targeted
 `git -C <child-repo-main-checkout> worktree remove <path>` only if you need to
 force-remove a child you *know* is clean. `holt` lists every agent worktree across all
 repos — run it after to confirm nothing you created is left. Don't delete worktrees you
-didn't create. (Frozen `wt` still answers to all of these and shares the registry, but
-`holt` is the live spelling.)
+didn't create.
 
 ## Step 5 — ripple the locks
 

@@ -42,8 +42,7 @@ can't shadow each other. `haus` knows only *your machine*; `bench` knows only
 for **anyone** who runs Claude Code, nebelhaus contributor or not. It's the one
 that isn't really nebelhaus's at all: [its own
 repo](https://github.com/nebelhaus/holt), which the rice merely takes as a flake
-input. Its predecessor `wt` is frozen, still on `PATH`, and shares the same
-registry — old commands keep working; write new ones against `holt`.
+input. Its bash predecessor `wt.sh` has been retired entirely.
 
 ## The rooms, standalone
 

@@ -18,8 +18,8 @@ Four command-line tools, two jobs — keeping them straight is half the battle:
 each other (`haus` = your machine; `bench` = these repos). `holt` and `zscratch`
 are dev tools the rice puts on `PATH` regardless of whether you contribute.
 (`holt` has [its own repo](https://github.com/nebelhaus/holt); the rice takes it
-as a flake input. Its predecessor `wt` is **frozen**, still on `PATH`, and shares
-the same registry — so old commands work, but write new ones against `holt`.)
+as a flake input. Its bash predecessor `wt.sh` has been retired entirely — there
+is no fallback to roll back to.)
 
 ## Daily driving
 
