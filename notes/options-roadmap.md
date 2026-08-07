@@ -16,8 +16,8 @@ This refines an earlier brainstorm against what's actually in the repos as of
 already exist, and one it treated as a detail is the actual root blocker.
 
 > **Status, 2026-08-07 (eleventh pass) — §5.6, unblocked by the tenth pass's
-> restart map, ships three curated behaviour groups; two more are deliberately
-> left out.**
+> restart map, ships three curated behaviour groups; four remain unbuilt, two
+> of them deliberately.**
 >
 > **What shipped ([nebelhaus#250](https://github.com/nebelhaus/nebelhaus/pull/250)).**
 > `nebelhaus.lock` (screensaver password + delay), `nebelhaus.menuBar.{clock,
