@@ -20,18 +20,18 @@ struct InboxView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
                             Text(stored.event.source)
-                                .font(.caption2.weight(.medium))
+                                .font(.caption.weight(.medium))
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Text(stored.event.timestamp, style: .relative)
-                                .font(.caption2)
+                                .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
                         Text(stored.event.title)
-                            .font(.callout.weight(.medium))
+                            .font(.title3.weight(.medium))
                         if let body = stored.event.body {
                             Text(body)
-                                .font(.caption)
+                                .font(.subheadline)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(3)
                         }
@@ -47,6 +47,7 @@ struct InboxView: View {
         .toolbar {
             Button("Refresh", systemImage: "arrow.clockwise", action: reload)
         }
+        .toolbarBackground(.visible, for: .windowToolbar)
     }
 
     private func reload() {

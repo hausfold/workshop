@@ -16,24 +16,37 @@ struct BannerView: View {
     private var event: NotificationEvent { entry.event }
     private var redacted: Bool { event.privacy == .redacted }
 
+    private var urgencyAccent: Color {
+        switch event.urgency {
+        case .low: return .secondary
+        case .normal: return .accentColor
+        case .critical: return .red
+        }
+    }
+
+    private var titleWeight: Font.Weight {
+        event.urgency == .critical ? .bold : .semibold
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             // Thin source accent. Hex values stay in nebelung; until the
-            // palette wiring lands this rides the system accent.
+            // palette wiring lands this rides the system accent — except
+            // urgency, which always wins so critical reads as critical.
             Capsule()
-                .fill(Color.accentColor)
+                .fill(urgencyAccent)
                 .frame(width: 3)
                 .padding(.vertical, 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(event.source)
-                        .font(.caption2.weight(.medium))
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     if entry.coalescedCount > 0 {
                         Text("+\(entry.coalescedCount) more")
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
                     // The banner body is the click target (`performDefault`
@@ -65,22 +78,24 @@ struct BannerView: View {
                 }
 
                 Text(event.title)
-                    .font(.callout.weight(.semibold))
+                    .font(.title3.weight(titleWeight))
                     .lineLimit(1)
 
                 if !redacted, let body = event.body ?? event.subtitle {
                     Text(body)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
             }
 
-            Image(systemName: event.symbol ?? "circle.fill")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(.secondary)
-                .frame(width: 22, height: 22)
-                .padding(.top, 2)
+            if let symbol = event.symbol {
+                Image(systemName: symbol)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(urgencyAccent)
+                    .frame(width: 22, height: 22)
+                    .padding(.top, 2)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
