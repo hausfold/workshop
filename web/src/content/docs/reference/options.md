@@ -696,12 +696,22 @@ The terminal font. The bar keeps its own font at its own tuned sizes.
 
 `string` · default `"JetBrainsMono Nerd Font Mono"`
 
-The terminal font family, as Ghostty's `font-family` names it.
+The rice's type family, as Ghostty's `font-family` names it.
+
+It reaches the terminal AND the menu bar: every pill label and icon
+sill draws is in this family, at sizes of its own (see
+`nebelhaus.ui.scale`). The workspace-logo glyphs are the one exception
+— those are sketchybar-app-font, which sill installs itself.
 
 This should be a NERD FONT patched build: starship's prompt, lsd's
-icons, and yazi all draw with glyphs a stock font renders as tofu.
-If you change this, set `package` too — the rice can only install a
-font it's been given.
+icons, yazi previews and half the bar's icons draw with glyphs a stock
+font renders as tofu. If you change this, set `package` (or
+`packageName`) too — the rice can only install a font it's been given,
+and it warns when you name a family without one.
+
+The name is taken verbatim, so a "… Nerd Font Mono" family is drawn in
+the bar as well: the bar mixes icon glyphs into its labels, which is
+the same reason the terminal wants a patched font.
 
 Example:
 

@@ -15,6 +15,29 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-06 (seventh pass) — the same question asked of the OTHER
+> option that fans out, and the answer was worse: `fonts.mono.name` reached ONE
+> surface.**
+> The sixth pass pinned what `ui.scale` reaches. Asking the same of the font —
+> evaluate two rices differing only in `fonts.mono.name`, diff every file — gave
+> **Ghostty's config, and nothing else**. The bar named `"Hack Nerd Font"` in its
+> rc, four plugins and six generated blocks, so **the default rice already drew
+> its bar in a different family than its terminal**, and §5.3's own motivating
+> example (Atkinson Hyperlegible for a large-print rice) moved the terminal and
+> left the bar alone. Fixed in **rice#243**: `BAR_FONT` joins the generated
+> `sizes.sh` beside the `FS_*` sizes, every literal reads it, and sill stops
+> installing Hack — den already installs whatever family the rice names.
+> **★ The transferable half is what the check needed.** `font-reach` is the third
+> reach table, but the bug lived in the **static** rc and plugins — files that are
+> byte-identical whatever family the rice names, so *no number of evaluations can
+> see them*. So the table carries one row that isn't an evaluation at all: a count
+> of font literals still hardcoded in those files, read straight off the source.
+> It is 0; the next hardcoded family makes it 1. **A reach table sees only what
+> evaluation produces — when the promise also lives in files the rice copies
+> verbatim, the check needs a row that reads them.**
+> That makes **eight ★ findings in this file that are checks which can break,
+> living in six checks.**
+>
 > **Status, 2026-08-06 (sixth pass) — §5.2's two unmeasured claims were
 > measured, and the bigger one was aimed one layer off.**
 > The fifth pass left three check candidates. Two of them were §5.2's — "every
@@ -865,8 +888,31 @@ nebelhaus.fonts = {
       but the rule being enforced is a *format* rule, and a check can only enforce
       a rule that's uniform — `<option>Name` everywhere is what makes the next
       package-typed option a one-line fix instead of a design conversation.
+- [x] ★ **The option reached ONE surface, and the bar drew in a different family
+      — fixed 2026-08-06 (rice#243).** Measured the way §5.2's reach was: evaluate
+      two rices differing only in `fonts.mono.name` and diff every file. Only
+      Ghostty's config moved. sill named `"Hack Nerd Font"` in its rc, four
+      plugins and six generated blocks, so **the stock rice already ran two type
+      families**, and the example this section opens with — Atkinson Hyperlegible
+      for a large-print machine — would have changed the terminal and left the bar
+      in Hack. The fix is the one `sizes.sh` already demonstrated: `BAR_FONT`
+      beside the `FS_*` sizes, every literal reading it, and sill no longer
+      installing a font den doesn't. Three things worth carrying:
+      **(a)** the family is taken **verbatim**, `Mono` suffix and all — deriving
+      the propositional variant by trimming `" Mono"` would silently invent a
+      family for any name outside Nerd Font's convention (`Berkeley Mono` →
+      `"Berkeley"`), and inventing a font name fails as tofu rather than as an
+      error;
+      **(b)** an unset shell variable here is not a crash — a font string starting
+      with `:` is one sketchybar accepts and draws as **nothing** — so the library
+      that four plugins share sources the fragment itself rather than trusting its
+      callers;
+      **(c) ★** and the check needed a row no evaluation could produce: see §5.14.
 - [ ] `sans` still doesn't exist (only `fonts.mono` does). Nothing blocks it now
-      that naming a package is possible; it's just unbuilt.
+      that naming a package is possible; it's just unbuilt — and after rice#243
+      the question it has to answer first is *which surface would read it*, since
+      every surface the rice draws now takes the mono family on purpose (the bar
+      mixes Nerd Font icon glyphs into its labels).
 
 ### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ◐ **(a) shipped as `roster` (rice#182), (b) untouched**
 The registry is good. Two concrete gaps — and the halves came apart: the install
@@ -1548,6 +1594,32 @@ were not where the paragraph said. That is a second argument for §5.14's "leave
 check behind, not a paragraph" beyond regression-catching: **the check is a
 type-check on the finding.** Prose can be true at no particular altitude; a table
 cannot.
+
+**Seventh pass, 2026-08-06 — a reach table can only see what evaluation
+produces.** The sixth pass's technique, pointed at `fonts.mono.name`, found an
+option reaching exactly one surface while the bar drew in a hardcoded family of
+its own (§5.3, closed by rice#243). `font-reach` is the third of these tables and
+the first that had to look somewhere else as well:
+
+- the **generated** half — `sizes.sh`, `workspaces.sh`, ghostty's config — is
+  visible by evaluating two rices and diffing, which is all `accent-reach` and
+  `scale-reach` ever needed;
+- the **static** half — the rc and the plugins, copied to the machine verbatim
+  and read at runtime — is *invisible* that way: those files are byte-identical
+  whatever the rice names, so the bug lived exactly where the technique was
+  blind. The row that catches it reads the source files and counts font literals
+  (0, and the next hardcode makes it 1).
+
+**Generalise it: when a promise is kept partly by files the rice copies rather
+than computes, a differential check cannot see that half.** The candidates with
+the same shape are every other verbatim-copied config the rice ships — the
+sketchybar plugins, the zellij scripts, `aerospace.toml`'s prose. Ask of each
+table: *if someone re-hardcoded the thing this option promises, in a file we
+copy, would this fail?*
+
+**Eight ★ findings, six checks** (`data-only-surface`, `accent-reach`, `packs`
+carrying two, `preset-composition`, `scale-reach` carrying two, `font-reach`).
+The remaining candidate list is still §5.6's alone.
 
 ---
 
