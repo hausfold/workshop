@@ -15,6 +15,57 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-07 (eleventh pass) — §5.6, unblocked by the tenth pass's
+> restart map, ships three curated behaviour groups; four remain unbuilt, two
+> of them deliberately.**
+>
+> **What shipped ([nebelhaus#250](https://github.com/nebelhaus/nebelhaus/pull/250)).**
+> `nebelhaus.lock` (screensaver password + delay), `nebelhaus.menuBar.{clock,
+> controlCenter}` (clock format/seconds/date/analog + which Control Center
+> glyphs show) and `nebelhaus.security.firewall` (wraps nix-darwin's
+> `networking.applicationFirewall`) — three of §5.6's seven still-open groups,
+> named and scoped the same way `hotCorners`/`screenshots` already were: every
+> leaf null by default, action names instead of raw plist values, restart
+> behaviour read out of `modules/lib/restart-map.nix` rather than hand-rolled
+> per group.
+>
+> **Two things gated this pass, both from the task brief rather than the code:
+> check the restart map landed first, and don't ship a group that silently
+> needs a logout.** The first was easy — #249 (the tenth pass, below) landed
+> the same day. The second shaped the actual scope more than anything else:
+> `com.apple.loginwindow` (the LOGIN half of "Lock / login / screensaver") and
+> `com.apple.WindowManager` (all of "Windows") are both declared `"logout"` in
+> the restart map, with no live-reload path on macOS 26. Rather than ship them
+> anyway with a "requires logout" note in the description — which the codebase
+> has no established pattern for yet, unlike `nebelhaus.accessibility`'s FDA
+> note — both are left out entirely, and §5.6's table now says so in place of
+> the group. **Sound**, **Locale/input sources** and **Power** are left out for
+> the opposite reason: no domain for any of them has been spiked for effect on
+> this machine at all (typed or not), so there is nothing yet to curate
+> honestly, only to guess at.
+>
+> **★ Not every shipped group could be verified the way hot corners and
+> screenshots were.** Both of those inherited a restart nix-darwin already
+> performs (Dock) or need no restart at all (screencapture re-reads per
+> capture). `lock` and `menuBar` are the first groups here whose restart is
+> `killall`-a-process-and-hope — plausible (Finder gets the identical
+> treatment), backed by nix-darwin's own precedent, but not measured against an
+> effective-state oracle the way `reduceMotion` was in the §4 matrix, because
+> no cheap oracle exists for "did the menu bar clock re-render". Recorded
+> honestly in `restart-map.nix`'s own comments and as an open box below, rather
+> than claimed. `security.firewall` doesn't have this problem at all — it
+> isn't a plist write, `socketfilterfw` is a live command nix-darwin already
+> runs unconditionally in its own activation script, so none of the
+> restart-map's uncertainty applies to it.
+>
+> **Verified:** `nix flake check` green on the PR branch, including a real
+> `presets` darwin-system build (not just an evaluator) — the same bar the
+> eighth pass set for limit 3. **Not verified:** `bench try switch` and an
+> eye-check that the new groups actually take effect live, both left to
+> Julien per this repo's own worktree etiquette; `bench try` (the full `mbp`
+> host) is currently blocked by an unrelated, pre-existing break in the local
+> `holt` checkout (`sdk/go` package layout), not by anything in this pass.
+>
 > **Status, 2026-08-07 (tenth pass) — §4's last open box, the restart map, is
 > built and generalized past the one hand-rolled fix it started from.**
 >
@@ -1328,21 +1379,23 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 |---|---|
 | **Hot corners** | ✅ **`nebelhaus.hotCorners.*` — rice#198.** Action by name, not the integer macOS stores |
 | **Screenshots** | ✅ **`nebelhaus.screenshots.*` — rice#198.** Folder, format, shadow, thumbnail, date |
-| **Lock / login / screensaver** | idle lock delay, login window text, screensaver — matters for family + public-machine rices |
-| **Menu bar & Control Center** | clock format, seconds, battery %, Focus, Now Playing (only relevant when `sill.enable = false`) |
-| **Sound** | alert sound, volume feedback, startup chime (`nvram StartupMute`) — the whole audio layer is untouched |
-| **Locale / input sources** | language, keyboard layouts, 12/24h, units, first day of week — **blocks every non-English community rice entirely** |
-| **Power** | battery vs charger sleep, Low Power Mode, lid/docked behaviour |
-| **Security posture** | firewall, guest user, remote login, AirDrop — the "public Wi-Fi" rice |
-| **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) |
+| **Lock / login / screensaver** | ◐ **`nebelhaus.lock.*` — rice#250.** The LOCK half only (`requirePassword`, `requirePasswordDelay`, `com.apple.screensaver`). The LOGIN half (guest account, login window text) is `com.apple.loginwindow` — read once at boot, no live-reload path, and killing `loginwindow` to force one would end the current session — so it stays out until this group has an honest way to say "takes effect at next login" instead of shipping a setting that silently doesn't apply. |
+| **Menu bar & Control Center** | ✅ **`nebelhaus.menuBar.{clock,controlCenter}.*` — rice#250.** Clock format/seconds/date/day-of-week/analog (`com.apple.menuExtraClock`, restarts `SystemUIServer`) + which Control Center glyphs show (battery %, sound, bluetooth, AirDrop, display, Focus, Now Playing — `com.apple.controlcenter`, restarts `ControlCenter`, a whitelisted process since rice#249 that nothing had written into until now) |
+| **Sound** | alert sound, volume feedback, startup chime (`nvram StartupMute`) — the whole audio layer is untouched; no typed nix-darwin domain covers it (would route through raw `NSGlobalDomain` keys never spiked for effect) |
+| **Locale / input sources** | language, keyboard layouts, 12/24h, units, first day of week — **blocks every non-English community rice entirely**; same problem as Sound, no spiked domain to build on |
+| **Power** | battery vs charger sleep, Low Power Mode, lid/docked behaviour — nix-darwin has no typed surface for this at all |
+| **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
+| **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
-The two shipped ones settled the group's **default policy**, which was the real
-open question and is worth stating once for the seven still to come: every leaf
+The first two shipped settled the group's **default policy**, which was the real
+open question and is worth stating once for every group after it: every leaf
 defaults to **null = write nothing**, and null is deliberately not the same as
 "off". Hot corners made that concrete — the machine this was developed on had
 three corners already set by hand, so a rice naming a corner it didn't care about
 would have erased one silently. A curated setting group is a place to make an
 opinion *available*, not to impose one; a preset is where an opinion belongs.
+`lock`/`menuBar`/`security.firewall` (2026-08-07) inherit the same policy without
+re-deriving it.
 
 They also each turned up one silent failure that reads as "the option doesn't
 work", which is the failure mode this whole section exists to avoid:
@@ -1358,6 +1411,39 @@ work", which is the failure mode this whole section exists to avoid:
 Generalising: for each remaining group, the thing to look for is not "is the key
 typed" but **"what second key or precondition makes the first one a lie"**. Both
 of these cost one probe to find and would have cost a bug report to discover.
+
+**What the third pass (`lock`/`menuBar`/`security.firewall`) added, and what it
+deliberately didn't.** Unlike hot corners and screenshots, neither `lock` nor
+`menuBar` has an NSWorkspace-style effective-state probe available — there's no
+cheap oracle for "did the menu bar clock actually re-render" the way
+`reduceMotion` has one. Both rest on nix-darwin's own restart precedent
+(Finder/Dock: killall re-reads the domain at launch) rather than a spike on this
+machine, and modules/lib/restart-map.nix says so in a comment rather than
+claiming `support = "tested-macos-26"` for something that isn't. `security.firewall`
+is the one exception worth trusting more: it isn't a plist write at all, it's
+nix-darwin calling `socketfilterfw` directly in its own activation script, so
+none of the restart-map machinery — or its risk — applies to it.
+**Deferred on purpose, not forgotten:** the LOGIN half of "Lock / login /
+screensaver" (`com.apple.loginwindow` — guest account, login window text) and
+all of **Windows** (`com.apple.WindowManager`) are both logout-only per the §4
+matrix and modules/lib/restart-map.nix, which is precisely the shape this
+section's own guardrail rules out — a group that silently needs a logout is
+worse than no group. **Sound**, **Locale/input sources** and **Power** are
+deferred for the opposite reason: no domain for them has been spiked for effect
+at all, typed or not, so building on top of them would be a guess wearing this
+document's own "verified, not remembered" language.
+
+- [ ] Confirm `lock`/`menuBar` by eye — set a value, `bench try switch`, and see
+  it happen without a restart. This is the same class of open box as the
+  matrix's `mouseDriverCursorSize`/`closeViewScrollWheelToggle` rows: wired and
+  plausible, not yet watched.
+- [ ] Give the login half of "Lock / login / screensaver" and Windows an honest
+  way to say "takes effect at next login" (the way `nebelhaus.accessibility`
+  says "needs Full Disk Access") — that's what unblocks building them, not a
+  fix to the domain itself, since neither has a live-reload path on macOS 26.
+- [ ] Spike Sound, Locale/input sources and Power the way §4 spiked
+  universalaccess/dock/finder/etc — nothing here can be curated honestly until
+  that exists.
 
 Each entry carries metadata from the §4 matrix:
 
