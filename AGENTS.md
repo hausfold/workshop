@@ -34,6 +34,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
 | the hausfold.co landing page, or the hausfold name register | `./hausfold` — **its own repo, and the only one outside the `nebelhaus` org**: [hausfold/website](https://github.com/hausfold/website), split out of here 2026-08-06 with its history. One static `index.html` on a Cloudflare Worker, deployed by CI on push to its `main`. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY`. |
 | pounce's Homebrew formula / perch's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
+| holt's Swift SDK | `./holt`'s `sdk/swift` — same as any other holt change. [`nebelhaus/holt-swift`](https://github.com/nebelhaus/holt-swift) is a **generated mirror** (`git subtree split --prefix=sdk/swift`, run by `holt/sdk/swift/sync-mirror.sh`, tagged separately) that exists only because Swift Package Manager needs `Package.swift` at a repo's root for a remote git dependency — holt's own root is Go+Nix. It is not cloned into this workshop and not part of `FAMILY`; never hand-edit it, changes there get overwritten on the next sync. |
 
 ## The one gotcha that explains everything
 
