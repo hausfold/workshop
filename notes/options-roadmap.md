@@ -15,6 +15,50 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-07 (twelfth pass) — §5.7 is built: the machine-writable
+> overlay is ordinary Nix, and the palette has its first settings front door.**
+>
+> **What shipped ([nebelhaus#252](https://github.com/nebelhaus/nebelhaus/pull/252)).** `mkNebelhaus` now auto-imports
+> `hosts/<host>/settings/*.nix` beside the existing `packages/*.nix` seam.
+> `haus set theme.accent teal` writes one managed module there, stages it so a
+> git-backed flake can see it, evaluates the machine's own option tree to reject
+> an unknown path or bad value, then takes the normal build-before-switch
+> `haus rebuild` path. There is still one source of truth: the generated Nix file
+> IS the setting; no JSON or mutable state database exists beside it.
+>
+> **★ The priority is part of the feature.** A plain definition would collide
+> with `large-print` (and any future preset that names the same option), because
+> module import order is not priority. The overlay writes `lib.mkForce`: this is
+> the machine owner's explicit answer and it has to beat a rice. `haus reset
+> <path>` removes that answer and reveals the host/preset/rice value underneath;
+> `haus unset <path>` is deliberately different and writes `null`, so the module
+> system accepts it only for nullable options. `haus get <path>` reads the fully
+> evaluated declaration, while bare `haus get` lists only overlay-owned values.
+>
+> **The boundary is executable, not prose.** Both `theme.accent` (short form)
+> and `nebelhaus.theme.accent` resolve inside the same namespace; `system.*`, an
+> unknown `nebelhaus.*` leaf, unsafe path syntax, and a type-invalid value all
+> fail before activation. The integration test raises a real temporary consumer
+> flake and proves string + number writes, nullable unset, reset-to-default,
+> invalid enum rollback, and the non-nebelhaus guard through evaluation — not by
+> grepping the emitted file alone.
+>
+> **The Pounce last mile came with it.** A `Haus Settings` submenu exposes the
+> three §5.7 actions — **Make text bigger**, **Switch to light mode**, and **High
+> contrast on** — and delegates all persistence, validation, and rebuilding to
+> `haus set`. The palette does not grow a second implementation of settings.
+>
+> **Proof and the remaining feel-test.** `nix flake check`, the dedicated
+> integration test, shellcheck, and a full consumer system build are green. A
+> plain `bench try` was also attempted; it reached and built the new `haus` and
+> Pounce command derivations, then the unrelated local Holt override failed
+> because its newly nested `sdk/go` module is being treated as a root Go package.
+> Repeating the same full consumer build with the last pre-Go-SDK Holt revision
+> succeeded. Activation stays Julien's call, so the final live proof is still:
+> `bench try switch`, make a macOS-backed change with `haus set`, then use the
+> already-landed `haus diff` to prove the running generation matches effective
+> state rather than merely eyeballing the generated file.
+>
 > **Status, 2026-08-07 (eleventh pass) — §5.6, unblocked by the tenth pass's
 > restart map, ships three curated behaviour groups; four remain unbuilt, two
 > of them deliberately.**
@@ -627,8 +671,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 1. **Machine-writable config already works.** `mkNebelhaus` auto-imports every
    `.nix` in `hosts/<host>/packages/` ([`flake.nix:76-95`](nebelhaus/flake.nix:76)) —
    that's how pounce's "Install App" command writes config without a parallel
-   JSON store. **This is the mechanism for a GUI-editable rice** (§3.7). It
-   exists; it just needs generalizing past packages.
+   JSON store. **This is the mechanism for a GUI-editable rice** (§3.7), and
+   rice#252 generalizes it to `hosts/<host>/settings/*.nix` + `haus set`.
 2. **Registry merging means an app pack is shareable *today*.** A file that only
    sets `nebelhaus.roster.*` composes cleanly across modules. That's a
    zero-architecture v0 of the community (§6, Phase 0).
@@ -1452,7 +1496,7 @@ Each entry carries metadata from the §4 matrix:
   restart = [ "Finder" ]; support = "tested-macos-26"; risk = "low"; }
 ```
 
-### 5.7 `haus set` + a machine-writable settings overlay · M · risk M
+### 5.7 `haus set` + a machine-writable settings overlay · ✅ **shipped** · M · risk M
 **The mechanism that makes a non-technical rice possible**, and it's a small
 generalization of something that already ships.
 
@@ -1475,8 +1519,8 @@ faces the identical two-writers question from the other side;
 as JSONC now), so *any subset* can be uncommented without fixing punctuation —
 otherwise the file's promise breaks on your second edit.
 
-★ **And the rice shipped its own half of the same idea — rice#184 — so split
-this item: the READING half is done, the WRITING half is untouched.** A fresh
+★ **The rice shipped the reading half first — rice#184 — which split this item
+in two before #252 closed it.** A fresh
 install now gets `hosts/<host>/options.nix` beside its host file: every settable
 option at its default, with description, type and docs anchor, all commented
 out, rendered from the same `options.json` nebelhaus.com and the agent skill are
@@ -1498,8 +1542,10 @@ protects the cases where Nix is the writer.
 But note what that means for the goal: §5.7 framed it as *writing* config from
 the palette, and what arrived first was being able to *read* the surface out of
 your own file. **"Configure without opening the docs" and "configure without
-opening an editor" are different bars, and only the first is met.** `haus set`
-is still exactly what the palette-as-settings-app needs.
+opening an editor" are different bars.** At that point only the first was met;
+`haus set` was still exactly what the palette-as-settings-app needed. Rice#252
+now meets the second with the ordinary-Nix overlay described in the twelfth-pass
+status above.
 
 ⚠️ **Where this touched a live bug — and the lesson is about corrections, not
 templates.** The one deliberate departure from AeroSpace is that every line is
@@ -1515,11 +1561,11 @@ at the top. **A refuted model outlives its correction wherever the correction
 was scoped to the files that prompted it — grep for the claim, not for the
 file.** The worst copy was the header written into *every user's* host file.
 
-- [ ] `haus set theme.accent teal` → writes one small ordinary Nix file → rebuild
-- [ ] `haus get` / `haus unset` / `haus reset <path>`
-- [ ] Pounce commands wrapping it: **"Make text bigger"**, "Switch to light mode",
+- [x] `haus set theme.accent teal` → writes one small ordinary Nix file → rebuild
+- [x] `haus get` / `haus unset` / `haus reset <path>`
+- [x] Pounce commands wrapping it: **"Make text bigger"**, "Switch to light mode",
       "High contrast on" — the palette becomes the settings app
-- [ ] Guard: only `nebelhaus.*` paths are settable this way (same boundary as §3.3)
+- [x] Guard: only `nebelhaus.*` paths are settable this way (same boundary as §3.3)
 
 This is what lets someone use a nebelhaus rice for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
@@ -2095,7 +2141,8 @@ that visible, and turned up two things that were already broken:
       module; `guides/making-it-yours.mdx` keeps the shorter consumer story.
 
 **Phase 4 — the non-dev Mac**
-- [ ] §5.7 `haus set` · §5.9 pounce packs + sill widgets · §5.6 curated settings groups
+- [x] §5.7 `haus set` — done 2026-08-07; see the twelfth-pass status note.
+- [ ] §5.9 pounce packs + sill widgets · §5.6 curated settings groups
 - [x] the restart map (§4) — nix-darwin only restarts Dock, so this is ours.
       **Done, 2026-08-07 — see the tenth-pass status note at the top of this
       file.**

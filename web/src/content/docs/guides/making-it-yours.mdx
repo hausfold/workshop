@@ -100,6 +100,21 @@ file is missing it. Commented-out is deliberate: the rice's defaults are
 it imports.
 </Aside>
 
+For a one-off change, you can skip the editor entirely. `haus set` writes one
+small ordinary Nix module under `hosts/<host>/settings/`, type-checks it, and
+rebuilds:
+
+```sh
+haus set theme.accent teal
+haus get theme.accent        # teal
+haus reset theme.accent      # remove the override; inherit the rice/preset again
+```
+
+Only `nebelhaus.*` options cross this writable boundary (the prefix is optional
+on the command line). `haus unset <path>` explicitly writes `null` for a nullable
+option; `haus reset <path>` removes the generated override. See [the haus CLI
+reference](/reference/haus/#the-writable-settings-overlay) for the exact model.
+
 ### Identity
 
 ```nix
