@@ -15,6 +15,75 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-07 (eighth pass) — limit 3 was felt on a machine, not just
+> an evaluator, and it held; plus an audit of everything that landed since the
+> seventh pass.**
+>
+> **Limit 3, felt for real.** Every measurement of the pack/preset priority
+> mechanism so far (`probes/pack-priority.nix`, flake.nix's `packCompose`,
+> `preset-composition`) ran `lib.evalModules` over `modules/options-modules.nix`
+> — the pure option **surface**, deliberately narrow so it's fast and
+> Linux-capable. Nobody had run the actual thing a stranger's own flake calls:
+> `mkNebelhaus`, full home-manager and all, on a composition nothing here had
+> tried — a preset **and** a pack **and** a host that already disagrees with
+> the pack, together. Built (not just evaluated) from a nebelhaus child
+> worktree: `flake.mkNebelhaus { extraModules = [ flake.presets.everyday
+> flake.packs.writing ]; host = <a file declaring roster.obsidian.key = "n">;
+> }` — real `darwin-system` derivation, actually realised, not a drvPath.
+> Result: **clean.** The host's key won (`"n"`), the pack's other three apps
+> (zotero/anki/calibre) and Obsidian's `cask`/`workspace` survived, `everyday`'s
+> own settings (`developer.enable = false`, `prowl.enable = false`) held, and
+> the built Brewfile lists all four casks. The contrast case — the same
+> composition through the **unwrapped** `flake.packFiles.writing` (what a
+> stranger gets from a gist, bypassing the `packs.writing` seam) — still
+> conflicts, exactly as designed, and with a real file-based host both sides of
+> the error name themselves correctly (`.../felt-host.nix` vs
+> `.../packs/writing.nix`), confirming rice#228's `_file` fix holds outside the
+> synthetic host `packCompose` uses internally.
+> **What this changes and what it doesn't.** It moves limit 3 from "proven in
+> an evaluator" to "confirmed through the actual builder, including a real
+> build" — genuinely new evidence, not a re-run of an existing check. It does
+> **not** clear the bar this doc uses elsewhere for "felt" (§5.1's contrast and
+> latte flavor were felt by Julien looking at his own screen) — an agent running
+> `nix build` is a stronger signal than an evaluator but not the same claim as
+> a stranger who writes for a living actually installing this pack. That gap —
+> "represented by a pack nobody who writes for a living has installed" — is
+> still open, and is the one thing left in limit 3 that only a real outside
+> user can close.
+>
+> **The audit** (§5.14's rule, run first): `nebelhaus` landed #240–#246 since
+> the seventh pass (`rice#243`). Two are option-surface-relevant and both
+> **already fix** things this file was still calling open:
+> **(a)** §5.2's own "follow-up this turned up and did not fix" — the
+> `ui.scale` honest-scope list missing Finder's sidebar and perch — was fixed
+> the same day, one PR before #243 landed, in **#241** (added the sidebar row,
+> named perch as never-reached) and **#242** (corrected #241's own first guess
+> — display scaling doesn't move the perch shelf either, a **display's** points
+> shrink by exactly the factor that grows them, so the shelf's physical size
+> holds and everything around it grows past it). Marked done below.
+> **(b)** **perch now follows `theme.accent`** (nebelhaus#244 + perch#31,
+> merged the same day as #243) — takes the catppuccin **role name**, not a
+> hex, so one key is right in both light and dark and needs no rebuild on a
+> flavor change. `accent-reach` moves perch from `pinned` to `moves`; this is
+> the boundary move that check exists to force someone to type out. It does
+> **not** touch perch's `ui.scale` blindness (§5.2) — that's a different lever
+> (size vs colour) and #242 reconfirms it's still a real, if small, gap.
+> Everything else since #243 is infra, not option-surface: **#245** retired
+> `wt.sh` entirely (holt is the only worktree tool now — a workshop/rice
+> concern, nothing here routes through it) and **#246** is a Codex config
+> fix. No open box in this doc is affected by either.
+> **hausfold** was checked and is, as expected, irrelevant here — it was split
+> out of the workshop into its own repo on 2026-08-06, is explicitly **not** a
+> flake input and **not** part of `FAMILY` (per the workshop's own `AGENTS.md`),
+> and this document never referenced it.
+> **One thing worth a line, not a box:** `perch` relicensed MIT →
+> FSL-1.1-ALv2 with a 2-tile free tier + paid unlock (perch#26/#27), and grew
+> an iPhone/iPad companion (perch#29/#30, ADR 0005) — both genuine direction
+> changes for that room, neither one this roadmap's problem to track (perch is
+> a shipped product now, per §9), but worth knowing if a future reference rice
+> leans on perch: a "free" mouse-first rice that includes it may not be, past
+> two pins.
+>
 > **Status, 2026-08-06 (seventh pass) — the same question asked of the OTHER
 > option that fans out, and the answer was worse: `fonts.mono.name` reached ONE
 > surface.**
@@ -580,6 +649,13 @@ nebelhaus.theme = {
       and its row pins a real gotcha — the port renames its theme file per accent,
       so the app's own `theme` key ends up naming the old file. And trill's row is
       simply gone with rice#213; pounce and perch cover runtime-palette theming.
+      → ✅ **Perch's row moved `pinned` → `moves` (nebelhaus#244 + perch#31,
+      2026-08-07).** "Pounce and perch cover runtime-palette theming" above was
+      about *following macOS light/dark*, not the accent hue — perch's ember,
+      pinned tile and notice button were still nailed to a fixed green until
+      this landed. It takes the catppuccin **role name**, not a hex, so one key
+      is right in both polarities and a flavor change needs no rebuild — the
+      only accent surface here handed a name rather than a colour.
       → ★ **"and the Zen browser" was being read as "and the web", and it wasn't
       true** (rice#208's second half + rice#211 + nebelung#22). Switching to
       sapphire left github.com and youtube.com mauve: the rice places Zen's
@@ -753,14 +829,16 @@ contrast.
       carrying is the narrow one: *a point-valued number only meets `displays`
       when something sizes itself from it* — tiled and OS-managed surfaces absorb
       the change.
-      → **Follow-up this turned up and did not fix:** the honest-scope prose in
-      `ui.scale`'s own description (and so the generated options page) lists where
-      the scale stops as *sill's bar height* and *anything outside nebelhaus* —
-      **perch is inside nebelhaus and is missing from that list**, and
-      `scale-reach` cannot pin it either, because perch sizes itself at runtime
-      rather than through a file the rice writes. A one-line description fix in
-      the rice plus an options-page regen; it is a docs change, so it belongs
-      with `/docs-sync` rather than inside the check's PR.
+      → ✅ **Fixed the same day, one PR before this pass's own #243 — nebelhaus#241
+      + #242 (caught by the eighth pass's audit, §5.14's rule).** #241 added
+      Finder's sidebar row and named perch as never-reached by `ui.scale`;
+      #242 corrected #241's own first-guess fix — `displays.*.uiScale` doesn't
+      move the shelf either, because a display's points shrink by exactly the
+      factor that grows them, so the shelf holds its *physical* size while
+      everything around it grows past it. Naming a lever that doesn't work was
+      caught by the pre-PR assurance pass, one PR later than it should have
+      been — the option's description and `presets/large-print.nix` now both
+      say neither lever reaches perch, and why.
 - ◐ Finder **sidebar** size follows `ui.scale` (`NSTableViewDefaultSizeMode`,
       rice#181); Finder **icon** size is still unwired. The same PR also gave the
       rice its Finder restart — `killall Finder` in postActivation — because
@@ -2238,6 +2316,23 @@ to settle the *mechanism* (see the measurements above) and is not enough to
 settle whether a stranger prefers it. What is still only on paper: the third
 reference rice — the mouse-first writer — is represented by a pack nobody who
 writes for a living has installed.
+→ ✅ **2026-08-07: run one rung up from the evaluator, and it held.** Not on
+paper any more, but not a stranger's machine either — the middle rung. A real
+`mkNebelhaus` build (home-manager and all, not `lib.evalModules` over the pure
+option surface) composing `presets.everyday` + `packs.writing` against a host
+that already owns Obsidian on its own letter produces a real `darwin-system`
+derivation, actually realised: host's key wins, the pack's other three apps
+and Obsidian's `workspace`/`cask` survive, the built Brewfile lists all four
+casks. The unwrapped-path contrast case (`packFiles.writing` dropped straight
+into `extraModules`, skipping the `packs.writing` seam) still conflicts, and
+with a real file-based host both sides of the error name themselves correctly
+— rice#228's `_file` fix confirmed outside `packCompose`'s synthetic host. What
+this doesn't settle: everything above was run by the same agent that can read
+the fix, not a person meeting the mechanism cold. The mouse-first writer
+reference rice — a `presets/*.nix` a stranger would actually pick, not
+`packs/writing.nix` composed by hand — is still unwritten, and "a pack nobody
+who writes for a living has installed" is still literally true. That's the one
+rung left, and it needs an outside person, not another eval.
 
 **Surface drift worth knowing when reading the rest of this document.** §1
 counted ~44 leaves; there are **130** now. Four rooms appear nowhere above:
