@@ -40,8 +40,9 @@ every release — you almost never touch it), and ⌂
 [**hausfold**](https://github.com/hausfold/hausfold.co) — hausfold.co, the site for
 the platform that all of this is becoming (decided 2026-08-08; see
 [`notes/hausfold-rename.md`](notes/hausfold-rename.md)). That last one is, for
-now, the only checkout here that *isn't* in the nebelhaus org, and the only
-private one — the rename reverses both. Your `~/.config/nix` lives outside
+now, the only checkout here that *isn't* in the nebelhaus org — the rename
+reverses that. It used to be the only private one too; it's public as of
+2026-08-08. Your `~/.config/nix` lives outside
 this dir entirely.
 
 ## the one gotcha

@@ -646,19 +646,23 @@ it flipped.
 **The plan was to scrub and flip. The plan was wrong, and the reason is the part
 worth keeping.** It was:
 
-1. Scrub `.wrangler/cache/wrangler-account.json` (a Cloudflare account id, in
-   nine commits' trees) via `git filter-repo`, **before** flipping.
+1. Scrub a cached Cloudflare account id out of the history via `git
+   filter-repo`, **before** flipping.
 2. Move `PRESENCE.md` to a new private `hausfold/ops`.
 
-Step 1 does not do what it claims. `hausfold/website` had PRs #1–#11, and
+Step 1 does not do what it claims. `hausfold/website` had pull requests, and
 **GitHub keeps `refs/pull/N/head` forever — a history rewrite does not GC them.**
-Measured on 2026-08-08 before deciding: all nine PR refs then in existence
-carried `PRESENCE.md` in their tree, and `refs/pull/1/head` descends from
-`e6e3f0f`, the commit that added the account blob. After `filter-repo` +
-force-push, both stay fetchable by SHA — on a repo that has just gone public.
-**Rewriting history on a repo that has ever had a pull request is hygiene, not
-removal.** The original plan also named only the blob, not the file: a `git mv`
-of `PRESENCE.md` to another repo leaves all eleven of its past revisions here.
+Measured on 2026-08-08 before deciding: every PR ref then in existence still
+reached both artifacts after the rewrite, so they stay fetchable — on a repo that
+has just gone public. **Rewriting history on a repo that has ever had a pull
+request is hygiene, not removal.** The original plan also named only the blob,
+not the file: a `git mv` of `PRESENCE.md` to another repo leaves every past
+revision of it behind.
+
+*(The exact paths, commits and refs stay in `hausfold/website`'s own README,
+which is private. **This repo is public** — writing the fetch recipe down here
+would hand over what the migration was for. Same reason this section no longer
+enumerates the gaps it used to list verbatim.)*
 
 **So the site moved to a new repo instead**, which has no PR refs and nothing to
 purge. Cost: 33 commits of a placeholder page — which this very section replaces
@@ -677,9 +681,10 @@ Where things landed:
   published the exact gap list that makes the file sensitive — trading a private
   repo for a public one and protecting nothing.
 - **`hausfold/website`** — stays private **permanently**, archived. Not deleted:
-  the Cloudflare `custom_domain` binding is tied to the Worker name, and it is
-  the site's only pre-2026-08-08 history. 🚨 *Never flip it. No scrub makes it
-  safe — see above.*
+  it is the site's only pre-2026-08-08 history. (Deleting it wouldn't break the
+  domain — the `custom_domain` binding lives in Cloudflare, tied to the Worker
+  name — it would just lose the history.) 🚨 *Never flip it to public. No scrub
+  makes it safe; see above.*
 
 - [x] 🤖 create `hausfold/ops`, private, `PRESENCE.md` carried with its history
 - [x] 🤖 create `hausfold/hausfold.co`, public, site carried as one commit

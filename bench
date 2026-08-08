@@ -1566,7 +1566,7 @@ cmd_clone() {
     # Warn rather than die: a missing hausfold checkout shouldn't fail a
     # bootstrap whose real job is the family.
     git clone "https://github.com/hausfold/hausfold.co.git" "$ROOT/hausfold" \
-      || warn "hausfold: clone failed — check network and \`gh auth status\`"
+      || warn "hausfold: clone failed — check your network"
   fi
 }
 
