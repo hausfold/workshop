@@ -141,7 +141,7 @@ jobs:
       # `wrangler delete` is the obvious tool and it's the wrong one. After
       # removing the script it also sweeps the legacy Workers Sites KV
       # namespace a Worker *might* have, which needs Workers KV Storage:Edit —
-      # a scope nothing else in this workflow wants. In hausfold/website, which
+      # a scope nothing else in this workflow wants. In hausfold/hausfold.co, which
       # runs the same workflow against its own token, that sweep 403s and turns
       # a *completed* delete into a red job; nobody reads a red job twice, so
       # the next reader concludes previews leak when they don't. Here it failed
