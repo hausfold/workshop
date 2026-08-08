@@ -73,10 +73,25 @@ Pull requests that touch `web/**` get a live staging link from
 `.github/workflows/preview-web.yml`. The workflow builds and tests the site,
 deploys an isolated, route-less Worker named `nebelhaus-pr-<number>`, and puts
 its stable `workers.dev` URL in GitHub's deployment panel and the job summary.
-It never moves the Worker serving the `nebelhaus.com` route, and the preview
-Worker is deleted when the PR closes. Cloudflare secrets are unavailable to
-forked pull requests, so preview deploys run only for branches in this
-repository.
+It never moves the Worker serving the `nebelhaus.com` route: `wrangler.preview.toml`
+carries no route, and since that file is read from the PR's own head commit, a
+guard step fails the job if one reappears in it (in any TOML form). Treat the
+guard as accident-prevention, not a security boundary — a same-repo PR edits the
+workflow too. The boundary is the fork check: Cloudflare secrets are unavailable
+to forked pull requests, so previews run only for branches in this repository.
+
+Closing the PR deletes the Worker, via one `DELETE
+/accounts/:id/workers/scripts/:name` call rather than `wrangler delete`. Two
+reasons. `wrangler delete` also sweeps a legacy Workers Sites KV namespace,
+needing a KV scope nothing else here wants — in `hausfold/website`, which runs
+the same workflow against its own token, that sweep 403s and turns a *completed*
+delete into a red job. And a close whose Worker was already gone used to fail
+outright (it did, for `nebelhaus-pr-216`); "no such Worker" is now a warning.
+
+Orphans are still possible when the `closed` event never fires a run at all —
+`nebelhaus-pr-84` sat on the account from July until it was deleted by hand,
+with no cleanup run for its branch. If a preview URL outlives its PR, check
+whether the run exists before suspecting this step.
 
 ### Gotcha: stale HTML → a since-deleted stylesheet → "no CSS" (esp. on iOS)
 

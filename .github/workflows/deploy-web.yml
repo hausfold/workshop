@@ -5,10 +5,13 @@
 # [assets] binding and keeps serving /init.sh).
 #
 # Required repo secrets (Settings → Secrets and variables → Actions):
-#   CLOUDFLARE_API_TOKEN   — token with "Edit Cloudflare Workers" permissions
-#                            (Workers Scripts:Edit) on the account that owns the
-#                            nebelhaus.com zone. For the post-deploy cache purge
-#                            below, also give it Zone → Cache Purge on that zone.
+#   CLOUDFLARE_API_TOKEN   — token with "Edit Cloudflare Workers" permissions on
+#                            the account that owns the nebelhaus.com zone. That
+#                            template bundles both scopes this needs: Workers
+#                            Scripts:Edit to upload, and Workers Routes:Edit for
+#                            the zone route in web/wrangler.toml. For the
+#                            post-deploy cache purge below, also give it Zone →
+#                            Cache Purge on that zone.
 #   CLOUDFLARE_ACCOUNT_ID  — the account ID (Cloudflare dashboard → Workers &
 #                            Pages → Account details).
 # Optional repo secret (enables the post-deploy cache purge):

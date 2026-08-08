@@ -43,6 +43,32 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      # wrangler.preview.toml is read from the PR head and the deploy overrides
+      # only `--name`, so without this check a PR could add a route to it and
+      # put its own unmerged branch on nebelhaus.com — the deploy token carries
+      # Workers Routes:Edit (deploy-web.yml needs it for the zone route in
+      # wrangler.toml), so the route would take. Strip comments first (the
+      # header comment says "route" itself, and a trailing `# no route needed`
+      # would otherwise trip this), then reject the word anywhere in what's
+      # left: matching at line-start alone misses `[[routes]]`, which is valid
+      # TOML, parses to the same array, and is the form Cloudflare's own docs
+      # reach for most.
+      #
+      # This is accident-prevention, not a security boundary — a same-repo PR
+      # edits this workflow as easily as the config. The boundary is the
+      # head-repo check above.
+      - name: Refuse a preview config that defines routes
+        run: |
+          if [ ! -f wrangler.preview.toml ]; then
+            echo "::error::web/wrangler.preview.toml is missing — the deploy below would fall back to a config this step never checked."
+            exit 1
+          fi
+          if sed 's/#.*//' wrangler.preview.toml \
+            | grep -Eq 'routes?|workers_dev[[:space:]]*=[[:space:]]*false'; then
+            echo "::error file=web/wrangler.preview.toml::A preview Worker must stay route-less and on workers.dev. Remove the route/workers_dev override."
+            exit 1
+          fi
+
       - name: Install dependencies
         run: npm ci
 
@@ -77,9 +103,14 @@ jobs:
             echo "::warning::Cloudflare upload failed (attempt $attempt/3); retrying in ${delay}s."
             sleep "$delay"
           done
+          # Anchor to the Worker's own name: wrangler also prints per-version
+          # URLs like https://<hash>-nebelhaus-pr-84.<sub>.workers.dev, and a
+          # bare `tail -1` would hand out one of those — a working link, but
+          # pinned to one push, which is the opposite of the stable URL this
+          # workflow exists to give each PR.
           url=$(printf '%s\n' "$output" \
-            | grep -Eo 'https://[^[:space:]]+\.workers\.dev' \
-            | tail -1 || true)
+            | grep -Eo "https://${PREVIEW_WORKER}\.[a-z0-9-]+\.workers\.dev" \
+            | head -1 || true)
           if [ -z "$url" ]; then
             echo "::error::Wrangler uploaded the version but did not report a workers.dev preview URL."
             exit 1
@@ -103,25 +134,76 @@ jobs:
       github.event.action == 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: web
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
+      # One REST call — no checkout, no node, no npm ci.
+      #
+      # `wrangler delete` is the obvious tool and it's the wrong one. After
+      # removing the script it also sweeps the legacy Workers Sites KV
+      # namespace a Worker *might* have, which needs Workers KV Storage:Edit —
+      # a scope nothing else in this workflow wants. In hausfold/website, which
+      # runs the same workflow against its own token, that sweep 403s and turns
+      # a *completed* delete into a red job; nobody reads a red job twice, so
+      # the next reader concludes previews leak when they don't. Here it failed
+      # differently and just as usefully: run 30931206604 died outright because
+      # `nebelhaus-pr-216` was already gone. This endpoint needs only Workers
+      # Scripts:Edit (the deploy already requires it) and treats an
+      # already-absent Worker as nothing to do.
+      #
+      # Nothing but $PREVIEW_WORKER can be addressed: the name is built from
+      # the PR number, so unlike a config-file deploy there is no file in the
+      # PR's own tree that could redirect it at nebelhaus.com.
       - name: Delete Cloudflare preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PREVIEW_WORKER: nebelhaus-pr-${{ github.event.pull_request.number }}
-        run: npx wrangler delete "$PREVIEW_WORKER" --force
+        run: |
+          # A closed PR never re-fires this event, so a transient failure here
+          # leaks the Worker until someone re-runs the job by hand. Retry, and
+          # keep the step alive past a curl failure so the log says which.
+          set +e
+          resp=$(curl -sS --retry 3 --retry-connrefused --max-time 30 \
+            -w '\n%{http_code}' -X DELETE \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${PREVIEW_WORKER}?force=true" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          curl_status=$?
+          set -e
+          code=$(printf '%s' "$resp" | tail -n1)
+          body=$(printf '%s' "$resp" | sed '$d')
+          printf '%s\n' "$body"
+          if [ "$curl_status" -ne 0 ]; then
+            echo "::error::curl exited $curl_status reaching the Cloudflare API — $PREVIEW_WORKER may still exist. Re-run this job."
+            exit 1
+          fi
+          # Judge the envelope when there is one; fall back to the status code
+          # when there isn't. Cloudflare documents this endpoint as returning
+          # *no body* on a successful delete while also showing an envelope
+          # example, so trusting either alone gets a green delete wrong in the
+          # one direction that matters here: work done, close painted red, red
+          # then indistinguishable from a real leak.
+          if printf '%s' "$body" | grep -q '"success": *true'; then
+            echo "Deleted $PREVIEW_WORKER."
+            exit 0
+          fi
+          # A PR whose preview deploy never succeeded — or was already cleaned
+          # up — has nothing to delete (10007 = no such Worker); that shouldn't
+          # paint the close red. It used to: see run 30931206604.
+          if printf '%s' "$body" | grep -q '"code": *10007'; then
+            echo "::warning::No preview Worker named $PREVIEW_WORKER — nothing to clean up."
+            exit 0
+          fi
+          if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
+            case "$code" in
+              2*)
+                echo "Deleted $PREVIEW_WORKER (HTTP $code, empty body)."
+                exit 0
+                ;;
+              404)
+                echo "::warning::No preview Worker named $PREVIEW_WORKER (HTTP 404) — nothing to clean up."
+                exit 0
+                ;;
+            esac
+          fi
+          echo "::error::Could not delete $PREVIEW_WORKER (HTTP $code; see the API response above)."
+          exit 1
