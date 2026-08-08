@@ -38,11 +38,12 @@ The curated shelf hides apps already present on the Mac and does not expose
 which package source backs each pick. Each choice is written as a small Nix
 module under `hosts/<hostname>/packages/` and applied with `haus rebuild`; a
 Homebrew cask or App Store app can also be added to the tiling roster, including
-its launcher key and optional workspace. For a workspace app,
-Pounce checks the pinned
+its launcher key and — optionally — a workspace of its own, written as a paired
+`nebelhaus.workspaces` entry naming it. For a workspace app, Pounce checks the
+pinned
 [SketchyBar App Font mapping](https://github.com/kvndrsslr/sketchybar-app-font)
-and writes the verified `barIcon` ligature too. If upstream has no match, the
-pill keeps its workspace letter rather than guessing an icon.
+and writes the verified `icon` ligature too. If upstream has no match, the
+pill keeps its workspace id rather than guessing an icon.
 
 <Aside type="note" title="Why App Store installs open a terminal">
 Pounce runs `mas get` visibly before any roster rebuild. App Store downloads can
@@ -137,19 +138,23 @@ hatch for the rare thing that isn't an app at all, like a tap.
 ## A GUI app with a launcher key (the roster)
 
 This is the nebelhaus-native way to add an app you actually work in. One keyed
-entry in `nebelhaus.roster` wires up *everything at once*: a Caps-Lock letter to
-launch/focus it, a workspace it lives on, a pill in the bar, the auto-tiling
-rule, a row in the cheatsheet — and it installs the app for you.
+entry in `nebelhaus.roster` gives it a Caps-Lock letter to launch/focus it, a
+row in the cheatsheet, and the install itself; one `nebelhaus.workspaces` entry
+naming it gives it a workspace, a pill in the bar, and the auto-tiling rule.
 
 ```nix
 nebelhaus.roster.slack = {
   key = "s";
   name = "Slack";
-  workspace = "S";
   appId = "com.tinyspeck.slackmacgap";
-  barIcon = ":slack:";
   label = "Slack";
   cask = "slack";
+};
+
+nebelhaus.workspaces.S = {
+  key = "s";
+  icon = ":slack:";
+  apps = [ "slack" ];
 };
 ```
 
@@ -158,18 +163,21 @@ workspace `S`, every time.
 
 The two fields people always have to look up:
 
-- **`appId`** — the app's bundle id, used to auto-send its windows to the right
-  workspace. Find it once the app exists on disk:
+- **`appId`** — the app's bundle id, used to auto-send its windows to the
+  workspace that claims it. Find it once the app exists on disk:
 
   ```sh
   osascript -e 'id of app "Slack"'
   # → com.tinyspeck.slackmacgap
   ```
 
-- **`barIcon`** — a ligature from the
+- **`icon`** — on the *workspace*, a ligature from the
   [SketchyBar app font](https://github.com/kvndrsslr/sketchybar-app-font)
   (e.g. `:slack:`, `:discord:`, `:figma:`). Browse the list on that page; leave
-  it `null` and the bar just shows the workspace letter.
+  it `null` and the bar just shows the workspace id.
+
+Splitting it this way is what lets one workspace hold several apps — a `comms`
+space with Slack, Mail and Messages — instead of one app per workspace.
 
 <Aside type="tip" title="Declaring it is what installs it">
 `cask = "slack"` means the entry **also installs** Slack — no second line
@@ -178,9 +186,9 @@ machine (Safari, Music, something you dragged in) but you still want a launcher
 key for.
 </Aside>
 
-The full field-by-field breakdown — and the one-app-per-workspace thinking
+The full field-by-field breakdown — and the named-workspace thinking
 behind it — lives in [Window management](/guides/window-management/#your-app-roster)
-and [Making it yours](/guides/making-it-yours/#the-one-app-per-workspace-idea).
+and [Making it yours](/guides/making-it-yours/#the-named-workspace-idea).
 
 <Aside type="tip" title="It may theme itself on the way in">
 If the name you key the entry under matches a tool nebelung has a theme for —
@@ -281,9 +289,13 @@ all and it's pure launcher wiring:
 nebelhaus.roster.music = {
   key = "m";
   name = "Music";
-  workspace = "M";
   appId = "com.apple.Music";
-  barIcon = ":apple_music:";
+};
+
+nebelhaus.workspaces.M = {
+  key = "m";
+  icon = ":apple_music:";
+  apps = [ "music" ];
 };
 ```
 
