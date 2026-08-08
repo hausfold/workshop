@@ -123,7 +123,7 @@ deliberately INERT** *(~2–3 sessions; the big one)*
 
 **Phase 2 — commerce rails** *(~1 session of work, but see the approval wait)*
 - [ ] **Apply to Paddle during Phase 1, not after it.** Approval is days, not
-      minutes, and it wants a live nebelhaus.com/perch page (even pre-rewrite)
+      minutes, and it wants a live hausfold.co/perch page (even pre-rewrite)
       with refund + terms links. MoR also insulates from the exact
       Stripe-withholding story that hit NotchNook. Rationale + the rejected
       alternatives: [§2.1](#21-why-paddle-and-not-the-other-four).
@@ -139,7 +139,7 @@ deliberately INERT** *(~2–3 sessions; the big one)*
       Silence early on is the threshold, not a broken webhook.
 
 **Phase 3 — the storefront** *(~1–2 sessions)*
-- [ ] nebelhaus.com/perch rewritten in consumer voice — outcomes, not lingo:
+- [ ] hausfold.co/perch rewritten in consumer voice — outcomes, not lingo:
       no "rice", no "nix", no "sandbox-friendly menu-bar app". The pitch is
       the README's opening dance ("drag, realise the window is buried…"),
       the privacy restraint, and the price. Dev detail moves below the fold.

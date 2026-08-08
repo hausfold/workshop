@@ -61,6 +61,15 @@ that contradicts the work in front of it.
 - `notes/go-to-market.md` — §1 portfolio table (hausfold row), §5 (the gallery
   question — where it lives), §6 (the whole section), §9 (open decisions 1 and 4).
 - `hausfold/PRESENCE.md` — the "deliberately separate, nothing belongs here" rule.
+- **`hausfold/AGENTS.md` and `hausfold/README.md`** — both quote that rule, and
+  AGENTS.md's pre-PR checklist *instructs future reviewers to enforce it*. A
+  repeal hides in the checklist that quotes the rule, not in the paragraph you
+  rewrite. Missing these was this doc's own bug.
+- **`README.md` and `AGENTS.md` here** — the workshop's own routing table calls
+  hausfold "the umbrella" and says hausfold is "the only one outside the
+  `nebelhaus` org". Both are *decisions*, so they belong in §0.1, not in §2's
+  naming sweep — otherwise every session between §0 and §2 reads the
+  contradiction §0.1 exists to prevent.
 - `notes/options-roadmap.md` — §7 repo routing, and a header note that
   `nebelhaus.*` is now `haus.*` throughout. **Don't rewrite the body**; it's a
   historical record and §5.14 is explicit about that. One banner at the top.
@@ -71,9 +80,25 @@ that contradicts the work in front of it.
 matches itself forever):
 
 ```sh
-grep -rniE "nothing in the (nebelhaus )?family (migrates|belongs)|don't put it on hausfold\.co|nebelhaus\.com/rices" \
-  notes/ hausfold/ --exclude=hausfold-rename.md
+grep -rniE "nothing in th(e|at) (nebelhaus )?family (migrates|belongs|may move)|commercial umbrella|don't put it on hausfold\.co|nebelhaus\.com/rices" \
+  notes/ hausfold/ README.md AGENTS.md --exclude=hausfold-rename.md \
+  | grep -v '~~' | grep -vE ':[0-9]+:> '
 ```
+
+⚠️ **This gate went through three wrong versions, and the third mistake is the
+instructive one.** v1 pointed at `../hausfold/` (a path that doesn't exist) with
+patterns that didn't match the real prose. v2 matched, then could never go green
+— because it also matched **its own tombstones**: a `~~struck~~` quotation of a
+repealed rule preserves the literal string.
+
+The naive fix is to paraphrase every tombstone. That's wrong, and the hausfold
+assurance pass caught why: **a repealed rule that isn't quoted reads as an
+omission**, so a later session re-adds it in good faith. The rule has to stay
+legible *and* the gate has to be able to pass.
+
+Hence the two filters: what this gate is actually looking for is an assertion
+that is **still standing** — not one struck through (`~~`) or quoted inside a
+reversal blockquote (`> `). Marked-as-dead is the goal state, not a violation.
 
 ### 0.2 👤 Name clearance — 20 minutes, do it now
 
@@ -417,6 +442,15 @@ Upstream first, so each lock bump has a settled target:
 **Keep the `nebelhaus` org alive and empty.** It costs nothing and holds every
 redirect. Deleting it breaks them permanently.
 
+⚠️ **One repo that doesn't exist yet still has to be repointed: `flick`.** Its
+eject target is written as `nebelhaus/flick` in `AGENTS.md:30`,
+`incubator/flick/BOOTSTRAP.md:30,65`, `CLAUDE.md:22`, `.agents/README.md:38,41`
+and `nix/package.nix:45,80`. There is no row for it in the table above because
+there's no repo to transfer — which is exactly how it gets created in the dead
+org months from now. **Repoint it to `hausfold/flick` in §2's sweep**, and treat
+"a repo that doesn't exist yet" as a category the transfer table structurally
+can't see.
+
 ### 3.3 🤖 Rewrite every edge
 
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
@@ -473,6 +507,15 @@ What remains here is macOS only.
   state of every install.
 - `org.nixos.pounce` → `com.hausfold.pounce` is the launchd label; the notes
   below still apply.
+- 🚨 **`.nebelhauslicense` — the one user-facing artifact named after the
+  demoted brand, and it is in the same deadline class as the bundle IDs.**
+  `perch-monetization.md:43` defines it as the signed JSON blob a customer
+  receives, and shipped code parses it (perch#27). It is free to rename today
+  and unrecoverable after the first sale — a renamed extension orphans every
+  license file already in a customer's hands. **Decide it in the same breath as
+  §0.6's Mac container, and land both before Phase 2 bakes the public key.**
+  Candidates: `.hausfoldlicense`, or a neutral `.perchlicense` (it's
+  product-scoped anyway, so the house name earns nothing in the filename).
 - Regenerate provisioning profiles; re-export `IOS_DIST_CERT_P12` if bound.
 - 👤 **Delete the two `XC com nebelhaus perch ios*` Identifiers** once the new
   ones sign a build. Safe: no app record ever claimed them.
@@ -584,11 +627,17 @@ README names the price:
    the split and holds a Cloudflare account id plus an account name containing a
    personal email. `git filter-repo --path .wrangler --invert-paths`, **before**
    flipping visibility, never after.
-2. **Move `PRESENCE.md` out first** — to `workshop/notes/`, which is the natural
-   home now that the org separation it documented is gone.
+2. **Move `PRESENCE.md` somewhere that is actually private.**
+   ⚠️ **This doc first said `workshop/notes/`. That is wrong and would have been
+   the whole bug: `nebelhaus/workshop` is a public repo**, so the "prerequisite"
+   would publish the exact gap list that makes the file sensitive — trading a
+   private repo for a public one and protecting nothing. Real options: a private
+   `hausfold/ops` repo, a password-manager entry, or pruning the gaps to nothing
+   before moving. **Undecided.**
 
 - [ ] 🤖 scrub the blob
-- [ ] 🤖 relocate `PRESENCE.md`
+- [ ] 👤 **decide where `PRESENCE.md` lives** — must be private
+- [ ] 🤖 relocate it there
 - [ ] 👤 flip the repo to public
 
 #### The one condition: don't drag Nix into the site repo's CI
@@ -623,7 +672,13 @@ Then:
 - `astro.config.mjs` → `site: 'https://hausfold.co'`, and the GitHub editLink
   baseUrl → the new repo.
 - Routes: `/` (one-sheet), `/docs/*` (the Starlight tree), `/market`
-  (placeholder — see §7), `/holt`, `/pounce`, `/perch`.
+  (placeholder — see §7), `/holt`, `/pounce`, `/perch`, **`/nebelhaus`**.
+  ⚠️ **That last route is not optional, and this doc first omitted it.** The
+  installer decision below puts `hausfold.co/nebelhaus.sh`'s only CTA "on the
+  nebelhaus page inside `/market`" — while §7 makes `/market` a placeholder
+  until a months-away refactor. Net: the rice would ship with its install
+  one-liner advertised nowhere. Give nebelhaus a route that does **not** depend
+  on `/market` opening; `/market` can link to it once it exists.
 - `worker.js`: `REPO` → `hausfold/hausfold`, `DOWNLOADABLE` app URLs →
   `github.com/hausfold/<app>`, and drop `trill`.
 - `wrangler.toml`: this repo stops being assets-only — it gains a `main` and a
@@ -637,8 +692,9 @@ Then:
 #### ✅ Decided 2026-08-08 — the installer becomes per-rice
 
 `nebelhaus.com/init.sh` → **`hausfold.co/nebelhaus.sh`**, and it is **not** a CTA
-on hausfold.co's front page — it lives only on the nebelhaus page inside
-`/market`.
+on hausfold.co's front page — it lives on the **`/nebelhaus` page** (see §5.2:
+that route must exist independently of `/market`, or the one-liner has nowhere
+to be advertised), and `/market` links there once it opens.
 
 That generalizes for free: `hausfold.co/<rice>.sh` is every rice's own
 one-liner, which is exactly the shape a platform wants. `worker.js`'s `/init.sh`
@@ -705,13 +761,26 @@ That's a behavioral refactor gated by a readiness test — months, not days, and
 `developer.enable` (§3.2 of the roadmap) was only its first installment. It does
 not belong in a rename that must be provably behavior-neutral.
 
-**And `/market` has a known blocker.** `options-roadmap.md` §6 Limit 3,
-measured: a published rice or pack colliding with a stranger's host produces a
-**raw nix conflict trace**, not your error message — the module system stops
-before your assertions run. Leaf-`mkDefault` is the one depth that composes.
-Ship `/market` before that's the enforced format rule and the first thing a
-visitor sees is a stack trace. So: `/market` is a **placeholder page** until
-leaf-`mkDefault` is the documented rule and `checkRice` enforces it.
+**And `/market` has a known blocker** — `options-roadmap.md` §6 Limit 3. State it
+as that file **measured** it, not as it first asserted: §6(b) retracted the
+"they see a raw trace rather than anything we wrote" claim, because someone
+finally read the trace and it names the option, both files and `lib.mkForce`.
+Not friendly, but nearly everything.
+
+The part that is genuinely unfixed is **rice-vs-rice**, which is precisely what a
+gallery manufactures:
+
+- §6(d), measured: presets at `mkDefault` collide exactly like plain values.
+  Leaf-`mkDefault` is a fix for **host-vs-rice** and "can never be one for
+  rice-vs-rice" — so it is the right rule for *packs*, and not the gate here.
+- `checkRice` structurally cannot catch it: the module system stops before any
+  assertion of ours runs.
+- A seam that *transforms* a rice erases the filename — two packs naming one app
+  report ``- In `<unknown-file>'`` twice: loud and anonymous.
+
+So `/market` is a **placeholder page** until §6(e)'s **priority by list
+position** (`compose [ a b ]`, stamping each rice one `mkOverride` weaker than
+the next) ships. That's the live candidate and it's measured in both directions.
 
 ---
 

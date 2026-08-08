@@ -30,9 +30,18 @@ already exist, and one it treated as a detail is the actual root blocker.
 > (`developer.enable` — "minimal" stopped being a lie, so the rice can be turned
 > off) and **§3.3** (presets-as-format + `checkRice` — a rice became a data
 > file). They are why the rename can happen now rather than after a refactor.
-> And one thing it inherits: **§6's Limit 3** is no longer a note but a launch
-> blocker — a stranger's rice colliding with a stranger's host still shows a raw
-> nix conflict trace, and `hausfold.co/market` is where strangers meet.
+> And one thing it inherits: **§6's Limit 3 stops being a note and becomes a
+> launch blocker**, because `hausfold.co/market` is where strangers meet. State
+> it the way §6(b) *measured* it, not the way this document first asserted it —
+> the "they see a raw trace rather than anything we wrote" version was **this
+> file's own claim and it was retracted** (§6(b), and the confession at
+> "the falsified claim was one of MINE"): the plain conflict error names the
+> option, both files and `lib.mkForce`, so they're told nearly everything.
+> What's actually unfixed for a *gallery*: composing two rices is rice-vs-rice,
+> §6(d) measured that `mkDefault` "can never be" a fix for it, `checkRice` can't
+> catch it because the module system stops first, and a transforming seam prints
+> `<unknown-file>` twice. §6(e)'s **priority by list position** (`compose`) is
+> the live candidate, and it is what `/market` should wait on.
 >
 > What §7's repo routing means now: `nebelhaus` → `hausfold/hausfold`, and `web`
 > → the consolidated site repo.

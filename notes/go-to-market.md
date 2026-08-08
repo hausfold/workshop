@@ -32,7 +32,7 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on the hausfold platform** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/market` rather than owning a domain. |
 | **hausfold** (platform) | free | MIT | **The destination.** The nix-darwin ricing platform every rice sets options on, and the org everything ships under. Was the umbrella; became the product on 2026-08-08. |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
-| **trill** | not monetized | MIT | Frozen. Archive decision still open — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). |
+| ~~**trill**~~ | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
 | ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, nebelhaus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
@@ -132,11 +132,16 @@ marketing-only.
 
 ## 5. The gallery / marketplace question — answered
 
-> **★ Half-reversed 2026-08-08.** *Don't build it first* **stands** — and now has
-> a second, harder reason: §6's Limit 3 means a published rice colliding with a
-> stranger's host shows them a raw nix conflict trace, not our error message. So
-> `/market` ships as a **placeholder** until leaf-`mkDefault` is the enforced
-> format rule and `checkRice` catches the collision.
+> **★ Half-reversed 2026-08-08.** *Don't build it first* **stands**, and now has
+> a second, harder reason: [`options-roadmap.md`](./options-roadmap.md) §6's
+> Limit 3. Stated as that file *measured* it rather than as it first asserted —
+> the plain conflict error is actually decent, naming the option, both files and
+> `lib.mkForce` (§6(b) retracted the "they see nothing we wrote" claim). The
+> unfixed part is **rice-vs-rice**, which is exactly what a gallery creates:
+> §6(d) measured that `mkDefault` "can never be" a fix for it, `checkRice` can't
+> catch it (the module system stops before assertions run), and a transforming
+> seam prints `<unknown-file>` twice — loud and anonymous. So `/market` ships as
+> a **placeholder** until §6(e)'s *priority by list position* (`compose`) lands.
 >
 > *Don't put it on hausfold.co* is **reversed**: the gallery is
 > **`hausfold.co/market`**. The "extra hop" argument below was right about hops
@@ -144,7 +149,7 @@ marketing-only.
 > so `/market` is zero hops from the platform and nebelhaus.com is the one that
 > 301s. Everything else in this section survives intact.
 
-**Don't build it first, and don't put it on hausfold.co.**
+**Don't build it first**, ~~and don't put it on hausfold.co.~~
 
 Three reasons it isn't first:
 
@@ -154,7 +159,7 @@ Three reasons it isn't first:
   about for dormant channels.
 - **The supply comes from the testers.** The format already exists and is
   documented ([Sharing a rice](../web/src/content/docs/guides/sharing-a-rice.mdx)
-  — a data-only `.nix` file touching only `nebelhaus.*`). Phase 1 testers are
+  — a data-only `.nix` file touching only `haus.*`, `nebelhaus.*` until the rename lands). Phase 1 testers are
   the first people who will ever author one. Collect what they write; *that's*
   the gallery's seed content, and it doesn't exist yet.
 - **It isn't a revenue path.** A directory of free `.nix` files has no plausible
@@ -259,7 +264,8 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 | # | Decision | Status |
 |---|---|---|
 | 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold is the platform** (and still the seller) — §6, and [`hausfold-rename.md`](./hausfold-rename.md). Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
-| 2 | Archive trill? | Open since 2026-08-04 — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). Leaning yes. Blocks the free launch: an unmaintained app shipped by default sets the family's quality bar in front of every new tester. |
+| 2 | Archive trill? | **Closed** — archived on GitHub, module and flake input deleted (rice#212/#213), taken out of every family list. [`perch-monetization.md`](./perch-monetization.md) §5.5. The launch-blocking version of this question is gone. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
 | 4 | `hausfold.com` — buy it or accept the `.co`? | **Decided 2026-08-08: accept the `.co`**, with the exposure logged rather than closed — the name is now the platform, the docs domain *and* the seller on a receipt, so a `.co` brand beside someone else's `.com` is a permanent tax on every verbal mention. Still cheap to reverse; still gets more expensive with brand value. |
-| 5 | Does the `hausfold/website` repo go public? | **Open, and newly blocking.** It is private *because* `PRESENCE.md` is a list of every namespace we hold and every gap. The docs site moving into it ([`hausfold-rename.md`](./hausfold-rename.md) §5.1) needs it public — docs want edit links and contributions. Its README names the price: scrub `.wrangler/cache/wrangler-account.json` from history (a Cloudflare account id + a personal email) *before* flipping, and move `PRESENCE.md` out first. |
+| 5 | Does the `hausfold/website` repo go public? | **Open, and newly blocking.** It is private *because* `PRESENCE.md` lists every namespace we hold and every gap. The docs site moving into it ([`hausfold-rename.md`](./hausfold-rename.md) §5.1) needs it public — docs want edit links and contributions. Price: scrub `.wrangler/cache/wrangler-account.json` from history *before* flipping, and relocate `PRESENCE.md`. |
+| 6 | Where does `PRESENCE.md` live once the site repo is public? | **Open, and it has one wrong answer already.** Not `notes/` in this repo — **the workshop is public**, so that move publishes the gap list rather than protecting it. Needs a genuinely private home (a `hausfold/ops` repo, a password-manager entry) or the gaps pruned first. |
