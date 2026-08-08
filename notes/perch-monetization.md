@@ -123,7 +123,7 @@ deliberately INERT** *(~2–3 sessions; the big one)*
 
 **Phase 2 — commerce rails** *(~1 session of work, but see the approval wait)*
 - [ ] **Apply to Paddle during Phase 1, not after it.** Approval is days, not
-      minutes, and it wants a live nebelhaus.com/perch page (even pre-rewrite)
+      minutes, and it wants a live hausfold.co/perch page (even pre-rewrite)
       with refund + terms links. MoR also insulates from the exact
       Stripe-withholding story that hit NotchNook. Rationale + the rejected
       alternatives: [§2.1](#21-why-paddle-and-not-the-other-four).
@@ -139,14 +139,18 @@ deliberately INERT** *(~2–3 sessions; the big one)*
       Silence early on is the threshold, not a broken webhook.
 
 **Phase 3 — the storefront** *(~1–2 sessions)*
-- [ ] nebelhaus.com/perch rewritten in consumer voice — outcomes, not lingo:
+- [ ] hausfold.co/perch rewritten in consumer voice — outcomes, not lingo:
       no "rice", no "nix", no "sandbox-friendly menu-bar app". The pitch is
       the README's opening dance ("drag, realise the window is buried…"),
       the privacy restraint, and the price. Dev detail moves below the fold.
 - [ ] Paddle overlay checkout on that page; FAQ covers fair-source, the
       update-year, seats, refunds (MoR handles the mechanics).
-- [ ] `support@nebelhaus.com` (or alias) with an SLA you'll actually honor —
+- [ ] `support@hausfold.co` (or alias) with an SLA you'll actually honor —
       paying customers change the tone of the issue tracker.
+      *(Was `support@nebelhaus.com`, on the reasoning that people bought a
+      nebelhaus product. Reversed 2026-08-08 with [`go-to-market.md`](./go-to-market.md)
+      §6: they buy a hausfold product now, and hausfold is the name on the
+      receipt they'll already have seen.)*
 
 **Phase 4 — launch** *(gated on me, like any release)*
 - [ ] First FSL + gated build ships via the normal `bench release perch`.

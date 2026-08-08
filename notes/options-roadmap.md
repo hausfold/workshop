@@ -15,6 +15,38 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **★ Naming banner, 2026-08-08 — read every `nebelhaus.*` below as `haus.*`.**
+> The platform is being renamed **hausfold**, its option namespace **`haus.*`**,
+> and `nebelhaus` demoted to what this document has always been arguing it
+> should be: **one rice among many**, the developer-focused one. The plan is
+> [`hausfold-rename.md`](./hausfold-rename.md).
+>
+> **The body of this file is deliberately NOT rewritten.** §5.14 makes it a
+> historical record, and retroactively renaming options in dated findings would
+> make ship-dates and PR numbers stop matching what those PRs actually say.
+> So: `nebelhaus.roster` below is today's `haus.roster`, and so on throughout.
+>
+> Two things here the rename leans on, both already shipped: **§3.2**
+> (`developer.enable` — "minimal" stopped being a lie, so the rice can be turned
+> off) and **§3.3** (presets-as-format + `checkRice` — a rice became a data
+> file). They are why the rename can happen now rather than after a refactor.
+> And one thing it inherits: **§6's Limit 3 stops being a note and becomes a
+> launch blocker**, because `hausfold.co/market` is where strangers meet. State
+> it the way §6(b) *measured* it, not the way this document first asserted it —
+> the "they see a raw trace rather than anything we wrote" version was **this
+> file's own claim and it was retracted** (§6(b), and the confession at
+> "the falsified claim was one of MINE"): the plain conflict error names the
+> option, both files and `lib.mkForce`, so they're told nearly everything.
+> What's actually unfixed for a *gallery*: composing two rices is rice-vs-rice,
+> §6(d) measured that `mkDefault` "can never be" a fix for it, `checkRice` can't
+> catch it because the module system stops first, and a transforming seam prints
+> `<unknown-file>` twice. §6(e)'s **priority by list position** (`compose`) is
+> the live candidate, and it is what `/market` should wait on.
+>
+> What §7's repo routing means now: `nebelhaus` → `hausfold/hausfold`, and `web`
+> → the consolidated site repo.
+
+
 > **Status, 2026-08-08 (fifteenth pass) — §5.1's macOS Light/Dark box is shipped,
 > and the spike falsified the box's own premise: `AppleInterfaceStyle` is inert in
 > BOTH directions on macOS 26, not just the "off" one.**
