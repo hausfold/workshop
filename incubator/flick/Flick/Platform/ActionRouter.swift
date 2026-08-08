@@ -18,13 +18,18 @@ final class ActionRouter {
         self.listedApps = listedApps
     }
 
-    /// Click on the banner body: first declared action wins, falling back to
-    /// activating the source app when the event's source looks like a
-    /// bundle id.
+    /// Click on the banner body, or on one row of an expanded fold: first
+    /// declared action wins, falling back to activating the source app when
+    /// the event's source looks like a bundle id.
+    ///
+    /// `NotificationEvent.hasDefaultAction` is exactly the set of events this
+    /// does something for, and the banner asks it before drawing a row as
+    /// pressable — keep the two in step or flick starts drawing dead buttons.
     func performDefault(for event: NotificationEvent) {
+        guard event.hasDefaultAction else { return }
         if let action = event.actions.first {
             perform(action, for: event)
-        } else if event.source.contains(".") {
+        } else {
             openApp(bundleID: event.source)
         }
     }
@@ -34,9 +39,11 @@ final class ActionRouter {
         case .openApp:
             openApp(bundleID: action.target ?? event.source)
         case .openURL:
-            guard let target = action.target,
-                  let url = URL(string: target),
-                  ["https", "http", "file"].contains(url.scheme?.lowercased() ?? "")
+            // Same predicate `hasDefaultAction` draws from, so a row can never
+            // be drawn pressable for a URL this would then refuse.
+            guard NotificationEvent.Action.opensAsURL(action.target),
+                  let target = action.target,
+                  let url = URL(string: target)
             else {
                 Self.log.info("refused non-web/file URL action for \(event.id, privacy: .public)")
                 return

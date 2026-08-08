@@ -73,46 +73,131 @@ final class ScreenGeometryTests: XCTestCase {
     // MARK: - Expanded folds
 
     func testCollapsedCardIsAlwaysTheBaseSize() {
-        XCTAssertEqual(BannerGeometry.cardSize(foldedCount: 0, expanded: false), BannerGeometry.size)
-        XCTAssertEqual(BannerGeometry.cardSize(foldedCount: 9, expanded: false), BannerGeometry.size)
+        XCTAssertEqual(BannerGeometry.cardSize(foldedCount: 0, expanded: false, maxRows: 40), BannerGeometry.size)
+        XCTAssertEqual(BannerGeometry.cardSize(foldedCount: 9, expanded: false, maxRows: 40), BannerGeometry.size)
         XCTAssertEqual(
-            BannerGeometry.cardSize(foldedCount: 0, expanded: true), BannerGeometry.size,
+            BannerGeometry.cardSize(foldedCount: 0, expanded: true, maxRows: 40), BannerGeometry.size,
             "hovering a banner with nothing folded behind it must not grow it"
+        )
+        XCTAssertEqual(
+            BannerGeometry.cardSize(foldedCount: 9, expanded: true, maxRows: 0), BannerGeometry.size,
+            "a screen with room for no rows leaves the card the height it arrived at"
         )
     }
 
     func testExpandedCardGrowsByExactlyItsFoldRows() {
-        let two = BannerGeometry.cardSize(foldedCount: 2, expanded: true)
+        let two = BannerGeometry.cardSize(foldedCount: 2, expanded: true, maxRows: 40)
         XCTAssertEqual(two.width, BannerGeometry.size.width, "folds grow downward only")
         XCTAssertEqual(
             two.height,
             BannerGeometry.size.height + BannerGeometry.foldListInset + 2 * BannerGeometry.foldRowHeight
         )
 
-        // Beyond the cap the tail collapses into one "and N earlier" row, so
-        // a burst of 9 and a burst of 900 are the same height.
-        let capped = BannerGeometry.foldRowCount(folded: 9)
-        XCTAssertEqual(capped, BannerGeometry.maxFoldRows + 1)
-        XCTAssertEqual(BannerGeometry.foldRowCount(folded: 900), capped)
+        // A normal burst is listed in full — this is the whole point of
+        // capping by height instead of by a constant: ten fit, so ten show.
+        XCTAssertEqual(BannerGeometry.foldRowCount(folded: 9, maxRows: 40), 9)
+        XCTAssertEqual(
+            BannerGeometry.foldListedCount(folded: 9, maxRows: 40), 9,
+            "nine folded on a screen with room for forty rows: no 'and N earlier'"
+        )
+    }
+
+    func testAHugeBurstStopsAtTheRowsTheScreenPaidForAndAdmitsTheRest() {
+        // The tail collapses into one "and N earlier" row, so a burst of 200
+        // and a burst of 20,000 are the same height — never taller than the
+        // rows the screen allowed.
+        let rows = BannerGeometry.foldRowCount(folded: 200, maxRows: 12)
+        XCTAssertEqual(rows, 12)
+        XCTAssertEqual(BannerGeometry.foldRowCount(folded: 20_000, maxRows: 12), rows)
+        XCTAssertEqual(
+            BannerGeometry.foldListedCount(folded: 200, maxRows: 12), 11,
+            "one of the twelve rows is spent saying how much is not shown"
+        )
     }
 
     func testEveryFoldRowIsEitherANamedEventOrTheEarlierLine() {
         // The card's height is fixed from `foldRowCount`, so a row the view
         // draws without a row the height paid for is a silent clip.
-        for folded in 0...20 {
-            let listed = BannerGeometry.foldListedCount(folded: folded)
-            let rows = BannerGeometry.foldRowCount(folded: folded)
-            XCTAssertEqual(
-                rows, listed + (folded > listed ? 1 : 0),
-                "\(folded) folded: \(listed) named rows plus at most one 'and N earlier'"
-            )
-            XCTAssertLessThanOrEqual(listed, BannerGeometry.maxFoldRows)
+        for maxRows in 0...12 {
+            for folded in 0...30 {
+                let listed = BannerGeometry.foldListedCount(folded: folded, maxRows: maxRows)
+                let rows = BannerGeometry.foldRowCount(folded: folded, maxRows: maxRows)
+                // No room and nothing folded both mean no list at all — not
+                // a bare "and N earlier" on a card that never grew.
+                let expected = (maxRows == 0 || folded == 0)
+                    ? 0
+                    : listed + (folded > listed ? 1 : 0)
+                XCTAssertEqual(
+                    rows, expected,
+                    "\(folded) folded in \(maxRows) rows: \(listed) named plus at most one 'and N earlier'"
+                )
+                XCTAssertLessThanOrEqual(
+                    rows, maxRows,
+                    "\(folded) folded must never draw more than the \(maxRows) rows the card is tall for"
+                )
+                XCTAssertLessThanOrEqual(listed, folded, "no row may name an event that isn't there")
+            }
         }
     }
 
+    func testFoldRowCapacityFillsTheScreenAndShrinksDownTheStack() {
+        let top = BannerGeometry.foldRowCapacity(on: laptop, index: 0)
+        XCTAssertGreaterThan(
+            top, 10,
+            "a 944pt visible frame has room for a normal burst — 10 rows — many times over"
+        )
+
+        // A card further down the deck starts lower, so it has less room.
+        let second = BannerGeometry.foldRowCapacity(on: laptop, index: 1)
+        XCTAssertEqual(
+            top - second,
+            Int((BannerGeometry.size.height - BannerGeometry.overlap) / BannerGeometry.foldRowHeight),
+            "each card down the stack loses the rows its predecessor's advance cost"
+        )
+        XCTAssertGreaterThan(
+            BannerGeometry.foldRowCapacity(on: external, index: 0), top,
+            "a taller display lists more of the same burst"
+        )
+    }
+
+    func testAnExpandedCardNeverOutgrowsTheVisibleFrame() throws {
+        // The contract the whole change exists for: however big the burst,
+        // the card the screen sized fits on the screen.
+        for screen in [laptop, external] {
+            for index in 0..<BannerGeometry.capacity(on: screen) where index < 3 {
+                let rows = BannerGeometry.foldRowCapacity(on: screen, index: index)
+                let sizes = Array(repeating: BannerGeometry.size, count: index)
+                    + [BannerGeometry.cardSize(foldedCount: 20_000, expanded: true, maxRows: rows)]
+                let frames = BannerGeometry.stackFrames(on: screen, sizes: sizes)
+                let card = try XCTUnwrap(
+                    frames[index],
+                    "a fold sized from row capacity must still get a slot (\(screen.id), index \(index))"
+                )
+                XCTAssertTrue(
+                    screen.visibleFrame.contains(card),
+                    "an expanded fold escaped the visible frame on \(screen.id) at index \(index)"
+                )
+            }
+        }
+    }
+
+    func testAShortScreenRefusesFoldRowsRatherThanClippingThem() {
+        let short = ScreenDescriptor(
+            id: "short",
+            frame: CGRect(x: 0, y: 0, width: 1512, height: 120),
+            visibleFrame: CGRect(x: 0, y: 0, width: 1512, height: 120)
+        )
+        XCTAssertEqual(BannerGeometry.foldRowCapacity(on: short, index: 0), 0)
+        XCTAssertEqual(
+            BannerGeometry.cardSize(foldedCount: 50, expanded: true, maxRows: 0),
+            BannerGeometry.size,
+            "no room for a list means no list, not a card taller than the display"
+        )
+    }
+
     func testExpandedCardPushesTheCardsBelowItDown() throws {
-        let collapsed = BannerGeometry.cardSize(foldedCount: 3, expanded: false)
-        let expanded = BannerGeometry.cardSize(foldedCount: 3, expanded: true)
+        let collapsed = BannerGeometry.cardSize(foldedCount: 3, expanded: false, maxRows: 40)
+        let expanded = BannerGeometry.cardSize(foldedCount: 3, expanded: true, maxRows: 40)
 
         let flat = BannerGeometry.stackFrames(on: laptop, sizes: [collapsed, BannerGeometry.size])
         let grown = BannerGeometry.stackFrames(on: laptop, sizes: [expanded, BannerGeometry.size])

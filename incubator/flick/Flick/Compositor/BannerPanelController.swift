@@ -15,10 +15,12 @@ final class BannerPanelController {
 
     init(
         entry: BannerQueue.Entry,
+        maxFoldRows: Int,
         frame: CGRect,
         onHover: @escaping (Bool) -> Void,
         onDismiss: @escaping () -> Void,
-        onActivate: @escaping () -> Void
+        onActivate: @escaping () -> Void,
+        onActivateFolded: @escaping (NotificationEvent) -> Void
     ) {
         entryID = entry.id
 
@@ -44,9 +46,11 @@ final class BannerPanelController {
 
         host = NSHostingView(rootView: BannerView(
             entry: entry,
+            maxFoldRows: maxFoldRows,
             onHover: onHover,
             onDismiss: onDismiss,
-            onActivate: onActivate
+            onActivate: onActivate,
+            onActivateFolded: onActivateFolded
         ))
         panel.contentView = host
         panel.orderFrontRegardless()
@@ -61,12 +65,22 @@ final class BannerPanelController {
         }
     }
 
-    func update(entry: BannerQueue.Entry, frame: CGRect, onHover: @escaping (Bool) -> Void, onDismiss: @escaping () -> Void, onActivate: @escaping () -> Void) {
+    func update(
+        entry: BannerQueue.Entry,
+        maxFoldRows: Int,
+        frame: CGRect,
+        onHover: @escaping (Bool) -> Void,
+        onDismiss: @escaping () -> Void,
+        onActivate: @escaping () -> Void,
+        onActivateFolded: @escaping (NotificationEvent) -> Void
+    ) {
         host.rootView = BannerView(
             entry: entry,
+            maxFoldRows: maxFoldRows,
             onHover: onHover,
             onDismiss: onDismiss,
-            onActivate: onActivate
+            onActivate: onActivate,
+            onActivateFolded: onActivateFolded
         )
         panel.setFrame(frame, display: true)
         panel.invalidateShadow()

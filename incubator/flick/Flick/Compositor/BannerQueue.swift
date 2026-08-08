@@ -6,12 +6,16 @@ import Foundation
 @MainActor
 final class BannerQueue {
     struct Entry: Identifiable, Equatable {
-        /// How many folded thread-mates the expanded list keeps around. Only
-        /// the first `BannerGeometry.maxFoldRows` are ever drawn; the rest is
-        /// headroom so tuning that number needs no change here. The *count*
-        /// of folded events is tracked separately, so trimming this list
-        /// never makes the banner under-report a burst.
-        static let foldPreviewLimit = 8
+        /// How many folded thread-mates the expanded list keeps around. The
+        /// number of rows actually drawn is set by the *screen*
+        /// (`BannerGeometry.foldRowCapacity`), and this sits above the row
+        /// capacity of any display flick can size a card for — roughly 86 rows
+        /// on a 6K XDR — so it is a memory backstop, not the thing you feel.
+        /// It used to be 8, which silently was the cap: a ten-message thread
+        /// could not list ten however tall the screen was. The *count* of
+        /// folded events is tracked separately, so trimming this list never
+        /// makes the banner under-report a burst.
+        static let foldPreviewLimit = 96
 
         /// The face of the banner: the newest event in the fold.
         var event: NotificationEvent

@@ -51,6 +51,17 @@ struct NotificationEvent: Codable, Sendable, Identifiable, Equatable {
         var kind: Kind
         /// Kind-specific payload: a bundle id, a URL string, a hook name.
         var target: String?
+
+        /// Schemes flick will hand to the workspace. Anything else is a
+        /// refused click, so `hasDefaultAction` and `ActionRouter` both ask
+        /// here rather than each keeping their own list.
+        static let openableSchemes = ["https", "http", "file"]
+
+        /// Would an `open_url` action with this target actually open?
+        static func opensAsURL(_ target: String?) -> Bool {
+            guard let target, let url = URL(string: target) else { return false }
+            return openableSchemes.contains(url.scheme?.lowercased() ?? "")
+        }
     }
 
     var id: String
@@ -123,6 +134,31 @@ struct NotificationEvent: Codable, Sendable, Identifiable, Equatable {
 }
 
 extension NotificationEvent {
+    /// Does clicking this event do anything? Every surface that offers a
+    /// click asks *this* before drawing itself as pressable, and
+    /// `ActionRouter.performDefault` refuses the same set — flick draws no
+    /// dead buttons, so the two have to answer identically.
+    ///
+    /// It mirrors `performDefault` exactly: the *first* declared action is the
+    /// only one a click runs, so only that one is inspected. A `command`
+    /// action is not pressable because hooks aren't wired yet (PRD M2) and the
+    /// router only logs; a `open_url` whose target isn't a scheme the router
+    /// will open is refused here for the same reason it is refused there.
+    ///
+    /// The one thing it can't promise is that a bundle id resolves to an
+    /// installed app — that's a LaunchServices lookup, and this stays pure.
+    /// A click on `source: "deploy.prod"` with no such app gets as far as the
+    /// router and is logged there; the button is honest about intent, not
+    /// about what's installed.
+    var hasDefaultAction: Bool {
+        guard let action = actions.first else { return source.contains(".") }
+        switch action.kind {
+        case .openApp, .silenceNative: return true
+        case .openURL: return Action.opensAsURL(action.target)
+        case .command: return false
+        }
+    }
+
     /// Field caps: a banner is a glance, not a document. Oversized input is
     /// truncated here, once, so no downstream surface needs its own limits.
     enum Limits {

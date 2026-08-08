@@ -72,19 +72,47 @@ banner instead of stacking: the newest wins the face, "+N more" is the
 receipt. Beyond visible capacity, entries queue; hover pauses rotation so
 banners never swap under the cursor.
 
-**The fold keeps its events, and hover opens them.** "+9 more" alone is a
-number you can't do anything with — it says a burst happened without saying
-what was in it, and the nine events it stands for were already thrown away
-by the time you read it. `BannerQueue.Entry` therefore carries the folded
-events (newest first, bounded by `foldPreviewLimit`; the *count* is tracked
-separately so trimming the list can never make the banner under-report), and
-hovering the banner opens it downward into that list — up to
-`maxFoldRows` lines, the tail collapsed into one "and N earlier". Hover
-already froze the dismiss clock, so the list stays up exactly as long as
-you're reading it, and a burst you don't look at costs nothing it didn't
-cost before.
+**The fold keeps its events, hover opens them, and every line is a button.**
+"+9 more" alone is a number you can't do anything with — it says a burst
+happened without saying what was in it, and the nine events it stands for were
+already thrown away by the time you read it. `BannerQueue.Entry` therefore
+carries the folded events (newest first, bounded by `foldPreviewLimit`; the
+*count* is tracked separately so trimming the list can never make the banner
+under-report), and hovering the banner opens it downward into that list.
+Hover already froze the dismiss clock, so the list stays up exactly as long as
+you're reading it, and a burst you don't look at costs nothing it didn't cost
+before.
 
-Two consequences worth knowing:
+**The screen sets the row count — there is no magic number.**
+`BannerGeometry.foldRowCapacity(on:index:)` answers how many rows a card at a
+given place in the deck can grow before its own bottom edge leaves the visible
+frame, and that is the cap. A ten-message thread lists all ten because ten fit;
+a two-hundred-message one lists what fits and admits the rest in a single "and
+N earlier". This replaced a fixed four-row list, which meant a normal burst
+couldn't be seen in full at any screen size — `foldPreviewLimit` sat at 8 and
+was the real ceiling, so it is now a memory backstop well above any display's
+row capacity rather than the thing you feel.
+
+Only the *collapsed* cards above the hovered one count against that capacity.
+Cards beneath it are allowed to be pushed off screen — they stay in the queue
+and return on unhover — because stopping the fold at whatever happened to
+arrive under it would make the same burst a different height depending on
+unrelated traffic. `BannerWindowSystem.render`'s collapse fallback therefore
+guards only the hovered card's *own* frame; it used to collapse the expansion
+whenever any card in the stack lost its slot, which capped every fold at the
+traffic below it.
+
+**Each row runs its own event's action.** The face is one target and every
+listed thread-mate is another, so the fold is a list of things you can act on
+rather than one big button wearing a list. A row click runs
+`performDefault` for *that* event and then dismisses the whole banner: you
+opened the thread to deal with it, and you have. A row whose event advertises
+no action gets no highlight and no click — `NotificationEvent.hasDefaultAction`
+is the single predicate the router branches on and the view draws from, so
+flick cannot start drawing dead buttons. The "and N earlier" line is never
+pressable: it stands for several events, so there is no one thing to do.
+
+Three more consequences worth knowing:
 
 - **Which banner is hovered is queue state, not panel state.** Expanding one
   card re-lays every card beneath it, so the render pass has to see it —
@@ -101,6 +129,13 @@ Two consequences worth knowing:
   would clip it silently. `NSHostingView.fittingSize` is stale in the same
   turn as the state change that grew the view on macOS 26; measuring settles
   the panel on the previous height (the bug pounce's filter row shipped once).
+  The row cap is *passed down* rather than derived: it depends on the screen
+  and on the card's index in the deck, and `BannerView` knows neither and must
+  not learn. `BannerWindowSystem` computes it once per render, bounds it a
+  second time by what the fold actually kept (`folded.count + 1`, the `+1`
+  being the eventless "and N earlier" line), and hands the same number to both
+  `cardSize` and the view — so the height can never pay for a named row the
+  view has no event for.
 - **Privacy is per event, in the list too.** A `redacted` thread-mate keeps
   its body to itself even when the face of the fold is visible — the fold is
   a rendering of many events, not an inheritance from one.
@@ -129,14 +164,19 @@ cumulatively and returns nil for any card that would leave the visible frame
 keeps the events, so a card pushed off the bottom comes back on the next
 render.
 
-**An expansion that doesn't fit refuses to grow rather than laying itself off
-screen.** `capacity` is counted for collapsed cards, so on a short display a
-fold near the bottom of the stack can want more room than there is. If the
-laid-out stack loses any card, the compositor re-lays it with the expansion
-dropped. That is not cosmetic: closing the panel *under the pointer* would
+**A card pushed off by an expansion is fine; the expanded card itself is
+not.** Losing the tail is the intended outcome — that is how a fold gets to
+fill the screen instead of stopping at whatever traffic happened to arrive
+under it, and those entries are still in the queue. So the fallback in
+`render` re-lays with the expansion dropped only when the *hovered* card's own
+frame comes back nil, never when some card below it did. (It used to fire on
+any missing frame, which capped every fold at the cards beneath it.) Guarding
+that one card is not cosmetic: closing the panel *under the pointer* would
 strand the hover — no exit event follows a panel that is simply gone — and a
-hover left set pauses the queue for good. Same reasoning covers the other
-path that can take a hovered card away without an exit: `setCapacity`
+hover left set pauses the queue for good. Since `foldRowCapacity` sizes the
+expansion to fit in the first place, the fallback should never actually fire;
+it stays as the honest failure if it ever does. Same reasoning covers the
+other path that can take a hovered card away without an exit: `setCapacity`
 clearing the hover it just pushed into the waiting line.
 
 ### The undocumented mirror
