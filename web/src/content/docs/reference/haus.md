@@ -19,20 +19,16 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus rollback [N]` | Atomically return to the previous generation — or to generation `N`. |
 | `haus generations` | List the generations you can roll back to. |
 | `haus status` | Show the current generation and how stale the pinned rice is. |
-| `haus plan` | Preview what the next `haus rebuild` would change — settings, packages, casks — read-only, nothing built into place. |
-| `haus diff` | The config declared for this machine vs what macOS actually has right now — effective state, not just the plist. |
-| `haus capture [cat…]` | Turn this Mac's current settings into config lines *and* a snapshot. Defaults to `dock keyboard finder`; name a literal plist domain (e.g. `com.apple.Terminal`) for anything else. |
-| `haus revert-settings [snapshot\|list]` | Put back a `haus capture` snapshot — the macOS defaults a generation rollback leaves untouched. `list` shows what you've captured. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
 | `haus options` | Refresh the annotated catalogue of every `nebelhaus.*` option on this machine's pinned rice. |
 | `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `nebelhaus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
-| `haus unset <path>` | Explicitly set a nullable option to `null`, then rebuild. |
-| `haus reset <path>` | Remove one machine override, inherit the host/preset/rice value again, then rebuild. |
-| `haus plan` | Build a read-only preview of package, macOS-setting, and cask changes. |
-| `haus diff` | Compare the active generation's declared macOS settings with the machine's effective state. |
-| `haus capture [category…]` | Render this Mac's current settings as config lines and save a restorable snapshot. |
-| `haus revert-settings [snapshot\|list]` | Restore a `haus capture` snapshot — the undo for macOS preferences Nix generations do not rewind. |
+| `haus unset <path> [<path>…]` | Explicitly set nullable options to `null`, then rebuild once. Takes a list, all-or-nothing. |
+| `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host/preset/rice value again, then rebuild once. Takes a list, all-or-nothing. A path that has no override is reported and skipped; if none of them had one, nothing is rebuilt. |
+| `haus plan` | Preview what the next `haus rebuild` would change — settings, packages, casks — read-only, nothing built into place. |
+| `haus diff` | The config declared for this machine vs what macOS actually has right now — effective state, not just the plist. |
+| `haus capture [cat…]` | Turn this Mac's current settings into config lines *and* a snapshot. Defaults to `dock keyboard finder`; name a literal plist domain (e.g. `com.apple.Terminal`) for anything else. |
+| `haus revert-settings [snapshot\|list]` | Put back a `haus capture` snapshot — the macOS defaults a generation rollback leaves untouched. `list` shows what you've captured. |
 | `haus doctor` | Health check: Determinate Nix, Xcode CLT, the GUI login agents, Homebrew cask drift (casks installed that no rebuild will manage), and whether an [agent](/guides/ai-agent/) can change this machine. |
 | `haus btm` | On macOS 26 Tahoe+, check whether Background Task Management is blocking the nix login agents, and print the one-time fix. A no-op on earlier macOS. See [Troubleshooting](/reference/troubleshooting/#after-a-macos-upgrade-all-my-agents-are-dead-macos-26-tahoe). |
 | `haus tour [reset]` | Start the guided haus tour in the bar, or re-arm its first-run hint. |
@@ -59,6 +55,21 @@ palette *and* macOS's own appearance — because `haus set` rebuilds per call, s
 two calls would be two rebuilds with the machine sitting half-switched in
 between. Several pairs are **all-or-nothing**: every file is written before
 anything is type-checked, and one rejected value rolls all of them back.
+
+`unset` and `reset` take a list of paths for the same reason, with the same
+all-or-nothing single rebuild — so the way back out of a two-option intent is
+also one command:
+
+```sh
+haus reset theme.flavor theme.systemAppearance
+```
+
+The two differ in one place. A path **`reset`** is given that has no override is
+reported and skipped rather than fatal — you asked for it to inherit, and it
+already does, so the rest are still withdrawn (and if none of them had an
+override, nothing is rebuilt at all). `unset` has no such skip: it writes `null`
+for every path unconditionally, so one option whose type does not admit `null`
+takes the whole call down with it.
 
 `haus set` writes and stages a small module at
 `~/.config/nix/hosts/<hostname>/settings/theme.accent.nix`. `mkNebelhaus`
