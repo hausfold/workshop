@@ -107,15 +107,20 @@ Two consequences worth knowing:
 
 ### A stack of distinct banners
 
-Separate sources get separate cards, and the cards are *dealt*: each one
-tucks `BannerGeometry.overlap` points under the card above it, steps
-`step` points further left, and rides a panel with a real shadow
-(`hasShadow`, invalidated on every frame change). The z-order is free —
-panels are created newest-last and `orderFrontRegardless` puts each new one
-in front — so the pile reads as one stack with depth rather than as a form
+Separate sources get separate cards, and the cards are *dealt*: each one laps
+`BannerGeometry.overlap` points over the card above it and rides a panel with
+a real shadow (`hasShadow`, invalidated on every frame change). The z-order is
+free — panels are created newest-last and `orderFrontRegardless` puts each new
+one in front — so the pile reads as one stack with depth rather than as a form
 with rows. The card's `size.height` includes the strip its successor covers,
 so the reading area is unchanged from the flat-list version; grow one without
 the other and text starts clipping.
+
+`BannerGeometry.step` — a lateral offset per card, fanning the stack
+leftward — is **deliberately 0**. The fanned version went to a feel-test and
+the drift read as misalignment rather than depth, worsening the deeper the
+stack went; the lap and the shadow carry it alone. The knob stays so the idea
+isn't rediscovered and re-shipped.
 
 Because a hovered fold makes one card taller, placement can't be a closed
 form per index: `BannerGeometry.stackFrames` walks the whole stack

@@ -28,7 +28,11 @@ final class ScreenGeometryTests: XCTestCase {
         )
         XCTAssertEqual(
             first.minX - second.minX, BannerGeometry.step,
-            "each card deeper in the stack steps further left"
+            "cards step left by `step` — which is 0, so the stack is flush"
+        )
+        XCTAssertEqual(
+            second.maxX, laptop.visibleFrame.maxX - BannerGeometry.inset,
+            "a flush stack keeps every right edge on the same line"
         )
     }
 

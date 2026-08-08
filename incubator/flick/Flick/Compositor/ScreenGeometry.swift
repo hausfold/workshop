@@ -17,13 +17,12 @@ struct ScreenDescriptor: Sendable, Equatable {
 ///
 /// **Why a deck and not a list.** Distinct banners used to sit in separate
 /// rects 8pt apart, which read as a form, not as a pile of things that
-/// arrived. Each card now laps a few points *over* the card above it and
-/// steps the same few points further left, and every panel casts a real
-/// shadow — so a run of banners reads as one stack with depth. The z-order
-/// comes free: panels are created newest-last and `orderFrontRegardless`
-/// puts each new one in front, so a newer card (lower on screen) covers the
-/// bottom edge of its elder — dealt, not shuffled. This is a deliberate
-/// look, not an accident of spacing.
+/// arrived. Each card now laps a few points *over* the card above it, and
+/// every panel casts a real shadow — so a run of banners reads as one stack
+/// with depth. The z-order comes free: panels are created newest-last and
+/// `orderFrontRegardless` puts each new one in front, so a newer card (lower
+/// on screen) covers the bottom edge of its elder — dealt, not shuffled.
+/// This is a deliberate look, not an accident of spacing.
 enum BannerGeometry {
     /// The card's full height *including* the strip its successor laps over
     /// — the reading area is `height - overlap`, which is the number that
@@ -36,10 +35,13 @@ enum BannerGeometry {
     /// larger starts eating a two-line body.
     static let overlap: CGFloat = 6
 
-    /// Lateral step per card, each one deeper in the stack sitting further
-    /// *left*. Leftward, not rightward: the stack is pinned `inset` from the
-    /// right edge, so stepping right would walk off screen after two cards.
-    static let step: CGFloat = 6
+    /// Lateral step per card, each one deeper in the stack sitting this much
+    /// further *left*. **Deliberately zero.** A fanned version went to a
+    /// feel-test first and the drift read as misalignment rather than as
+    /// depth — and it only gets worse the deeper the stack goes. The lap and
+    /// the shadow carry the effect on their own. Kept as a knob, at 0, so the
+    /// idea isn't rediscovered and re-shipped.
+    static let step: CGFloat = 0
 
     // MARK: - Expanded folds
 

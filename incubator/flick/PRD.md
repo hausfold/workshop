@@ -97,9 +97,10 @@ retry/logs — capability-advertised per provider, never generic promises.
     wrote the setting.
 14. Switch an app's "Allow notifications" off entirely: `flick doctor` stops
     naming it, even though its Desktop and sound bits are still set.
-15. Send three events from three different `--source`s: three cards that
-    tuck under one another and step left, each in front of the one above it,
-    all three still readable — a stack, not a spaced list.
+15. Send three events from three different `--source`s: three cards flush to
+    the same right edge, each lapping over the bottom of the one above it and
+    drawn in front of it, all three still readable — a stack, not a spaced
+    list.
 
 ## Non-goals (v1)
 
