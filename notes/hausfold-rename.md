@@ -465,23 +465,64 @@ system, so a `{ haus = …; }` rice is rejected by a string comparison
 **both names for the length of the transition** and narrow to `haus` only at
 step 6 — third-party rices are exactly the consumers who move last.
 
-### 1.1a 🤖 Alias path — confirmed, and here is what it actually costs
+### 1.1a 🟨 Alias path — **written and verified 2026-08-08; PR open as nebelhaus#261**
 
-1. `haus.*` becomes the canonical namespace in all **14** `options.nix` files —
+1. `haus.*` is the canonical namespace in all **14** `options.nix` files —
    a one-line change each (`options.nebelhaus` → `options.haus`).
 2. Generated `modules/renamed.nix` aliases the old tree, warning on use. Listed
-   in **both** module lists (finding 5).
-3. Sweep, in the same PR, the things the alias can't cover: the five internal
-   options and their ~33 references, `options-doc.nix:78`, and
-   `den/default.nix:151`.
-4. `checkRice` accepts `haus` **and** `nebelhaus` (finding above).
-5. `presets/*.nix`, `packs/*.nix`, `hosts/example/default.nix` move to `haus.*` —
-   these can land in the same PR or a later one; the alias holds either way, and
-   the spike proved they still evaluate untouched.
-6. `~/.config/nix/hosts/mbp/default.nix` moves to `haus.*` — 👤 **separately**,
-   whenever, because the alias holds.
+   in **both** module lists (finding 5) — one list now, because that PR's first
+   commit folded `default.nix`'s copy into `import ./options-modules.nix`.
+3. Swept in the same PR, being what the alias can't cover: the five internal
+   options and their references, `options-doc.nix:78`, and `den/default.nix:151`.
+4. `checkRice` accepts `haus` **and** `nebelhaus`, and now **rejects a file that
+   sets both** — one namespace, two spellings, and every reader downstream picks
+   one key, so a both-keys file would lose half its definitions in silence.
+5. `presets/*.nix`, `packs/*.nix`, `hosts/example/default.nix` moved too, along
+   with `bootstrap.sh`, `haus set`, pounce's Install-App generator and the
+   shipped Claude skill — see the box below for why that wasn't optional.
+6. `~/.config/nix/hosts/mbp/default.nix` moves to `haus.*` — 👤 **still
+   outstanding, and deliberately so**: the alias holds, so it can happen any
+   time, and leaving it un-moved is what keeps proving the alias works.
 7. Aliases deleted, and `checkRice` narrowed to `haus` alone, in a follow-up PR
    **after** the last consumer moves.
+
+#### 🚨 The aliases are for other people's configs, not for ours
+
+The plan above (and the spike) said consumer *reads* could move later, because
+`doRename` gives the alias an `apply` that forwards the target's value. True,
+and it hid the cost: **`mkRenamedOptionModule`'s `use` is a `builtins.trace`, so
+every read through an alias prints.** Leaving the rice's own 128 reads on the old
+spelling produced **106 obsolete-option lines on every rebuild**, naming options
+the user never wrote — and `haus rebuild` tees that stderr straight to the
+terminal. It also quietly made the rice the largest remaining consumer of the
+aliases it had just shipped, which is the wrong thing for a file whose header
+says "delete this once the last consumer has moved."
+
+So the rule the doc was missing: **alias the boundary, sweep everything inside
+it.** `nix eval` of the example host has to be silent, and that is a cheaper
+gate to check than anything in §1.2 — one `grep -c 'Obsolete option'`.
+
+#### What only a build caught, twice
+
+Both of these passed `nix flake check` and both broke something real, which is
+the argument for §1.2's `bench try` clause being load-bearing rather than
+belt-and-braces:
+
+- **`host-template` has a builder-time self-check** that greps the rendered file
+  for the namespace and exits 1 on an empty render. Eval-only checks sail past
+  it. The same shape hides in `skill.nix`, and in `haus.sh`'s "wrote N options"
+  count.
+- **Two CI/CLI greps would have passed *vacuously* instead of failing**:
+  `.github/workflows/check.yml`'s `sed` that uncomments the template (it would
+  have evaluated an empty host and gone green) and `bootstrap.sh`'s dry-run
+  option count (it would have printed "0 options" on the public installer). The
+  first gained a `grep -q` proving it uncommented something.
+
+And one that only a **regex-sweep review** caught: the bulk substitution
+rewrote a shell `case` pattern, `nebelhaus.*)` → `haus.*)`, killing the
+compat branch in `haus set` — *and* rewrote the test that covered it, so the
+suite still passed. **When a sweep edits both the code and its test, the test
+stops being evidence.**
 
 ### 1.1b 🤖+👤 Atomic path (fallback — no longer expected to be needed)
 
@@ -560,8 +601,26 @@ inside generated files.** `# GENERATED from nebelhaus.<option> …` appears ~12
 times inside string bodies in `modules/sill/default.nix`, and again in
 `prowl/aerospace.toml`, `prowl/scripts/resort-windows.sh` and
 `sill/sketchybar/plugins/launch_mode.sh`. They *are* the shipped file, so
-touching them changes a store path. They belong here, in §2, **after** §1's
-byte-identity gate has gone green — never during §1.
+touching them changes a store path.
+
+**✅ Done in nebelhaus#261, and not by choice.** Silencing
+the alias traces meant moving the option READS in the same modules, which put the
+comment two lines away, now stating something false. So §1 ended with 25 leaf
+divergences instead of one — `options.json` plus 24 files whose only change is
+the namespace inside a comment or a printed string. The gate that replaced
+byte-identity, and the one to reuse: **prove the source diff is a pure
+substitution** (diff `-U0`, apply the substitution to each `-` line, assert it
+equals the `+` line — 3 hand-written hunks out of ~560, each reviewed). What
+remains for §2 in the rice is prose about the *brand*, not the namespace.
+
+⚠️ **And a fifth: the option namespace crosses repo boundaries.**
+`web/scripts/gen-options.mjs` filtered on `nebelhaus.` and had **no emptiness
+guard**, so against a `haus.*` rice it renders the reference page with a title,
+an intro and zero options — and `options-drift.yml`'s Monday cron would have
+opened that blank page as a routine-looking PR, green. Fixed in the same sitting
+(workshop#266: detect the prefix, refuse to render nothing). The lesson beyond
+this one script: **a generated cross-repo artifact fails by emptying, not by
+erroring**, so every renderer of someone else's data needs a floor.
 
 ### 2.1 🤖 Per repo
 
@@ -573,6 +632,17 @@ byte-identity gate has gone green — never during §1.
   `start/the-family.md`, `reference/haus.md`, `reference/options.md`
   (regenerates — don't hand-edit), `guides/sharing-a-rice.mdx` (the format doc),
   `astro.config.mjs:8` (`site:`), `:63` (the GitHub edit baseUrl).
+  ⚠️ **~24 of those guides teach `nebelhaus.<option>` and are now stale rather
+  than wrong** — the alias means every line they print still works, which is
+  exactly why nothing will fail and nobody will notice. Regenerating
+  `reference/options.md` against the renamed rice is a one-command job
+  (`node web/scripts/gen-options.mjs --rice ../nebelhaus`) and should happen the
+  day nebelhaus#261 merges; the hand-written guides are the real work here.
+  *(That page had also drifted for an unrelated reason — a
+  `theme.systemAppearance` description changed in the rice and nobody re-ran the
+  generator, so `main`'s own drift check was already red. Regenerated in
+  workshop#266, which is how it surfaced: the check fires on every PR, not only
+  on the Monday cron, so an unrelated branch inherits it.)*
 - **bench**: `FAMILY=(…)` at `bench:75`, the repo lists at `:1003`, `:1455`,
   `:1541`, and the `--override-input nebelhaus/*` block at `:281-284`.
   ⚠️ **Leave `trill` in `FAMILY` alone.** `bench:72-74` keeps it there

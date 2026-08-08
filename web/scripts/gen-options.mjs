@@ -89,12 +89,34 @@ if (!existsSync(GROUPS_PATH)) {
 }
 const GROUPS = JSON.parse(readFileSync(GROUPS_PATH, 'utf8'));
 
+// The option namespace is `haus.*`; `nebelhaus.*` is the pre-rename spelling
+// the rice still aliases (nebelhaus/nebelhaus modules/renamed.nix). Detect it
+// rather than hardcode it, so this script renders correctly whichever side of
+// that rename the pinned rice is on — CI pulls the rice's main, and the two
+// repos do not land in the same commit.
+//
+// The aliases are `visible = false`, so options.json only ever carries ONE of
+// the two prefixes; there is no double-count to worry about.
+const NS = ['haus.', 'nebelhaus.'].find((p) =>
+  Object.keys(raw).some((name) => name.startsWith(p)),
+);
+if (!NS) {
+  console.error(
+    'options.json carries no `haus.*` or `nebelhaus.*` keys.\n\n' +
+      'That is a broken render, not a rice with no options — most likely this\n' +
+      'script and the rice disagree about the option namespace. Fix the prefix\n' +
+      'here rather than committing an empty page.\n',
+  );
+  process.exit(1);
+}
+const PREFIX = NS.slice(0, -1); // "haus"
+
 const options = Object.entries(raw)
-  .filter(([name]) => name.startsWith('nebelhaus.'))
+  .filter(([name]) => name.startsWith(NS))
   .map(([name, o]) => ({ name, ...o }));
 
 // ---- grouping ---------------------------------------------------------------
-// Second path segment is the room/feature: nebelhaus.git.name -> "git".
+// Second path segment is the room/feature: haus.git.name -> "git".
 const groupOf = (name) => name.split('.')[1];
 
 const groups = new Map();
@@ -137,7 +159,7 @@ function renderOption(opt) {
 
 const body = ordered
   .map((g) => {
-    const head = [`## nebelhaus.${g}`, ''];
+    const head = [`## ${PREFIX}.${g}`, ''];
     const blurb = GROUPS[g]?.blurb;
     if (blurb) head.push(blurb, '', '');
     const opts = groups.get(g).sort((a, b) => a.name.localeCompare(b.name));
@@ -146,7 +168,7 @@ const body = ordered
   .join('\n');
 
 const page = `---
-title: nebelhaus.* options
+title: ${PREFIX}.* options
 description: Every option you can set in your host file — types, defaults, and what each one changes.
 tableOfContents:
   maxHeadingLevel: 2
@@ -163,7 +185,7 @@ tableOfContents:
      CI re-renders this and fails if it differs, so a hand edit here is
      guaranteed to be reverted. -->
 
-These are the \`nebelhaus.*\` options you set in your host file at
+These are the \`${PREFIX}.*\` options you set in your host file at
 \`~/.config/nix/hosts/<hostname>/default.nix\`. Everything here is optional
 unless noted; the defaults are a complete, working system.
 
