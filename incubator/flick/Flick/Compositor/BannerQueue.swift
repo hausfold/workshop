@@ -6,11 +6,43 @@ import Foundation
 @MainActor
 final class BannerQueue {
     struct Entry: Identifiable, Equatable {
+        /// How many folded thread-mates the expanded list keeps around. Only
+        /// the first `BannerGeometry.maxFoldRows` are ever drawn; the rest is
+        /// headroom so tuning that number needs no change here. The *count*
+        /// of folded events is tracked separately, so trimming this list
+        /// never makes the banner under-report a burst.
+        static let foldPreviewLimit = 8
+
+        /// The face of the banner: the newest event in the fold.
         var event: NotificationEvent
-        /// Number of additional thread-mates folded into this banner during
-        /// a burst ("+3 more").
+        /// Thread-mates folded in behind the face, newest first — the face
+        /// event is not among them, and the tail beyond `foldPreviewLimit`
+        /// is dropped (it survives in the inbox; this is a glance).
+        var folded: [NotificationEvent] = []
+        /// Everything behind the face, including what `folded` dropped.
         var coalescedCount: Int = 0
-        var id: String { event.id }
+        /// Set by the queue while the pointer is over this banner and there
+        /// is something behind the face worth showing. Presentation state,
+        /// but it belongs here and not in the panel: expanding one card
+        /// re-lays every card under it, so the render pass has to see it.
+        var expanded: Bool = false
+        /// Stable for the life of the fold. Panels and dismiss timers key off
+        /// it, so swapping the face event must never change it.
+        let id: String
+
+        init(event: NotificationEvent) {
+            self.event = event
+            self.id = event.id
+        }
+
+        /// Fold a newer thread-mate in: it takes the face, the outgoing face
+        /// drops to the head of the list behind it.
+        mutating func fold(_ latest: NotificationEvent) {
+            folded.insert(event, at: 0)
+            if folded.count > Self.foldPreviewLimit { folded.removeLast() }
+            coalescedCount += 1
+            event = latest
+        }
     }
 
     /// Redraw callback; the window system owns the panels.
@@ -19,7 +51,10 @@ final class BannerQueue {
     private(set) var visible: [Entry] = []
     private var waiting: [Entry] = []
     private var capacity: Int
-    private var paused = false
+    /// Which banner the pointer is over, if any. Hover both pauses the queue
+    /// and expands that one banner's fold, so it has to be an id, not a bool.
+    private var hoveredID: String?
+    private var paused: Bool { hoveredID != nil }
     private var dismissTimers: [String: Task<Void, Never>] = [:]
 
     private let displayDuration: Duration
@@ -59,21 +94,18 @@ final class BannerQueue {
     }
 
     /// Fold `latest` into an existing banner/queued entry for its thread.
-    /// The newest content wins the face of the banner; the count says how
-    /// much is behind it.
+    /// The newest content wins the face of the banner; the events behind it
+    /// are kept, not just counted — hovering the banner lists them.
     private func coalesce(into id: String, latest: NotificationEvent) -> Bool {
         if let i = visible.firstIndex(where: { $0.id == id }) {
-            visible[i].event.title = latest.title
-            visible[i].event.body = latest.body
-            visible[i].coalescedCount += 1
-            armDismiss(for: visible[i].id) // fresh content, fresh clock
+            visible[i].fold(latest)
+            refreshExpansion()
+            armDismiss(for: id) // fresh content, fresh clock
             notify()
             return true
         }
         if let i = waiting.firstIndex(where: { $0.id == id }) {
-            waiting[i].event.title = latest.title
-            waiting[i].event.body = latest.body
-            waiting[i].coalescedCount += 1
+            waiting[i].fold(latest)
             return true
         }
         return false
@@ -84,6 +116,13 @@ final class BannerQueue {
     func dismiss(id: String) {
         dismissTimers.removeValue(forKey: id)?.cancel()
         visible.removeAll { $0.id == id }
+        if hoveredID == id {
+            // The pointer's target just vanished. SwiftUI does not reliably
+            // send the matching exit for a view that goes away under the
+            // cursor, and a hover left set would pause the queue forever.
+            hoveredID = nil
+            visible.forEach { armDismiss(for: $0.id) }
+        }
         refill()
         notify()
     }
@@ -91,24 +130,30 @@ final class BannerQueue {
     func dismissAll() {
         dismissTimers.values.forEach { $0.cancel() }
         dismissTimers.removeAll()
+        hoveredID = nil
         visible.removeAll()
         waiting.removeAll()
         notify()
     }
 
-    /// Hover pause: while the pointer is over any banner, nothing auto-
-    /// dismisses and nothing new rotates in under the cursor.
-    func setPaused(_ pause: Bool) {
-        guard paused != pause else { return }
-        paused = pause
-        if pause {
+    /// Hover: while the pointer is over a banner, nothing auto-dismisses and
+    /// nothing new rotates in under the cursor — and that one banner expands
+    /// its fold. Exit only clears the hover it owns, because entering B can
+    /// beat leaving A.
+    func setHover(_ hovering: Bool, id: String) {
+        if hovering {
+            guard hoveredID != id else { return }
+            hoveredID = id
             dismissTimers.values.forEach { $0.cancel() }
             dismissTimers.removeAll()
         } else {
+            guard hoveredID == id else { return }
+            hoveredID = nil
             visible.forEach { armDismiss(for: $0.id) }
             refill()
-            notify()
         }
+        refreshExpansion()
+        notify()
     }
 
     /// Display capacity changed (topology rebuild, smaller screen). Overflow
@@ -134,6 +179,15 @@ final class BannerQueue {
     private func refill() {
         while !paused, visible.count < capacity, !waiting.isEmpty {
             show(waiting.removeFirst())
+        }
+    }
+
+    /// A banner is expanded when it is hovered *and* has something folded
+    /// behind its face — a lone banner has nothing to show, so it stays the
+    /// height it arrived at.
+    private func refreshExpansion() {
+        for i in visible.indices {
+            visible[i].expanded = visible[i].id == hoveredID && visible[i].coalescedCount > 0
         }
     }
 

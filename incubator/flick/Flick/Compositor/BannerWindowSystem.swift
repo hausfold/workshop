@@ -75,10 +75,25 @@ final class BannerWindowSystem {
             panels.removeValue(forKey: id)
         }
 
+        // One layout pass for the whole stack: a hovered banner expands, and
+        // every card under it has to move down by exactly that much.
+        let frames = BannerGeometry.stackFrames(
+            on: screen,
+            sizes: entries.map {
+                BannerGeometry.cardSize(foldedCount: $0.coalescedCount, expanded: $0.expanded)
+            }
+        )
+
         for (index, entry) in entries.enumerated() {
-            guard let frame = BannerGeometry.slotFrame(on: screen, index: index) else { continue }
+            guard let frame = frames[index] else {
+                // An expanded fold can push the tail of the stack off screen.
+                // Drop those panels — the entries stay in the queue, and the
+                // next render (unhover, dismissal) puts them back.
+                panels.removeValue(forKey: entry.id)?.close()
+                continue
+            }
             let hover: (Bool) -> Void = { [weak self] hovering in
-                self?.queue.setPaused(hovering)
+                self?.queue.setHover(hovering, id: entry.id)
             }
             let dismiss: () -> Void = { [weak self] in
                 self?.queue.dismiss(id: entry.id)

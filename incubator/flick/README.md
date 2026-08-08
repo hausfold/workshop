@@ -32,6 +32,9 @@ notifications experimentally tomorrow.
   shell, CI job, or nix rebuild. One JSON line in, one banner out. No SDK.
 - **quiet by design** — no sound APIs anywhere in the binary. Flat surface,
   a few points of motion (none under Reduce Motion), hover to hold.
+- **a stack, not a spreadsheet** — banners deal downward from the top-right
+  as overlapping cards. A burst on one `--thread` stays one card with a
+  count; hover it and the card opens into the list of what folded in.
 - **rules, not settings mazes** — `~/.config/flick/rules.json`: route a
   source to banner / inbox / digest / drop; quiet hours; critical punches
   through. Hot-reloaded on save.
@@ -53,9 +56,9 @@ flick CLI    trill/pounce    usernoted db (experimental)
                   ▼
           PolicyEngine (rules.json: banner / inbox / digest / drop · quiet hours)
                   ▼
-          BannerQueue (coalescing · hover-pause · capacity)
+          BannerQueue (coalescing · hover-pause/expand · capacity)
                   ▼
-          BannerWindowSystem (NSPanel per banner · all Spaces · over fullscreen)
+          BannerWindowSystem (NSPanel per card · stacked · all Spaces · over fullscreen)
 ```
 
 ## quick taste

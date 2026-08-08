@@ -126,6 +126,14 @@ final class EventPipelineTests: XCTestCase {
         XCTAssertEqual(queue.visible.count, 1, "thread-mates coalesce, not stack")
         XCTAssertEqual(queue.visible[0].coalescedCount, 1)
         XCTAssertEqual(queue.visible[0].event.title, "second", "newest content wins the banner face")
+        XCTAssertEqual(
+            queue.visible[0].folded.map(\.title), ["first"],
+            "the folded event is kept, not just counted — hover lists it"
+        )
+        XCTAssertEqual(
+            queue.visible[0].id, "1",
+            "the fold keeps the id it was created with; panels and timers key off it"
+        )
 
         queue.enqueue(NotificationEvent(id: "3", source: "a", title: "third"))
         queue.enqueue(NotificationEvent(id: "4", source: "b", title: "fourth"))
@@ -147,5 +155,66 @@ final class EventPipelineTests: XCTestCase {
 
         queue.setCapacity(3) // display came back
         XCTAssertEqual(queue.visible.count, 3, "no event was lost to the rebuild")
+    }
+
+    @MainActor
+    func testFoldKeepsAPreviewAndAnHonestCount() {
+        let queue = BannerQueue(capacity: 2, displayDuration: .seconds(3600), coalesceWindow: 10)
+        for i in 1...12 {
+            queue.enqueue(NotificationEvent(id: "\(i)", source: "s", title: "msg \(i)", thread: "t"))
+        }
+
+        let entry = queue.visible[0]
+        XCTAssertEqual(entry.event.title, "msg 12")
+        XCTAssertEqual(entry.coalescedCount, 11, "the count is of everything behind the face")
+        XCTAssertEqual(
+            entry.folded.count, BannerQueue.Entry.foldPreviewLimit,
+            "the list is bounded; the count is not"
+        )
+        XCTAssertEqual(
+            entry.folded.map(\.title).prefix(3), ["msg 11", "msg 10", "msg 9"],
+            "newest first — the expanded list reads down into the past"
+        )
+    }
+
+    @MainActor
+    func testHoverExpandsOnlyTheFoldedBannerUnderTheCursor() {
+        let queue = BannerQueue(capacity: 3, displayDuration: .seconds(3600), coalesceWindow: 10)
+        queue.enqueue(NotificationEvent(id: "1", source: "s", title: "first", thread: "t"))
+        queue.enqueue(NotificationEvent(id: "2", source: "s", title: "second", thread: "t"))
+        queue.enqueue(NotificationEvent(id: "3", source: "a", title: "lonely"))
+
+        queue.setHover(true, id: "1")
+        XCTAssertTrue(queue.visible[0].expanded)
+        XCTAssertFalse(queue.visible[1].expanded)
+
+        queue.setHover(true, id: "3")
+        XCTAssertFalse(queue.visible[0].expanded, "the fold collapses when the pointer leaves it")
+        XCTAssertFalse(
+            queue.visible[1].expanded,
+            "a banner with nothing folded behind it stays the height it arrived at"
+        )
+
+        // Leaving the banner the pointer already left must not clear the
+        // hover that a later enter took over.
+        queue.setHover(true, id: "1")
+        queue.setHover(false, id: "3")
+        XCTAssertTrue(queue.visible[0].expanded, "a stale exit must not steal the live hover")
+    }
+
+    @MainActor
+    func testDismissingTheHoveredBannerUnsticksTheQueue() {
+        let queue = BannerQueue(capacity: 1, displayDuration: .seconds(3600))
+        queue.enqueue(NotificationEvent(id: "1", source: "s", title: "first"))
+        queue.enqueue(NotificationEvent(id: "2", source: "s", title: "second"))
+
+        queue.setHover(true, id: "1")
+        // Clicking the banner dismisses it out from under the pointer; no
+        // exit event follows, so the queue has to clear the hover itself.
+        queue.dismiss(id: "1")
+        XCTAssertEqual(
+            queue.visible.map(\.id), ["2"],
+            "a hover left set would have paused the refill forever"
+        )
     }
 }

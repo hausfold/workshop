@@ -8,6 +8,10 @@ import SwiftUI
 final class BannerPanelController {
     let entryID: String
     private let panel: NSPanel
+    /// Held so updates can swap `rootView` instead of rebuilding the hosting
+    /// view. A rebuild resets the view's `@State`, which would replay the
+    /// arrival fade every time a banner grows, shrinks, or re-lays out.
+    private let host: NSHostingView<BannerView>
 
     init(
         entry: BannerQueue.Entry,
@@ -28,30 +32,35 @@ final class BannerPanelController {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = false // the view draws its own quiet edge instead
+        // Depth is what makes the overlapping cards read as a stack rather
+        // than as one smeared rectangle — AppKit shapes the shadow from the
+        // rendered alpha, so it follows the view's rounded corners. Any frame
+        // change has to invalidate it or the old outline is left behind.
+        panel.hasShadow = true
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.isMovable = false
         panel.animationBehavior = .none // motion is the view's job, and it is small
 
-        let view = BannerView(
-            entry: entry,
-            onHover: onHover,
-            onDismiss: onDismiss,
-            onActivate: onActivate
-        )
-        panel.contentView = NSHostingView(rootView: view)
-        panel.orderFrontRegardless()
-    }
-
-    func update(entry: BannerQueue.Entry, frame: CGRect, onHover: @escaping (Bool) -> Void, onDismiss: @escaping () -> Void, onActivate: @escaping () -> Void) {
-        panel.setFrame(frame, display: true)
-        panel.contentView = NSHostingView(rootView: BannerView(
+        host = NSHostingView(rootView: BannerView(
             entry: entry,
             onHover: onHover,
             onDismiss: onDismiss,
             onActivate: onActivate
         ))
+        panel.contentView = host
+        panel.orderFrontRegardless()
+    }
+
+    func update(entry: BannerQueue.Entry, frame: CGRect, onHover: @escaping (Bool) -> Void, onDismiss: @escaping () -> Void, onActivate: @escaping () -> Void) {
+        host.rootView = BannerView(
+            entry: entry,
+            onHover: onHover,
+            onDismiss: onDismiss,
+            onActivate: onActivate
+        )
+        panel.setFrame(frame, display: true)
+        panel.invalidateShadow()
     }
 
     func close() {
