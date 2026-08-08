@@ -56,20 +56,24 @@ There's nothing to set up first — no data files, no options to point at. Each
 selection lands as its own Nix module under `hosts/<hostname>/packages/`, and
 Pounce stages and commits just that file after a successful rebuild.
 
-## One list: `nebelhaus.roster`
+## One list: `nebelhaus.roster`, and one that pairs with it
 
 Everything the machine has goes in the same roster — apps, fonts, CLI tools,
 Nixpkgs packages, App Store apps. You don't choose an *option*; you choose which
-**fields** to set, and that's what the entry means:
+**fields** to set, and that's what the entry means. (Which workspace an app
+lives on is the one thing that isn't a field here — it's
+`nebelhaus.workspaces`, naming this entry, so a workspace can hold several
+apps. See [Window management](/guides/window-management/#your-workspaces).)
 
 <CardGrid>
   <Card title="A GUI app I'll live in" icon="laptop">
-    Set **`key`** and **`workspace`**: a Caps-Lock letter, its own workspace, a
-    bar pill, the auto-tiling rule, a cheatsheet row — and it installs it.
+    Set **`key`** for a Caps-Lock letter and a cheatsheet row, and name it in a
+    **`nebelhaus.workspaces`** entry for its own workspace, a bar pill and the
+    auto-tiling rule — and it installs it.
   </Card>
   <Card title="A GUI app, no fuss" icon="download">
-    Omit `key` and `workspace`. The entry is just an install: nothing bound,
-    nothing drawn, still declared.
+    Omit `key`, and name it in no workspace. The entry is just an install:
+    nothing bound, nothing drawn, still declared.
   </Card>
   <Card title="A CLI tool I'll keep" icon="seti:shell">
     Same list, no launcher fields — just **`package`** (nixpkgs) or **`brew`**
@@ -212,8 +216,9 @@ nebelhaus.roster = {
 };
 ```
 
-No `key`, so no Caps-Lock letter and no cheatsheet row. No `workspace`, so no
-pill and no auto-tiling rule. It's simply installed — and, crucially, *declared*,
+No `key`, so no Caps-Lock letter and no cheatsheet row. No `nebelhaus.workspaces`
+entry names them, so no pill and no auto-tiling rule. They're simply installed —
+and, crucially, *declared*,
 which is what stops [`cleanup = "zap"`](/guides/making-it-yours/#homebrew-behaviour)
 from removing it later.
 
