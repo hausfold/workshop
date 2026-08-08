@@ -183,17 +183,31 @@ someone else, which is why the listing is `Perch for Mac`).
 
 The ordering, in one line each — full version in perch's doc:
 
-1. 👤 **Remove 1.0 from review.** Free, reversible, stops the clock.
-2. 🤖 Merge perch#41.
-3. 👤 Register the two App IDs + App Group `group.com.hausfold.perch`.
-   Automatic signing does the App IDs; it **will not invent the App Group**.
-4. 👤 Create the new ASC record under a **temporary name**, SKU
-   `perch-ios-hausfold` (`perch-ios` is spent forever — SKUs never come back).
-5. 🤖 `gh workflow run testflight.yml` — no tag needed.
-6. 👤 **Only then** delete the old record, rename the new one, resubmit.
+- [x] 👤 1.0 removed from review
+- [x] 🤖 perch#41 merged — bundle ids, entitlements, `MobileConfig.appGroupID`
+- [x] 👤 App IDs + App Group `group.com.hausfold.perch` registered
+- [x] 👤 New ASC record created: **`Perch Companion`**, `com.hausfold.perch.ios`,
+      SKU `perch-ios-hausfold`
+- [x] 🤖 TestFlight build green — run `31261461679`, marketing `2026.8.8`, build 70
+- [x] 🤖 perch#42 — docs updated to the new name
+- [ ] 👤 Re-enter listing metadata on the new record and submit
+- [ ] 👤 Delete the old `Perch for Mac` record (optional cleanup, no deadline)
 
-- [ ] 👤 Remove from review — **do this first**
-- [ ] 👤 Steps 3–4, 6 in App Store Connect / the Developer portal
+**The green build is the proof, not the diff.** `-allowProvisioningUpdates`
+cannot invent an App Group, so an unregistered or unassigned
+`group.com.hausfold.perch` would have failed the archive at signing.
+
+**★ The move that made this cheap: the new record took a name chosen to be
+kept** (`Perch Companion`) rather than a placeholder waiting to trade
+`Perch for Mac` back. That deleted the one irreversible risk in route A —
+there's no name to reclaim, so the old record is now ordinary cleanup. The rule
+generalises past Apple: **when a forced rename makes you pick a new name anyway,
+take one you'd keep.** `Perch for Mac` was itself only a consolation prize for
+`Perch` being taken, and it read oddly on an iPhone app.
+
+⚠️ **Metadata does not travel with a bundle id.** Description, keywords,
+screenshots, privacy label, export compliance and review notes are per-record and
+start empty; `perch/docs/app-store.md` is the copy of record to paste from.
 
 ### 0.6 🚨 The Mac app has the same problem, with a released install base
 
