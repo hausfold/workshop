@@ -14,8 +14,9 @@
    "nothing to report" rather than to a wrong answer. flick never writes
    either, so it can never quietly change a setting the user believes only
    they control.
-5. Banner state lives in `BannerQueue`; panels are disposable and rebuilt on
-   every display-topology change without event loss.
+5. Banner state lives in `BannerQueue` — including what a burst folded in and
+   which card the pointer is over; panels are disposable and rebuilt on every
+   display-topology change without event loss.
 6. Banners never take key focus and never make sound.
 7. Notification content never appears in logs; persistence is a user choice
    (off = nothing touches disk).
@@ -37,7 +38,7 @@ usernoted db2 ──read-only──► SystemMirrorProvider   normalize · dedup
               ┌───────────────────────┼─────────────────────┐
               ▼                       ▼                     ▼
         BannerQueue             inbox (sqlite)        digests (M2)
-   coalesce · pause · capacity        │
+ coalesce · pause/expand · capacity   │
               ▼                       ▼
       BannerWindowSystem          InboxView
    NSPanel per banner · all Spaces · fullscreen aux
@@ -67,9 +68,76 @@ re-presentation. Capacity shrink pushes overflow back into the waiting line
 ### Bursts
 
 Thread-mates arriving inside the coalesce window fold into the existing
-banner (newest content on the face, "+N more" as the receipt) instead of
-stacking. Beyond visible capacity, entries queue; hover pauses rotation so
+banner instead of stacking: the newest wins the face, "+N more" is the
+receipt. Beyond visible capacity, entries queue; hover pauses rotation so
 banners never swap under the cursor.
+
+**The fold keeps its events, and hover opens them.** "+9 more" alone is a
+number you can't do anything with — it says a burst happened without saying
+what was in it, and the nine events it stands for were already thrown away
+by the time you read it. `BannerQueue.Entry` therefore carries the folded
+events (newest first, bounded by `foldPreviewLimit`; the *count* is tracked
+separately so trimming the list can never make the banner under-report), and
+hovering the banner opens it downward into that list — up to
+`maxFoldRows` lines, the tail collapsed into one "and N earlier". Hover
+already froze the dismiss clock, so the list stays up exactly as long as
+you're reading it, and a burst you don't look at costs nothing it didn't
+cost before.
+
+Two consequences worth knowing:
+
+- **Which banner is hovered is queue state, not panel state.** Expanding one
+  card re-lays every card beneath it, so the render pass has to see it —
+  `BannerQueue` holds a `hoveredID` (an id, not a bool) and stamps
+  `Entry.expanded`. Exit only clears the hover it owns, because entering B
+  can beat leaving A. Dismissing the hovered banner clears it too: SwiftUI
+  doesn't reliably send an exit for a view that vanishes under the cursor,
+  and a hover left set would pause the queue forever.
+- **The expanded height is computed, never measured.** `BannerGeometry
+  .cardSize` is the single arithmetic both `BannerView` and the panel size
+  themselves from, and the view takes its row count from
+  `foldListedCount`/`foldRowCount` rather than repeating it — the card's
+  height is fixed, so a view that drew one row more than the height paid for
+  would clip it silently. `NSHostingView.fittingSize` is stale in the same
+  turn as the state change that grew the view on macOS 26; measuring settles
+  the panel on the previous height (the bug pounce's filter row shipped once).
+- **Privacy is per event, in the list too.** A `redacted` thread-mate keeps
+  its body to itself even when the face of the fold is visible — the fold is
+  a rendering of many events, not an inheritance from one.
+
+### A stack of distinct banners
+
+Separate sources get separate cards, and the cards are *dealt*: each one laps
+`BannerGeometry.overlap` points over the card above it and rides a panel with
+a real shadow (`hasShadow`, invalidated on every frame change). The z-order is
+free — panels are created newest-last and `orderFrontRegardless` puts each new
+one in front — so the pile reads as one stack with depth rather than as a form
+with rows. The card's `size.height` includes the strip its successor covers,
+so the reading area is unchanged from the flat-list version; grow one without
+the other and text starts clipping.
+
+`BannerGeometry.step` — a lateral offset per card, fanning the stack
+leftward — is **deliberately 0**. The fanned version went to a feel-test and
+the drift read as misalignment rather than depth, worsening the deeper the
+stack went; the lap and the shadow carry it alone. The knob stays so the idea
+isn't rediscovered and re-shipped.
+
+Because a hovered fold makes one card taller, placement can't be a closed
+form per index: `BannerGeometry.stackFrames` walks the whole stack
+cumulatively and returns nil for any card that would leave the visible frame
+(and everything after it). The compositor drops those panels and the queue
+keeps the events, so a card pushed off the bottom comes back on the next
+render.
+
+**An expansion that doesn't fit refuses to grow rather than laying itself off
+screen.** `capacity` is counted for collapsed cards, so on a short display a
+fold near the bottom of the stack can want more room than there is. If the
+laid-out stack loses any card, the compositor re-lays it with the expansion
+dropped. That is not cosmetic: closing the panel *under the pointer* would
+strand the hover — no exit event follows a panel that is simply gone — and a
+hover left set pauses the queue for good. Same reasoning covers the other
+path that can take a hovered card away without an exit: `setCapacity`
+clearing the hover it just pushed into the waiting line.
 
 ### The undocumented mirror
 
