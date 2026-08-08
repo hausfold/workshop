@@ -146,7 +146,7 @@ before **any** of: filing an application, paid marketing, or incorporating an
 entity that trades under the name. Below that line the exposure is logged and
 accepted. Above it, "we looked at their website" is not a clearance opinion.
 
-### 0.3 ✅ Drain the queue — gate green 2026-08-08, and it decays
+### 0.3 🟨 Drain the queue — PR/lock half green 2026-08-08, branches still open
 
 **A namespace rename conflicts with every open branch.** Today the family has
 exactly one open PR — that's the readiness signal, and it decays.
@@ -155,6 +155,9 @@ exactly one open PR — that's the readiness signal, and it decays.
 for r in workshop nebelhaus nebelung pounce perch holt homebrew-tap .github; do
   gh pr list --state open -R nebelhaus/$r
 done
+# the loop above is the nebelhaus org only — the hausfold org already holds
+# repos that §2 and §5 edit, and they have their own lanes
+for r in hausfold.co ops; do gh pr list --state open -R hausfold/$r; done
 holt                            # every live/parked worktree, all repos
 ~/code/workshop/bench status    # dirty trees, unpushed, stale locks
 ```
@@ -170,14 +173,26 @@ holt                            # every live/parked worktree, all repos
 **Gate:** `bench status` clean, zero open PRs, zero unmerged `worktree-*`
 branches.
 
-**Measured 2026-08-08:** zero open PRs across all eight repos; all six lock edges
-current, no OFF-MAIN pin. Two leftovers that are *not* blockers but should be
-swept before the sweep: a stale `perch` branch `worktree-workshop-name` (no
-checkout, no registry row — `git -C perch branch -D` it), and a `holt` worktree
-under `~/.codex/worktrees/`. One release edge is behind — `nebelhaus v2026.08.08`
-is 13 commits behind main — which is orthogonal to the rename, but note that
-**cutting that release after §1 lands stamps a `haus.*` rice**, so either release
-before the sweep or accept that the next tag is the rename's.
+**Measured 2026-08-08 — two of the gate's three clauses.** Zero open PRs across
+the eight `nebelhaus/*` repos; all six lock edges current, no OFF-MAIN pin. The
+**branch clause is not met** and shouldn't be forced: `holt` lists live lanes
+across workshop, nebelhaus, hausfold and perch. Sort them like this:
+
+- 🚨 **`nebelhaus`'s `worktree-fizzy-moseying-snowglobe` is exempt.** It carries
+  §1.0's parked spike (wip `7d9ee70`), which is §1's expensive input. An agent
+  reaping to satisfy this gate deletes the artifact the next phase depends on.
+- A stale `perch` branch `worktree-workshop-name` — no checkout, no registry row.
+  `git -C perch branch -D` it.
+- A `holt` checkout under `~/.codex/worktrees/`. That path is **not** where any
+  client's lanes live (`AGENTS.md`: every client shares
+  `~/.cache/claude-worktrees/`), so it's an orphan created outside `holt` — the
+  invisible-in-the-statusline gotcha, not a session to resume. Remove it.
+- Everything else: land or park normally.
+
+One release edge is behind — `nebelhaus v2026.08.08` is 13 commits behind main —
+which is orthogonal to the rename, but note that **cutting that release after §1
+lands stamps a `haus.*` rice**, so either release before the sweep or accept that
+the next tag is the rename's.
 
 ### 0.4 ✅ hausfold.com — checked 2026-08-08, and it isn't for sale
 
@@ -344,6 +359,11 @@ breaking, so that coupling never has to happen.
 **The tree is 110 declared leaves, not the "~44" this section used to claim**
 (155 paths counting each `<name>` submodule field). Measured, not estimated —
 see §1.0's method, which is also the only way to get the real number.
+⚠️ `options-roadmap.md` says **130** for the same tree, on its own date and by its
+own count. Don't reconcile the two by picking one: **re-run §1.0's snippet** — it
+states its rule (every node whose `_type` is `"option"`, under
+`options-modules.nix`, internals included) and is the number `renamed.nix` has to
+agree with.
 
 ### 1.0 ✅ Spike run 2026-08-08 — the alias carries it. Take §1.1a.
 
@@ -546,20 +566,25 @@ Easy to miss and it breaks *your* sessions, not users':
 - `nebelhaus.claude.globalMd` → `haus.claude.globalMd`, in `hearth`.
 - The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
   skill's own `name:` + description.
-  ⚠️ **A golden test pins that path by hand.** `flake.nix`'s `expectedFontTable`
-  contains the literal line
-  `file .claude/skills/nebelhaus/references/this-machine.md moves` — the
-  font-reach check fails on the rename with an error about *fonts*, which is the
-  last place anyone would look. Move it in the same commit.
+  ⚠️ **Two golden tests pin that path by hand.** The literal line
+  `file .claude/skills/nebelhaus/references/this-machine.md moves` is in
+  **both** `expectedScaleTable` (`nebelhaus/flake.nix:1194`) and
+  `expectedFontTable` (`:1311`). So the rename fails the *scale-reach* and
+  *font-reach* checks — errors about scale and fonts, the last two places anyone
+  would look. Fix only one and the other still fires. Move both in the same commit.
 - `~/.claude/CLAUDE.md`'s generated body (rendered from the option above) —
   its routing table, its `holt` section.
 - `HAUS_CONSUMER` — already `haus`-prefixed, **no change**.
 - `holt` hooks — repo-agnostic, **no change**.
 - `~/.cache/claude-worktrees/` — already documented as historical, **leave**.
 
-**Gate:** `bench try` builds; the §1.2 derivation diff is still empty; the docs
-site builds and `nix build .#options-json` regenerates `reference/options.md`
-with zero drift. *(No `haus rebuild` here — that activates the machine, which is
+**Gate:** `bench try` builds; the §1.2 derivation walk shows **no leaf divergence
+beyond `options.json` and the generated files this phase deliberately edited**
+(the ~12 `# GENERATED from nebelhaus.*` comment lines — see the fourth class
+above); the docs site builds and `nix build .#options-json` regenerates
+`reference/options.md` with zero drift. *(This used to read "the §1.2 derivation
+diff is still empty", which §2 is designed to break — the exact shape of
+over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` here — that activates the machine, which is
 👤's, never 🤖's.)*
 
 ---
