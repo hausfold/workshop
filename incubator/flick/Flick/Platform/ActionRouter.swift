@@ -39,9 +39,11 @@ final class ActionRouter {
         case .openApp:
             openApp(bundleID: action.target ?? event.source)
         case .openURL:
-            guard let target = action.target,
-                  let url = URL(string: target),
-                  ["https", "http", "file"].contains(url.scheme?.lowercased() ?? "")
+            // Same predicate `hasDefaultAction` draws from, so a row can never
+            // be drawn pressable for a URL this would then refuse.
+            guard NotificationEvent.Action.opensAsURL(action.target),
+                  let target = action.target,
+                  let url = URL(string: target)
             else {
                 Self.log.info("refused non-web/file URL action for \(event.id, privacy: .public)")
                 return

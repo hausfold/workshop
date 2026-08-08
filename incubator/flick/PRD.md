@@ -68,16 +68,16 @@ retry/logs — capability-advertised per provider, never generic promises.
    top-right within 150 ms, silent, and auto-dismisses; the event is in the
    inbox afterward.
 2. Send 10 events sharing `--thread` inside 10 s: one banner, "+9 more",
-   newest title on its face. Hover it and **all nine** are listed — a normal
+   newest title on its face. Hover it: the card opens downward into the
+   folded thread-mates, newest first, and **all nine** are listed — a normal
    burst is never truncated on a normal display, because the row count comes
-   from the screen and not from a constant. Each row highlights under the
-   pointer and clicks through to *its own* event's action, taking the banner
-   with it; a row whose event carries no action doesn't highlight and doesn't
-   click. Now send 200 on that thread: the card fills the space it has, ends
-   in "and N earlier", and is never taller than the display. Hover it: the card opens downward into the
-   folded thread-mates, newest first, the tail collapsed into "and N
-   earlier"; the cards below it move down to make room. Unhover: it closes
-   and the dismiss clock restarts.
+   from the screen and not from a constant. Cards below it move down, and are
+   allowed to be pushed off screen entirely; they come back on unhover, which
+   also closes the card and restarts the dismiss clock. Each row highlights
+   under the pointer and clicks through to *its own* event's action, taking
+   the whole banner with it; a row whose event goes nowhere doesn't highlight
+   and doesn't click. Now send 200 on that thread: the card fills the space
+   it has, ends in "and N earlier", and is never taller than the display.
 3. Hover a banner: it stays; unhover: rotation resumes.
 4. `rules.json` routing a source to `drop` takes effect on the next event
    after save, no restart.

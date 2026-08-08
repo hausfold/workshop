@@ -164,14 +164,19 @@ cumulatively and returns nil for any card that would leave the visible frame
 keeps the events, so a card pushed off the bottom comes back on the next
 render.
 
-**An expansion that doesn't fit refuses to grow rather than laying itself off
-screen.** `capacity` is counted for collapsed cards, so on a short display a
-fold near the bottom of the stack can want more room than there is. If the
-laid-out stack loses any card, the compositor re-lays it with the expansion
-dropped. That is not cosmetic: closing the panel *under the pointer* would
+**A card pushed off by an expansion is fine; the expanded card itself is
+not.** Losing the tail is the intended outcome — that is how a fold gets to
+fill the screen instead of stopping at whatever traffic happened to arrive
+under it, and those entries are still in the queue. So the fallback in
+`render` re-lays with the expansion dropped only when the *hovered* card's own
+frame comes back nil, never when some card below it did. (It used to fire on
+any missing frame, which capped every fold at the cards beneath it.) Guarding
+that one card is not cosmetic: closing the panel *under the pointer* would
 strand the hover — no exit event follows a panel that is simply gone — and a
-hover left set pauses the queue for good. Same reasoning covers the other
-path that can take a hovered card away without an exit: `setCapacity`
+hover left set pauses the queue for good. Since `foldRowCapacity` sizes the
+expansion to fit in the first place, the fallback should never actually fire;
+it stays as the honest failure if it ever does. Same reasoning covers the
+other path that can take a hovered card away without an exit: `setCapacity`
 clearing the hover it just pushed into the waiting line.
 
 ### The undocumented mirror

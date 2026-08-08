@@ -34,7 +34,9 @@ notifications experimentally tomorrow.
   a few points of motion (none under Reduce Motion), hover to hold.
 - **a stack, not a spreadsheet** — banners deal downward from the top-right
   as overlapping cards. A burst on one `--thread` stays one card with a
-  count; hover it and the card opens into the list of what folded in.
+  count; hover it and the card opens into the list of what folded in — as
+  many lines as the screen has room for, each one a button for its own
+  event.
 - **rules, not settings mazes** — `~/.config/flick/rules.json`: route a
   source to banner / inbox / digest / drop; quiet hours; critical punches
   through. Hot-reloaded on save.

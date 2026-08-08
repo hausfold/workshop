@@ -60,7 +60,12 @@ struct BannerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             face
-            if entry.expanded {
+            // `maxFoldRows` is part of the condition, not just of the
+            // contents: on a screen too short to pay for a single row
+            // `cardSize` returns the bare face, and a list drawn anyway —
+            // even the eventless "and N earlier" line — would overflow a
+            // panel that never grew.
+            if entry.expanded, maxFoldRows > 0 {
                 foldList
             }
         }
@@ -84,6 +89,11 @@ struct BannerView: View {
             if !inside { hoveredRow = nil }
             onHover(inside)
         }
+        // A thread-mate folding in while the pointer sits still shifts every
+        // row down by one. The index the highlight is holding would then be a
+        // different event — drop it and let the next move re-light the row
+        // actually under the cursor.
+        .onChange(of: entry.coalescedCount) { hoveredRow = nil }
         .opacity(arrived ? 1 : 0)
         .offset(y: arrived || reduceMotion ? 0 : -8)
         .onAppear {
@@ -262,7 +272,12 @@ struct BannerView: View {
                 .onHover { hoveredRow = $0 ? index : (hoveredRow == index ? nil : hoveredRow) }
                 .accessibilityLabel("\(folded.title). \(folded.actions.first?.label ?? "Open \(folded.source)")")
         } else {
-            content.accessibilityLabel(folded.title)
+            // A dead row still has to *clear* the highlight when the pointer
+            // arrives on it — without this, crossing from a live row onto a
+            // dead one leaves the live one lit under nothing.
+            content
+                .onHover { if $0 { hoveredRow = nil } }
+                .accessibilityLabel(folded.title)
         }
     }
 

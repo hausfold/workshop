@@ -219,6 +219,55 @@ final class EventPipelineTests: XCTestCase {
             NotificationEvent(source: "deploy", title: "done").hasDefaultAction,
             "a bare slug with no actions goes nowhere — the row must not look pressable"
         )
+
+        // The cases that made the predicate a promise the router couldn't
+        // keep: it has to refuse exactly what `ActionRouter` refuses.
+        XCTAssertFalse(
+            NotificationEvent(
+                source: "ci", title: "deploy",
+                actions: [.init(id: "r", label: "Retry", kind: .command, target: "retry")]
+            ).hasDefaultAction,
+            "command hooks aren't wired yet (PRD M2) — the router only logs, so the row is dead"
+        )
+        XCTAssertFalse(
+            NotificationEvent(
+                source: "ci", title: "chat",
+                actions: [.init(id: "o", label: "Open", kind: .openURL, target: "slack://channel")]
+            ).hasDefaultAction,
+            "the router refuses a scheme it won't open; the row must refuse it too"
+        )
+        XCTAssertFalse(
+            NotificationEvent(
+                source: "ci", title: "no target",
+                actions: [.init(id: "o", label: "Open", kind: .openURL, target: nil)]
+            ).hasDefaultAction
+        )
+        XCTAssertTrue(
+            NotificationEvent(
+                source: "ci", title: "file",
+                actions: [.init(id: "o", label: "Open", kind: .openURL, target: "file:///tmp")]
+            ).hasDefaultAction,
+            "file: is on the router's list, so it is on this one"
+        )
+        XCTAssertTrue(
+            NotificationEvent(
+                source: "ci", title: "noisy apps",
+                actions: [.init(id: "s", label: "Silence", kind: .silenceNative, target: nil)]
+            ).hasDefaultAction,
+            "the silence helper always opens something, target or not"
+        )
+
+        // Only the *first* action is what a click runs, so only it decides.
+        XCTAssertFalse(
+            NotificationEvent(
+                source: "ci", title: "two",
+                actions: [
+                    .init(id: "a", label: "Hook", kind: .command, target: "x"),
+                    .init(id: "b", label: "Open", kind: .openApp, target: "com.apple.Safari"),
+                ]
+            ).hasDefaultAction,
+            "a live second action doesn't rescue a dead first one — performDefault never reaches it"
+        )
     }
 
     @MainActor
