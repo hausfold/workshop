@@ -1290,12 +1290,12 @@ cmd_release() {
   # the diff since the last tag (does this break a published SDK's API?), which
   # is the one thing the date can't encode; ask an agent for the bump if you
   # don't want to make the call yourself.
-  local name="" ship="" want=""
+  local name="" ship="" askver=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --ship) ship=1 ;;
       -*)     die "unknown flag: $1   (usage: bench release <repo> [version] [--ship])" ;;
-      *)      if [ -z "$name" ]; then name="$1"; else want="$1"; fi ;;
+      *)      if [ -z "$name" ]; then name="$1"; else askver="$1"; fi ;;
     esac
     shift
   done
@@ -1309,12 +1309,12 @@ cmd_release() {
 
   local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
   if [ "$scheme" = semver ]; then
-    [ -n "$want" ] || die "$name is semver — give it a number: bench release $name <X.Y.Z>
+    [ -n "$askver" ] || die "$name is semver — give it a number: bench release $name <X.Y.Z>
   (last released: ${lasttag:-none} · tree says $(read_version "$name"))"
-    [[ "$want" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-      || die "'$want' is not a plain X.Y.Z semver"
+    [[ "$askver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+      || die "'$askver' is not a plain X.Y.Z semver"
   else
-    [ -z "$want" ] || die "$name is CalVer — the date IS the version, drop the '$want'"
+    [ -z "$askver" ] || die "$name is CalVer — the date IS the version, drop the '$askver'"
   fi
 
   [ -z "$(git -C "$dir" status --porcelain)" ] \
@@ -1325,7 +1325,7 @@ cmd_release() {
 
   local version tag
   if [ "$scheme" = semver ]; then
-    version="$want"
+    version="$askver"
     git -C "$dir" rev-parse -q --verify "refs/tags/v$version" >/dev/null \
       && die "v$version is already tagged on $name — pick the next number
   (npm/PyPI/crates versions are immutable; a cut one can only be superseded)"
@@ -1381,7 +1381,7 @@ cmd_release() {
     cmd_ship
   else
     warn "the version stamp moved $name's HEAD — its lock edge downstream is now stale."
-    hint "ripple it: bench ship   (or cut the next one with: bench release $name${want:+ <version>} --ship)"
+    hint "ripple it: bench ship   (or cut the next one with: bench release $name${askver:+ <version>} --ship)"
   fi
 }
 
