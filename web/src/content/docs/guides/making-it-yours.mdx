@@ -122,8 +122,10 @@ haus reset theme.accent      # remove the override; inherit the rice/preset agai
 ```
 
 Only `nebelhaus.*` options cross this writable boundary (the prefix is optional
-on the command line). `haus unset <path>` explicitly writes `null` for a nullable
-option; `haus reset <path>` removes the generated override. See [the haus CLI
+on the command line). `haus unset <path> […]` explicitly writes `null` for
+nullable options; `haus reset <path> […]` removes the generated overrides. Both
+take a list, and — like `haus set`'s pairs — apply it all-or-nothing in a single
+rebuild, so undoing a two-option change is one command too. See [the haus CLI
 reference](/reference/haus/#the-writable-settings-overlay) for the exact model.
 
 ### Identity

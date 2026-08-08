@@ -27,8 +27,8 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus options` | Refresh the annotated catalogue of every `nebelhaus.*` option on this machine's pinned rice. |
 | `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `nebelhaus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
-| `haus unset <path>` | Explicitly set a nullable option to `null`, then rebuild. |
-| `haus reset <path>` | Remove one machine override, inherit the host/preset/rice value again, then rebuild. |
+| `haus unset <path> [<path>…]` | Explicitly set nullable options to `null`, then rebuild once. Takes a list, all-or-nothing. |
+| `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host/preset/rice value again, then rebuild once. Takes a list, all-or-nothing. |
 | `haus plan` | Build a read-only preview of package, macOS-setting, and cask changes. |
 | `haus diff` | Compare the active generation's declared macOS settings with the machine's effective state. |
 | `haus capture [category…]` | Render this Mac's current settings as config lines and save a restorable snapshot. |
@@ -59,6 +59,18 @@ palette *and* macOS's own appearance — because `haus set` rebuilds per call, s
 two calls would be two rebuilds with the machine sitting half-switched in
 between. Several pairs are **all-or-nothing**: every file is written before
 anything is type-checked, and one rejected value rolls all of them back.
+
+`unset` and `reset` take a list of paths for the same reason, with the same
+all-or-nothing single rebuild — so the way back out of a two-option intent is
+also one command:
+
+```sh
+haus reset theme.flavor theme.systemAppearance
+```
+
+A path in that list that has no override is reported and skipped rather than
+fatal; you asked for it to inherit, and it already does, so the rest are still
+withdrawn.
 
 `haus set` writes and stages a small module at
 `~/.config/nix/hosts/<hostname>/settings/theme.accent.nix`. `mkNebelhaus`
