@@ -27,6 +27,7 @@ them:
 | 4 | **Rename now, neutralize defaults later** | the sweep is mechanical and provable; the rice carve-out is design work (§7). |
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror and the archived `trill`. |
+| 7 | **One site repo: `hausfold/website`** | `/`, `/docs`, `/market`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. |
 
 ### And these three reverse earlier written decisions
 
@@ -129,19 +130,33 @@ cheap. Re-log in `go-to-market.md` §9 as decided-accept rather than open.
 2026-08-07), so Apple-side work has started. **Apple never lets a bundle ID
 change after an app record exists.**
 
-Check, in [App Store Connect](https://appstoreconnect.apple.com) and the
-[Developer portal](https://developer.apple.com/account/resources/identifiers):
+**Audited 2026-08-08 — result: two Identifiers exist, and they do not block
+anything.**
 
-- [ ] Is there an **App Record** for perch (iOS or macOS)? If yes — which bundle ID?
-- [ ] Which **App IDs / Identifiers** are registered: `com.nebelhaus.perch`,
-      `.ios`, `.ios.share`, `.mobile`?
-- [ ] Is `group.com.nebelhaus.perch` a registered **App Group**?
-- [ ] Any provisioning profiles bound to them?
+| Found | What it is |
+|---|---|
+| `XC com nebelhaus perch ios` → `com.nebelhaus.perch.ios` | an **App ID**, Xcode-generated (the `XC ` prefix is automatic signing's naming) |
+| `XC com nebelhaus perch ios share` → `com.nebelhaus.perch.ios.share` | same, for the share extension |
 
-**Gate:** if **no App Record exists**, Phase 4 proceeds as planned. If one
-*does*, stop and escalate — you're choosing between a permanent
-`com.nebelhaus.perch` and deleting/re-creating the app record, and that's a
-decision, not a step.
+**An App ID is not an App Store Connect app record, and only the record is
+permanent.** These two were created by automatic signing during a device build.
+Deleting an App ID frees its bundle ID for re-registration; it is an **app
+record** — and above all an *uploaded build* — that burns a bundle ID forever.
+
+Two boxes still open, both cheap:
+
+- [ ] 👤 Confirm **no App Record** exists in App Store Connect → My Apps, and
+      **no TestFlight build** has ever been uploaded. The `XC ` prefix is strong
+      evidence of neither, but confirm rather than infer — this is the one
+      irreversible thing in the whole rename.
+- [ ] 👤 Check whether `group.com.nebelhaus.perch` is registered under
+      Identifiers → **App Groups**. It appears in the code
+      (`perch/PerchMobileCore/MobileConfig.swift`) but wasn't in the audit list,
+      so it may not be registered yet — in which case §4.3 costs nothing at all.
+
+**Gate:** no app record, no uploaded build → Phase 4 proceeds as planned. If
+either exists, stop and escalate — that's a choice between a permanent
+`com.nebelhaus.perch.ios` and deleting the record, not a step.
 
 ---
 
@@ -289,9 +304,9 @@ half-migrated org means flake inputs resolving through redirects for days.
       repo is `hausfold/hausfold` — zero churn, mildly confusing; or
       **(b)** move the website checkout to `website/` and update `bench:1003`'s
       `repos=(… hausfold consumer)` list plus the comment at `bench:1000-1002`.
-      **(b) is the honest one**, and §5.1 may fold `hausfold/website` into
-      `workshop/web` anyway, which dissolves the collision entirely — so
-      sequence §5.1's decision before this if you can.
+      **✅ Resolved by §5.1's decision: take (b).** The site consolidates into
+      `hausfold/website`, so the checkouts become `workshop/hausfold/` (the
+      platform) and `workshop/website/` (the site) — each named for its repo.
 - [ ] Confirm you can create repos in `hausfold` and that transfer targets show it.
 - [ ] **Repo secrets travel with the repo; org-level secrets do not.** perch's
       `MACOS_CERT_P12` / `NOTARY_*` / `ASC_*` / `IOS_DIST_*` are repo secrets →
@@ -367,11 +382,18 @@ Mac immediately.
 
 ### 4.1 👤 Developer portal, before touching code
 
-- Register App IDs: `com.hausfold.perch`, `com.hausfold.perch.ios`,
-  `com.hausfold.perch.ios.share`, `com.hausfold.perch.mobile`,
+Per §0.5 the only registered Identifiers are the two Xcode-generated iOS ones,
+so this is a create-new-and-abandon-old job, not a migration.
+
+- Change the bundle IDs in the Xcode project and let **automatic signing**
+  register `com.hausfold.perch.ios` and `com.hausfold.perch.ios.share` for you —
+  the same way the `XC `-prefixed pair got there.
+- Register App Group `group.com.hausfold.perch` (see §4.3 first — it carries data).
+- Register the macOS App IDs as needed: `com.hausfold.perch`,
   `com.hausfold.pounce`, `com.hausfold.flick`.
-- Register App Group `group.com.hausfold.perch`.
 - Regenerate provisioning profiles; re-export `IOS_DIST_CERT_P12` if bound.
+- 👤 **Delete the two `XC com nebelhaus perch ios*` Identifiers** once the new
+  ones sign a build. Safe: no app record ever claimed them.
 - **Team ID `88M28542LQ` does not change.** Certificates don't change.
 
 ### 4.2 🤖 The code
@@ -439,35 +461,78 @@ name.
 
 ## §5 — Domains and sites
 
-### 5.1 👤 A decision this doc won't make for you
+### 5.1 ✅ Decided 2026-08-08 — one site repo, `hausfold/website`
 
-Two site codebases exist today:
+Two site codebases exist today and they merge into the second:
 
-- `workshop/web/` — the Astro Starlight docs, serving `nebelhaus.com`
-  (worker name `nebelhaus`, apex route).
-- `hausfold/` (repo `hausfold/website`) — a static one-sheet on
-  `hausfold.co` + `www`, custom-domain Workers, `public/index.html` and
-  `public/perch/`.
+- `workshop/web/` — the Astro Starlight docs + `index/pounce/perch` landing
+  pages + **the Worker**, serving `nebelhaus.com` (worker name `nebelhaus`,
+  apex route).
+- `workshop/hausfold/` (repo `hausfold/website`) — a static one-sheet on
+  `hausfold.co` + `www`, assets-only Worker, `public/index.html` and
+  `public/perch/privacy/`.
 
-**Fold `hausfold/website` into `workshop/web` and serve hausfold.co from the
-Astro app** — otherwise `/docs`, `/market` and `/holt` live in one repo and `/`
-lives in another, and the nav has to be maintained twice. Alternative: move
-`web/` into the `hausfold/hausfold` repo so the platform ships its own docs.
-Pick one before 5.2; the steps below assume the first.
+**Everything moves into `hausfold/website`: `/`, `/docs`, `/market`, `/holt`,
+`/pounce`, `/perch`.** One repo, one domain, one deploy. The landing pages get
+**redesigned**, not ported — nebelhaus stops being a destination and becomes one
+rice inside `/market`, so its landing page has no domain to be the front door of.
 
-### 5.2 🤖 The move
+This decision does two useful things beyond tidiness:
 
-- `web/astro.config.mjs:8` → `site: 'https://hausfold.co'`.
-- Routes: `/docs/*` (the current Starlight tree), `/holt`, `/market` (empty
-  placeholder — see §7), `/` (the one-sheet, ported from `hausfold/public/index.html`).
-- `web/wrangler.toml`: worker `nebelhaus` → `hausfold`, add the `hausfold.co` +
-  `www.hausfold.co` custom domains, keep the `nebelhaus.com/*` route.
-- `web/worker.js`: `nebelhaus.com/*` → **301** to the matching `hausfold.co`
-  path. Keep `nebelhaus.com/` itself as the rice's showcase page, or 301 it
-  too — your call, it's reversible.
-- Preserve slugs where you can; where you can't (`what-is-nebelhaus` →
-  `what-is-hausfold`), add an explicit redirect.
-- `llms.txt.ts` / `llms-full.txt.ts` regenerate.
+1. **It dissolves §3.1's on-disk collision.** Checkouts become
+   `workshop/hausfold/` (the platform) and `workshop/website/` (the site) —
+   which is just what the repos are called. Take §3.1 option (b).
+2. **It removes the duplicate perch surface** — perch marketing currently exists
+   in both repos.
+
+#### The one condition: don't drag Nix into the site repo's CI
+
+`web/scripts/gen-options.mjs` consumes `nix build .#options-json` from the rice,
+and `options-drift.yml` fails the build when `reference/options.md` is stale.
+Move that as-is and `hausfold/website` needs Nix plus a flake pin just to check
+its docs.
+
+Use the family's own rule instead (`options-roadmap.md` §7): *"mirror only what
+fits in one expression and can be pinned by a golden test; anything table-shaped
+becomes an output of the repo that owns it."* Same lesson as `ports.meta.json`.
+
+So: **`hausfold/hausfold` commits `options.json` as a generated, drift-checked
+artifact** (its CI already has Nix), and the site reads that file. No Nix in the
+site repo, and the drift check stays where the derivation is.
+
+### 5.2 🤖 The move — and the salvage list
+
+The pages get redesigned. **These are not pages and must survive verbatim:**
+
+| Salvage | Why it's load-bearing |
+|---|---|
+| `web/worker.js` (158 lines) + `web/test/*.js` (4 suites) | `/init.sh` **proxies the rice's `bootstrap.sh`** — it *is* the install one-liner in every README and doc. Plus `/download/<app>` → latest release, and `/api/release/<app>`, which is how the landing pages label the download button with a real version instead of a hardcoded one that goes stale. |
+| `hausfold/public/perch/privacy/` | perch's **privacy policy** — an App Store submission requirement. |
+| `web/src/pages/llms.txt.ts`, `llms-full.txt.ts` | generated routes LLM/agent consumers read. |
+| `web/public/` — `logos/`, `social/*-og.png`, `media/stills/`, `_headers` | the assets and OG cards; see `assets/SHOTLIST.md` for the media policy. |
+| the **copy** in the three `.astro` pages | redesign the layout, keep the sentences that took work. |
+
+Then:
+
+- `astro.config.mjs` → `site: 'https://hausfold.co'`, and the GitHub editLink
+  baseUrl → the new repo.
+- Routes: `/` (one-sheet), `/docs/*` (the Starlight tree), `/market`
+  (placeholder — see §7), `/holt`, `/pounce`, `/perch`.
+- `worker.js`: `REPO` → `hausfold/hausfold`, `DOWNLOADABLE` app URLs →
+  `github.com/hausfold/<app>`, and drop `trill`.
+- `wrangler.toml`: this repo stops being assets-only — it gains a `main` and a
+  build step. ⚠️ **Keep `custom_domain = true`** on the hausfold.co routes; its
+  comment explains why (the zone has no DNS records, and a plain `pattern` route
+  needs a proxied record to already exist).
+- Add the `nebelhaus.com/*` route and **301** it path-for-path to hausfold.co.
+- Preserve slugs; where you can't (`what-is-nebelhaus` → `what-is-hausfold`),
+  add an explicit redirect.
+
+⚠️ **`/init.sh` needs a product answer, not just a rename.** Today
+`curl nebelhaus.com/init.sh | bash` installs the rice. Post-split, does
+`hausfold.co/init.sh` install the platform with nebelhaus as the default rice,
+or ask which rice? Decide before the redirect goes live — it's the single most
+copy-pasted URL you own.
 
 ### 5.3 👤 DNS + verification
 
@@ -493,8 +558,10 @@ Write these down or they get "fixed" by a later session:
 
 - **`nebelung`** keeps its name. It's a cat breed, its audience is the
   Catppuccin community, and renaming costs a 53-port catalog sweep for zero gain.
-- **`nebelhaus`** keeps its name — as the **rice**. It stays the developer-focused
-  showcase and the first thing in `/market`.
+- **`nebelhaus`** keeps its name — as the **rice**. It loses its domain and its
+  landing page, but it still needs a *page*: it's the developer-focused showcase
+  and the first entry in `/market`. Don't let "no landing page" turn into "no
+  page" — `curl … /init.sh | bash` installs it, so something has to describe it.
 - **`haus` the CLI** — unchanged, and now the namespace matches it.
 - **`holt`, `pounce`, `perch`, `flick`, `prowl`, `sill`, `den`, `hearth`,
   `collar`, `hush`** — all product/room names, all unchanged.
