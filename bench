@@ -194,7 +194,7 @@ EOF
 rev_on_main() {
   local dir rev ref refs=()
   dir="$(repo_dir "$1")"; rev="$2"
-  [ -n "$rev" ] && [ "$rev" != "?" ] || { echo unknown; return; }
+  case "$rev" in ''|'?') echo unknown; return ;; esac   # locked_rev's own failure value
   [ -d "$dir/.git" ] || { echo unknown; return; }
   git -C "$dir" cat-file -e "${rev}^{commit}" 2>/dev/null || { echo unknown; return; }
   for ref in origin/main main; do
