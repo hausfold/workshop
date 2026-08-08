@@ -339,9 +339,11 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   stuff — new features, refactors, anything users could feel break — verify
   it works, then stop and ask before shipping. When unsure which bucket, ask.
 - **Releases are always gated.** `./bench release` puts a version in real
-  users' hands (tag → CI → homebrew). Never run it unprompted — but DO
-  propose one after shipping user-facing changes to a tagged repo. Nudging
-  is expected; tagging is the user's call.
+  users' hands (tag → CI → homebrew, or → five package registries). Never run
+  it unprompted — but DO propose one after shipping user-facing changes to a
+  tagged repo. Nudging is expected; tagging is the user's call. The flow is
+  [`.agents/skills/release/SKILL.md`](./.agents/skills/release/SKILL.md),
+  reachable as `/release`.
 - Commit in the repo you edited; `bench ship` refuses dirty trees on purpose
   (commit messages are yours/the user's, lock bumps are its).
 - **Releases ride tags, not pushes.** Versions are **date-based** (CalVer):
@@ -358,6 +360,17 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   back to the repo, so returning early would leave a checkout behind origin and
   a `bench ship` that ripples a superseded rev. It fast-forwards for you when
   the run goes green.
+- **`holt` is the one semver repo, and it's forced, not chosen:**
+  `./bench release holt 0.2.0`. It publishes five SDKs to npm, PyPI, crates.io,
+  SwiftPM and the Go proxy; three of those already hold `0.1.0` and none of
+  them ever let a published number be withdrawn, so the version is a
+  compatibility contract rather than a date — and CalVer would additionally
+  force the Go SDK's import path to end in `/v2026`, changing every January.
+  All five SDKs share the one number (five clients agreeing about one wire
+  format is the invariant the SDK CI job protects). `bench` refuses a version
+  argument for the CalVer repos and refuses to run without one for holt.
+  Deciding the bump means reading `git diff <last-tag>..main -- sdk/` against
+  the published SDK surface — that judgement is what `/release` is for.
 - Don't cross-edit: a color hex in `nebelhaus`, or launchd logic in `pounce`,
   is in the wrong repo even if it would work. Each repo's own agent instructions
   enforce its boundary — respect it from up here too.
