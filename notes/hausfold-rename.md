@@ -113,18 +113,36 @@ Hence the two filters: what this gate is actually looking for is an assertion
 that is **still standing** — not one struck through (`~~`) or quoted inside a
 reversal blockquote (`> `). Marked-as-dead is the goal state, not a violation.
 
-### 0.2 👤 Name clearance — 20 minutes, do it now
+### 0.2 👤 Name clearance — partly run 2026-08-08
 
 "hausfold" as an *umbrella* was low exposure. As a **platform with a market and
 paid products**, it's a different check:
 
-- USPTO TESS + EUIPO for "hausfold" in software classes (9/42).
-- npm, crates.io, PyPI, Homebrew: is `hausfold` taken as a package name?
-- GitHub: any `hausfold*` user/org squatting near you.
-- A plain web search for an existing German/Austrian company using it.
+| | Status |
+|---|---|
+| npm — `hausfold` as a package name | ✅ **free** (2026-08-08) |
+| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation |
+| GitHub — any `hausfold*` squatting near you | ✅ nothing found; the org is ours |
+| A web search for an existing company using it | 🚨 **found one** — see below |
+| USPTO TESS + EUIPO, software classes (9/42) | ❌ **not done.** The USPTO search API needs a key; this needs the web UI or a service. **Still 👤.** |
 
-**Gate:** nothing that would force a second rename. If something turns up, stop
-here — this is the cheapest possible moment to pick a different name.
+🚨 **`hausfold.com` is an operating US business: HAUS FOLD, in-home laundry and
+light housekeeping in Charleston / Columbia / Greenville, South Carolina.**
+Registered 2025-04-19, live site, phone, pricing, testimonials, and
+`instagram.com/hausfold`. Not German or Austrian, which is why the original
+phrasing of this check wouldn't have found it. Full detail in §0.4.
+
+**Gate: passed, provisionally — no forced rename.** They sell a household
+*service*; we sell software. Different Nice classes coexist routinely and
+nobody confuses a laundry round with a nix-darwin platform. But they are **first
+in time on the word, in the US, in commercial use**, so this is coexistence
+rather than clearance, and the one check that would settle it is the one still
+undone.
+
+⚠️ **The undone half has a trigger, not a date.** Run the USPTO/EUIPO search
+before **any** of: filing an application, paid marketing, or incorporating an
+entity that trades under the name. Below that line the exposure is logged and
+accepted. Above it, "we looked at their website" is not a clearance opinion.
 
 ### 0.3 🤖 Drain the queue
 
