@@ -56,6 +56,15 @@ final class BannerWindowSystem {
         NSScreen.screens.first.map(ScreenDescriptor.init(screen:))
     }
 
+    private static func frames(for entries: [BannerQueue.Entry], on screen: ScreenDescriptor) -> [CGRect?] {
+        BannerGeometry.stackFrames(
+            on: screen,
+            sizes: entries.map {
+                BannerGeometry.cardSize(foldedCount: $0.coalescedCount, expanded: $0.expanded)
+            }
+        )
+    }
+
     private func syncCapacity() {
         let capacity = targetScreen.map { BannerGeometry.capacity(on: $0) } ?? 0
         queue.setCapacity(min(capacity, 3))
@@ -75,10 +84,30 @@ final class BannerWindowSystem {
             panels.removeValue(forKey: id)
         }
 
-        for (index, entry) in entries.enumerated() {
-            guard let frame = BannerGeometry.slotFrame(on: screen, index: index) else { continue }
+        // One layout pass for the whole stack: a hovered banner expands, and
+        // every card under it has to move down by exactly that much. If the
+        // expansion doesn't fit — a short display, a fold near the bottom of
+        // the stack — the card stays collapsed rather than laying itself off
+        // screen. Closing the panel under the pointer would strand the hover
+        // (no exit event follows a panel that is simply gone) and pause the
+        // queue for good; refusing to grow is the honest failure.
+        var laidOut = entries
+        var frames = Self.frames(for: laidOut, on: screen)
+        if frames.contains(where: { $0 == nil }), let grown = laidOut.firstIndex(where: \.expanded) {
+            laidOut[grown].expanded = false
+            frames = Self.frames(for: laidOut, on: screen)
+        }
+
+        for (index, entry) in laidOut.enumerated() {
+            guard let frame = frames[index] else {
+                // An expanded fold can push the tail of the stack off screen.
+                // Drop those panels — the entries stay in the queue, and the
+                // next render (unhover, dismissal) puts them back.
+                panels.removeValue(forKey: entry.id)?.close()
+                continue
+            }
             let hover: (Bool) -> Void = { [weak self] hovering in
-                self?.queue.setPaused(hovering)
+                self?.queue.setHover(hovering, id: entry.id)
             }
             let dismiss: () -> Void = { [weak self] in
                 self?.queue.dismiss(id: entry.id)

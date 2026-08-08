@@ -46,6 +46,62 @@ already exist, and one it treated as a detail is the actual root blocker.
 > What §7's repo routing means now: `nebelhaus` → `hausfold/hausfold`, and `web`
 > → the consolidated site repo.
 
+
+> **Status, 2026-08-08 (fifteenth pass) — §5.1's macOS Light/Dark box is shipped,
+> and the spike falsified the box's own premise: `AppleInterfaceStyle` is inert in
+> BOTH directions on macOS 26, not just the "off" one.**
+>
+> This is the box the fourteenth pass (below) deliberately left open and handed
+> to Julien — *"whether that box gets escalated in prose or simply built is
+> Julien's call, pending."* It was built. Worth noting which half of that pass's
+> reasoning held: it was right that rice#249 cleared the **stated** blocker and
+> right that rice#252's palette row made the gap one click deep — and wrong, in
+> good faith, to inherit the box's account of *why* the gap existed. The audit
+> checked whether the blocker had cleared; nobody had checked whether the blocker
+> was real.
+>
+> **What shipped ([nebelhaus#257](https://github.com/nebelhaus/nebelhaus/pull/257)).**
+> `nebelhaus.theme.systemAppearance` — `unmanaged` (default) / `flavor` /
+> `light` / `dark`. `"flavor"` is the one that makes light mode complete: latte
+> sets macOS to Light, mocha to Dark, so a latte rice stops looking half-done on
+> a dark Mac. Applied from home-manager activation via System Events, guarded and
+> idempotent; `hausax` grew an `appearance` key and is the oracle.
+>
+> **★ The finding is the valuable part, and it is the reverse of what this doc
+> said for eleven passes.** The box claimed dark-on was one typed setting and
+> dark-off was the impossible half. Measured on real hardware with a probe
+> watching `NSApp.effectiveAppearance` and subscribed to
+> `AppleInterfaceThemeChangedNotification`: **neither direction works.** Writing
+> `Dark` from a light session and deleting the key from a dark one both change
+> nothing — through `activateSettings -u`, through a `killall SystemUIServer`,
+> and for a process launched *fresh* afterwards, with no notification posted
+> either time. The key is a mirror the appearance system writes on its way past.
+> `system.defaults.NSGlobalDomain.AppleInterfaceStyle` is a dead option on macOS
+> 26. A plausible asymmetry story survived this long precisely because it
+> explained the observed behaviour ("light rice, dark Mac") correctly while being
+> wrong about the mechanism — §5.14 should count "a stated blocker nobody
+> re-measured" as its own drift shape.
+>
+> **Phase 4 was the stated blocker and turned out not to be the enabler.**
+> `restart-map.nix` gets a documented entry, but its honest content is "no
+> restart can make an inert write live". The map answers *what makes a write
+> live*; it has nothing to say about a key macOS doesn't read. Generalisable: an
+> unreachable setting has at least two causes, and only one of them is a missing
+> restart.
+>
+> **What this does and doesn't close.** The default is `"unmanaged"` on purpose —
+> a managed default would silently revert an appearance picked in System Settings
+> on the next rebuild. Which left pounce's one-click "Switch to light mode"
+> (§5.7's audience) still landing on a dark macOS — **closed in the follow-up,
+> [nebelhaus#258](https://github.com/nebelhaus/nebelhaus/pull/258)**: `haus set`
+> takes PAIRS now (`haus set theme.flavor latte theme.systemAppearance flavor`),
+> all-or-nothing, one rebuild, and the palette row sets both. The reason it had
+> to be one call rather than two lines in the runner is the interesting part —
+> `haus set` rebuilds per call, so two calls is two rebuilds *with the machine
+> sitting in the half-done state in between*. Driving System Events also needs an
+> Automation grant, degrading to a named warning — the same reachability shape as
+> `accessibility.increaseContrast`'s FDA caveat, which §5.12 already decided not
+> to promote into a typed field.
 > **Status, 2026-08-08 (fourteenth pass) — an audit pass, not a shipping one.
 > Nothing new was built; two claims in this file were wrong, the phase summary
 > had drifted from the sections it summarizes, and this pass's own first finding
@@ -1083,6 +1139,12 @@ nebelhaus.theme = {
       and the three hand-made wallpapers — a much better place for the line to sit,
       because both of those are honestly *not ours*, whereas pounce baking its own
       was only ever a limitation of how it was built.
+      **Amended 2026-08-08:** macOS's appearance is now *opt-in* rather than out
+      of reach — `theme.systemAppearance = "flavor"` moves it, the default
+      `"unmanaged"` keeps this sentence true for anyone who doesn't ask. "Not
+      ours" turned out to mean "not ours to take without being asked", which is a
+      different line than "unreachable" — and only the spike could tell them
+      apart. See this section's macOS Light/Dark box.
       → ✅ **And the line is a GOLDEN TABLE now, not prose — rice#208.**
       `accent-reach` fingerprints seventeen surfaces under **three** accents
       (three, not two, so a fingerprint that merely happens to differ once can't
@@ -1144,6 +1206,15 @@ nebelhaus.theme = {
       *palette* choice, but asking to follow the system says the *polarity* is
       macOS's call, so the two can't both win. The rice resolves it by letting
       `contrast` reach both halves while `flavor` reaches neither.
+      **Amended 2026-08-08:** that resolution holds *at the default only*. With
+      `theme.systemAppearance = "flavor"` (see this section's macOS Light/Dark
+      box) macOS's polarity is the rice's, so `flavor` reaches both halves
+      transitively and `followSystemAppearance` stops being an independent axis
+      on that machine. The dichotomy in (c) was real but not permanent — it was
+      a consequence of the rice not owning macOS's polarity, which was itself a
+      consequence of a measurement nobody had taken. Worth logging as its own
+      drift shape: a *closed* item can go stale because a **different** box
+      opened a door it assumed was walled.
       Still open: **ghostty**, the other tool that can switch on appearance. Its
       config used to read `theme = dark:nebelung,light:Catppuccin Latte` — i.e. it
       already followed macOS appearance and fell back to **stock** Catppuccin in
@@ -1171,6 +1242,76 @@ nebelhaus.theme = {
       and `theme.ports.handled` — rooms declaring what they already wire by hand,
       with an assertion that every id is a real port — is the pattern to copy for any
       future "generic pass plus hand-tuned exceptions" option.
+- [x] ✅ **macOS's own Light/Dark — SHIPPED as `nebelhaus.theme.systemAppearance`
+      (rice#257), and the spike falsified this box's own premise.** This box said
+      the asymmetry was the problem: "turning dark mode on is one typed setting,
+      turning it off means deleting a default." **Both halves are wrong on macOS
+      26.6.** Measured 2026-08-08 on real hardware, with a Swift probe watching
+      `NSApp.effectiveAppearance` *and* subscribed to
+      `AppleInterfaceThemeChangedNotification`: `defaults write -g
+      AppleInterfaceStyle Dark` from a light session changes nothing, `defaults
+      delete -g AppleInterfaceStyle` from a dark one changes nothing, before AND
+      after `activateSettings -u` and a `killall SystemUIServer`, and **not even
+      for a process launched fresh afterwards** — no notification is posted
+      either way. The key is a **mirror the appearance system writes on its way
+      past, not a lever.** `system.defaults.NSGlobalDomain.AppleInterfaceStyle`
+      is a dead option on this OS in *both* directions, so "there is no symmetric
+      lever" was right by accident and for the wrong reason — there was no
+      asymmetric one either.
+      → The working lever is **System Events** (AppleScript): flips it live in
+      ~0.3s, posts the notification so running apps repaint, and deletes/writes
+      that same plist key on its way past — which is what made the plist look
+      like the lever. So the option is applied from home-manager activation
+      (same site and same guarded shape as `theme.wallpaper`'s osascript), not
+      from `system.defaults`.
+      → **`hausax` grew an `appearance` key** and is the oracle, exactly as §4's
+      discipline demands: the effect is confirmed against AppKit, never by
+      reading the plist back — which would report the inert write and call it
+      applied. `haus diff` now flags a hand-declared `AppleInterfaceStyle` the
+      way it flags `com.apple.Accessibility`, and says what macOS is *actually*
+      showing.
+      → **Phase 4 was the stated blocker and turned out not to be the enabler.**
+      `restart-map.nix` gets a documented entry, but the honest content of that
+      entry is "no restart can make an inert write live" — the map's four
+      sentinels (`killall` / `activateSettings` / `none` / `logout`) have no
+      value for *this* shape, because the map answers "what makes a write live"
+      and here the answer is "nothing; don't write". Worth generalising: a
+      restart map is the right table for keys macOS caches, and says nothing
+      about keys macOS doesn't read.
+      → **The default is `"unmanaged"`, deliberately, and that's the product
+      call this box actually needed.** `"flavor"` (latte → Light, mocha → Dark)
+      is the value that makes light mode complete; `"light"`/`"dark"` pin it.
+      But a *managed default* would silently revert an appearance picked in
+      System Settings on the next rebuild, which is a worse surprise than a
+      half-light rice — so opting in stays explicit. This also answers the
+      policy question (c) two boxes up from the other side: `flavor` still does
+      not reach macOS on its own, so `{pounce,perch}.followSystemAppearance`
+      keeps meaning "macOS's call" — until a host sets `systemAppearance =
+      "flavor"`, at which point macOS's call is transitively the rice's and
+      those two follow `flavor` after all. Documented in the option rather than
+      prevented; it's the composition someone actually wants.
+      → **Reachability caveat, same family as `increaseContrast`'s FDA one:**
+      driving System Events needs an **Automation** grant for whichever app runs
+      the rebuild. Refusal degrades to "the appearance didn't move" with a named
+      warning, never an aborted activation.
+      → Verified end-to-end, not inferred: the *generated* activation fragment
+      was pulled out of the built `home-manager-generation/activate` and run
+      verbatim on this machine — dark → light, a second run correctly skipping
+      with "already light" (the guard that stops every rebuild re-posting the
+      repaint), then restored to dark.
+      → ✅ **And the §5.7 one-click path is closed too (rice#258).** The palette's
+      "Switch to light mode" wrote `theme.flavor = latte` alone, i.e. exactly the
+      half-done state this box exists to end. Fixed by making `haus set` take
+      PAIRS — `haus set theme.flavor latte theme.systemAppearance flavor` — rather
+      than by a managed default (rejected above) or two lines in the runner.
+      **Why one call and not two:** `haus set` rebuilds per call, so two calls is
+      two rebuilds *with the machine sitting in the half-done state in between*.
+      It is all-or-nothing: every file is written before anything is validated and
+      one rejection rolls all of them back, because validating pair-by-pair leaves
+      pairs 1..n-1 applied when pair n is refused — the exact partial write the
+      single-pair version's restore-on-failure existed to prevent. Generalisable
+      beyond this option: **an "apply" step that costs a rebuild makes multi-key
+      intents a transaction problem, not a loop.**
       → ★ **The pattern needs one condition, found the hard way (rice#255,
       2026-08-08).** A `handled` claim must be gated on the *same flag that does
       the wiring*. rice#251 made the gh-dash integration opt-in
@@ -1182,15 +1323,6 @@ nebelhaus.theme = {
       list is a claim about the *current* configuration, not about the module,
       and the moment any part of a room becomes conditional its exceptions have
       to become conditional with it.
-- [ ] **macOS's own Light/Dark is NOT flipped by `flavor`, and can't be, one way.**
-      Turning dark mode on is one typed setting
-      (`NSGlobalDomain.AppleInterfaceStyle = "Dark"`); turning it **off** means
-      DELETING a default rather than writing one, and nix-darwin skips null-valued
-      keys rather than removing them. So there is no symmetric declarative lever and
-      the rice leaves system appearance alone in both directions — a latte rice on a
-      dark macOS looks half-done. Fixing it means an activation-script
-      `defaults delete -g` plus the restart map (§4), i.e. it belongs with Phase 4,
-      not here. Documented in the option so it isn't discovered as a bug.
 - [ ] `flavor = "custom"` + `theme.palette` — the "a community rice ships its own
       colours" half. Untouched: a rice can pick a flavor, not supply one. Note the
       **format** wrinkle before designing it — a data-only preset can hold an attrs

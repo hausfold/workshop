@@ -1,6 +1,11 @@
 # PR-only Worker config. The workflow overrides `name` with
 # nebelhaus-pr-<number>; no custom route is present, so this can never replace
 # the Worker serving nebelhaus.com.
+#
+# That property is enforced, not just documented — preview-web.yml's "Refuse a
+# preview config that defines routes" step fails the job if a route appears
+# here, in any TOML spelling. This file is read from the PR head, so a comment
+# alone would protect nothing.
 name = "nebelhaus-preview"
 main = "worker.js"
 compatibility_date = "2024-11-06"

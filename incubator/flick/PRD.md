@@ -22,8 +22,9 @@ Notification Center with perfect compatibility."
 - rules.json: banner / inbox / digest / drop, quiet hours, critical
   punch-through; hot reload; malformed file keeps last good rules.
 - Banner compositor: panel per banner, all Spaces + over fullscreen, never
-  key; top-right stack; hover pause; burst coalescing by thread; Reduce
-  Motion respected; redacted privacy level.
+  key; top-right stack — cards dealt downward, overlapping, newest in front;
+  hover pause; burst coalescing by thread, folded into one card that opens
+  into a list on hover; Reduce Motion respected; redacted privacy level.
 - Inbox window + minimal settings (login item, persistence, provider
   health, deep links to Apple's Notification/Focus settings).
 - `flick doctor [--all] [--notify] [--json]`: reads Apple's per-app
@@ -67,7 +68,10 @@ retry/logs — capability-advertised per provider, never generic promises.
    top-right within 150 ms, silent, and auto-dismisses; the event is in the
    inbox afterward.
 2. Send 10 events sharing `--thread` inside 10 s: one banner, "+9 more",
-   newest title on its face.
+   newest title on its face. Hover it: the card opens downward into the
+   folded thread-mates, newest first, the tail collapsed into "and N
+   earlier"; the cards below it move down to make room. Unhover: it closes
+   and the dismiss clock restarts.
 3. Hover a banner: it stays; unhover: rotation resumes.
 4. `rules.json` routing a source to `drop` takes effect on the next event
    after save, no restart.
@@ -93,6 +97,10 @@ retry/logs — capability-advertised per provider, never generic promises.
     wrote the setting.
 14. Switch an app's "Allow notifications" off entirely: `flick doctor` stops
     naming it, even though its Desktop and sound bits are still set.
+15. Send three events from three different `--source`s: three cards flush to
+    the same right edge, each lapping over the bottom of the one above it and
+    drawn in front of it, all three still readable — a stack, not a spaced
+    list.
 
 ## Non-goals (v1)
 

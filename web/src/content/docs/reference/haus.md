@@ -25,7 +25,7 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus revert-settings [snapshot\|list]` | Put back a `haus capture` snapshot — the macOS defaults a generation rollback leaves untouched. `list` shows what you've captured. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
 | `haus options` | Refresh the annotated catalogue of every `nebelhaus.*` option on this machine's pinned rice. |
-| `haus set <path> <value>` | Write and stage one machine override as ordinary Nix, type-check it, then rebuild. `theme.accent` and `nebelhaus.theme.accent` are equivalent. |
+| `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `nebelhaus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
 | `haus unset <path>` | Explicitly set a nullable option to `null`, then rebuild. |
 | `haus reset <path>` | Remove one machine override, inherit the host/preset/rice value again, then rebuild. |
@@ -46,6 +46,19 @@ haus set theme.accent teal
 haus get theme.accent       # teal
 haus reset theme.accent     # inherit the preset/rice value again
 ```
+
+`set` takes as many `<path> <value>` pairs as you like, and applies them in a
+single rebuild:
+
+```sh
+haus set theme.flavor latte theme.systemAppearance flavor
+```
+
+That matters for intents that span two options — light mode is the rice's
+palette *and* macOS's own appearance — because `haus set` rebuilds per call, so
+two calls would be two rebuilds with the machine sitting half-switched in
+between. Several pairs are **all-or-nothing**: every file is written before
+anything is type-checked, and one rejected value rolls all of them back.
 
 `haus set` writes and stages a small module at
 `~/.config/nix/hosts/<hostname>/settings/theme.accent.nix`. `mkNebelhaus`
@@ -75,6 +88,9 @@ activation.
 Pounce's **Haus Settings** command is the same mechanism with three intent-sized
 buttons: **Make text bigger**, **Switch to light mode**, and **High contrast on**.
 It delegates to `haus set`; the palette does not keep settings of its own.
+**Switch to light mode** is the multi-pair case — it sets `theme.flavor` and
+`theme.systemAppearance` together, so macOS's appearance comes over with the
+rice's rather than being left behind.
 
 ### One thing `haus rebuild` refuses
 
