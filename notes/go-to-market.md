@@ -22,14 +22,14 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 > *funnel* thinking, which mostly survives, and each section below carries a
 > note where it doesn't. The three reversals: hausfold is a product surface now,
 > the whole family migrates to the `hausfold` org, and the gallery is
-> `hausfold.co/market`.
+> `hausfold.co/desktops`.
 
 | Piece | Price | License | Job in the funnel |
 |---|---|---|---|
 | **nebelung** | free | MIT | Taste door. Palette people meet the visual language before they meet Nix. |
 | **pounce** | free, **no paid tier ever** | MIT | Utility door. A native launcher installable without adopting anything. The site already promises "no paid tier" — that promise is load-bearing, don't reopen it. |
 | **holt** | free | MIT | Dev-tool door. The only piece whose audience isn't macOS ricers. |
-| **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on the hausfold platform** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/market` rather than owning a domain. |
+| **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on the hausfold platform** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
 | **hausfold** (platform) | free | MIT | **The destination.** The nix-darwin ricing platform every rice sets options on, and the org everything ships under. Was the umbrella; became the product on 2026-08-08. |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
 | ~~**trill**~~ | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
@@ -140,14 +140,24 @@ marketing-only.
 > unfixed part is **rice-vs-rice**, which is exactly what a gallery creates:
 > §6(d) measured that `mkDefault` "can never be" a fix for it, `checkRice` can't
 > catch it (the module system stops before assertions run), and a transforming
-> seam prints `<unknown-file>` twice — loud and anonymous. So `/market` ships as
-> a **placeholder** until §6(e)'s *priority by list position* (`compose`) lands.
+> seam prints `<unknown-file>` twice — loud and anonymous. So the gallery can't
+> open properly until §6(e)'s *priority by list position* (`compose`) lands.
 >
 > *Don't put it on hausfold.co* is **reversed**: the gallery is
-> **`hausfold.co/market`**. The "extra hop" argument below was right about hops
+> **`hausfold.co/desktops`**. The "extra hop" argument below was right about hops
 > and wrong about which domain is home — hausfold.co *is* the destination now,
-> so `/market` is zero hops from the platform and nebelhaus.com is the one that
+> so `/desktops` is zero hops from the platform and nebelhaus.com is the one that
 > 301s. Everything else in this section survives intact.
+>
+> **Two amendments, both 2026-08-08, both after the page shipped.** The path was
+> written here as `/market`; it is now **`/desktops`** — a session building the
+> page put four names to the user and was told `/desktops`, and when the two
+> collided the user amended the plan rather than the page
+> ([`hausfold-rename.md`](./hausfold-rename.md), decision 7). And the Limit 3
+> gate binds the **second entry**, not the page: `/desktops` is live with a real
+> install command, which is safe only because rice-vs-rice needs two rices and
+> there is one. *Don't build it first* survives both — one rice, listed
+> honestly, is not a store.
 
 **Don't build it first**, ~~and don't put it on hausfold.co.~~
 
@@ -166,7 +176,7 @@ Three reasons it isn't first:
   take rate. Perch is the decided revenue line; the gallery is retention and
   social proof, which is real value but not money.
 
-Where it belongs: ~~nebelhaus.com/rices~~ → **`hausfold.co/market`**, submissions
+Where it belongs: ~~nebelhaus.com/rices~~ → **`hausfold.co/desktops`**, submissions
 by PR to a `hausfold/rices` repo (CI validates that a submission only sets
 `haus.*` and evaluates). The hop argument is unchanged and now points the other
 way: a rice reached through a *different domain* puts an extra hop between "I
@@ -197,7 +207,7 @@ What actually changed, and what didn't:
 | | **nebelhaus** | **hausfold** |
 |---|---|---|
 | Was | the brand people love | the entity that sells |
-| **Is now** | **one rice, the first one, on a page inside `/market`** | **the platform people install, the org it ships from — and still the entity that sells** |
+| **Is now** | **one rice, the first one, on a page inside `/desktops`** | **the platform people install, the org it ships from — and still the entity that sells** |
 | Customer sees it | when choosing a rice | constantly, and on the receipt |
 
 **Why the reversal, in one line:** the umbrella framing made the *platform*
@@ -223,7 +233,7 @@ Consequences, revised:
   surfaces than a receipt. No incorporation and no trademark work exists;
   selling as an individual trading as hausfold is still the low-friction path,
   and it still belongs to the Paddle application rather than here.
-- **It is not the gallery** → **it hosts the gallery**, at `/market` (§5).
+- **It is not the gallery** → **it hosts the gallery**, at `/desktops` (§5).
   The 2026-08-06 amendment that made hausfold.co a real page rather than a
   placeholder was the first step of this reversal; this finishes it.
 

@@ -27,7 +27,7 @@ them:
 | 4 | **Rename now, neutralize defaults later** | the sweep is mechanical and provable; the rice carve-out is design work (§7). |
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror and the archived `trill`. |
-| 7 | **One site repo: `hausfold/website`** | `/`, `/docs`, `/market`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. |
+| 7 | **One site repo: `hausfold/website`** | `/`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. |
 
 ### And these three reverse earlier written decisions
 
@@ -40,7 +40,20 @@ rewritten first, a future session will "correct" this work back:
 - ~~"nothing in the nebelhaus family migrates to the hausfold org, ever"~~ →
   everything does.
 - ~~"the gallery lives at nebelhaus.com/rices, not hausfold.co"~~ →
-  `hausfold.co/market`.
+  `hausfold.co/desktops`.
+
+> **The gallery's path was `/market` throughout this document until
+> 2026-08-08.** It was amended to **`/desktops`** the same day, after the page
+> shipped under that name: a parallel session building it put `/market`,
+> `/gallery`, `/rices` and `/desktops` to the user and was told `/desktops` —
+> plainer English, a generic noun rather than a name, and therefore no row
+> needed in `hausfold/PRESENCE.md`. Told the two had collided, the user chose to
+> amend the plan rather than rename the live page.
+>
+> Two things the swap is **not**. It isn't a retreat from commerce — nothing
+> about the word `market` was load-bearing for perch's paid line, which lives at
+> `/perch`. And it doesn't reopen §5: *the gallery is on hausfold.co, not
+> nebelhaus.com* is the decision and it stands. Only the noun moved.
 
 One thing from §6 that survives and one that doesn't:
 
@@ -600,10 +613,10 @@ Two site codebases exist today and they merge into the second:
   `hausfold.co` + `www`, assets-only Worker, `public/index.html` and
   `public/perch/privacy/`.
 
-**Everything moves into `hausfold/website`: `/`, `/docs`, `/market`, `/holt`,
+**Everything moves into `hausfold/website`: `/`, `/docs`, `/desktops`, `/holt`,
 `/pounce`, `/perch`.** One repo, one domain, one deploy. The landing pages get
 **redesigned**, not ported — nebelhaus stops being a destination and becomes one
-rice inside `/market`, so its landing page has no domain to be the front door of.
+rice inside `/desktops`, so its landing page has no domain to be the front door of.
 
 This decision does two useful things beyond tidiness:
 
@@ -673,14 +686,18 @@ Then:
 
 - `astro.config.mjs` → `site: 'https://hausfold.co'`, and the GitHub editLink
   baseUrl → the new repo.
-- Routes: `/` (one-sheet), `/docs/*` (the Starlight tree), `/market`
-  (placeholder — see §7), `/holt`, `/pounce`, `/perch`, **`/nebelhaus`**.
-  ⚠️ **That last route is not optional, and this doc first omitted it.** The
-  installer decision below puts `hausfold.co/nebelhaus.sh`'s only CTA "on the
-  nebelhaus page inside `/market`" — while §7 makes `/market` a placeholder
-  until a months-away refactor. Net: the rice would ship with its install
-  one-liner advertised nowhere. Give nebelhaus a route that does **not** depend
-  on `/market` opening; `/market` can link to it once it exists.
+- Routes: `/` (one-sheet), `/docs/*` (the Starlight tree), `/desktops` and
+  `/desktops/<rice>`, `/holt`, `/pounce`, `/perch`.
+  ✅ **Resolved 2026-08-08 — and the two routes already exist.** This bullet
+  used to demand a separate top-level **`/nebelhaus`**, because the installer
+  decision below puts `hausfold.co/nebelhaus.sh`'s only CTA on the nebelhaus
+  page, and §7 was going to make the gallery a placeholder for months: net, the
+  rice would ship with its one-liner advertised nowhere. `hausfold/website`
+  then shipped `/desktops` **and** `/desktops/nebelhaus` as plain HTML, the
+  latter carrying the install command — which is exactly the
+  independent-of-the-gallery route this was asking for, one level deeper than
+  proposed. No top-level `/nebelhaus` is needed; **preserve
+  `/desktops/nebelhaus` through the Astro port** rather than re-deriving it.
 - `worker.js`: `REPO` → `hausfold/hausfold`, `DOWNLOADABLE` app URLs →
   `github.com/hausfold/<app>`, and drop `trill`.
 - `wrangler.toml`: this repo stops being assets-only — it gains a `main` and a
@@ -694,9 +711,15 @@ Then:
 #### ✅ Decided 2026-08-08 — the installer becomes per-rice
 
 `nebelhaus.com/init.sh` → **`hausfold.co/nebelhaus.sh`**, and it is **not** a CTA
-on hausfold.co's front page — it lives on the **`/nebelhaus` page** (see §5.2:
-that route must exist independently of `/market`, or the one-liner has nowhere
-to be advertised), and `/market` links there once it opens.
+on hausfold.co's front page — it lives on the rice's own page, which as of
+2026-08-08 is **`/desktops/nebelhaus`** (see §5.2: that page exists and already
+carries the command, so nothing waits on the gallery).
+
+⚠️ **That page prints the old one-liner today** —
+`curl -fsSL https://nebelhaus.com/init.sh | bash`, hand-copied from
+`nebelhaus/README.md`. It is correct now and wrong the moment this decision
+lands. `hausfold/PRESENCE.md`'s Gaps records the duplication; **this is the step
+that has to edit it**, and nothing checks the two agree.
 
 That generalizes for free: `hausfold.co/<rice>.sh` is every rice's own
 one-liner, which is exactly the shape a platform wants. `worker.js`'s `/init.sh`
@@ -738,7 +761,7 @@ Write these down or they get "fixed" by a later session:
   Catppuccin community, and renaming costs a 53-port catalog sweep for zero gain.
 - **`nebelhaus`** keeps its name — as the **rice**. It loses its domain and its
   landing page, but it still needs a *page*: it's the developer-focused showcase
-  and the first entry in `/market`. Don't let "no landing page" turn into "no
+  and the first entry in `/desktops`. Don't let "no landing page" turn into "no
   page" — `curl … /init.sh | bash` installs it, so something has to describe it.
 - **`haus` the CLI** — unchanged, and now the namespace matches it.
 - **`holt`, `pounce`, `perch`, `flick`, `prowl`, `sill`, `den`, `hearth`,
@@ -763,7 +786,7 @@ That's a behavioral refactor gated by a readiness test — months, not days, and
 `developer.enable` (§3.2 of the roadmap) was only its first installment. It does
 not belong in a rename that must be provably behavior-neutral.
 
-**And `/market` has a known blocker** — `options-roadmap.md` §6 Limit 3. State it
+**And `/desktops` has a known blocker** — `options-roadmap.md` §6 Limit 3. State it
 as that file **measured** it, not as it first asserted: §6(b) retracted the
 "they see a raw trace rather than anything we wrote" claim, because someone
 finally read the trace and it names the option, both files and `lib.mkForce`.
@@ -780,9 +803,24 @@ gallery manufactures:
 - A seam that *transforms* a rice erases the filename — two packs naming one app
   report ``- In `<unknown-file>'`` twice: loud and anonymous.
 
-So `/market` is a **placeholder page** until §6(e)'s **priority by list
-position** (`compose [ a b ]`, stamping each rice one `mkOverride` weaker than
-the next) ships. That's the live candidate and it's measured in both directions.
+So the gallery cannot open properly until §6(e)'s **priority by list position**
+(`compose [ a b ]`, stamping each rice one `mkOverride` weaker than the next)
+ships. That's the live candidate and it's measured in both directions.
+
+**Amended 2026-08-08 — the gate is on the *second* entry, not on the page.**
+This section said `/desktops` ships as a placeholder page. What actually shipped
+is a working one: `/desktops` lists nebelhaus and `/desktops/nebelhaus` carries
+a real install command. That doesn't trip Limit 3, and re-reading the bullets
+above says why in one line — **every one of them is about rice-vs-rice, and
+rice-vs-rice needs two rices.** Today there is one, offering one command that
+installs nebelhaus alone, exactly as nebelhaus.com already does. No composition
+happens, so no seam collides.
+
+The gate therefore binds where the danger actually is: **adding a second rice to
+the gallery is blocked on §6(e)**, and `hausfold/AGENTS.md`'s Shipping section
+carries the same rule at the point someone would break it. Restating it as "the
+page is a placeholder" was over-broad, and the cost of an over-broad gate is
+that the first person who finds it harmless ignores the whole thing.
 
 ---
 
@@ -801,7 +839,7 @@ the next) ships. That's the live candidate and it's measured in both directions.
       │
       └── §5  domains + 301s  ──── gate: curl shows the redirect
                 │
-§7  LATER: neutralize defaults → rices/nebelhaus.nix → /market opens
+§7  LATER: neutralize defaults → rices/nebelhaus.nix → a 2nd rice in /desktops
 ```
 
 (§6 is the do-not-touch list — no steps, nothing to gate.)
