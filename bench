@@ -1549,23 +1549,24 @@ cmd_clone() {
     fi
   done
 
-  # hausfold is the one checkout here that isn't in $GH_ORG: it's the commercial
-  # umbrella's own site, in the hausfold org, deliberately apart from the product
-  # family (PRESENCE.md's GitHub row). Not in FAMILY — it's no flake input, so
+  # hausfold is the one checkout here that isn't in $GH_ORG: hausfold.co's own
+  # site, in the hausfold org. Not in FAMILY — it's no flake input, so
   # try/try-batch/ship must never walk it — but the workshop dir is still where
   # it lives, so clone it here.
+  #
+  # The repo is `hausfold/hausfold.co` as of 2026-08-08, and it is PUBLIC. It was
+  # the private `hausfold/website` until then; that repo is archived and stays
+  # private forever (its history carries the name register and a Cloudflare
+  # account id, and PR refs survive any scrub — hausfold-rename.md §5.1). Don't
+  # point this back at it: you'd clone a dead snapshot over the live site.
   if [ -d "$ROOT/hausfold/.git" ]; then
     say "hausfold already here"
   else
     say "cloning hausfold…"
-    # `gh repo clone`, not `git clone`: this is the only PRIVATE repo bench
-    # touches, so an anonymous https clone prompts for a username on a fresh
-    # machine — and under `set -e` that takes the whole command down at its last
-    # step. gh already carries the auth bench assumes everywhere else. Warn
-    # rather than die: a missing hausfold checkout shouldn't fail a bootstrap
-    # whose real job is the family.
-    gh repo clone hausfold/website "$ROOT/hausfold" \
-      || warn "hausfold: clone failed — it's a private repo; check \`gh auth status\`"
+    # Warn rather than die: a missing hausfold checkout shouldn't fail a
+    # bootstrap whose real job is the family.
+    git clone "https://github.com/hausfold/hausfold.co.git" "$ROOT/hausfold" \
+      || warn "hausfold: clone failed — check network and \`gh auth status\`"
   fi
 }
 

@@ -27,7 +27,7 @@ them:
 | 4 | **Rename now, neutralize defaults later** | the sweep is mechanical and provable; the rice carve-out is design work (§7). |
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror and the archived `trill`. |
-| 7 | **One site repo: `hausfold/website`** | `/`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. |
+| 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
 
 ### And these three reverse earlier written decisions
 
@@ -407,15 +407,17 @@ half-migrated org means flake inputs resolving through redirects for days.
 
 ### 3.1 👤 Pre-flight
 
-- [ ] `hausfold` org has only `website` today. Confirm **no GitHub name
-      collision** with an incoming repo (there isn't one — `website` is unique).
+- [ ] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
+      Confirm **no GitHub name collision** with an incoming repo — there isn't
+      one, none of the three is on §3.2's transfer list.
 - [ ] ⚠️ **There IS an on-disk collision, and it must be decided before §2.1.**
       `bench` resolves `FAMILY` entries as *directory names* under the workshop
       root (`local_src` → `$ROOT/$1` at `bench:252`; `cmd_clone`'s
       `[ -d "$ROOT/$name/.git" ]` at `bench:1541`). Renaming the FAMILY entry
       `nebelhaus` → `hausfold` puts the platform checkout at
-      `~/code/workshop/hausfold` — **which is already the `hausfold/website`
-      checkout.** This repo survived exactly this once before (the
+      `~/code/workshop/hausfold` — **which is already the site checkout**
+      (`hausfold/website` then, `hausfold/hausfold.co` now). This repo survived
+      exactly this once before (the
       `~/code/nebelhaus` → `~/code/workshop` rename, and the child-repo name
       collision that forced it). Pick one:
       **(a)** keep the platform's *directory* named `nebelhaus/` even though the
@@ -423,8 +425,10 @@ half-migrated org means flake inputs resolving through redirects for days.
       **(b)** move the website checkout to `website/` and update `bench:1003`'s
       `repos=(… hausfold consumer)` list plus the comment at `bench:1000-1002`.
       **✅ Resolved by §5.1's decision: take (b).** The site consolidates into
-      `hausfold/website`, so the checkouts become `workshop/hausfold/` (the
-      platform) and `workshop/website/` (the site) — each named for its repo.
+      `hausfold/hausfold.co`, so the checkouts become `workshop/hausfold/` (the
+      platform) and `workshop/hausfold.co/` (the site) — each named for its repo.
+      *(This read `workshop/website/` until 2026-08-08, when the site repo was
+      recreated under a new name; the on-disk name follows the repo.)*
 - [ ] Confirm you can create repos in `hausfold` and that transfer targets show it.
 - [ ] **Repo secrets travel with the repo; org-level secrets do not.** perch's
       `MACOS_CERT_P12` / `NOTARY_*` / `ASC_*` / `IOS_DIST_*` are repo secrets →
@@ -602,19 +606,24 @@ name.
 
 ## §5 — Domains and sites
 
-### 5.1 ✅ Decided 2026-08-08 — one site repo, `hausfold/website`
+### 5.1 ✅ Decided 2026-08-08 — one site repo, `hausfold/hausfold.co`
+
+> ⚠️ **Renamed 2026-08-08, after this section was written.** The site repo is
+> **`hausfold/hausfold.co`** (public), not `hausfold/website` (private, now
+> archived). This wasn't a rename — it's a new repo, and the blocker subsection
+> below explains why that was the only way to satisfy §5.1's public requirement.
+> Read `hausfold/website` in this section as `hausfold/hausfold.co` throughout.
 
 Two site codebases exist today and they merge into the second:
 
 - `workshop/web/` — the Astro Starlight docs + `index/pounce/perch` landing
   pages + **the Worker**, serving `nebelhaus.com` (worker name `nebelhaus`,
   apex route).
-- `workshop/hausfold/` (repo `hausfold/website`) — a static one-sheet on
-  `hausfold.co` + `www`, assets-only Worker, `public/index.html` and
-  `public/perch/privacy/`.
+- `hausfold/hausfold.co` — a small static site on `hausfold.co` + `www`,
+  assets-only Worker: the landing page, `/desktops`, `/perch/privacy`, `404`.
 
-**Everything moves into `hausfold/website`: `/`, `/docs`, `/desktops`, `/holt`,
-`/pounce`, `/perch`.** One repo, one domain, one deploy. The landing pages get
+**Everything moves into `hausfold/hausfold.co`: `/`, `/docs`, `/desktops`,
+`/holt`, `/pounce`, `/perch`.** One repo, one domain, one deploy. The landing pages get
 **redesigned**, not ported — nebelhaus stops being a destination and becomes one
 rice inside `/desktops`, so its landing page has no domain to be the front door of.
 
@@ -626,41 +635,68 @@ This decision does two useful things beyond tidiness:
 2. **It removes the duplicate perch surface** — perch marketing currently exists
    in both repos.
 
-#### 🚨 Blocker found 2026-08-08: `hausfold/website` is a **private** repo
+#### ✅ Blocker found and cleared 2026-08-08: the site repo was **private**
 
-And it is private for a reason its own README spells out: `PRESENCE.md` lists
-every namespace held **and every gap** — `hausfold.com` unheld, PyPI unsecured,
-no trademark work, `flick` claimed nowhere. That's a shopping list for a reader.
+`hausfold/website` was private for a reason its own README spelled out:
+`PRESENCE.md` listed every namespace held **and every gap**, which is a shopping
+list for a reader. A docs site can't live in a private repo — Starlight's edit
+links, contributions and "improve this page" all assume public — so §5.1 needed
+it flipped.
 
-A docs site can't live in a private repo: Starlight's edit links, contributions,
-and "improve this page" all assume public. So §5.1 requires flipping it, and the
-README names the price:
+**The plan was to scrub and flip. The plan was wrong, and the reason is the part
+worth keeping.** It was:
 
-1. **Scrub `.wrangler/cache/wrangler-account.json` from history** — it predates
-   the split and holds a Cloudflare account id plus an account name containing a
-   personal email. `git filter-repo --path .wrangler --invert-paths`, **before**
-   flipping visibility, never after.
-2. **Move `PRESENCE.md` to a new private repo, `hausfold/ops`.** ✅ Decided
-   2026-08-08. It keeps the file in git with its history, and gives the rest of
-   the ops surface a home: pointers to where credentials live (never the
-   credentials), the Cloudflare and Paddle account facts, the register's annual
-   re-check. Reversing later is a `git mv`.
-   ⚠️ **This doc first said `workshop/notes/`, and that would have been the whole
-   bug: `nebelhaus/workshop` is a public repo**, so the "prerequisite" would have
-   published the exact gap list that makes the file sensitive — trading a private
-   repo for a public one and protecting nothing.
+1. Scrub `.wrangler/cache/wrangler-account.json` (a Cloudflare account id, in
+   nine commits' trees) via `git filter-repo`, **before** flipping.
+2. Move `PRESENCE.md` to a new private `hausfold/ops`.
 
-- [ ] 🤖 scrub the blob
-- [ ] 👤 create `hausfold/ops`, **private**
-- [ ] 🤖 move `PRESENCE.md` into it, repoint every link
-- [ ] 👤 flip `hausfold/website` to public
+Step 1 does not do what it claims. `hausfold/website` had PRs #1–#11, and
+**GitHub keeps `refs/pull/N/head` forever — a history rewrite does not GC them.**
+Measured on 2026-08-08 before deciding: all nine PR refs then in existence
+carried `PRESENCE.md` in their tree, and `refs/pull/1/head` descends from
+`e6e3f0f`, the commit that added the account blob. After `filter-repo` +
+force-push, both stay fetchable by SHA — on a repo that has just gone public.
+**Rewriting history on a repo that has ever had a pull request is hygiene, not
+removal.** The original plan also named only the blob, not the file: a `git mv`
+of `PRESENCE.md` to another repo leaves all eleven of its past revisions here.
+
+**So the site moved to a new repo instead**, which has no PR refs and nothing to
+purge. Cost: 33 commits of a placeholder page — which this very section replaces
+with an Astro build anyway.
+
+Where things landed:
+
+- **`hausfold/hausfold.co`** — public, created 2026-08-08. `public/`, both
+  wrangler configs, both workflows, `README.md`, `AGENTS.md`, as one commit.
+- **`hausfold/ops`** — private, created 2026-08-08. `PRESENCE.md` with its
+  eleven revisions replayed, plus the rest of the ops surface: pointers to where
+  credentials live (never the credentials), the Cloudflare and Paddle account
+  facts, the register's annual re-check.
+  ⚠️ **This doc first said `workshop/notes/`, and that would have been the whole
+  bug: `nebelhaus/workshop` is a public repo**, so the "prerequisite" would have
+  published the exact gap list that makes the file sensitive — trading a private
+  repo for a public one and protecting nothing.
+- **`hausfold/website`** — stays private **permanently**, archived. Not deleted:
+  the Cloudflare `custom_domain` binding is tied to the Worker name, and it is
+  the site's only pre-2026-08-08 history. 🚨 *Never flip it. No scrub makes it
+  safe — see above.*
+
+- [x] 🤖 create `hausfold/ops`, private, `PRESENCE.md` carried with its history
+- [x] 🤖 create `hausfold/hausfold.co`, public, site carried as one commit
+- [x] 🤖 archive `hausfold/website` (workflows removed, README/AGENTS rewritten)
+- [ ] 👤 **re-enter the three Actions secrets** on `hausfold/hausfold.co` —
+      `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`.
+      GitHub can't read them back out of the old repo, so this is by hand, and
+      **the new repo's deploy stays red until it's done**. hausfold.co is still
+      up, serving the last deploy from `hausfold/website`.
+- [ ] 👤 flip the repo's Settings → Archive on `hausfold/website` after PR #12
 
 #### The one condition: don't drag Nix into the site repo's CI
 
 `web/scripts/gen-options.mjs` consumes `nix build .#options-json` from the rice,
 and `options-drift.yml` fails the build when `reference/options.md` is stale.
-Move that as-is and `hausfold/website` needs Nix plus a flake pin just to check
-its docs.
+Move that as-is and `hausfold/hausfold.co` needs Nix plus a flake pin just to
+check its docs.
 
 Use the family's own rule instead (`options-roadmap.md` §7): *"mirror only what
 fits in one expression and can be pinned by a golden test; anything table-shaped
@@ -692,7 +728,7 @@ Then:
   used to demand a separate top-level **`/nebelhaus`**, because the installer
   decision below puts `hausfold.co/nebelhaus.sh`'s only CTA on the nebelhaus
   page, and §7 was going to make the gallery a placeholder for months: net, the
-  rice would ship with its one-liner advertised nowhere. `hausfold/website`
+  rice would ship with its one-liner advertised nowhere. The site repo
   then shipped `/desktops` **and** `/desktops/nebelhaus` as plain HTML, the
   latter carrying the install command — which is exactly the
   independent-of-the-gallery route this was asking for, one level deeper than

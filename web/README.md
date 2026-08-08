@@ -83,7 +83,7 @@ to forked pull requests, so previews run only for branches in this repository.
 Closing the PR deletes the Worker, via one `DELETE
 /accounts/:id/workers/scripts/:name` call rather than `wrangler delete`. Two
 reasons. `wrangler delete` also sweeps a legacy Workers Sites KV namespace,
-needing a KV scope nothing else here wants — in `hausfold/website`, which runs
+needing a KV scope nothing else here wants — in `hausfold/hausfold.co`, which runs
 the same workflow against its own token, that sweep 403s and turns a *completed*
 delete into a red job. And a close whose Worker was already gone used to fail
 outright (it did, for `nebelhaus-pr-216`); "no such Worker" is now a warning.
