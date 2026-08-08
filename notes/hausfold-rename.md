@@ -66,7 +66,7 @@ One thing from §6 that survives and one that doesn't:
 
 ## §0 — Before anything moves
 
-### 0.1 🤖 Rewrite the reversed decisions *first*
+### 0.1 ✅ Rewrite the reversed decisions *first* — done, gate green 2026-08-08
 
 Before a single line of code. Otherwise every subsequent agent reads a note
 that contradicts the work in front of it.
@@ -88,9 +88,11 @@ that contradicts the work in front of it.
   historical record and §5.14 is explicit about that. One banner at the top.
 - `notes/perch-monetization.md` — the support-address line.
 
-**Gate:** the following returns nothing (it hits `go-to-market.md:117,171` and
-`hausfold/PRESENCE.md:52` today — the `--exclude` is load-bearing, or this doc
-matches itself forever):
+**Gate: ✅ returns nothing, verified 2026-08-08** (run from the workshop's *main*
+checkout — a workshop worktree has no `hausfold/` in it at all, so a green run
+there proves nothing). It used to hit `go-to-market.md:117,171` and
+`hausfold/PRESENCE.md:52` — the `--exclude` is load-bearing, or this doc
+matches itself forever:
 
 ```sh
 grep -rniE "nothing in th(e|at) (nebelhaus )?family (migrates|belongs|may move)|commercial umbrella|don't put it on hausfold\.co|nebelhaus\.com/rices" \
@@ -144,7 +146,7 @@ before **any** of: filing an application, paid marketing, or incorporating an
 entity that trades under the name. Below that line the exposure is logged and
 accepted. Above it, "we looked at their website" is not a clearance opinion.
 
-### 0.3 🤖 Drain the queue
+### 0.3 🟨 Drain the queue — PR/lock half green 2026-08-08, branches still open
 
 **A namespace rename conflicts with every open branch.** Today the family has
 exactly one open PR — that's the readiness signal, and it decays.
@@ -153,19 +155,44 @@ exactly one open PR — that's the readiness signal, and it decays.
 for r in workshop nebelhaus nebelung pounce perch holt homebrew-tap .github; do
   gh pr list --state open -R nebelhaus/$r
 done
+# the loop above is the nebelhaus org only — the hausfold org already holds
+# repos that §2 and §5 edit, and they have their own lanes
+for r in hausfold.co ops; do gh pr list --state open -R hausfold/$r; done
 holt                            # every live/parked worktree, all repos
 ~/code/workshop/bench status    # dirty trees, unpushed, stale locks
 ```
 
-- As of 2026-08-08 that's **workshop#249** (flick) and **nebelhaus#257**. Merge
-  or park both. Checking only one repo is how a rename lands over an open rice
-  PR — which is the exact thing this step exists to prevent.
+- Both PRs this section named (workshop#249, nebelhaus#257) have landed. **Re-run
+  the loop before starting §1 rather than trusting this line** — it was true at
+  one instant and the whole point of the step is that the instant passes.
+  Checking only one repo is how a rename lands over an open rice PR.
 - `holt reap` anything already landed.
 - `bench status` must show **no stale lock edge and no OFF-MAIN pin** before the
   sweep starts — a rename ripple on top of a stale lock is undebuggable.
 
 **Gate:** `bench status` clean, zero open PRs, zero unmerged `worktree-*`
 branches.
+
+**Measured 2026-08-08 — two of the gate's three clauses.** Zero open PRs across
+the eight `nebelhaus/*` repos; all six lock edges current, no OFF-MAIN pin. The
+**branch clause is not met** and shouldn't be forced: `holt` lists live lanes
+across workshop, nebelhaus, hausfold and perch. Sort them like this:
+
+- 🚨 **`nebelhaus`'s `worktree-fizzy-moseying-snowglobe` is exempt.** It carries
+  §1.0's parked spike (wip `7d9ee70`), which is §1's expensive input. An agent
+  reaping to satisfy this gate deletes the artifact the next phase depends on.
+- A stale `perch` branch `worktree-workshop-name` — no checkout, no registry row.
+  `git -C perch branch -D` it.
+- A `holt` checkout under `~/.codex/worktrees/`. That path is **not** where any
+  client's lanes live (`AGENTS.md`: every client shares
+  `~/.cache/claude-worktrees/`), so it's an orphan created outside `holt` — the
+  invisible-in-the-statusline gotcha, not a session to resume. Remove it.
+- Everything else: land or park normally.
+
+One release edge is behind — `nebelhaus v2026.08.08` is 13 commits behind main —
+which is orthogonal to the rename, but note that **cutting that release after §1
+lands stamps a `haus.*` rice**, so either release before the sweep or accept that
+the next tag is the rename's.
 
 ### 0.4 ✅ hausfold.com — checked 2026-08-08, and it isn't for sale
 
@@ -322,55 +349,123 @@ a clock and Homebrew is not — but it must land **before** perch's Phase 2.
 
 ## §1 — The namespace sweep: `nebelhaus.*` → `haus.*`
 
-The technically hardest phase. ~44 option leaves, and per the family's own rule
+The technically hardest phase — **and the spike has now run, so it is a known
+quantity rather than a fork.** Per the family's own rule
 (`options-roadmap.md` §7) a **breaking option rename couples the consumer's
 lock-bump and config edit into one PR — `bench ship` can't split them without
-breaking main mid-ripple.**
+breaking main mid-ripple.** §1.0's answer is that the rename doesn't have to be
+breaking, so that coupling never has to happen.
 
-### 1.0 🤖 Spike first: can the rename be non-breaking? (~30 min)
+**The tree is 110 declared leaves, not the "~44" this section used to claim**
+(155 paths counting each `<name>` submodule field). Measured, not estimated —
+see §1.0's method, which is also the only way to get the real number.
+⚠️ `options-roadmap.md` says **130** for the same tree, on its own date and by its
+own count. Don't reconcile the two by picking one: **re-run §1.0's snippet** — it
+states its rule (every node whose `_type` is `"option"`, under
+`options-modules.nix`, internals included) and is the number `renamed.nix` has to
+agree with.
 
-If `lib.mkRenamedOptionModule` can carry the whole tree, the atomicity problem
-**dissolves**: `haus.*` becomes real, `nebelhaus.*` becomes a warning-emitting
-alias, main never breaks, and `~/.config/nix` bumps its lock whenever it likes.
+### 1.0 ✅ Spike run 2026-08-08 — the alias carries it. Take §1.1a.
 
-```sh
-# the leaf list already exists as a declared output — generate FROM it
-cd nebelhaus && nix build .#options-json
-# then: options.json → modules/renamed.nix, one mkRenamedOptionModule per
-# leaf, generated rather than hand-typed
-```
+The question was: if `lib.mkRenamedOptionModule` can carry the whole tree, the
+atomicity problem **dissolves** — `haus.*` becomes real, `nebelhaus.*` becomes a
+warning-emitting alias, main never breaks, and `~/.config/nix` bumps its lock
+whenever it likes.
 
-Two things the spike must actually prove, not assume:
+**It carries it.** The spike renamed all 14 declaration sites, generated
+`modules/renamed.nix` (105 `mkRenamedOptionModule` entries), and left the example
+host, both presets and the pack file still written as `nebelhaus.*`. Result:
 
-1. Does it survive `types.attrsOf (submodule …)` — i.e. **`roster`** and
-   **`workspaces`**? Renaming a whole attrset-of-submodules tree is where this
-   mechanism usually breaks.
-2. Does `nebelhaus.lib.checkRice` still work when a rice sets the *alias*? It
-   asserts "touches only `nebelhaus.*`" today; that assertion has to become
-   "only `haus.*`" and accept the alias during the transition.
+- `nix flake check --no-build` **green across all 16 checks** — including
+  `presets`, `packs`, `data-only-surface` and `preset-composition`, which is the
+  one that composes two rices.
+- The example system's derivation differs from pristine in **exactly one leaf**:
+  `options.json`. Everything else that moved (`claude-skill`, `host-template`,
+  and therefore `system-path`, `etc`, `system-applications`) is downstream of
+  that one file. See §1.2 — this is the corrected gate, not a failure.
+- `.#options-json` renders **155 `haus.*` keys and zero `nebelhaus.*`**: the
+  aliases are `visible = false`, so they never reach the docs.
 
-**Verdict fork:**
-- ✅ works → §1.1a, the easy path.
-- ❌ doesn't → §1.1b, the atomic path. Costs one coordinated PR pair and a
-  window where `~/.config/nix` can't rebuild until both land.
+The spike tree is parked, not thrown away: nebelhaus branch
+`worktree-fizzy-moseying-snowglobe`, wip commit `7d9ee70` (`holt unpark` in that
+lane). 27 files, and the generated `renamed.nix` is the expensive part.
 
-### 1.1a 🤖 Alias path (preferred)
+#### The five things it found that the plan didn't have
 
-1. `haus.*` becomes the canonical namespace in every `modules/*/options.nix`.
-2. Generated `modules/renamed.nix` aliases the old tree, warning on use.
-3. `presets/*.nix`, `packs/*.nix`, `hosts/example/default.nix` move to `haus.*`.
-4. `checkRice` asserts `haus.*`.
-5. `~/.config/nix/hosts/mbp/default.nix` moves to `haus.*` — 👤 **separately**,
+1. 🚨 **`nix build .#options-json` is NOT the leaf list, and generating
+   `renamed.nix` from it silently misses five options.** `optionsDoc` drops
+   anything `internal = true`. Four are obvious (`_roster`, `_workspaces`,
+   `_appWorkspace`, `_launchers`); **the fifth is `theme.ports.handled`, which
+   is internal without an underscore**, so `options-doc.nix:78`'s
+   `hasPrefix "_"` filter isn't what hides it and no naming convention will
+   find it. Enumerate from the module system instead:
+
+   ```nix
+   # nix eval --impure --raw --file leaves.nix
+   let ev = lib.evalModules {
+         modules = (import ./modules/options-modules.nix) ++ [ { _module.check = false; } ];
+       };
+       go = path: opts: lib.concatLists (lib.mapAttrsToList (n: v:
+         if !(lib.isAttrs v) then [ ]
+         else if v._type or "" == "option" then [ (path ++ [ n ]) ]
+         else go (path ++ [ n ]) v) opts);
+   in lib.concatStringsSep "\n" (map (lib.concatStringsSep ".") (go [ ] ev.options.nebelhaus))
+   ```
+
+   110 leaves out, 105 of which options.json knows about.
+2. **Internal options get swept, not aliased.** They're ours; an alias would
+   just emit an obsolete-option trace on every eval of our own code.
+3. **Reading an option's *declaration* through an alias breaks.** `doRename`'s
+   alias carries no `default`, so `options.nebelhaus.fonts.mono.name.default`
+   throws `attribute 'default' missing`. One site today —
+   `modules/den/default.nix:151` — and it has to move with the declarations.
+   Reading a *value* (`config.nebelhaus.x`) is fine: `doRename` gives the alias
+   an `apply` that returns the target's value, which is precisely why consumer
+   reads don't have to move in the same PR.
+4. **`modules/options-doc.nix:78` hardcodes `optionsEval.options.nebelhaus`** —
+   the docs generator must move in the same commit or the whole build fails, not
+   just the docs.
+5. **The option-file list is written twice** — `modules/options-modules.nix` and
+   `modules/default.nix` each carry their own copy — and `renamed.nix` must be in
+   **both**. In only `default.nix`, the pure-lib option-surface evals in
+   `flake.nix` (`packCompose`, the pack surface check) fail with ``The option
+   `nebelhaus' does not exist``. In only `options-modules.nix`, the *system*
+   eval fails instead. Neither failure names the duplication.
+
+The second spike question — does `checkRice` still work when a rice sets the
+alias — has a sharper answer than expected. **It can't be carried by the alias
+at all:** `checkRice` reads the *file's* top-level attribute name, not the option
+system, so a `{ haus = …; }` rice is rejected by a string comparison
+(`flake.nix:198`) no matter what the module system thinks. It has to accept
+**both names for the length of the transition** and narrow to `haus` only at
+step 6 — third-party rices are exactly the consumers who move last.
+
+### 1.1a 🤖 Alias path — confirmed, and here is what it actually costs
+
+1. `haus.*` becomes the canonical namespace in all **14** `options.nix` files —
+   a one-line change each (`options.nebelhaus` → `options.haus`).
+2. Generated `modules/renamed.nix` aliases the old tree, warning on use. Listed
+   in **both** module lists (finding 5).
+3. Sweep, in the same PR, the things the alias can't cover: the five internal
+   options and their ~33 references, `options-doc.nix:78`, and
+   `den/default.nix:151`.
+4. `checkRice` accepts `haus` **and** `nebelhaus` (finding above).
+5. `presets/*.nix`, `packs/*.nix`, `hosts/example/default.nix` move to `haus.*` —
+   these can land in the same PR or a later one; the alias holds either way, and
+   the spike proved they still evaluate untouched.
+6. `~/.config/nix/hosts/mbp/default.nix` moves to `haus.*` — 👤 **separately**,
    whenever, because the alias holds.
-6. Aliases deleted in a follow-up PR **after** the last consumer moves.
+7. Aliases deleted, and `checkRice` narrowed to `haus` alone, in a follow-up PR
+   **after** the last consumer moves.
 
-### 1.1b 🤖+👤 Atomic path (fallback)
+### 1.1b 🤖+👤 Atomic path (fallback — no longer expected to be needed)
 
-One PR in `hausfold/hausfold` renaming the tree with no alias, and one in
-`~/.config/nix` rewriting the host file + bumping the lock, merged in that order
-within the same sitting. Nothing else may be mid-ripple.
+Kept because a future nixpkgs could regress `doRename`, not because anything
+points here today. One PR in `hausfold/hausfold` renaming the tree with no alias,
+and one in `~/.config/nix` rewriting the host file + bumping the lock, merged in
+that order within the same sitting. Nothing else may be mid-ripple.
 
-### 1.2 🤖 Prove it changed nothing
+### 1.2 🤖 Prove it changed nothing — the gate, as measured
 
 The house technique — `options-roadmap.md` §3.1 (the options split, nebelhaus#92)
 did exactly this and called it "byte-identical derivation":
@@ -380,13 +475,47 @@ did exactly this and called it "byte-identical derivation":
 nix path-info --derivation .#darwinConfigurations.example.system > /tmp/before.drv
 # AFTER
 nix path-info --derivation .#darwinConfigurations.example.system > /tmp/after.drv
-diff /tmp/before.drv /tmp/after.drv     # must be empty
+diff /tmp/before.drv /tmp/after.drv
 ```
 
-Plus `nix flake check` (it evaluates a real system per preset) and the
-options-drift CI.
+**First, the technique is sound and that was worth checking.** A control run —
+same commit, one added comment — produced the identical drv path, so the flake's
+source hash does *not* leak into the derivation and a difference here is a real
+difference.
 
-**Gate:** derivation identical, `nix flake check` green, `bench try` builds.
+⚠️ **But `diff` cannot be empty for this particular change, and a plan that
+demands it will get "fixed" by deleting the gate.** The rice **ships its own
+option surface as an artifact**: `.#options-json` feeds `.#claude-skill` and
+`.#host-template`, which are in `system-path`, `etc` and `system-applications`.
+Renaming the namespace legitimately renames every key in that file.
+
+So the gate is **one leaf divergence, and it is `options.json`**. Walk the two
+derivation graphs and find where they stop differing:
+
+```sh
+# recurse both drvs through inputs.drvs, matching by name, and report every
+# pair that differs while all of its own inputs match
+```
+
+Measured on the spike: exactly one such leaf, `options.json.drv`. Anything else
+in that list is a real behavior change and the gate is red.
+
+🚨 **The trap that produced a second leaf on the first run, and the reason it
+belongs to §2 rather than §1:** `modules/sill/default.nix:119` reads
+`# GENERATED from nebelhaus._roster by modules/sill/default.nix — do not edit.`
+— and that line is **inside the `workspacesSh` string**, so it is a line of
+`~/.config/sketchybar/workspaces.sh`, not a comment on the Nix. Sweeping it
+changed the shipped file. There are ~12 more `# GENERATED from nebelhaus.*`
+comments in `sill/default.nix` alone, plus `prowl/aerospace.toml`,
+`prowl/scripts/resort-windows.sh` and `sill/sketchybar/plugins/launch_mode.sh`.
+**Leave every one of them for §2.** In §1 they are gate-breakers; in §2, after
+the gate has passed, they are ordinary text.
+
+Plus `nix flake check` (it evaluates a real system per preset, and composes two
+rices) and the options-drift CI.
+
+**Gate:** the derivation walk's only leaf divergence is `options.json`,
+`nix flake check` green, `bench try` builds.
 
 ---
 
@@ -400,6 +529,14 @@ single find-replace would conflate:
 | the **platform** (options, modules, the CLI, the docs' subject) | → `hausfold` / `haus.*` |
 | the **rice** (presets, the desktop, the showcase, the grey) | stays **nebelhaus** |
 | **historical record** (roadmap §5 bodies, PR titles, commit messages, `holt`'s `~/.cache/claude-worktrees/` path) | **leave alone** |
+
+⚠️ **A fourth class the table missed, handed over by §1.2: comments that are
+inside generated files.** `# GENERATED from nebelhaus.<option> …` appears ~12
+times inside string bodies in `modules/sill/default.nix`, and again in
+`prowl/aerospace.toml`, `prowl/scripts/resort-windows.sh` and
+`sill/sketchybar/plugins/launch_mode.sh`. They *are* the shipped file, so
+touching them changes a store path. They belong here, in §2, **after** §1's
+byte-identity gate has gone green — never during §1.
 
 ### 2.1 🤖 Per repo
 
@@ -429,15 +566,25 @@ Easy to miss and it breaks *your* sessions, not users':
 - `nebelhaus.claude.globalMd` → `haus.claude.globalMd`, in `hearth`.
 - The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
   skill's own `name:` + description.
+  ⚠️ **Two golden tests pin that path by hand.** The literal line
+  `file .claude/skills/nebelhaus/references/this-machine.md moves` is in
+  **both** `expectedScaleTable` (`nebelhaus/flake.nix:1194`) and
+  `expectedFontTable` (`:1311`). So the rename fails the *scale-reach* and
+  *font-reach* checks — errors about scale and fonts, the last two places anyone
+  would look. Fix only one and the other still fires. Move both in the same commit.
 - `~/.claude/CLAUDE.md`'s generated body (rendered from the option above) —
   its routing table, its `holt` section.
 - `HAUS_CONSUMER` — already `haus`-prefixed, **no change**.
 - `holt` hooks — repo-agnostic, **no change**.
 - `~/.cache/claude-worktrees/` — already documented as historical, **leave**.
 
-**Gate:** `bench try` builds; the §1.2 derivation diff is still empty; the docs
-site builds and `nix build .#options-json` regenerates `reference/options.md`
-with zero drift. *(No `haus rebuild` here — that activates the machine, which is
+**Gate:** `bench try` builds; the §1.2 derivation walk shows **no leaf divergence
+beyond `options.json` and the generated files this phase deliberately edited**
+(the ~12 `# GENERATED from nebelhaus.*` comment lines — see the fourth class
+above); the docs site builds and `nix build .#options-json` regenerates
+`reference/options.md` with zero drift. *(This used to read "the §1.2 derivation
+diff is still empty", which §2 is designed to break — the exact shape of
+over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` here — that activates the machine, which is
 👤's, never 🤖's.)*
 
 ---
@@ -913,7 +1060,7 @@ that the first person who finds it harmless ignores the whole thing.
 ```
 §0  decisions rewritten · name cleared · queue drained · App Store audited
       │
-§1  haus.* namespace  ──── gate: byte-identical derivation
+§1  haus.* namespace  ──── gate: options.json is the ONLY leaf that moved
       │
 §2  docs, tooling, agent surface  ──── gate: bench try + zero options-drift
       │
@@ -941,3 +1088,11 @@ green. Everything else is strictly sequential.
   you'll be editing.
 - ~50 of the agent memory files are keyed to nebelhaus names and will misroute
   future sessions. Cheap sweep, do it last (§2.2's tail).
+- **The rice's per-room options list is duplicated** — `modules/options-modules.nix`
+  and `modules/default.nix` each hold their own copy of the same 14 paths, and
+  `options-modules.nix`'s header comment ("the ONLY modules that declare
+  `nebelhaus.*`") reads as if it were the single source. Adding a module to one
+  and not the other fails in a way that names neither file (§1.0, finding 5).
+  Folding `default.nix`'s copy into an `import ./options-modules.nix` is a
+  standalone tidy-up worth doing **before** §1, so the rename doesn't have to
+  discover it.
