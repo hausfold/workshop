@@ -627,18 +627,20 @@ README names the price:
    the split and holds a Cloudflare account id plus an account name containing a
    personal email. `git filter-repo --path .wrangler --invert-paths`, **before**
    flipping visibility, never after.
-2. **Move `PRESENCE.md` somewhere that is actually private.**
-   ⚠️ **This doc first said `workshop/notes/`. That is wrong and would have been
-   the whole bug: `nebelhaus/workshop` is a public repo**, so the "prerequisite"
-   would publish the exact gap list that makes the file sensitive — trading a
-   private repo for a public one and protecting nothing. Real options: a private
-   `hausfold/ops` repo, a password-manager entry, or pruning the gaps to nothing
-   before moving. **Undecided.**
+2. **Move `PRESENCE.md` to a new private repo, `hausfold/ops`.** ✅ Decided
+   2026-08-08. It keeps the file in git with its history, and gives the rest of
+   the ops surface a home: pointers to where credentials live (never the
+   credentials), the Cloudflare and Paddle account facts, the register's annual
+   re-check. Reversing later is a `git mv`.
+   ⚠️ **This doc first said `workshop/notes/`, and that would have been the whole
+   bug: `nebelhaus/workshop` is a public repo**, so the "prerequisite" would have
+   published the exact gap list that makes the file sensitive — trading a private
+   repo for a public one and protecting nothing.
 
 - [ ] 🤖 scrub the blob
-- [ ] 👤 **decide where `PRESENCE.md` lives** — must be private
-- [ ] 🤖 relocate it there
-- [ ] 👤 flip the repo to public
+- [ ] 👤 create `hausfold/ops`, **private**
+- [ ] 🤖 move `PRESENCE.md` into it, repoint every link
+- [ ] 👤 flip `hausfold/website` to public
 
 #### The one condition: don't drag Nix into the site repo's CI
 
