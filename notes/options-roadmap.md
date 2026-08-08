@@ -15,6 +15,28 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **★ Naming banner, 2026-08-08 — read every `nebelhaus.*` below as `haus.*`.**
+> The platform is being renamed **hausfold**, its option namespace **`haus.*`**,
+> and `nebelhaus` demoted to what this document has always been arguing it
+> should be: **one rice among many**, the developer-focused one. The plan is
+> [`hausfold-rename.md`](./hausfold-rename.md).
+>
+> **The body of this file is deliberately NOT rewritten.** §5.14 makes it a
+> historical record, and retroactively renaming options in dated findings would
+> make ship-dates and PR numbers stop matching what those PRs actually say.
+> So: `nebelhaus.roster` below is today's `haus.roster`, and so on throughout.
+>
+> Two things here the rename leans on, both already shipped: **§3.2**
+> (`developer.enable` — "minimal" stopped being a lie, so the rice can be turned
+> off) and **§3.3** (presets-as-format + `checkRice` — a rice became a data
+> file). They are why the rename can happen now rather than after a refactor.
+> And one thing it inherits: **§6's Limit 3** is no longer a note but a launch
+> blocker — a stranger's rice colliding with a stranger's host still shows a raw
+> nix conflict trace, and `hausfold.co/market` is where strangers meet.
+>
+> What §7's repo routing means now: `nebelhaus` → `hausfold/hausfold`, and `web`
+> → the consolidated site repo.
+
 > **Status, 2026-08-08 (fourteenth pass) — an audit pass, not a shipping one.
 > Nothing new was built; two claims in this file were wrong, the phase summary
 > had drifted from the sections it summarizes, and this pass's own first finding

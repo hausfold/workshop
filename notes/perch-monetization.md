@@ -145,8 +145,12 @@ deliberately INERT** *(~2–3 sessions; the big one)*
       the privacy restraint, and the price. Dev detail moves below the fold.
 - [ ] Paddle overlay checkout on that page; FAQ covers fair-source, the
       update-year, seats, refunds (MoR handles the mechanics).
-- [ ] `support@nebelhaus.com` (or alias) with an SLA you'll actually honor —
+- [ ] `support@hausfold.co` (or alias) with an SLA you'll actually honor —
       paying customers change the tone of the issue tracker.
+      *(Was `support@nebelhaus.com`, on the reasoning that people bought a
+      nebelhaus product. Reversed 2026-08-08 with [`go-to-market.md`](./go-to-market.md)
+      §6: they buy a hausfold product now, and hausfold is the name on the
+      receipt they'll already have seen.)*
 
 **Phase 4 — launch** *(gated on me, like any release)*
 - [ ] First FSL + gated build ships via the normal `bench release perch`.

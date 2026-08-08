@@ -230,8 +230,13 @@ After the paid launch it is unrecoverable without a migration shim.
 rather than jumping the queue like the iOS half, because Apple's review queue is
 a clock and Homebrew is not — but it must land **before** perch's Phase 2.
 
-- [ ] Decide migrate-vs-discard for the Mac container, same fork as §4.3
-- [ ] Land it before perch's license layer goes live
+- [x] ✅ **Decided 2026-08-08: discard, no migration shim.** "No users yet" — the
+      shelf, the settings and the (inert) license state are ours alone, so the
+      rename simply starts a fresh container. Note it in perch's changelog; do
+      **not** write a migration path for data that belongs to one person.
+- [ ] Land it before perch's license layer goes live — **that's the whole
+      constraint now.** The window is "any time before Phase 2 ships the public
+      key", and it closes for good the first time somebody pays.
 
 ---
 
@@ -564,6 +569,27 @@ This decision does two useful things beyond tidiness:
    which is just what the repos are called. Take §3.1 option (b).
 2. **It removes the duplicate perch surface** — perch marketing currently exists
    in both repos.
+
+#### 🚨 Blocker found 2026-08-08: `hausfold/website` is a **private** repo
+
+And it is private for a reason its own README spells out: `PRESENCE.md` lists
+every namespace held **and every gap** — `hausfold.com` unheld, PyPI unsecured,
+no trademark work, `flick` claimed nowhere. That's a shopping list for a reader.
+
+A docs site can't live in a private repo: Starlight's edit links, contributions,
+and "improve this page" all assume public. So §5.1 requires flipping it, and the
+README names the price:
+
+1. **Scrub `.wrangler/cache/wrangler-account.json` from history** — it predates
+   the split and holds a Cloudflare account id plus an account name containing a
+   personal email. `git filter-repo --path .wrangler --invert-paths`, **before**
+   flipping visibility, never after.
+2. **Move `PRESENCE.md` out first** — to `workshop/notes/`, which is the natural
+   home now that the org separation it documented is gone.
+
+- [ ] 🤖 scrub the blob
+- [ ] 🤖 relocate `PRESENCE.md`
+- [ ] 👤 flip the repo to public
 
 #### The one condition: don't drag Nix into the site repo's CI
 

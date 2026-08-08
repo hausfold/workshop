@@ -14,15 +14,26 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 
 ## 1. The portfolio (as of 2026-08-04)
 
+> **★ Superseded in part, 2026-08-08 — read this first.** This file was written
+> when hausfold was an umbrella and nebelhaus was the brand. That is reversed:
+> **hausfold is the platform, the org and the seller; nebelhaus is one rice
+> built on it** — the developer-focused one, and the first. The plan and its
+> ordering are [`hausfold-rename.md`](./hausfold-rename.md); this file keeps the
+> *funnel* thinking, which mostly survives, and each section below carries a
+> note where it doesn't. The three reversals: hausfold is a product surface now,
+> the whole family migrates to the `hausfold` org, and the gallery is
+> `hausfold.co/market`.
+
 | Piece | Price | License | Job in the funnel |
 |---|---|---|---|
 | **nebelung** | free | MIT | Taste door. Palette people meet the visual language before they meet Nix. |
 | **pounce** | free, **no paid tier ever** | MIT | Utility door. A native launcher installable without adopting anything. The site already promises "no paid tier" — that promise is load-bearing, don't reopen it. |
 | **holt** | free | MIT | Dev-tool door. The only piece whose audience isn't macOS ricers. |
-| **nebelhaus** (rice) | free | MIT | The destination. What the other doors convert into. |
+| **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on the hausfold platform** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/market` rather than owning a domain. |
+| **hausfold** (platform) | free | MIT | **The destination.** The nix-darwin ricing platform every rice sets options on, and the org everything ships under. Was the umbrella; became the product on 2026-08-08. |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
 | **trill** | not monetized | MIT | Frozen. Archive decision still open — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). |
-| **hausfold** | — | — | The umbrella — commercial identity, not a product. It's the seller, nebelhaus is the brand. Since 2026-08-06 it has a *page* (a one-sheet index of everything above, in [hausfold/website](https://github.com/hausfold/website)) but still no product and no code of its own. See §6. |
+| ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, nebelhaus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
 perch's positioning, so it's now **five**, and one of them is paid:
@@ -33,7 +44,14 @@ perch's positioning, so it's now **five**, and one of them is paid:
 4. **nebelhaus** → the committed (NixOS Discourse, r/unixporn)
 5. **perch** → the wallet (Mac press that covered NotchNook, r/MacApps round two)
 
-Doors 1–4 all terminate at nebelhaus.com. Door 5 terminates at a checkout.
+Doors 1–4 all terminate at **hausfold.co** (was nebelhaus.com, which 301s).
+Door 5 terminates at a checkout.
+
+**The rename sharpens door 4 rather than blunting it.** A rice post lands better
+as "here's my desktop, and here's the platform it's a config of" than as "here's
+my desktop, which is also the product" — the second invites *use mine*, the first
+invites *build yours*. r/unixporn still meets nebelhaus; NixOS Discourse now
+meets hausfold, which is the audience that actually wanted the platform framing.
 
 **Holt is probably the strongest cold-traffic door and the strategy hasn't
 caught up with that.** "Run parallel coding agents in any repo without them
@@ -114,6 +132,18 @@ marketing-only.
 
 ## 5. The gallery / marketplace question — answered
 
+> **★ Half-reversed 2026-08-08.** *Don't build it first* **stands** — and now has
+> a second, harder reason: §6's Limit 3 means a published rice colliding with a
+> stranger's host shows them a raw nix conflict trace, not our error message. So
+> `/market` ships as a **placeholder** until leaf-`mkDefault` is the enforced
+> format rule and `checkRice` catches the collision.
+>
+> *Don't put it on hausfold.co* is **reversed**: the gallery is
+> **`hausfold.co/market`**. The "extra hop" argument below was right about hops
+> and wrong about which domain is home — hausfold.co *is* the destination now,
+> so `/market` is zero hops from the platform and nebelhaus.com is the one that
+> 301s. Everything else in this section survives intact.
+
 **Don't build it first, and don't put it on hausfold.co.**
 
 Three reasons it isn't first:
@@ -131,11 +161,12 @@ Three reasons it isn't first:
   take rate. Perch is the decided revenue line; the gallery is retention and
   social proof, which is real value but not money.
 
-Where it belongs: **nebelhaus.com/rices**, submissions by PR to a
-`nebelhaus/rices` repo (CI validates that a submission only sets `nebelhaus.*`
-and evaluates). A nebelhaus rice reached through a *different domain* puts an
-extra hop between "I like that" and `haus rebuild`, and funnels die at extra
-hops.
+Where it belongs: ~~nebelhaus.com/rices~~ → **`hausfold.co/market`**, submissions
+by PR to a `hausfold/rices` repo (CI validates that a submission only sets
+`haus.*` and evaluates). The hop argument is unchanged and now points the other
+way: a rice reached through a *different domain* puts an extra hop between "I
+like that" and `haus rebuild`, and hausfold.co is where the platform, the docs
+and the installer live.
 
 When to build it: as the **housewarming release** — the second event, ~4 weeks
 after launch, carrying the first external rices, the first contributed pounce
@@ -147,48 +178,53 @@ cat") — same event, same mechanism, zero extra infrastructure.
 
 ## 6. What hausfold is for
 
-**Decided 2026-08-04: hausfold is the umbrella — the commercial identity, not a
-product brand.** It fits what was already true: hausfold's `PRESENCE.md` says the
-`hausfold` GitHub org is deliberately separate and *nothing in the nebelhaus
-family belongs there*.
+> **★ Rewritten 2026-08-08. The 2026-08-04 decision — "hausfold is the umbrella,
+> not a product brand" — is reversed.** The struck text is kept below because the
+> *reasoning* still explains why the split was drawn, and one half of it survived.
 
-The split that falls out of it:
+**hausfold is the platform, the org, and the seller. nebelhaus is one rice built
+on it.** The nix-darwin ricing platform, the mac apps, the open-source tools and
+the entity on the receipt are all hausfold; `haus.*` is the option namespace
+every rice sets, and nebelhaus is the developer-focused rice that ships first.
+
+What actually changed, and what didn't:
 
 | | **nebelhaus** | **hausfold** |
 |---|---|---|
-| Is | the brand people love | the entity that sells |
-| Carries | products, docs, the family, the gallery | billing, terms, refunds, press, future non-rice products |
-| Customer sees it | constantly | on a receipt |
+| Was | the brand people love | the entity that sells |
+| **Is now** | **one rice, the first one, on a page inside `/market`** | **the platform people install, the org it ships from — and still the entity that sells** |
+| Customer sees it | when choosing a rice | constantly, and on the receipt |
 
-Consequences to honor:
+**Why the reversal, in one line:** the umbrella framing made the *platform*
+nameless. Every option was `nebelhaus.*`, so a stranger publishing a large-print
+rice for their parent was publishing it into a namespace named after somebody
+else's desktop — which is the exact confusion `options-roadmap.md` exists to
+remove.
 
-- **Product support stays `support@nebelhaus.com`.** People bought *perch*, a
-  nebelhaus product; routing them to a name they've never seen is friction for
-  no gain. hausfold owns the *commercial* surface — the seller name on perch's
-  terms/refund page, press contact, and whatever isn't macOS ricing later.
-  ([`perch-monetization.md` Phase 3](./perch-monetization.md#3-phases) already
-  says nebelhaus for support — that stays correct.)
-- **Nothing in the family migrates to the hausfold org.** Not the gallery (§5),
-  not holt, not a repo, ever. The register already says this; the decision makes
-  it load-bearing rather than incidental.
+Consequences, revised:
+
+- ~~**Product support stays `support@nebelhaus.com`.**~~ **Reversed** — people
+  now buy a *hausfold* product, so support moves to `support@hausfold.co`. The
+  original reasoning ("routing them to a name they've never seen is friction")
+  is exactly why it moves: hausfold is the name they *will* have seen.
+  [`perch-monetization.md` Phase 3](./perch-monetization.md#3-phases) updated.
+- ~~**Nothing in the family migrates to the hausfold org.** Not the gallery, not
+  holt, not a repo, ever.~~ **Reversed — everything migrates**, all ten repos.
+  See [`hausfold-rename.md`](./hausfold-rename.md) §3 for the order and the
+  redirect story. `PRESENCE.md`'s GitHub row and hausfold's `AGENTS.md` both
+  carried this as a hard rule and are updated in the same change.
 - **Paddle will ask who the seller is, and "hausfold" is a name, not an
-  entity.** No incorporation and no trademark work exists. Selling as an
-  individual with hausfold as a trading name is the low-friction path; that's a
-  real decision but it belongs to the Paddle application, not here.
-- **It is not the gallery** (§5). ~~And it stays a placeholder page until it has
-  something to say.~~ **Reversed 2026-08-06:** hausfold.co is now a one-sheet
-  index of the five products plus revena, in a maker's voice. The dormant-channel
-  logic still holds for the *social* accounts — it was the page it stopped
-  applying to, because a domain that says one word says nothing, while a page
-  that links straight out to nebelhaus.com and GitHub adds no hop to any funnel.
-  Everything else in this section stands: support at nebelhaus.com, nothing in
-  the family migrating to the hausfold org, hausfold as the seller on the
-  receipt. The page and the register now live in
-  [hausfold/website](https://github.com/hausfold/website), split out of this
-  repo the same day.
+  entity.** ✅ **Unchanged, and now more load-bearing** — the name is on more
+  surfaces than a receipt. No incorporation and no trademark work exists;
+  selling as an individual trading as hausfold is still the low-friction path,
+  and it still belongs to the Paddle application rather than here.
+- **It is not the gallery** → **it hosts the gallery**, at `/market` (§5).
+  The 2026-08-06 amendment that made hausfold.co a real page rather than a
+  placeholder was the first step of this reversal; this finishes it.
 
-One known exposure: `hausfold.com` isn't held, and an entity name gets spoken
-aloud in receipts and terms — see §9.
+One known exposure, now larger: **`hausfold.com` isn't held**, and the name is
+about to be the platform, the docs domain, *and* the seller spoken aloud in
+receipts and terms. Accepted as `.co` on 2026-08-08 — see §9.
 
 ## 7. Measurement without adding telemetry
 
@@ -222,7 +258,8 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | **Decided 2026-08-04: umbrella** — §6. Successor question: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
+| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold is the platform** (and still the seller) — §6, and [`hausfold-rename.md`](./hausfold-rename.md). Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
 | 2 | Archive trill? | Open since 2026-08-04 — [`perch-monetization.md` §5.5](./perch-monetization.md#55-open-archive-trill). Leaning yes. Blocks the free launch: an unmaintained app shipped by default sets the family's quality bar in front of every new tester. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
-| 4 | `hausfold.com` — buy it or accept the `.co`? | Open, cheap, gets more expensive with brand value. |
+| 4 | `hausfold.com` — buy it or accept the `.co`? | **Decided 2026-08-08: accept the `.co`**, with the exposure logged rather than closed — the name is now the platform, the docs domain *and* the seller on a receipt, so a `.co` brand beside someone else's `.com` is a permanent tax on every verbal mention. Still cheap to reverse; still gets more expensive with brand value. |
+| 5 | Does the `hausfold/website` repo go public? | **Open, and newly blocking.** It is private *because* `PRESENCE.md` is a list of every namespace we hold and every gap. The docs site moving into it ([`hausfold-rename.md`](./hausfold-rename.md) §5.1) needs it public — docs want edit links and contributions. Its README names the price: scrub `.wrangler/cache/wrangler-account.json` from history (a Cloudflare account id + a personal email) *before* flipping, and move `PRESENCE.md` out first. |
