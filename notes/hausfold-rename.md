@@ -341,9 +341,34 @@ a clock and Homebrew is not — but it must land **before** perch's Phase 2.
       shelf, the settings and the (inert) license state are ours alone, so the
       rename simply starts a fresh container. Note it in perch's changelog; do
       **not** write a migration path for data that belongs to one person.
-- [ ] Land it before perch's license layer goes live — **that's the whole
-      constraint now.** The window is "any time before Phase 2 ships the public
-      key", and it closes for good the first time somebody pays.
+- [x] ✅ **Landed 2026-08-08, before the license layer — [perch#44](https://github.com/nebelhaus/perch/pull/44).**
+      `com.nebelhaus.perch` → `com.hausfold.perch`, plus everything derived from
+      it: both `PRODUCT_BUNDLE_IDENTIFIER` configs and `.tests`, seven `Logger`
+      subsystems, the three `OperationQueue` names, the three Keychain services,
+      and the dev-app id `com.hausfold.perch.dev` (`bench` fixed in the same
+      change — it hardcoded the old one at three lines). Verified by running it:
+      full macOS suite green and a signed dev build creates
+      `~/Library/Containers/com.hausfold.perch/` with an empty ActiveShelf
+      manifest. Two mentions of the old id survive on purpose, annotated as
+      historical: `perch/docs/app-store.md`'s re-identification runbook and
+      ADR 0006's consequences list.
+
+      Two things worth carrying forward, because they were wrong until checked:
+      the Homebrew cask has **no `zap`/`uninstall` stanza** and never names a
+      bundle id, and `release.yml` doesn't either — so nothing downstream pinned
+      it and the rename needed no cask or workflow edit. And what actually breaks
+      the phone pairings is the **Keychain service strings**, not the container
+      move; the Mac's `PairedDeviceStore` and the phone's `MacPairingStore` /
+      `MobileConfig` move together, so identity and pairing die together (the
+      safe half) instead of the phone presenting a new id while holding an old
+      key.
+
+      Accepted, user-visible: empty shelf (old container orphaned, safe to
+      `rm -rf` — `perch/docs/reference.md` says so now), Settings back to
+      defaults, pairings need re-doing, local-network prompt re-appears.
+
+**§0.6 is closed.** Both halves of the Mac/iOS re-identification have landed;
+what remains of the hausfold work is §1 onwards.
 
 ---
 
@@ -708,9 +733,10 @@ What remains here is macOS only.
 - Register the macOS App IDs: `com.hausfold.perch`, `com.hausfold.pounce`,
   `com.hausfold.flick`. These ship Developer ID + notarized, never through the
   App Store, so they're unconstrained by any record.
-- ⚠️ **`com.nebelhaus.perch` is a released app's container and defaults domain
-  — see §0.6 before touching it.** Renaming it empties the shelf and the license
-  state of every install.
+- ✅ **`com.nebelhaus.perch` → `com.hausfold.perch` is done** — perch#44,
+  2026-08-08, pulled forward out of this phase exactly like the iOS half. See
+  §0.6 for what it cost. The App ID above still needs registering for signing;
+  the code side of it is no longer pending.
 - `org.nixos.pounce` → `com.hausfold.pounce` is the launchd label; the notes
   below still apply.
 - 🚨 **`.nebelhauslicense` — the one user-facing artifact named after the
@@ -731,8 +757,8 @@ What remains here is macOS only.
 
 | Old | New |
 |---|---|
-| `com.nebelhaus.perch` (+ `.ios`, `.ios.share`, `.mobile`, `.dev`, `.tests`, `.transfer`, `.promises`, `.export`) | `com.hausfold.perch…` |
-| `group.com.nebelhaus.perch` | `group.com.hausfold.perch` |
+| ✅ `com.nebelhaus.perch` (+ `.ios`, `.ios.share`, `.mobile-*`, `.dev`, `.tests`, `.transfer`, `.promises`, `.export`) | `com.hausfold.perch…` — done, perch#41 + perch#44 |
+| ✅ `group.com.nebelhaus.perch` | `group.com.hausfold.perch` — done, perch#41 |
 | `com.nebelhaus.flick` | `com.hausfold.flick` |
 | **`org.nixos.pounce`** | `com.hausfold.pounce` |
 

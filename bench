@@ -325,11 +325,11 @@ ensure_perch_dev_app() {
   mkdir -p "$dd"
 
   say "perch: building a signed dev app from $src"
-  say "       (bundle com.nebelhaus.perch.dev, version $ver, $ident) — first run is slow…"
+  say "       (bundle com.hausfold.perch.dev, version $ver, $ident) — first run is slow…"
   if ! ( cd "$src" && /usr/bin/xcodebuild \
            -project Perch.xcodeproj -scheme Perch -configuration Debug \
            -destination 'platform=macOS' -derivedDataPath "$dd" \
-           PRODUCT_BUNDLE_IDENTIFIER=com.nebelhaus.perch.dev \
+           PRODUCT_BUNDLE_IDENTIFIER=com.hausfold.perch.dev \
            MARKETING_VERSION="$ver" \
            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$ident" \
            build >/dev/null ); then
@@ -337,7 +337,7 @@ ensure_perch_dev_app() {
   fi
   /usr/bin/ditto "$dd/Build/Products/Debug/Perch.app" "$out/Perch.app"
   PERCH_DEV_APP_DIR="$out"
-  say "perch: dev app built (com.nebelhaus.perch.dev); its stable identity keeps"
+  say "perch: dev app built (com.hausfold.perch.dev); its stable identity keeps"
   say "       any permission grant it's given across future dev builds."
 }
 
