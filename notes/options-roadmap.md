@@ -1053,6 +1053,15 @@ nebelhaus.theme = {
       *palette* choice, but asking to follow the system says the *polarity* is
       macOS's call, so the two can't both win. The rice resolves it by letting
       `contrast` reach both halves while `flavor` reaches neither.
+      **Amended 2026-08-08:** that resolution holds *at the default only*. With
+      `theme.systemAppearance = "flavor"` (see this section's macOS Light/Dark
+      box) macOS's polarity is the rice's, so `flavor` reaches both halves
+      transitively and `followSystemAppearance` stops being an independent axis
+      on that machine. The dichotomy in (c) was real but not permanent — it was
+      a consequence of the rice not owning macOS's polarity, which was itself a
+      consequence of a measurement nobody had taken. Worth logging as its own
+      drift shape: a *closed* item can go stale because a **different** box
+      opened a door it assumed was walled.
       Still open: **ghostty**, the other tool that can switch on appearance. Its
       config used to read `theme = dark:nebelung,light:Catppuccin Latte` — i.e. it
       already followed macOS appearance and fell back to **stock** Catppuccin in

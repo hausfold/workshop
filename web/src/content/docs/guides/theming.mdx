@@ -158,19 +158,25 @@ leaves it alone. The default stays hands-off on purpose — a managed default
 would silently undo an appearance you picked in System Settings on your next
 rebuild.
 
-Two things worth knowing. It is applied with AppleScript rather than a
+Three things worth knowing. It is applied with AppleScript rather than a
 `defaults` write, because on macOS 26 that key is **inert in both directions** —
 it is where macOS mirrors the appearance it's showing, not a lever you can pull
-(measured; `haus diff` says so if you declare it by hand). And driving it needs
-an **Automation** grant for whatever runs your rebuild
+(measured; `haus diff` says so if you declare it by hand). Driving it needs an
+**Automation** grant for whatever runs your rebuild
 (System Settings ▸ Privacy & Security ▸ Automation); without it the rice tells
-you and leaves the appearance alone, and nothing else is affected.
+you and leaves the appearance alone, and nothing else is affected. And if
+System Settings ▸ Appearance is set to **Auto**, macOS switches polarity on its
+own schedule — the rice sets it at rebuild time and doesn't fight it afterwards,
+so pick Light or Dark there if you want this to stick.
 
 **Pounce** and **Perch** are the exception in the other direction: both read
 their palette at runtime and follow macOS's Light/Dark themselves, so on a dark
 Mac they stay dark even under `flavor = "latte"`. Pin them to the flavor with
 `nebelhaus.pounce.followSystemAppearance = false` /
-`nebelhaus.perch.followSystemAppearance = false`.
+`nebelhaus.perch.followSystemAppearance = false` — though if you set
+`systemAppearance = "flavor"` above, macOS's polarity *is* the rice's, so those
+two follow the flavor anyway and pinning them is only needed while macOS stays
+unmanaged.
 
 The three hand-made [wallpapers](/reference/options/#nebelhausthemewallpaper) do
 keep their dark palette — their pixels are already coloured. `wallpaper = "bold"`
