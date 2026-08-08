@@ -158,8 +158,11 @@ artifact; quitting and reopening System Settings shows the true values. (Data
 verified against the original snapshot: no entries lost, four *gained* as macOS
 registered more participants.)
 
-**This is the third and worst member of the write-that-lies family**, after
-`com.apple.Accessibility` (writes, no effect). A nebelhaus option backed by this
+**This is the third member of the write-that-lies family**, after
+`com.apple.Accessibility` (writes, no effect) — and it was the worst until
+`AppleInterfaceStyle` was measured on 2026-08-08 (see below): that one is
+*read back correct* while doing nothing, so it defeats the read-back check
+this one at least survives. A nebelhaus option backed by this
 would produce a Mac where System Settings claims 20 pt, every app renders 13 pt,
 and the settings pane looks broken — and the user would rightly blame the rice.
 
@@ -314,6 +317,46 @@ why.
 | `com.apple.WindowManager` | logout | 12 typed keys |
 | `com.apple.controlcenter` | `killall ControlCenter` — not done | ByHost domain |
 
+### `NSGlobalDomain AppleInterfaceStyle` — the write-that-lies family's newest member, and the only one that lies *back*
+
+Swept 2026-08-08 on **macOS 26.6**, with a Swift probe reading
+`NSApp.effectiveAppearance` on a 1s tick *and* subscribed to
+`AppleInterfaceThemeChangedNotification`. Machine started Dark; every path
+restored it.
+
+| lever | plist after | effective appearance | notification |
+|---|---|---|---|
+| `defaults delete -g AppleInterfaceStyle` (from Dark) | absent ✅ | **dark** ❌ | none ❌ |
+| … then `activateSettings -u` | absent | **dark** ❌ | none ❌ |
+| … then `killall -HUP SystemUIServer` | absent | **dark** ❌ | none ❌ |
+| … then a **freshly launched** process | absent | **dark** ❌ | — |
+| `defaults write -g AppleInterfaceStyle Dark` (from Light) | `Dark` ✅ | **light** ❌ | none ❌ |
+| … then `activateSettings -u`, then a fresh process | `Dark` | **light** ❌ | none ❌ |
+| **System Events (AppleScript) `set dark mode to false`** | **deleted by macOS** | **light ✅ in ~0.3s** | **fired ✅** |
+| **System Events `set dark mode to true`** | **written by macOS** | **dark ✅** | **fired ✅** |
+
+So this key is **inert in both directions** — and unlike
+`com.apple.Accessibility` (which at least stays where you put it and does
+nothing), this one is where macOS **mirrors the appearance it is showing**. That
+makes it the most misleading row in this document: a plist read-back reports the
+write you just made, so a naive diff calls an inert write "applied", and the
+fresh-process test — the usual tiebreaker for "is this just a caching problem?" —
+*also* fails. The appearance lives in session state the WindowServer owns;
+`defaults` never reaches it.
+
+Consequences already taken: `nebelhaus.theme.systemAppearance` drives it through
+System Events from home-manager activation, `hausax` grew an `appearance` key so
+the effect is confirmed against AppKit, and `haus diff` flags a hand-declared
+`AppleInterfaceStyle` the way it flags `com.apple.Accessibility`. Note this also
+means `system.defaults.NSGlobalDomain.AppleInterfaceStyle` — a *typed* nix-darwin
+option — is dead on macOS 26; the `NSGlobalDomain` row above is "effective" for
+its other 52 keys, not this one.
+
+The reachability cost is an **Automation** grant for whatever app runs the
+rebuild (System Settings ▸ Privacy & Security ▸ Automation) — the same shape as
+`universalaccess` needing FDA, and it degrades the same way: refused means the
+appearance doesn't move, not that activation dies.
+
 ### Restart behaviour is thinner than assumed
 
 nix-darwin's entire post-write restart logic is **one line**, and only fires when
@@ -416,10 +459,15 @@ The rice sets 19. Correcting the roadmap's "several hundred".
    lowering it.
 4. **Add a "reachability" designation to every curated setting** (§5.6), with a
    value macOS can't fake: `typed-and-effective` · `writable-no-op` ·
-   `locked-domain` · `manual-only`. Verified by effective-state probe, not plist
-   read-back.
+   `writable-mirror` · `locked-domain` · `manual-only`. Verified by
+   effective-state probe, not plist read-back. (`writable-mirror` was added
+   2026-08-08 for `AppleInterfaceStyle` — a key that *reflects* effective state,
+   so its read-back is actively deceptive rather than merely uninformative. It
+   is the class `haus.sh`'s `classify_key` calls `appearance`.)
 5. **`haus diff` must compare effective state, not plists** (§5.11). A
-   plist-only diff would have called both no-op writes above "applied".
+   plist-only diff would have called all three no-op writes above "applied" —
+   and the appearance one twice over, since that key reads back the write you
+   just made.
 
 ---
 

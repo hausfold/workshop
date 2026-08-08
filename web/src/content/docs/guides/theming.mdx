@@ -144,18 +144,39 @@ you reach for contrast. The two axes compose:
 | `flavor = "mocha"` | 11.3:1 | 19.9:1 |
 | `flavor = "latte"` | 7.0:1 | 9.9:1 |
 
-<Aside type="caution" title="macOS's own appearance doesn't follow">
-The rice leaves **System Settings ▸ Appearance** alone, in both directions, so a
-light rice on a dark Mac looks half-finished. Set macOS's own Light/Dark by hand
-to match. (This isn't laziness: turning dark mode *on* is one declarative
-setting, but turning it *off* means deleting a default rather than writing one,
-which nix-darwin has no way to express.)
+<Aside type="caution" title="macOS's own appearance is opt-in">
+By default the rice leaves **System Settings ▸ Appearance** alone, in both
+directions, so a light rice on a dark Mac looks half-finished. One option
+finishes it:
+
+```nix
+nebelhaus.theme.systemAppearance = "flavor";  # latte → Light, mocha → Dark
+```
+
+`"light"` and `"dark"` pin it instead, and the default `"unmanaged"` is what
+leaves it alone. The default stays hands-off on purpose — a managed default
+would silently undo an appearance you picked in System Settings on your next
+rebuild.
+
+Three things worth knowing. It is applied with AppleScript rather than a
+`defaults` write, because on macOS 26 that key is **inert in both directions** —
+it is where macOS mirrors the appearance it's showing, not a lever you can pull
+(measured; `haus diff` says so if you declare it by hand). Driving it needs an
+**Automation** grant for whatever runs your rebuild
+(System Settings ▸ Privacy & Security ▸ Automation); without it the rice tells
+you and leaves the appearance alone, and nothing else is affected. And if
+System Settings ▸ Appearance is set to **Auto**, macOS switches polarity on its
+own schedule — the rice sets it at rebuild time and doesn't fight it afterwards,
+so pick Light or Dark there if you want this to stick.
 
 **Pounce** and **Perch** are the exception in the other direction: both read
 their palette at runtime and follow macOS's Light/Dark themselves, so on a dark
 Mac they stay dark even under `flavor = "latte"`. Pin them to the flavor with
 `nebelhaus.pounce.followSystemAppearance = false` /
-`nebelhaus.perch.followSystemAppearance = false`.
+`nebelhaus.perch.followSystemAppearance = false` — though if you set
+`systemAppearance = "flavor"` above, macOS's polarity *is* the rice's, so those
+two follow the flavor anyway and pinning them is only needed while macOS stays
+unmanaged.
 
 The three hand-made [wallpapers](/reference/options/#nebelhausthemewallpaper) do
 keep their dark palette — their pixels are already coloured. `wallpaper = "bold"`
