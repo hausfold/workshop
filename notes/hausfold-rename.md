@@ -65,8 +65,14 @@ that contradicts the work in front of it.
   historical record and §5.14 is explicit about that. One banner at the top.
 - `notes/perch-monetization.md` — the support-address line.
 
-**Gate:** `grep -rn 'nothing in the family migrates\|not on hausfold.co' notes/ ../hausfold/`
-returns nothing.
+**Gate:** the following returns nothing (it hits `go-to-market.md:117,171` and
+`hausfold/PRESENCE.md:52` today — the `--exclude` is load-bearing, or this doc
+matches itself forever):
+
+```sh
+grep -rniE "nothing in the (nebelhaus )?family (migrates|belongs)|don't put it on hausfold\.co|nebelhaus\.com/rices" \
+  notes/ hausfold/ --exclude=hausfold-rename.md
+```
 
 ### 0.2 👤 Name clearance — 20 minutes, do it now
 
@@ -87,12 +93,16 @@ here — this is the cheapest possible moment to pick a different name.
 exactly one open PR — that's the readiness signal, and it decays.
 
 ```sh
-gh pr list --state open -R nebelhaus/workshop    # → #249 (flick) as of 2026-08-08
-holt                                              # every live/parked worktree, all repos
-~/code/workshop/bench status                      # dirty trees, unpushed, stale locks
+for r in workshop nebelhaus nebelung pounce perch holt homebrew-tap .github; do
+  gh pr list --state open -R nebelhaus/$r
+done
+holt                            # every live/parked worktree, all repos
+~/code/workshop/bench status    # dirty trees, unpushed, stale locks
 ```
 
-- Merge or park workshop#249.
+- As of 2026-08-08 that's **workshop#249** (flick) and **nebelhaus#257**. Merge
+  or park both. Checking only one repo is how a rename lands over an open rice
+  PR — which is the exact thing this step exists to prevent.
 - `holt reap` anything already landed.
 - `bench status` must show **no stale lock edge and no OFF-MAIN pin** before the
   sweep starts — a rename ripple on top of a stale lock is undebuggable.
@@ -149,9 +159,10 @@ If `lib.mkRenamedOptionModule` can carry the whole tree, the atomicity problem
 alias, main never breaks, and `~/.config/nix` bumps its lock whenever it likes.
 
 ```sh
-# generate the leaf list from the artifact that already exists
+# the leaf list already exists as a declared output — generate FROM it
 cd nebelhaus && nix build .#options-json
-# → modules/renamed.nix, one mkRenamedOptionModule per leaf, generated not typed
+# then: options.json → modules/renamed.nix, one mkRenamedOptionModule per
+# leaf, generated rather than hand-typed
 ```
 
 Two things the spike must actually prove, not assume:
@@ -186,8 +197,8 @@ within the same sitting. Nothing else may be mid-ripple.
 
 ### 1.2 🤖 Prove it changed nothing
 
-The house technique — §3.1 did exactly this and called it "byte-identical
-derivation":
+The house technique — `options-roadmap.md` §3.1 (the options split, nebelhaus#92)
+did exactly this and called it "byte-identical derivation":
 
 ```sh
 # BEFORE the sweep, on a clean tree
@@ -225,9 +236,12 @@ single find-replace would conflate:
   `start/the-family.md`, `reference/haus.md`, `reference/options.md`
   (regenerates — don't hand-edit), `guides/sharing-a-rice.mdx` (the format doc),
   `astro.config.mjs:8` (`site:`), `:63` (the GitHub edit baseUrl).
-- **bench**: `FAMILY=(…)` at `bench:75` — and **drop the stale `trill`** while
-  you're there, it was archived 2026-08-04. Also the repo lists at `:1003`,
-  `:1455`, `:1541`, and the `--override-input nebelhaus/*` block at `:281-284`.
+- **bench**: `FAMILY=(…)` at `bench:75`, the repo lists at `:1003`, `:1455`,
+  `:1541`, and the `--override-input nebelhaus/*` block at `:281-284`.
+  ⚠️ **Leave `trill` in `FAMILY` alone.** `bench:72-74` keeps it there
+  deliberately so `bench status` still reports the checkout; it carries no lock
+  edge and no release path. Removing it is a behavior change, and this phase is
+  gated on "changed nothing".
 - **workshop**: `README.md`, `AGENTS.md` routing table, `.agents/**` skills
   (`ship`, `docs-sync`), `docs/workflows.md`.
 - **nebelung / pounce / perch / holt / org-profile / homebrew-tap**: each
@@ -246,9 +260,10 @@ Easy to miss and it breaks *your* sessions, not users':
 - `holt` hooks — repo-agnostic, **no change**.
 - `~/.cache/claude-worktrees/` — already documented as historical, **leave**.
 
-**Gate:** `bench try` builds; `haus rebuild` from a main checkout produces a
-byte-identical system; the docs site builds and `nix build .#options-json`
-regenerates `reference/options.md` with zero drift.
+**Gate:** `bench try` builds; the §1.2 derivation diff is still empty; the docs
+site builds and `nix build .#options-json` regenerates `reference/options.md`
+with zero drift. *(No `haus rebuild` here — that activates the machine, which is
+👤's, never 🤖's.)*
 
 ---
 
@@ -259,8 +274,24 @@ half-migrated org means flake inputs resolving through redirects for days.
 
 ### 3.1 👤 Pre-flight
 
-- [ ] `hausfold` org has only `website` today. Confirm **no name collision**
-      with an incoming repo (there isn't one — `website` is unique).
+- [ ] `hausfold` org has only `website` today. Confirm **no GitHub name
+      collision** with an incoming repo (there isn't one — `website` is unique).
+- [ ] ⚠️ **There IS an on-disk collision, and it must be decided before §2.1.**
+      `bench` resolves `FAMILY` entries as *directory names* under the workshop
+      root (`local_src` → `$ROOT/$1` at `bench:252`; `cmd_clone`'s
+      `[ -d "$ROOT/$name/.git" ]` at `bench:1541`). Renaming the FAMILY entry
+      `nebelhaus` → `hausfold` puts the platform checkout at
+      `~/code/workshop/hausfold` — **which is already the `hausfold/website`
+      checkout.** This repo survived exactly this once before (the
+      `~/code/nebelhaus` → `~/code/workshop` rename, and the child-repo name
+      collision that forced it). Pick one:
+      **(a)** keep the platform's *directory* named `nebelhaus/` even though the
+      repo is `hausfold/hausfold` — zero churn, mildly confusing; or
+      **(b)** move the website checkout to `website/` and update `bench:1003`'s
+      `repos=(… hausfold consumer)` list plus the comment at `bench:1000-1002`.
+      **(b) is the honest one**, and §5.1 may fold `hausfold/website` into
+      `workshop/web` anyway, which dissolves the collision entirely — so
+      sequence §5.1's decision before this if you can.
 - [ ] Confirm you can create repos in `hausfold` and that transfer targets show it.
 - [ ] **Repo secrets travel with the repo; org-level secrets do not.** perch's
       `MACOS_CERT_P12` / `NOTARY_*` / `ASC_*` / `IOS_DIST_*` are repo secrets →
@@ -296,9 +327,20 @@ redirect. Deleting it breaks them permanently.
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
 that's a landmine.
 
+There are **three** such files, not four, and the command below reaches only two
+of them:
+
+| File | `github:nebelhaus/*` inputs |
+|---|---|
+| `nebelhaus/flake.nix` | nebelung, pounce, perch, holt |
+| `pounce/flake.nix` | nebelung |
+| 👤 `~/.config/nix/flake.nix` (`$HAUS_CONSUMER`) | nebelhaus |
+
+`perch`, `holt`, `nebelung`, `trill` and `incubator/flick` have none.
+
 ```sh
-# every github:nebelhaus/* across 4 flake.nix files
-rg 'github:nebelhaus/' --type nix
+rg 'github:nebelhaus/' --type nix          # from ~/code/workshop — misses the consumer
+rg 'github:nebelhaus/' ~/.config/nix       # 👤 the one flake this machine builds from
 # then, per repo, upstream → downstream:
 nix flake update <input> --refresh
 ```
@@ -352,7 +394,29 @@ worth fixing regardless of this rename. But it's the **launchd label**, so:
 - The daemon-restart race is real: force
   `launchctl kickstart -k com.hausfold.pounce` and verify by binary timestamp.
 
-### 4.3 👤 Re-grant everything
+### 4.3 🤖+👤 The App Group is a data container, not just an identifier
+
+**This one silently destroys perch's state and nothing else in §4 covers it.**
+`group.com.nebelhaus.perch` is passed to
+`containerURL(forSecurityApplicationGroupIdentifier:)` and
+`UserDefaults(suiteName:)` — see `perch/PerchMobileCore/MobileConfig.swift:10-14,38`.
+Renaming it gives you a **new, empty container and empty defaults**: every shelf
+item and every setting goes invisible, and the old container is orphaned on disk
+with no UI pointing at it.
+
+Pick one, explicitly:
+
+- **(a) Migrate** — on first launch under the new group, copy the old
+  container's contents and read the old `UserDefaults` suite, keeping the old ID
+  readable for one release. Costs a one-shot migration path you delete later.
+- **(b) Discard** — declare that shelf state is lost, and **land it before any
+  external tester has data**. Free today (the install base is you), impossible
+  once §0.5's audit or Phase 1 testers exist.
+
+Whichever you take, write it in perch's changelog. A user who loses a shelf
+without warning does not file a bug, they uninstall.
+
+### 4.4 👤 Re-grant everything
 
 **TCC grants are keyed to bundle ID + path.** Renaming invalidates all of them:
 
@@ -361,7 +425,7 @@ worth fixing regardless of this rename. But it's the **launchd label**, so:
   own ⌘Space, and classic-API denials **abort silently**. Test the command
   palette specifically, not just app launch.
 
-### 4.4 👤 Check the license layer
+### 4.5 👤 Check the license layer
 
 Does perch's offline-Ed25519 license bind to the bundle ID? If yes, **this must
 land before the first sale**, and any test licenses you've issued are void.
@@ -478,19 +542,20 @@ leaf-`mkDefault` is the documented rule and `checkRice` enforces it.
       ├── §4  Apple bundle IDs  ──── gate: TCC re-granted, palette works
       │
       └── §5  domains + 301s  ──── gate: curl shows the redirect
-      │
-§6  (nothing — the do-not-touch list)
-      │
+                │
 §7  LATER: neutralize defaults → rices/nebelhaus.nix → /market opens
 ```
+
+(§6 is the do-not-touch list — no steps, nothing to gate.)
 
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
 ## §9 — Loose ends found while writing this
 
-- `bench:75` still lists **`trill`** in `FAMILY`; it was archived 2026-08-04.
-  Fix in §2.1.
+- `bench:75` still lists **`trill`** in `FAMILY` — and that's **deliberate**
+  (`bench:72-74`), so `bench status` keeps reporting the checkout. Recorded here
+  only because it reads like drift and will get "fixed" otherwise. See §2.1.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**
   carry-over (`guides/the-bar.mdx:128`) — unrelated, but it's in the same file
   you'll be editing.
