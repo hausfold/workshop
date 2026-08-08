@@ -27,10 +27,14 @@
 #   bench docs-since   commits in every repo since the docs were last
 #                  reconciled (--mark records new watermarks) — the input
 #                  to the daily /docs-sync sweep
-#   bench release <repo> [--ship]   stamp today's date as the version
-#                  (YYYY.MM.DD, -N on a same-day repeat) and tag it, then WATCH
-#                  the CI run to the end — GitHub release + Homebrew tap bump.
+#   bench release <repo> [version] [--ship]   stamp the version and tag it,
+#                  then WATCH the CI run to the end — GitHub release + Homebrew
+#                  tap bump (or, for holt, five SDK publishes).
 #                  --ship ripples the new lock edge downstream afterwards.
+#                  The version is today's date (YYYY.MM.DD, -N on a same-day
+#                  repeat) and typed by nobody — EXCEPT for holt, which is
+#                  semver because it publishes libraries to registries that
+#                  never let a number be taken back: `bench release holt 0.2.0`.
 #
 # Rule of thumb: hack freely, `bench try` until happy, commit, `bench ship`.
 #
@@ -520,20 +524,33 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce perch nebelhaus; do
-    local dir tag behind audience
+  for name in pounce perch nebelhaus holt; do
+    local dir tag behind audience cut
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
       perch)     audience="brew + the rice's flake pin" ;;
       nebelhaus) audience="nebelhaus.com/init.sh" ;;
+      # holt is the only one whose release lands OUTSIDE our own infrastructure:
+      # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins holt's
+      # main, so this machine sees a holt commit via the lock edge above — but
+      # everyone consuming an SDK sees only what was last released.
+      holt)      audience="npm/PyPI/crates/SwiftPM/go get" ;;
     esac
+    # CalVer needs no argument; holt is semver, so the number is a judgement.
+    cut="bench release $name"
+    [ "$(version_scheme "$name")" = semver ] && cut="bench release $name <X.Y.Z>"
     tag="$(latest_tag "$name")"
     if [ -z "$tag" ]; then
-      printf '  %s⚠%s %-22s no release yet — %s falls back to main\n' \
-        "$C_WARN" "$C_OFF" "$name" "$audience"
-      printf '      %scut the first dated release: bench release %s%s\n' "$C_MUT" "$name" "$C_OFF"
+      # holt is the one repo where "no tag" doesn't mean "consumers see main":
+      # its SDKs are already live at 0.1.0, hand-published before this flow
+      # existed, and nothing moves them until a tag does.
+      local nofallback="falls back to main"
+      [ "$name" = holt ] && nofallback="stays on whatever was last published by hand"
+      printf '  %s⚠%s %-22s no release yet — %s %s\n' \
+        "$C_WARN" "$C_OFF" "$name" "$audience" "$nofallback"
+      printf '      %scut the first release: %s%s\n' "$C_MUT" "$cut" "$C_OFF"
       rel_stale=1
       continue
     fi
@@ -544,8 +561,8 @@ cmd_status() {
     else
       printf '  %s⚠%s %-22s %s%s%s is %s%s%s commit(s) behind main — %s get the old one\n' \
         "$C_WARN" "$C_OFF" "$name" "$C_MUT" "$tag" "$C_OFF" "$C_WARN" "$behind" "$C_OFF" "$audience"
-      # release date-stamps the version itself; nothing to bump by hand first.
-      printf '      %scut a dated release: bench release %s%s\n' "$C_MUT" "$name" "$C_OFF"
+      # release stamps the version itself; nothing to bump by hand first.
+      printf '      %scut a release: %s%s\n' "$C_MUT" "$cut" "$C_OFF"
       rel_stale=1
     fi
   done
@@ -1016,6 +1033,7 @@ version_file() { # version_file <repo> — WHERE a releasable repo's version liv
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
     perch)     echo "$(repo_dir "$1")/VERSION" ;;
     nebelhaus) echo "$(repo_dir "$1")/VERSION" ;;
+    holt)      echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
   esac
 }
@@ -1026,6 +1044,7 @@ read_version() { # read_version <repo> — the version string that repo tags at
     pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
     perch)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     nebelhaus) tr -d '[:space:]' < "$f" 2>/dev/null ;;
+    holt)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
 }
 
@@ -1039,6 +1058,28 @@ write_version() { # write_version <repo> <version> — stamp the version source 
     pounce)    local t; t="$(mktemp)"; sed -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" >"$t" && mv "$t" "$f" ;;
     perch)     printf '%s\n' "$2" > "$f" ;;
     nebelhaus) printf '%s\n' "$2" > "$f" ;;
+    # holt's version lives in FOUR files, not one — VERSION plus three SDK
+    # manifests (npm/PyPI/crates each declare their own). bench doesn't learn
+    # their shapes; the repo owns that, so the knowledge sits next to the
+    # manifests it has to track. Its --check form is what release.yml runs
+    # against the pushed tag.
+    holt)      local s; s="$(repo_dir "$1")/script/stamp-version.sh"
+               [ -x "$s" ] || die "holt has no script/stamp-version.sh — bench pull holt"
+               "$s" "$2" >/dev/null ;;
+  esac
+}
+
+# CalVer or semver? Every repo here is CalVer — the date IS the version, so
+# there is no number to argue about — EXCEPT holt, and the exception is forced
+# rather than chosen. holt publishes libraries to npm, PyPI and crates.io, all
+# three of which already hold hausfold-holt 0.1.0 and none of which let a
+# version be taken back; and its Go SDK would need its import path to end in
+# `/v2026` under CalVer, changing every January. So holt takes an explicit
+# semver argument and the others refuse one.
+version_scheme() { # version_scheme <repo> — calver | semver
+  case "$1" in
+    holt) echo semver ;;
+    *)    echo calver ;;
   esac
 }
 
@@ -1296,37 +1337,65 @@ cmd_release() {
   #
   # Then it BLOCKS on that CI run (see the watch section above) instead of
   # leaving you with a URL and a checkout that's about to fall behind.
-  local name="" ship=""
+  #
+  # holt is the one repo that takes a version ARGUMENT rather than a date — see
+  # version_scheme() for why it has to. There the number is a judgement about
+  # the diff since the last tag (does this break a published SDK's API?), which
+  # is the one thing the date can't encode; ask an agent for the bump if you
+  # don't want to make the call yourself.
+  local name="" ship="" askver=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --ship) ship=1 ;;
-      -*)     die "unknown flag: $1   (usage: bench release <repo> [--ship])" ;;
-      *)      name="$1" ;;
+      -*)     die "unknown flag: $1   (usage: bench release <repo> [version] [--ship])" ;;
+      *)      if [ -z "$name" ]; then name="$1"; else askver="$1"; fi ;;
     esac
     shift
   done
-  [ -n "$name" ] || die "usage: bench release <repo> [--ship]   (releasable: pounce, perch, nebelhaus)"
+  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, nebelhaus, holt)"
+  [ -n "$name" ] || die "$usage"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
-  local verfile
-  verfile="$(version_file "$name")" \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, nebelhaus)"
+  version_file "$name" >/dev/null \
+    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, nebelhaus, holt)"
+
+  local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
+  if [ "$scheme" = semver ]; then
+    [ -n "$askver" ] || die "$name is semver — give it a number: bench release $name <X.Y.Z>
+  (last released: ${lasttag:-none} · tree says $(read_version "$name"))"
+    [[ "$askver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+      || die "'$askver' is not a plain X.Y.Z semver"
+  else
+    [ -z "$askver" ] || die "$name is CalVer — the date IS the version, drop the '$askver'"
+  fi
+
   [ -z "$(git -C "$dir" status --porcelain)" ] \
     || die "$name is dirty — commit (and bench ship) first"
   git -C "$dir" fetch -q --tags 2>/dev/null || true
   local ahead; ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
   [ "$ahead" = "0" ] || die "$name has unpushed commits — bench ship first, then release"
 
-  # Stamp today's date (YYYY.MM.DD, or …-N on a same-day repeat) into the
-  # version source and commit it, so HEAD already says what the tag will claim.
   local version tag
-  version="$(next_version "$name")"
+  if [ "$scheme" = semver ]; then
+    version="$askver"
+    git -C "$dir" rev-parse -q --verify "refs/tags/v$version" >/dev/null \
+      && die "v$version is already tagged on $name — pick the next number
+  (npm/PyPI/crates versions are immutable; a cut one can only be superseded)"
+  else
+    # Today's date (YYYY.MM.DD, or …-N on a same-day repeat).
+    version="$(next_version "$name")"
+  fi
   tag="v$version"
+
+  # Stamp it into the repo's own version source and commit, so HEAD already says
+  # what the tag will claim. The whole-tree diff (rather than one file) is what
+  # lets holt's stamp touch four manifests at once; it's safe because the clean-
+  # tree check above means anything modified here was modified by write_version.
   write_version "$name" "$version"
-  if ! git -C "$dir" diff --quiet -- "$verfile"; then
+  if ! git -C "$dir" diff --quiet; then
     say "$name: stamping version ${version}…"
-    git -C "$dir" add "$verfile"
+    git -C "$dir" add -u
     git -C "$dir" commit -m "$name $version"
     git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1 && git -C "$dir" push
   fi
@@ -1343,8 +1412,8 @@ cmd_release() {
     # No gh, not authed, or the run never showed. The tag is pushed and CI is
     # running regardless — degrade to the old behaviour rather than failing.
     warn "can't watch the run from here — the tag is pushed and CI is running."
-    hint "https://github.com/$GH_ORG/$name/actions  (release → tap bump)"
-    warn "the date-stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
+    hint "https://github.com/$GH_ORG/$name/actions  (release → publish jobs)"
+    warn "the version stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
     return 0
   fi
 
@@ -1364,8 +1433,8 @@ cmd_release() {
     printf '\n'
     cmd_ship
   else
-    warn "the date-stamp moved $name's HEAD — its lock edge downstream is now stale."
-    hint "ripple it: bench ship   (or cut the next one with: bench release $name --ship)"
+    warn "the version stamp moved $name's HEAD — its lock edge downstream is now stale."
+    hint "ripple it: bench ship   (or cut the next one with: bench release $name${askver:+ <version>} --ship)"
   fi
 }
 
