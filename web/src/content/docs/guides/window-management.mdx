@@ -134,39 +134,40 @@ For the less-frequent structural operations:
 
 ## Your app roster
 
-The launcher letters, workspace assignments, and the bar's workspace pills all
-come from **one keyed app map**: `nebelhaus.roster`. Out of the box it's just a
-terminal (`T`) and a browser (`B`). Entries compose across modules, so add only
-your own:
+The launcher letters come from **one keyed app map**: `nebelhaus.roster`. Which
+workspace an app lands on is *not* a field here — that's
+[`nebelhaus.workspaces`](#your-workspaces) below, so several apps can share one
+workspace. Out of the box the roster is just a terminal and a browser. Entries
+compose across modules, so add only your own:
 
 ```nix
 nebelhaus.roster.slack = {
-  key = "s"; name = "Slack"; workspace = "S";
-  appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
+  key = "s"; name = "Slack";
+  appId = "com.tinyspeck.slackmacgap";
   label = "Slack"; cask = "slack";
 };
 nebelhaus.roster.discord = {
-  key = "d"; name = "Discord"; workspace = "D";
-  appId = "com.hnc.Discord"; barIcon = ":discord:"; cask = "discord";
+  key = "d"; name = "Discord";
+  appId = "com.hnc.Discord"; cask = "discord";
 };
 ```
 
 Each field:
 
 - **`key`** — the launcher letter (unique across the roster). `null` — the
-  default — makes the entry install-only: no letter, no cheatsheet row, no pill.
+  default — makes the entry install-only: no letter, no cheatsheet row.
   That's how the same list holds apps you never launch by keyboard, and fonts
   and CLI tools; see [Adding apps & tools](/guides/adding-apps/).
 - **`name`** — the macOS app name (`open -a` uses it). Required when `key` is
   set; `null` is fine for something with no `.app` at all.
-- **`workspace`** — the AeroSpace workspace letter; `null` means launcher-only,
-  no dedicated workspace.
-- **`appId`** — the bundle id, used to auto-assign the app's windows to its
-  workspace. Find it with `osascript -e 'id of app "Slack"'`. `null` skips
-  auto-assign.
-- **`barIcon`** — the [SketchyBar app-font](https://github.com/kvndrsslr/sketchybar-app-font)
-  ligature (e.g. `:slack:`) shown in the bar; `null` falls back to the workspace
-  letter.
+- **`appId`** — the bundle id, used to auto-assign the app's windows to the
+  workspace that claims it, and to match the `float` rule below. Find it with
+  `osascript -e 'id of app "Slack"'`. `null` skips both.
+- **`float`** — `true` keeps this app's windows floating instead of tiled, for a
+  picker or status window that would otherwise reflow the whole workspace every
+  time it opens (FaceTime is declared this way). Needs `appId`.
+- **`titleRegex`** — scopes `float` to windows whose title matches, instead of
+  every window the app opens. `null` (default) floats all of them.
 - **`label`** — the cheatsheet caption; `null` uses `name`.
 - **`cask`** / **`brew`** / **`package`** / **`appStoreId`** — where it comes
   from: a Homebrew cask, a Homebrew formula, a Nixpkgs package, or a Mac App
@@ -181,8 +182,51 @@ Each field:
 - **`enable`** — set `false` to disable a default or imported app by id.
 - **`order`** — lower numbers appear earlier in the roster.
 
-Rebuild with `haus rebuild` and your new letters, workspaces, and bar pills all
-appear together.
+Rebuild with `haus rebuild` and your new launcher letters and cheatsheet rows
+appear together. For a workspace and a bar pill, keep reading.
+
+## Your workspaces
+
+`nebelhaus.workspaces` is the other half: the named AeroSpace workspaces this
+machine declares, and which roster apps live on each. Out of the box that's a
+terminal workspace (`T`) and a browser one (`B`).
+
+```nix
+# Role workspace: three apps, one pill, one throw key.
+nebelhaus.workspaces.comms = {
+  key = "c";
+  icon = ":slack:";
+  apps = [ "slack" "discord" ];
+};
+
+# Single-app workspace: the common case, one entry each.
+nebelhaus.workspaces.D = {
+  key = "d";
+  icon = ":discord:";
+  apps = [ "discord" ];
+};
+```
+
+The attribute name *is* the workspace id AeroSpace uses — a single letter like
+`T`, or a whole word like `comms`. Then:
+
+- **`apps`** — roster ids that live here. Each one's windows auto-move to this
+  workspace (via its `appId`), and opening any of them from the leader lands you
+  here. An app id may belong to at most one workspace; naming an id that isn't
+  in the roster warns rather than failing silently.
+- **`key`** — <kbd>⇪</kbd> then <kbd>⇧</kbd> and this key *throws* the focused
+  window here, and follows it. There's no bare-key binding for a workspace —
+  that namespace belongs to the roster's launch keys, one of which usually
+  doubles as this workspace's "open something here". `null` means the workspace
+  is reachable only by launching an app that belongs to it. Keys must be unique
+  across workspaces, and can't reuse `1`–`4` (whose ⇧-throws are built in).
+- **`icon`** — the [SketchyBar app-font](https://github.com/kvndrsslr/sketchybar-app-font)
+  ligature (e.g. `:slack:`) shown in the bar's pill for this workspace; any
+  other string is drawn in the bar's own font. `null` falls back to the
+  workspace id.
+
+The four numbered workspaces `1`–`4` are *not* part of this option — they always
+exist, independent of what any app claims.
 
 <Aside type="tip" title="Windows untangle after sleep">
 macOS loves to scramble window positions when the machine wakes. prowl installs

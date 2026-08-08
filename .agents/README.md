@@ -38,10 +38,10 @@ relevant, it's 2, not 1 — that's the whole point of skills.
 | `CLAUDE.md` | Claude Code (CLI, desktop, web) | 1 | `@AGENTS.md` import + a table of Claude-only wiring. Claude Code reads only `CLAUDE.md`, so the import is how it gets the real file. |
 | `GEMINI.md` | Gemini CLI | 1 | Symlink → `AGENTS.md`. |
 | `.github/copilot-instructions.md` | GitHub Copilot coding agent + code review | 1 | A **real file**, not a symlink: Copilot reads through the GitHub API, where a symlink is just a path string. Short pointer + the five facts a drive-by reviewer needs. |
-| `.agents/skills/<name>/SKILL.md` | Codex (scans project `.agents/skills/`), and every other client via the links below | 2 | The flow bodies: `ship`, `docs-sync`. YAML frontmatter (`name`, `description`) + the procedure. |
+| `.agents/skills/<name>/SKILL.md` | Codex (scans project `.agents/skills/`), and every other client via the links below | 2 | The flow bodies: `ship`, `docs-sync`, `release`. YAML frontmatter (`name`, `description`) + the procedure. |
 | `.claude/skills/<name>/SKILL.md` | Claude Code | 2 | Symlink → `.agents/skills/<name>/SKILL.md`. |
 | `.opencode/skills/<name>` | OpenCode | 2 | Symlink → `.agents/skills/<name>`. |
-| `.opencode/commands/<name>.md` | OpenCode | 2 | Four-line command that says "read the shared body and follow it" — guarantees `/ship` and `/docs-sync` exist even if skill discovery doesn't fire. |
+| `.opencode/commands/<name>.md` | OpenCode | 2 | Four-line command that says "read the shared body and follow it" — guarantees `/ship`, `/docs-sync` and `/release` exist even if skill discovery doesn't fire. |
 | `.agents/setup.sh` | all of them, via the hooks below | 3 | Installs Determinate Nix in a bare cloud container, persists `PATH` + `NIX_SSL_CERT_FILE`. No-ops on macOS and where Nix already exists. |
 | `.claude/settings.json` | Claude Code | 3 | `SessionStart` → `.agents/setup.sh`. |
 | `.codex/hooks.json` + `.codex/config.toml` | Codex CLI | 3 | `SessionStart` → `.agents/setup.sh`, plus the flag that enables hooks. |
@@ -51,7 +51,7 @@ relevant, it's 2, not 1 — that's the whole point of skills.
 
 ## The harness matrix
 
-| Client | Surface | Instructions | `/ship`, `/docs-sync` | Session hook |
+| Client | Surface | Instructions | `/ship`, `/docs-sync`, `/release` | Session hook |
 |---|---|---|---|---|
 | **Claude Code** | TUI + desktop | `CLAUDE.md` → `@AGENTS.md` | `.claude/skills/*` (symlinks) | `.claude/settings.json` |
 | **Claude Code on the web** | GUI / cloud | same | same | same — the hook is what installs Nix |

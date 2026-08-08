@@ -39,11 +39,11 @@ apps, or overrides. Your machine stays yours; the rice stays upstream. Keep
 personal things in your host file — never in the rice repo itself.
 </Aside>
 
-## The one-app-per-workspace idea
+## The named-workspace idea
 
 The single biggest opinion in nebelhaus is how windows are arranged, so it's
-worth saying out loud: **each app you live in gets its own workspace, and one
-key takes you there.**
+worth saying out loud: **the things you live in get workspaces of their own, and
+one key takes you there.**
 
 Instead of alt-tabbing through a soup of windows, you build muscle memory: the
 terminal is always <kbd>⇪</kbd> <kbd>T</kbd>, the browser is always
@@ -51,19 +51,29 @@ terminal is always <kbd>⇪</kbd> <kbd>T</kbd>, the browser is always
 launched if it isn't running, focused if it is, and it lands on *its* workspace
 every time. Your hands stop negotiating with the window manager.
 
-That whole scheme comes from **one keyed map** — `nebelhaus.roster`, the roster —
-so the launcher key, the workspace, the bar pill, and the auto-tiling rule can
-never drift out of sync. Keyed entries also compose cleanly across your host
-file and pounce-generated package modules. A few things worth internalizing:
+That scheme comes from **two keyed maps that pair up**: `nebelhaus.roster` says
+what the machine has and which letter launches it, and `nebelhaus.workspaces`
+says which workspaces exist and which roster apps live on each. Keeping
+membership on the *workspace* is what lets one workspace hold several apps — a
+`comms` space with Slack, Mail and Messages — instead of forcing one app per
+workspace. Both are keyed attribute sets, so they compose cleanly across your
+host file, app packs, and pounce-generated package modules. A few things worth
+internalizing:
 
-- **Letters are apps, digits are scratch.** Workspaces `1`–`4` are generic
-  scratch space; letters (`T`, `B`, `S`…) belong to specific apps.
-- **Focus vs. throw.** Tap <kbd>⇪</kbd> then a letter/digit to *go there*. Same
-  leader, but <kbd>⇧</kbd> with that letter/digit, to *throw the current window*
-  there instead.
-- **Launcher-only apps exist.** Give a roster entry `workspace = null` and its
-  key just launches it in place — no dedicated workspace, no pill. Handy for a
-  password manager or a calculator.
+- **Letters are yours, digits are scratch.** Workspaces `1`–`4` are generic
+  scratch space and always exist; everything else (`T`, `B`, `S`, `comms`…) is
+  something you named.
+- **Focus vs. throw.** Tap <kbd>⇪</kbd> then an *app's* letter to *go there* —
+  it launches or focuses the app and lands you on whatever workspace it belongs
+  to. <kbd>⇪</kbd> then <kbd>⇧</kbd> and a *workspace's* key *throws the current
+  window* there instead, and follows it. (For a workspace holding one app the
+  two keys are usually the same letter, which is why they feel like one binding.)
+- **Launcher-only apps exist.** A roster entry that no workspace lists just
+  launches in place — no dedicated workspace, no pill. Handy for a password
+  manager or a calculator.
+- **Floating apps exist too.** `float = true` on a roster entry keeps that app's
+  windows out of the tiling entirely, for a picker or status window that would
+  otherwise reflow the whole workspace every time it opens.
 
 Adding your own is a one-liner — see [Adding apps & tools](/guides/adding-apps/)
 for the recipe and [Window management](/guides/window-management/) for the full

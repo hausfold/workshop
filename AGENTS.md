@@ -46,7 +46,13 @@ Never hand-walk that ripple; the tooling does it:
 - `./bench status` — leads with **what this machine is actually running**
   (the pinned build, or the local branches a `try switch` put on it), then
   every stale lock edge, dirty/unpushed repo, and agent worktree / unmerged
-  `worktree-*` branch.
+  `worktree-*` branch. It also flags an **OFF-MAIN** edge — a lock pinned at a
+  rev that isn't on that repo's `main`, which a hand-run `nix flake update`
+  inside a PR produces and `bench ship` cannot. That pin resolves until the
+  branch is deleted on merge, and then the downstream repo can't fetch its
+  input at all. Land the upstream PR first, *then* ship: shipping straight
+  away isn't refused, it repins to main and silently drops the unmerged work
+  the pin was there for.
 - `./bench try [switch]` — build/run the user's machine against the **local
   checkouts** (via `--override-input`). This is how you test WITHOUT pushing.
   Worktree-aware: run from inside an agent worktree, it substitutes that
@@ -339,9 +345,11 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   stuff — new features, refactors, anything users could feel break — verify
   it works, then stop and ask before shipping. When unsure which bucket, ask.
 - **Releases are always gated.** `./bench release` puts a version in real
-  users' hands (tag → CI → homebrew). Never run it unprompted — but DO
-  propose one after shipping user-facing changes to a tagged repo. Nudging
-  is expected; tagging is the user's call.
+  users' hands (tag → CI → homebrew, or → five package registries). Never run
+  it unprompted — but DO propose one after shipping user-facing changes to a
+  tagged repo. Nudging is expected; tagging is the user's call. The flow is
+  [`.agents/skills/release/SKILL.md`](./.agents/skills/release/SKILL.md),
+  reachable as `/release`.
 - Commit in the repo you edited; `bench ship` refuses dirty trees on purpose
   (commit messages are yours/the user's, lock bumps are its).
 - **Releases ride tags, not pushes.** Versions are **date-based** (CalVer):
@@ -358,6 +366,17 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   back to the repo, so returning early would leave a checkout behind origin and
   a `bench ship` that ripples a superseded rev. It fast-forwards for you when
   the run goes green.
+- **`holt` is the one semver repo, and it's forced, not chosen:**
+  `./bench release holt 0.2.0`. It publishes five SDKs to npm, PyPI, crates.io,
+  SwiftPM and the Go proxy; three of those already hold `0.1.0` and none of
+  them ever let a published number be withdrawn, so the version is a
+  compatibility contract rather than a date — and CalVer would additionally
+  force the Go SDK's import path to end in `/v2026`, changing every January.
+  All five SDKs share the one number (five clients agreeing about one wire
+  format is the invariant the SDK CI job protects). `bench` refuses a version
+  argument for the CalVer repos and refuses to run without one for holt.
+  Deciding the bump means reading `git diff <last-tag>..main -- sdk/` against
+  the published SDK surface — that judgement is what `/release` is for.
 - Don't cross-edit: a color hex in `nebelhaus`, or launchd logic in `pounce`,
   is in the wrong repo even if it would work. Each repo's own agent instructions
   enforce its boundary — respect it from up here too.

@@ -49,6 +49,82 @@ JSON
   [ "$output" = "?" ]
 }
 
+# ── rev_on_main: is a locked rev actually on the upstream's main? ──────────────
+#
+# Three-valued on purpose. `no` is the hazard (a lock pinned at an unmerged PR
+# branch, which stops resolving when GitHub deletes that branch on merge);
+# `unknown` is "this clone can't answer", which must stay silent rather than
+# warn on every machine that hasn't fetched.
+
+mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
+  mkdir -p "$ROOT/$1"
+  git -C "$ROOT/$1" init -q -b main
+  git -C "$ROOT/$1" -c user.name=t -c user.email=t@t commit -q --allow-empty -m one
+}
+
+@test "rev_on_main says yes for a commit on main" {
+  mkmain nebelung
+  run rev_on_main nebelung "$(git -C "$ROOT/nebelung" rev-parse main)"
+  [ "$output" = "yes" ]
+}
+
+@test "rev_on_main says yes for an ancestor of main, not just its tip" {
+  mkmain nebelung
+  local first; first="$(git -C "$ROOT/nebelung" rev-parse main)"
+  git -C "$ROOT/nebelung" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two
+  run rev_on_main nebelung "$first"
+  [ "$output" = "yes" ]
+}
+
+@test "rev_on_main says no for a rev that lives only on an unmerged branch" {
+  # The real incident (workshop#251): a lock pinned at a PR-branch head.
+  mkmain nebelung
+  git -C "$ROOT/nebelung" checkout -q -b worktree-feature
+  git -C "$ROOT/nebelung" -c user.name=t -c user.email=t@t commit -q --allow-empty -m pr
+  local pr_rev; pr_rev="$(git -C "$ROOT/nebelung" rev-parse HEAD)"
+  git -C "$ROOT/nebelung" checkout -q main
+  run rev_on_main nebelung "$pr_rev"
+  [ "$output" = "no" ]
+}
+
+@test "rev_on_main ignores HEAD when main exists — a checkout parked on a branch still reports off-main" {
+  # Every extra ref only WIDENS the yes-set, so consulting HEAD unconditionally
+  # would let the in-place agent mode (main checkout sitting on a branch)
+  # silence the warning exactly where it's most likely to be earned.
+  mkmain nebelung
+  git -C "$ROOT/nebelung" checkout -q -b worktree-feature
+  git -C "$ROOT/nebelung" -c user.name=t -c user.email=t@t commit -q --allow-empty -m pr
+  run rev_on_main nebelung "$(git -C "$ROOT/nebelung" rev-parse HEAD)"   # still ON that branch
+  [ "$output" = "no" ]
+}
+
+@test "rev_on_main falls back to HEAD when the repo has no main branch" {
+  mkdir -p "$ROOT/nebelung"
+  git -C "$ROOT/nebelung" init -q -b trunk
+  git -C "$ROOT/nebelung" -c user.name=t -c user.email=t@t commit -q --allow-empty -m one
+  run rev_on_main nebelung "$(git -C "$ROOT/nebelung" rev-parse HEAD)"
+  [ "$output" = "yes" ]
+}
+
+@test "rev_on_main yields unknown for a rev this clone doesn't have" {
+  mkmain nebelung
+  run rev_on_main nebelung deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+  [ "$output" = "unknown" ]
+}
+
+@test "rev_on_main yields unknown for locked_rev's ? and for an empty rev" {
+  mkmain nebelung
+  run rev_on_main nebelung '?'
+  [ "$output" = "unknown" ]
+  run rev_on_main nebelung ''
+  [ "$output" = "unknown" ]
+}
+
+@test "rev_on_main yields unknown when the repo isn't cloned here" {
+  run rev_on_main nosuchrepo abc123
+  [ "$output" = "unknown" ]
+}
+
 # (hook_field + the worktree lifecycle moved to the standalone `wt` tool in
 # the rice (nebelhaus/modules/den) — bench no longer parses hook payloads.)
 
@@ -157,6 +233,59 @@ NIX
   write_version nebelhaus 2026.07.18-1
   run read_version nebelhaus
   [ "$output" = "2026.07.18-1" ]
+}
+
+# ── version_scheme: holt is the one repo whose number is a judgement ───────────
+
+@test "version_scheme is calver for the tag-and-forget repos" {
+  for repo in pounce perch nebelhaus; do
+    run version_scheme "$repo"
+    [ "$output" = calver ]
+  done
+}
+
+@test "version_scheme is semver for holt" {
+  run version_scheme holt
+  [ "$output" = semver ]
+}
+
+@test "version_file locates holt's VERSION" {
+  run version_file holt
+  [ "$output" = "$ROOT/holt/VERSION" ]
+}
+
+@test "read_version reads and trims holt's VERSION file" {
+  mkdir -p "$ROOT/holt"
+  printf '0.1.0\n' >"$ROOT/holt/VERSION"
+  run read_version holt
+  [ "$output" = "0.1.0" ]
+}
+
+# holt's version lives in four files, so write_version delegates to the repo's
+# own script rather than learning three manifest shapes. What's asserted here is
+# the HANDOFF — that bench calls it with the version — not the script's own
+# behaviour, which holt tests where it lives.
+@test "write_version delegates holt to the repo's stamp script" {
+  mkdir -p "$ROOT/holt/script"
+  cat >"$ROOT/holt/script/stamp-version.sh" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$1" > "$(dirname "$0")/../VERSION"
+echo "stamped $1"
+SH
+  chmod +x "$ROOT/holt/script/stamp-version.sh"
+  write_version holt 0.2.0
+  run read_version holt
+  [ "$output" = "0.2.0" ]
+}
+
+# A checkout that predates the release flow has no stamp script, and the failure
+# has to name the fix rather than surfacing as a bare "no such file".
+@test "write_version refuses holt when the stamp script is missing" {
+  mkdir -p "$ROOT/holt"
+  run write_version holt 0.2.0
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"stamp-version.sh"* ]]
+  [[ "$output" == *"bench pull holt"* ]]
 }
 
 # ── next_version: today's date, with -N on a same-day repeat ───────────────────
