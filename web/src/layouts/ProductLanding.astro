@@ -45,6 +45,12 @@ interface Props {
   riceHref: string;
   guideHref: string;
   repoHref: string;
+  /* The footer's licence link. Defaults to MIT because most of the family is;
+     perch is fair source (FSL-1.1-ALv2) and passes its own. A shared layout
+     that hardcodes one licence quietly relicenses every product it renders —
+     which is exactly what happened to perch between the relicense and
+     2026-08-08. */
+  licenseLabel?: string;
   featuresLabel: string;
   featuresTitle: string;
   featuresCopy: string;
@@ -82,6 +88,7 @@ const {
   riceHref,
   guideHref,
   repoHref,
+  licenseLabel = 'MIT license',
   featuresLabel,
   featuresTitle,
   featuresCopy,
@@ -255,7 +262,7 @@ const canonical = `https://nebelhaus.com/${product}`;
         <nav>
           <a href={guideHref}>Guide</a>
           <a href={repoHref}>GitHub</a>
-          <a href={`${repoHref}/blob/main/LICENSE`}>MIT license</a>
+          <a href={`${repoHref}/blob/main/LICENSE`}>{licenseLabel}</a>
         </nav>
       </div>
     </footer>
