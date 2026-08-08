@@ -130,33 +130,50 @@ cheap. Re-log in `go-to-market.md` §9 as decided-accept rather than open.
 2026-08-07), so Apple-side work has started. **Apple never lets a bundle ID
 change after an app record exists.**
 
-**Audited 2026-08-08 — result: two Identifiers exist, and they do not block
-anything.**
+**Audited 2026-08-08 — 🚨 THE GATE FIRED. An app record exists with an uploaded
+build.**
 
-| Found | What it is |
+| Found | Status |
 |---|---|
-| `XC com nebelhaus perch ios` → `com.nebelhaus.perch.ios` | an **App ID**, Xcode-generated (the `XC ` prefix is automatic signing's naming) |
-| `XC com nebelhaus perch ios share` → `com.nebelhaus.perch.ios.share` | same, for the share extension |
+| App Store Connect → My Apps: **"Perch for Mac" iOS 1.0** | **Waiting for Review** |
+| `XC com nebelhaus perch ios` → `com.nebelhaus.perch.ios` | App ID, **bound to that record** |
+| `XC com nebelhaus perch ios share` → `com.nebelhaus.perch.ios.share` | App ID, share extension |
+| `group.com.nebelhaus.perch` | **registered App Group — it exists** |
 
-**An App ID is not an App Store Connect app record, and only the record is
-permanent.** These two were created by automatic signing during a device build.
-Deleting an App ID frees its bundle ID for re-registration; it is an **app
-record** — and above all an *uploaded build* — that burns a bundle ID forever.
+The `XC ` prefix said "automatic signing", which was true and not the point: a
+build has been uploaded and associated, so **the bundle ID on that record is
+locked**, and App Store Connect's bundle-ID dropdown is only editable while no
+build is associated.
 
-Two boxes still open, both cheap:
+**The window is open only until Apple approves it**, which can happen within a
+day. After approval the app is published, `com.nebelhaus.perch.ios` is in users'
+devices, and the *only* remaining fix is publishing a separate app and sunsetting
+the first — losing ratings, reviews and any purchase history. There is no
+bundle-ID migration on the App Store.
 
-- [ ] 👤 Confirm **no App Record** exists in App Store Connect → My Apps, and
-      **no TestFlight build** has ever been uploaded. The `XC ` prefix is strong
-      evidence of neither, but confirm rather than infer — this is the one
-      irreversible thing in the whole rename.
-- [ ] 👤 Check whether `group.com.nebelhaus.perch` is registered under
-      Identifiers → **App Groups**. It appears in the code
-      (`perch/PerchMobileCore/MobileConfig.swift`) but wasn't in the audit list,
-      so it may not be registered yet — in which case §4.3 costs nothing at all.
+#### 👤 Do this first, before deciding anything
 
-**Gate:** no app record, no uploaded build → Phase 4 proceeds as planned. If
-either exists, stop and escalate — that's a choice between a permanent
-`com.nebelhaus.perch.ios` and deleting the record, not a step.
+**Remove the submission from review.** App Store Connect → the version →
+*Remove from Review* (or *Cancel Submission*). It costs a resubmission and your
+queue position — roughly a day — and it preserves **both** options below.
+Approval forecloses one of them permanently. That asymmetry is the whole
+argument; take the free move now and decide after.
+
+#### The fork, once the clock is stopped
+
+| | **A — recreate under `com.hausfold.perch.ios`** | **B — freeze iOS at `com.nebelhaus.*`** |
+|---|---|---|
+| Do | Cancel review, delete the app record, create a fresh one with the new bundle ID | Accept the old reverse-DNS on the iOS app only |
+| Cost | A review cycle, and **the App Store name is at risk** — Apple does not reliably release a deleted app's name back immediately | A permanent inconsistency **no user ever sees** (bundle IDs don't appear in a listing) |
+| §4.3 App Group | must migrate or discard shelf data | **disappears** — the group stays `group.com.nebelhaus.perch`, no data touched |
+| Reversal | ⚠️ **one-way.** Deleting the record burns `com.nebelhaus.perch.ios` — Apple never permits reuse — so option B is gone the moment you delete | fully reversible: a future rename is the same decision, just later and no worse |
+
+**Note the macOS app is not affected either way.** perch for Mac ships Developer
+ID + notarized via Homebrew, never the App Store, so `com.nebelhaus.perch` →
+`com.hausfold.perch` is free. Only the *iOS* record is locked.
+
+- [ ] 👤 Remove from review — **do this first, it is free and it buys the decision**
+- [ ] 👤 Then pick A or B and record it here
 
 ---
 
@@ -382,15 +399,16 @@ Mac immediately.
 
 ### 4.1 👤 Developer portal, before touching code
 
-Per §0.5 the only registered Identifiers are the two Xcode-generated iOS ones,
-so this is a create-new-and-abandon-old job, not a migration.
+⚠️ **Scope depends on §0.5's A/B fork.** Under **B**, everything iOS
+(`com.nebelhaus.perch.ios`, `.ios.share`, `group.com.nebelhaus.perch`) is frozen
+and §4.3 does not apply at all — this phase then covers only the macOS apps.
 
-- Change the bundle IDs in the Xcode project and let **automatic signing**
-  register `com.hausfold.perch.ios` and `com.hausfold.perch.ios.share` for you —
-  the same way the `XC `-prefixed pair got there.
-- Register App Group `group.com.hausfold.perch` (see §4.3 first — it carries data).
-- Register the macOS App IDs as needed: `com.hausfold.perch`,
-  `com.hausfold.pounce`, `com.hausfold.flick`.
+- Register the macOS App IDs: `com.hausfold.perch`, `com.hausfold.pounce`,
+  `com.hausfold.flick`. These ship Developer ID + notarized, never through the
+  App Store, so they're unconstrained.
+- **A only:** change the iOS bundle IDs in the Xcode project and let automatic
+  signing register `com.hausfold.perch.ios` / `.ios.share`, then register App
+  Group `group.com.hausfold.perch` (read §4.3 first — it carries data).
 - Regenerate provisioning profiles; re-export `IOS_DIST_CERT_P12` if bound.
 - 👤 **Delete the two `XC com nebelhaus perch ios*` Identifiers** once the new
   ones sign a build. Safe: no app record ever claimed them.
@@ -417,6 +435,9 @@ worth fixing regardless of this rename. But it's the **launchd label**, so:
   `launchctl kickstart -k com.hausfold.pounce` and verify by binary timestamp.
 
 ### 4.3 🤖+👤 The App Group is a data container, not just an identifier
+
+**Applies under §0.5 option A only.** Under B the group is untouched and this
+section is dead. `group.com.nebelhaus.perch` is confirmed registered.
 
 **This one silently destroys perch's state and nothing else in §4 covers it.**
 `group.com.nebelhaus.perch` is passed to
@@ -528,11 +549,25 @@ Then:
 - Preserve slugs; where you can't (`what-is-nebelhaus` → `what-is-hausfold`),
   add an explicit redirect.
 
-⚠️ **`/init.sh` needs a product answer, not just a rename.** Today
-`curl nebelhaus.com/init.sh | bash` installs the rice. Post-split, does
-`hausfold.co/init.sh` install the platform with nebelhaus as the default rice,
-or ask which rice? Decide before the redirect goes live — it's the single most
-copy-pasted URL you own.
+#### ✅ Decided 2026-08-08 — the installer becomes per-rice
+
+`nebelhaus.com/init.sh` → **`hausfold.co/nebelhaus.sh`**, and it is **not** a CTA
+on hausfold.co's front page — it lives only on the nebelhaus page inside
+`/market`.
+
+That generalizes for free: `hausfold.co/<rice>.sh` is every rice's own
+one-liner, which is exactly the shape a platform wants. `worker.js`'s `/init.sh`
+handler becomes a `/<rice>.sh` route; today it resolves one name, and the
+resolution table is the thing to keep small.
+
+**Explicitly deferred:** whether that table scales, and what happens when rices
+come from repos the worker doesn't own. Ship the one-name version, watch it,
+fix later.
+
+- Keep `nebelhaus.com/init.sh` alive as a 301 to `hausfold.co/nebelhaus.sh` —
+  it's in READMEs and shell histories.
+- ⚠️ `nebelung.sh` would be the wrong filename: **nebelung is the palette**, the
+  rice is **nebelhaus**. Easy slip, and it's a URL.
 
 ### 5.3 👤 DNS + verification
 
