@@ -50,6 +50,15 @@ final class BannerPanelController {
         ))
         panel.contentView = host
         panel.orderFrontRegardless()
+
+        // The view arrives at opacity 0 and fades in over 0.18s, and AppKit
+        // shapes the shadow from what it actually rendered. Ask again once
+        // the fade has landed, or a banner that never gets an `update` (a
+        // lone one, nothing restacking it) sits there flat.
+        Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))
+            self?.panel.invalidateShadow()
+        }
     }
 
     func update(entry: BannerQueue.Entry, frame: CGRect, onHover: @escaping (Bool) -> Void, onDismiss: @escaping () -> Void, onActivate: @escaping () -> Void) {

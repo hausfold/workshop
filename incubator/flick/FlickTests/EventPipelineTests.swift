@@ -203,6 +203,26 @@ final class EventPipelineTests: XCTestCase {
     }
 
     @MainActor
+    func testATopologyShrinkTakingTheHoveredBannerUnsticksTheQueue() {
+        let queue = BannerQueue(capacity: 2, displayDuration: .seconds(3600))
+        queue.enqueue(NotificationEvent(id: "1", source: "s", title: "first"))
+        queue.enqueue(NotificationEvent(id: "2", source: "s", title: "second"))
+        queue.enqueue(NotificationEvent(id: "3", source: "s", title: "third"))
+
+        queue.setHover(true, id: "2")
+        // The display the hovered card was on goes away. Its panel is torn
+        // down by the rebuild, so no exit event is coming.
+        queue.setCapacity(1)
+        XCTAssertEqual(queue.visible.map(\.id), ["1"])
+
+        queue.dismiss(id: "1")
+        XCTAssertEqual(
+            queue.visible.map(\.id), ["2"],
+            "a hover stranded by the rebuild would have paused the refill forever"
+        )
+    }
+
+    @MainActor
     func testDismissingTheHoveredBannerUnsticksTheQueue() {
         let queue = BannerQueue(capacity: 1, displayDuration: .seconds(3600))
         queue.enqueue(NotificationEvent(id: "1", source: "s", title: "first"))

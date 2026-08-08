@@ -17,21 +17,22 @@ struct ScreenDescriptor: Sendable, Equatable {
 ///
 /// **Why a deck and not a list.** Distinct banners used to sit in separate
 /// rects 8pt apart, which read as a form, not as a pile of things that
-/// arrived. Each card now tucks a few points *under* the one above it and
+/// arrived. Each card now laps a few points *over* the card above it and
 /// steps the same few points further left, and every panel casts a real
 /// shadow — so a run of banners reads as one stack with depth. The z-order
 /// comes free: panels are created newest-last and `orderFrontRegardless`
-/// puts each new one in front, so the stack looks dealt rather than
-/// shuffled. This is a deliberate look, not an accident of spacing.
+/// puts each new one in front, so a newer card (lower on screen) covers the
+/// bottom edge of its elder — dealt, not shuffled. This is a deliberate
+/// look, not an accident of spacing.
 enum BannerGeometry {
-    /// The card's full height *including* the strip its successor tucks over
+    /// The card's full height *including* the strip its successor laps over
     /// — the reading area is `height - overlap`, which is the number that
     /// used to be the whole card. Grow both together or text starts clipping.
     static let size = CGSize(width: 360, height: 82)
     static let inset: CGFloat = 12
 
-    /// How far each card tucks under the one above it. Small on purpose: the
-    /// overlapped strip is the elder card's bottom padding, and anything much
+    /// How far each card laps over the one above it. Small on purpose: the
+    /// covered strip is the elder card's bottom padding, and anything much
     /// larger starts eating a two-line body.
     static let overlap: CGFloat = 6
 
@@ -56,11 +57,19 @@ enum BannerGeometry {
     /// "and N earlier" row.
     static let maxFoldRows = 4
 
+    /// Folded events the expanded list names one by one.
+    static func foldListedCount(folded: Int) -> Int {
+        min(max(folded, 0), maxFoldRows)
+    }
+
     /// Rows the expanded list draws for `folded` folded events — the listed
-    /// ones plus, when there are more, the single "and N earlier" line.
+    /// ones plus, when there are more, the single "and N earlier" line. The
+    /// view draws its rows off these two functions rather than repeating the
+    /// arithmetic: the card's height is fixed, so a disagreement between the
+    /// two would clip a row silently instead of failing.
     static func foldRowCount(folded: Int) -> Int {
         guard folded > 0 else { return 0 }
-        return folded > maxFoldRows ? maxFoldRows + 1 : folded
+        return foldListedCount(folded: folded) + (folded > maxFoldRows ? 1 : 0)
     }
 
     /// Size of one card. Collapsed is always `size`; expanded adds exactly

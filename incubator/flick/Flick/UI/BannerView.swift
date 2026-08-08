@@ -171,12 +171,14 @@ struct BannerView: View {
             Divider()
                 .padding(.bottom, 5)
 
-            ForEach(Array(entry.folded.prefix(BannerGeometry.maxFoldRows).enumerated()), id: \.offset) { _, folded in
+            ForEach(Array(listedFolds.enumerated()), id: \.offset) { _, folded in
                 HStack(spacing: 6) {
                     Text(folded.title)
                         .font(.caption)
                         .lineLimit(1)
-                    if !redacted, let body = folded.body ?? folded.subtitle {
+                    // Privacy is per event, so a redacted thread-mate keeps
+                    // its body to itself even when the face is visible.
+                    if folded.privacy != .redacted, let body = folded.body ?? folded.subtitle {
                         Text(body)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -187,8 +189,8 @@ struct BannerView: View {
                 .frame(height: BannerGeometry.foldRowHeight)
             }
 
-            if entry.coalescedCount > BannerGeometry.maxFoldRows {
-                Text("and \(entry.coalescedCount - BannerGeometry.maxFoldRows) earlier")
+            if entry.coalescedCount > listedFolds.count {
+                Text("and \(entry.coalescedCount - listedFolds.count) earlier")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .frame(height: BannerGeometry.foldRowHeight)
@@ -200,9 +202,22 @@ struct BannerView: View {
         .padding(.bottom, 6)
     }
 
+    /// The folded events this card names one by one — the same count the
+    /// height was computed from, so the list can never outgrow the card.
+    private var listedFolds: [NotificationEvent] {
+        Array(entry.folded.prefix(BannerGeometry.foldListedCount(folded: entry.coalescedCount)))
+    }
+
+    /// `children: .combine` would read the fold list out, but an explicit
+    /// label overrides it — so the list has to be spoken here or VoiceOver
+    /// never hears the thing the expansion exists to show.
     private var accessibilityText: String {
         let head = "\(event.source): \(event.title)"
         guard entry.coalescedCount > 0 else { return head }
-        return "\(head), \(entry.coalescedCount) more in this thread"
+        let head2 = "\(head), \(entry.coalescedCount) more in this thread"
+        guard entry.expanded else { return head2 }
+        let listed = listedFolds.map(\.title).joined(separator: ", ")
+        let earlier = entry.coalescedCount - listedFolds.count
+        return earlier > 0 ? "\(head2): \(listed), and \(earlier) earlier" : "\(head2): \(listed)"
     }
 }

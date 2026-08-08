@@ -164,6 +164,16 @@ final class BannerQueue {
             let overflow = visible.removeLast()
             dismissTimers.removeValue(forKey: overflow.id)?.cancel()
             waiting.insert(overflow, at: 0)
+            if hoveredID == overflow.id {
+                // The card under the pointer just left the screen with the
+                // display it was on. No exit event is coming for a panel
+                // torn down by a topology rebuild, and a hover left set
+                // would pause the queue for good.
+                hoveredID = nil
+            }
+        }
+        if !paused {
+            visible.forEach { armDismiss(for: $0.id) }
         }
         refill()
         notify()

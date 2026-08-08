@@ -24,7 +24,7 @@ final class ScreenGeometryTests: XCTestCase {
         XCTAssertEqual(first.maxY, laptop.visibleFrame.maxY - BannerGeometry.inset)
         XCTAssertEqual(
             second.maxY - first.minY, BannerGeometry.overlap,
-            "cards tuck under one another — a deck, not a spaced list"
+            "each card laps over its elder's bottom edge — a deck, not a spaced list"
         )
         XCTAssertEqual(
             first.minX - second.minX, BannerGeometry.step,
@@ -90,6 +90,20 @@ final class ScreenGeometryTests: XCTestCase {
         let capped = BannerGeometry.foldRowCount(folded: 9)
         XCTAssertEqual(capped, BannerGeometry.maxFoldRows + 1)
         XCTAssertEqual(BannerGeometry.foldRowCount(folded: 900), capped)
+    }
+
+    func testEveryFoldRowIsEitherANamedEventOrTheEarlierLine() {
+        // The card's height is fixed from `foldRowCount`, so a row the view
+        // draws without a row the height paid for is a silent clip.
+        for folded in 0...20 {
+            let listed = BannerGeometry.foldListedCount(folded: folded)
+            let rows = BannerGeometry.foldRowCount(folded: folded)
+            XCTAssertEqual(
+                rows, listed + (folded > listed ? 1 : 0),
+                "\(folded) folded: \(listed) named rows plus at most one 'and N earlier'"
+            )
+            XCTAssertLessThanOrEqual(listed, BannerGeometry.maxFoldRows)
+        }
     }
 
     func testExpandedCardPushesTheCardsBelowItDown() throws {

@@ -95,9 +95,15 @@ Two consequences worth knowing:
   and a hover left set would pause the queue forever.
 - **The expanded height is computed, never measured.** `BannerGeometry
   .cardSize` is the single arithmetic both `BannerView` and the panel size
-  themselves from. `NSHostingView.fittingSize` is stale in the same turn as
-  the state change that grew the view on macOS 26 — measuring settles the
-  panel on the previous height (the bug pounce's filter row shipped once).
+  themselves from, and the view takes its row count from
+  `foldListedCount`/`foldRowCount` rather than repeating it — the card's
+  height is fixed, so a view that drew one row more than the height paid for
+  would clip it silently. `NSHostingView.fittingSize` is stale in the same
+  turn as the state change that grew the view on macOS 26; measuring settles
+  the panel on the previous height (the bug pounce's filter row shipped once).
+- **Privacy is per event, in the list too.** A `redacted` thread-mate keeps
+  its body to itself even when the face of the fold is visible — the fold is
+  a rendering of many events, not an inheritance from one.
 
 ### A stack of distinct banners
 
@@ -115,8 +121,18 @@ Because a hovered fold makes one card taller, placement can't be a closed
 form per index: `BannerGeometry.stackFrames` walks the whole stack
 cumulatively and returns nil for any card that would leave the visible frame
 (and everything after it). The compositor drops those panels and the queue
-keeps the events, so an expansion that pushes the tail off screen is
-recovered on the next render.
+keeps the events, so a card pushed off the bottom comes back on the next
+render.
+
+**An expansion that doesn't fit refuses to grow rather than laying itself off
+screen.** `capacity` is counted for collapsed cards, so on a short display a
+fold near the bottom of the stack can want more room than there is. If the
+laid-out stack loses any card, the compositor re-lays it with the expansion
+dropped. That is not cosmetic: closing the panel *under the pointer* would
+strand the hover — no exit event follows a panel that is simply gone — and a
+hover left set pauses the queue for good. Same reasoning covers the other
+path that can take a hovered card away without an exit: `setCapacity`
+clearing the hover it just pushed into the waiting line.
 
 ### The undocumented mirror
 
