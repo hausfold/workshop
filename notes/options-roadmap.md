@@ -2162,14 +2162,36 @@ contents — the same shape, noticed and then not generalized.
       `runCommand` in `modules/hearth/default.nix`, then audit the roster-port
       rows for the same pointer-vs-referent gap. Low priority: no break has
       occurred, and this is a belt on a check rather than a check on the surface.
-- [ ] A downstream lock pinned at an upstream rev that is **not on the
-      upstream's `main`** is fetchable only until the PR branch is deleted, and
-      nothing in the family notices. Found in the same retraction: rice#247's
-      lock pointed at nebelung#29's PR-branch head for seventeen minutes.
-      `bench ship` can't cause it (it bumps to merged HEADs); a hand-run
-      `nix flake update` inside a PR can. Cheapest form: have `bench status`
-      flag any family input whose locked rev isn't an ancestor of that repo's
-      `main`.
+- [x] ✅ **A downstream lock pinned at an upstream rev that is not on the
+      upstream's `main`** — fetchable only until the PR branch is deleted, and
+      nothing in the family noticed. Found in the fourteenth pass's retraction:
+      rice#247's lock pointed at nebelung#29's PR-branch head for seventeen
+      minutes. `bench ship` can't cause it (it bumps to merged HEADs); a
+      hand-run `nix flake update` inside a PR can. **Shipped as an `OFF-MAIN`
+      lock edge in `bench status` (workshop#252)**, reported separately from
+      `STALE` because the fix is different — STALE says *ship it*, and there is
+      nothing to ship. Three details that were not obvious before writing it:
+      **(a)** the answer has to be three-valued, not boolean — a rev nix fetched
+      but git never did isn't in the local clone at all, and calling that
+      "off-main" would cry wolf on every machine that hasn't fetched, so
+      `unknown` stays silent; **(b)** it checks `origin/main` *and* local
+      `main`, since a checkout behind its remote would otherwise report landed
+      revs as off-main — but `HEAD` is consulted **only** when neither resolves,
+      because every extra ref widens the yes-set, and reading `HEAD` always
+      would let a main checkout parked on a branch (the in-place agent mode does
+      exactly that) declare every rev on that branch landed, silencing the
+      warning where it is most likely to be earned; **(c)** it only runs on
+      edges that already failed the equal-to-HEAD test, so the common path costs
+      nothing. The assurance pass found (b) and the closing-verdict line, which
+      still said *everything is current* when OFF-MAIN was the only problem —
+      **a new warning has to be ranked in the summary that prints under it**, or
+      the one line a reader treats as the verdict contradicts it.
+      → ★ **This is the first tripwire in this file that is a *warning in a
+      CLI*, not a check that fails a build.** §5.14's rule says leave a check
+      behind; the honest footnote is that a `bench status` line only fires when
+      someone runs `bench status`. It was still the right shape here — the
+      condition is about a lock, and locks are what that command exists to
+      report — but it does not belong in the "checks that can break" ledger.
 
 **So the rule gains a second half: when a finding generalises, leave a CHECK
 behind, not a paragraph.** Ask of every ★ in this file — *what would fail if
@@ -2331,10 +2353,14 @@ that its claims were checked.
 |---|---|
 | audit invents a regression | a clean-context reader who re-derives the evidence |
 
-Still **eight ★ findings, six checks**. Two candidates are written as open boxes
-above (assert the referent exists behind `accent-reach`'s cross-repo references;
-flag a family input locked at a rev that isn't on its repo's `main`) — the
-second is the more valuable, and neither is a new mechanism.
+Still **eight ★ findings, six checks** — and one *warning*, which is a new
+category the ledger should keep separate. The more valuable of the two
+candidates this pass raised shipped immediately (workshop#252: `bench status`
+reports an `OFF-MAIN` lock edge), but it fires only when someone runs
+`bench status`, where all six checks fire on `nix flake check`. Counting it as a
+seventh check would overstate the guarantee. The other candidate — assert the
+referent exists behind `accent-reach`'s cross-repo references — stays open and
+low priority, since no break has occurred.
 
 ---
 

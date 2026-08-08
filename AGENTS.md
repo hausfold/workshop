@@ -46,7 +46,13 @@ Never hand-walk that ripple; the tooling does it:
 - `./bench status` — leads with **what this machine is actually running**
   (the pinned build, or the local branches a `try switch` put on it), then
   every stale lock edge, dirty/unpushed repo, and agent worktree / unmerged
-  `worktree-*` branch.
+  `worktree-*` branch. It also flags an **OFF-MAIN** edge — a lock pinned at a
+  rev that isn't on that repo's `main`, which a hand-run `nix flake update`
+  inside a PR produces and `bench ship` cannot. That pin resolves until the
+  branch is deleted on merge, and then the downstream repo can't fetch its
+  input at all. Land the upstream PR first, *then* ship: shipping straight
+  away isn't refused, it repins to main and silently drops the unmerged work
+  the pin was there for.
 - `./bench try [switch]` — build/run the user's machine against the **local
   checkouts** (via `--override-input`). This is how you test WITHOUT pushing.
   Worktree-aware: run from inside an agent worktree, it substitutes that

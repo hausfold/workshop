@@ -171,6 +171,42 @@ except Exception:
 EOF
 }
 
+# rev_on_main <repo> <rev> — is <rev> an ancestor of that repo's main?
+#
+# A lock is normally bumped to a MERGED rev, so this is yes and nobody thinks
+# about it. It answers `no` when a lock was pinned at a rev that lives only on
+# an unmerged PR branch — which a hand-run `nix flake update` inside a PR
+# produces, and `bench ship` cannot (it only ever bumps to merged HEADs). That
+# pin resolves today and stops resolving the moment the branch is deleted, which
+# GitHub does by default on merge: the downstream repo then cannot fetch its own
+# input at all. Nothing else in the family notices, because the rev is real, the
+# hash matches, and every build is cached.
+#
+# `unknown` is a separate answer on purpose: a rev nix fetched but git never did
+# isn't IN the local clone, so ancestry can't be decided here and saying `no`
+# would cry wolf on every machine that hasn't fetched. Checked against
+# origin/main AND local main, so a checkout behind its remote doesn't report a
+# landed rev as off-main. HEAD is only consulted when NEITHER resolves (a repo
+# whose default branch isn't `main`): every extra ref widens the "yes" set, so
+# reading HEAD unconditionally would let a main checkout parked on a branch —
+# the in-place agent mode does exactly that — declare every rev on that branch
+# landed, silencing the warning precisely where it's most likely to be earned.
+rev_on_main() {
+  local dir rev ref refs=()
+  dir="$(repo_dir "$1")"; rev="$2"
+  [ -n "$rev" ] && [ "$rev" != "?" ] || { echo unknown; return; }
+  [ -d "$dir/.git" ] || { echo unknown; return; }
+  git -C "$dir" cat-file -e "${rev}^{commit}" 2>/dev/null || { echo unknown; return; }
+  for ref in origin/main main; do
+    git -C "$dir" rev-parse --verify --quiet "$ref" >/dev/null 2>&1 && refs+=("$ref")
+  done
+  [ "${#refs[@]}" -gt 0 ] || refs=(HEAD)
+  for ref in "${refs[@]}"; do
+    git -C "$dir" merge-base --is-ancestor "$rev" "$ref" 2>/dev/null && { echo yes; return; }
+  done
+  echo no
+}
+
 # The lock edges of the family graph: "<consumer-repo> <input-name> <source-repo>"
 EDGES=(
   "pounce nebelung nebelung"
@@ -451,7 +487,7 @@ cmd_status() {
 
   echo
   say "lock edges (is anyone consuming an old version of anyone?)"
-  local stale=0
+  local stale=0 offmain=0
   for edge in "${EDGES[@]}"; do
     read -r holder input source <<<"$edge"
     local want have label
@@ -462,6 +498,16 @@ cmd_status() {
     if [ "$have" = "$want" ]; then
       printf '  %s✓%s %-22s %scurrent%s (%s%s%s)\n' \
         "$C_OK" "$C_OFF" "$label" "$C_MUT" "$C_OFF" "$C_MUT" "${have:0:7}" "$C_OFF"
+    elif [ "$(rev_on_main "$source" "$have")" = "no" ]; then
+      # Worse than stale, and a different fix. `bench ship` is not a no-op here
+      # — it repins to the upstream's main HEAD like any other edge — but that
+      # SILENTLY DROPS the unmerged work this lock was pinned at, which is
+      # nobody's intent when the pin was deliberate. So report it as its own
+      # thing rather than letting it wear STALE's "just ship it" hint.
+      printf '  %s⚠%s %-22s %sOFF-MAIN%s: locked %s%s%s is not on %s'"'"'s main, local %s%s%s\n' \
+        "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
+        "$C_WARN" "${have:0:7}" "$C_OFF" "$source" "$C_OK" "${want:0:7}" "$C_OFF"
+      offmain=1
     else
       printf '  %s⚠%s %-22s %sSTALE%s: locked %s%s%s, local %s%s%s\n' \
         "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
@@ -470,6 +516,7 @@ cmd_status() {
     fi
   done
   [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
+  [ "$offmain" = 1 ] && hint "OFF-MAIN: that rev lives on an unmerged branch — it stops resolving the moment the branch is deleted on merge, and the downstream repo then can't fetch its input at all. Land the upstream PR, then \`bench ship\` re-pins at the merge commit. Shipping FIRST also works and is usually wrong: it repins to main and silently drops the unmerged work."
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
@@ -504,7 +551,13 @@ cmd_status() {
   done
 
   echo
-  if [ "$stale" = "1" ]; then
+  # OFF-MAIN ranks above STALE: a stale lock is behind, an off-main one is
+  # pinned at something that may stop existing. Ranking it below would let
+  # "everything is current" be the closing verdict on a repo that is one branch
+  # deletion away from not evaluating.
+  if [ "$offmain" = "1" ]; then
+    warn "a lock edge is pinned OFF-MAIN above — land that upstream PR before anything else ships."
+  elif [ "$stale" = "1" ]; then
     warn "stale lock edges above — see the ↳ fix under that section."
   elif [ "$rel_stale" = "1" ]; then
     warn "locks are current, but a release is behind — ship is done, releasing is the last mile (↳ above)."

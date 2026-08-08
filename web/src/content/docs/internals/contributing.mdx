@@ -60,7 +60,11 @@ hand-walking the [pin chain](/internals/flakes/#why-pins-mean-nothing-changes-un
 
 `./bench status` opens with **what this Mac is actually running** — the pinned
 build, or the local branches a `try switch` put on it — then every repo's git
-state and every stale lock edge at a glance. `./bench rebuild` is always the way
+state and every stale lock edge at a glance. A lock can also be **off-main**:
+pinned at a rev that isn't on that repo's `main`, which is what a `nix flake
+update` run inside an open PR leaves behind. It resolves fine until the branch
+is deleted on merge, and then the downstream repo can't fetch its input at all —
+so land the upstream PR first, then ship. `./bench rebuild` is always the way
 back to the pinned build.
 
 ## Parallel agents & worktrees
