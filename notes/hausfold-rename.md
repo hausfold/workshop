@@ -731,12 +731,13 @@ Where things landed:
 - [x] 🤖 create `hausfold/ops`, private, `PRESENCE.md` carried with its history
 - [x] 🤖 create `hausfold/hausfold.co`, public, site carried as one commit
 - [x] 🤖 archive `hausfold/website` (workflows removed, README/AGENTS rewritten)
-- [ ] 👤 **re-enter the three Actions secrets** on `hausfold/hausfold.co` —
-      `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`.
-      GitHub can't read them back out of the old repo, so this is by hand, and
-      **the new repo's deploy stays red until it's done**. hausfold.co is still
-      up, serving the last deploy from `hausfold/website`.
-- [ ] 👤 flip the repo's Settings → Archive on `hausfold/website` after PR #12
+- [x] 👤 re-enter the three Actions secrets on `hausfold/hausfold.co`
+- [x] 👤 delete those secrets from `hausfold/website` and archive it
+
+**✅ §5.1's blocker is fully closed as of 2026-08-08.** hausfold.co serves from
+`hausfold/hausfold.co` — deploy green, `/`, `/desktops/` and `/perch/privacy/`
+all 200, an unknown path 404s (so `not_found_handling = "404-page"` came over
+intact). `hausfold/website` is archived, private, and holds no secrets.
 
 #### The one condition: don't drag Nix into the site repo's CI
 
