@@ -172,8 +172,52 @@ argument; take the free move now and decide after.
 ID + notarized via Homebrew, never the App Store, so `com.nebelhaus.perch` →
 `com.hausfold.perch` is free. Only the *iOS* record is locked.
 
-- [ ] 👤 Remove from review — **do this first, it is free and it buys the decision**
-- [ ] 👤 Then pick A or B and record it here
+#### ✅ Decided 2026-08-08: **route A**
+
+The code half is done — **perch#41** renames the four bundle IDs, both
+entitlements and `MobileConfig.appGroupID`, and adds a
+*Re-identifying an already-submitted app* runbook to `perch/docs/app-store.md`.
+That runbook is the authority on the human steps; it is written to protect the
+App Store **name**, which is the real hostage here (plain `Perch` is taken by
+someone else, which is why the listing is `Perch for Mac`).
+
+The ordering, in one line each — full version in perch's doc:
+
+1. 👤 **Remove 1.0 from review.** Free, reversible, stops the clock.
+2. 🤖 Merge perch#41.
+3. 👤 Register the two App IDs + App Group `group.com.hausfold.perch`.
+   Automatic signing does the App IDs; it **will not invent the App Group**.
+4. 👤 Create the new ASC record under a **temporary name**, SKU
+   `perch-ios-hausfold` (`perch-ios` is spent forever — SKUs never come back).
+5. 🤖 `gh workflow run testflight.yml` — no tag needed.
+6. 👤 **Only then** delete the old record, rename the new one, resubmit.
+
+- [ ] 👤 Remove from review — **do this first**
+- [ ] 👤 Steps 3–4, 6 in App Store Connect / the Developer portal
+
+### 0.6 🚨 The Mac app has the same problem, with a released install base
+
+Found while doing §0.5, and **§4 originally missed it entirely.** perch for Mac
+is publicly released — `v2026.08.08`, a live Homebrew cask — and its bundle id
+*is* its sandbox container and its defaults domain:
+
+- `~/Library/Containers/com.nebelhaus.perch/Data/…` — **the shelf itself**
+  (`perch/docs/reference.md:34`)
+- `defaults` domain `com.nebelhaus.perch` — where `LicenseStore` lives
+- every TCC grant
+
+So `com.nebelhaus.perch` → `com.hausfold.perch` **empties a released app**:
+shelf gone, settings gone, permissions re-prompted, and — once Phase 2 ships the
+public key — **every paid license de-activated**. Today that costs nothing
+because the install base is approximately you and the license layer is inert.
+After the paid launch it is unrecoverable without a migration shim.
+
+**This is an argument for doing it soon, not for skipping it.** It stays in §4.2
+rather than jumping the queue like the iOS half, because Apple's review queue is
+a clock and Homebrew is not — but it must land **before** perch's Phase 2.
+
+- [ ] Decide migrate-vs-discard for the Mac container, same fork as §4.3
+- [ ] Land it before perch's license layer goes live
 
 ---
 
@@ -399,16 +443,17 @@ Mac immediately.
 
 ### 4.1 👤 Developer portal, before touching code
 
-⚠️ **Scope depends on §0.5's A/B fork.** Under **B**, everything iOS
-(`com.nebelhaus.perch.ios`, `.ios.share`, `group.com.nebelhaus.perch`) is frozen
-and §4.3 does not apply at all — this phase then covers only the macOS apps.
+✅ **The iOS half is already done and pulled forward** — §0.5 route A, perch#41.
+What remains here is macOS only.
 
 - Register the macOS App IDs: `com.hausfold.perch`, `com.hausfold.pounce`,
   `com.hausfold.flick`. These ship Developer ID + notarized, never through the
-  App Store, so they're unconstrained.
-- **A only:** change the iOS bundle IDs in the Xcode project and let automatic
-  signing register `com.hausfold.perch.ios` / `.ios.share`, then register App
-  Group `group.com.hausfold.perch` (read §4.3 first — it carries data).
+  App Store, so they're unconstrained by any record.
+- ⚠️ **`com.nebelhaus.perch` is a released app's container and defaults domain
+  — see §0.6 before touching it.** Renaming it empties the shelf and the license
+  state of every install.
+- `org.nixos.pounce` → `com.hausfold.pounce` is the launchd label; the notes
+  below still apply.
 - Regenerate provisioning profiles; re-export `IOS_DIST_CERT_P12` if bound.
 - 👤 **Delete the two `XC com nebelhaus perch ios*` Identifiers** once the new
   ones sign a build. Safe: no app record ever claimed them.
