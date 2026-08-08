@@ -23,7 +23,7 @@ them:
 |---|---|---|
 | 1 | Option namespace becomes **`haus.*`** | brand ≠ namespace, the nixos/nixpkgs pattern. `haus` is already the verb (`haus rebuild`/`set`/`doctor`/`rollback`). |
 | 2 | **Transfer + rename in place** — `nebelhaus/nebelhaus` → `hausfold/hausfold` | keeps history, issues, PR links, git redirects. |
-| 3 | **`hausfold.co`**, accept the `.co` | `hausfold.com` stays unbought; logged as accepted risk in §0.4. |
+| 3 | **`hausfold.co`**, accept the `.co` | `hausfold.com` isn't unbought, it's **unbuyable** — an operating laundry business holds it, checked 2026-08-08. §0.4. |
 | 4 | **Rename now, neutralize defaults later** | the sweep is mechanical and provable; the rice carve-out is design work (§7). |
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror and the archived `trill`. |
@@ -149,18 +149,42 @@ holt                            # every live/parked worktree, all repos
 **Gate:** `bench status` clean, zero open PRs, zero unmerged `worktree-*`
 branches.
 
-### 0.4 👤 hausfold.com — accepted risk, logged
+### 0.4 ✅ hausfold.com — checked 2026-08-08, and it isn't for sale
 
 Decision 3 accepts `.co`. Two consequences to hold consciously rather than
 discover:
 
-- The `.com` gets more expensive as the brand gains value, and this rename is
-  the event that gives it value.
+- ~~The `.com` gets more expensive as the brand gains value, and this rename is
+  the event that gives it value.~~ **Moot — see below.**
 - The seller name appears on receipts and terms. `.co` reads second-tier there.
 
-**Not a blocker.** But check the `.com` isn't parked by a squatter *today*, and
-if it's ~$12, the argument for buying it is that this is the last time it's that
-cheap. Re-log in `go-to-market.md` §9 as decided-accept rather than open.
+**This section used to end: *"check the `.com` isn't parked by a squatter today,
+and if it's ~$12, the argument for buying it is that this is the last time it's
+that cheap."* That check has now been run, and the answer is no.**
+
+`hausfold.com` was registered **2025-04-19** (expiry 2028-04-19) and serves
+**HAUS FOLD — "For your household."**, an operating in-home laundry and
+light-housekeeping service in Charleston, Columbia and Greenville, South
+Carolina. Live site, phone number, service tiers, testimonials, pricing. Not
+parked, not a squatter, **not a $12 registration waiting to be made** — buying
+it would mean buying a working business's primary domain.
+
+So there was never a purchase to be early for, and "buy it now while it's cheap"
+was wrong from the start rather than expired. Three things follow:
+
+1. **Decision 3 stands, for a different reason.** Accepting `.co` isn't a thrift
+   decision any more; it's the only option.
+2. **It explains the handles.** `instagram.com/hausfold` is theirs, linked from
+   their own site — which is why the register records `hausfold.co` there.
+   Anywhere else the bare `hausfold` was "unavailable", assume the same cause
+   and stop re-checking.
+3. **It promotes the trademark question.** A same-word mark in commercial use in
+   the US, first in time. Likely fine — a household *service* against *software*
+   are different Nice classes — but that is a reading, not a search. **Get a real
+   USPTO search before filing anything, spending on marketing, or incorporating
+   under the name.** Nothing here was checked against the trademark register.
+
+Re-logged in `go-to-market.md` §9 decision 4 as decided-accept.
 
 ### 0.5 👤 App Store Connect audit — **this is the deadline**
 
