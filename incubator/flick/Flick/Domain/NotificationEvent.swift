@@ -123,6 +123,17 @@ struct NotificationEvent: Codable, Sendable, Identifiable, Equatable {
 }
 
 extension NotificationEvent {
+    /// Does clicking this event do anything? `ActionRouter.performDefault`
+    /// runs the first declared action, or activates the source app when the
+    /// source reads as a bundle id — and does nothing at all otherwise.
+    ///
+    /// Every surface that offers a click asks *this*, so a row can never look
+    /// pressable and then do nothing: flick draws no dead buttons. The router
+    /// branches on the same property, so the two cannot drift apart.
+    var hasDefaultAction: Bool {
+        !actions.isEmpty || source.contains(".")
+    }
+
     /// Field caps: a banner is a glance, not a document. Oversized input is
     /// truncated here, once, so no downstream surface needs its own limits.
     enum Limits {

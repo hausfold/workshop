@@ -55,30 +55,56 @@ enum BannerGeometry {
     /// it is at least `overlap`, so the card below still has only padding to
     /// tuck over once a fold is open.
     static let foldListInset: CGFloat = 12
-    /// Folded events listed individually; the rest collapse into one
-    /// "and N earlier" row.
-    static let maxFoldRows = 4
 
-    /// Folded events the expanded list names one by one.
-    static func foldListedCount(folded: Int) -> Int {
-        min(max(folded, 0), maxFoldRows)
+    /// The most rows a card at `index` in the stack can grow before its own
+    /// bottom edge leaves the visible frame. **This is the cap — there is no
+    /// magic row count.** A ten-message thread lists all ten because ten fit;
+    /// a two-hundred-message one lists what fits and admits the rest in a
+    /// single "and N earlier" line, because a card taller than the display is
+    /// worse than no card at all.
+    ///
+    /// Only the *collapsed* cards above the hovered one are counted against
+    /// it. Cards below are allowed to be pushed off screen: they are still in
+    /// the queue and come straight back on unhover, and letting the fold stop
+    /// growing at whatever happens to be beneath it would make the same burst
+    /// a different height depending on unrelated traffic.
+    static func foldRowCapacity(on screen: ScreenDescriptor, index: Int) -> Int {
+        guard index >= 0 else { return 0 }
+        let visible = screen.visibleFrame
+        let top = visible.maxY - inset - CGFloat(index) * (size.height - overlap)
+        let room = top - (visible.minY + inset) - size.height - foldListInset
+        guard room >= foldRowHeight else { return 0 }
+        return Int(room / foldRowHeight)
     }
 
-    /// Rows the expanded list draws for `folded` folded events — the listed
-    /// ones plus, when there are more, the single "and N earlier" line. The
-    /// view draws its rows off these two functions rather than repeating the
-    /// arithmetic: the card's height is fixed, so a disagreement between the
-    /// two would clip a row silently instead of failing.
-    static func foldRowCount(folded: Int) -> Int {
-        guard folded > 0 else { return 0 }
-        return foldListedCount(folded: folded) + (folded > maxFoldRows ? 1 : 0)
+    /// Folded events the expanded list names one by one, given the total rows
+    /// the card has height for. When the fold outruns the rows, one of them is
+    /// spent on the "and N earlier" line rather than on a name — the count has
+    /// to stay honest even when the list can't.
+    static func foldListedCount(folded: Int, maxRows: Int) -> Int {
+        let rows = max(maxRows, 0)
+        guard folded > 0, rows > 0 else { return 0 }
+        return folded > rows ? rows - 1 : folded
+    }
+
+    /// Rows the expanded list draws — the named ones plus, when the fold has
+    /// more behind them, the single "and N earlier" line. The view draws its
+    /// rows off these two functions rather than repeating the arithmetic: the
+    /// card's height is fixed, so a disagreement between the two would clip a
+    /// row silently instead of failing.
+    static func foldRowCount(folded: Int, maxRows: Int) -> Int {
+        let listed = foldListedCount(folded: folded, maxRows: maxRows)
+        guard folded > 0, maxRows > 0 else { return 0 }
+        return listed + (folded > listed ? 1 : 0)
     }
 
     /// Size of one card. Collapsed is always `size`; expanded adds exactly
     /// the fold list's rows, so the panel and the view agree on the number
-    /// without either of them measuring anything.
-    static func cardSize(foldedCount: Int, expanded: Bool) -> CGSize {
-        let rows = expanded ? foldRowCount(folded: foldedCount) : 0
+    /// without either of them measuring anything. `maxRows` comes from
+    /// `foldRowCapacity` — the view is handed it rather than deriving it,
+    /// because the view must not know what screen it is on.
+    static func cardSize(foldedCount: Int, expanded: Bool, maxRows: Int) -> CGSize {
+        let rows = expanded ? foldRowCount(folded: foldedCount, maxRows: maxRows) : 0
         guard rows > 0 else { return size }
         return CGSize(
             width: size.width,

@@ -158,22 +158,66 @@ final class EventPipelineTests: XCTestCase {
     }
 
     @MainActor
-    func testFoldKeepsAPreviewAndAnHonestCount() {
+    func testAWholeNormalBurstIsKept() {
+        // A "burst" in practice is one chat thread going off: ten or so.
+        // Every one of them has to survive to be listed and clicked — the
+        // preview limit used to cut this to eight and there was no screen
+        // size at which you could see the rest.
         let queue = BannerQueue(capacity: 2, displayDuration: .seconds(3600), coalesceWindow: 10)
-        for i in 1...12 {
+        for i in 1...10 {
             queue.enqueue(NotificationEvent(id: "\(i)", source: "s", title: "msg \(i)", thread: "t"))
         }
 
         let entry = queue.visible[0]
-        XCTAssertEqual(entry.event.title, "msg 12")
-        XCTAssertEqual(entry.coalescedCount, 11, "the count is of everything behind the face")
+        XCTAssertEqual(entry.event.title, "msg 10", "newest wins the face")
+        XCTAssertEqual(entry.coalescedCount, 9)
+        XCTAssertEqual(
+            entry.folded.map(\.title),
+            (1...9).reversed().map { "msg \($0)" },
+            "all nine behind the face are kept, newest first — nothing to truncate"
+        )
+    }
+
+    @MainActor
+    func testFoldKeepsAPreviewAndAnHonestCount() {
+        let queue = BannerQueue(capacity: 2, displayDuration: .seconds(3600), coalesceWindow: 10)
+        let total = BannerQueue.Entry.foldPreviewLimit + 20
+        for i in 1...total {
+            queue.enqueue(NotificationEvent(id: "\(i)", source: "s", title: "msg \(i)", thread: "t"))
+        }
+
+        let entry = queue.visible[0]
+        XCTAssertEqual(entry.event.title, "msg \(total)")
+        XCTAssertEqual(entry.coalescedCount, total - 1, "the count is of everything behind the face")
         XCTAssertEqual(
             entry.folded.count, BannerQueue.Entry.foldPreviewLimit,
             "the list is bounded; the count is not"
         )
         XCTAssertEqual(
-            entry.folded.map(\.title).prefix(3), ["msg 11", "msg 10", "msg 9"],
+            entry.folded.map(\.title).prefix(3),
+            ["msg \(total - 1)", "msg \(total - 2)", "msg \(total - 3)"],
             "newest first — the expanded list reads down into the past"
+        )
+    }
+
+    // MARK: - No dead buttons
+
+    func testOnlyEventsThatGoSomewhereAdvertiseAClick() {
+        // Every clickable surface asks `hasDefaultAction` before drawing
+        // itself as pressable, so this is the whole no-dead-buttons rule.
+        let withAction = NotificationEvent(
+            source: "ci", title: "build green",
+            actions: [.init(id: "o", label: "Open", kind: .openURL, target: "https://nebelhaus.com")]
+        )
+        XCTAssertTrue(withAction.hasDefaultAction)
+
+        XCTAssertTrue(
+            NotificationEvent(source: "com.nebelhaus.trill", title: "hi").hasDefaultAction,
+            "a bundle-id source falls back to activating that app"
+        )
+        XCTAssertFalse(
+            NotificationEvent(source: "deploy", title: "done").hasDefaultAction,
+            "a bare slug with no actions goes nowhere — the row must not look pressable"
         )
     }
 

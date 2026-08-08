@@ -56,11 +56,36 @@ final class BannerWindowSystem {
         NSScreen.screens.first.map(ScreenDescriptor.init(screen:))
     }
 
-    private static func frames(for entries: [BannerQueue.Entry], on screen: ScreenDescriptor) -> [CGRect?] {
+    /// How many fold rows each card may draw. The screen decides — this is
+    /// the whole of the "fill the screen" rule, and the only place that knows
+    /// both the display and where each card sits on it. `BannerView` is handed
+    /// the answer; it must not be able to ask.
+    ///
+    /// Bounded a second time by what the fold actually kept, so the card's
+    /// height can never pay for a named row the view has no event for. The
+    /// `+ 1` is the "and N earlier" line, which needs no event.
+    private static func foldRows(for entries: [BannerQueue.Entry], on screen: ScreenDescriptor) -> [Int] {
+        entries.indices.map { index in
+            min(
+                BannerGeometry.foldRowCapacity(on: screen, index: index),
+                entries[index].folded.count + 1
+            )
+        }
+    }
+
+    private static func frames(
+        for entries: [BannerQueue.Entry],
+        rows: [Int],
+        on screen: ScreenDescriptor
+    ) -> [CGRect?] {
         BannerGeometry.stackFrames(
             on: screen,
-            sizes: entries.map {
-                BannerGeometry.cardSize(foldedCount: $0.coalescedCount, expanded: $0.expanded)
+            sizes: entries.indices.map { index in
+                BannerGeometry.cardSize(
+                    foldedCount: entries[index].coalescedCount,
+                    expanded: entries[index].expanded,
+                    maxRows: rows[index]
+                )
             }
         )
     }
@@ -85,17 +110,27 @@ final class BannerWindowSystem {
         }
 
         // One layout pass for the whole stack: a hovered banner expands, and
-        // every card under it has to move down by exactly that much. If the
-        // expansion doesn't fit — a short display, a fold near the bottom of
-        // the stack — the card stays collapsed rather than laying itself off
-        // screen. Closing the panel under the pointer would strand the hover
-        // (no exit event follows a panel that is simply gone) and pause the
-        // queue for good; refusing to grow is the honest failure.
+        // every card under it has to move down by exactly that much.
+        //
+        // The fallback below protects the *hovered card's own* panel and
+        // nothing else. Cards beneath it losing their slot is the intended
+        // outcome, not a failure — that is how a fold gets to fill the screen
+        // instead of stopping at whatever happened to arrive under it — and
+        // they come straight back on unhover. It used to collapse the fold if
+        // *any* card in the stack lost its frame, which meant a fold could
+        // never grow past the cards below it however much room the display
+        // had. Since `foldRowCapacity` now sizes the expansion to fit, this
+        // should not fire at all; it stays because closing the panel under the
+        // pointer would strand the hover (no exit event follows a panel that
+        // is simply gone) and pause the queue for good, and refusing to grow
+        // is the honest failure.
         var laidOut = entries
-        var frames = Self.frames(for: laidOut, on: screen)
-        if frames.contains(where: { $0 == nil }), let grown = laidOut.firstIndex(where: \.expanded) {
+        var rows = Self.foldRows(for: laidOut, on: screen)
+        var frames = Self.frames(for: laidOut, rows: rows, on: screen)
+        if let grown = laidOut.firstIndex(where: \.expanded), frames[grown] == nil {
             laidOut[grown].expanded = false
-            frames = Self.frames(for: laidOut, on: screen)
+            rows = Self.foldRows(for: laidOut, on: screen)
+            frames = Self.frames(for: laidOut, rows: rows, on: screen)
         }
 
         for (index, entry) in laidOut.enumerated() {
@@ -116,12 +151,25 @@ final class BannerWindowSystem {
                 self?.actionRouter.performDefault(for: entry.event)
                 self?.queue.dismiss(id: entry.id)
             }
+            // A row of an open fold runs *its* event's action and then takes
+            // the whole banner down: you opened the thread to deal with it,
+            // and you just did. Leaving the card up would put you back in
+            // front of a list whose reason for existing you have answered.
+            let activateFolded: (NotificationEvent) -> Void = { [weak self] folded in
+                self?.actionRouter.performDefault(for: folded)
+                self?.queue.dismiss(id: entry.id)
+            }
             if let existing = panels[entry.id] {
-                existing.update(entry: entry, frame: frame, onHover: hover, onDismiss: dismiss, onActivate: activate)
+                existing.update(
+                    entry: entry, maxFoldRows: rows[index], frame: frame,
+                    onHover: hover, onDismiss: dismiss,
+                    onActivate: activate, onActivateFolded: activateFolded
+                )
             } else {
                 panels[entry.id] = BannerPanelController(
-                    entry: entry, frame: frame,
-                    onHover: hover, onDismiss: dismiss, onActivate: activate
+                    entry: entry, maxFoldRows: rows[index], frame: frame,
+                    onHover: hover, onDismiss: dismiss,
+                    onActivate: activate, onActivateFolded: activateFolded
                 )
             }
         }

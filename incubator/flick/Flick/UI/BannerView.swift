@@ -6,18 +6,30 @@ import SwiftUI
 ///
 /// A coalesced banner shows the newest thread-mate on its face and a count
 /// of what folded in behind it; hovering deepens that count into an actual
-/// list. Hover already pauses the dismiss clock, so the list stays up as
-/// long as you are reading it, and the banner costs nothing extra when
-/// you're not.
+/// list, and every line of that list is its own button. Hover already pauses
+/// the dismiss clock, so the list stays up as long as you are reading it,
+/// and the banner costs nothing extra when you're not.
 struct BannerView: View {
     let entry: BannerQueue.Entry
+    /// Rows the fold may draw, handed down by the compositor from
+    /// `BannerGeometry.foldRowCapacity`. The cap is a property of the screen
+    /// and the card's place in the stack; this view knows neither, and must
+    /// not learn — it only has to draw exactly the rows its height was
+    /// computed for.
+    let maxFoldRows: Int
     var onHover: (Bool) -> Void
     var onDismiss: () -> Void
     var onActivate: () -> Void
+    /// Click on one line of the fold: that line's own event, not the face's.
+    var onActivateFolded: (NotificationEvent) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var arrived = false
     @State private var hovering = false
+    /// Index into `listedFolds` of the row under the pointer. Purely a
+    /// highlight — the queue's hover (which card is expanded) is unaffected,
+    /// because moving between rows never leaves the card.
+    @State private var hoveredRow: Int?
 
     private var event: NotificationEvent { entry.event }
     private var redacted: Bool { event.privacy == .redacted }
@@ -26,7 +38,11 @@ struct BannerView: View {
     /// measured height (`fittingSize` lags a state change by a turn on
     /// macOS 26, and the panel would settle on the wrong number).
     private var cardSize: CGSize {
-        BannerGeometry.cardSize(foldedCount: entry.coalescedCount, expanded: entry.expanded)
+        BannerGeometry.cardSize(
+            foldedCount: entry.coalescedCount,
+            expanded: entry.expanded,
+            maxRows: maxFoldRows
+        )
     }
 
     private var urgencyAccent: Color {
@@ -57,14 +73,15 @@ struct BannerView: View {
                         .strokeBorder(.separator, lineWidth: 1)
                 )
         )
+        // Shaped for *hover* — the card has to keep the queue's hover while
+        // the pointer crosses the gaps between rows, or the fold would
+        // collapse under its own list. Clicking is not the card's job: the
+        // face and each fold row carry their own target, because a folded
+        // line that ran the face's action would be a lie about what it is.
         .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        // The whole card is one click target, fold list included: clicking a
-        // folded line runs the face event's default action, same as anywhere
-        // else on the banner. A per-row target would be a second meaning for
-        // the same gesture.
-        .onTapGesture(perform: onActivate)
         .onHover { inside in
             hovering = inside
+            if !inside { hoveredRow = nil }
             onHover(inside)
         }
         .opacity(arrived ? 1 : 0)
@@ -74,8 +91,10 @@ struct BannerView: View {
                 arrived = true
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityText)
+        // `.contain`, not `.combine`: the fold rows are individually
+        // actionable now, so VoiceOver has to be able to reach them. The face
+        // combines into one element of its own just below.
+        .accessibilityElement(children: .contain)
     }
 
     /// The face: what a banner has always been. Its height is fixed whether
@@ -160,64 +179,108 @@ struct BannerView: View {
             height: BannerGeometry.size.height,
             alignment: .topLeading
         )
+        // Stays a tap gesture rather than a `Button`: the dismiss control
+        // lives inside the face, and a button inside a button is a fight over
+        // the same click. Unconditional, unlike a fold row — clicking the
+        // face has always also dismissed the banner, so it does something
+        // even for an event carrying no action of its own.
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onActivate)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(faceAccessibilityText)
     }
 
-    /// The fold, opened. One line per thread-mate, newest first, oldest
-    /// collapsed into a single "and N earlier" — a burst of fifty is still a
-    /// glance, not a scroll view. Row heights are fixed so the total matches
+    /// The fold, opened. One line per thread-mate, newest first, and each
+    /// line is a button for *its own* event — the whole point of listing them
+    /// separately is that they can be acted on separately. As many as the
+    /// screen gave us; whatever is left over collapses into a single "and N
+    /// earlier", so a burst of two hundred is still a glance and still fits
+    /// on the display. Row heights are fixed so the total matches
     /// `BannerGeometry.cardSize` exactly.
     private var foldList: some View {
         VStack(alignment: .leading, spacing: 0) {
             Divider()
+                .padding(.horizontal, 12)
                 .padding(.bottom, 5)
 
-            ForEach(Array(listedFolds.enumerated()), id: \.offset) { _, folded in
-                HStack(spacing: 6) {
-                    Text(folded.title)
-                        .font(.caption)
-                        .lineLimit(1)
-                    // Privacy is per event, so a redacted thread-mate keeps
-                    // its body to itself even when the face is visible.
-                    if folded.privacy != .redacted, let body = folded.body ?? folded.subtitle {
-                        Text(body)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 0)
-                }
-                .frame(height: BannerGeometry.foldRowHeight)
+            ForEach(Array(listedFolds.enumerated()), id: \.offset) { index, folded in
+                foldRow(folded, at: index)
             }
 
             if entry.coalescedCount > listedFolds.count {
+                // Not a button: it stands for several events, so there is no
+                // single thing for a click to do.
                 Text("and \(entry.coalescedCount - listedFolds.count) earlier")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .frame(height: BannerGeometry.foldRowHeight)
+                    .padding(.horizontal, 12)
             }
         }
-        .padding(.horizontal, 12)
         // Divider (1) + 5 above + 6 below == BannerGeometry.foldListInset,
         // and the 6 below is what the next card tucks over.
         .padding(.bottom, 6)
     }
 
+    /// One line of the fold. Pressable only when its event actually carries
+    /// somewhere to go: flick draws no dead buttons, so a row with no default
+    /// action gets no highlight, no pointer feedback, and no click. Clicking
+    /// one dismisses the whole banner — you came to the fold because the
+    /// thread wanted a decision, and you've just made it.
+    @ViewBuilder
+    private func foldRow(_ folded: NotificationEvent, at index: Int) -> some View {
+        let live = folded.hasDefaultAction
+        let content = HStack(spacing: 6) {
+            Text(folded.title)
+                .font(.caption)
+                .lineLimit(1)
+            // Privacy is per event, so a redacted thread-mate keeps
+            // its body to itself even when the face is visible.
+            if folded.privacy != .redacted, let body = folded.body ?? folded.subtitle {
+                Text(body)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 6)
+        .frame(height: BannerGeometry.foldRowHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(Color.primary.opacity(live && hoveredRow == index ? 0.09 : 0))
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        // 6 here + 6 on the row == the face's 12, so the highlight bleeds
+        // slightly wider than the text without breaking the card's margin.
+        .padding(.horizontal, 6)
+
+        if live {
+            Button { onActivateFolded(folded) } label: { content }
+                .buttonStyle(.plain)
+                .onHover { hoveredRow = $0 ? index : (hoveredRow == index ? nil : hoveredRow) }
+                .accessibilityLabel("\(folded.title). \(folded.actions.first?.label ?? "Open \(folded.source)")")
+        } else {
+            content.accessibilityLabel(folded.title)
+        }
+    }
+
     /// The folded events this card names one by one — the same count the
     /// height was computed from, so the list can never outgrow the card.
     private var listedFolds: [NotificationEvent] {
-        Array(entry.folded.prefix(BannerGeometry.foldListedCount(folded: entry.coalescedCount)))
+        Array(entry.folded.prefix(
+            BannerGeometry.foldListedCount(folded: entry.coalescedCount, maxRows: maxFoldRows)
+        ))
     }
 
-    /// `children: .combine` would read the fold list out, but an explicit
-    /// label overrides it — so the list has to be spoken here or VoiceOver
-    /// never hears the thing the expansion exists to show.
-    private var accessibilityText: String {
+    /// The face's own spoken label. The fold rows are separate accessibility
+    /// elements now (they are separate buttons), so this no longer has to
+    /// recite the list — it says how much is behind the face and leaves the
+    /// rows to speak for themselves.
+    private var faceAccessibilityText: String {
         let head = "\(event.source): \(event.title)"
         guard entry.coalescedCount > 0 else { return head }
-        let head2 = "\(head), \(entry.coalescedCount) more in this thread"
-        guard entry.expanded else { return head2 }
-        let listed = listedFolds.map(\.title).joined(separator: ", ")
-        let earlier = entry.coalescedCount - listedFolds.count
-        return earlier > 0 ? "\(head2): \(listed), and \(earlier) earlier" : "\(head2): \(listed)"
+        return "\(head), \(entry.coalescedCount) more in this thread"
     }
 }
