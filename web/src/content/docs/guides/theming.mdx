@@ -144,12 +144,27 @@ you reach for contrast. The two axes compose:
 | `flavor = "mocha"` | 11.3:1 | 19.9:1 |
 | `flavor = "latte"` | 7.0:1 | 9.9:1 |
 
-<Aside type="caution" title="macOS's own appearance doesn't follow">
-The rice leaves **System Settings ▸ Appearance** alone, in both directions, so a
-light rice on a dark Mac looks half-finished. Set macOS's own Light/Dark by hand
-to match. (This isn't laziness: turning dark mode *on* is one declarative
-setting, but turning it *off* means deleting a default rather than writing one,
-which nix-darwin has no way to express.)
+<Aside type="caution" title="macOS's own appearance is opt-in">
+By default the rice leaves **System Settings ▸ Appearance** alone, in both
+directions, so a light rice on a dark Mac looks half-finished. One option
+finishes it:
+
+```nix
+nebelhaus.theme.systemAppearance = "flavor";  # latte → Light, mocha → Dark
+```
+
+`"light"` and `"dark"` pin it instead, and the default `"unmanaged"` is what
+leaves it alone. The default stays hands-off on purpose — a managed default
+would silently undo an appearance you picked in System Settings on your next
+rebuild.
+
+Two things worth knowing. It is applied with AppleScript rather than a
+`defaults` write, because on macOS 26 that key is **inert in both directions** —
+it is where macOS mirrors the appearance it's showing, not a lever you can pull
+(measured; `haus diff` says so if you declare it by hand). And driving it needs
+an **Automation** grant for whatever runs your rebuild
+(System Settings ▸ Privacy & Security ▸ Automation); without it the rice tells
+you and leaves the appearance alone, and nothing else is affected.
 
 **Pounce** and **Perch** are the exception in the other direction: both read
 their palette at runtime and follow macOS's Light/Dark themselves, so on a dark
