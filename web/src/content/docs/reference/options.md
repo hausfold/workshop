@@ -2746,6 +2746,304 @@ for the same reproducibility reason as autoUpdate.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
+## nebelhaus.lock
+### `nebelhaus.lock.requirePassword`
+
+`null or boolean` · default `null`
+
+Require a password to wake this Mac from sleep or the screen saver.
+null (the default) leaves macOS's own choice alone.
+
+The one setting in this group worth turning on for ANY shared or
+portable machine — a family Mac, a laptop that leaves the house.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.lock.requirePasswordDelay`
+
+`null or (unsigned integer, meaning >=0)` · default `null`
+
+Seconds to wait after sleep/screen-saver starts before
+`requirePassword` actually locks the screen — macOS's "grace period".
+null (the default) leaves macOS's own choice alone.
+
+0 locks instantly. Has no effect while `requirePassword` is null or
+false.
+
+Example:
+
+```nix
+5
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+## nebelhaus.menuBar
+### `nebelhaus.menuBar.clock.analog`
+
+`null or boolean` · default `null`
+
+Draw an analog clock face instead of a digital readout. null (the
+default) leaves macOS's own choice alone (digital).
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.clock.format`
+
+`null or one of "12h", "24h"` · default `null`
+
+12-hour or 24-hour menu bar clock. null (the default) leaves
+macOS's own choice alone (region-dependent, usually 12h in the US).
+
+Example:
+
+```nix
+"24h"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.clock.showDate`
+
+`null or one of "when-space-allows", "always", "never"` · default `null`
+
+Whether the full date appears next to the time. null (the default)
+leaves macOS's own choice alone ("when-space-allows").
+
+Example:
+
+```nix
+"always"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.clock.showDayOfWeek`
+
+`null or boolean` · default `null`
+
+Show the day of the week next to the clock. null (the default)
+leaves macOS's own choice alone.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.clock.showSeconds`
+
+`null or boolean` · default `null`
+
+Show the clock to second precision instead of minutes. null (the
+default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.airdrop`
+
+`null or boolean` · default `null`
+
+Whether the AirDrop control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.batteryPercentage`
+
+`null or boolean` · default `null`
+
+Show the battery percentage next to its menu bar icon. null (the
+default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.bluetooth`
+
+`null or boolean` · default `null`
+
+Whether the Bluetooth control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.displayBrightness`
+
+`null or boolean` · default `null`
+
+Whether the Screen Brightness control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.focus`
+
+`null or boolean` · default `null`
+
+Whether the Focus control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.nowPlaying`
+
+`null or boolean` · default `null`
+
+Whether the Now Playing control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.menuBar.controlCenter.sound`
+
+`null or boolean` · default `null`
+
+Whether the Sound control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+## nebelhaus.security
+### `nebelhaus.security.firewall.allowSigned`
+
+`null or boolean` · default `null`
+
+Let built-in, Apple-signed software receive incoming connections
+without asking. null (the default) leaves macOS's own choice alone.
+Has no effect while `enable` is null or false.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.security.firewall.allowSignedApp`
+
+`null or boolean` · default `null`
+
+Let downloaded, signed third-party software receive incoming
+connections without asking. null (the default) leaves macOS's own
+choice alone. Has no effect while `enable` is null or false.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.security.firewall.blockAllIncoming`
+
+`null or boolean` · default `null`
+
+Block ALL incoming connections, including ones apps ask for (AirDrop,
+screen sharing, a dev server on your LAN). null (the default) leaves
+macOS's own choice alone. Has no effect while `enable` is null or
+false.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.security.firewall.enable`
+
+`null or boolean` · default `null`
+
+The built-in application firewall. null (the default) leaves
+macOS's own choice alone (off, on a fresh install).
+
+The "public Wi-Fi" setting: worth true for a laptop that leaves
+home, closer to unnecessary for a desktop that never does.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
+### `nebelhaus.security.firewall.stealthMode`
+
+`null or boolean` · default `null`
+
+Don't respond to network probes (ping, closed-port connection
+attempts) at all, instead of replying "connection refused". null
+(the default) leaves macOS's own choice alone. Has no effect while
+`enable` is null or false.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+
 ## nebelhaus.zen
 ### `nebelhaus.zen.extensions`
 
