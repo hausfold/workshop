@@ -15,6 +15,109 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **Status, 2026-08-08 (fourteenth pass) — an audit pass, not a shipping one.
+> Nothing new was built; two claims in this file were wrong, the phase summary
+> had drifted from the sections it summarizes, and this pass's own first finding
+> was wrong and had to be retracted before the PR opened.**
+>
+> Run the §5.14 way — reading every commit across the family since the
+> thirteenth pass's work rather than diffing the checkbox list. The window is
+> small (rice #254/#255 + the 2026.08.08 release, nebelung#29, pounce#65,
+> perch#36/#37, holt's SDK run — nebelung#29 and pounce#65 landed *before*
+> rice#253 merged, so "since the thirteenth pass" is by write-up date, not by
+> merge order), and the findings that survived all came out of commit *bodies*,
+> not diffs.
+>
+> **★ Finding 1 — RETRACTED, and the retraction is the finding.** This pass
+> first reported that `accent-reach`'s `glow` row had been a false green for
+> seventeen minutes on 2026-08-07: rice#247 shipped the accent-matrix path
+> `glowStyle = "${nebelungRoot}/glow/themes/<flavor>/catppuccin-<flavor>-<accent>.json"`
+> at 06:15 while its lock pinned nebelung at `4ea4fa4`, which is not
+> nebelung#29's merge commit (`2110fac`, 06:13) — so the JSON looked absent and
+> the check looked green anyway. **The pre-PR assurance pass killed it.**
+> `4ea4fa4` *is* nebelung#29 — its own PR-branch head, tree-identical to the
+> squash (`git diff 4ea4fa4 2110fac` is empty) — and rice#247 bumped the pin in
+> the very same commit that introduced the path. glow resolved the whole time;
+> the check's green was correct.
+>
+> **The rule that mistake earns: a lock rev that isn't the upstream's main rev
+> is not evidence of a stale pin, and this file's audits keep reaching for revs
+> where the question is about trees.** Squash-merge guarantees the rev you
+> locked pre-merge never appears on main, so "the lock doesn't point at the
+> merge commit" is the *normal* state for anything pinned from a PR branch, not
+> a smell. The check is `git diff <lockrev> <mainrev>`; comparing hashes proves
+> nothing. That is a cheaper lesson than the one this pass thought it had.
+>
+> **★ And the same evidence does hold a real hazard, one the retraction
+> surfaced.** For those seventeen minutes rice `main`'s lock pinned a nebelung
+> rev that existed **only on an unmerged PR branch**. It is still fetchable today
+> purely because that branch was never deleted (`origin/worktree-bdab`) — and
+> GitHub deletes head branches on merge by default, which is the premise holt's
+> whole `reship` story is built on. A merge-and-delete inside that window would
+> have left rice `main` unable to fetch nebelung at all: not a silent wrong
+> colour, a repo that doesn't evaluate. **Pinning a downstream lock at a rev
+> that is not yet on the upstream's `main` is the actual cross-repo hazard
+> here**, it is invisible to every check in the family, and §7's ripple story
+> doesn't cover it because `bench ship` only ever bumps to merged HEADs — this
+> came from a hand-run `nix flake update` inside a PR.
+>
+> **What survives of the original observation, as design reasoning rather than
+> an incident:** Nix does interpolate a store path into a string without
+> asserting anything is there, so `accent-reach`'s `glow` row *would* read
+> `moves` even with the referent missing — it fingerprints the plugin file's
+> text, and the accent varies only inside a path. No such break has happened.
+> The cheap belt is one line in the existing `glowPlugin` `runCommand`
+> (`[ -f ${glowStyle} ]`), and the file already half-knew: the `zed` row carries
+> a comment calling itself "the one row whose fingerprint is a FILENAME rather
+> than a file's contents", noticed and then not generalized.
+>
+> **★ Finding 2 — the tenth pass's own headline claim was half false, and
+> rice#255 corrected it.** That block says den's restart commands are
+> "read out of `config`, not hardcoded, so a future module gets this for free."
+> True of the **domains**, false of the **processes**: #249 then filtered the
+> map's values through `restartProcesses = [ "Finder" "ControlCenter"
+> "SystemUIServer" ]`, an allowlist that had to be edited in lockstep with the
+> map — so the day a domain's value named a process not on the list, the map
+> said "restart X" and den silently dropped it. That is precisely the
+> hand-maintained gap `restart-map.nix` exists to close, reintroduced one file
+> over, and #250's own comment had already noticed the smell ("`restartProcesses`
+> has carried ControlCenter unused since rice#249") without drawing the
+> conclusion. #255 inverted it to subtract the four sentinels
+> (`Dock`/`activateSettings`/`none`/`logout`) instead. The lesson is narrower
+> than "check your allowlists": **a table plus a filter over that table is two
+> sources of truth wearing one name**, and the tenth pass's own closing
+> paragraph had flagged the shape (`haus revert-settings` hand-rolls the same
+> triad) while missing this instance inside the file it was describing.
+>
+> **Finding 3 — §5.1's recommended pattern needs a condition.** That section
+> sells `theme.ports.handled` — rooms declaring what they already wire by hand —
+> as "the pattern to copy for any future generic-pass-plus-hand-tuned-exceptions
+> option." rice#255 found its failure mode: #251 made the gh-dash integration
+> opt-in (`hearth.ghDash.enable`, default false) but claimed the port as
+> `handled` unconditionally, so a machine with the integration **off** got no
+> theme (the roster pass had been told to skip it) *and* no `haus doctor` nudge
+> (it had been told a room handles it). A `handled` claim has to be gated on the
+> same flag that does the wiring; an unconditional one converts an opt-in
+> feature into a silent hole in two systems at once. Noted in §5.1's box.
+>
+> **Housekeeping — the phase summary was stale, in the doc's own shape 1.**
+> Phase 4 and Phase 5 still read fully-unstarted for §5.6 (rice#250 shipped
+> three of the seven groups still open after rice#198, taking the table to five
+> of nine), §5.9's pounce half (pounce#43) and §5.11 (all four commands shipped
+> *and felt*, rice#248 — its own section header says so).
+> §5.6's header still carried "gated on §4" after rice#249 removed that gate.
+> All corrected below. This is the failure §5.14 was written about, recurring in
+> the summary list rather than in a section: **the phase list is a second
+> checkbox surface, and nothing was keeping it honest.**
+>
+> **Not touched this pass, deliberately:** §5.1's macOS Light/Dark box. Its
+> stated blocker — "an activation-script `defaults delete -g` plus the restart
+> map, i.e. Phase 4" — cleared when rice#249 landed, and rice#252 has since put
+> **Switch to light mode** in the palette writing `theme.flavor = latte` alone
+> (`modules/pounce/commands/settings.sh:21`), so the asymmetry is now reachable
+> by one click from the non-technical user §5.7 exists for. Whether that box
+> gets escalated in prose or simply built is Julien's call, pending.
+>
 > **Status, 2026-08-07 (thirteenth pass) — §5.4's last open box, a real workspace
 > model, is shipped: Phase 3 now has no unstarted item.**
 >
@@ -183,6 +286,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > rice always sets via `mkDefault`, plus whatever `CustomUserPreferences`
 > top-level keys any module or host contributed — read out of `config`, not
 > hardcoded, so a future module gets this for free).
+>
+> *(Corrected on the fourteenth pass: true of the domains, **false of the
+> processes**. #249 filtered the map's values through a hardcoded
+> `restartProcesses` allowlist, so a future module naming an unlisted process
+> got its restart silently dropped — not "for free" at all. rice#255 inverted it
+> to subtract sentinels instead. See finding 2 at the top of this file.)*
 >
 > **★ The generalization has teeth, not just a data file — and the first
 > version of those teeth was too sharp.** A first draft made an undeclared
@@ -1031,6 +1140,17 @@ nebelhaus.theme = {
       and `theme.ports.handled` — rooms declaring what they already wire by hand,
       with an assertion that every id is a real port — is the pattern to copy for any
       future "generic pass plus hand-tuned exceptions" option.
+      → ★ **The pattern needs one condition, found the hard way (rice#255,
+      2026-08-08).** A `handled` claim must be gated on the *same flag that does
+      the wiring*. rice#251 made the gh-dash integration opt-in
+      (`hearth.ghDash.enable`, default false) while claiming its port as handled
+      unconditionally, so a machine with the integration off got **no theme**
+      (the generic roster pass had been told to skip it) **and no `haus doctor`
+      nudge** (doctor had been told a room handles it) — an opt-in feature turned
+      into a silent hole in both systems at once. The general form: an exception
+      list is a claim about the *current* configuration, not about the module,
+      and the moment any part of a room becomes conditional its exceptions have
+      to become conditional with it.
 - [ ] **macOS's own Light/Dark is NOT flipped by `flavor`, and can't be, one way.**
       Turning dark mode on is one typed setting
       (`NSGlobalDomain.AppleInterfaceStyle = "Dark"`); turning it **off** means
@@ -1553,7 +1673,7 @@ nebelhaus.keys = {
       authored user-facing TEXT needs the same seam.**
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
-### 5.6 Curate macOS settings into behaviour groups · M · risk M (gated on §4)
+### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **five of nine groups shipped or part-shipped; the restart-map gate is gone, but three groups still want a §4-style spike**
 Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
@@ -1846,7 +1966,16 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       Proved end-to-end: captured a scratch domain, changed it, reverted it,
       read back the original value.
 - [ ] `haus doctor` grows a permission checklist with System Settings deep links
-- [ ] Restart/logout/reboot annotations from the §4 matrix
+- [ ] Restart/logout/reboot annotations from the §4 matrix. **The data half is
+      done and this is now a rendering job** — `modules/lib/restart-map.nix`
+      (rice#249) is the table, and `modules/den/default.nix` already derives
+      `processesToRestart` from it against whichever domains the built
+      configuration actually has. Nothing reads it back for the *user*: `haus
+      plan` still previews packages and casks only, which is exactly the "scripts
+      half" its own box above admits is missing, and a plan that doesn't say
+      "this rebuild will restart Finder" or "this setting waits for a logout" is
+      the reversibility gap this section exists to close. One consumer, not a new
+      mechanism.
 
 ### 5.12 Accessibility — ✅ **back on the table, with an FDA caveat** · M
 Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
@@ -2014,6 +2143,34 @@ Linux CI. `accent-reach` fingerprints a real evaluated system, so it is
 darwin-guarded and runs on nobody's CI — it fires on this machine, or not at
 all. Worth knowing before counting it as a tripwire.)*
 
+★ **Noted on the fourteenth pass, as reasoning and not as an incident: a check
+can pass on the pointer while the referent is missing.** `accent-reach`'s `glow`
+row fingerprints `yazi/plugins/glow.yazi`, whose accent-varying content is a
+*path* into nebelung's output. Nix interpolates a store path into a string
+without asserting anything is there, so the row would read `moves` with the JSON
+absent. **This has not happened** — the fourteenth pass first reported that it
+had, and the pre-PR assurance pass proved otherwise (see the retraction at the
+top of this file). The reasoning stands on its own: **a golden-table check needs
+to ask what layer its fingerprint lives at**, because for anything whose
+accent/flavor axis is a *reference* across a repo boundary, fingerprinting the
+reference is free and proves nothing. `zed`'s row already carries a comment
+calling itself the one fingerprint that is a FILENAME rather than a file's
+contents — the same shape, noticed and then not generalized.
+
+- [ ] Assert the referent exists for every cross-repo reference `accent-reach`
+      pins — one line (`[ -f ${glowStyle} ]`) in the existing `glowPlugin`
+      `runCommand` in `modules/hearth/default.nix`, then audit the roster-port
+      rows for the same pointer-vs-referent gap. Low priority: no break has
+      occurred, and this is a belt on a check rather than a check on the surface.
+- [ ] A downstream lock pinned at an upstream rev that is **not on the
+      upstream's `main`** is fetchable only until the PR branch is deleted, and
+      nothing in the family notices. Found in the same retraction: rice#247's
+      lock pointed at nebelung#29's PR-branch head for seventeen minutes.
+      `bench ship` can't cause it (it bumps to merged HEADs); a hand-run
+      `nix flake update` inside a PR can. Cheapest form: have `bench status`
+      flag any family input whose locked rev isn't an ancestor of that repo's
+      `main`.
+
 **So the rule gains a second half: when a finding generalises, leave a CHECK
 behind, not a paragraph.** Ask of every ★ in this file — *what would fail if
 someone did this wrong tomorrow?* If the answer is "nothing, they'd have to have
@@ -2140,9 +2297,55 @@ copy, would this fail?*
 carrying two, `preset-composition`, `scale-reach` carrying two, `font-reach`).
 The remaining candidate list is still §5.6's alone.
 
+**Fourteenth pass, 2026-08-08 — the first pure audit since the fifth, and this
+ledger had itself gone stale.** Passes eight through thirteen all *shipped*
+something, wrote it up in a status block at the top of this file, and none of
+them appended here — so §5.14, the section about drift, silently stopped
+recording six consecutive passes. Nothing was lost (the status blocks are
+thorough), but the section that exists to catch staleness is not exempt from it,
+and a reader looking for "when was this last audited" would have found
+2026-08-06.
+
+One finding in a shape already on the table — the tenth pass's own "read out of
+`config`, not hardcoded" claim, falsified by rice#255 (shape 2). One thing this
+pass corrected that has no shape on the table yet, because it isn't a *finding*:
+**the phase summary in §6 is a second checkbox surface, and §5.14's rule was
+only ever pointed at §5.** Three of its lines described work that had shipped.
+The rule's cheapest extension: *when you tick a box in §5, read the phase line
+that names it* — they are the same claim written twice, which is the standing
+condition for drift.
+
+**And a sixth shape, which this pass produced rather than found: an audit that
+invents a regression.** Finding 1 as first written described a seventeen-minute
+false green in `accent-reach` that never happened; it was built on comparing a
+lock *rev* against a *merge* rev without diffing the trees, which squash-merge
+makes meaningless. The pre-PR assurance pass — a clean-context subagent reading
+the diff against the repos — caught it before the PR opened, which is precisely
+the job that step exists for and the first time it has overruled a finding in
+this file rather than a line of code. The shape belongs on the table because it
+is the most expensive kind: every other row here describes a *true thing going
+stale*, while this one puts a false thing in a document whose whole authority is
+that its claims were checked.
+
+| Shape | Caught by |
+|---|---|
+| audit invents a regression | a clean-context reader who re-derives the evidence |
+
+Still **eight ★ findings, six checks**. Two candidates are written as open boxes
+above (assert the referent exists behind `accent-reach`'s cross-repo references;
+flag a family input locked at a rev that isn't on its repo's `main`) — the
+second is the more valuable, and neither is a new mechanism.
+
 ---
 
 ## 6. Phasing
+
+> **These lines are a second checkbox surface, and they drift** — three of them
+> described shipped work until the fourteenth pass. Two conventions, so a reader
+> picking work off them isn't misled: a line here **summarises a §5 section and
+> never overrides it**, and `- ◐` means part-shipped, so `grep '- \[ \]'` alone
+> under-reports what is open. When a §5 box is ticked, read the phase line that
+> names it in the same edit.
 
 **Phase 0 — ship this week, no architecture required**
 - [x] `nebelhaus.fonts` (§5.3) — nebelhaus#91. Turned up a real bug on the way:
@@ -2281,7 +2484,19 @@ that visible, and turned up two things that were already broken:
 
 **Phase 4 — the non-dev Mac**
 - [x] §5.7 `haus set` — done 2026-08-07; see the twelfth-pass status note.
-- [ ] §5.9 pounce packs + sill widgets · §5.6 curated settings groups
+- ◐ §5.6 curated settings groups — **five of the table's nine rows now carry a
+      shipped marker:** hot corners + screenshots (rice#198), then `lock` (lock
+      half only), `menuBar.{clock,controlCenter}` and `security.firewall`
+      (rice#250) — i.e. three of the seven that were still open after rice#198.
+      Of the four rows left, **one is deferred on a reason** (Windows is
+      logout-only) and **three are blocked on a spike that doesn't exist yet**
+      (Sound, Locale/input sources, Power). Two *halves* inside shipped groups
+      are deferred on the same logout reason: `lock`'s login half and
+      `security`'s guest-user/remote-login half.
+- ◐ §5.9 — **pounce's half arrived from the app side (pounce#43), the rice-side
+      item generator shipped in rice#149.** Three boxes remain: sill widgets,
+      pounce command packs, and commands declaring what they do (mutates state?
+      needs confirm? needs network or a permission?).
 - [x] the restart map (§4) — nix-darwin only restarts Dock, so this is ours.
       **Done, 2026-08-07 — see the tenth-pass status note at the top of this
       file.**
@@ -2295,8 +2510,13 @@ that visible, and turned up two things that were already broken:
   design the option first.
 
 **Phase 5 — trust and breadth**
-- [ ] §5.11 plan/capture/diff/revert — **`diff` must compare effective state, not
-      plists**; a plist-only diff would have called both no-op writes "applied"
+- [x] §5.11 plan/capture/diff/revert — **all four shipped and were felt
+      (rice#248).** The warning this line carried before it was built —
+      **`diff` must compare effective state, not plists**; a plist-only diff
+      would have called both no-op writes "applied" — is what `haus diff`
+      actually does, routing the four keys with a measured write-vs-effect gap
+      through an `NSWorkspace` probe. Two boxes remain inside §5.11, both `haus
+      doctor`/`haus plan` rendering rather than new mechanism.
 - [ ] §5.8 scenes · §5.12 accessibility doctor checklist
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
       workshop#135/#137
