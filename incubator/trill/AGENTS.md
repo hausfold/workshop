@@ -6,17 +6,10 @@ experimental read-only mirror of Apple's `usernoted` store behind a flag).
 Part of the [nebelhaus](https://github.com/nebelhaus) family; stands alone
 like pounce and perch.
 
-> **The name was reused, deliberately — this is not the old Trill.** Until
-> 2026-08-08 this app was called **flick**, and "trill" belonged to the
-> family's iMessage/SMS client, which is finished and archived. The name moved
-> because a trill is the small chirred note a cat makes in passing, which is
-> what a quiet notification compositor is; an ear-flick was the second-best
-> version of the same image. If you find a reference to "Trill, the Messages
-> client", it is about the archived repo in the `nebelhaus` org, **not** about
-> this codebase — don't reconcile the two, and don't "restore" the flick name.
-> The old app now lives at `nebelhaus/messages`, archived, and its Homebrew
-> cask is gone; the whole story is in the workshop's
-> `notes/hausfold-rename.md` §3.4.
+> **This app was called `flick` until 2026-08-08.** A trill is the small
+> chirred note a cat makes in passing, which is what a quiet notification
+> compositor is; an ear-flick was the second-best version of the same image.
+> Don't "restore" the flick name.
 
 **This file is the one set of instructions, for every agent.** Claude Code,
 Codex, OpenCode, Cursor, Copilot — TUI or GUI — all read *this*, directly or
@@ -37,7 +30,7 @@ it's launched, themed at the source, or packaged.
 | how trill is *installed* on the system (flake wiring, launchd) | `nebelhaus` (the rice) |
 | the palette trill is themed with (source hex) | `nebelung` |
 | DND / Focus toggling ("Hush") | `nebelhaus` (the rice) — trill only deep-links there |
-| trill's Homebrew cask (once released) | `homebrew-tap` — CI-owned. The `trill` token is free: the archived Messages client's cask was deleted on 2026-08-08. |
+| trill's Homebrew cask (once released) | `homebrew-tap` — CI-owned. The `trill` cask token is free. |
 | the flake's release pin (`nix/release.nix`) | this repo — **CI-owned**; never hand-bump |
 
 > **Whatever agent you are, enforce this.** A color hex, a launchd plist, or a
