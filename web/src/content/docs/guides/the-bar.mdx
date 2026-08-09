@@ -208,7 +208,7 @@ bottom of the screen**, running at the same time as the top one:
 ```nix
 haus.sill.bottom = {
   enable = true;
-  items = { weather = true; media = true; hush = true; };
+  items = { weather = "left"; media = "center"; hush = "right"; };
 };
 ```
 
@@ -221,6 +221,32 @@ The set includes the five core pills — `clock`, `weather`, `media`, `battery`,
 `agents`, `aiUsage`, `elgato`, `harvest`. Hush can move too when
 `haus.hush.enable` is on. The whole left side (workspace pills, front app, the
 leader picker) and the tour stay on the menu bar.
+
+### Left, center, right
+
+The value is where the pill goes: `"left"`, `"center"` or `"right"`. `true` is
+shorthand for `"right"`, so a bar written before the groups existed keeps
+drawing exactly what it did.
+
+```nix
+haus.sill.bottom.items = {
+  agents = "left";
+  aiUsage = "left";
+  media = "center";
+  clock = "right";
+  battery = "right";
+  cpu = true;        # same as "right"
+};
+```
+
+The menu bar has only one group to offer — its left is the workspace pills and
+the front app, and its middle is under the notch on a MacBook. The bottom strip
+has neither, so all three of SketchyBar's regions are yours.
+
+Within a group the order is fixed (the same order the menu bar uses), and each
+group packs outward from its own edge: on the right the first pill sits furthest
+right, exactly like the clock up top, while the left group fills rightward from
+the left edge and the center group grows around the middle of the screen.
 
 Three things worth knowing before you turn it on:
 
