@@ -95,11 +95,28 @@ allows, and add a row.
 
 ## The rest of the family
 
-Every repo now carries this layer, one PR each: the rice (`hausfold`),
+Nearly every repo carries this layer, one PR each: the rice (`hausfold`),
 `nebelung`, `pounce`, `perch`, `org-profile` (the `hausfold/.github` repo),
-`homebrew-tap`, `trill` (the notification compositor),
-and the consumer config (`~/.config/nix`). Each keeps its **own** rules — only
-the shape is shared. The differences worth knowing:
+`homebrew-tap`, `trill` (the notification compositor), and the consumer config
+(`~/.config/nix`). Each keeps its **own** rules — only the shape is shared. The
+differences worth knowing — including the two repos that are still gaps:
+
+- ❌ **`holt` has none of it** — no `AGENTS.md`, no `CLAUDE.md`, no
+  `.agents/`, no `.github/copilot-instructions.md`, just a `.claude/` holding a
+  permission allowlist. It ejected from the incubator on 2026-08-03, before this
+  layer was a pattern, and nothing has gone back for it. That is a real gap, not
+  a decision: it's the one family repo where an agent lands with no boundary
+  rules, and where `/ship`'s Step 2.5 assurance pass has no repo doc to read
+  (that step says what to substitute in the meantime). It's also the repo with
+  the sharpest boundary to state — five published SDKs sharing one semver, and a
+  "substrate, not orchestrator" rule that isn't written down anywhere it's
+  enforced.
+- ⚠️ **`hausfold.co` has half of it** — `AGENTS.md` + `CLAUDE.md` only, no
+  `GEMINI.md`, `opencode.json`, `.agents/` or `.github/copilot-instructions.md`.
+  It was recreated public on 2026-08-08 (§5.1) and carried its instructions
+  across, not its wiring. Copilot reviews that repo's PRs with no instructions at
+  all, which matters more there than most: it's the one repo whose pushes deploy
+  a public site.
 
 - **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a
   flake, so there is nothing to bootstrap; their `.agents/README.md` records

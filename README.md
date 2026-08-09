@@ -92,8 +92,8 @@ works.
 | `./bench ship` | push everything in dependency order, rippling `flake.lock` updates downstream |
 | `./bench rebuild` | plain pinned rebuild of `~/.config/nix` |
 | `./bench pull` | fast-forward every repo |
-| `./bench clone` | fetch any family repo missing from this directory |
-| `./bench release <repo> [--ship]` | date-stamp the version (`v<YYYY.MM.DD>`, `-N` on a same-day repeat) + tag it, then **watch the CI run to the end** — release + brew tap bump. `--ship` ripples the new lock edge after |
+| `./bench clone` | fetch any repo missing from this directory — the family, plus `trill` and `hausfold.co`, which carry docs but no lock edge |
+| `./bench release <repo> [version] [--ship]` | stamp the version + tag it, then **watch the CI run to the end** — release + brew tap bump. CalVer for pounce/perch/hausfold (`v<YYYY.MM.DD>`, `-N` on a same-day repeat, and a version argument is refused); **holt takes a semver argument and requires one** — five SDK registries share that number. `--ship` ripples the new lock edge after |
 | `./bench docs-since [--mark]` | every commit since the docs were last reconciled, per repo — the input to the daily `/docs-sync` sweep |
 
 The rice ships a `bench` shell alias, so these work from anywhere.

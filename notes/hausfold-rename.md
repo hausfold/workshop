@@ -2061,7 +2061,8 @@ green. Everything else is strictly sequential.
   which is the answer to the question this bullet ended on ("decide whether the
   dead client is worth an entry at all"): it isn't — archived and read-only, no
   lock edge below it, no release path above it. `FAMILY` is `(nebelung pounce
-  perch holt nebelhaus)` at `bench:78`, and it must **never** contain `trill` —
+  perch holt hausfold)` at `bench:78` — the rice's entry followed its checkout at
+  §3.3 step 4 — and it must **never** contain `trill` —
   that name is the compositor's, which is deliberately not a family repo.
   ⚠️ **The rice consuming trill's overlay does not change this.** `flake.nix`
   says "the rice adds this overlay", and `FAMILY` is about the *lock-ripple
@@ -2069,6 +2070,13 @@ green. Everything else is strictly sequential.
   it, so `bench ship` has no edge to walk and `bench status` has no staleness to
   report. Adding it to `FAMILY` to "make bench see it" is the mistake this
   bullet exists to prevent — the rice-wiring PR should say so in its body.
+  ✅ **The legitimate way to make bench see it — closed 2026-08-09.** `trill`
+  (and `hausfold.co`) now sit in **`DOCS_REPOS`**, `bench clone` and `bench
+  pull`, and in none of `FAMILY`/`try`/`try-batch`/`ship`/`status`. Docs
+  coverage and lock coverage are different questions, and the daily
+  `/docs-sync` sweep had been reporting the compositor's docs clean forever
+  because `docs-since` walks `DOCS_REPOS` and nothing planted the checkout.
+  That is the whole of the concession: no lock edge, no ripple, no release path.
   ⚠️ And `FAMILY` was never the single source of truth for the word — §3.3's
   `bench` subsection lists eight more places `nebelhaus` is a literal. See §2.1.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**

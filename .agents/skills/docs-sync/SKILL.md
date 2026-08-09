@@ -10,7 +10,7 @@ description: >-
 
 # Docs sync — reconcile the docs with what actually shipped
 
-Code moves daily across seven repos; the docs don't follow on their own. This sweep
+Code moves daily across ten repos; the docs don't follow on their own. This sweep
 closes that gap once a day: read what landed, decide what it broke or left unsaid, fix
 it in the right place, open a PR.
 
@@ -30,11 +30,21 @@ This prints, per repo, every commit past the last reconciled watermark plus the 
 each touched. It is watermark-based, not "since yesterday" — a sweep that didn't run for
 four days still picks up all four.
 
-> ⚠️ **`trill` is not in this output.** `docs-since` walks `DOCS_REPOS` (`bench:1512`
-> — the workshop, `FAMILY`, `org-profile`, `homebrew-tap`), and trill is deliberately
-> not a family repo: no lock edge, so `bench` neither clones nor ships it. Check
-> `git -C "$ROOT/trill" log` by hand until it earns an arm of its own. A sweep that
-> trusts this command alone will report the compositor's docs as clean forever.
+`docs-since` walks **`DOCS_REPOS`** (`bench:1522`): the workshop, `FAMILY` (nebelung,
+pounce, perch, holt, hausfold), `org-profile`, `homebrew-tap`, and the two repos that
+carry docs without carrying a lock edge — **`trill`** and **`hausfold.co`**. That last
+pair is why this list is not `FAMILY` plus trimmings: docs coverage and lock coverage
+are different questions, and between trill's eject (2026-08-09) and workshop#296 the
+compositor's docs were structurally unreachable — the sweep reported them clean forever
+and said nothing. If you find yourself "tidying" `DOCS_REPOS` toward `FAMILY`, don't.
+
+> ⚠️ **Two lines in that output are holes, not clean repos — read them.**
+> `no checkout at …` means the repo was never cloned and was **not swept** (fix:
+> `bench clone`); `no usable watermark — reading the last day only` means the range is
+> a one-day guess, not a reconciled baseline, so that repo's older commits have never
+> been read by anyone. Both print as `⚠` lines in the normal output and neither aborts
+> the sweep. Carry either into the report rather than letting a quiet run pass for a
+> complete one.
 
 **Do not `--mark` yet**; that happens at the very end,
 only for what you actually reconciled.
@@ -60,7 +70,10 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 |---|---|
 | `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
 | `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
-| `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. ⚠️ You only reach this row if you looked — see Step 1. |
+| `perch/` — the notch file shelf | `perch/README.md`, `perch/docs/*`, and `guides/staying-in-sync.mdx` for anything install-shaped (perch ships as a cask) |
+| `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free |
+| `holt/` — the worktree substrate + its five SDKs | `holt/README.md`, `holt/SPEC.md`, `holt/docs/*`, `holt/sdk/*/README`, and `web/.../guides/claude-agents.mdx` (the user-facing worktree story). ⚠️ An SDK surface change is also a **release** question — see `/release`. ⚠️ holt has **no `AGENTS.md`** yet, so there is no repo boundary doc to check a change against; note it if you touch that repo |
+| `hausfold.co/` — the public company site | `hausfold.co`'s own `README.md`/`AGENTS.md`. ⚠️ It is **not** nebelhaus.com: product docs stay on the site in `web/`, and the two must not grow copies of each other. Never move anything from `hausfold/ops`' name register into it — that repo is private for a reason |
 | `hausfold/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
 | a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
 | a new/changed keybind | `reference/keybindings.md` — **always** |
@@ -74,6 +87,25 @@ this commit change the site?" — it's also "did it make a doc *in that repo* wr
 repo with no bearing on the site can still have a stale README of its own, and the
 front-of-house repos (`org-profile`, `homebrew-tap`) are the easiest to overlook
 precisely because they don't feed nebelhaus.com.
+
+### The one word you must not sweep
+
+`nebelhaus` means five different things and the rename only moved some of them —
+`AGENTS.md`'s opening box is the rule, `notes/hausfold-rename.md` is the plan of record.
+A docs sweep is exactly where a well-meant find-replace does damage, so before you
+"correct" any hit:
+
+| you see | it is | you |
+|---|---|---|
+| `nebelhaus.<option>` | the retired option namespace | **fix** → `haus.<option>` |
+| **nebelhaus** bare, about the desktop | the rice — one rice on the hausfold platform | **leave**, forever |
+| `github.com/nebelhaus/*` | the dead org | **fix** → `hausfold/*` (the archived Messages client stays) |
+| `--override-input nebelhaus/…`, `nebelhaus.url` | a flake **input name** | **leave** — renaming it silently builds the pinned rice |
+| `nebelhaus.com`, `com.nebelhaus.*` | the domain / bundle ids | **leave** unless the section is about the migration |
+
+Same trap in the other direction: `./hausfold` is the **rice repo** and `./hausfold.co`
+is the **company site**. A doc that sends site work to the short name edits the desktop,
+and nothing errors.
 
 Grep before concluding something is undocumented — the feature may be described under a
 name you didn't search for:
@@ -156,6 +188,11 @@ gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
   --title "docs: sync <YYYY-MM-DD>" --body-file /tmp/docs-sync-<repo>.md
 ```
 
+- **A checkout's directory name is not its repo name.** `-R hausfold/<repo>` is right for
+  every repo *except* `org-profile`, whose remote is **`hausfold/.github`** (the dir can't
+  be named `.github` — it would be invisible and collide with the workshop's own CI dir).
+  `bench`'s `gh_repo()` is the only place that knows; when in doubt, drop the `-R` and let
+  `gh` read the checkout's own remote.
 - **Every commit gets the `Docs-Sync:` trailer.** Your PRs land on `main` like anything
   else, so without it the next sweep reads yesterday's output as today's input — every
   day, forever. `bench docs-since` filters on that trailer; a commit missing it will come

@@ -16,7 +16,7 @@ The short version:
   table; if the change belongs to a child repo, it doesn't belong in a workshop
   commit.
 - The repos are a chain of pinned flake inputs
-  (`nebelung → pounce → nebelhaus → ~/.config/nix`), so a merged commit is
+  (`nebelung → pounce → hausfold → ~/.config/nix`), so a merged commit is
   invisible downstream until `bench ship` bumps each `flake.lock`. Never
   hand-walk that ripple.
 - **Land through a PR** — never a direct push or a local `git merge` into `main`.

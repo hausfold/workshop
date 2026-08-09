@@ -1050,16 +1050,18 @@ cmd_pull() {
   # want a fresh local checkout: `bench status` diffs them, and a stale
   # homebrew-tap clone hides cask/formula bumps CI already pushed (the
   # "released but not installed" trap). Superset of cmd_ship's repo set.
-  # hausfold.co rides along too: bench plants that checkout (cmd_clone) and it's
-  # the one repo here whose deploys happen on push, so a stale local copy is a
-  # live-site footgun. It stays out of FAMILY — it's no flake input.
+  # trill + hausfold.co ride along too: bench plants both checkouts (cmd_clone)
+  # and the docs sweep reads both (DOCS_REPOS), so a stale local copy makes the
+  # sweep reconcile yesterday's tree — and hausfold.co is the one repo here whose
+  # deploys happen on push, so stale there is a live-site footgun. Both stay out
+  # of FAMILY — neither is a flake input.
   #
   # It is spelled `hausfold.co`, not `hausfold`, and that matters more than it
   # looks: `$ROOT/hausfold` is where the rice's checkout lands at §3.3's step 4,
   # so once FAMILY holds `hausfold` too, the short spelling would put the SAME
   # name in this array twice — and `bench pull` would fast-forward one checkout
   # under the other's identity.
-  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap hausfold.co consumer)
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
   if [ "$#" -gt 0 ]; then
@@ -1506,8 +1508,18 @@ cmd_release() {
 DOCS_STATE="$ROOT/.docs-sync.json"
 
 # Every repo whose commits can invalidate a doc — the flake family, plus the
-# workshop itself (bench/README/web live here) and the two CI-owned leaves.
-DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap)
+# workshop itself (bench/README/web live here), the two CI-owned leaves, and the
+# two repos that carry docs without carrying a lock edge.
+#
+# 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.
+# `trill` and `hausfold.co` are deliberately outside `FAMILY` (no flake input, so
+# try/try-batch/ship must never walk them) — but both have a README, in-repo docs
+# and a live audience, so a sweep that skips them reports their docs clean
+# forever. That is exactly what happened between trill's eject (2026-08-09) and
+# this line: the compositor's docs were structurally unreachable, and the sweep
+# said nothing. Docs coverage and lock coverage are different questions; keep
+# them different lists.
+DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co)
 
 docs_watermark() { # docs_watermark <repo> — last reconciled rev, "" if never
   [ -f "$DOCS_STATE" ] || { echo ""; return; }
@@ -1527,14 +1539,23 @@ cmd_docs_since() {
   for name in "${DOCS_REPOS[@]}"; do
     local dir
     if [ "$name" = workshop ]; then dir="$ROOT"; else dir="$(repo_dir "$name")"; fi
-    [ -d "$dir/.git" ] || continue
+    # A missing checkout is a HOLE in the sweep, not a repo with nothing to say —
+    # and it looks identical to "clean" in the output, which is how a blind spot
+    # survives for weeks. Say so out loud; `bench clone` plants every one of these.
+    if [ ! -d "$dir/.git" ]; then
+      warn "$name: no checkout at $dir — NOT swept (run: bench clone)"
+      continue
+    fi
     local head; head="$(git -C "$dir" rev-parse HEAD)"
     local base; base="$(docs_watermark "$name")"
 
     # Never reconciled, or the watermark was rewritten away? Fall back to a
     # day's worth of history rather than replaying the repo from its birth.
+    # Announce it: the fallback window is a guess, so a repo that just joined
+    # DOCS_REPOS must not pass for one that was genuinely reconciled yesterday.
     if [ -z "$base" ] || ! git -C "$dir" cat-file -e "$base^{commit}" 2>/dev/null; then
       base="$(git -C "$dir" rev-list -1 --before='1 day ago' HEAD 2>/dev/null || echo "")"
+      warn "$name: no usable watermark — reading the last day only (--mark fixes it)"
     fi
     [ "$base" = "$head" ] && continue
 
@@ -1606,9 +1627,11 @@ cmd_clone() {
     fi
   done
 
-  # hausfold.co is the odd one out: same org as everything above, but it's no
-  # flake input, so try/try-batch/ship must never walk it and it stays out of
-  # FAMILY. The workshop dir is still where it lives, so clone it here.
+  # trill and hausfold.co are the odd ones out: same org as everything above, but
+  # neither is a flake input, so try/try-batch/ship must never walk them and they
+  # stay out of FAMILY. The workshop dir is still where they live, and the docs
+  # sweep reads them (DOCS_REPOS), so clone them here — a repo the sweep can't
+  # open is a blind spot it reports as clean.
   #
   # 🚨 It goes at $ROOT/hausfold.co, NOT $ROOT/hausfold. The directory is named
   # for its repo, which is the rule §3.1 settled — and $ROOT/hausfold is no
@@ -1623,15 +1646,17 @@ cmd_clone() {
   # private forever (its history carries the name register and a Cloudflare
   # account id, and PR refs survive any scrub — hausfold-rename.md §5.1). Don't
   # point this back at it: you'd clone a dead snapshot over the live site.
-  if [ -d "$ROOT/hausfold.co/.git" ]; then
-    say "hausfold.co already here"
-  else
-    say "cloning hausfold.co…"
-    # Warn rather than die: a missing site checkout shouldn't fail a bootstrap
-    # whose real job is the family.
-    git clone "https://github.com/hausfold/hausfold.co.git" "$ROOT/hausfold.co" \
-      || warn "hausfold.co: clone failed — check your network"
-  fi
+  for name in trill hausfold.co; do
+    if [ -d "$ROOT/$name/.git" ]; then
+      say "$name already here"
+    else
+      say "cloning ${name}…"
+      # Warn rather than die: a missing non-flake checkout shouldn't fail a
+      # bootstrap whose real job is the family.
+      git clone "https://github.com/$(gh_repo "$name").git" "$ROOT/$name" \
+        || warn "$name: clone failed — check your network"
+    fi
+  done
 }
 
 # When sourced with HAUS_LIB=1 (the bats test harness), stop here: the caller

@@ -43,17 +43,21 @@ real machine config against the **local checkouts**, uncommitted edits and all:
 ./bench ship           # pushes upstream→downstream, updating each lock along the way
 ```
 
-## Parallel Claude agents
+## Parallel agents
 
-`Super a` (⌘A) in any repo tab spawns a Claude session in its **own git
+`Super a` (⌘A) in any repo tab spawns an agent session in its **own git
 worktree** — own checkout, own `worktree-*` branch, branched from local HEAD — so
 agents never yank the branch out from under each other, or you. The worktrees
-live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>`.
+live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>` (the path
+name is historical; every client shares it).
 
-Claude Code's `WorktreeCreate` / `WorktreeRemove` hooks (in
-`~/.claude/settings.json`) delegate to `holt hook create` / `holt hook remove` —
-the standalone `holt` tool the rice ships on `PATH`, **not** a `bench` command.
-That's what keeps `git status` and `bench try`'s overrides clean.
+**Which client** is whatever `haus.agents.default` names — `claude`, `codex` or
+`opencode`. Claude Code makes its own worktree (`claude --worktree`, whose
+`WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` delegate to
+`holt hook create` / `holt hook remove`); for Codex and OpenCode the keybind runs
+`holt new`, which produces the identical checkout from the outside. Either way
+the plumbing is `holt` — the standalone tool the rice ships on `PATH`, **not** a
+`bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
 `Ctrl Alt Shift a` spawns the one agent allowed to edit the checkout you're
 looking at.
 
@@ -67,11 +71,24 @@ git -C nebelung push -u origin worktree-<name> && gh pr create -R hausfold/nebel
 ```
 
 A PR is conflict-detected and atomic, so parallel agents can't clobber each
-other's commits. Closing the Claude pane removes the worktree; the branch and PR
-survive until merged.
+other's commits. Closing the pane removes the *checkout*, never the work: `holt`
+parks any uncommitted edits as a `wip:` commit on the branch first, and only
+*merged* branches get reaped. The branch and PR survive until merged.
 
-Run `holt` bare to list every parked/live agent worktree across all repos, and
-`holt <name>` to rebuild a parked checkout and drop back into `claude --resume`.
+```sh
+holt                  # every parked/live agent worktree, across all repos
+holt <name>           # rebuild a parked checkout and drop back into the client
+                      # it was made with (claude --resume / codex resume / opencode --continue)
+holt park [label]     # set the dirty tree aside as one wip: commit — NEVER git stash
+holt unpark           # …and put it back
+holt reship [name]    # a session that kept committing after its PR merged: push
+                      # the branch and open the follow-up PR (shown as live+N)
+holt reap             # sweep every LANDED worktree; keeps dirty/unmerged/occupied ones
+```
+
+Never `git stash` in these repos: the stash stack lives in the shared `.git`
+dir, so every worktree *and* the main checkout pop the same one, and parallel
+agents routinely pop each other's entries. `holt park` is per-branch, so it can't.
 
 ## Feel-testing one branch, alone
 
@@ -139,13 +156,15 @@ On another machine, or after shipping from elsewhere:
 
 ## Releasing
 
-Three repos are releasable — pounce, perch, nebelhaus — each with a real
-audience.
+Four repos are releasable — pounce, perch, hausfold (the rice) and holt — each
+with a real audience. Three are CalVer; **holt alone is semver**, and that split
+is the only thing about releasing you have to hold in your head.
 
 Versions are **date-based** (CalVer): a release is stamped with the day it's cut
 — `2026.07.18`, or `2026.07.18-1`, `-2`, … for a second release the same day. No
 number is ever typed by hand; `bench release` computes the date, writes it into
-the repo's version source, commits, and tags it.
+the repo's version source, commits, and tags it. It **refuses** a version
+argument for these three, to make that unarguable.
 
 ```sh
 ./bench ship                # everything pushed & locks current first
@@ -155,13 +174,29 @@ the repo's version source, commits, and tags it.
                             # homebrew cask AND the rice's flake pin (nix/release.nix)
 ./bench release hausfold    # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
+./bench release holt 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
+                            # crates.io, SwiftPM, the Go proxy) share one number
 ```
+
+holt is forced into semver, not styled into it: three registries already hold
+`0.1.0` and none of them ever lets a published number be withdrawn, so the
+number is a compatibility contract — and CalVer would force the Go SDK's import
+path to end in `/v2026` and change it every January. Deciding the bump means
+reading `git diff <last-tag>..main -- sdk/` against the published SDK surface;
+that judgement is what [`/release`](../.agents/skills/release/SKILL.md) is for.
+
+`bench release` **blocks** until the CI run finishes, drawing its jobs live, and
+exits non-zero if the run goes red. That wait is load-bearing: perch's run
+commits `nix/release.nix` back to the repo, so returning early would leave your
+checkout behind origin and a `bench ship` that ripples a superseded rev. It
+fast-forwards for you when the run goes green.
 
 The rice one matters more than it looks: the install one-liner serves the
 **latest rice release**, so until you cut one, new users bootstrap from the
 previous tag no matter what's on `main`. Ship user-visible rice changes, then
 release. (The date-stamp moves the repo's HEAD, so `bench ship` once more
-afterward to ripple that lock downstream.)
+afterward to ripple that lock downstream — or `bench release <repo> --ship` to do
+both.)
 
 ## zscratch — iterating on zellij without a rebuild
 
@@ -184,10 +219,41 @@ The real activation still happens once via `bench try switch`, at the end. Full
 flag set in the rice's `CLAUDE.md`
 ([nebelhaus#69](https://github.com/hausfold/hausfold/pull/69)).
 
+## Keeping the docs honest
+
+Code moves daily; docs don't follow on their own. The **`/docs-sync`** sweep
+([`.agents/skills/docs-sync/SKILL.md`](../.agents/skills/docs-sync/SKILL.md))
+closes that gap once a day, and `bench` gives it its input:
+
+```sh
+./bench docs-since          # every commit past each repo's watermark, per repo
+./bench docs-since --mark   # …record where the next sweep starts (LAST, after the PRs)
+```
+
+It is **watermark-based, not "since yesterday"**: a sweep that slept for four
+days still picks up all four. The watermarks live in `.docs-sync.json`, which is
+committed on purpose — the sweep runs as a scheduled routine in a throwaway
+container, so anything it must remember between runs has to be in the repo.
+
+Two things about its repo list are deliberate and get "tidied" wrong:
+
+- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill` and `hausfold.co` — repos
+  with docs and an audience but no flake input. Docs coverage and lock coverage
+  are different questions. `bench clone`/`pull` plant and refresh both for the
+  same reason; `try`/`try-batch`/`ship`/`status` still never walk them.
+- **A missing checkout and an unswept repo look identical in the output**, so
+  `docs-since` now warns loudly for both (`no checkout at …`, `no usable
+  watermark`). Those lines are holes in the sweep, not clean repos.
+
+The sweep never lands on `main` — one PR per affected repo, each commit carrying
+a `Docs-Sync:` trailer so tomorrow's run doesn't read today's output as its input.
+The one exception is the watermark commit itself, which is trailered for the same
+reason.
+
 ## The whole life of a change
 
 ```
-hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
+hack ──► test ──► assure ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
 1. **hack** — edit in place, or let `Super a` (⌘A) agents draft on `worktree-*`
@@ -198,17 +264,27 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
    the only way to feel ONE unmerged branch on its own. What's gated is an *AI
    agent* switching from a worktree — see
    [Feel-testing one branch, alone](#feel-testing-one-branch-alone).
-3. **PR** — an agent lands its branch by opening a PR against `main`, never by
+3. **assure** — before `gh pr create`, on **every** PR here and not just `/ship`ed
+   ones: hand `git diff main...HEAD` to a **clean-context subagent** whose only
+   other input is the edited repo's own `AGENTS.md`. The session that wrote the
+   diff is the worst reviewer of it. It hunts the family invariants that only
+   bite after merge — wrong-repo routing, docs drift on a user-facing option or
+   keybind, a breaking option rename split across PRs, hotkey collisions, raw
+   `git worktree add` callers, release blast radius. Advisory, never a gate: fix
+   anything ≥3/5 now, carry the rest into the PR's **Watch out** block. Checklist:
+   [`/ship` Step 2.5](../.agents/skills/ship/SKILL.md).
+4. **PR** — an agent lands its branch by opening a PR against `main`, never by
    pushing to or `git merge`-ing into `main` (parallel agents doing that clobbered
    each other — a PR is conflict-detected and atomic). Give it a **What / Why /
    Verify / Watch-out** body so it's testable long after the session is gone.
-4. **batch-test** — `./bench try-batch` feels every open PR together in ONE
+5. **batch-test** — `./bench try-batch` feels every open PR together in ONE
    rebuild, `main` untouched, so you verify the whole queue before landing any of
    it (test-then-merge, not merge-then-test).
-5. **merge** — review and merge the PRs that pass (`gh pr merge`); the branch, and
+6. **merge** — review and merge the PRs that pass (`gh pr merge`); the branch, and
    a nagging `bench status` line, survive until you do.
-6. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
+7. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
    every `flake.lock`.
-7. **release** — `./bench release <repo>` date-stamps the version and tags it, and
-   CI does the rest (pounce: GitHub release + Homebrew formula; nebelhaus: the tag
-   `init.sh` serves to new installs).
+8. **release** — `./bench release <repo>` stamps the version (today's date, or
+   holt's hand-picked semver) and tags it; CI does the rest (pounce: GitHub
+   release + Homebrew formula; hausfold: the tag `init.sh` serves to new
+   installs; holt: five SDK registries). Always the user's call.
