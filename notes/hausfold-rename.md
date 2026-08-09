@@ -1201,10 +1201,17 @@ Trill's product page is gone, but the name still has plumbing:
 Whoever builds the compositor's page inherits all of it; check each one means
 the right app rather than assuming the name carried over cleanly.
 
-### 3.3 🤖 Rewrite every edge
+### 3.3 🤖 Rewrite every edge — **but not every hit**
 
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
 that's a landmine.
+
+> 🚨 **"Every edge" is not "every occurrence of the word", and this heading has
+> been read the wrong way before.** ~90 of the census's hits below are
+> *correct as they stand* and a sweep that touches them breaks working things —
+> the rice keeps its name (§6). **Read the Tier D table before running any
+> find-replace**, and if you are an agent working this section unattended, treat
+> §6 as a hard list, not a preamble.
 
 There are **three** such files, not four, and the command below reaches only two
 of them:
@@ -1254,10 +1261,13 @@ touched at all. Sweep by tier, not by grep:
 thing here, not the most expensive.** `web/src/content/docs/reference/options.md`
 carries **175** `github.com/nebelhaus/nebelhaus/blob/main/modules/…/options.nix`
 "declared in" links — one per documented option. It is a `GENERATED FILE — do not
-edit by hand`, produced by `web/scripts/gen-options.mjs` (2 owner-keyed lines).
-Fix those two lines and all 175 follow. Left alone they are Tier D anyway, since
-the rice repo is the thing being renamed to `hausfold/hausfold` — so this is a
-one-line edit that a naive census would have priced at 175.
+edit by hand`, and every one of those 175 links is interpolated from **a single
+line**: `web/scripts/gen-options.mjs:34`,
+`const REPO = 'https://github.com/nebelhaus/nebelhaus/blob/main'`. Change that
+one string, re-run the generator (or let `options-drift.yml` open its own PR),
+and all 175 follow. A naive census prices this at 175 lines; it is one — and it
+is the same shape as `~/.claude/skills/haus/`'s regenerated description in §2.2:
+**generated files hide rename drift, in both directions.**
 
 #### 🚨 `bench` is the Tier-A repo, and it has two problems the plan hasn't recorded
 
@@ -1292,8 +1302,12 @@ the override just points somewhere absurd.
 - [ ] `rm -rf ~/code/workshop/hausfold` (the stale `hausfold/website` clone —
       that repo is archived, and `hausfold.co/` supersedes it)
 - [ ] repoint `bench:1572-1579`'s site clone at `$ROOT/hausfold.co`, and update
-      `bench:1011`'s `repos=(… hausfold consumer)` list and the `bench:1008` and
-      `bench:1562-1571` comments with it
+      `bench:1011`'s `repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap
+      hausfold consumer)` with it — `cmd_pull`'s list already names the site
+      `hausfold`, so once `FAMILY` holds `hausfold` too **the same name appears
+      twice in one array**, and `bench pull` fast-forwards one checkout under
+      the other's identity. The `bench:1008` and `bench:1562-1571` comments
+      follow.
 - [ ] only then rename the `FAMILY` entry
 
 **Both of these are `bench` edits and they belong in the same PR as `GH_ORG`.**
