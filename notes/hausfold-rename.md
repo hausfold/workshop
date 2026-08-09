@@ -62,33 +62,53 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-09
+### Current handoff — 2026-08-09 (second revision, evening)
 
-**The rename is green through §3.** The option namespace, in-repo
-brand surface, GitHub transfers, checkout rename, lock ripple and clean-clone
-gate are done. `bench try` builds the current local family, and the private
-consumer now uses canonical `haus.*` with no obsolete-option traces
-(`nix-config` `452b9b8`).
+**The rename is green through §4.** The option namespace, in-repo brand
+surface, GitHub transfers, checkout rename, lock ripple, clean-clone gate **and
+the Apple identity migration** are done. `bench try` builds the current local
+family, and the private consumer now uses canonical `haus.*` with no
+obsolete-option traces (`nix-config` `452b9b8`).
 
-What remains is deliberately narrower than the unchecked boxes below make it
-look:
+**§5.2 is the only substantial 🤖 work left** — the Astro/docs/Worker port into
+`hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com` 301s.
+Besides it there is exactly one small 🤖 job, §4.2's `com.local.pounce`
+association removal (below); everything else outstanding is 👤.
 
-- **§4 Apple identity:** the macOS identifiers are registered and the code
-  migration is in review (perch#51, pounce#72, hausfold#275); the combined
-  `bench try-batch pounce perch hausfold` build is green. What remains is the
-  activation/TCC feel-test, the gated Pounce release, and the optional deletion
-  of the old App Store record and its two identifiers.
-  **Do not run `bench release pounce`** until the rice activation/TCC check and
-  the direct-install login-item bridge have both been felt, and the user
-  explicitly approves the release.
-- **§5 domains/site:** the Astro/docs/Worker consolidation, per-rice installer,
-  `nebelhaus.com` 301s and support-address move have not landed.
-- **Compatibility cleanup, later:** `modules/renamed.nix` stays while external
-  configs may still use `nebelhaus.*`; narrowing `checkRice` and deleting the
-  aliases is not part of the first rename landing.
+What changed since the morning handoff:
 
-The trademark search in §0.2 and the old App Store record deletion are still
-human loose ends, but neither blocks the repo work at today’s exposure level.
+- **§4 landed and shipped.** perch#51, pounce#72 and hausfold#275 all merged
+  2026-08-09 13:39–13:40; pounce released `v2026.08.09-3` and perch
+  `v2026.08.09-1` at 14:00, both after the merges. The morning handoff's *"do
+  not run `bench release pounce`"* hold is **spent** — the release happened with
+  approval; don't read that line as still standing.
+  Verified live on this machine: `launchctl list | grep -i pounce` shows exactly
+  one job, `com.hausfold.pounce`, and `~/Library/LaunchAgents/` holds exactly one
+  *pounce* plist, `com.hausfold.pounce.plist` (it holds eleven plists in total —
+  don't read that `ls` as a clean sheet). The old `org.nixos.pounce` label is
+  gone, which is §4.2's riskiest step confirmed rather than assumed.
+  ⚠️ **The closeout's second half did not run**: `com.local.pounce` is still in
+  the rice's `AssociatedBundleIdentifiers`. See §4.2's open box.
+- **§5.4 is effectively done** — no `support@nebelhaus.com` survives anywhere in
+  the family except as struck-through history. But the address that actually
+  shipped is `hi@hausfold.co`, not `support@hausfold.co`; §5.4 now carries that
+  discrepancy as an open 👤 call.
+- **§9's `options-modules.nix` duplication is closed** — `modules/default.nix`
+  imports the list now.
+
+Still 👤, none of it blocking the repo work at today's exposure level:
+
+- §0.2's USPTO/EUIPO trademark search.
+- §4.4's TCC re-grant feel-test — specifically the **palette** running a plugin
+  command, which no agent can press. An agent can confirm the label; it cannot
+  confirm the grant.
+- §4.1's deletion of the old `Perch for Mac` record and its two identifiers,
+  gated on `Perch Companion` being **approved** (still Waiting for Review).
+- §5.3's DNS/`wrangler deploy`, which §5.2 hands off to.
+
+**Compatibility cleanup, later:** `modules/renamed.nix` stays while external
+configs may still use `nebelhaus.*`; narrowing `checkRice` and deleting the
+aliases is not part of the first rename landing.
 
 ---
 
@@ -1617,9 +1637,9 @@ as optional, approval-gated cleanup.
 | ✅ `com.nebelhaus.perch` (+ `.ios`, `.ios.share`, `.mobile-*`, `.dev`, `.tests`, `.transfer`, `.promises`, `.export`) | `com.hausfold.perch…` — done, perch#41 + perch#44 |
 | ✅ `group.com.nebelhaus.perch` | `group.com.hausfold.perch` — done, perch#41 |
 | ✅ `com.nebelhaus.flick` | `com.hausfold.trill` (+ `.debug`, `.tests`) — done in the incubator, 2026-08-08, in the same change that renamed the app. Never shipped under either old id, so there is no install base and nothing to migrate. |
-| **`com.local.pounce`** app bundle | `com.hausfold.pounce` — pounce#72 |
-| **`com.local.pounce.daemon`** standalone embedded login agent | `com.hausfold.pounce.daemon` — pounce#72 |
-| **`org.nixos.pounce`** rice launchd agent | `com.hausfold.pounce` — hausfold#275 |
+| ✅ **`com.local.pounce`** app bundle | `com.hausfold.pounce` — pounce#72, merged 2026-08-09 |
+| ✅ **`com.local.pounce.daemon`** standalone embedded login agent | `com.hausfold.pounce.daemon` — pounce#72, merged 2026-08-09 |
+| ✅ **`org.nixos.pounce`** rice launchd agent | `com.hausfold.pounce` — hausfold#275, merged 2026-08-09 |
 
 `org.nixos.pounce` is a nix-darwin launchd convention leaking into a product,
 while `com.local.pounce` escaped the original census entirely. The migration is
@@ -1650,6 +1670,52 @@ launchd agent and re-signing identity. Because launchd labels move:
 ✅ **Combined build green 2026-08-09:** `bench try-batch pounce perch hausfold`
 integrated pounce#72, perch#51 and hausfold#275 onto throwaway trees and built
 the full `mbp` system. Nothing was merged or activated.
+
+✅ **Then all three merged (13:39–13:40) and pounce + perch released** —
+`v2026.08.09-3` and `v2026.08.09-1`, both cut after the merges, and in the
+required order (#72 before #275). The label migration is confirmed *on this
+machine*, not just in the diff: `launchctl list | grep -i pounce` returns exactly
+one job, `com.hausfold.pounce`, and `~/Library/LaunchAgents/` holds exactly one
+*pounce* plist, `com.hausfold.pounce.plist`. Old label unloaded, new label
+loaded, no double-load. **That is the boot-out step verified, and it is the one
+that could have left two daemons fighting over ⌘Space.**
+
+⚠️ **The closeout sequence's second half is still open.** It reads "update
+hausfold#275 to pin that main commit **and remove `com.local.pounce` from the
+association**". The pin happened — the rice locks pounce at `e3c2305`, the
+release commit, on main. The removal did not:
+
+- [ ] 🤖 **Drop `com.local.pounce` from `AssociatedBundleIdentifiers`** —
+  `hausfold/modules/pounce/default.nix:788-791`, and it is live in the installed
+  `~/Library/LaunchAgents/com.hausfold.pounce.plist`. The comment beside it says
+  "Remove `com.local.pounce` with that lock ripple", and **that ripple has
+  already happened**, so the condition it waits on is met and the entry is now
+  pure residue. This is the association that decides which app macOS attributes
+  a permission prompt to — leaving a stale id in it is exactly the class of
+  thing that put the maintainer's legal name back in a prompt once before.
+  Small, rice-repo, one PR.
+
+⚠️ And what the launchd check does **not** cover is §4.4: a loaded job proves the
+label moved, not that the TCC grants came back. Bundle-ID-keyed grants are
+re-prompted per app, and the palette's classic-API denials **abort silently** —
+so a pounce that launches and a palette that opens can both be true while a
+plugin command does nothing. §4.4 stays 👤 and stays open.
+
+⚠️ **Two `nebelhaus`-spelled labels are still loaded, and neither is a §4
+finding.** `launchctl list | grep -i nebelhaus` shows `org.nebelhaus.awake` (a
+rice-owned job) and `application.com.nebelhaus.flick.…` (the still-running old
+build of what is now trill — the id changed in the source, this session's process
+predates it; it dies with the next restart). The rice label is the one that needs
+a ruling, because §4's census never mentions it and the next session to run that
+`grep` will find a demoted brand word with no verdict beside it:
+
+- [ ] 👤 **Rule on `org.nebelhaus.awake`.** It is a *rice* label, and §6 says the
+  rice keeps its name — so "leave it" is defensible and probably right. But every
+  one of its siblings is `org.nixos.*` (`aerospace`, `hush-watcher`,
+  `sill-bottom`, `sketchybar`, `sleepwatcher`), so it is the odd one out either
+  way, and `org.nixos.pounce` was just migrated *away* from that convention.
+  Whichever way it goes, write it down here — an unruled label gets "fixed" by a
+  later session, and renaming a launchd label means an unload/reload dance.
 
 ### 4.3 🤖+👤 The App Group is a data container, not just an identifier
 
@@ -1928,10 +1994,47 @@ fix later.
 - ⚠️ **Cloudflare edge-caches 404s.** Cache-bust when verifying, or you'll chase
   a redirect that already works.
 
-### 5.4 🤖 Support address
+### 5.4 🟨 Support address — the text sweep is done, the address isn't decided
 
-`support@nebelhaus.com` → `support@hausfold.co` in perch's terms, the site
-footer, `perch-monetization.md`, and the Paddle application notes.
+~~`support@nebelhaus.com` → `support@hausfold.co` in perch's terms, the site
+footer, `perch-monetization.md`, and the Paddle application notes.~~ *That was
+the instruction; the sweep found the target address itself is unsettled, so
+this line no longer prescribes `support@` — read the open box below instead.*
+
+✅ **Swept, verified 2026-08-09.** `rg 'support@nebelhaus'` across the whole
+workshop and every family checkout returns **five hits, four of them history**:
+this file's reversal bullet at the top, `go-to-market.md:221`'s struck-through
+decision, and `perch-monetization.md:155` + `perch/docs/going-paid.md:64`'s
+parentheticals recording what it *was*. Those are the record of the reversal
+and must stay — deleting them is how a settled decision gets re-litigated. The
+fifth is the struck-through instruction line directly above, which is this
+section's own task text, not history. **No live occurrence is left to change.**
+
+⚠️ **But two addresses are now in play, and nothing reconciles them.** The
+seller surface that actually shipped uses **`hi@hausfold.co`**
+(`hausfold.co/public/terms/index.html:187,194` — the contact of record on a
+*legal* page), while perch gates on **`support@hausfold.co`** existing in three
+places (`perch/docs/going-paid.md:60`, `perch/docs/app-store.md:169`,
+`perch-monetization.md:153`). `going-paid.md:62` already notes the split, so it
+isn't unrecorded — but nothing *resolves* it, and all three are unchecked boxes,
+so neither mailbox is proven to exist yet. This is still free to settle; it
+stops being free the moment a receipt goes out carrying one of them.
+
+- [ ] 👤 **Decide: one address or two.** `hi@` reads right on a small seller's
+  terms page; `support@` is what a buyer looks for and what a checklist can
+  assert. An alias of one onto the other costs nothing and is the obvious
+  answer — but *which one is canonical* determines what gets printed on
+  receipts, and that's the part you can't quietly change later.
+- [ ] 👤 Create the mailbox/alias, then tick `going-paid.md:60`,
+  `app-store.md:169` and `perch-monetization.md:153` — those boxes are the real
+  gate, not this section.
+- [ ] 👤 Paddle application notes (in `hausfold/ops`, not here).
+
+### §5's gate
+
+*(The phase gate, not §5.4's — it sits here only because §5.4 is the last
+subsection. §5.4 can be green while this is red, and today it is: §5.2 and §5.3
+haven't run.)*
 
 **Gate:** `curl -sI https://nebelhaus.com/guides/pounce` returns 301 to the
 hausfold.co equivalent; every docs page resolves; the options reference renders.
@@ -2049,6 +2152,12 @@ that the first person who finds it harmless ignores the whole thing.
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
+**You are here (2026-08-09 evening):** §0 green bar §0.2's trademark search and
+§0.3's branch clause; §1–§3 green; §4's code merged and released, with its 👤 TCC
+feel-test and one 🤖 association cleanup open. **§5 is the live phase**, and its
+§5.1 groundwork (site repo public, `site-data` published so the site needs no
+Nix) is already done — what's left is §5.2's port itself, then §5.3's deploy.
+
 ## §9 — Loose ends found while writing this
 
 - ✅ **`bench`'s `FAMILY` entry for the archived client — closed 2026-08-09.**
@@ -2088,11 +2197,13 @@ green. Everything else is strictly sequential.
   misroute future sessions. Cheap sweep, do it last (§2.2's tail) — **done
   2026-08-09**; 15 files held live option paths, and the rest are the rice, the
   domain or bundle ids. See §2.2.
-- **The rice's per-room options list is duplicated** — `modules/options-modules.nix`
-  and `modules/default.nix` each hold their own copy of the same 14 paths, and
-  `options-modules.nix`'s header comment ("the ONLY modules that declare
-  `nebelhaus.*`") reads as if it were the single source. Adding a module to one
-  and not the other fails in a way that names neither file (§1.0, finding 5).
-  Folding `default.nix`'s copy into an `import ./options-modules.nix` is a
-  standalone tidy-up worth doing **before** §1, so the rename doesn't have to
-  discover it.
+- ✅ **The rice's per-room options list was duplicated — closed.**
+  `modules/options-modules.nix` and `modules/default.nix` each held their own
+  copy of the same 14 paths, and `options-modules.nix`'s header comment ("the
+  ONLY modules that declare `nebelhaus.*`") read as if it were the single
+  source; adding a module to one and not the other failed in a way that named
+  neither file (§1.0, finding 5). `default.nix` now does the
+  `import ./options-modules.nix`, and the header records the fold ("three now
+  that modules/default.nix imports this file"). The suggested ordering — do it
+  *before* §1 — is moot; it landed during the sweep instead, and the sweep
+  survived it.
