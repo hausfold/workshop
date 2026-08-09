@@ -33,17 +33,18 @@ what's out of sync and `./bench ship` makes it right.**
 
 Each one stands alone. Together they're a house.
 
-Three more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
+Four more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
 (the org's GitHub front page), 🍺
 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) (CI bumps it on
-every release — you almost never touch it), and ⌂
+every release — you almost never touch it), 🔔
+[**trill**](https://github.com/hausfold/trill) (the notification compositor —
+ejected from the incubator 2026-08-09; deliberately *not* a family repo, so
+`bench` neither clones nor ships it), and ⌂
 [**hausfold**](https://github.com/hausfold/hausfold.co) — hausfold.co, the site for
 the platform that all of this is becoming (decided 2026-08-08; see
-[`notes/hausfold-rename.md`](notes/hausfold-rename.md)). That last one is, for
-now, the only checkout here that *isn't* in the nebelhaus org — the rename
-reverses that. It used to be the only private one too; it's public as of
-2026-08-08. Your `~/.config/nix` lives outside
-this dir entirely.
+[`notes/hausfold-rename.md`](notes/hausfold-rename.md)). hausfold.co used to be
+the only private checkout here; it's public as of 2026-08-08. Your
+`~/.config/nix` lives outside this dir entirely.
 
 ## the one gotcha
 
