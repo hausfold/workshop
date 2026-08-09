@@ -167,4 +167,4 @@ Pre-release scaffold. The first-party pipeline (socket → rules → banners →
 inbox) is the v1 target; System Mirror ships only after its feasibility
 spike answers the questions in the PRD.
 
-MIT. Part of the [nebelhaus](https://github.com/nebelhaus) family.
+MIT. Part of the [hausfold](https://github.com/hausfold) family.

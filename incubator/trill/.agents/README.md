@@ -14,7 +14,7 @@ Corollary: never "fix" a stale pointer by copying the current text into it.
 
 The family-wide rationale — the four kinds of agent config, how to add a new
 harness — is written once, in the workshop:
-[`nebelhaus/workshop` → `.agents/README.md`](https://github.com/nebelhaus/workshop/blob/main/.agents/README.md).
+[`hausfold/workshop` → `.agents/README.md`](https://github.com/hausfold/workshop/blob/main/.agents/README.md).
 The table below is only what's wired in *this* repo-to-be.
 
 | Path | Read by | What it actually is |
@@ -27,6 +27,7 @@ The table below is only what's wired in *this* repo-to-be.
 | `.claude/settings.json` | Claude Code | `SessionStart` → `.agents/setup.sh`. |
 | `.codex/hooks.json` + `.codex/config.toml` | Codex CLI | `SessionStart` → `.agents/setup.sh`, plus the flag that enables hooks. |
 | `.opencode/plugins/nix-bootstrap.js` | OpenCode | Plugin load *is* session start; runs the same script, swallowing every error. |
+| `.github/copilot-instructions.md` | GitHub Copilot (github.com, and the editor as a second source) | A hand-kept summary of `AGENTS.md`, **a real file and never a symlink** — Copilot reads through the GitHub API, where a symlink is just a path string. `AGENTS.md` wins if they drift. |
 
 No repo-local flows yet. When trill grows one it goes in
 `.agents/skills/<name>/SKILL.md`, symlinked into `.claude/skills/<name>/` and
@@ -34,13 +35,13 @@ No repo-local flows yet. When trill grows one it goes in
 
 ## Caveats
 
-- **Trill is incubating.** It lives inside the workshop's tree until it ejects to
-  `hausfold/trill` ([`BOOTSTRAP.md`](../BOOTSTRAP.md)). This layer is complete
-  now precisely so the eject moves a finished repo rather than one that has to
-  grow its instructions afterwards. **`.github/copilot-instructions.md` is the
-  one piece deliberately deferred** — until eject there is no `hausfold/trill`
-  for Copilot to read it from, and a file at `incubator/trill/.github/` is not a
-  path GitHub resolves. Add it as part of the eject checklist.
+- **Trill ejected from the workshop incubator on 2026-08-09.** This layer was
+  kept complete throughout the incubation precisely so the eject moved a
+  finished repo rather than one that had to grow its instructions afterwards —
+  the one piece deliberately deferred was `.github/copilot-instructions.md`
+  (there was no `hausfold/trill` for Copilot to read it from, and a file at
+  `incubator/trill/.github/` is not a path GitHub resolves), and it landed with
+  the eject.
 - **Trill is a macOS app; a Linux cloud container can't build or feel-test it.**
   `xcodebuild` is macOS-only and banners need a real session. The bootstrap is
   there so a cloud session can resolve and re-lock the flake.

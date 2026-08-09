@@ -3,7 +3,7 @@
 **Trill** — a quiet, scriptable notification compositor for macOS. Draws its
 own silent banners for events from local sources (CLI socket today; an
 experimental read-only mirror of Apple's `usernoted` store behind a flag).
-Part of the [nebelhaus](https://github.com/nebelhaus) family; stands alone
+Part of the [hausfold](https://github.com/hausfold) family; stands alone
 like pounce and perch.
 
 > **This app was called `flick` until 2026-08-08.** A trill is the small

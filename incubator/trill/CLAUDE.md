@@ -18,8 +18,4 @@ Only Claude-specific wiring belongs below.
 | Session bootstrap | `.claude/settings.json` → `SessionStart` → `.agents/setup.sh` | Same script Codex and OpenCode call. Installs Nix in cloud containers, no-ops locally. |
 | Worktree hooks | `~/.claude/settings.json` (yours, not the repo's) → `holt hook create` / `holt hook remove` | Declared by the rice and re-asserted every rebuild, so they self-heal when Claude rewrites that file. No repo in the family touches it. |
 
-**Incubating:** trill lives inside the workshop's tree until it ejects to
-`hausfold/trill` (see [`BOOTSTRAP.md`](./BOOTSTRAP.md)). This layer is already
-whole so the eject is a `git mv`, not a rebuild.
-
 The full cross-harness map is [`.agents/README.md`](./.agents/README.md).
