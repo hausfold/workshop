@@ -36,7 +36,13 @@ Nothing below works if a tester hits a wall on step one.
       ago and the docs site was never grepped — the roadmap's rule again,
       **grep for the claim, not for the file.**
 - [x] ✅ **The trill question is settled — it was decided by removal, not by a
-      note.** rice#212 made it opt-in, rice#213 deleted the module and the flake
+      note.** ("trill" here, and everywhere else in this file, is the **archived
+      Messages client**, `nebelhaus/messages` since 2026-08-08. The notification
+      compositor took the name that day and the rice now declares a
+      metadata-only `haus.roster.trill` float rule for it — a different app, and
+      no tester question of its own is answered here. See
+      [`hausfold-rename.md`](./hausfold-rename.md) §3.4.)
+      rice#212 made it opt-in, rice#213 deleted the module and the flake
       input, homebrew-tap#10/#11 deprecated the cask, workshop#204 and
       org-profile#14 took it out of the family lists, and the repo is
       **archived on GitHub**. So no tester is handed it at all, which is a

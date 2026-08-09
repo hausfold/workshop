@@ -628,8 +628,10 @@ erroring**, so every renderer of someone else's data needs a floor.
 the useful output.** Read this before working the bullets — three of them are
 misfiled and following them literally breaks `main`.
 
-§2's own gate says the phase **changed nothing** (see the `trill`-in-`FAMILY`
-warning below, and the gate at the end of the section). Measured against that,
+§2's own gate says the phase **changed nothing** (see the `FAMILY`-entry note
+below — the archived client's entry read `trill` when this was written,
+`messages` after workshop#269, and is gone entirely since workshop#283 — and the
+gate at the end of the section). Measured against that,
 every entry in this section falls into exactly one of four buckets:
 
 | bucket | example | phase |
@@ -640,8 +642,8 @@ every entry in this section falls into exactly one of four buckets:
 | **the domain** | `nebelhaus.com` | **§5**, with the 301s |
 
 So: **`bench`'s §2 share is one line** — its `:2` header comment, which is brand
-prose. `FAMILY:75` is a directory name settled by §3.1(b), and the repo lists and
-the `--override-input` block at `:281-284` are edges owned by §3.3. And **the
+prose. `FAMILY` (`bench:78`) is a directory name settled by §3.1(b), and the repo
+lists and the `--override-input` block at `:281-286` are edges owned by §3.3. And **the
 rice's §2 share is empty**: audited 2026-08-09,
 every surviving `nebelhaus` in it is the repo name, the rice's own name (§6),
 the flake input, `nebelhaus.com`, a launchd label or a state dir. Its
@@ -734,20 +736,22 @@ step 4 works.
   belongs with §5's domain move, not here.
 - ✅ **bench** — one line, `bench:2`'s header ("the workshop CLI for the
   hausfold family"), done 2026-08-09. **Everything else this bullet named is a
-  resolving identifier and belongs to §3.** `FAMILY=(…)` at `bench:83` is a list
+  resolving identifier and belongs to §3.** `FAMILY=(…)` at `bench:78` is a list
   of *directory names* (`local_src` → `$ROOT/$1`), which §3.1's
-  on-disk-collision decision settles; the repo lists at `:1011`/`:1551`,
-  `GH_ORG` at `:84` and the `--override-input nebelhaus/*` block at `:288-292`
-  are §3.3's edges — along with eight more literals §3.3 enumerates. Moving any of them before the transfer breaks `bench` on a live
-  machine.
-  ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.** `bench:80-82`
-  keeps it there deliberately so `bench status` still reports the checkout; it
-  carries no lock edge and no release path. Removing it is a behavior change.
-  It reads **`messages`** as of workshop#269 (merged 2026-08-09), which renamed
-  the repo, this entry and the on-disk dir together — §3.4. ⚠️ **Never let it
-  become `trill` again**: that name now belongs to the notification compositor,
-  which is deliberately *not* in `FAMILY`, so a `trill` here would read as
-  either repo depending on who looked.
+  on-disk-collision decision settles; the repo lists at `:1005`/`:1453`/`:1539`,
+  `GH_ORG` at `:79` and the `--override-input nebelhaus/*` block at `:281-286`
+  are §3.3's edges — along with eight more literals §3.3 enumerates. Moving any
+  of them before the transfer breaks `bench` on a live machine.
+  ✅ **The archived Messages client's `FAMILY` entry is gone — workshop#283,
+  2026-08-09.** This bullet used to say *leave it alone*: it was kept
+  deliberately so `bench status` reported the checkout, it read `trill` until
+  workshop#269 renamed repo + entry + on-disk dir together (§3.4), and removing
+  it counted as a behavior change §2 was gated against. #283 made that removal
+  its own change — the repo is archived and read-only, with no lock edge below
+  it and no release path above it, so `status`/`clone`/`pull` had nothing useful
+  to say about it. Nothing in `FAMILY` may ever read `trill` either: that name is
+  the notification compositor's, which is deliberately not a family repo, so the
+  entry would read as either app depending on who looked.
 - ✅ **workshop — done 2026-08-09.** `README.md` title + `part_of` badge,
   `AGENTS.md`'s opening ("the **hausfold** workshop … every repo in the
   **hausfold** family"), the three `.agents/skills/*` descriptions and
@@ -991,8 +995,8 @@ the transfer, while everything local still passes:
       *(Decided here — but **still unimplemented in `bench`, and pointing the
       wrong way**. See §3.3's `bench` subsection: that is where it gets fixed.)*
       `bench` resolves `FAMILY` entries as *directory names* under the workshop
-      root (`local_src` → `$ROOT/$1` at `bench:255-261`; `cmd_clone`'s
-      `[ -d "$ROOT/$name/.git" ]` at `bench:1554`). Renaming the FAMILY entry
+      root (`local_src` → `$ROOT/$1` at `bench:249-255`; `cmd_clone`'s
+      `[ -d "$ROOT/$name/.git" ]` at `bench:1542`). Renaming the FAMILY entry
       `nebelhaus` → `hausfold` puts the platform checkout at
       `~/code/workshop/hausfold` — **which is already the site checkout**
       (`hausfold/website` then, `hausfold/hausfold.co` now). This repo survived
@@ -1174,7 +1178,7 @@ are now free:
 | Slot | Was | State |
 |---|---|---|
 | GitHub repo name | `nebelhaus/trill` | ✅ **`nebelhaus/messages`**, still archived. Never needed to move for the compositor (different org) — renamed so the two apps are never both "trill". |
-| on-disk `~/code/workshop/trill` | the archived clone | ✅ `~/code/workshop/messages`, remote repointed, `.gitignore` and `bench`'s `FAMILY` entry follow (§3.1's rule: each checkout named for its repo). The dir is what the eject's final `mv` needs. |
+| on-disk `~/code/workshop/trill` | the archived clone | ✅ `~/code/workshop/messages`, remote repointed, `.gitignore` and `bench`'s `FAMILY` entry following (§3.1's rule: each checkout named for its repo). The dir is what the eject's final `mv` needs. ⚠️ **workshop#283 then reaped the workshop's side of it entirely**: the `FAMILY` entry and the `.gitignore` line are both gone, so `bench clone` no longer fetches it and `bench status` no longer reports it — and the local checkout is gone from disk (verified 2026-08-09: no `~/code/workshop/messages`, main checkout clean). The archived repo is still on GitHub; nothing local points at it any more. |
 | Homebrew cask token `trill` | `homebrew-tap/Casks/trill.rb` | ✅ **deleted.** Not `disable!`-then-deleted: the cask had no install base (`brew list --cask` found it nowhere, no `Trill.app` on disk), and the final release stays downloadable regardless. |
 
 How the rename was done, because it isn't the obvious one-liner:
@@ -1194,24 +1198,46 @@ This is §3.1's on-disk-collision finding recurring with different names: two
 family repos wanting one directory. It was resolved there by naming each
 checkout for its repo, and the same rule settles it here.
 
-**Inherited leftovers in `web/`, and one of them is load-bearing** — the old
-Trill's product page is gone, but the name still has plumbing:
+**Inherited leftovers in `web/` — all cleared, 2026-08-09 (workshop#269).** The
+bullets below were written mid-PR, when the plan was to *repoint* the archived
+app's plumbing; the PR's last web commit **removed** it instead — the site
+presents the living family only. Kept with their outcomes because two of them
+were recorded here as blockers and are not blockers any more:
 
-- 🚨 `astro.config.mjs`'s `redirects` sends `/trill`, `/trill/`, `/guides/trill`
-  and `/guides/trill/` to `github.com/nebelhaus/messages` (repointed with the
-  rename rather than left riding GitHub's redirect). **A docs page at `/trill`
-  for the compositor cannot exist until those four entries come out** — a
-  redirect beats a page — and retiring them means accepting that a frozen cask
-  and a frozen about box start 404ing.
-- ✅ `worker.js`'s `DOWNLOADABLE` slug moved `trill` → `messages` (with its
-  test and `web/README.md`), so `/download/trill` is free for the compositor
-  and `/download/messages` serves the archived app under its real name.
-- ⏳ `--neb-product-trill` (+ `-hover`) in `styles/palette.css` and the
-  `'trill'` slot in `FamilyNav.astro` still describe the *archived* app. Purely
-  presentational, so they wait for whoever builds the compositor's page.
+- ✅ `astro.config.mjs`'s four `/trill*` redirects are **gone**, not repointed.
+  This block's earlier 🚨 said a compositor docs page at `/trill` could not
+  exist until they came out — **they are out, so `/trill` is free.** Accepted
+  knowingly at the time: the URL the archived app's about box prints and the
+  two `/guides/trill/` links frozen into its README now 404. Nothing else
+  referenced them, the cask that printed one was deleted the same day, and
+  there is no install base.
+- ✅ `worker.js`'s `DOWNLOADABLE` is `{pounce, perch}`. The slug went `trill` →
+  `messages` first and then came out altogether — a `/download` route for a
+  finished app is a promise we don't want to keep. Its releases stay on GitHub
+  for anyone holding the link, so `/download/trill` is free as well.
+- ✅ `--neb-product-trill` (+ `-hover`) in `styles/palette.css` and the
+  `'trill'` slot in `FamilyNav.astro` are gone, together with the dead
+  `product === 'trill'` branch in `ProductDemo.astro` (+33/−388 there alone),
+  every `.trill-*` rule and `/media/app-icons/trill.png`. The perch demo ferries
+  **Pounce** through the notch shelf now and the pounce demo lists **Perch**.
+  One survivor was caught later, by workshop#283's assurance pass: the perch
+  demo's mock browser still read *"Your Messages, native."* under a
+  `nebelhaus.com/pounce` URL pill — a rendered, on-screen tagline for the
+  archived app, missed because it names the product nowhere in the markup.
+- ⚠️ One thing left deliberately: the ~70 classes that dead branch *shared*
+  with the live demos (`.chat-row`, `.bubble`, `.tapback`, `.search-sheet`, …)
+  sit under an `ORPHANED` note in `ProductDemo.astro` rather than being purged
+  in the same change, so a broken pounce/perch demo could never be blamed on
+  the removal. Purging them is a separate, verifiable-on-its-own change.
 
-Whoever builds the compositor's page inherits all of it; check each one means
-the right app rather than assuming the name carried over cleanly.
+So the compositor's page starts from a clean `/trill`, a free `/download/trill`
+and no product colour of its own yet — `--neb-product-trill` will have to be
+declared, not inherited. Nothing here carries over. The one
+"Trill" still rendered on the site is `reference/options.md`'s `float`
+description ("FaceTime, Trill's Settings/Inbox") — **that one is the
+compositor**, generated from the rice after nebelhaus#264 renamed
+`haus.roster.flick` → `haus.roster.trill`. It looks like leftover drift and
+isn't.
 
 ### 3.3 🤖 Rewrite every edge — **but not every hit**
 
@@ -1300,76 +1326,83 @@ is the same shape as `~/.claude/skills/haus/`'s regenerated description in §2.2
 
 #### 🚨 `bench` is the Tier-A repo, and it has two problems the plan hasn't recorded
 
-**1. `GH_ORG` can no longer be a single value — `bench clone` hard-fails on a
-fresh machine.** `bench:83` is `FAMILY=(nebelung pounce messages perch holt
-nebelhaus)` and `bench:84` is `GH_ORG="nebelhaus"`; `cmd_clone` (`bench:1551-1558`)
-loops `"${FAMILY[@]}" org-profile homebrew-tap` and clones
-`https://github.com/$GH_ORG/$repo.git`. **§3.4 decided the archived Messages
-client stays in the `nebelhaus` org** — so the moment `GH_ORG` becomes `hausfold`,
-that loop asks for `hausfold/messages`, which will never exist. The clone is a
-bare `git clone` with no `|| warn` (unlike the `hausfold.co` clone twenty lines
-below, which was deliberately made non-fatal), so `bench clone` dies partway
-through. `$GH_ORG` is also interpolated into `gh pr list` / `gh run list` /
-`gh run view` at `bench:799,1238,1267,1425,1433,1441` — same wrong owner for
-`messages`, in the release path. **Fix: `messages` needs a per-repo owner, not a
-global one** — the family now spans two orgs and `bench` assumes one.
+**1. ~~`GH_ORG` can no longer be a single value — `bench clone` hard-fails on a
+fresh machine.~~ ✅ Dissolved by workshop#283, hours after this was written.**
+The finding was: `FAMILY` held `messages`, `GH_ORG` is one value, `cmd_clone`
+loops `"${FAMILY[@]}" org-profile homebrew-tap` cloning
+`https://github.com/$GH_ORG/$repo.git` — and **§3.4 keeps the archived Messages
+client in the `nebelhaus` org**, so the moment `GH_ORG` became `hausfold` that
+loop would ask for `hausfold/messages`, which will never exist, with a bare
+`git clone` and no `|| warn` (unlike the `hausfold.co` clone below, deliberately
+non-fatal). Correct at the time. **#283 then removed `messages` from `FAMILY`
+entirely** — `FAMILY=(nebelung pounce perch holt nebelhaus)` (`bench:78`),
+`GH_ORG="nebelhaus"` (`:79`), `cmd_clone`'s loop (`:1539-1548`) — and every
+remaining entry, plus `org-profile` and `homebrew-tap`, transfers to `hausfold`
+together. **So one `GH_ORG` is right again; the per-repo-owner refactor this
+finding prescribed is not needed.** Two PRs open at once, neither aware of the
+other; the census was measured against a `bench` that no longer exists.
+⚠️ What survives: the same `$GH_ORG` is interpolated into `gh pr list` /
+`gh run list` / `gh run view` (`bench:793,1226,1255,1413,1421,1429`), so it
+still flips **all six** call sites in one edit — fine while the family is one
+org, and the thing to re-check the day any family repo *doesn't* transfer.
 
 **2. The `$ROOT/hausfold` directory collision that §3.1 marked resolved is still
 live in code, and pointing the wrong way.** §3.1 resolved it as (b): "the
 checkouts become `workshop/hausfold/` (the **platform**) and `workshop/hausfold.co/`
 (the site) — each named for its repo." `bench` implements the opposite —
-`bench:1572-1579` plants **the site** at `$ROOT/hausfold`
+`bench:1560-1568` plants **the site** at `$ROOT/hausfold`
 (`git clone https://github.com/hausfold/hausfold.co.git "$ROOT/hausfold"`), and on
 this machine today `workshop/hausfold/` is a **stale clone of the archived,
 private `hausfold/website`** while `workshop/hausfold.co/` holds the real site.
 This bites when `FAMILY`'s `nebelhaus` entry becomes `hausfold`: `local_src()`
-(`bench:255-261`) resolves a family repo as `$ROOT/$1`, so `local_src hausfold`
+(`bench:249-255`) resolves a family repo as `$ROOT/$1`, so `local_src hausfold`
 returns the **website checkout**.
 
 ⚠️ **The failure mode depends on how far the rename got, and only one of the two
-is loud.** `overrides()` (`bench:288-292`) does *not* read `FAMILY` — it passes a
+is loud.** `overrides()` (`bench:281-286`) does *not* read `FAMILY` — it passes a
 hardcoded `local_src nebelhaus`. So:
 
 - rename `FAMILY` **only** → `local_src nebelhaus` → `$ROOT/nebelhaus`, which no
   longer exists, and nix errors immediately. Annoying, but safe.
-- rename `FAMILY` **and** `bench:288` → `local_src hausfold` → the website
+- rename `FAMILY` **and** `bench:282` → `local_src hausfold` → the website
   checkout, and `bench try` silently builds the rice against a folder of HTML.
   **Nothing errors.** This is the one to avoid, and it is the state a careful
   half-finished sweep lands in.
 
 - [ ] `rm -rf ~/code/workshop/hausfold` (the stale `hausfold/website` clone —
       that repo is archived, and `hausfold.co/` supersedes it)
-- [ ] repoint `bench:1572-1579`'s site clone at `$ROOT/hausfold.co`, and update
-      `bench:1011`'s `repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap
+- [ ] repoint `bench:1560-1568`'s site clone at `$ROOT/hausfold.co`, and update
+      `bench:1005`'s `repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap
       hausfold consumer)` with it — `cmd_pull`'s list already names the site
       `hausfold`, so once `FAMILY` holds `hausfold` too **the same name appears
       twice in one array**, and `bench pull` fast-forwards one checkout under
-      the other's identity. The `bench:1008` and `bench:1562-1571` comments
+      the other's identity. The `bench:1002-1004` and `bench:1550-1559` comments
       follow.
 - [ ] add `/hausfold.co/` to the workshop's `.gitignore` and retire `/nebelhaus/`
       there once the FAMILY entry moves — the ignore file names both checkouts
 - [ ] **only then** rename the `FAMILY` entry — and when you do, rename it
       *everywhere*, because `nebelhaus` is spelled out as a literal in eight
-      more places `FAMILY` doesn't reach: `OVERRIDABLE` (`bench:94`), the
-      lock-edge table (`:225-229`), `overrides()` (`:288-292`), the
-      release-audience case (`:535,542`), the version-file case arms
-      (`:1045,1056,1070`), and the release allowlist (`:1365,1371`).
+      more places `FAMILY` doesn't reach: `OVERRIDABLE` (`bench:88`), the
+      lock-edge table (`:219-223`), `overrides()` (`:281-286`), the
+      release-audience case (`:529,535`), the version-file case arms
+      (`:1033,1044,1058`), and the release allowlist (`:1353,1359`).
       **`FAMILY` is not the single source of truth it looks like.**
 
 **All of this is `bench` edits and they belong in the same PR as `GH_ORG`.** Do
 them *before* the transfer sitting, not after: none of it depends on the repos
 having moved, and doing it first means the sitting's only follow-up is locks.
 
-💡 **`cmd_clone` already has the shape the `GH_ORG` fix needs.** `bench:1553` is
-`[ "$name" = "org-profile" ] && repo=".github"` — a per-repo override of the
-*name*. `messages` needs the identical thing for the *owner*, which makes the
-fix two lines rather than a refactor.
+💡 **If a per-repo owner is ever needed again, `cmd_clone` already has the
+shape.** `bench:1541` is `[ "$name" = "org-profile" ] && repo=".github"` — a
+per-repo override of the *name*; the same two lines would override an *owner*.
+Written for `messages`, and **moot since #283 removed it from `FAMILY`** (finding
+1 above) — kept because the next repo that stays behind will want exactly this.
 
 ⚠️ One more that only shows up at build time: `overrides()` emits
 `--override-input nebelhaus/nebelung`, `nebelhaus/pounce`, … Those are **flake
 input paths**, not repo owners — the leading `nebelhaus` is the input's *name*
 in `~/.config/nix/flake.nix`. Whether that input gets renamed to `hausfold` is a
-👤 call on a 👤 file (§3.3's third flake), and `bench:288-292` has to move in the
+👤 call on a 👤 file (§3.3's third flake), and `bench:281-286` has to move in the
 same breath as it or every override silently addresses a non-existent input.
 
 #### The two shipped-binary edges — why the dead org can never be deleted
@@ -1870,17 +1903,20 @@ green. Everything else is strictly sequential.
 
 ## §9 — Loose ends found while writing this
 
-- ✅ **Closed 2026-08-09 — `FAMILY` reads `messages`, and the entry stays.**
-  This used to read "`bench:75` still lists `trill` in `FAMILY`", recorded
-  because it looks like drift and gets "fixed" otherwise. §3.4 executed it: the
-  repo, the entry and the on-disk dir renamed together (workshop#269), so
-  `FAMILY` is now at **`bench:83`** and reads `messages`, with the
-  deliberately-keep-it comment at `:80-82`. The entry is still deliberate — no
-  lock edge, no release path, but `bench status` reports the checkout.
-  ⚠️ **Never let it become `trill` again**: that name belongs to the
-  notification compositor, which is deliberately *not* in `FAMILY`.
-  ⚠️ And `FAMILY` is **not** the single source of truth for the word — §3.3's
-  `bench` subsection lists eight more places `nebelhaus` is a literal.
+- ✅ **`bench`'s `FAMILY` entry for the archived client — closed 2026-08-09, and
+  it took three PRs to get there.** It listed **`trill`**, deliberately, so
+  `bench status` reported the checkout; recorded here only because it reads like
+  drift and gets "fixed" otherwise. §3.4 then changed what the entry *meant* —
+  `FAMILY` entries are directory names, and that directory now belongs to the
+  notification compositor — so **workshop#269** renamed repo, entry and on-disk
+  dir together to `messages`. **workshop#283** then deleted the entry outright,
+  which is the answer to the question this bullet ended on ("decide whether the
+  dead client is worth an entry at all"): it isn't — archived and read-only, no
+  lock edge below it, no release path above it. `FAMILY` is `(nebelung pounce
+  perch holt nebelhaus)` at `bench:78`, and it must **never** contain `trill` —
+  that name is the compositor's, which is deliberately not a family repo.
+  ⚠️ And `FAMILY` was never the single source of truth for the word — §3.3's
+  `bench` subsection lists eight more places `nebelhaus` is a literal. See §2.1.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**
   carry-over (`guides/the-bar.mdx:128`) — unrelated, but it's in the same file
   you'll be editing.

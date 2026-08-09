@@ -26,6 +26,21 @@ already exist, and one it treated as a detail is the actual root blocker.
 > make ship-dates and PR numbers stop matching what those PRs actually say.
 > So: `nebelhaus.roster` below is today's `haus.roster`, and so on throughout.
 >
+> **⚠️ Every `trill` below is the archived Messages client** (`nebelhaus/messages`
+> since 2026-08-08), so "**`trill` is out of the rice entirely**" — the claim
+> recurs five times, in the preamble's progress log, §3.1, §6's tail, §7 and §9,
+> spelled differently each time — stays true *about that app*: rice#212 made it
+> opt-in, rice#213 deleted the module and the flake input. It is **not** true of
+> the name. The notification compositor took `trill` on 2026-08-08
+> ([`hausfold-rename.md`](./hausfold-rename.md) §3.4), and the rice's roster
+> carries a `haus.roster.trill` entry for it (renamed from `haus.roster.flick`,
+> nebelhaus#264) — metadata-only, a `float` rule for its Settings/Inbox windows
+> in `modules/prowl/default.nix`; the rice installs nothing and the app has no
+> repo yet. So a reader who greps this file for what the rice declares concludes
+> the opposite of what's live — read the app, not the word. §9's "names this
+> table can no longer have" is the one line here that is about the *name*, and it
+> is now doubly true.
+>
 > Two things here the rename leans on, both already shipped: **§3.2**
 > (`developer.enable` — "minimal" stopped being a lie, so the rice can be turned
 > off) and **§3.3** (presets-as-format + `checkRice` — a rice became a data
