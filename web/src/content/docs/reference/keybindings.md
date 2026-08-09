@@ -78,7 +78,7 @@ pointer, and whose rows are gathered by workspace under a header each.
 | `Super ⇧T` | New tab at the focused pane's directory (same worktree hop as `Super P`) |
 | `Super F` | **Find** — full-text search over the focused pane, live as you type |
 | `Super ⇧F` | The same overlay, opened across **every pane** in the session |
-| `Super G` | **gh-dash** — GitHub review queue in a clean fullscreen overlay (when [`hearth.ghDash.enable`](/reference/options/) is on) |
+| `Super G` | **gh-dash** — GitHub review queue in a clean fullscreen overlay (when [`hearth.ghDash.enable`](/reference/options/#haushearthghdashenable) is on; its PR tabs follow [`haus.git.org`](/reference/options/#hausgitorg)) |
 | `Super ⏎` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) — or **Ctrl-click** the pane body, see below |
 | `Super Y` | yazi peek — covers the terminal window it was summoned from (floating previews; `Enter` on a dir opens a new tab there; same worktree hop as `Super P`) |
 | `Super ⇧Y` | yazi peek, stay here (no worktree hop) |
