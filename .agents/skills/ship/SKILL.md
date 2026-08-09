@@ -7,7 +7,7 @@ description: >-
   open a PR and merge it, clean up every worktree the session spun up,
   ripple the flake locks with `bench ship`, then activate on the main checkout with
   `bench try switch`. Use when I say /ship, "ship it", "land this", or want to wrap up a
-  change across the nebelung → pounce → nebelhaus → config chain. Worktree-aware: invoking
+  change across the nebelung → pounce → hausfold → config chain. Worktree-aware: invoking
   /ship is the go-ahead to merge the PR and activate on main (by `cd`-ing there); `bench
   release` stays gated. Never opens or closes a zellij pane.
 ---
@@ -15,8 +15,11 @@ description: >-
 # Ship (hausfold workshop): verify → PR → merge → clean up → ripple → activate
 
 The family's repos form a chain of pinned flake inputs
-(`nebelung → pounce → nebelhaus → ~/.config/nix`). A commit is invisible downstream until
+(`nebelung → pounce → hausfold → ~/.config/nix`). A commit is invisible downstream until
 each downstream `flake.lock` is bumped — `bench ship` does that ripple. Never hand-walk it.
+Those are **repo** names: the rice's checkout and repo are `hausfold` since 2026-08-09,
+while the flake **input** it's pinned under is still spelled `nebelhaus` — renaming that
+input makes an override silently build the pinned rice while reporting your branch.
 `bench` lives at the workshop root and is available as `bench`; run it from anywhere.
 
 End-state: the work is merged **through a PR**, the locks are rippled, every worktree this
@@ -92,7 +95,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 
 | Check | The failure it catches |
 |---|---|
-| **Routing** | the change is in the wrong repo — a color hex landing in `nebelhaus` instead of `nebelung`, launchd logic in `pounce` instead of the rice. The workshop's routing table decides, and "it works here" is not a defence. |
+| **Routing** | the change is in the wrong repo — a color hex landing in `hausfold` (the rice) instead of `nebelung`, launchd logic in `pounce` instead of the rice, site copy in `hausfold` instead of `hausfold.co`. The workshop's routing table decides, and "it works here" is not a defence. |
 | **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `web/src/content/docs/` (the SOT), `reference/options.md`, `reference/keybindings.md`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(prowl) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
@@ -103,7 +106,10 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 Two properties that make this worth doing rather than ritual:
 
 - **It reads the reviewed repo's own `AGENTS.md`**, not the workshop's. A `pounce` PR is
-  judged by pounce's boundary rules; a rice PR by the rice's.
+  judged by pounce's boundary rules; a rice PR by the rice's. **`holt` has none yet** (it
+  ejected before the `.agents/` layer reached it) — pass the workshop's `AGENTS.md` routing
+  table plus `holt/README.md` and `holt/SPEC.md` instead, and say in the PR body that the
+  pass ran without a repo boundary doc. Don't skip the pass over a missing file.
 - **It's advisory, never a gate.** It does not block `gh pr create`. A false positive
   that stops a ship trains you to skip the step, and a skipped step assures nothing.
 

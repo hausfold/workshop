@@ -16,7 +16,10 @@ The short version:
   table; if the change belongs to a child repo, it doesn't belong in a workshop
   commit.
 - The repos are a chain of pinned flake inputs
-  (`nebelung → pounce → nebelhaus → ~/.config/nix`), so a merged commit is
+  (`nebelung → pounce → nebelhaus → ~/.config/nix` — those are flake **input**
+  names; the rice's repo and checkout are `hausfold`, but its input keeps the
+  older spelling and renaming it silently builds the pinned rice), so a merged
+  commit is
   invisible downstream until `bench ship` bumps each `flake.lock`. Never
   hand-walk that ripple.
 - **Land through a PR** — never a direct push or a local `git merge` into `main`.

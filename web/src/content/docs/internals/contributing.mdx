@@ -192,10 +192,11 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
 7. **ship** — `./bench ship` pushes upstream→downstream, rippling every
    `flake.lock` in dependency order.
 8. **release** — `./bench release <repo>`; CI does the rest, and the command
-   waits with you while it happens. Three repos are releasable: **pounce**
+   waits with you while it happens. Four repos are releasable: **pounce**
    (GitHub release + Homebrew formula bump), **perch** (Homebrew cask bump + the
-   rice's flake pin), and **hausfold** (the tag becomes what
-   `nebelhaus.com/init.sh` serves to new installs).
+   rice's flake pin), **hausfold** (the tag becomes what
+   `nebelhaus.com/init.sh` serves to new installs), and **holt** (five SDKs, to
+   npm, PyPI, crates.io, SwiftPM and the Go proxy).
 
 <Aside type="note" title="Releases ride tags">
 Versions are date-based (CalVer). `bench release <repo>` stamps today's date —
@@ -205,6 +206,11 @@ and the `homebrew-tap` bump. No number is typed by hand, and you never hand-edit
 the formula's url/sha. And because the installer serves the latest **rice**
 release, user-visible rice changes aren't
 really "out" until nebelhaus gets a new tag.
+
+**holt is the exception**, and it's forced: `bench release holt 0.2.0` takes a
+**semver** argument and refuses to run without one. Its five SDKs publish to
+registries where a number, once published, can never be withdrawn — so the
+version is a compatibility contract, not a date, and all five share it.
 </Aside>
 
 There's exactly **one** workflow to watch — each repo's `release`, holding one to
@@ -212,7 +218,7 @@ three jobs — and `bench release` draws them live rather than handing you a URL
 
 ```
    ✓  build + publish release           2m 41s
-   ⠹  bump nebelhaus/homebrew-tap          9s
+   ⠹  bump hausfold/homebrew-tap           9s
 ```
 
 It exits non-zero if the run goes red (with the `gh run view --log-failed` to
