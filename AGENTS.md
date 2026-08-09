@@ -1,11 +1,28 @@
 # AGENTS.md
 
-**The nebelhaus workshop** — the parent directory holding every repo in the
-[nebelhaus](https://github.com/nebelhaus) family, plus the `bench` script that
-moves changes between them. This folder's own repo holds the README, this file,
-`bench`, `web/` (the nebelhaus.com Astro Starlight docs site + its Cloudflare
-Worker), plus `assets/` and `test/`; the subdirectories are independent git
-repos.
+**The hausfold workshop** — the parent directory holding every repo in the
+**hausfold** family, plus the `bench` script that moves changes between them.
+This folder's own repo holds the README, this file, `bench`, `web/` (the
+nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
+`assets/` and `test/`; the subdirectories are independent git repos.
+
+> 🚨 **`nebelhaus` means four different things and only one of them is being
+> renamed.** `notes/hausfold-rename.md` is the plan of record; §2's table is the
+> rule. In one line each:
+>
+> | spelling | what it is | this rename |
+> |---|---|---|
+> | `haus.<option>` | the option namespace | ✅ **already renamed** (nebelhaus#261). `nebelhaus.*` still evaluates via `modules/renamed.nix`, with a warning — never write it. |
+> | **nebelhaus** bare | the **rice** — one desktop built on the platform | **stays**, forever (§6) |
+> | `github.com/nebelhaus/*`, `nebelhaus.url`, `--override-input nebelhaus/…`, `GH_ORG` | the org, the repos, the flake input | **§3**, all in one sitting. Not now: a doc that names a repo before it moves 404s. |
+> | `nebelhaus.com` | the domain | **§5**, with the 301s |
+>
+> Plus `com.nebelhaus.*` / `org.nixos.pounce` bundle ids (**§4**), the state
+> dirs (`~/.local/state/nebelhaus`, deliberately held — §2.2), and
+> `~/.cache/claude-worktrees/` (historical, stays). **The word alone tells you
+> nothing — read the hit before you touch it**, and grep the bare word
+> separately: a rice file's top-level key is `{ haus = { … }; }`, with no dot
+> for a regex to find.
 
 **This file is the one set of instructions, for every agent.** Claude Code,
 Codex, OpenCode, Cursor, Copilot — TUI or GUI — all read *this*, directly or
@@ -111,7 +128,7 @@ Never hand-walk that ripple; the tooling does it:
 ## Agent worktrees (parallel agent sessions)
 
 Agent panes spawned with `Super a` (⌘A) run whichever client
-`nebelhaus.agents.default` names — `claude`, `codex` or `opencode`. Claude Code
+`haus.agents.default` names — `claude`, `codex` or `opencode`. Claude Code
 is the only one that can make its own worktree (`claude --worktree`, its native
 flag, which fires the `WorktreeCreate` hook → **`holt hook create`**); for Codex
 and OpenCode the keybind runs **`holt new`** instead, producing the identical

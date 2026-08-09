@@ -1,7 +1,7 @@
 ---
 name: release
 description: >-
-  Cut a release in the nebelhaus workshop with `bench release <repo> [version]` — stamp the
+  Cut a release in the hausfold workshop with `bench release <repo> [version]` — stamp the
   version, tag it, watch CI publish, then ripple the lock. Use when I say /release, "cut a
   release", "release holt", "publish the SDKs", "ship a new version to npm", or ask what the
   next version number should be. Its main job is the one thing `bench` can't do for you:
@@ -9,7 +9,7 @@ description: >-
   gated — propose the number and the command, run it only when I say go.
 ---
 
-# Release (nebelhaus workshop): pick the number → `bench release` → ripple
+# Release (hausfold workshop): pick the number → `bench release` → ripple
 
 `bench release` already does everything mechanical: stamp the version into the repo's own
 version source, commit it, push, tag `v<version>`, then BLOCK on the CI run and report when

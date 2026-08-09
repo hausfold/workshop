@@ -624,9 +624,43 @@ erroring**, so every renderer of someone else's data needs a floor.
 
 ### 2.1 🤖 Per repo
 
-- **hausfold** (was nebelhaus): `README.md`, `AGENTS.md`, `flake.nix`
-  description, `modules/**`, `presets/**`, `packs/**`, `bootstrap.sh`,
-  `hosts/example`, `LICENSE` holder line.
+🚨 **Most of the list below is not §2's, and the audit that established that is
+the useful output.** Read this before working the bullets — three of them are
+misfiled and following them literally breaks `main`.
+
+§2's own gate says the phase **changed nothing** (see the `trill`-in-`FAMILY`
+warning below, and the gate at the end of the section). Measured against that,
+every entry in this section falls into exactly one of four buckets:
+
+| bucket | example | phase |
+|---|---|---|
+| **the option namespace** | `nebelhaus.agents.default` | ✅ §1 — already done in the rice; §2 only mops up the **other** repos |
+| **brand prose** — who the family/platform/seller *is* | "the nebelhaus workshop", `part_of-nebelhaus`, `© nebelhaus` | ✅ **§2. This is all §2 actually owns.** |
+| **an identifier that resolves** — repo URL, org slug, flake input name, `GH_ORG`, `FAMILY` directory name, `--override-input nebelhaus/*` | `github.com/nebelhaus/pounce` | **§3**, which exists to "rewrite every edge" in one sitting. Renaming any of these now points a doc at a repo that 404s, or breaks a build outright — both are behavior changes, which §2 is gated against. |
+| **the domain** | `nebelhaus.com` | **§5**, with the 301s |
+
+So: **`bench`'s §2 share is one line** — its `:2` header comment, which is brand
+prose. `FAMILY:75` is a directory name settled by §3.1(b), and the repo lists and
+the `--override-input` block at `:281-284` are edges owned by §3.3. And **the
+rice's §2 share is empty**: audited 2026-08-09,
+every surviving `nebelhaus` in it is the repo name, the rice's own name (§6),
+the flake input, `nebelhaus.com`, a launchd label or a state dir. Its
+`LICENSE` holder is `Julien Martel`, not a brand. Its `flake.nix` description
+(`"nebelhaus — an opinionated macOS, raised in the fog"`) is the **rice's**
+tagline and stays until §7 actually splits the platform out of it — renaming it
+now would assert a split that hasn't happened.
+
+The two `test/haus-settings.sh` hits are the deliberate compat test for
+`haus set` accepting the old prefix. Leave them; they're the evidence §1.1a
+step 4 works.
+
+- ✅ **hausfold** (was nebelhaus): **nothing to do — see the audit above.**
+  This bullet's `modules/**`, `presets/**`, `packs/**`, `bootstrap.sh` and
+  `hosts/example` all moved in nebelhaus#261; `README.md`/`AGENTS.md` are the
+  rice's own name; `flake.nix` description and the `LICENSE` holder line are
+  §7 and not-a-brand respectively. The rice's `AGENTS.md` already carries the
+  authoritative "three things stay `nebelhaus`" stanza — read it rather than
+  re-deriving this.
 - **web**: 29 doc files under `web/src/content/docs/`.
   `start/what-is-nebelhaus.md` → `what-is-hausfold.md` (**leave a redirect**),
   `start/the-family.md`, `reference/haus.md`, `reference/options.md`
@@ -698,16 +732,91 @@ erroring**, so every renderer of someone else's data needs a floor.
   What's left for §2 in `web/` is genuinely **brand** prose —
   `what-is-nebelhaus.md` and its redirect, `astro.config.mjs`'s `site:` — which
   belongs with §5's domain move, not here.
-- **bench**: `FAMILY=(…)` at `bench:75`, the repo lists at `:1003`, `:1455`,
-  `:1541`, and the `--override-input nebelhaus/*` block at `:281-284`.
-  ⚠️ **Leave `trill` in `FAMILY` alone.** `bench:72-74` keeps it there
-  deliberately so `bench status` still reports the checkout; it carries no lock
-  edge and no release path. Removing it is a behavior change, and this phase is
-  gated on "changed nothing".
-- **workshop**: `README.md`, `AGENTS.md` routing table, `.agents/**` skills
-  (`ship`, `docs-sync`), `docs/workflows.md`.
-- **nebelung / pounce / perch / holt / org-profile / homebrew-tap**: each
-  repo's `AGENTS.md` + `CLAUDE.md` routing table and README.
+- ✅ **bench** — one line, `bench:2`'s header ("the workshop CLI for the
+  hausfold family"), done 2026-08-09. **Everything else this bullet named is a
+  resolving identifier and belongs to §3.** `FAMILY=(…)` at `bench:75` is a list
+  of *directory names* (`local_src` → `$ROOT/$1`), which §3.1's
+  on-disk-collision decision settles; the repo lists at `:1003`/`:1455`/`:1541`,
+  `GH_ORG` and the `--override-input nebelhaus/*` block at `:281-284` are
+  §3.3's edges. Moving any of them before the transfer breaks `bench` on a live
+  machine.
+  ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.** `bench:72-74`
+  keeps it there deliberately so `bench status` still reports the checkout; it
+  carries no lock edge and no release path. Removing it is a behavior change.
+  It reads **`messages`** as of workshop#269 (merged 2026-08-09), which renamed
+  the repo, this entry and the on-disk dir together — §3.4. ⚠️ **Never let it
+  become `trill` again**: that name now belongs to the notification compositor,
+  which is deliberately *not* in `FAMILY`, so a `trill` here would read as
+  either repo depending on who looked.
+- ✅ **workshop — done 2026-08-09.** `README.md` title + `part_of` badge,
+  `AGENTS.md`'s opening ("the **hausfold** workshop … every repo in the
+  **hausfold** family"), the three `.agents/skills/*` descriptions and
+  `.codex/config.toml:1`, all of which said "the nebelhaus family / workshop".
+  The routing table itself is repo names and stays.
+  ✅ Including `incubator/trill/README.md:11`'s badge, swept once workshop#269
+  landed and stopped moving that directory out from under it. *(It was
+  `incubator/flick/` when this bullet was written — deferring one line was
+  cheaper than conflicting with a whole-directory rename.)*
+
+  **Plus the namespace residue §1 structurally couldn't reach.** §1 renamed the
+  *rice*; nothing renamed the option paths quoted in **other** repos' prose, and
+  they read as live instructions: `AGENTS.md:113` told every agent the default
+  client comes from `nebelhaus.agents.default`, `.agents/README.md`'s
+  `nebelhaus.claude.skill`, the ship skill's atomicity row, and
+  `README.md`'s installer roadmap. All → `haus.*`. Find them with the root list,
+  not by eye:
+
+  ```sh
+  R=$(grep -oE '^### `haus\.[a-zA-Z0-9_]+' web/src/content/docs/reference/options.md \
+      | sed 's/^### `haus\.//' | sort -u | paste -sd'|' -)
+  grep -rnP "(?<![.\w/-])nebelhaus\.($R)\b" .
+  ```
+
+  The lookbehind is what keeps `com.nebelhaus.perch` (§4) and
+  `nebelhaus/modules/…` (a path) out of the result — **`perch` and `pounce` are
+  both option roots and both bundle-id components**, so a bare
+  `nebelhaus\.(perch|pounce)` matches the thing §4 owns.
+
+  Deliberately left: the historical anecdotes in `options-drift.yml:17` and
+  `gen-options.mjs:5` (they describe options as they were named at the time),
+  everything under `notes/` (historical record, `options-roadmap.md` §5.14),
+  and `docs/workflows.md`, whose every hit is a repo name, a URL or the domain.
+- ✅ **nebelung / pounce / perch** (+ the rice) — **done 2026-08-09**:
+  nebelhaus#266, nebelung#33, pounce#68, perch#46. The `part_of-nebelhaus`
+  shields badge in each (the family is hausfold now, and the badge is safe
+  before §3 — shields.io, no GitHub dependency), `perch/AGENTS.md:3`'s "in the
+  nebelhaus family", and **fifteen live option references the rice's own rename
+  structurally could not reach**: pounce's `docs/reference.md` and two Swift
+  files (one of them the stderr line a user reads when they try to edit a
+  store-owned `config.json` — it told them to go edit `nebelhaus.pounce.*`),
+  perch's `AGENTS.md`, `docs/reference.md` and `RicePalette.swift`, and
+  nebelung's palette-generator comment. Everything else in these repos is a
+  repo URL, the tap slug, or `nebelhaus` meaning the rice. **holt has zero
+  hits.** `org-profile` and `homebrew-tap` are §3, not §2: `nebelhaus/.github`
+  and `nebelhaus/tap` are the org's own name, and the tap slug is what
+  `brew tap` resolves.
+
+  **Two exclusions worth naming, because both look like misses:**
+  `perch/docs/architecture-decisions/0002` keeps the old spelling — an ADR is a
+  dated record of what was decided, and rewriting the option name inside one
+  makes it claim a decision taken against a namespace that didn't exist yet.
+  And `nebelhaus/test/haus-settings.sh:37-38` keeps it because it *is* the
+  regression test for `modules/renamed.nix`: it asserts `haus set` accepts the
+  pre-rename prefix and does not write it back. Renaming those two lines
+  deletes the only coverage the alias has.
+
+  🚨 **The copyright surface is one escalation, not four edits, and it is
+  already self-contradictory.** Four READMEs say `© nebelhaus`
+  (nebelung:181, pounce:133, perch:95, workshop:151) while the LICENSE files
+  they summarise say `Copyright (c) 2026 Julien Martel` — **except perch's,
+  which says `nebelhaus`** (`perch/LICENSE:9`), the only copyright line in the
+  family naming a brand. perch is the **paid** product on a fair-source
+  licence, so its holder is a legal-identity choice — `hausfold`
+  (unincorporated today, §0.2) or the person — not a naming one, and swapping
+  the word in the README alone would leave the README and the LICENSE naming
+  two different holders. **All five lines left untouched and escalated
+  2026-08-09.** Reconcile them in one deliberate pass, with §0.2's
+  incorporation trigger.
 
 ### 2.2 🤖 The agent surface specifically
 
@@ -715,10 +824,14 @@ Easy to miss and it breaks *your* sessions, not users':
 
 - ✅ `nebelhaus.claude.globalMd` → `haus.claude.globalMd`, in `hearth` — done in
   nebelhaus#261 with the rest of the namespace.
-- 🟨 The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
-  skill's own `name:` + description — **written and verified 2026-08-08; PRs
-  open as nebelhaus#263 (the rice) and workshop#268 (the docs that point at
-  it). Merge the rice one first.**
+- ✅ The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
+  skill's own `name:` + description — **landed 2026-08-08: nebelhaus#263 (the
+  rice), workshop#268 (the docs that point at it), workshop#271 (the
+  regenerated option description, auto-opened by `options-drift.yml` and merged
+  2026-08-09). Released as v2026.08.08-2 and the locks are rippled.**
+  ⏳ **`~/.claude/skills/haus/` does not exist on this machine yet** — the
+  rebuild that creates it is 👤's, and until it runs the *old* `skills/nebelhaus/`
+  is what a session actually loads. Don't read its absence as a failed rename.
   ⚠️ **Two golden tests pin that path by hand.** The literal line
   `file .claude/skills/nebelhaus/references/this-machine.md moves` is in
   **both** `expectedScaleTable` (`nebelhaus/flake.nix:1233`) and
@@ -767,8 +880,32 @@ Easy to miss and it breaks *your* sessions, not users':
   because there is no deadline forcing it.
   Decide it with §4, or leave it forever; either is defensible, silently
   half-doing it is not.
-- `~/.claude/CLAUDE.md`'s generated body (rendered from the option above) —
-  its routing table, its `holt` section.
+- ✅ `~/.claude/CLAUDE.md`'s generated body (rendered from the option above) —
+  done 2026-08-09 in `~/.config/nix` (`hosts/mbp/default.nix`): "the hausfold
+  family", and the workshop dir it names is `~/code/workshop`, renamed off
+  `nebelhaus` back in 2026-07 and never updated here.
+- ✅ **`~/.config/nix`'s own agent files, which nothing self-heals.**
+  `CLAUDE.md:22` and `.agents/README.md:41` both pointed at
+  `~/.claude/skills/nebelhaus/` and the first also named
+  `nebelhaus.claude.skill`. They were **hand-copied from the rice's shipped
+  starter pair**, so a rice-side rename can never reach them — which is the
+  general shape: *the starter pair is a copy, and every copy of a generated
+  file is a place the generator's rename doesn't arrive.* Fixed 2026-08-09,
+  along with the worktree-hook row that still said `wt create` / `wt remove`
+  (retired in nebelhaus#245).
+  ⚠️ Still on the old spelling **on purpose**: `hosts/mbp/default.nix`'s 41
+  `nebelhaus.*` option settings (§1.1a step 6 — they are what keeps proving the
+  alias works) and `AGENTS.md:67`, which points at them. Those two move
+  together or not at all. `nebelhaus.mkNebelhaus` in `flake.nix` is the input,
+  and stays.
+- ✅ **The agent memory files** (§9's tail) — swept 2026-08-09. 15 of the ~50
+  under `~/.claude/projects/-Users-julienmartel-code-workshop/memory/` carried
+  live `nebelhaus.<option>` paths; all now `haus.*`, by the root-list method in
+  §2.1. `org.nebelhaus.editoropen` and `com.nebelhaus.trill.dev` correctly
+  survived the lookbehind (§4 owns them). Added one new memory,
+  `haus-namespace-hausfold-brand.md`, carrying §2's four-bucket table — recall
+  is per-file, so the *rule* has to be a file of its own or a session only
+  learns it by accident.
 - `HAUS_CONSUMER` — already `haus`-prefixed, **no change**.
 - `holt` hooks — repo-agnostic, **no change**.
 - `~/.cache/claude-worktrees/` — already documented as historical, **leave**.
@@ -1364,8 +1501,10 @@ green. Everything else is strictly sequential.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**
   carry-over (`guides/the-bar.mdx:128`) — unrelated, but it's in the same file
   you'll be editing.
-- ~50 of the agent memory files are keyed to nebelhaus names and will misroute
-  future sessions. Cheap sweep, do it last (§2.2's tail).
+- ✅ ~50 of the agent memory files are keyed to nebelhaus names and will
+  misroute future sessions. Cheap sweep, do it last (§2.2's tail) — **done
+  2026-08-09**; 15 files held live option paths, and the rest are the rice, the
+  domain or bundle ids. See §2.2.
 - **The rice's per-room options list is duplicated** — `modules/options-modules.nix`
   and `modules/default.nix` each hold their own copy of the same 14 paths, and
   `options-modules.nix`'s header comment ("the ONLY modules that declare

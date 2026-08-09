@@ -1,12 +1,12 @@
 <div align="center">
 
-# 🧰 the nebelhaus workshop
+# 🧰 the hausfold workshop
 
 **where the family is built**
 
 the bench — every repo in one place, and the tool that moves changes between them.
 
-![part of nebelhaus](https://img.shields.io/badge/part_of-nebelhaus-f2c4e5?labelColor=202020)
+![part of hausfold](https://img.shields.io/badge/part_of-hausfold-f2c4e5?labelColor=202020)
 ![themed by nebelung](https://img.shields.io/badge/themed_by-nebelung-c9a8f1?labelColor=202020)
 ![license](https://img.shields.io/badge/license-MIT-d7d7d7?labelColor=202020)
 
@@ -139,7 +139,7 @@ bootstrap in [`.agents/`](./.agents/README.md).
 
 - **nebelhaus tui options program** — a custom install script people can `curl`
   and pipe into bash, spawning a TUI that asks for preferences (favorite IDE,
-  accent color, …) and templates `nebelhaus.*` options into the generated host
+  accent color, …) and templates `haus.*` options into the generated host
   file.
 - **the one hero shot** — media is marketing-only here (docs stay text; shots rot
   as the rice moves — see [`assets/SHOTLIST.md`](./assets/SHOTLIST.md)), and the

@@ -44,7 +44,7 @@ if (!rice) {
 // Read from the rice's `wm-bindings-json` flake output rather than by eval'ing
 // modules/prowl/wm-bindings.nix directly. That direct eval worked while the file
 // was plain data, and broke the moment the rice made it a FUNCTION of
-// nebelhaus.keys.* ("cannot convert a function to JSON") — a change in the rice
+// haus.keys.* ("cannot convert a function to JSON") — a change in the rice
 // silently breaking a script here, on a weekly cron. Same seam as
 // gen-options.mjs and the same reason: this repo shouldn't know how the rice
 // builds the table, only what it resolves to.
@@ -73,7 +73,7 @@ function readWmBindings() {
       );
     } catch (fallbackErr) {
       // The in-between state: the rice made wm-bindings.nix a FUNCTION of
-      // nebelhaus.keys.* but hasn't landed the output that resolves it. Nix's own
+      // haus.keys.* but hasn't landed the output that resolves it. Nix's own
       // message ("cannot convert a function to JSON") names neither repo, and this
       // runs on a cron, so translate it into the sentence that helps. Same
       // courtesy gen-options.mjs extends for a missing options-json.
@@ -85,7 +85,7 @@ function readWmBindings() {
             'table works.',
             '',
             'That is a transient state ACROSS two repos: the rice parameterised the',
-            'table on nebelhaus.keys.*, and the output that resolves it lands',
+            'table on haus.keys.*, and the output that resolves it lands',
             'separately. Merge the rice PR adding `wm-bindings-json` and re-run.',
             '',
           ].join('\n'),
