@@ -25,7 +25,7 @@ Apply changes with `haus rebuild`. Each option lists its **type** and
 
 ## haus.git
 
-Your commit identity — set your own. It stays in [your host file](/internals/flakes/#your-config-is-a-thin-consumer).
+Your commit identity, plus the GitHub owner this machine's work lives under — set your own. It stays in [your host file](/internals/flakes/#your-config-is-a-thin-consumer).
 
 ### `haus.git.email`
 
@@ -51,6 +51,45 @@ Example:
 
 ```nix
 "Ada Lovelace"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.git.org`
+
+`string` · default `""`
+
+The GitHub owner whose repos this machine works on. An organisation,
+or your own account: GitHub's issue search treats `org:<user>` the
+same as `user:<user>`, so one option covers both (measured against
+both qualifiers, 2026-08-08 — the counts match).
+
+It exists because a gh-dash PR section is a GitHub search filter
+scoped by `org:`. Set this **and** `haus.hearth.ghDash.enable` and
+Hearth renders four PR tabs for that owner — the open / green / red /
+just-shipped work. On its own it does nothing: it is the dashboard's
+scope, not a feature of its own.
+
+Leave it empty (the default) and Hearth writes no PR tabs at all, so
+gh-dash keeps its own and a host composing a queue in
+`programs.gh-dash.settings` never fights one. Empty is the right
+answer for a machine that reads several owners at once: there is no
+single owner to render. The issue and notification tabs are unaffected
+either way — they ask who you are (`@me`, `is:unread`) rather than
+where you work, so the dashboard ships them regardless.
+
+Where it earns its keep is a rename: an org that changes name, or a
+repo set that moves between orgs, is one word here rather than one per
+tab. A host's `repoPaths` can follow the same word instead of
+repeating it — read it as `config.haus.git.org` from a darwin-level
+module, or as `osConfig.haus.git.org` from inside
+`home-manager.users.<user>`, where `config` is home-manager's and
+carries no `haus.*` at all.
+
+Example:
+
+```nix
+"nebelhaus"
 ```
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
@@ -240,7 +279,7 @@ Always float this app's windows instead of tiling them — an
 AeroSpace `on-window-detected` rule generated from `appId`
 (`run = 'layout floating'`). Right for a picker/dialog/status
 window that would otherwise reflow the whole workspace every time
-it opens (FaceTime, Flick's Settings/Inbox), not for something you
+it opens (FaceTime, Trill's Settings/Inbox), not for something you
 work inside. Requires `appId`; ignored (with a warning) without it.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
@@ -1163,8 +1202,18 @@ Example:
 `boolean` · default `false`
 
 Whether to enable the themed gh-dash GitHub dashboard and its Cmd-G
-fullscreen Zellij overlay. Hosts can compose their own queue through
-home-manager's `programs.gh-dash.settings`.
+fullscreen Zellij overlay.
+
+Enabling it gets you the issue and notification tabs (yours, assigned,
+unread, participating). The four PR tabs — open / green / red /
+shipped — need `haus.git.org` as well, since a PR section is a search
+filter scoped to an owner. A host can compose or replace any of it
+through home-manager's `programs.gh-dash.settings`: every section list
+Hearth writes is a `mkDefault`, per list.
+
+Needs `haus.developer.git.enable` (an assertion enforces it): gh-dash
+authenticates out of `gh`'s own credentials, so the Git pack is where
+its login comes from.
 
 Example:
 
