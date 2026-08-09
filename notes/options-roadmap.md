@@ -1815,7 +1815,8 @@ Also finished the second, previously-unstarted box: `nebelhaus.roster.*.float`
 generalises the "float" half of window rules — the shape the three
 hand-hardcoded `aerospace.toml` rules (FaceTime, Flick, Ghostty) were asking to
 become. FaceTime and Flick are now ordinary `float = true` roster entries
-(`modules/prowl/default.nix`); Ghostty's rule stays hand-written on purpose —
+(`modules/prowl/default.nix` — the live entry is `haus.roster.trill`, Flick
+having been renamed by nebelhaus#264; see the naming banner at the top); Ghostty's rule stays hand-written on purpose —
 it's genuinely bespoke (assign-once-at-startup vs. float-always-at-runtime),
 racing the same AX-title-lands-late problem `titleRegex`'s own docs warn about,
 so generating it would just move the bespoke-ness into the generator.

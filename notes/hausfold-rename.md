@@ -1005,8 +1005,8 @@ the transfer, while everything local still passes:
       collision that forced it). Pick one:
       **(a)** keep the platform's *directory* named `nebelhaus/` even though the
       repo is `hausfold/hausfold` — zero churn, mildly confusing; or
-      **(b)** move the website checkout to `website/` and update `bench:1003`'s
-      `repos=(… hausfold consumer)` list plus the comment at `bench:1000-1002`.
+      **(b)** move the website checkout to `website/` and update `bench:1005`'s
+      `repos=(… hausfold consumer)` list plus the comment at `bench:1002-1004`.
       **✅ Resolved by §5.1's decision: take (b).** The site consolidates into
       `hausfold/hausfold.co`, so the checkouts become `workshop/hausfold/` (the
       platform) and `workshop/hausfold.co/` (the site) — each named for its repo.
@@ -1198,7 +1198,7 @@ This is §3.1's on-disk-collision finding recurring with different names: two
 family repos wanting one directory. It was resolved there by naming each
 checkout for its repo, and the same rule settles it here.
 
-**Inherited leftovers in `web/` — all cleared, 2026-08-09 (workshop#269).** The
+**Inherited leftovers in `web/` — all cleared, 2026-08-08 (workshop#269).** The
 bullets below were written mid-PR, when the plan was to *repoint* the archived
 app's plumbing; the PR's last web commit **removed** it instead — the site
 presents the living family only. Kept with their outcomes because two of them
@@ -1903,8 +1903,8 @@ green. Everything else is strictly sequential.
 
 ## §9 — Loose ends found while writing this
 
-- ✅ **`bench`'s `FAMILY` entry for the archived client — closed 2026-08-09, and
-  it took three PRs to get there.** It listed **`trill`**, deliberately, so
+- ✅ **`bench`'s `FAMILY` entry for the archived client — closed 2026-08-09.**
+  It listed **`trill`**, deliberately, so
   `bench status` reported the checkout; recorded here only because it reads like
   drift and gets "fixed" otherwise. §3.4 then changed what the entry *meant* —
   `FAMILY` entries are directory names, and that directory now belongs to the
