@@ -734,13 +734,13 @@ step 4 works.
   belongs with §5's domain move, not here.
 - ✅ **bench** — one line, `bench:2`'s header ("the workshop CLI for the
   hausfold family"), done 2026-08-09. **Everything else this bullet named is a
-  resolving identifier and belongs to §3.** `FAMILY=(…)` at `bench:75` is a list
+  resolving identifier and belongs to §3.** `FAMILY=(…)` at `bench:83` is a list
   of *directory names* (`local_src` → `$ROOT/$1`), which §3.1's
-  on-disk-collision decision settles; the repo lists at `:1003`/`:1455`/`:1541`,
-  `GH_ORG` and the `--override-input nebelhaus/*` block at `:281-284` are
-  §3.3's edges. Moving any of them before the transfer breaks `bench` on a live
+  on-disk-collision decision settles; the repo lists at `:1011`/`:1551`,
+  `GH_ORG` at `:84` and the `--override-input nebelhaus/*` block at `:288-292`
+  are §3.3's edges — along with eight more literals §3.3 enumerates. Moving any of them before the transfer breaks `bench` on a live
   machine.
-  ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.** `bench:72-74`
+  ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.** `bench:80-82`
   keeps it there deliberately so `bench status` still reports the checkout; it
   carries no lock edge and no release path. Removing it is a behavior change.
   It reads **`messages`** as of workshop#269 (merged 2026-08-09), which renamed
@@ -963,14 +963,26 @@ over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` 
 transfers in one sitting**, then one lock ripple — a half-migrated org means
 flake inputs resolving through redirects for days.
 
-### 3.1 🟨 Pre-flight — audited 2026-08-08, one 👤 command left
+### 3.1 🟨 Pre-flight — audited 2026-08-08, **five boxes left**
 
 **All six bullets below are now settled** — four measured against the live API
 2026-08-08, and the first two ticked because their own prose already resolved
 them (there is no name collision; the on-disk one is resolved by §5.1). Which
-turns the transfer sitting into clicking. The audit also found four
-owner-keyed identifiers the original list didn't have — they are the part that
-breaks *after* the transfer, while everything local still passes.
+turns the transfer sitting into clicking.
+
+**But the section closes with five open boxes, not one.** `gh auth refresh` is
+the only *command*; the other four are the owner-keyed identifiers the original
+list didn't have, and §3.3's gate now depends on all four. They break *after*
+the transfer, while everything local still passes:
+
+- [ ] 👤 `gh auth refresh -h github.com -s admin:org`, then list the org secrets
+- [ ] 🤖 **`bench`'s `GH_ORG` can no longer be one value** — §3.4 keeps the
+      archived Messages client in `nebelhaus` while `FAMILY` still lists it, so
+      `bench clone` hard-fails on a fresh machine the moment `GH_ORG` moves.
+      The diagnosis, the fix and the seven other `bench` sites are in **§3.3**,
+      but the box lives here because §8's order runs §3.3 *after* the transfer
+      and this one has to be done *before* it.
+- [ ] the four identifiers below (their own checklist follows the table)
 
 - [x] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
       Confirm **no GitHub name collision** with an incoming repo — there isn't
@@ -979,8 +991,8 @@ breaks *after* the transfer, while everything local still passes.
       *(Decided here — but **still unimplemented in `bench`, and pointing the
       wrong way**. See §3.3's `bench` subsection: that is where it gets fixed.)*
       `bench` resolves `FAMILY` entries as *directory names* under the workshop
-      root (`local_src` → `$ROOT/$1` at `bench:252`; `cmd_clone`'s
-      `[ -d "$ROOT/$name/.git" ]` at `bench:1541`). Renaming the FAMILY entry
+      root (`local_src` → `$ROOT/$1` at `bench:255-261`; `cmd_clone`'s
+      `[ -d "$ROOT/$name/.git" ]` at `bench:1554`). Renaming the FAMILY entry
       `nebelhaus` → `hausfold` puts the platform checkout at
       `~/code/workshop/hausfold` — **which is already the site checkout**
       (`hausfold/website` then, `hausfold/hausfold.co` now). This repo survived
@@ -1244,18 +1256,35 @@ bootstrap), and `.github/workflows/*` that reference `nebelhaus/`.
 
 #### The census, taken 2026-08-09 — and the grep count is a lie
 
-**609 owner-keyed hits** across the eleven checkouts (`nebelhaus/<repo>`, all
-repos, `.git`/`DerivedData`/`node_modules`/`flake.lock` excluded). That number is
-worth writing down only so nobody plans around it: **almost none of it is the
-work.** 175 of the 609 are one generated file, and a further ~90 must NOT be
-touched at all. Sweep by tier, not by grep:
+**649 owner-keyed hits** across the eleven checkouts. The regex is
+`nebelhaus/(nebelung|pounce|perch|holt|holt-swift|nebelhaus|workshop|homebrew-tap|\.github|messages|trill|flick)\b`,
+excluding `.git`/`DerivedData`/`node_modules`/`flake.lock`.
 
-| Tier | What | Count | When |
-|---|---|---|---|
-| **A — breaks, no redirect saves it** | the three `flake.nix` `original` owners (table above); `bench`'s `GH_ORG`/`FAMILY`/`$ROOT` assumptions (below); holt's `MIRROR_TOKEN` PAT + three OIDC trusted publishers (§3.1) | ~15 lines | **in the sitting** |
-| **B — rides a redirect, but the redirect is now permanent** | perch's and pounce's `UpdateCheck` endpoints (below); the tap's `url`/`homepage` (CI rewrites them at the next release, so they self-heal); 8 `.github/workflows/*` files with an owner-qualified `repository:`; every release-asset URL | ~40 lines | verify after, don't rush |
-| **C — prose, cosmetic, sweep at leisure** | READMEs, `AGENTS.md`s, `docs/`, the site's hand-written pages | ~430 lines | any time |
-| **D — false positives, do NOT sweep** | everything under "the rice keeps its name" (below) | ~90 lines | never |
+⚠️ **Re-run it with `--hidden` or the number is 609 and the workflows are
+missing.** `rg` skips dotfile directories by default, so a plain run drops all
+**40** hits under `.github/` — which is exactly the Tier B row below. A census
+that doesn't count the thing it tiers is worse than no census.
+
+Measured, by file kind (all-in, 649):
+
+| Kind | Hits |
+|---|---|
+| generated — `web/src/content/docs/reference/options.md` alone | **175** |
+| prose — `.md` / `.mdx` / `.txt` / `.astro` / `.html`, that file excluded | **236** |
+| code, config, workflows, scripts | **238** |
+
+And by what to *do* about it, which is the only split that matters:
+
+| Tier | What | When |
+|---|---|---|
+| **A — breaks, no redirect saves it** | the three `flake.nix` `original` owners (table above); `bench` (below — more sites than you'd guess); holt's `MIRROR_TOKEN` PAT + three OIDC trusted publishers (§3.1) | **in the sitting** |
+| **B — rides a redirect, but the redirect is now permanent** | perch's and pounce's `UpdateCheck` endpoints (below); the tap's `url`/`homepage` (CI rewrites them at the next release, so they self-heal); every release-asset URL; the 40 hits under `.github/` — 8 workflow files carry an owner-keyed reference, of which **5** are an `actions/checkout` `repository: nebelhaus/…` (workshop ×2, pounce, perch, messages) | verify after, don't rush |
+| **C — prose, cosmetic** | READMEs, `AGENTS.md`s, `docs/`, the site's hand-written pages | any time |
+| **D — do NOT sweep** | ≥126 measured: `messages/` alone is **66** (§3.4 — it stays in the `nebelhaus` org) and holt's Go imports are **60**, plus every `nebelhaus/modules/…` source path. See the Tier D table below | never |
+
+The tiers deliberately don't sum to 649 — a hit can be prose *and* Tier D, and
+the generated 175 sit outside all four. **Don't reconcile the arithmetic; use
+the tiers to decide, and the kinds to estimate.**
 
 **The single largest concentration is generated, and that makes it the cheapest
 thing here, not the most expensive.** `web/src/content/docs/reference/options.md`
@@ -1293,11 +1322,20 @@ checkouts become `workshop/hausfold/` (the **platform**) and `workshop/hausfold.
 (`git clone https://github.com/hausfold/hausfold.co.git "$ROOT/hausfold"`), and on
 this machine today `workshop/hausfold/` is a **stale clone of the archived,
 private `hausfold/website`** while `workshop/hausfold.co/` holds the real site.
-This bites the moment §3.3 renames the `FAMILY` entry `nebelhaus` → `hausfold`:
-`local_src()` (`bench:254-260`) resolves a family repo as `$ROOT/$1`, so
-`local_src hausfold` returns the **website checkout**, and `bench try`'s
-`--override-input` would silently build the rice against it. Nothing errors —
-the override just points somewhere absurd.
+This bites when `FAMILY`'s `nebelhaus` entry becomes `hausfold`: `local_src()`
+(`bench:255-261`) resolves a family repo as `$ROOT/$1`, so `local_src hausfold`
+returns the **website checkout**.
+
+⚠️ **The failure mode depends on how far the rename got, and only one of the two
+is loud.** `overrides()` (`bench:288-292`) does *not* read `FAMILY` — it passes a
+hardcoded `local_src nebelhaus`. So:
+
+- rename `FAMILY` **only** → `local_src nebelhaus` → `$ROOT/nebelhaus`, which no
+  longer exists, and nix errors immediately. Annoying, but safe.
+- rename `FAMILY` **and** `bench:288` → `local_src hausfold` → the website
+  checkout, and `bench try` silently builds the rice against a folder of HTML.
+  **Nothing errors.** This is the one to avoid, and it is the state a careful
+  half-finished sweep lands in.
 
 - [ ] `rm -rf ~/code/workshop/hausfold` (the stale `hausfold/website` clone —
       that repo is archived, and `hausfold.co/` supersedes it)
@@ -1308,11 +1346,31 @@ the override just points somewhere absurd.
       twice in one array**, and `bench pull` fast-forwards one checkout under
       the other's identity. The `bench:1008` and `bench:1562-1571` comments
       follow.
-- [ ] only then rename the `FAMILY` entry
+- [ ] add `/hausfold.co/` to the workshop's `.gitignore` and retire `/nebelhaus/`
+      there once the FAMILY entry moves — the ignore file names both checkouts
+- [ ] **only then** rename the `FAMILY` entry — and when you do, rename it
+      *everywhere*, because `nebelhaus` is spelled out as a literal in eight
+      more places `FAMILY` doesn't reach: `OVERRIDABLE` (`bench:94`), the
+      lock-edge table (`:225-229`), `overrides()` (`:288-292`), the
+      release-audience case (`:535,542`), the version-file case arms
+      (`:1045,1056,1070`), and the release allowlist (`:1365,1371`).
+      **`FAMILY` is not the single source of truth it looks like.**
 
-**Both of these are `bench` edits and they belong in the same PR as `GH_ORG`.**
-Do them *before* the transfer sitting, not after: neither depends on the repos
-having moved, and doing them first means the sitting's only follow-up is locks.
+**All of this is `bench` edits and they belong in the same PR as `GH_ORG`.** Do
+them *before* the transfer sitting, not after: none of it depends on the repos
+having moved, and doing it first means the sitting's only follow-up is locks.
+
+💡 **`cmd_clone` already has the shape the `GH_ORG` fix needs.** `bench:1553` is
+`[ "$name" = "org-profile" ] && repo=".github"` — a per-repo override of the
+*name*. `messages` needs the identical thing for the *owner*, which makes the
+fix two lines rather than a refactor.
+
+⚠️ One more that only shows up at build time: `overrides()` emits
+`--override-input nebelhaus/nebelung`, `nebelhaus/pounce`, … Those are **flake
+input paths**, not repo owners — the leading `nebelhaus` is the input's *name*
+in `~/.config/nix/flake.nix`. Whether that input gets renamed to `hausfold` is a
+👤 call on a 👤 file (§3.3's third flake), and `bench:288-292` has to move in the
+same breath as it or every override silently addresses a non-existent input.
 
 #### The two shipped-binary edges — why the dead org can never be deleted
 
@@ -1341,11 +1399,12 @@ next to the org, not just here.
 |---|---|
 | `/Library/Application Support/nebelhaus/perch.installed-from` | a **two-repo contract**: written by the rice (`nebelhaus/modules/perch/default.nix`), read by perch (`Perch/Platform/UpdateCheck.swift:118`, documented at `perch/docs/architecture-decisions/0003-*.md`). Rename it in one repo and perch stops recognising a rice install — it would start nudging rice users to download from GitHub. It is the *rice's* directory and the rice keeps its name. |
 | `~/.local/state/nebelhaus/` | §2.2, deliberately held |
+| ⚠️ *(those two are **not** among the 649)* | neither matches the census regex — there's no repo name after the slash. A sweeper who reads "Tier D is ≥126 of the hits" and assumes the state dirs are inside that number is wrong: **they need their own grep**, which is §2.2's whole point |
 | `nebelhaus/modules/…` source paths in docs | the rice's own tree |
 | everything in `messages/` (24 hits) | §3.4 — it stays in the `nebelhaus` org |
-| holt's 60 internal `github.com/nebelhaus/holt/internal/…` imports across 23 `.go` files | see below |
+| holt's Go imports — **60 lines across 23 `.go` files** for `github.com/nebelhaus/holt`, of which 59/22 are `…/internal/…` and the 60th is in `sdk/go` | see below |
 
-**Correction to §3.1's identifier table: holt's Go module path is not one line.**
+**Why §3.1's identifier table now carries an "it is not one line" warning.**
 That table cites `sdk/go/go.mod:1`, but `holt/go.mod:1` is
 `module github.com/nebelhaus/holt` — the *root* module — and every internal
 import in the repo spells it out: **60 import lines across 23 `.go` files**, plus
@@ -1811,14 +1870,17 @@ green. Everything else is strictly sequential.
 
 ## §9 — Loose ends found while writing this
 
-- `bench:75` still lists **`trill`** in `FAMILY` — and that was **deliberate**
-  (`bench:72-74`), so `bench status` keeps reporting the checkout. Recorded here
-  only because it reads like drift and will get "fixed" otherwise. See §2.1.
-  ⚠️ **§3.4 changed what that entry means.** `FAMILY` entries are directory
-  names, and the directory is about to belong to the *notification compositor*.
-  When the archived client's repo is renamed, its checkout renames with it and
-  this entry must follow — or `bench status` silently reports one repo under the
-  other's name. Decide there whether the dead client is worth an entry at all.
+- ✅ **Closed 2026-08-09 — `FAMILY` reads `messages`, and the entry stays.**
+  This used to read "`bench:75` still lists `trill` in `FAMILY`", recorded
+  because it looks like drift and gets "fixed" otherwise. §3.4 executed it: the
+  repo, the entry and the on-disk dir renamed together (workshop#269), so
+  `FAMILY` is now at **`bench:83`** and reads `messages`, with the
+  deliberately-keep-it comment at `:80-82`. The entry is still deliberate — no
+  lock edge, no release path, but `bench status` reports the checkout.
+  ⚠️ **Never let it become `trill` again**: that name belongs to the
+  notification compositor, which is deliberately *not* in `FAMILY`.
+  ⚠️ And `FAMILY` is **not** the single source of truth for the word — §3.3's
+  `bench` subsection lists eight more places `nebelhaus` is a literal.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**
   carry-over (`guides/the-bar.mdx:128`) — unrelated, but it's in the same file
   you'll be editing.
