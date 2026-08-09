@@ -1242,11 +1242,16 @@ were recorded here as blockers and are not blockers any more:
   demo's mock browser still read *"Your Messages, native."* under a
   `nebelhaus.com/pounce` URL pill — a rendered, on-screen tagline for the
   archived app, missed because it names the product nowhere in the markup.
-- ⚠️ One thing left deliberately: the ~70 classes that dead branch *shared*
-  with the live demos (`.chat-row`, `.bubble`, `.tapback`, `.search-sheet`, …)
-  sit under an `ORPHANED` note in `ProductDemo.astro` rather than being purged
-  in the same change, so a broken pounce/perch demo could never be blamed on
-  the removal. Purging them is a separate, verifiable-on-its-own change.
+- ✅ The ~70 classes that dead branch *shared* with the live demos
+  (`.chat-row`, `.bubble`, `.tapback`, `.search-sheet`, …) sat under an
+  `ORPHANED` note rather than being purged in the same change, so a broken
+  pounce/perch demo could never be blamed on the removal. That worry has
+  passed and workshop#291 swept them: 1,005 lines, 305 rules and 31 keyframes
+  out, **0 surviving rules rewritten** — a rule died only when a selector named
+  a class absent from the markup, a `@keyframes` only when nothing animated it.
+  Because `inlineStylesheets: 'always'` inlines this CSS, `/pounce` dropped
+  80,849 → 62,549 bytes and `/perch` 78,703 → 60,403. A negative test now
+  fails if any of it comes back.
 
 So the compositor's page starts from a clean `/trill`, a free `/download/trill`
 and no product colour of its own yet — `--neb-product-trill` will have to be

@@ -46,9 +46,16 @@ describe('product landing demos', () => {
 
   it('keeps every preview animated and reduced-motion safe', () => {
     expect(component).toContain('animation: palette-summons');
-    expect(component).toContain('animation: message-arrives');
     expect(component).toContain('animation: shelf-opens');
     expect(component).toContain('@media (prefers-reduced-motion: reduce)');
+  });
+
+  // The component rendered a third demo until the incubator closed; its ~70
+  // classes and their keyframes outlived the markup by one change. Nothing
+  // renders them now, so a hit here means dead CSS crept back in.
+  it('carries no styles for the retired third demo', () => {
+    expect(component).not.toMatch(/\.chat-row|\.bubble|\.tapback|\.search-sheet|\.library-pane/);
+    expect(component).not.toMatch(/@keyframes (message-arrives|tapback-pops|library-opens)/);
   });
 
   // Matches on real usage, not prose — the earlier version of this test read
