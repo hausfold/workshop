@@ -32,7 +32,7 @@ The neutral greys stay fixed; only the **accent** hue changes. Set it once in
 your host file:
 
 ```nix
-nebelhaus.theme.accent = "sapphire";
+haus.theme.accent = "sapphire";
 ```
 
 Then `haus rebuild`. The accent re-tints the tools that render per-accent
@@ -59,10 +59,10 @@ own accent variable that defaults to `mauve`.
 Declare the extension and the rice closes that loop:
 
 ```nix
-nebelhaus.zen.extensions.stylus = { };
+haus.zen.extensions.stylus = { };
 ```
 
-It deploys Stylus (via Firefox's enterprise-policy file — `nebelhaus.roster`
+It deploys Stylus (via Firefox's enterprise-policy file — `haus.roster`
 can't install add-ons) and stamps nebelung's userstyle bundle from **your**
 theme: the accent, the flavor, and the contrast it's rendered for. All three
 axes on this page reach the web.
@@ -98,7 +98,7 @@ The default greys are deliberately soft. If text doesn't separate enough from it
 background — a bright room, a glossy screen, or just eyes that prefer more edge:
 
 ```nix
-nebelhaus.theme.contrast = "high";
+haus.theme.contrast = "high";
 ```
 
 Same hues, same accents; the neutral ramp is pulled apart in OKLCH so every step
@@ -112,18 +112,18 @@ zellij, glow, starship, lazygit, the bar, Zen, Obsidian. It does **not** touch
 native macOS apps, which have their own switch:
 
 ```nix
-nebelhaus.accessibility.increaseContrast = true;
+haus.accessibility.increaseContrast = true;
 ```
 
 The two are complementary, and a genuinely high-contrast Mac wants both. That
 one needs Full Disk Access on whatever you rebuild from — see its
-[option reference](/reference/options/#nebelhausaccessibilityincreasecontrast).
+[option reference](/reference/options/#hausaccessibilityincreasecontrast).
 </Aside>
 
 ## Light mode
 
 ```nix
-nebelhaus.theme.flavor = "latte";
+haus.theme.flavor = "latte";
 ```
 
 Light mode is **not** the dark palette inverted. nebelung is "Catppuccin with the
@@ -150,7 +150,7 @@ directions, so a light rice on a dark Mac looks half-finished. One option
 finishes it:
 
 ```nix
-nebelhaus.theme.systemAppearance = "flavor";  # latte → Light, mocha → Dark
+haus.theme.systemAppearance = "flavor";  # latte → Light, mocha → Dark
 ```
 
 `"light"` and `"dark"` pin it instead, and the default `"unmanaged"` is what
@@ -172,13 +172,13 @@ so pick Light or Dark there if you want this to stick.
 **Pounce** and **Perch** are the exception in the other direction: both read
 their palette at runtime and follow macOS's Light/Dark themselves, so on a dark
 Mac they stay dark even under `flavor = "latte"`. Pin them to the flavor with
-`nebelhaus.pounce.followSystemAppearance = false` /
-`nebelhaus.perch.followSystemAppearance = false` — though if you set
+`haus.pounce.followSystemAppearance = false` /
+`haus.perch.followSystemAppearance = false` — though if you set
 `systemAppearance = "flavor"` above, macOS's polarity *is* the rice's, so those
 two follow the flavor anyway and pinning them is only needed while macOS stays
 unmanaged.
 
-The three hand-made [wallpapers](/reference/options/#nebelhausthemewallpaper) do
+The three hand-made [wallpapers](/reference/options/#hausthemewallpaper) do
 keep their dark palette — their pixels are already coloured. `wallpaper = "bold"`
 is generated and follows your accent.
 </Aside>
@@ -190,7 +190,7 @@ doesn't guess which folders are yours. List the vaults you want Nebelung to
 manage as home-relative paths:
 
 ```nix
-nebelhaus.hearth.obsidianVaults = [
+haus.hearth.obsidianVaults = [
   "Library/Mobile Documents/iCloud~md~obsidian/Documents/notes"
 ];
 ```
@@ -218,7 +218,7 @@ same treatment automatically, as long as the name you keyed the entry under
 matches a nebelung port:
 
 ```nix
-nebelhaus.roster = {
+haus.roster = {
   zed  = { key = "e"; name = "Zed";  appId = "dev.zed.Zed";     cask = "zed"; };
   warp = { key = "w"; name = "Warp"; appId = "dev.warp.Warp-Stable"; cask = "warp"; };
 };
@@ -230,7 +230,7 @@ flavor, contrast and accent, and re-written whenever you change them. Nothing
 else to wire.
 
 The key is the **roster id**, not the display name: `zed`, not `zed-editor`. Set
-`nebelhaus.theme.ports.enable = false` to turn the whole pass off.
+`haus.theme.ports.enable = false` to turn the whole pass off.
 
 ### Which ones need a click
 

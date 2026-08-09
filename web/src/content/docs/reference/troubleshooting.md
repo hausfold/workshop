@@ -31,7 +31,7 @@ pounce --request-accessibility   # approve the system dialog
 pounce --check-accessibility     # prints true when granted
 ```
 
-Set `nebelhaus.pounce.signingIdentity` so this grant survives rebuilds — see
+Set `haus.pounce.signingIdentity` so this grant survives rebuilds — see
 [Pounce config](/reference/pounce/). If ⌘Space still opens **Spotlight**, log
 out and back in once so the symbolic-hotkey reassignment takes.
 
@@ -79,7 +79,7 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.sketchybar.pli
 sketchybar --reload
 ```
 
-If you'd rather not run a custom bar at all, set `nebelhaus.sill.enable = false`
+If you'd rather not run a custom bar at all, set `haus.sill.enable = false`
 and the native macOS menu bar comes back.
 
 ## After a macOS upgrade, *all* my agents are dead (macOS 26 Tahoe+)
@@ -127,7 +127,7 @@ rice disables that requirement globally (`HOMEBREW_NO_REQUIRE_TAP_TRUST=1` in
 
 ## An app I removed from my config is still installed
 
-By design. `nebelhaus.homebrew.cleanup` defaults to `"none"`, so nothing you
+By design. `haus.homebrew.cleanup` defaults to `"none"`, so nothing you
 installed is ever auto-deleted, and **`haus rollback` doesn't rewind Homebrew
 apps** (they're not in Nix generations). Remove one by hand:
 
@@ -136,7 +136,7 @@ brew uninstall --zap <cask>
 ```
 
 Want a fully declarative machine where undeclared casks get removed on rebuild?
-Set `nebelhaus.homebrew.cleanup = "zap";` — see
+Set `haus.homebrew.cleanup = "zap";` — see
 [Making it yours](/guides/making-it-yours/#homebrew-behaviour).
 
 ## A rebuild broke something — get back fast
@@ -165,6 +165,6 @@ Macs need none of this — the bootstrap installs Determinate for you.
 
 - [Keybindings cheatsheet](/reference/keybindings/) — or tap `⇪` then `/` for the
   live, roster-aware version.
-- [nebelhaus.* options](/reference/options/) — every knob and its default.
+- [haus.* options](/reference/options/) — every knob and its default.
 - [Open an issue](https://github.com/nebelhaus/nebelhaus/issues) with the output
   of `haus doctor`.

@@ -51,8 +51,8 @@ terminal is always <kbd>⇪</kbd> <kbd>T</kbd>, the browser is always
 launched if it isn't running, focused if it is, and it lands on *its* workspace
 every time. Your hands stop negotiating with the window manager.
 
-That scheme comes from **two keyed maps that pair up**: `nebelhaus.roster` says
-what the machine has and which letter launches it, and `nebelhaus.workspaces`
+That scheme comes from **two keyed maps that pair up**: `haus.roster` says
+what the machine has and which letter launches it, and `haus.workspaces`
 says which workspaces exist and which roster apps live on each. Keeping
 membership on the *workspace* is what lets one workspace hold several apps — a
 `comms` space with Slack, Mail and Messages — instead of forcing one app per
@@ -81,7 +81,7 @@ binding set.
 
 ## The cookbook
 
-Every knob below is a `nebelhaus.*` option (or a plain nix-darwin one) you set in
+Every knob below is a `haus.*` option (or a plain nix-darwin one) you set in
 your host file. This is the tour; the exhaustive list with types and defaults is
 the [options reference](/reference/options/).
 
@@ -91,7 +91,7 @@ ask in plain words instead: [Changing your Mac with an
 agent](/guides/ai-agent/).
 
 Or read the surface straight out of your own config. A fresh install drops a
-`hosts/<host>/options.nix` beside your host file — every `nebelhaus.*` option at
+`hosts/<host>/options.nix` beside your host file — every `haus.*` option at
 its default, a sentence each, **all commented out**. Uncomment what you want,
 delete what you'll never touch; you find out a knob exists by reading the file you
 already edit. It's rendered from the rice you're pinned to, so it can't advertise
@@ -122,7 +122,7 @@ haus get theme.accent        # teal
 haus reset theme.accent      # remove the override; inherit the rice/preset again
 ```
 
-Only `nebelhaus.*` options cross this writable boundary (the prefix is optional
+Only `haus.*` options cross this writable boundary (the prefix is optional
 on the command line). `haus unset <path> […]` explicitly writes `null` for
 nullable options; `haus reset <path> […]` removes the generated overrides. Both
 take a list, and — like `haus set`'s pairs — apply it all-or-nothing in a single
@@ -132,16 +132,16 @@ reference](/reference/haus/#the-writable-settings-overlay) for the exact model.
 ### Identity
 
 ```nix
-nebelhaus.git.name = "Ada Lovelace";
-nebelhaus.git.email = "ada@example.com";
-nebelhaus.git.signingKey = "6F7BD6F43A7C1420";  # "" to disable commit signing
+haus.git.name = "Ada Lovelace";
+haus.git.email = "ada@example.com";
+haus.git.signingKey = "6F7BD6F43A7C1420";  # "" to disable commit signing
 ```
 
 ### The look
 
 ```nix
-nebelhaus.theme.accent = "sapphire";   # any of 14 Catppuccin accent names
-nebelhaus.theme.wallpaper = "orbits";  # none | orbits | constellation | flow | bold
+haus.theme.accent = "sapphire";   # any of 14 Catppuccin accent names
+haus.theme.wallpaper = "orbits";  # none | orbits | constellation | flow | bold
 ```
 
 `accent` recolours lazygit, fzf, yazi/Glow, and the browser accent; `bold` generates
@@ -150,8 +150,8 @@ a wallpaper from your accent. Full palette on [Theming & accents](/guides/themin
 ### The shell
 
 ```nix
-nebelhaus.hearth.editor = "nvim";                # the ONE editor: $EDITOR + every "open in editor" action
-nebelhaus.hearth.hijackFileAssociations = false; # make that editor the default file opener
+haus.hearth.editor = "nvim";                # the ONE editor: $EDITOR + every "open in editor" action
+haus.hearth.hijackFileAssociations = false; # make that editor the default file opener
 ```
 
 More on each in [The shell](/guides/the-shell/).
@@ -159,17 +159,17 @@ More on each in [The shell](/guides/the-shell/).
 ### Apps, tiling & the launcher
 
 ```nix
-nebelhaus.roster.slack = { /* one keyed roster entry — see Adding apps */ };
-nebelhaus.prowl.enable = true;    # false: no tiling, no Caps-Lock remap
-nebelhaus.pounce.enable = true;   # false: no ⌘Space palette
-nebelhaus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant across rebuilds
+haus.roster.slack = { /* one keyed roster entry — see Adding apps */ };
+haus.prowl.enable = true;    # false: no tiling, no Caps-Lock remap
+haus.pounce.enable = true;   # false: no ⌘Space palette
+haus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant across rebuilds
 ```
 
 ### The bar
 
 ```nix
-nebelhaus.sill.enable = true;              # false: keep the native macOS menu bar
-nebelhaus.sill.items.elgato = true;        # opt-in extras: agents | aiUsage | cpu |
+haus.sill.enable = true;              # false: keep the native macOS menu bar
+haus.sill.items.elgato = true;        # opt-in extras: agents | aiUsage | cpu |
                                            # memory | volume | calendar | caffeinate |
                                            # elgato | harvest
 ```
@@ -183,7 +183,7 @@ The built-in tour teaches nebelhaus's four core moves. A shared rice can replace
 that lap with its own instructions while staying data-only:
 
 ```nix
-nebelhaus.tour.steps = [
+haus.tour.steps = [
   {
     hint = "Press {palette}, type tour, then hit ↵";
     detect = "palette";
@@ -218,18 +218,18 @@ that — one step, the launcher.
 ### Homebrew behaviour
 
 ```nix
-nebelhaus.homebrew.cleanup = "none";    # none | uninstall | zap — how rebuild treats undeclared apps
-nebelhaus.homebrew.autoUpdate = false;  # brew update before each rebuild
-nebelhaus.homebrew.upgrade = false;     # upgrade outdated packages each rebuild
+haus.homebrew.cleanup = "none";    # none | uninstall | zap — how rebuild treats undeclared apps
+haus.homebrew.autoUpdate = false;  # brew update before each rebuild
+haus.homebrew.upgrade = false;     # upgrade outdated packages each rebuild
 ```
 
 `cleanup` defaults to `"none"` so nothing you installed by hand is ever removed.
 Set it to `"zap"` if you want a *fully* declarative machine where undeclared
 casks get uninstalled on rebuild.
 
-These are policy knobs only — the apps themselves belong in `nebelhaus.roster`,
+These are policy knobs only — the apps themselves belong in `haus.roster`,
 including the ones you don't want a launcher key for (just omit `key`). See
-[Adding apps & tools](/guides/adding-apps/#one-list-nebelhausroster).
+[Adding apps & tools](/guides/adding-apps/#one-list-hausroster-and-one-that-pairs-with-it).
 
 <Aside type="tip" title="Keeping casks current">
 `autoUpdate` and `upgrade` are **off by default** so a rebuild is
@@ -245,8 +245,8 @@ brew upgrade --cask zen
 — or set both knobs to `true` so every rebuild tracks upstream latest:
 
 ```nix
-nebelhaus.homebrew.autoUpdate = true;  # brew update first, so it sees new versions
-nebelhaus.homebrew.upgrade = true;     # then upgrade outdated casks
+haus.homebrew.autoUpdate = true;  # brew update first, so it sees new versions
+haus.homebrew.upgrade = true;     # then upgrade outdated casks
 ```
 
 The trade-off is the flip side of reproducibility: a rebuild may now upgrade
@@ -261,14 +261,14 @@ Four rooms are opt-*out*; the rest are load-bearing:
 
 | Room | Option | Off means |
 |---|---|---|
-| prowl (tiling) | `nebelhaus.prowl.enable = false` | No AeroSpace, no leader key |
-| sill (bar) | `nebelhaus.sill.enable = false` | The native menu bar stays |
-| pounce (launcher) | `nebelhaus.pounce.enable = false` | ⌘Space stays Spotlight |
-| apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `nebelhaus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
+| prowl (tiling) | `haus.prowl.enable = false` | No AeroSpace, no leader key |
+| sill (bar) | `haus.sill.enable = false` | The native menu bar stays |
+| pounce (launcher) | `haus.pounce.enable = false` | ⌘Space stays Spotlight |
+| apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `haus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
 
 If what you actually want is the tiler **without** its keyboard claims, don't turn
-the room off — set `nebelhaus.keys.leader = "none"` and
-`nebelhaus.keys.windowNav = "none"` instead. prowl keeps tiling and Caps-Lock stays
+the room off — set `haus.keys.leader = "none"` and
+`haus.keys.windowNav = "none"` instead. prowl keeps tiling and Caps-Lock stays
 Caps-Lock. See [rebinding](/guides/window-management/#not-fond-of-these-keys).
 
 **den** (system + Homebrew), **hearth** (shell), and **collar** (Touch ID sudo)
@@ -278,7 +278,7 @@ optional rooms off and the others keep working; the rice degrades gracefully.
 ## Presets: start from someone else's rice
 
 A **preset** is a data-only rice — a file whose only top-level key is
-`nebelhaus`. No `pkgs`, no `lib`, no activation scripts, so it can't reach outside
+`haus`. No `pkgs`, no `lib`, no activation scripts, so it can't reach outside
 the option surface and you can read one in a minute and know the worst it can do.
 Import one alongside your host file:
 
@@ -301,7 +301,7 @@ definitions merge, so restating a preset's own choice costs you nothing.)
 ```nix
 { lib, ... }:                              # add lib to your host's args
 {
-  nebelhaus.ui.scale = lib.mkForce 1.0;    # large-print sets this — force to win
+  haus.ui.scale = lib.mkForce 1.0;    # large-print sets this — force to win
 }
 ```
 
@@ -385,7 +385,7 @@ Dark). It is a typed nix-darwin option, and on macOS 26 writing it does nothing
 in either direction — the key is where macOS *mirrors* the appearance it's
 showing, not a lever, so even a plist read-back agrees with you while nothing
 changes. `haus diff` flags it. Use
-[`nebelhaus.theme.systemAppearance`](/reference/options/#nebelhausthemesystemappearance)
+[`haus.theme.systemAppearance`](/reference/options/#hausthemesystemappearance)
 instead.
 </Aside>
 

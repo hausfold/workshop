@@ -24,7 +24,7 @@ Every rebuild writes a Claude Code **skill** to `~/.claude/skills/nebelhaus`:
 | File | What it is |
 |---|---|
 | `SKILL.md` | The loop, the boundaries, the traps. |
-| `references/options.md` | Every `nebelhaus.*` option — **generated from the exact rice revision you're pinned to**. |
+| `references/options.md` | Every `haus.*` option — **generated from the exact rice revision you're pinned to**. |
 | `references/this-machine.md` | Your host: hostname, host-file path, which rooms are on, your theme and keys, your app roster and its taken leader keys. |
 | `references/recipes.md` | Worked examples for the common asks. |
 | `consumer-AGENTS.md` | A starter `AGENTS.md` for your config repo — the rules themselves (see below). |
@@ -64,25 +64,25 @@ protected settings.
 Ordinary requests, in your own words:
 
 - *"Install Slack and give it its own workspace"* → an entry in
-  [`nebelhaus.roster`](/reference/options/#nebelhausroster) for the leader key
+  [`haus.roster`](/reference/options/#hausroster) for the leader key
   and the Homebrew cask, paired with one in
-  [`nebelhaus.workspaces`](/reference/options/#nebelhausworkspaces) for the
+  [`haus.workspaces`](/reference/options/#hausworkspaces) for the
   workspace and its bar pill.
-- *"Everything's too small"* → [`nebelhaus.ui.scale`](/reference/options/#nebelhausuiscale).
-- *"Switch to light mode"* → [`nebelhaus.theme.flavor`](/reference/options/#nebelhausthemeflavor)
-  plus [`nebelhaus.theme.systemAppearance`](/reference/options/#nebelhausthemesystemappearance),
+- *"Everything's too small"* → [`haus.ui.scale`](/reference/options/#hausuiscale).
+- *"Switch to light mode"* → [`haus.theme.flavor`](/reference/options/#hausthemeflavor)
+  plus [`haus.theme.systemAppearance`](/reference/options/#hausthemesystemappearance),
   so macOS's own Light/Dark moves with the rice rather than staying behind.
-- *"Hide the weather in the bar"* → the matching `nebelhaus.sill.items.*` toggle.
-- *"Bind a key to open my notes"* → `nebelhaus.keys.leaderExtras`.
+- *"Hide the weather in the bar"* → the matching `haus.sill.items.*` toggle.
+- *"Bind a key to open my notes"* → `haus.keys.leaderExtras`.
 
-The skill tells the agent to prefer a `nebelhaus.*` option over a raw nix-darwin
+The skill tells the agent to prefer a `haus.*` option over a raw nix-darwin
 setting, and to say so when nothing covers what you asked — because that's a gap
 in the rice, not something to bolt onto your machine.
 
 ## What it won't do
 
 - **Touch identity or secrets** without asking — git identity, signing keys,
-  `nebelhaus.secrets.*`.
+  `haus.secrets.*`.
 - **Edit the rice, `flake.lock`, or anything in `/nix/store`.** Pulling a newer
   rice is `haus update`, not a hand edit.
 - **Uninstall apps behind your back.** Removing an app from your config stops
@@ -107,10 +107,10 @@ Refusing is the kinder failure. Nothing is changed, and your edit is still on
 disk.
 
 <Aside type="note" title="Reaching those settings safely">
-[`nebelhaus.accessibility.*`](/reference/options/#nebelhausaccessibility) reaches
+[`haus.accessibility.*`](/reference/options/#hausaccessibility) reaches
 the useful keys in that domain with a **guarded** write: without the grant you
 lose the setting and nothing else. For contrast specifically,
-[`nebelhaus.theme.contrast`](/reference/options/#nebelhausthemecontrast) is the
+[`haus.theme.contrast`](/reference/options/#hausthemecontrast) is the
 rice's own palette axis and always applies.
 </Aside>
 
@@ -159,7 +159,7 @@ place, see [Installing with an agent](/start/install/#installing-with-an-agent).
 ## Turning it off
 
 ```nix
-nebelhaus.claude.skill = false;
+haus.claude.skill = false;
 ```
 
 A machine that never runs an agent otherwise just carries an unread markdown

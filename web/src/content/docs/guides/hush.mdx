@@ -43,7 +43,7 @@ prints the exact fix for whatever is missing.
 
 - **Palette toggles work out of the box** — palette commands run under the
   pounce daemon, which already holds an Accessibility grant (that's what
-  [`pounce.signingIdentity`](/reference/options/#nebelhauspouncesigningidentity)
+  [`pounce.signingIdentity`](/reference/options/#hauspouncesigningidentity)
   keeps stable across rebuilds).
 - **For the bar pill**, add **sketchybar** to Accessibility.
 - **For the CLI**, add your terminal (Ghostty) — many setups already have it.
@@ -85,7 +85,7 @@ It's off by default because it needs a personal Slack token:
 4. Point hush at it in your host file:
 
    ```nix
-   nebelhaus.hush.slack = {
+   haus.hush.slack = {
      enable = true;
      tokenCommand = "security find-generic-password -s hush-slack -w";
      statusText = "heads down";     # the defaults, shown for flavor
@@ -104,7 +104,7 @@ Every hush/unhush also runs your own scripts, each called with `on` or `off`.
 Failures are logged, never fatal — a broken hook can't wedge the toggle.
 
 ```nix
-nebelhaus.hush.hooks = [
+haus.hush.hooks = [
   ./onair-light.sh              # turn the Elgato red while hushed
   "/Users/ada/bin/pause-music"  # strings run as-is, so $HOME paths work
 ];

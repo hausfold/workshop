@@ -1,5 +1,5 @@
 ---
-title: nebelhaus.* options
+title: haus.* options
 description: Every option you can set in your host file — types, defaults, and what each one changes.
 tableOfContents:
   maxHeadingLevel: 2
@@ -16,18 +16,18 @@ tableOfContents:
      CI re-renders this and fails if it differs, so a hand edit here is
      guaranteed to be reverted. -->
 
-These are the `nebelhaus.*` options you set in your host file at
+These are the `haus.*` options you set in your host file at
 `~/.config/nix/hosts/<hostname>/default.nix`. Everything here is optional
 unless noted; the defaults are a complete, working system.
 
 Apply changes with `haus rebuild`. Each option lists its **type** and
 **default** under its name, and links to the file that declares it.
 
-## nebelhaus.git
+## haus.git
 
 Your commit identity — set your own. It stays in [your host file](/internals/flakes/#your-config-is-a-thin-consumer).
 
-### `nebelhaus.git.email`
+### `haus.git.email`
 
 `string` · default `""`
 
@@ -41,7 +41,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.git.name`
+### `haus.git.name`
 
 `string` · default `""`
 
@@ -55,7 +55,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.git.shellAliases`
+### `haus.git.shellAliases`
 
 `attribute set of (null or string)` · default `{ }`
 
@@ -77,7 +77,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.git.signingKey`
+### `haus.git.signingKey`
 
 `string` · default `""`
 
@@ -93,11 +93,11 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-## nebelhaus.roster
+## haus.roster
 
 One list of everything this machine has — apps, fonts, command-line tools. Each entry drives its launcher key, cheatsheet row, and installs it from whichever source it names: a Homebrew cask or formula, a Nixpkgs package, or the Mac App Store.
 
-### `nebelhaus.roster`
+### `haus.roster`
 
 `attribute set of (submodule)` · default `{ }`
 
@@ -116,7 +116,7 @@ Slack instead of in a second one beside it. The rice's own
 just shouldn't need them for an app.
 
 Which WORKSPACE an app owns is not a field here — it's
-`nebelhaus.workspaces.<id>.apps` naming this entry's id, so one
+`haus.workspaces.<id>.apps` naming this entry's id, so one
 workspace can hold several apps (a "comms" workspace with Slack,
 Mail and Messages) instead of baking "one app, one workspace" into
 this schema. See that option.
@@ -131,7 +131,7 @@ Example:
 ```nix
 {
   # Launcher app: leader s. Own workspace + pill come from putting
-  # "slack" in a nebelhaus.workspaces entry's `apps` (see below).
+  # "slack" in a haus.workspaces entry's `apps` (see below).
   slack = {
     key = "s";
     name = "Slack";
@@ -150,12 +150,12 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.appId`
+### `haus.roster.<name>.appId`
 
 `null or string` · default `null`
 
 Bundle id, used for the AeroSpace `on-window-detected` auto-assign
-rule (when this app is a member of a `nebelhaus.workspaces` entry),
+rule (when this app is a member of a `haus.workspaces` entry),
 the `float` rule below, and the wake-time re-sort. null skips both
 — the app still launches, it just isn't herded anywhere or floated.
 Find one with `osascript -e 'id of app "…"'`.
@@ -168,7 +168,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.appStoreId`
+### `haus.roster.<name>.appStoreId`
 
 `null or signed integer` · default `null`
 
@@ -177,7 +177,7 @@ App Store app is declared in the same roster as everything else
 rather than in a comment.
 
 Recording it is always safe; INSTALLING from it is opt-in via
-`nebelhaus.appStore.install`, because the App Store is the one
+`haus.appStore.install`, because the App Store is the one
 source that can't be fully automated: `mas` has no sign-in
 command, and it cannot buy a paid app for the first time. Free
 apps it can fetch; paid ones you purchase once in App Store.app
@@ -191,7 +191,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.brew`
+### `haus.roster.<name>.brew`
 
 `null or string` · default `null`
 
@@ -208,7 +208,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.cask`
+### `haus.roster.<name>.cask`
 
 `null or string` · default `null`
 
@@ -224,7 +224,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.enable`
+### `haus.roster.<name>.enable`
 
 `boolean` · default `true`
 
@@ -232,7 +232,7 @@ Whether this app participates in the shared launcher roster.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.float`
+### `haus.roster.<name>.float`
 
 `boolean` · default `false`
 
@@ -245,7 +245,7 @@ work inside. Requires `appId`; ignored (with a warning) without it.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.installedBy`
+### `haus.roster.<name>.installedBy`
 
 `null or string` · default `null`
 
@@ -263,12 +263,12 @@ the hole. This is that comment, as data.
 Example:
 
 ```nix
-"nebelhaus.perch"
+"haus.perch"
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.key`
+### `haus.roster.<name>.key`
 
 `null or string` · default `null`
 
@@ -289,7 +289,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.label`
+### `haus.roster.<name>.label`
 
 `null or string` · default `null`
 
@@ -303,7 +303,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.name`
+### `haus.roster.<name>.name`
 
 `null or string` · default `null`
 
@@ -320,7 +320,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.order`
+### `haus.roster.<name>.order`
 
 `signed integer` · default `1000`
 
@@ -328,7 +328,7 @@ Roster order; lower values appear first. Ties are sorted by app id.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.package`
+### `haus.roster.<name>.package`
 
 `null or package` · default `null`
 
@@ -346,7 +346,7 @@ pkgs.orbstack
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.packageName`
+### `haus.roster.<name>.packageName`
 
 `null or string` · default `null`
 
@@ -372,7 +372,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.scope`
+### `haus.roster.<name>.scope`
 
 `one of "user", "system"` · default `"user"`
 
@@ -392,7 +392,7 @@ Ignored when `package` is null — Homebrew has no such split.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.roster.<name>.titleRegex`
+### `haus.roster.<name>.titleRegex`
 
 `null or string` · default `null`
 
@@ -415,11 +415,11 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.workspaces
+## haus.workspaces
 
 The named AeroSpace workspaces this machine declares, and which roster apps live on each. A workspace, not an app, owns its bar pill and leader throw — so several apps (a whole "comms" role) can share one.
 
-### `nebelhaus.workspaces`
+### `haus.workspaces`
 
 `attribute set of (submodule)` · default `{ }`
 
@@ -460,11 +460,11 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.workspaces.<name>.apps`
+### `haus.workspaces.<name>.apps`
 
 `list of string` · default `[ ]`
 
-`nebelhaus.roster` app ids that live on this workspace: each
+`haus.roster` app ids that live on this workspace: each
 one's window auto-moves here (via its `appId`), opening any of
 them from the leader lands you here, and this workspace's `key`
 throw (above) sends the focused window here regardless of which
@@ -492,7 +492,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.workspaces.<name>.icon`
+### `haus.workspaces.<name>.icon`
 
 `null or string` · default `null`
 
@@ -509,14 +509,14 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.workspaces.<name>.key`
+### `haus.workspaces.<name>.key`
 
 `null or string` · default `null`
 
 Leader then ⇧<key> throws the focused window to this workspace
 and follows it there (AeroSpace's `move-node-to-workspace
 --focus-follows-window`). There is no bare <key> binding for a
-workspace — that namespace belongs to `nebelhaus.roster` app
+workspace — that namespace belongs to `haus.roster` app
 launch keys, one of which can double as this workspace's "open
 something here" action by being one of its `apps`. null means the
 workspace is reachable only by launching an app that belongs to
@@ -532,11 +532,11 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.appStore
+## haus.appStore
 
 Whether a rebuild may install the roster's `appStoreId` entries. Off by default: it reaches the network and acts on your Apple Account, and it can never be complete — `mas` cannot sign in, and cannot buy a paid app.
 
-### `nebelhaus.appStore.install`
+### `haus.appStore.install`
 
 `boolean` · default `false`
 
@@ -559,11 +559,11 @@ is already running as root, so it neither prompts nor wedges.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.apps
+## haus.apps
 
 The apps the rice picks for you, and the file types they claim — the ones a finished machine has rather than the ones a room needs to work. Each is one switch you can turn off; what it installs is a roster entry like any other, so you can retune or replace it by app id.
 
-### `nebelhaus.apps.videoPlayer.claimFileTypes`
+### `haus.apps.videoPlayer.claimFileTypes`
 
 `boolean` · default `true`
 
@@ -584,7 +584,7 @@ keep whatever owns them today, since "open videos in IINA" rarely
 means "and my music library too". The transport-stream extensions
 `.ts`, `.mts` and `.m2ts` are excluded too: on a developer's machine
 they are TypeScript far more often than video, and
-`nebelhaus.hearth.hijackFileAssociations` claims them for the editor.
+`haus.hearth.hijackFileAssociations` claims them for the editor.
 Claiming them here as well made macOS stop and ask which app should
 win on every single rebuild, because `.mts` and `.m2ts` share one
 UTI.
@@ -595,7 +595,7 @@ install the app and leave every association alone.
 
 <small>Declared in [`modules/apps/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/apps/options.nix).</small>
 
-### `nebelhaus.apps.videoPlayer.enable`
+### `haus.apps.videoPlayer.enable`
 
 `boolean` · default `true`
 
@@ -611,22 +611,22 @@ of what the rice considers a finished machine.
 Set false and nothing is installed or rebound — bring your own
 player via the pounce "Install App" palette command or a roster
 entry. Once on it is a roster entry like any other: give it a leader
-letter with `nebelhaus.roster.iina.key`, or pin a different build
-with `nebelhaus.roster.iina.package`.
+letter with `haus.roster.iina.key`, or pin a different build
+with `haus.roster.iina.package`.
 
 <small>Declared in [`modules/apps/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/apps/options.nix).</small>
 
-## nebelhaus.theme
+## haus.theme
 
 Colour and wallpaper.
 
-### `nebelhaus.theme.accent`
+### `haus.theme.accent`
 
 `one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"mauve"`
 
 The accent colour, by Catppuccin name (the Nebelung palette is a
 grey-tinted Catppuccin, so the fourteen names are the same in both
-flavors — the hue you pick follows nebelhaus.theme.flavor). It recolours
+flavors — the hue you pick follows haus.theme.flavor). It recolours
 the tools nebelhaus injects colours into — lazygit, fzf, yazi (including
 glow-rendered Markdown headings), and the Zen browser — via the matching
 Nebelung per-accent ports.
@@ -638,9 +638,9 @@ wear this accent in both polarities from one key. Left at perch's
 default it accents with its own mark green.
 
 Two more things follow it: the `bold` wallpaper (generated from the
-accent hex — see nebelhaus.theme.wallpaper), and any roster app whose
+accent hex — see haus.theme.wallpaper), and any roster app whose
 Nebelung port ships a per-accent matrix (zed, gh-dash, mpv), placed by
-nebelhaus.theme.ports. Those ports name the theme file after the accent,
+haus.theme.ports. Those ports name the theme file after the accent,
 so changing the accent renames the file the app's own `theme` key points
 at — re-pick it in the app, or it falls back to stock.
 
@@ -655,7 +655,7 @@ the Nebelung userChrome/userContent pair, but userContent only styles
 `about:` pages — github.com and youtube.com are themed by the Stylus
 extension, whose Catppuccin-derived styles carry their OWN `accentColor`
 var (default mauve) inside the extension's storage, where no stylesheet
-can reach it. Declare `nebelhaus.zen.extensions.stylus` and the rice
+can reach it. Declare `haus.zen.extensions.stylus` and the rice
 stamps that var with this accent and tells you, once, when there's a new
 bundle to import; the import itself stays a click, because Stylus has no
 file interface. Until you make it, the web keeps the accent you last
@@ -673,7 +673,7 @@ Example:
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
-### `nebelhaus.theme.contrast`
+### `haus.theme.contrast`
 
 `one of "normal", "high"` · default `"normal"`
 
@@ -698,7 +698,7 @@ and unlike `flavor`, contrast reaches both on BOTH halves of their
 light/dark pair), Zen and Obsidian. It does NOT reach:
 
   - macOS itself. For system-wide contrast see
-    nebelhaus.accessibility.increaseContrast — a separate, FDA-gated
+    haus.accessibility.increaseContrast — a separate, FDA-gated
     setting. The two are complementary, and a genuinely high-contrast
     machine wants both.
 
@@ -710,7 +710,7 @@ Example:
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
-### `nebelhaus.theme.flavor`
+### `haus.theme.flavor`
 
 `one of "mocha", "latte"` · default `"mocha"`
 
@@ -740,18 +740,18 @@ whiskers takes different branches for a light flavor (terminal ANSI
 What does NOT follow it:
 
   - pounce and perch, by default. Both read their palette at runtime and
-    can pick per polarity, so nebelhaus.pounce.followSystemAppearance
-    and nebelhaus.perch.followSystemAppearance (default true) hand that
+    can pick per polarity, so haus.pounce.followSystemAppearance
+    and haus.perch.followSystemAppearance (default true) hand that
     choice to macOS Light/Dark instead: the rice installs every rendered
     variant into ~/.config/{pounce,perch}/themes/ and writes the
     dark/light PAIR at your `contrast`. Set either option false to pin
     that app to this flavor like everything else.
   - macOS's own Light/Dark appearance, unless you opt in with
-    nebelhaus.theme.systemAppearance = "flavor". Left at its default the
+    haus.theme.systemAppearance = "flavor". Left at its default the
     rice does not touch system appearance in either direction, so a
     latte rice on a dark macOS looks half-done and that half is yours —
     except in pounce and perch, which read the appearance themselves.
-  - the desktop wallpaper (nebelhaus.theme.wallpaper). The three hand-made
+  - the desktop wallpaper (haus.theme.wallpaper). The three hand-made
     looks have the dark palette baked in; only "bold" is generated, and it
     follows theme.accent rather than the flavor.
 
@@ -763,17 +763,17 @@ Example:
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
-### `nebelhaus.theme.ports.enable`
+### `haus.theme.ports.enable`
 
 `boolean` · default `true`
 
-Theme the apps in your roster (`nebelhaus.roster`) that Nebelung ships a
+Theme the apps in your roster (`haus.roster`) that Nebelung ships a
 port for, without wiring each one by hand.
 
 The rice already themes every tool it installs itself — the shell, the
 terminal, the git stack, Zen, Obsidian. This covers the other direction:
 an app YOU added to the roster that Nebelung happens to have a theme for.
-Add `zed`, `warp` or `xcode` to `nebelhaus.roster` and its Nebelung theme
+Add `zed`, `warp` or `xcode` to `haus.roster` and its Nebelung theme
 lands where that app looks for themes, in the flavor and contrast you
 selected, following them on every rebuild. Matching is by roster id, so
 the entry has to be named after the port (`zed`, not `zed-editor`).
@@ -793,7 +793,7 @@ half-applying someone's config is worse than saying so.
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
-### `nebelhaus.theme.systemAppearance`
+### `haus.theme.systemAppearance`
 
 `one of "unmanaged", "flavor", "light", "dark"` · default `"unmanaged"`
 
@@ -803,7 +803,7 @@ every native app the rice can't reach.
 
   unmanaged  (default) leave it alone, in both directions. Your Mac's
              appearance stays yours; nothing about a rebuild moves it.
-  flavor     follow nebelhaus.theme.flavor — latte sets Light, mocha
+  flavor     follow haus.theme.flavor — latte sets Light, mocha
              sets Dark. This is the one that makes light mode complete
              rather than half-done.
   light      pin Light, whatever the flavor is.
@@ -825,7 +825,7 @@ through System Events (AppleScript) at each home-manager activation,
 which does flip it live in ~0.3s — and confirms the result with `hausax`
 (AppKit's effective appearance), never by reading the key back.
 
-Reachability, the same shape as nebelhaus.accessibility.increaseContrast:
+Reachability, the same shape as haus.accessibility.increaseContrast:
 driving System Events needs an Automation grant for whichever app runs
 the rebuild (System Settings ▸ Privacy & Security ▸ Automation). Without
 it macOS refuses, the rebuild says so in a named warning and carries on
@@ -837,7 +837,7 @@ rebuild time and does not fight it afterwards, so on an Auto machine
 this option holds only until the next scheduled switch. Pick Light or
 Dark there if you want it to stick.
 
-Interaction worth knowing: nebelhaus.{pounce,perch}.followSystemAppearance
+Interaction worth knowing: haus.{pounce,perch}.followSystemAppearance
 hand polarity to macOS. Set this to "flavor" and macOS's polarity is in
 turn the rice's, so those two end up following `flavor` transitively —
 which is usually what you wanted, but it does mean `followSystemAppearance`
@@ -851,7 +851,7 @@ Example:
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
-### `nebelhaus.theme.wallpaper`
+### `haus.theme.wallpaper`
 
 `one of "none", "orbits", "constellation", "flow", "bold"` · default `"none"`
 
@@ -875,11 +875,11 @@ Example:
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
 
-## nebelhaus.fonts
+## haus.fonts
 
 The terminal font. The bar keeps its own font at its own tuned sizes.
 
-### `nebelhaus.fonts.mono.name`
+### `haus.fonts.mono.name`
 
 `string` · default `"JetBrainsMono Nerd Font Mono"`
 
@@ -887,7 +887,7 @@ The rice's type family, as Ghostty's `font-family` names it.
 
 It reaches the terminal AND the menu bar: every pill label and icon
 sill draws is in this family, at sizes of its own (see
-`nebelhaus.ui.scale`). The workspace-logo glyphs are the one exception
+`haus.ui.scale`). The workspace-logo glyphs are the one exception
 — those are sketchybar-app-font, which sill installs itself.
 
 This should be a NERD FONT patched build: starship's prompt, lsd's
@@ -908,7 +908,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.fonts.mono.package`
+### `haus.fonts.mono.package`
 
 `null or package` · default `null`
 
@@ -930,7 +930,7 @@ pkgs.nerd-fonts.fira-code
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.fonts.mono.packageName`
+### `haus.fonts.mono.packageName`
 
 `null or string` · default `null`
 
@@ -955,9 +955,9 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.fonts.mono.size`
+### `haus.fonts.mono.size`
 
-`positive integer, meaning >0` · default `19, scaled by nebelhaus.ui.scale`
+`positive integer, meaning >0` · default `19, scaled by haus.ui.scale`
 
 Terminal font size in points. The single most useful knob for a
 larger-text machine, since it moves everything the rice actually
@@ -978,11 +978,11 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.ui
+## haus.ui
 
 One number for "make the interface bigger", applied across the rice's own surfaces.
 
-### `nebelhaus.ui.scale`
+### `haus.ui.scale`
 
 `integer or floating point number between 0.5 and 3.0 (both inclusive)` · default `1.0`
 
@@ -992,13 +992,13 @@ One number for "make the interface bigger". 1.0 is the rice as tuned;
 It sets the DEFAULT of the sizes it drives, so anything you pin by hand
 still wins:
 
-  nebelhaus.ui.scale = 1.5;          # everything grows
-  nebelhaus.fonts.mono.size = 18;    # …except the terminal, pinned here
+  haus.ui.scale = 1.5;          # everything grows
+  haus.fonts.mono.size = 18;    # …except the terminal, pinned here
 
 What it currently moves:
 
-  - the terminal font size (nebelhaus.fonts.mono.size)
-  - the command palette, whole (nebelhaus.pounce.scale) — its rows,
+  - the terminal font size (haus.fonts.mono.size)
+  - the command palette, whole (haus.pounce.scale) — its rows,
     text and icons, and the emoji / clipboard / screenshots / camera /
     Find Files / cheatsheet panels behind it
   - the type in Sill's menu bar — pill labels, icons and popup rows —
@@ -1035,7 +1035,7 @@ Where it stops, and why it isn't a gap waiting to be filled:
     third-party apps follow only a display-resolution change.
 
 Worth knowing if you set both: this and
-`nebelhaus.displays.<name>.uiScale` MULTIPLY. A larger-text display mode
+`haus.displays.<name>.uiScale` MULTIPLY. A larger-text display mode
 leaves a smaller desktop in points, and this asks for bigger points
 inside it — so 1.4 on an already-scaled display is a bigger jump than
 1.4 on the panel's default.
@@ -1048,11 +1048,11 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.displays
+## haus.displays
 
 Per-display overrides, keyed by which screen you mean.
 
-### `nebelhaus.displays`
+### `haus.displays`
 
 `attribute set of (submodule)` · default `{ }`
 
@@ -1074,7 +1074,7 @@ knows nothing about. macOS's own text-size setting writes a value no running
 app re-reads, while the accessibility scalars that do work affect contrast
 or motion rather than system-wide size — measured, not assumed (the
 workshop's notes/macos-settings-matrix.md records the sweep). So
-`nebelhaus.ui.scale` and `nebelhaus.fonts` make the *rice* bigger, and this
+`haus.ui.scale` and `haus.fonts` make the *rice* bigger, and this
 makes the *Mac* bigger.
 
 Example:
@@ -1092,7 +1092,7 @@ Example:
 
 <small>Declared in [`modules/displays/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/displays/options.nix).</small>
 
-### `nebelhaus.displays.<name>.uiScale`
+### `haus.displays.<name>.uiScale`
 
 `null or one of "more-space", "default", "larger-text", "largest-text"` · default `null`
 
@@ -1134,11 +1134,11 @@ Example:
 
 <small>Declared in [`modules/displays/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/displays/options.nix).</small>
 
-## nebelhaus.hearth
+## haus.hearth
 
 The shell and terminal experience.
 
-### `nebelhaus.hearth.editor`
+### `haus.hearth.editor`
 
 `string` · default `"hx"`
 
@@ -1158,7 +1158,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.hearth.ghDash.enable`
+### `haus.hearth.ghDash.enable`
 
 `boolean` · default `false`
 
@@ -1174,13 +1174,13 @@ true
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.hearth.hijackFileAssociations`
+### `haus.hearth.hijackFileAssociations`
 
 `boolean` · default `false`
 
 When true, build a small opener app and make it the default handler
 for ~80 text/code extensions (json, md, ts, nix, rs, go, kdl, …), so
-opening or clicking those files opens them in nebelhaus.hearth.editor in
+opening or clicking those files opens them in haus.hearth.editor in
 a terminal tab. The app declares the types itself (not just `duti`) so
 extensions nothing else on the machine declares still bind. Off by
 default: silently rewriting your file associations is a jarring,
@@ -1191,7 +1191,7 @@ handler behind an interactive dialog; set it by hand once if wanted:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.hearth.obsidianVaults`
+### `haus.hearth.obsidianVaults`
 
 `list of string` · default `[ ]`
 
@@ -1215,7 +1215,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.hearth.zellijStartLocked`
+### `haus.hearth.zellijStartLocked`
 
 `boolean` · default `true`
 
@@ -1232,11 +1232,11 @@ mode (zellij's own default).
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-## nebelhaus.agents
+## haus.agents
 
 Which coding-agent clients this machine installs, and which one the agent keybinding spawns.
 
-### `nebelhaus.agents.clients`
+### `haus.agents.clients`
 
 `list of (one of "claude", "codex", "opencode")` · see below
 
@@ -1271,7 +1271,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.agents.default`
+### `haus.agents.default`
 
 `one of "claude", "codex", "opencode"` · default `"claude"`
 
@@ -1292,7 +1292,7 @@ session for that cwd. All three share one `holt` branch/parking/reap
 lifecycle, and all three light up the `agents` bar pill and the zellij
 tab-bar badge — the opencode plugin and the codex hooks are written for
 you; only Claude Code's stay yours to wire, because Claude owns its own
-settings.json (see `nebelhaus.sill.items.agents`).
+settings.json (see `haus.sill.items.agents`).
 
 Example:
 
@@ -1302,11 +1302,11 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.claude
+## haus.claude
 
 Claude Code integration.
 
-### `nebelhaus.claude.globalMd`
+### `haus.claude.globalMd`
 
 `strings concatenated with "\n"` · default `""`
 
@@ -1330,7 +1330,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.claude.skill`
+### `haus.claude.skill`
 
 `boolean` · default `true`
 
@@ -1348,17 +1348,17 @@ the rules in the first, a one-line import in the second, so a session
 opened there is oriented whichever client it runs.
 
 Unrelated to Claude Code's own settings, which follow
-nebelhaus.developer.agents.enable. This is a plain file drop: a machine
+haus.developer.agents.enable. This is a plain file drop: a machine
 that never runs an agent just carries an unread markdown file. Set
 false to leave ~/.claude/skills alone entirely.
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-## nebelhaus.accessibility
+## haus.accessibility
 
 macOS accessibility keys the rice can actually apply. These write to a TCC-protected domain, so they take effect only when the app you run the rebuild from holds Full Disk Access — otherwise the rice warns and moves on.
 
-### `nebelhaus.accessibility.differentiateWithoutColor`
+### `haus.accessibility.differentiateWithoutColor`
 
 `null or boolean` · default `null`
 
@@ -1387,7 +1387,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.accessibility.increaseContrast`
+### `haus.accessibility.increaseContrast`
 
 `null or boolean` · default `null`
 
@@ -1417,11 +1417,11 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.keys
+## haus.keys
 
 The keys the rice owns — the leader, the palette, the window-chord modifier — and anything extra you hang off the leader.
 
-### `nebelhaus.keys.leader`
+### `haus.keys.leader`
 
 `one of "caps", "alt-space", "none"` · default `"caps"`
 
@@ -1444,7 +1444,7 @@ resizes.
 The remap is re-applied at every activation and does not survive a
 reboot, so moving off "caps" ends it — at the latest, at next boot.
 
-Only meaningful with nebelhaus.prowl.enable (AeroSpace owns the modes).
+Only meaningful with haus.prowl.enable (AeroSpace owns the modes).
 
 Example:
 
@@ -1454,7 +1454,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.keys.leaderExtras`
+### `haus.keys.leaderExtras`
 
 `list of (submodule)` · default `[ ]`
 
@@ -1462,7 +1462,7 @@ Extra launch-mode (leader) bindings beyond the app roster: tap the leader,
 then `key`, to run `command`. Use it for leader actions that aren't
 "launch an app" — a script, an AppleScript, opening a URL.
 
-Only meaningful with nebelhaus.prowl.enable and keys.leader != "none"
+Only meaningful with haus.prowl.enable and keys.leader != "none"
 (with no leader there is no launch mode to bind into).
 
 Example:
@@ -1479,7 +1479,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.keys.leaderExtras.*.caption`
+### `haus.keys.leaderExtras.*.caption`
 
 `null or string` · default `null`
 
@@ -1494,7 +1494,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.keys.leaderExtras.*.command`
+### `haus.keys.leaderExtras.*.command`
 
 `string` · no default
 
@@ -1512,7 +1512,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.keys.leaderExtras.*.key`
+### `haus.keys.leaderExtras.*.key`
 
 `string` · no default
 
@@ -1533,7 +1533,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.keys.palette`
+### `haus.keys.palette`
 
 `one of "cmd-space", "alt-space", "ctrl-space", "none"` · default `"cmd-space"`
 
@@ -1547,7 +1547,7 @@ to Spotlight entirely. That's a fix as much as an option: the rice used
 to take Spotlight's ⌘Space away unconditionally, even where nothing
 claimed it.
 
-Only meaningful with nebelhaus.pounce.enable.
+Only meaningful with haus.pounce.enable.
 
 Example:
 
@@ -1557,7 +1557,7 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.keys.windowNav`
+### `haus.keys.windowNav`
 
 `one of "alt", "ctrl-alt", "cmd-alt", "none"` · default `"alt"`
 
@@ -1592,7 +1592,7 @@ service mode. Combined with `leader = "none"` that's a rice where the
 tiler tiles and the keyboard is left alone — mouse-first. The cheatsheet
 follows, so it never advertises a key that does nothing.
 
-Only meaningful with nebelhaus.prowl.enable.
+Only meaningful with haus.prowl.enable.
 
 Example:
 
@@ -1602,11 +1602,11 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.hotCorners
+## haus.hotCorners
 
 What each corner of the screen does when the pointer reaches it. Every corner is unset by default, so the rice never overwrites one you set yourself.
 
-### `nebelhaus.hotCorners.bottomLeft`
+### `haus.hotCorners.bottomLeft`
 
 `null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
 
@@ -1650,7 +1650,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.hotCorners.bottomRight`
+### `haus.hotCorners.bottomRight`
 
 `null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
 
@@ -1694,7 +1694,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.hotCorners.topLeft`
+### `haus.hotCorners.topLeft`
 
 `null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
 
@@ -1738,7 +1738,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.hotCorners.topRight`
+### `haus.hotCorners.topRight`
 
 `null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
 
@@ -1782,11 +1782,11 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.screenshots
+## haus.screenshots
 
 Where ⇧⌘4 puts its files, in what format, and whether it draws a window shadow or a preview thumbnail. Unset by default, so macOS's own choices stand.
 
-### `nebelhaus.screenshots.format`
+### `haus.screenshots.format`
 
 `null or one of "png", "jpg", "pdf", "tiff", "heic", "gif"` · default `null`
 
@@ -1806,7 +1806,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.screenshots.includeDate`
+### `haus.screenshots.includeDate`
 
 `null or boolean` · default `null`
 
@@ -1822,7 +1822,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.screenshots.location`
+### `haus.screenshots.location`
 
 `null or string` · default `null`
 
@@ -1844,7 +1844,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.screenshots.shadow`
+### `haus.screenshots.shadow`
 
 `null or boolean` · default `null`
 
@@ -1865,7 +1865,7 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.screenshots.thumbnail`
+### `haus.screenshots.thumbnail`
 
 `null or boolean` · default `null`
 
@@ -1886,11 +1886,11 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.prowl
+## haus.prowl
 
 Tiling window management and the Caps-Lock leader launcher.
 
-### `nebelhaus.prowl.enable`
+### `haus.prowl.enable`
 
 `boolean` · default `true`
 
@@ -1898,16 +1898,16 @@ AeroSpace tiling window management + the leader-key launcher.
 
 This is the room switch: off drops AeroSpace, its launch agent, the
 wake-time window re-sort and the key remap entirely. To keep the tiler but
-leave the keyboard alone, use nebelhaus.keys.leader = "none" and
-nebelhaus.keys.windowNav = "none" instead of turning the room off.
+leave the keyboard alone, use haus.keys.leader = "none" and
+haus.keys.windowNav = "none" instead of turning the room off.
 
 <small>Declared in [`modules/prowl/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/prowl/options.nix).</small>
 
-## nebelhaus.sill
+## haus.sill
 
 The menu bar, and which pills it draws.
 
-### `nebelhaus.sill.aiUsage.provider`
+### `haus.sill.aiUsage.provider`
 
 `one of "latest", "claude", "codex", "opencode"` · default `"latest"`
 
@@ -1919,7 +1919,7 @@ Clicking the pill always displays the full dropdown with all reporting providers
 Note this is about *usage readouts*, not about which client `holt` can
 spawn: a provider reports here whenever it has data for your account —
 Codex notably does so from a ChatGPT login alone, with no CLI installed
-— so it is deliberately not tied to `nebelhaus.agents.clients`.
+— so it is deliberately not tied to `haus.agents.clients`.
 
 Example:
 
@@ -1929,7 +1929,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.battery.hideOver`
+### `haus.sill.battery.hideOver`
 
 `null or signed integer` · default `null`
 
@@ -1944,7 +1944,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.clock.mode`
+### `haus.sill.clock.mode`
 
 `one of "full", "compact"` · default `"full"`
 
@@ -1959,7 +1959,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.elgato.host`
+### `haus.sill.elgato.host`
 
 `string` · default `""`
 
@@ -1982,7 +1982,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.enable`
+### `haus.sill.enable`
 
 `boolean` · default `true`
 
@@ -1991,7 +1991,7 @@ The SketchyBar menu bar. When off, the native macOS menu bar is kept
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items`
+### `haus.sill.items`
 
 `submodule` · default `{ }`
 
@@ -2002,7 +2002,7 @@ and the personal `agents`, `aiUsage`, `elgato`, `harvest` —
 default false. Set
 only what you want to change:
 
-  nebelhaus.sill.items = {
+  haus.sill.items = {
     weather = false;   # drop a default-on core pill
     cpu = true;        # add an off-by-default readout
     caffeinate = true; # add the keep-awake controller
@@ -2010,7 +2010,7 @@ only what you want to change:
 
 A pill set false is never created (its update script doesn't run either).
 The hush (Do-Not-Disturb) pill is separate — it rides
-nebelhaus.hush.enable, not this set.
+haus.hush.enable, not this set.
 
 Example:
 
@@ -2023,7 +2023,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.agents`
+### `haus.sill.items.agents`
 
 `boolean` · default `false`
 
@@ -2031,7 +2031,7 @@ A paw pill tracking your agent-worktree panes — amber when one is blocked on y
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.aiUsage`
+### `haus.sill.items.aiUsage`
 
 `boolean` · default `false`
 
@@ -2039,7 +2039,7 @@ A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, 
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.battery`
+### `haus.sill.items.battery`
 
 `boolean` · default `true`
 
@@ -2047,7 +2047,7 @@ The battery pill.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.caffeinate`
+### `haus.sill.items.caffeinate`
 
 `boolean` · default `false`
 
@@ -2055,7 +2055,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.calendar`
+### `haus.sill.items.calendar`
 
 `boolean` · default `false`
 
@@ -2063,7 +2063,7 @@ Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.claudeUsage`
+### `haus.sill.items.claudeUsage`
 
 `boolean` · default `false`
 
@@ -2071,7 +2071,7 @@ Deprecated alias for `aiUsage`.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.clock`
+### `haus.sill.items.clock`
 
 `boolean` · default `true`
 
@@ -2079,7 +2079,7 @@ The clock pill, pinned to the far right.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.cpu`
+### `haus.sill.items.cpu`
 
 `boolean` · default `false`
 
@@ -2087,15 +2087,15 @@ Total CPU load, as a percentage pill.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.elgato`
+### `haus.sill.items.elgato`
 
 `boolean` · default `false`
 
-Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `nebelhaus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
+Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `haus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.harvest`
+### `haus.sill.items.harvest`
 
 `boolean` · default `false`
 
@@ -2103,7 +2103,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.media`
+### `haus.sill.items.media`
 
 `boolean` · default `true`
 
@@ -2111,7 +2111,7 @@ The now-playing track (scrolls; auto-hides when nothing plays).
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.memory`
+### `haus.sill.items.memory`
 
 `boolean` · default `false`
 
@@ -2119,7 +2119,7 @@ Memory-pressure percentage pill.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.volume`
+### `haus.sill.items.volume`
 
 `boolean` · default `false`
 
@@ -2127,7 +2127,7 @@ Output volume / mute state.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.weather`
+### `haus.sill.items.weather`
 
 `boolean` · default `true`
 
@@ -2135,7 +2135,7 @@ The weather pill and its click-to-open forecast popover.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.items.wifi`
+### `haus.sill.items.wifi`
 
 `boolean` · default `true`
 
@@ -2143,7 +2143,7 @@ The Wi-Fi status pill.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.sill.position`
+### `haus.sill.position`
 
 `one of "top", "bottom", "auto"` · default `"top"`
 
@@ -2166,11 +2166,11 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-## nebelhaus.pounce
+## haus.pounce
 
 The ⌘Space command palette.
 
-### `nebelhaus.pounce.enable`
+### `haus.pounce.enable`
 
 `boolean` · default `true`
 
@@ -2178,17 +2178,17 @@ The pounce command palette daemon (⌘Space) + its rice commands.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.followSystemAppearance`
+### `haus.pounce.followSystemAppearance`
 
 `boolean` · default `true`
 
 Let the palette follow macOS Light/Dark Mode instead of pinning one
 polarity: pounce gets the nebelung variant AND its latte counterpart at
-your nebelhaus.theme.contrast, as its `theme`/`themeLight` pair, and
+your haus.theme.contrast, as its `theme`/`themeLight` pair, and
 picks between them per open (no rebuild, no daemon restart).
 
 Honest scope: this makes pounce the one themed tool that does NOT follow
-nebelhaus.theme.flavor — a flavor pin is a *palette* choice, and asking
+haus.theme.flavor — a flavor pin is a *palette* choice, and asking
 to follow the system says the polarity is macOS's call. The contrast
 axis still applies to both halves. Everything else on the rice keeps
 whatever flavor pins.
@@ -2198,7 +2198,7 @@ what it did before this option existed.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.items`
+### `haus.pounce.items`
 
 `attribute set of (submodule)` · default `{ }`
 
@@ -2233,8 +2233,8 @@ ordinary global hotkey for a couple of seconds rather than tapping events).
 
 Two things this checks at build time, because both fail SILENTLY at
 runtime: a key that names no real item shape (a "mode:" typo binds
-nothing at all), and a chord already claimed by nebelhaus.keys.palette,
-nebelhaus.keys.leader, or a terminal binding (whoever registers first
+nothing at all), and a chord already claimed by haus.keys.palette,
+haus.keys.leader, or a terminal binding (whoever registers first
 wins, and it isn't always the same one). What it can't check is whether
 `cmd:<id>` names a command that exists — command scripts are discovered
 at runtime, so pounce warns about that itself when the daemon starts, and
@@ -2262,7 +2262,7 @@ Example:
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.items.<name>.alias`
+### `haus.pounce.items.<name>.alias`
 
 `null or string` · default `null`
 
@@ -2277,7 +2277,7 @@ Example:
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.items.<name>.caption`
+### `haus.pounce.items.<name>.caption`
 
 `null or string` · default `null`
 
@@ -2301,7 +2301,7 @@ Example:
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.items.<name>.hotkey`
+### `haus.pounce.items.<name>.hotkey`
 
 `null or string or list of string` · default `null`
 
@@ -2326,7 +2326,7 @@ Example:
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.items.<name>.listed`
+### `haus.pounce.items.<name>.listed`
 
 `boolean` · default `true`
 
@@ -2341,16 +2341,16 @@ surface has today. (It writes pounce's own `enabled` key.)
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.scale`
+### `haus.pounce.scale`
 
-`integer or floating point number between 0.8 and 2.0 (both inclusive)` · default `nebelhaus.ui.scale, held inside pounce's 0.8-2.0`
+`integer or floating point number between 0.8 and 2.0 (both inclusive)` · default `haus.ui.scale, held inside pounce's 0.8-2.0`
 
 How big the palette is drawn. Multiplies every size in pounce's UI — the
 launcher's rows, header, icons and action bar, and the panels behind it:
 the emoji grid, clipboard history, recent screenshots, camera peek, Find
 Files, the cheatsheet and the window switcher.
 
-Follows nebelhaus.ui.scale by default, so you rarely set this directly.
+Follows haus.ui.scale by default, so you rarely set this directly.
 It exists as its own option for the case where the palette wants a
 different size from the rest of the rice — the launcher is read at arm's
 length for a second, not lived in like the terminal.
@@ -2361,7 +2361,7 @@ pounce's own range is narrower than ui.scale's, so a rice at
 Two things adapt on their own, which is why one number is enough: the
 launcher shows fewer rows when the scaled rows stop fitting on screen, and
 every panel's width is held inside the visible frame. That matters most
-alongside `nebelhaus.displays.<name>.uiScale` — a larger-text display mode
+alongside `haus.displays.<name>.uiScale` — a larger-text display mode
 and a larger palette multiply, and the palette is the one that would
 otherwise run off the edge.
 
@@ -2373,7 +2373,7 @@ Example:
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.signingIdentity`
+### `haus.pounce.signingIdentity`
 
 `string` · default `""`
 
@@ -2405,7 +2405,7 @@ Example:
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.windowMode`
+### `haus.pounce.windowMode`
 
 `one of "default", "compact"` · default `"compact"`
 
@@ -2415,12 +2415,12 @@ shipped before this option existed. `default` is pounce's roomier layout,
 which shows the top results the moment it opens.
 
 This is shape, not size: how BIG the palette is drawn is
-nebelhaus.pounce.scale. The two compose — a compact palette at scale 1.4
+haus.pounce.scale. The two compose — a compact palette at scale 1.4
 is still the compact layout, just readable from further away.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-### `nebelhaus.pounce.windowSwitcher`
+### `haus.pounce.windowSwitcher`
 
 `boolean` · default `true`
 
@@ -2439,18 +2439,18 @@ Moving between visible tiles stays windowNav's focus keys; the skipped
 siblings are still the rows just below you in the list.
 
 Needs the daemon to hold an Accessibility grant — in practice, set
-nebelhaus.pounce.signingIdentity so the grant survives rebuilds. Without
+haus.pounce.signingIdentity so the grant survives rebuilds. Without
 the grant the event tap can't install and stock ⌘Tab keeps working, so
 this default is safe on a fresh, not-yet-granted install. false leaves
 ⌘Tab native even when the grant is there.
 
 <small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
 
-## nebelhaus.perch
+## haus.perch
 
 The notch file shelf.
 
-### `nebelhaus.perch.enable`
+### `haus.perch.enable`
 
 `boolean` · default `true`
 
@@ -2458,17 +2458,17 @@ The perch notch file shelf, installed via the perch flake (copied to /Applicatio
 
 <small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
 
-### `nebelhaus.perch.followSystemAppearance`
+### `haus.perch.followSystemAppearance`
 
 `boolean` · default `true`
 
 Let the shelf's palette follow macOS Light/Dark Mode instead of pinning
 one polarity: perch gets the nebelung variant AND its latte counterpart
-at your nebelhaus.theme.contrast, and picks between them itself — no
+at your haus.theme.contrast, and picks between them itself — no
 rebuild, no relaunch.
 
 Same honest scope as the pounce option of the same name: with
-this on, perch does NOT follow nebelhaus.theme.flavor, because asking to
+this on, perch does NOT follow haus.theme.flavor, because asking to
 follow the system says the polarity is macOS's call. The contrast axis
 still applies to both halves. Set it false to pin the shelf to
 theme.flavor like every other themed tool.
@@ -2479,11 +2479,11 @@ colors.
 
 <small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
 
-## nebelhaus.hush
+## haus.hush
 
 One quiet switch: Do Not Disturb, optional Slack status, and your hooks.
 
-### `nebelhaus.hush.enable`
+### `haus.hush.enable`
 
 `boolean` · default `true`
 
@@ -2500,7 +2500,7 @@ sketchybar once for the pill). `hush doctor` walks the one-time steps.
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-### `nebelhaus.hush.hooks`
+### `haus.hush.hooks`
 
 `list of (absolute path or string)` · default `[ ]`
 
@@ -2517,7 +2517,7 @@ Example:
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-### `nebelhaus.hush.slack.enable`
+### `haus.hush.slack.enable`
 
 `boolean` · default `false`
 
@@ -2529,7 +2529,7 @@ unhush.
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-### `nebelhaus.hush.slack.snooze`
+### `haus.hush.slack.snooze`
 
 `boolean` · default `true`
 
@@ -2539,7 +2539,7 @@ a failsafe if you forget.
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-### `nebelhaus.hush.slack.statusEmoji`
+### `haus.hush.slack.statusEmoji`
 
 `string` · default `":no_bell:"`
 
@@ -2547,7 +2547,7 @@ Slack status emoji while hushed.
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-### `nebelhaus.hush.slack.statusText`
+### `haus.hush.slack.statusText`
 
 `string` · default `"heads down"`
 
@@ -2555,7 +2555,7 @@ Slack status text while hushed.
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-### `nebelhaus.hush.slack.tokenCommand`
+### `haus.hush.slack.tokenCommand`
 
 `string` · default `""`
 
@@ -2571,11 +2571,11 @@ Example:
 
 <small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
 
-## nebelhaus.snippets
+## haus.snippets
 
 Text expansion via espanso.
 
-### `nebelhaus.snippets.enable`
+### `haus.snippets.enable`
 
 `boolean` · default `false`
 
@@ -2596,7 +2596,7 @@ window only ever meant "the grant went missing").
 
 <small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
 
-### `nebelhaus.snippets.matches`
+### `haus.snippets.matches`
 
 `list of (submodule)` · default `[ ]`
 
@@ -2617,7 +2617,7 @@ Example:
 
 <small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
 
-### `nebelhaus.snippets.matches.*.replace`
+### `haus.snippets.matches.*.replace`
 
 `string` · no default
 
@@ -2631,7 +2631,7 @@ Example:
 
 <small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
 
-### `nebelhaus.snippets.matches.*.trigger`
+### `haus.snippets.matches.*.trigger`
 
 `string` · no default
 
@@ -2645,11 +2645,11 @@ Example:
 
 <small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
 
-## nebelhaus.tour
+## haus.tour
 
 The first-run tutor.
 
-### `nebelhaus.tour.enable`
+### `haus.tour.enable`
 
 `boolean` · default `true`
 
@@ -2667,14 +2667,14 @@ the ⌘Space step is dropped when pounce is off. Progress lives in
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.tour.steps`
+### `haus.tour.steps`
 
 `null or (non-empty (list of (submodule)))` · default `null`
 
 A community-authored tour, in order. null keeps the built-in four-move
 nebelhaus tour unchanged; supplying a list replaces it, so a shared rice can
 teach its own workflow without shipping scripts or reaching outside the
-`nebelhaus.*` option surface.
+`haus.*` option surface.
 
 Detection reuses signals the rice already emits. `launch`, `workspace`,
 `navigate` and `resize` need prowl; `palette` needs Pounce and its palette
@@ -2698,7 +2698,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.tour.steps.*.detect`
+### `haus.tour.steps.*.detect`
 
 `one of "launch", "workspace", "navigate", "resize", "palette"` · no default
 
@@ -2716,7 +2716,7 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-### `nebelhaus.tour.steps.*.hint`
+### `haus.tour.steps.*.hint`
 
 `string` · no default
 
@@ -2737,13 +2737,13 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
 
-## nebelhaus.developer
+## haus.developer
 
 The developer pack: the CLI toolbelt, Git tooling, coding-agent tooling, and language runtimes. Off is a nebelhaus machine for someone who never opens a terminal by choice.
 
-### `nebelhaus.developer.agents.enable`
+### `haus.developer.agents.enable`
 
-`boolean` · default `config.nebelhaus.developer.enable`
+`boolean` · default `config.haus.developer.enable`
 
 Coding-agent *tooling*: `holt` (agent worktrees), `agent-state` (the
 pane-status writer behind the `agents` bar pill and the zellij tab
@@ -2757,7 +2757,7 @@ since a client with no `holt` to park it is not the deal on offer.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.developer.enable`
+### `haus.developer.enable`
 
 `boolean` · default `true`
 
@@ -2773,8 +2773,8 @@ and the palette.
 The sub-options below each default to THIS value, so turning it off
 turns everything off and you can then re-enable one piece:
 
-  nebelhaus.developer.enable = false;
-  nebelhaus.developer.git.enable = true;  # …but keep git
+  haus.developer.enable = false;
+  haus.developer.git.enable = true;  # …but keep git
 
 Example:
 
@@ -2784,18 +2784,18 @@ false
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.developer.git.enable`
+### `haus.developer.git.enable`
 
-`boolean` · default `config.nebelhaus.developer.enable`
+`boolean` · default `config.haus.developer.enable`
 
 Git and its surroundings: the shell alias vocabulary, the themed git
 config, delta (diff pager), lazygit, `gh`, and gnupg for commit
-signing. Off drops all of them, and `nebelhaus.git.*` then has
+signing. Off drops all of them, and `haus.git.*` then has
 nothing to configure.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.developer.languages`
+### `haus.developer.languages`
 
 `list of value "node" (singular enum)` · default `[ "node" ] when developer.enable is true, else [ ]`
 
@@ -2813,9 +2813,9 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-### `nebelhaus.developer.toolbelt.enable`
+### `haus.developer.toolbelt.enable`
 
-`boolean` · default `config.nebelhaus.developer.enable`
+`boolean` · default `config.haus.developer.enable`
 
 The terminal toolbelt: bat, fzf, fd, ripgrep, yazi, zoxide, lsd,
 glow, jq, tree, chafa, ttyd and fastfetch — the themed replacements
@@ -2827,11 +2827,11 @@ stay: these are the *tools*, not the appearance.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
 
-## nebelhaus.collar
+## haus.collar
 
 Touch ID for sudo — including inside a terminal multiplexer — and the passwordless-rebuild rule.
 
-### `nebelhaus.collar.enable`
+### `haus.collar.enable`
 
 `boolean` · default `true`
 
@@ -2844,7 +2844,7 @@ rebuild below. Nothing else in the rice depends on it.
 
 <small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
 
-### `nebelhaus.collar.passwordlessRebuild`
+### `haus.collar.passwordlessRebuild`
 
 `boolean` · default `true`
 
@@ -2863,11 +2863,11 @@ password when `enable` is false) and nothing else changes.
 
 <small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
 
-## nebelhaus.secrets
+## haus.secrets
 
 Where secret values come from on this machine.
 
-### `nebelhaus.secrets.provider`
+### `haus.secrets.provider`
 
 `null or string` · default `"keyring"`
 
@@ -2896,11 +2896,11 @@ Example:
 
 <small>Declared in [`modules/secrets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/secrets/options.nix).</small>
 
-## nebelhaus.homebrew
+## haus.homebrew
 
 How rebuilds treat Homebrew packages you did not declare.
 
-### `nebelhaus.homebrew.autoUpdate`
+### `haus.homebrew.autoUpdate`
 
 `boolean` · default `false`
 
@@ -2910,7 +2910,7 @@ pull newer formulae. Turn on if you want brew to track upstream.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.homebrew.cleanup`
+### `haus.homebrew.cleanup`
 
 `one of "none", "uninstall", "zap"` · default `"none"`
 
@@ -2927,7 +2927,7 @@ installed but NOT declared anywhere in your config.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.homebrew.upgrade`
+### `haus.homebrew.upgrade`
 
 `boolean` · default `false`
 
@@ -2936,8 +2936,8 @@ for the same reproducibility reason as autoUpdate.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.lock
-### `nebelhaus.lock.requirePassword`
+## haus.lock
+### `haus.lock.requirePassword`
 
 `null or boolean` · default `null`
 
@@ -2955,7 +2955,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.lock.requirePasswordDelay`
+### `haus.lock.requirePasswordDelay`
 
 `null or (unsigned integer, meaning >=0)` · default `null`
 
@@ -2974,8 +2974,8 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.menuBar
-### `nebelhaus.menuBar.clock.analog`
+## haus.menuBar
+### `haus.menuBar.clock.analog`
 
 `null or boolean` · default `null`
 
@@ -2990,7 +2990,7 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.clock.format`
+### `haus.menuBar.clock.format`
 
 `null or one of "12h", "24h"` · default `null`
 
@@ -3005,7 +3005,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.clock.showDate`
+### `haus.menuBar.clock.showDate`
 
 `null or one of "when-space-allows", "always", "never"` · default `null`
 
@@ -3020,7 +3020,7 @@ Example:
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.clock.showDayOfWeek`
+### `haus.menuBar.clock.showDayOfWeek`
 
 `null or boolean` · default `null`
 
@@ -3035,7 +3035,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.clock.showSeconds`
+### `haus.menuBar.clock.showSeconds`
 
 `null or boolean` · default `null`
 
@@ -3050,7 +3050,7 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.airdrop`
+### `haus.menuBar.controlCenter.airdrop`
 
 `null or boolean` · default `null`
 
@@ -3064,7 +3064,7 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.batteryPercentage`
+### `haus.menuBar.controlCenter.batteryPercentage`
 
 `null or boolean` · default `null`
 
@@ -3079,7 +3079,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.bluetooth`
+### `haus.menuBar.controlCenter.bluetooth`
 
 `null or boolean` · default `null`
 
@@ -3093,7 +3093,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.displayBrightness`
+### `haus.menuBar.controlCenter.displayBrightness`
 
 `null or boolean` · default `null`
 
@@ -3107,7 +3107,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.focus`
+### `haus.menuBar.controlCenter.focus`
 
 `null or boolean` · default `null`
 
@@ -3121,7 +3121,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.nowPlaying`
+### `haus.menuBar.controlCenter.nowPlaying`
 
 `null or boolean` · default `null`
 
@@ -3135,7 +3135,7 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.menuBar.controlCenter.sound`
+### `haus.menuBar.controlCenter.sound`
 
 `null or boolean` · default `null`
 
@@ -3149,8 +3149,8 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.security
-### `nebelhaus.security.firewall.allowSigned`
+## haus.security
+### `haus.security.firewall.allowSigned`
 
 `null or boolean` · default `null`
 
@@ -3166,7 +3166,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.security.firewall.allowSignedApp`
+### `haus.security.firewall.allowSignedApp`
 
 `null or boolean` · default `null`
 
@@ -3182,7 +3182,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.security.firewall.blockAllIncoming`
+### `haus.security.firewall.blockAllIncoming`
 
 `null or boolean` · default `null`
 
@@ -3199,7 +3199,7 @@ false
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.security.firewall.enable`
+### `haus.security.firewall.enable`
 
 `null or boolean` · default `null`
 
@@ -3217,7 +3217,7 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-### `nebelhaus.security.firewall.stealthMode`
+### `haus.security.firewall.stealthMode`
 
 `null or boolean` · default `null`
 
@@ -3234,8 +3234,8 @@ true
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
 
-## nebelhaus.zen
-### `nebelhaus.zen.extensions`
+## haus.zen
+### `haus.zen.extensions`
 
 `attribute set of (submodule)` · default `{ }`
 
@@ -3244,7 +3244,7 @@ Browser extensions to deploy into Zen, by a stable id of your choosing.
 The mechanism is Firefox's enterprise-policy file — the rice renders
 `Zen/distribution/policies.json` with an `ExtensionSettings` block — so
 it reaches Zen the way an IT department reaches Firefox, without a
-profile to hand-edit. `nebelhaus.roster` deliberately cannot do this: a
+profile to hand-edit. `haus.roster` deliberately cannot do this: a
 roster entry installs from a cask, a brew, a nixpkgs package or the App
 Store, and a browser add-on is none of those.
 
@@ -3254,7 +3254,7 @@ so those need only be named. Everything else needs `id` — see that
 option for where to find it.
 
 Naming `stylus` here also turns on the stamped userstyle bundle (see
-nebelhaus.theme.accent): the Catppuccin-derived styles Stylus imports
+haus.theme.accent): the Catppuccin-derived styles Stylus imports
 carry their own accent and flavor variables, which no palette file can
 reach, so the rice stamps the bundle from your theme — accent, flavor,
 and the contrast it's rendered for — and tells you when there's a new
@@ -3276,7 +3276,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.zen.extensions.<name>.enable`
+### `haus.zen.extensions.<name>.enable`
 
 `boolean` · default `true`
 
@@ -3284,7 +3284,7 @@ Whether to deploy this extension. Set false to remove one an imported rice added
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.zen.extensions.<name>.id`
+### `haus.zen.extensions.<name>.id`
 
 `null or string` · default `null`
 
@@ -3306,7 +3306,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.zen.extensions.<name>.mode`
+### `haus.zen.extensions.<name>.mode`
 
 `one of "force_installed", "normal_installed", "allowed", "blocked"` · default `"force_installed"`
 
@@ -3317,7 +3317,7 @@ but leaves it removable.
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.zen.extensions.<name>.slug`
+### `haus.zen.extensions.<name>.slug`
 
 `null or string` · default `null`
 
@@ -3333,7 +3333,7 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.zen.extensions.<name>.url`
+### `haus.zen.extensions.<name>.url`
 
 `string` · default `""`
 
@@ -3343,12 +3343,12 @@ version or a self-hosted file to freeze it.
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
 
-### `nebelhaus.zen.extraPolicies`
+### `haus.zen.extraPolicies`
 
 `attribute set` · default `{ }`
 
 Anything else to put in Zen's policy file, merged beside the
-`ExtensionSettings` block `nebelhaus.zen.extensions` renders. The rice
+`ExtensionSettings` block `haus.zen.extensions` renders. The rice
 OWNS that file, so this is the escape hatch for the rest of the policy
 surface rather than a reason to take the file back by hand. Keys here
 win over the rice's on a collision.

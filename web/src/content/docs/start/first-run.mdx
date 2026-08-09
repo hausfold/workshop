@@ -69,7 +69,7 @@ pounce --check-accessibility     # prints true when it's granted
 ```
 
 <Aside type="note">
-If you set `nebelhaus.pounce.signingIdentity` in your host file, this grant
+If you set `haus.pounce.signingIdentity` in your host file, this grant
 **survives rebuilds** — the rice re-signs a stable copy of the app so macOS
 keeps trusting it. Without it, the palette still works; paste-back is off and
 Fn/Globe keeps its native macOS action. See [Pounce config](/reference/pounce/).
@@ -89,26 +89,26 @@ A few first tweaks people reach for:
 ```nix
 {
   # Change the accent that tints lazygit, fzf, yazi/Glow, and the browser
-  nebelhaus.theme.accent = "sapphire";
+  haus.theme.accent = "sapphire";
 
   # Prefer a different editor
-  nebelhaus.hearth.editor = "nvim";
+  haus.hearth.editor = "nvim";
 
   # Add an app to the launcher, and give it a workspace of its own
-  nebelhaus.roster.slack = {
+  haus.roster.slack = {
     key = "s";
     name = "Slack";
     appId = "com.tinyspeck.slackmacgap";
     cask = "slack";
   };
-  nebelhaus.workspaces.S = {
+  haus.workspaces.S = {
     key = "s";
     icon = ":slack:";
     apps = [ "slack" ];
   };
 
   # Same list, no launcher key: installed, nothing bound
-  nebelhaus.roster.discord = {
+  haus.roster.discord = {
     name = "Discord";
     cask = "discord";
   };

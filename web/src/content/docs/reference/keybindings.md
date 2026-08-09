@@ -12,8 +12,8 @@ rather than the ones the docs assume.
 Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `⇪` Caps-Lock.
 
 These are the **defaults**. The three keys everything else hangs off are options
-— `nebelhaus.keys.leader` (what `⇪` is), `nebelhaus.keys.windowNav` (what `⌥` is)
-and `nebelhaus.keys.palette` (what opens Pounce) — so on a rice that has changed
+— `haus.keys.leader` (what `⇪` is), `haus.keys.windowNav` (what `⌥` is)
+and `haus.keys.palette` (what opens Pounce) — so on a rice that has changed
 them, read `⇪` and `⌥` below as "the leader" and "the nav modifier". Any of the
 three can be `"none"`, which removes its bindings rather than moving them. See
 [rebinding](/guides/window-management/#not-fond-of-these-keys); your own live
@@ -111,7 +111,7 @@ keystroke can't drop you into a submode. The `Super`-prefixed launchers above wo
 regardless of the lock, and so do `Alt [` / `Alt ]` — picking a layout is a
 workspace act, not a submode. The rest of zellij's `Alt` row stays inert while
 locked on purpose: `Alt h/j/k/l` and `Alt`-arrows are word motions the shell and
-your editor want. Flip it with [`nebelhaus.hearth.zellijStartLocked`](/reference/options/#nebelhaushearthzellijstartlocked).
+your editor want. Flip it with [`haus.hearth.zellijStartLocked`](/reference/options/#haushearthzellijstartlocked).
 
 **Ctrl-click a pane body** zooms it fullscreen — the same toggle as `Super ⏎`,
 for when your hand's already on the trackpad. Click again (or `Super ⏎`) to drop
@@ -148,7 +148,7 @@ pre-emptively: Ghostty claims nothing there today, and the unbind keeps it that
 way if a future release does. `⌘R` is now unbound on both sides — it used to
 reach zellij as a session-reload chord, which a rebuild no longer needs.)
 
-When `nebelhaus.hearth.ghDash.enable` is on, Ghostty also hands `⌘G` to
+When `haus.hearth.ghDash.enable` is on, Ghostty also hands `⌘G` to
 zellij for the dashboard overlay. That intentionally replaces Ghostty's stock
 search-next binding; `⌘F` still opens Hearth's full-text search.
 

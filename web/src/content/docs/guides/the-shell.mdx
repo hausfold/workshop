@@ -48,10 +48,10 @@ alias sets.
 | Tag / worktree | `gt`, `gwt`, `gwta`, `gwtl`, `gwtr` |
 
 `g` itself is `git`. Add, replace, or remove shortcuts per host with
-`nebelhaus.git.shellAliases`:
+`haus.git.shellAliases`:
 
 ```nix
-nebelhaus.git.shellAliases = {
+haus.git.shellAliases = {
   gst = "git status --short --branch"; # replace
   gsync = "git pull --rebase --autostash"; # add
   gco = null; # remove
@@ -81,7 +81,7 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
 | `Super F` | **Find** — full-text search over the focused pane, live as you type (see [Finding things](#finding-things)) |
 | `Super ⇧F` | The same overlay, across **every pane** in the session |
-| `Super G` | **gh-dash** — GitHub review queue in a borderless fullscreen overlay (when `nebelhaus.hearth.ghDash.enable = true`) |
+| `Super G` | **gh-dash** — GitHub review queue in a borderless fullscreen overlay (when `haus.hearth.ghDash.enable = true`) |
 | `Super ⏎` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super Y` | **yazi peek** — a floating browser with live previews, sized to cover the terminal window that summoned it; `Enter` on a directory opens a new tab there. Same **worktree hop** as `Super P` |
 | `Super ⇧Y` | **yazi peek, stay here** — the no-hop sibling, for browsing a `claude --worktree` checkout itself |
@@ -178,7 +178,7 @@ Quit with `q` / `Esc` and the window closes, leaving your tiled layout untouched
 
 ## Choosing your editor
 
-helix is the default. `nebelhaus.hearth.editor` is the **one** editor the rice
+helix is the default. `haus.hearth.editor` is the **one** editor the rice
 uses everywhere — it's your `$EDITOR` / `$VISUAL`, and it's what every "open in
 an editor" action launches (the "Nix Config" palette command, the bar's nix-open
 item, and the file-association hijack below). Those open the target in a new
@@ -186,13 +186,13 @@ zellij tab running it, so a terminal editor is the natural fit; a GUI editor's
 CLI works too. Set it in your host file:
 
 ```nix
-nebelhaus.hearth.editor = "nvim";     # any terminal editor
+haus.hearth.editor = "nvim";     # any terminal editor
 # a GUI editor's CLI works too, e.g. "code" or "code -w" to block
 ```
 
 One related knob:
 
-- **`nebelhaus.hearth.hijackFileAssociations`** — off by default; when `true`,
+- **`haus.hearth.hijackFileAssociations`** — off by default; when `true`,
   makes your editor the default opener for `.json`, `.md`, `.ts`, `.nix`, and
   similar via [`duti`](https://github.com/moretension/duti).
 
@@ -203,7 +203,7 @@ One related knob:
 - **Git aliases** — a compact, framework-independent set (`g`, `gst`, `gco`,
   `gcb`, `gp`, `gpf`, `grbi`, `gwt`, …) ships built in — no oh-my-zsh. Add,
   override, or remove one with
-  [`nebelhaus.git.shellAliases`](/reference/options/#nebelhausgitshellaliases).
+  [`haus.git.shellAliases`](/reference/options/#hausgitshellaliases).
 - **Auto-renaming tabs** — `cd` into a repo and the zellij tab renames itself
   after it; `cd ~` renames it back to `~`, the name every fresh tab is born
   with (no `Tab #N` anywhere).
@@ -214,5 +214,5 @@ One related knob:
   no-hop escape hatch.
 
 See [Theming & accents](/guides/theming/) for how every tool above gets its
-colours, and the [options reference](/reference/options/#nebelhaushearth) for
+colours, and the [options reference](/reference/options/#haushearth) for
 every hearth knob.

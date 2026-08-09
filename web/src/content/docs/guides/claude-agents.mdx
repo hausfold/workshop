@@ -97,7 +97,7 @@ repo's zellij tab.
 Set the client declaratively:
 
 ```nix
-nebelhaus.agents.default = "codex"; # or "claude" (default), or "opencode"
+haus.agents.default = "codex"; # or "claude" (default), or "opencode"
 ```
 
 `holt` records that client with the worktree. Changing the option therefore only
@@ -114,7 +114,7 @@ be a child of — same worktree, named after your prompt.
 A separate option says which clients are **installed**:
 
 ```nix
-nebelhaus.agents.clients = [ "claude" "opencode" ];   # the default
+haus.agents.clients = [ "claude" "opencode" ];   # the default
 ```
 
 `agents.default` must be one of them, and the rebuild says so by name if it

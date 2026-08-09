@@ -55,7 +55,7 @@ into `flake.nix`. The identity and app choices come along for free.
 
 Once that switch finishes, the rebuild has already restored:
 
-- **Every declared GUI app** — anything in `nebelhaus.roster` with a `cask`,
+- **Every declared GUI app** — anything in `haus.roster` with a `cask`,
   `brew` or `package` reinstalls itself.
 - **Your whole shell** — Ghostty, zellij, zsh, starship, yazi, helix, and the
   CLI toolbelt, themed and configured.
@@ -87,7 +87,7 @@ on a fresh machine:
    pounce --request-accessibility
    ```
 
-   If you use `nebelhaus.pounce.signingIdentity`, make sure that signing
+   If you use `haus.pounce.signingIdentity`, make sure that signing
    certificate is in the new machine's keychain (import it, or create a fresh
    Apple Development cert and update the SHA-1 in your host file) so the grant
    survives future rebuilds. See [Pounce config](/reference/pounce/).
@@ -103,7 +103,7 @@ on a fresh machine:
 </Steps>
 
 <Aside type="tip" title="Do future-you a favour">
-Every app you move from "installed by hand" into `nebelhaus.roster` is one less
+Every app you move from "installed by hand" into `haus.roster` is one less
 thing to remember next migration. The goal is a machine you
 could wipe on a Tuesday without flinching.
 </Aside>
