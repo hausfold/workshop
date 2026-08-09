@@ -24,18 +24,18 @@ what's out of sync and `./bench ship` makes it right.**
 
 ## the family
 
-- 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) — the house. the whole rice, one Nix flake. start here.
-- 🐾 [**pounce**](https://github.com/nebelhaus/pounce) — the palette. keyboard-first launcher; every command a file.
-- 🪺 [**perch**](https://github.com/nebelhaus/perch) — the shelf. files, caught in the notch.
-- 🌫️ [**nebelung**](https://github.com/nebelhaus/nebelung) — the theme. the silver-mist palette.
-- 🪵 [**holt**](https://github.com/nebelhaus/holt) — the worktrees. parallel coding agents, safely, in any repo.
-- 🧰 [**workshop**](https://github.com/nebelhaus/workshop) — the bench. where the family is built. *(you are here)*
+- 🏠 [**nebelhaus**](https://github.com/hausfold/hausfold) — the house. the whole rice, one Nix flake. start here. *(the repo is `hausfold/hausfold` and the checkout `./hausfold`; the rice itself keeps the name)*
+- 🐾 [**pounce**](https://github.com/hausfold/pounce) — the palette. keyboard-first launcher; every command a file.
+- 🪺 [**perch**](https://github.com/hausfold/perch) — the shelf. files, caught in the notch.
+- 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the theme. the silver-mist palette.
+- 🪵 [**holt**](https://github.com/hausfold/holt) — the worktrees. parallel coding agents, safely, in any repo.
+- 🧰 [**workshop**](https://github.com/hausfold/workshop) — the bench. where the family is built. *(you are here)*
 
 Each one stands alone. Together they're a house.
 
-Four more ride along: 🐙 [**org-profile**](https://github.com/nebelhaus/.github)
+Four more ride along: 🐙 [**org-profile**](https://github.com/hausfold/.github)
 (the org's GitHub front page), 🍺
-[**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) (CI bumps it on
+[**homebrew-tap**](https://github.com/hausfold/homebrew-tap) (CI bumps it on
 every release — you almost never touch it), 🔔
 [**trill**](https://github.com/hausfold/trill) (the notification compositor —
 ejected from the incubator 2026-08-09; deliberately *not* a family repo, so
@@ -55,6 +55,9 @@ The repos form a chain of pinned flake inputs:
 ```
 nebelung ──► pounce ──► nebelhaus ──► ~/.config/nix ──► your Mac
 ```
+
+(Those are flake **input** names, not directories — the rice's input is still
+spelled `nebelhaus` while its checkout is `./hausfold`.)
 
 A flake input is **not** "whatever is on GitHub right now" — it's an exact commit
 hash, frozen in `flake.lock`. That's what makes a rebuild reproducible. The flip
@@ -112,7 +115,7 @@ Each step, and why it's shaped that way, is in
 ## setting up on a fresh machine
 
 ```sh
-git clone https://github.com/nebelhaus/workshop.git
+git clone https://github.com/hausfold/workshop.git
 cd workshop
 ./bench clone
 ```
@@ -123,8 +126,8 @@ cd workshop
 
 Every repo's agent instructions open with the same routing table, so a session
 started anywhere knows whether it's in the right place. The short version:
-**colors → nebelung · the palette app → pounce · system behavior → nebelhaus ·
-personal anything → `~/.config/nix`**. When in doubt, start here and read
+**colors → nebelung · the palette app → pounce · system behavior → `./hausfold`
+(the rice) · personal anything → `~/.config/nix`**. When in doubt, start here and read
 [`AGENTS.md`](./AGENTS.md).
 
 Those instructions are harness-neutral on purpose: `AGENTS.md` is the one body,
