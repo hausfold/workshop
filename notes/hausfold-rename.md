@@ -824,6 +824,15 @@ step 4 works.
   without it.** The agent harness refuses an agent editing a licence holder
   line — the right default — so that PR carries the README half only, and its
   README *quotes* the LICENSE. Half of it is worse than none of it.
+  🚨 **perch#47 merged anyway, 2026-08-09, without the hand edit — so perch is
+  in the half-state this warning existed to prevent.** `perch/README.md:94`
+  now reads `FSL-1.1-ALv2 © hausfold` and links to a `perch/LICENSE:9` that
+  still reads `Copyright (c) 2026 nebelhaus`: one repo, two holders, on the
+  **paid** product's licence. It is one word, `nebelhaus` → `hausfold`, and
+  👤's — no agent can make it. Until it lands, don't read the ✅ above as
+  finished. *(The warning was written on the PR, and the merge is what the
+  gate could not stop: a "must not merge without X" that lives only in a note
+  is not a gate. Nothing enforces this one; it just has to be done.)*
   ⏳ **And the other three LICENSE files still say `Julien Martel`**
   (nebelhaus, nebelung, pounce — all MIT). That mismatch predates the rename
   and is not a regression, but it is now the whole remaining inconsistency:
