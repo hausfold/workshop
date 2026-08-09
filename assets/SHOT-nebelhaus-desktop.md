@@ -350,44 +350,25 @@ always to remove something, never to zoom.
 
 You don't need one. 1600 px into a 600 px slot is already 2.6×.
 
-### The og:image question — 3 / 5, your call
+### og:image — decided 2026-08-09: **hausfold.co stays imageless**
 
-Two written rules in `hausfold.co/AGENTS.md` stand in the way, and they need
-different answers:
+Asked and answered. Having a real desktop capture does **not** reopen it: the
+site's link cards keep degrading to the title and one line, which is the tone
+the pages are for.
 
-1. *"No `og:image`, and that's a decision, not an omission… Adding one needs a
-   reason of its own."* The stated objection is to *a 1200×630 sheet with the
-   wordmark centred on it* — which a real desktop capture isn't. **The door is
-   open**, but walking through it means rewriting that bullet in the same PR.
-2. *"Every page carries the same head… A change to one is a change to all of
-   them."* Putting an og:image on one page and not the other seven **breaks
-   this as written.** Either card all eight, or say in `AGENTS.md` that
-   og:image is the one head tag that is deliberately per-page — the others
-   describe the site, this one describes the picture, and seven of the pages
-   have no picture. Say it explicitly; don't leave the next reader to discover
-   an undocumented exception.
+So the existing rule in `hausfold.co/AGENTS.md` stands unedited —
 
-If you do it: **crop, don't shrink.** A whole desktop at 1200 × 630 is mud. Cut
-a 1.91:1 band that holds the menu bar, the pounce card and the seam, and
-nothing else — the card wants to be ~40 % of the width. That crop reads at
-thumbnail size; the full desktop does not.
+> *"No `og:image`, and that's a decision, not an omission… Adding one needs a
+> reason of its own."*
 
-The numbers depend on where the pounce panel actually landed, so **do this by
-eye**. Shape of it: the band is 1200 / 630 = 1.905, so at full master width
-2294 it is 1204 px tall — but you don't want full width. Something like a
-1600-wide window starting at the left edge of the terminal, 840 tall, is closer:
+— and so does the one that would have made it expensive anyway: *"Every page
+carries the same head… A change to one is a change to all of them."* Carding
+one page and not the other seven breaks that as written; carding all eight to
+avoid it is a lot of surface for a picture nobody asked for.
 
-```sh
-# X/Y/W by eye — open the master, note where the bar's top edge and the
-# card's bottom edge are, and make the crop bracket exactly those two.
-magick nebelhaus-master.png -crop 1600x840+340+0 +repage \
-  -resize 1200x630 -quality 84 nebelhaus-og.webp
-```
-
-I'd do it, and card **all eight** pages with it rather than fight the head rule
-— one picture of the desktop is a fair card for every page on a site whose
-entire subject is that desktop. Reversing costs one commit deleting three meta
-tags from eight files.
+**Don't cut an og crop.** There is one export from this shoot
+(`nebelhaus-desktop.webp`) and it is the in-page hero. If this comes up again,
+the answer is no unless the *tone* argument has changed, not the asset one.
 
 ---
 
@@ -429,14 +410,18 @@ worse than none.
 
 Still to do by hand in that repo, because they are judgement calls:
 
-1. the **`og:image`** block, if you took that call above
-2. the **"Placeholder frames, never a stale screenshot"** bullet in
+1. the **"Placeholder frames, never a stale screenshot"** bullet in
    `AGENTS.md` — it still points at `nebelhaus/assets/hero.png` (the directory
-   is `hausfold/` since 2026-08-09) and still calls it a placeholder
-3. `hausfold.co` has had **no binary asset at all** until now. Its build story
+   is `hausfold/` since 2026-08-09) and still calls it a placeholder. Amend it
+   to say the wide frames hold a real capture and the two narrow ones don't
+   yet; the rule itself is unchanged and still correct.
+2. `hausfold.co` has had **no binary asset at all** until now. Its build story
    is "there is no build" and that stays true — a static file in `public/` is
    still no build — but it's worth one line in `AGENTS.md` saying so, before
    someone reads the absence as a rule.
+
+No og:image edit. That decision was re-confirmed on 2026-08-09 and the bullet
+in `AGENTS.md` stands as written.
 
 ---
 
