@@ -7,9 +7,9 @@
 // they have drifted before (⌥1–4 lived in the docs long after the rice moved
 // workspace focus to the caps leader).
 //
-// This script snapshots the rice's binding surface (the wm-bindings table, via
-// the rice's `wm-bindings-json` output, plus the launch/resize mode keys read
-// out of aerospace.toml) into
+// This script snapshots the rice's binding surface (the wm-bindings table, from
+// the rice's published `docs/site-data/wm-bindings.json`, plus the launch/resize
+// mode keys read out of aerospace.toml) into
 // web/src/data/rice-bindings.json. CI re-derives the snapshot from the rice's
 // current main and fails on any difference — the failure is the signal that a
 // human must update the docs (reference/keybindings.md, and usually
@@ -20,11 +20,12 @@
 //   node web/scripts/check-rice-bindings.mjs --rice <nebelhaus-checkout>
 //   node web/scripts/check-rice-bindings.mjs --rice <nebelhaus-checkout> --update
 //
-// Needs `nix` on PATH (pure eval of a plain .nix file; no network, no builds).
+// Needs a rice CHECKOUT and nothing else — no Nix. See gen-options.mjs's header
+// for why (notes/hausfold-rename.md §5.1: the docs must not drag Nix into their
+// own repo's CI).
 
-import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,69 +35,42 @@ const args = process.argv.slice(2);
 const update = args.includes('--update');
 const riceIdx = args.indexOf('--rice');
 const rice = riceIdx >= 0 ? args[riceIdx + 1] : process.env.RICE_DIR;
-if (!rice) {
+// existsSync, not just a truthiness check: everything below now reads FILES out
+// of the checkout, so a typo'd path would otherwise fall through to the
+// missing-site-data branch and be reported as an out-of-date rice.
+if (!rice || !existsSync(rice)) {
   console.error('usage: check-rice-bindings.mjs --rice <nebelhaus-checkout> [--update]');
   process.exit(2);
 }
 
 // The static chord table, resolved for the rice's DEFAULT keymap.
 //
-// Read from the rice's `wm-bindings-json` flake output rather than by eval'ing
-// modules/prowl/wm-bindings.nix directly. That direct eval worked while the file
-// was plain data, and broke the moment the rice made it a FUNCTION of
+// Read from the rice's published `docs/site-data/wm-bindings.json` rather than
+// by eval'ing modules/prowl/wm-bindings.nix. That direct eval worked while the
+// file was plain data, and broke the moment the rice made it a FUNCTION of
 // haus.keys.* ("cannot convert a function to JSON") — a change in the rice
 // silently breaking a script here, on a weekly cron. Same seam as
 // gen-options.mjs and the same reason: this repo shouldn't know how the rice
 // builds the table, only what it resolves to.
 //
-// The fallback keeps this working against a rice checkout OLDER than the output
-// (and lets the two repos land in either order).
-function readWmBindings() {
-  try {
-    const out = execFileSync(
-      'nix',
-      ['build', '--no-link', '--print-out-paths', `${resolve(rice)}#wm-bindings-json`],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-    ).trim();
-    return JSON.parse(readFileSync(out, 'utf8'));
-  } catch (err) {
-    if (!(err.stderr?.toString() ?? '').includes('does not provide attribute')) throw err;
-    // Pre-wm-bindings-json rice: the table was still plain data. Only reachable
-    // on a checkout older than that output.
-    try {
-      return JSON.parse(
-        execFileSync(
-          'nix',
-          ['eval', '--json', '--file', join(rice, 'modules/prowl/wm-bindings.nix')],
-          { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-        ),
-      );
-    } catch (fallbackErr) {
-      // The in-between state: the rice made wm-bindings.nix a FUNCTION of
-      // haus.keys.* but hasn't landed the output that resolves it. Nix's own
-      // message ("cannot convert a function to JSON") names neither repo, and this
-      // runs on a cron, so translate it into the sentence that helps. Same
-      // courtesy gen-options.mjs extends for a missing options-json.
-      if ((fallbackErr.stderr?.toString() ?? '').includes('cannot convert a function to JSON')) {
-        console.error(
-          [
-            `The rice checkout at ${rice} has a FUNCTION-form wm-bindings.nix but no`,
-            '`wm-bindings-json` flake output, so neither way of reading the binding',
-            'table works.',
-            '',
-            'That is a transient state ACROSS two repos: the rice parameterised the',
-            'table on haus.keys.*, and the output that resolves it lands',
-            'separately. Merge the rice PR adding `wm-bindings-json` and re-run.',
-            '',
-          ].join('\n'),
-        );
-        process.exit(1);
-      }
-      throw fallbackErr;
-    }
-  }
+// No `nix build` fallback, on purpose. Absence means a rice older than
+// nebelhaus#268, and a fallback for that is a path CI can never exercise.
+const WM_BINDINGS = join(rice, 'docs/site-data/wm-bindings.json');
+if (!existsSync(WM_BINDINGS)) {
+  console.error(
+    [
+      `The rice checkout at ${rice} has no \`docs/site-data/wm-bindings.json\`.`,
+      '',
+      'That file is the binding table this snapshot is derived from. It is',
+      'generated and committed by the rice (`nix build .#site-data`), so the',
+      'checkout predates nebelhaus#268 — update it (CI pulls',
+      'nebelhaus/nebelhaus main) and re-run.',
+      '',
+    ].join('\n'),
+  );
+  process.exit(1);
 }
-const wmBindings = readWmBindings();
+const wmBindings = JSON.parse(readFileSync(WM_BINDINGS, 'utf8'));
 
 // The mode keys that live in aerospace.toml rather than the table. Keys only:
 // commands carry @HOME@/@BIN@ noise that would churn the snapshot for free.

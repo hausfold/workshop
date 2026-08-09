@@ -7,10 +7,10 @@
 // options.nix split took the source from one file to eleven, which would have
 // made honest hand-maintenance hopeless.
 //
-// So the rice exposes `nix build .#options-json` (nixosOptionsDoc over the
-// per-room options files — pure evaluation, no darwin system, runs on Linux CI)
-// and this script renders it. The module system is the single source of truth;
-// a description edit lands in the rice and the page follows.
+// So the rice renders its own module system to JSON (nixosOptionsDoc over the
+// per-room options files) and COMMITS it at `docs/site-data/`, and this script
+// reads those files. The module system is the single source of truth; a
+// description edit lands in the rice and the page follows.
 //
 // Narrative guides stay hand-written. This is the REFERENCE only.
 //
@@ -18,11 +18,15 @@
 //   node web/scripts/gen-options.mjs --rice <nebelhaus-checkout>
 //   node web/scripts/gen-options.mjs --rice <nebelhaus-checkout> --check
 //
-// Needs `nix` on PATH.
+// Needs a rice CHECKOUT and nothing else — no Nix, no flake pin, no nixpkgs
+// fetch. It used to shell out to `nix build .#options-json`, which meant this
+// repo's CI installed Nix to check a Markdown page; that stops being acceptable
+// when the docs move to their own repo (notes/hausfold-rename.md §5.1). The
+// rice's `site-data-current` flake check is what keeps the committed copy
+// honest, on the side of the boundary that owns the derivation.
 
-import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -39,77 +43,69 @@ if (!rice || !existsSync(rice)) {
 }
 
 // ---- pull the option metadata out of the rice -------------------------------
-// The rice must expose `options-json` (nebelhaus#93). It won't on an older
-// checkout, and nix's own error for that is a wall of attribute-path guesses
-// wrapped in a Node stack trace — so translate it into the one sentence that
-// actually helps. This fired for real the first time CI ran, when the rice's
-// main hadn't landed the output yet.
-let outPath;
-try {
-  outPath = execFileSync(
-    'nix',
-    ['build', '--no-link', '--print-out-paths', `${resolve(rice)}#options-json`],
-    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-  ).trim();
-} catch (err) {
-  const stderr = err.stderr?.toString() ?? '';
-  if (stderr.includes('does not provide attribute')) {
+// `docs/site-data/` is the rice's published surface: generated from its module
+// system, committed, and pinned by its own `site-data-current` flake check. A
+// checkout is all we need.
+//
+// Absence is a hard failure, deliberately, with no `nix build` fallback. The
+// only way to be here is a rice older than nebelhaus#268 — and a fallback for
+// that would be a code path CI can never exercise, kept alive against a
+// checkout nobody has. The message says which side to fix.
+const SITE_DATA = join(rice, 'docs/site-data');
+function riceFile(name, why) {
+  const path = join(SITE_DATA, name);
+  if (!existsSync(path)) {
     console.error(
-      `The rice checkout at ${rice} has no \`options-json\` flake output.\n\n` +
-        'That output is what this page is rendered from. Either the checkout predates\n' +
-        'nebelhaus#93, or it is not the nebelhaus rice at all. Update it (CI pulls\n' +
-        "nebelhaus/nebelhaus main) and re-run.\n",
+      `The rice checkout at ${rice} has no \`docs/site-data/${name}\`.\n\n` +
+        `${why}\n\n` +
+        'That directory is generated and committed by the rice (`nix build .#site-data`).\n' +
+        'The checkout predates nebelhaus#268 — update it (CI pulls\n' +
+        'nebelhaus/nebelhaus main) and re-run.\n',
     );
-  } else {
-    console.error(`\`nix build ${rice}#options-json\` failed:\n\n${stderr}`);
+    process.exit(1);
   }
-  process.exit(1);
+  return JSON.parse(readFileSync(path, 'utf8'));
 }
-const raw = JSON.parse(readFileSync(join(outPath, 'share/doc/nixos/options.json'), 'utf8'));
+
+const raw = riceFile('options.json', 'That file is what this page is rendered from.');
 
 // Reading order and a one-line blurb per room. The module system can't produce
 // these — it has no notion of "identity first, policy last", and nowhere to hang
 // a sentence about a whole namespace — so the rice carries them as data
-// (modules/options-groups.nix) and ships them beside options.json.
+// (modules/options-groups.nix) and publishes them beside options.json.
 //
 // They used to live in this file, where they covered 16 of the rice's 23 rooms:
 // agents, collar, developer, displays, keys, perch and ui fell off the end of
 // the page alphabetically, blurbless, and nobody noticed because a missing blurb
 // looks exactly like a blurb nobody wrote. The rice's own host template renders
 // from the same file, so the two orderings can't disagree either.
-const GROUPS_PATH = join(outPath, 'share/doc/nixos/groups.json');
-if (!existsSync(GROUPS_PATH)) {
-  console.error(
-    `The rice checkout at ${rice} builds no groups.json beside options.json.\n\n` +
-      'That file carries the per-room order and blurbs this page is laid out\n' +
-      'with. The checkout predates nebelhaus#184 — update it (CI pulls\n' +
-      'nebelhaus/nebelhaus main) and re-run.\n',
-  );
-  process.exit(1);
-}
-const GROUPS = JSON.parse(readFileSync(GROUPS_PATH, 'utf8'));
-
-// The option namespace is `haus.*`; `nebelhaus.*` is the pre-rename spelling
-// the rice still aliases (nebelhaus/nebelhaus modules/renamed.nix). Detect it
-// rather than hardcode it, so this script renders correctly whichever side of
-// that rename the pinned rice is on — CI pulls the rice's main, and the two
-// repos do not land in the same commit.
-//
-// The aliases are `visible = false`, so options.json only ever carries ONE of
-// the two prefixes; there is no double-count to worry about.
-const NS = ['haus.', 'nebelhaus.'].find((p) =>
-  Object.keys(raw).some((name) => name.startsWith(p)),
+const GROUPS = riceFile(
+  'groups.json',
+  'That file carries the per-room order and blurbs this page is laid out with.',
 );
-if (!NS) {
+
+// The option namespace is `haus.*`. This used to also detect the pre-rename
+// `nebelhaus.*`, for the window where the two repos hadn't landed the rename in
+// the same commit; that window closed, and `docs/site-data/` filters on `haus.`
+// at the source, so a rice that spelled it the old way would ship no site-data
+// at all and never reach this line.
+//
+// The floor stays anyway. A generated cross-repo artifact fails by EMPTYING,
+// not by erroring (workshop#266: an options page with a title, an intro and
+// zero options, which the Monday cron would have opened as a routine PR). The
+// rice carries the same floor in modules/site-data.nix; this is the other side
+// of the boundary, where an empty page would actually be committed.
+const NS = 'haus.';
+const PREFIX = 'haus';
+if (!Object.keys(raw).some((name) => name.startsWith(NS))) {
   console.error(
-    'options.json carries no `haus.*` or `nebelhaus.*` keys.\n\n' +
+    'options.json carries no `haus.*` keys.\n\n' +
       'That is a broken render, not a rice with no options — most likely this\n' +
       'script and the rice disagree about the option namespace. Fix the prefix\n' +
       'here rather than committing an empty page.\n',
   );
   process.exit(1);
 }
-const PREFIX = NS.slice(0, -1); // "haus"
 
 const options = Object.entries(raw)
   .filter(([name]) => name.startsWith(NS))
