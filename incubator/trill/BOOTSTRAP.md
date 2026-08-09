@@ -90,5 +90,4 @@ Then feel it: run Trill.app, `trill ping`, `trill send --title hello`.
   already in place and ejects as-is.
 - **homebrew-tap / release.yml**: only when the first release is cut
   (CalVer via `bench release trill`); `nix/release.nix` carries a
-  placeholder until CI stamps it. §0's slot 3 is already closed — the old
-  `Casks/trill.rb` was deleted, so the token is free for this app's cask.
+  placeholder until CI stamps it.

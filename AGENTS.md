@@ -253,9 +253,8 @@ cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `assets`, `web/`). The family
 sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
-`hausfold/`,
-`org-profile/`, `homebrew-tap/` — are **not here at
-all.** This is **NOT** a `.gitignore`
+`hausfold/`, `org-profile/`, `homebrew-tap/` — are **not here at all.** This is
+**NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
 is an independent repo that lives only beside the workshop's main checkout.

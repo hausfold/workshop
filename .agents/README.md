@@ -98,8 +98,8 @@ allows, and add a row.
 Every repo now carries this layer, one PR each: the rice (`nebelhaus`),
 `nebelung`, `pounce`, `perch`, `org-profile` (the `nebelhaus/.github` repo),
 `homebrew-tap`, the incubating `incubator/trill` (the notification compositor),
-and the consumer config (`~/.config/nix`). Each keeps its **own** rules — only the shape is
-shared. The differences worth knowing:
+and the consumer config (`~/.config/nix`). Each keeps its **own** rules — only
+the shape is shared. The differences worth knowing:
 
 - **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a
   flake, so there is nothing to bootstrap; their `.agents/README.md` records
