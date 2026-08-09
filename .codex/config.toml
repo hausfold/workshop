@@ -1,4 +1,4 @@
-# Project-scoped Codex config for the nebelhaus workshop.
+# Project-scoped Codex config for the hausfold workshop.
 #
 # Instructions: AGENTS.md at the repo root — Codex reads it natively, no wiring.
 # Flows (/ship, /docs-sync): .agents/skills/, which Codex scans as project-level

@@ -639,9 +639,10 @@ every entry in this section falls into exactly one of four buckets:
 | **an identifier that resolves** — repo URL, org slug, flake input name, `GH_ORG`, `FAMILY` directory name, `--override-input nebelhaus/*` | `github.com/nebelhaus/pounce` | **§3**, which exists to "rewrite every edge" in one sitting. Renaming any of these now points a doc at a repo that 404s, or breaks a build outright — both are behavior changes, which §2 is gated against. |
 | **the domain** | `nebelhaus.com` | **§5**, with the 301s |
 
-So: **`bench`'s §2 share is empty** — `FAMILY:75` is a directory name settled by
-§3.1(b), the repo lists and the `--override-input` block at `:281-284` are edges
-owned by §3.3. And **the rice's §2 share is empty too**: audited 2026-08-09,
+So: **`bench`'s §2 share is one line** — its `:2` header comment, which is brand
+prose. `FAMILY:75` is a directory name settled by §3.1(b), and the repo lists and
+the `--override-input` block at `:281-284` are edges owned by §3.3. And **the
+rice's §2 share is empty**: audited 2026-08-09,
 every surviving `nebelhaus` in it is the repo name, the rice's own name (§6),
 the flake input, `nebelhaus.com`, a launchd label or a state dir. Its
 `LICENSE` holder is `Julien Martel`, not a brand. Its `flake.nix` description
@@ -731,22 +732,33 @@ step 4 works.
   What's left for §2 in `web/` is genuinely **brand** prose —
   `what-is-nebelhaus.md` and its redirect, `astro.config.mjs`'s `site:` — which
   belongs with §5's domain move, not here.
-- ✅ **bench**: **nothing to do in §2** — every line this bullet named is a
-  resolving identifier. `FAMILY=(…)` at `bench:75` is a list of *directory
-  names* (`local_src` → `$ROOT/$1`), which §3.1's on-disk-collision decision
-  settles; the repo lists at `:1003`/`:1455`/`:1541`, `GH_ORG` and the
-  `--override-input nebelhaus/*` block at `:281-284` are §3.3's edges. Moving
-  any of them before the transfer breaks `bench` on a live machine.
-  ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.**
-  `bench:72-74` keeps it there deliberately so `bench status` still reports the
-  checkout; it carries no lock edge and no release path. Removing it is a
-  behavior change. *(It is the entry that was `trill` until §3.4 renamed it, in
-  workshop#269 — the entry, the repo and the on-disk dir moved together.)*
+- ✅ **bench** — one line, `bench:2`'s header ("the workshop CLI for the
+  hausfold family"), done 2026-08-09. **Everything else this bullet named is a
+  resolving identifier and belongs to §3.** `FAMILY=(…)` at `bench:75` is a list
+  of *directory names* (`local_src` → `$ROOT/$1`), which §3.1's
+  on-disk-collision decision settles; the repo lists at `:1003`/`:1455`/`:1541`,
+  `GH_ORG` and the `--override-input nebelhaus/*` block at `:281-284` are
+  §3.3's edges. Moving any of them before the transfer breaks `bench` on a live
+  machine.
+  ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.** `bench:72-74`
+  keeps it there deliberately so `bench status` still reports the checkout; it
+  carries no lock edge and no release path. Removing it is a behavior change.
+  🚨 **Which word that entry is depends on whether workshop#269 has landed —
+  check before acting, don't trust this line.** Until it merges the entry reads
+  `trill`; #269 renames the repo, the entry and the on-disk dir to `messages`
+  together (§3.4), *and* gives the name `trill` to the notification compositor,
+  which is deliberately **not** in `FAMILY`. So in the window between, a `trill`
+  in `FAMILY` looks exactly like stale residue from the compositor's rename —
+  and deleting it is the behavior change this warning exists to stop.
 - ✅ **workshop — done 2026-08-09.** `README.md` title + `part_of` badge,
   `AGENTS.md`'s opening ("the **hausfold** workshop … every repo in the
-  **hausfold** family"), and the three `.agents/skills/*` descriptions that
-  said "the nebelhaus family / workshop". The routing table itself is repo
-  names and stays.
+  **hausfold** family"), the three `.agents/skills/*` descriptions and
+  `.codex/config.toml:1`, all of which said "the nebelhaus family / workshop".
+  The routing table itself is repo names and stays.
+  ⏳ **One badge deferred on purpose:** `incubator/flick/README.md:11` also
+  carries `part_of-nebelhaus`, and workshop#269 renames that whole directory —
+  sweeping it here buys a conflict for one line. Do it in the same pass as the
+  compositor's own rename, or immediately after #269 lands.
 
   **Plus the namespace residue §1 structurally couldn't reach.** §1 renamed the
   *rice*; nothing renamed the option paths quoted in **other** repos' prose, and

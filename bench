@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bench — the workshop CLI for the nebelhaus family.
+# bench — the workshop CLI for the hausfold family.
 #
 # The family is a chain of flakes, each pinning the one before it:
 #

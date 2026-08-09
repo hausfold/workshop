@@ -14,7 +14,7 @@ description: >-
 
 # Ship (hausfold workshop): verify → PR → merge → clean up → ripple → activate
 
-The nebelhaus repos form a chain of pinned flake inputs
+The family's repos form a chain of pinned flake inputs
 (`nebelung → pounce → nebelhaus → ~/.config/nix`). A commit is invisible downstream until
 each downstream `flake.lock` is bumped — `bench ship` does that ripple. Never hand-walk it.
 `bench` lives at the workshop root and is available as `bench`; run it from anywhere.

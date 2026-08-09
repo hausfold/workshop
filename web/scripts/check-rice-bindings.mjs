@@ -73,7 +73,7 @@ function readWmBindings() {
       );
     } catch (fallbackErr) {
       // The in-between state: the rice made wm-bindings.nix a FUNCTION of
-      // nebelhaus.keys.* but hasn't landed the output that resolves it. Nix's own
+      // haus.keys.* but hasn't landed the output that resolves it. Nix's own
       // message ("cannot convert a function to JSON") names neither repo, and this
       // runs on a cron, so translate it into the sentence that helps. Same
       // courtesy gen-options.mjs extends for a missing options-json.
@@ -85,7 +85,7 @@ function readWmBindings() {
             'table works.',
             '',
             'That is a transient state ACROSS two repos: the rice parameterised the',
-            'table on nebelhaus.keys.*, and the output that resolves it lands',
+            'table on haus.keys.*, and the output that resolves it lands',
             'separately. Merge the rice PR adding `wm-bindings-json` and re-run.',
             '',
           ].join('\n'),
