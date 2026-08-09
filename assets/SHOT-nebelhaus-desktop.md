@@ -24,7 +24,7 @@ So the still is judged as a **composition, not as content**. What survives at
 1. the bright pounce card in the middle of the frame
 2. the two bar bands, top and bottom, framing everything
 3. the 60 / 40 vertical split
-4. the sage ember under the notch
+4. the ember under the notch — two accent-pink pips
 5. a thin coloured seam of wallpaper between the tiles
 
 Everything else is texture. That's not a compromise — it's the brief. The old
@@ -37,7 +37,7 @@ hero fails because it tried to be readable and became a wall.
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │ ▟▙ 1  ⌘ ghostty            ▁▁▁▁▁▁▁            ⏻ 21°  Thu  9:41 AM │  sill, menu bar
-│                             ▝▘  ← perch: two sage pips             │  (notch centred)
+│                             ▝▘  ← perch: two pink pips             │  (notch centred)
 ├──────────────────────────────────┬─────────────────────────────────┤
 │  agent session, mid-turn         │  haus status                    │
 │                                  │    this machine: …              │
@@ -69,7 +69,7 @@ hero fails because it tried to be readable and became a wall.
 | two bars, top and bottom | **sill** — and that a second bar is a supported thing, not a hack |
 | the 60/40 split with even gaps | **prowl** — a terminal and a *native app* under one tiler |
 | the pounce card straddling the seam | **pounce** — system-wide, not a terminal toy |
-| the sage pips under the notch | **perch** — the shelf is holding something |
+| the two pips under the notch | **perch** — the shelf is holding something |
 | `haus status` | **haus** + reproducibility, in four lines |
 | the host-file diff | the whole thesis: *the machine is a file you edit* |
 | the agent pane + the worktree HUD row | the agent workflow, and the one thing no other rice has |
@@ -84,77 +84,94 @@ they belong in the prose beside the picture, and the page already carries them.
 
 ## Setup
 
-### 1. Make the Mac bigger, not the crop smaller
+### 1. One command, one rebuild
 
 ```sh
-haus set displays.internal.uiScale larger-text
-haus rebuild
+haus set \
+  displays          '{"internal":{"uiScale":"larger-text"}}' \
+  theme.wallpaper   flow \
+  sill.items        '{"agents":true}' \
+  sill.bottom.items '{"media":true,"hush":true,"agents":true}'
 ```
 
-On the 14″ this resolves to **1147 × 745 points → a 2294 × 1490 capture**.
-This is the lever that matters: it enlarges *Zen* too, which `haus.ui.scale`
-cannot touch (no system-wide UI scale exists on macOS).
-
-Look at it first. If the terminal is still small in the frame, add
-`haus set ui.scale 1.2` — but know that the two **multiply**, so 1.35 on an
-already-scaled display is a bigger jump than it looks. It also widens prowl's
-gaps (10/20 pt × scale), which is the only lever you have on how much
-wallpaper shows.
-
-> **Perch does not follow either lever.** The shelf sizes itself from the
-> screen, so a scaled display leaves it the same physical size while everything
-> around it grows. The ember will look *relatively* smaller than it does today.
-> That's correct behaviour, not a staging mistake.
-
-### 2. Strip the bars back to something a stranger recognises
-
-Your live host runs six personal pills. For the shot:
+Undo the whole thing afterwards with:
 
 ```sh
-haus set sill.items.aiUsage false     # a dollar figure in a marketing shot
-haus set sill.items.elgato false      # your key light
-haus set sill.items.harvest false     # your timesheet
-haus set sill.items.weather true      # back on — a default-install pill
-haus set sill.items.wifi true         # same
-haus set sill.battery.hideOver 80     # already yours: keep it, so no battery pill
-haus rebuild
+haus reset displays theme.wallpaper sill.items sill.bottom.items
 ```
 
-Keep on the **menu bar**: workspaces · front app · weather · wifi · clock.
-Keep on the **second bar**: media (or nothing) · hush · agents.
-`battery.hideOver = 80` means a plugged-in Mac draws no battery pill at all —
-that is how you delete "battery anxiety" without deleting the option.
+> **`haus set` cannot address a sub-path of a submodule.** `haus set
+> sill.items.aiUsage false` and `haus set displays.internal.uiScale larger-text`
+> both die with *"is not a settable option on this machine's pinned rice"* —
+> the module system doesn't expose `options.haus.sill.items.aiUsage`, so
+> `settings_option_exists` rejects them. Hence the whole-attrset JSON above.
+> It's also why this is one call: `haus set` rebuilds once at the end, so four
+> calls would be four rebuilds.
 
-Restore afterwards with `haus reset sill.items.aiUsage` (and friends).
+What each pair is doing:
+
+**`displays`** — on the 14″, `larger-text` resolves to **1147 × 745 points → a
+2294 × 1490 capture**. This is the lever that matters: it enlarges *Zen* too,
+which `haus.ui.scale` cannot touch (macOS has no system-wide UI scale).
+
+Look at it before adding anything else. If the terminal is still small in the
+frame, add `ui.scale '1.2'` as a fifth pair — but know that the two
+**multiply**, so 1.2 on an already-scaled display is a bigger jump than it
+looks. It also widens prowl's gaps (10/20 pt × scale), which is the only lever
+you have on how much wallpaper shows.
+
+> **Perch follows neither lever.** The shelf sizes itself from the screen, so a
+> scaled display leaves it the same physical size while everything around it
+> grows. The ember will look *relatively* smaller than it does today. Correct
+> behaviour, not a staging mistake.
+
+**`theme.wallpaper flow`** — `orbits`, what you run, puts all of its content in
+the bottom-right corner, which is precisely where the second bar and the
+right-hand tile bury it. `flow` runs its lines edge to edge, so the **left and
+right** outer bands each catch two or three coloured segments. Honest
+expectation on both counts: flow's lines only occupy the lower half, so the top
+band catches nothing; and with the second bar on, the wallpaper is a **frame,
+not a field**. Widening it means raising `ui.scale`, and past ~1.3 the tiles
+start to look cramped.
+
+**`sill.items '{"agents":true}'`** — an `mkForce` of the whole set, so every key
+you don't name falls back to its own default. That is exactly the bar a
+stranger gets on a fresh install: clock, weather, media, battery, wifi, plus
+the agents paw. It drops your aiUsage gauge, the Elgato pill and caffeinate in
+one stroke — no per-pill commands, nothing to remember to restore.
+
+**`sill.bottom.items`** — **this one is load-bearing, not tidiness.** A pill
+named in `bottom.items` is drawn on the bottom bar *whatever `sill.items` says
+about it* (`sill/default.nix` filters `bottomItems` from `cfg.bottom.items`
+alone). Your host names `aiUsage`, `elgato` and `caffeinate` down there, so
+without this pair the dollar figure you just removed from the menu bar is still
+sitting on the bottom one.
+
+The result: **menu bar** — workspaces · front app · weather · wifi · clock.
+**Second bar** — media · hush · agents. `sill.battery.hideOver = 80` stays as
+your host sets it, so a plugged-in Mac draws no battery pill at all. That is
+how you delete "battery anxiety" without deleting the option.
 
 > **Check the second bar is actually on top.** SketchyBar draws *under* windows
 > by default, which is invisible for a menu-bar-edge bar and very visible for a
 > bottom one. prowl reserves the outer-bottom gap for it, so it should be clear
 > — but confirm with your eyes before you shoot, not after.
 
-### 3. Accent and wallpaper
+### 2. Accent — leave it alone
 
 **Keep `theme.accent = "pink"`.** `hausfold.co` sets
 `--a-nebelhaus: var(--nebelung-pink)` — the page the shot lands on is already
 pink, and so are the ears in the logo. (`assets/SHOTLIST.md` used to say
-"default mauve"; that line is now wrong and has been corrected in the same
-change as this file.)
+"default mauve"; that line was wrong and is corrected in the same change as
+this file.)
 
-**Switch the wallpaper to `flow` for the shot:**
+Knock-on worth knowing: **perch's ember wears the accent**
+(`ShelfEmber.swift` paints its pips with `rice.accent`, fed from
+`haus.theme.accent`). The pips are pink here, not perch's own mark green — the
+"sage ember" in the original brief describes perch at *its* default, standing
+alone, not perch inside this rice.
 
-```sh
-haus set theme.wallpaper flow
-haus rebuild
-```
-
-`orbits` — what you run — puts all of its content in the bottom-right corner,
-which is precisely where the second bar and the right-hand tile bury it. `flow`
-runs its lines edge to edge, so the outer gap band and the vertical seam each
-catch two or three coloured segments. Honest expectation: with the second bar
-on, the wallpaper is a **frame, not a field**. Widening it further means
-raising `ui.scale`, and past ~1.3 the tiles start to look cramped.
-
-### 4. Clock
+### 3. Clock
 
 Shoot at **9:41**, AM or PM, on a day in the current month. Both `clock.mode`
 values print a date, so the shot dates itself no matter what — a same-month date
@@ -197,6 +214,11 @@ Run it, leave the output. It is naturally 8 lines and every one of them is on
 message: the machine, the generation, the pinned rice, and a green
 `✓ up to date with upstream`. Do not scroll it. Do not run anything after it.
 
+> That green tick only prints when the pin equals `origin` **and** the machine
+> is online. A behind pin prints an amber *"a newer rice is available upstream
+> — haus update"* instead, which is a fine line in real life and the wrong note
+> in a hero. `haus update` first, then run `haus status` in the pane.
+
 **Pane 3 · right, lower — a host-file diff.**
 
 `cd ~/.config/nix && git diff` with a small **real, uncommitted** hunk staged by
@@ -215,6 +237,11 @@ hand in `hosts/<host>/default.nix`:
 Six lines. Red and green blocks that read as *colour* at 600 px, and as the
 entire thesis at full size — the machine is a file, and adding an app is one
 line. Make the edit, shoot, `git checkout` it after.
+
+> This survives §1's staging because `haus set` writes its overrides to
+> **separate files** under `hosts/<host>/settings/` and `git add`s them. They're
+> staged; your demo hunk isn't. So plain `git diff` shows the six lines and
+> nothing else — no need to juggle commits.
 
 > Don't substitute lazygit here. Lazygit's five panels are what made the old
 > hero unreadable, and the commit column is a wall of your own prose.
@@ -325,27 +352,42 @@ You don't need one. 1600 px into a 600 px slot is already 2.6×.
 
 ### The og:image question — 3 / 5, your call
 
-`hausfold.co/AGENTS.md` says: *"No `og:image`, and that's a decision, not an
-omission… Adding one needs a reason of its own."* The stated objection is to *a
-1200×630 sheet with the wordmark centred on it* — which a real desktop capture
-isn't. So the door is open, but walking through it means editing that bullet in
-the same PR.
+Two written rules in `hausfold.co/AGENTS.md` stand in the way, and they need
+different answers:
+
+1. *"No `og:image`, and that's a decision, not an omission… Adding one needs a
+   reason of its own."* The stated objection is to *a 1200×630 sheet with the
+   wordmark centred on it* — which a real desktop capture isn't. **The door is
+   open**, but walking through it means rewriting that bullet in the same PR.
+2. *"Every page carries the same head… A change to one is a change to all of
+   them."* Putting an og:image on one page and not the other seven **breaks
+   this as written.** Either card all eight, or say in `AGENTS.md` that
+   og:image is the one head tag that is deliberately per-page — the others
+   describe the site, this one describes the picture, and seven of the pages
+   have no picture. Say it explicitly; don't leave the next reader to discover
+   an undocumented exception.
 
 If you do it: **crop, don't shrink.** A whole desktop at 1200 × 630 is mud. Cut
-a 1.91:1 band across the middle third — menu bar + the pounce card + the seam —
-so the card is ~40 % of the width. That crop reads at thumbnail size; the full
-desktop does not.
+a 1.91:1 band that holds the menu bar, the pounce card and the seam, and
+nothing else — the card wants to be ~40 % of the width. That crop reads at
+thumbnail size; the full desktop does not.
+
+The numbers depend on where the pounce panel actually landed, so **do this by
+eye**. Shape of it: the band is 1200 / 630 = 1.905, so at full master width
+2294 it is 1204 px tall — but you don't want full width. Something like a
+1600-wide window starting at the left edge of the terminal, 840 tall, is closer:
 
 ```sh
-# adjust the +Y offset by eye; this is the band, not a formula
-magick nebelhaus-master.png -crop 2294x1201+0+180 +repage \
-  -resize 1200x630^ -gravity center -extent 1200x630 \
-  -quality 84 nebelhaus-og.webp
+# X/Y/W by eye — open the master, note where the bar's top edge and the
+# card's bottom edge are, and make the crop bracket exactly those two.
+magick nebelhaus-master.png -crop 1600x840+340+0 +repage \
+  -resize 1200x630 -quality 84 nebelhaus-og.webp
 ```
 
-I'd do it, on `/desktops/nebelhaus/` only — it's the most-shared page of the
-three and a real capture is a stronger card than a title. Reversing costs one
-commit deleting three meta tags.
+I'd do it, and card **all eight** pages with it rather than fight the head rule
+— one picture of the desktop is a fair card for every page on a site whose
+entire subject is that desktop. Reversing costs one commit deleting three meta
+tags from eight files.
 
 ---
 
@@ -359,13 +401,24 @@ grey box the page draws today.
 cd "$(holt child ~/code/workshop/hausfold.co)"
 mkdir -p public/media
 cp ~/Desktop/nebelhaus-desktop.webp public/media/
-git apply ../../workshop/assets/desktops-hero.patch
+git apply ~/code/workshop/assets/desktops-hero.patch
 ```
+
+The patch path has to be absolute: a `holt child` lands under
+`~/.cache/claude-worktrees/hausfold.co/<name>`, nowhere near the workshop.
+
+> **The patch will rot, silently.** It carries blob hashes for
+> `desktops/index.html`, `desktops/nebelhaus/index.html` and `hausfold.css`,
+> and nothing in this repo checks it. It applied cleanly when written
+> (`git apply --check`, all three files). If any of those three has moved
+> since, `git apply` refuses — read it and make the three edits by hand; it's
+> 70 lines and the shape is obvious.
 
 The patch:
 
-- adds `.shot--filled` to `public/hausfold.css` — drops the dashed border and
-  the forced aspect ratio so the picture sets its own height
+- adds `.shot--filled` to `public/hausfold.css` — keeps a 1 px border but makes
+  it solid, drops the padding, and releases the forced aspect ratio so the
+  picture sets its own height
 - swaps the `<span>[ shot not taken yet ]</span>` for an `<img>` in **both**
   wide frames (`/desktops/` and `/desktops/nebelhaus/`)
 - leaves the two narrow frames on `/desktops/nebelhaus/` as placeholders

@@ -27,7 +27,7 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
 | 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
-| 2 | **Rice hero desktop** | `hausfold/assets/hero.png` | rice README · org README · `hausfold.co/desktops/` ×2 | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder. The staged replacement is speced in [`SHOT-nebelhaus-desktop.md`](./SHOT-nebelhaus-desktop.md) — scene, pre-capture checklist, export sizes and a ready-to-apply site patch.)* |
+| 2 | **Rice hero desktop** | `hausfold/assets/hero.png` | rice README · `hausfold.co/desktops/` ×2 | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder. The staged replacement is speced in [`SHOT-nebelhaus-desktop.md`](./SHOT-nebelhaus-desktop.md) — scene, pre-capture checklist, export sizes and a ready-to-apply site patch.)* |
 | 3 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
 | 4 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
 
