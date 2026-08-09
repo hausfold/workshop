@@ -76,7 +76,20 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # GitHub without renaming its checkout would have `bench status` reporting one
 # repo under the other's name.
 FAMILY=(nebelung pounce perch holt nebelhaus)
-GH_ORG="nebelhaus"
+
+# The org every checkout here came from, since the 2026-08-09 transfer. One
+# value is right again only because #283 dropped the archived Messages client
+# from FAMILY — that repo deliberately stayed behind in the `nebelhaus` org
+# (hausfold-rename.md §3.4), and it is the thing to re-check the day any family
+# repo *doesn't* travel with the rest. Pair it with `gh_repo` below: a checkout's
+# directory name is not always its repo name, and for the rice it isn't.
+#
+# 🚨 The dead `nebelhaus` org can never be deleted, and that is not housekeeping:
+# perch's and pounce's shipped `UpdateCheck.swift` hardcode
+# `api.github.com/repos/nebelhaus/<app>/releases/latest`. Every copy already
+# installed follows GitHub's redirect — for exactly as long as the org exists.
+# Delete it and update checks die silently on machines we'll never hear from.
+GH_ORG="hausfold"
 
 # The family repos that are flake INPUTS of the rice, so `overrides()` can point
 # them at a local checkout. perch is an Xcode app whose flake wraps a CI-built
@@ -161,6 +174,33 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
     consumer) echo "$CONSUMER" ;;   # ~/.config/nix, outside the workshop dir
     workshop) echo "$ROOT" ;;       # the workshop IS ROOT, not ROOT/workshop
     *)        echo "$ROOT/$1" ;;
+  esac
+}
+
+# repo_dir's counterpart: repo_dir maps a name to a LOCAL directory, gh_repo maps
+# the same name to the REMOTE it came from. They agree for most of the family and
+# must not be assumed to.
+#
+# 🚨 Every arm below exists because a redirect would otherwise paper over the
+# mismatch, and a redirect is the wrong thing to lean on here. `hausfold/nebelhaus`
+# resolves today — GitHub keeps the pre-rename name pointed at `hausfold/hausfold`
+# — so a bare "$GH_ORG/$name" appears to work, right up until someone creates a
+# repo actually named `hausfold/nebelhaus`. That is not hypothetical: the rice
+# KEEPS the name nebelhaus (hausfold-rename.md §6), so that name is live and
+# spoken-for in this org. The day it becomes a real repo, every `gh pr list` and
+# `git clone` below silently retargets it, with no error anywhere.
+gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
+  case "$1" in
+    # The rice: its checkout is still ./nebelhaus (FAMILY, local_src and this
+    # dir's .gitignore all still spell it that way), but the repo is now
+    # hausfold/hausfold. Retire this arm only in the same commit that renames
+    # the directory — §3.3's step 4, which touches nine more literals.
+    nebelhaus)   echo "$GH_ORG/hausfold" ;;
+    # GitHub's org front page lives in a repo that must be named `.github`; the
+    # checkout can't be, because a dotdir there is invisible and collides with
+    # this repo's own ./.github. This arm used to be inline in cmd_clone.
+    org-profile) echo "$GH_ORG/.github" ;;
+    *)           echo "$GH_ORG/$1" ;;
   esac
 }
 
@@ -279,10 +319,16 @@ overrides() { # every family input redirected at the local checkouts
   #
   # 🚨 Every `nebelhaus` below is a FLAKE INPUT NAME, not a repo — it is what
   # ~/.config/nix's flake calls its input (`inputs.nebelhaus.url`), and the rice
-  # keeps that name (hausfold-rename.md §6). Only `local_src`'s argument is a
-  # repo/directory, and that one moved to `hausfold`. Do NOT "finish the rename"
-  # here: renaming these addresses an input that doesn't exist, and every
-  # override silently stops applying.
+  # keeps that name (hausfold-rename.md §6). Do NOT "finish the rename" here:
+  # renaming these addresses an input that doesn't exist, and every override
+  # silently stops applying — with no error, because a `--override-input` for an
+  # unknown input is not a hard failure. `bench try` would report that it built
+  # your branch while building the pinned rice.
+  #
+  # The ONE token here that is a directory is `local_src nebelhaus`'s argument,
+  # and it has NOT moved yet: the checkout is still $ROOT/nebelhaus. When §3.3's
+  # step 4 renames it to $ROOT/hausfold, that argument moves in the same commit
+  # — and only that one. The `nebelhaus/…` input paths stay exactly as they are.
   local perch_prebuilt=""
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input nebelhaus/perch/prebuilt path:$PERCH_DEV_APP_DIR"
@@ -797,7 +843,7 @@ cmd_try_batch() {
     # Open PRs, as "num<TAB>head<TAB>title<TAB>url" lines. gh's own --jq keeps
     # us from shelling out to jq.
     local prs
-    prs="$(gh pr list --repo "$GH_ORG/$repo" --state open \
+    prs="$(gh pr list --repo "$(gh_repo "$repo")" --state open \
              --json number,headRefName,title,url \
              --jq '.[] | [.number, .headRefName, .title, .url] | @tsv' 2>/dev/null || true)"
     [ -n "$prs" ] || continue
@@ -1006,10 +1052,16 @@ cmd_pull() {
   # want a fresh local checkout: `bench status` diffs them, and a stale
   # homebrew-tap clone hides cask/formula bumps CI already pushed (the
   # "released but not installed" trap). Superset of cmd_ship's repo set.
-  # hausfold rides along too: bench plants that checkout (cmd_clone) and it's
+  # hausfold.co rides along too: bench plants that checkout (cmd_clone) and it's
   # the one repo here whose deploys happen on push, so a stale local copy is a
   # live-site footgun. It stays out of FAMILY — it's no flake input.
-  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap hausfold consumer)
+  #
+  # It is spelled `hausfold.co`, not `hausfold`, and that matters more than it
+  # looks: `$ROOT/hausfold` is where the rice's checkout lands at §3.3's step 4,
+  # so once FAMILY holds `hausfold` too, the short spelling would put the SAME
+  # name in this array twice — and `bench pull` would fast-forward one checkout
+  # under the other's identity.
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap hausfold.co consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
   if [ "$#" -gt 0 ]; then
@@ -1230,7 +1282,7 @@ watch_fetch_start() { # watch_fetch_start <repo> <run-id>
   # Write-then-rename so the loop can never read a half-written blob, and so a
   # FAILED fetch (no rename) simply leaves the last good snapshot in place —
   # a blip in the network shouldn't blank the rows.
-  gh run view "$2" --repo "$GH_ORG/$1" --json status,conclusion,jobs \
+  gh run view "$2" --repo "$(gh_repo "$1")" --json status,conclusion,jobs \
      >"$WATCH_SNAP_FILE.part" 2>/dev/null && mv -f "$WATCH_SNAP_FILE.part" "$WATCH_SNAP_FILE" &
   WATCH_FETCH_PID=$!
 }
@@ -1259,7 +1311,7 @@ release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiti
   # by --branch (head_branch is the tag name for a tag push).
   local repo="$1" tag="$2" id _
   for _ in $(seq 1 20); do
-    id="$(gh run list --repo "$GH_ORG/$repo" --workflow release --branch "$tag" \
+    id="$(gh run list --repo "$(gh_repo "$repo")" --workflow release --branch "$tag" \
             --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
     [ -n "$id" ] && [ "$id" != "null" ] && { echo "$id"; return 0; }
     sleep 2
@@ -1417,7 +1469,7 @@ cmd_release() {
     # No gh, not authed, or the run never showed. The tag is pushed and CI is
     # running regardless — degrade to the old behaviour rather than failing.
     warn "can't watch the run from here — the tag is pushed and CI is running."
-    hint "https://github.com/$GH_ORG/$name/actions  (release → publish jobs)"
+    hint "https://github.com/$(gh_repo "$name")/actions  (release → publish jobs)"
     warn "the version stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
     return 0
   fi
@@ -1425,7 +1477,7 @@ cmd_release() {
   printf '\n%s   %s %s%s\n\n' "$C_MUT" "$name" "$tag" "$C_OFF"
   if ! watch_release_run "$name" "$runid"; then
     printf '\n'
-    die "release run failed — gh run view $runid --repo $GH_ORG/$name --log-failed"
+    die "release run failed — gh run view $runid --repo $(gh_repo "$name") --log-failed"
   fi
   printf '\n'
 
@@ -1433,7 +1485,7 @@ cmd_release() {
   # we watched. Fast-forward before anything reads this HEAD.
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
-  say "$name $version is live — https://github.com/$GH_ORG/$name/releases/tag/$tag"
+  say "$name $version is live — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
   if [ -n "$ship" ]; then
     printf '\n'
     cmd_ship
@@ -1543,35 +1595,43 @@ EOF
 }
 
 cmd_clone() {
+  # Directory name from the loop, remote from gh_repo — they differ for the rice
+  # (./nebelhaus ← hausfold/hausfold) and for org-profile (./org-profile ←
+  # hausfold/.github), and gh_repo is the only place that knows.
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
-    local repo="$name"
-    [ "$name" = "org-profile" ] && repo=".github"
     if [ -d "$ROOT/$name/.git" ]; then
       say "$name already here"
     else
       say "cloning ${name}…"
-      git clone "https://github.com/$GH_ORG/$repo.git" "$ROOT/$name"
+      git clone "https://github.com/$(gh_repo "$name").git" "$ROOT/$name"
     fi
   done
 
-  # hausfold is the one checkout here that isn't in $GH_ORG: hausfold.co's own
-  # site, in the hausfold org. Not in FAMILY — it's no flake input, so
-  # try/try-batch/ship must never walk it — but the workshop dir is still where
-  # it lives, so clone it here.
+  # hausfold.co is the odd one out: same org as everything above, but it's no
+  # flake input, so try/try-batch/ship must never walk it and it stays out of
+  # FAMILY. The workshop dir is still where it lives, so clone it here.
+  #
+  # 🚨 It goes at $ROOT/hausfold.co, NOT $ROOT/hausfold. The directory is named
+  # for its repo, which is the rule §3.1 settled: $ROOT/hausfold is reserved for
+  # the PLATFORM checkout the rice's ./nebelhaus becomes at §3.3's step 4. Plant
+  # the site there instead and `local_src hausfold` later resolves the rice to a
+  # folder of HTML — `bench try` then builds the wrong tree and reports success.
+  # This dir held a stale `hausfold/website` clone until 2026-08-09; it was
+  # deleted, and nothing should recreate it.
   #
   # The repo is `hausfold/hausfold.co` as of 2026-08-08, and it is PUBLIC. It was
   # the private `hausfold/website` until then; that repo is archived and stays
   # private forever (its history carries the name register and a Cloudflare
   # account id, and PR refs survive any scrub — hausfold-rename.md §5.1). Don't
   # point this back at it: you'd clone a dead snapshot over the live site.
-  if [ -d "$ROOT/hausfold/.git" ]; then
-    say "hausfold already here"
+  if [ -d "$ROOT/hausfold.co/.git" ]; then
+    say "hausfold.co already here"
   else
-    say "cloning hausfold…"
-    # Warn rather than die: a missing hausfold checkout shouldn't fail a
-    # bootstrap whose real job is the family.
-    git clone "https://github.com/hausfold/hausfold.co.git" "$ROOT/hausfold" \
-      || warn "hausfold: clone failed — check your network"
+    say "cloning hausfold.co…"
+    # Warn rather than die: a missing site checkout shouldn't fail a bootstrap
+    # whose real job is the family.
+    git clone "https://github.com/hausfold/hausfold.co.git" "$ROOT/hausfold.co" \
+      || warn "hausfold.co: clone failed — check your network"
   fi
 }
 
