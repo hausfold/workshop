@@ -458,6 +458,11 @@ nix-darwin keys (six between them), and Power has six typed options of its own.
 What actually blocks each group is smaller, different, and in two cases not a
 key at all.
 
+**All three shipped in the rice on the same day this was written**
+(`haus.sound.*`, `haus.locale.*`, `haus.power.*` — nebelhaus#267), so the
+"verdict" column below is now a record of what each group had to be built
+*around* rather than a plan.
+
 | group | verdict | what actually blocks it |
 |---|---|---|
 | **Sound** | ✅ **buildable today, fully settled** | the volume leaf is an exponential, not a fraction; the UI writes the same key back; and a bad `beep.sound` path is silence, so the option must validate it |

@@ -374,7 +374,7 @@ system.defaults.dock.orientation = "left";
 Anything under [`system.defaults`](https://nix-darwin.github.io/nix-darwin/manual/)
 is fair game. Your plain value wins over the rice's default.
 
-<Aside type="note" title="Three exceptions">
+<Aside type="note" title="Four exceptions">
 Two menu-bar keys track whether the bar (sill) is on, and both override your
 value rather than yielding to it:
 
@@ -393,6 +393,14 @@ showing, not a lever, so even a plist read-back agrees with you while nothing
 changes. `haus diff` flags it. Use
 [`haus.theme.systemAppearance`](/reference/options/#hausthemesystemappearance)
 instead.
+
+And one that works but not the way it reads: **`power.sleep.computer`** and its
+neighbours (nix-darwin's own, not `haus.*`). They run `systemsetup`, which has
+no way to say *which* power source you mean — on macOS 26 one of them wrote the
+**charger** profile while the Mac was running on **battery**, and nix-darwin
+throws the output away, so nothing says so. Use
+[`haus.power.*`](/reference/options/#hauspowercomputersleepbattery) instead: it says `battery` and
+`charger` separately, which is the only thing a laptop actually wants.
 </Aside>
 
 ## Secrets & private things
