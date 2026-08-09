@@ -8,6 +8,10 @@ trill's for free — `UpdateCheck` was ported trill→perch, and the license lay
 rides the same seam back. Perch is now the *whole* bet, not the warm-up:
 **[§5](#5-trill--why-it-isnt-the-bet) records why trill isn't monetized**, since
 that was the original flagship and the reasoning is worth not re-deriving.
+⚠️ **"trill" in this file — not only in §5 — is the archived Messages client**
+(`nebelhaus/messages` since 2026-08-08). The notification compositor took the
+name that day ([`hausfold-rename.md`](./hausfold-rename.md) §3.4); it is a
+different product and its monetization question is unasked.
 
 This file owns **how perch charges**. *When* it launches relative to the free
 family — and what every other repo is for — is
