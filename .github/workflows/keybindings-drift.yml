@@ -34,6 +34,7 @@ jobs:
         with:
           repository: nebelhaus/nebelhaus
           path: .rice
-      # nix eval of a plain .nix file — no flakes, no fetches, no builds.
-      - uses: DeterminateSystems/nix-installer-action@main
+      # No Nix step: the binding table is read out of the rice's committed
+      # docs/site-data/, which its own `site-data-current` flake check keeps
+      # honest. A checkout is the whole dependency.
       - run: node web/scripts/check-rice-bindings.mjs --rice .rice

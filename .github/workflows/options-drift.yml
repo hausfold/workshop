@@ -54,11 +54,14 @@ jobs:
         with:
           repository: nebelhaus/nebelhaus
           path: .rice
-      - uses: DeterminateSystems/nix-installer-action@main
-
-      # Evaluates only the rice's per-room options files — no darwin system, so
-      # this builds fine on Linux. That property is why the generator can run
-      # here at all; see the comment on `options-json` in the rice's flake.
+      # No Nix step: the option metadata is read out of the rice's committed
+      # docs/site-data/, generated there and pinned by its own
+      # `site-data-current` flake check (nebelhaus#268). The generator used to
+      # run `nix build .#options-json` here, which meant installing Nix and
+      # fetching nixpkgs to check a Markdown page — and which the docs cannot
+      # keep doing once they move to their own repo (notes/hausfold-rename.md
+      # §5.1). The drift check stays on the side of the boundary that owns the
+      # derivation; this side just reads a file.
       - name: Check the page is current
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: node web/scripts/gen-options.mjs --rice .rice --check
