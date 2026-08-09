@@ -207,7 +207,7 @@ bottom of the screen**, running at the same time as the top one:
 ```nix
 haus.sill.bottom = {
   enable = true;
-  items = { cpu = true; memory = true; caffeinate = true; };
+  items = { weather = true; media = true; cpu = true; };
 };
 ```
 
@@ -215,10 +215,10 @@ A pill named in `bottom.items` **moves**: it's drawn on the bottom bar and not
 on the menu bar, whatever `haus.sill.items` says about it. One switch per pill
 per bar, and never two copies of the same readout racing each other.
 
-The set is the extras — `cpu`, `memory`, `volume`, `calendar`, `caffeinate`,
-`agents`, `aiUsage`, `elgato`, `harvest`. The five core pills and the whole left
-side (workspace pills, front app, the leader picker) stay on the menu bar, and
-so does the hush pill.
+The set includes the five core pills — `clock`, `weather`, `media`, `battery`,
+`wifi` — and the extras: `cpu`, `memory`, `volume`, `calendar`, `caffeinate`,
+`agents`, `aiUsage`, `elgato`, `harvest`. The whole left side (workspace pills,
+front app, the leader picker), the tour, and the hush pill stay on the menu bar.
 
 Three things worth knowing before you turn it on:
 
@@ -258,4 +258,4 @@ matches the rest of the system.
 
 With a second bar there's a `sill-bottomrc` beside the first rc, and a `bar.sh`
 that tells each shared plugin which of the two bars it's talking to — the pills
-themselves are the same scripts, drawn twice over.
+themselves are the same scripts and each is drawn only on the bar that owns it.

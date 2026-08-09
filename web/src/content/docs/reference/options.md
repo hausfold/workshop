@@ -2743,13 +2743,11 @@ pill named here MOVES: it is drawn on the bottom bar and not on the menu
 bar, whatever `haus.sill.items` says about it — so there is one switch
 per pill per bar and never two copies of the same readout.
 
-The set is the `haus.sill.items` extras (`cpu`, `memory`, `volume`,
+The set is the five core pills (`clock`, `weather`, `media`, `battery`,
+`wifi`) plus the `haus.sill.items` extras (`cpu`, `memory`, `volume`,
 `calendar`, `caffeinate`, `agents`, `aiUsage`, `elgato`, `harvest`). The
-five core pills — `clock`, `weather`, `media`, `battery`, `wifi` — and
-the whole left side (workspace pills, front app, the leader picker, the
-tour) stay on the menu bar: those are hand-written in `sketchybarrc`,
-while every name above is emitted from Nix and can therefore be emitted
-against either bar. The hush pill stays up top too — it rides
+whole left side (workspace pills, front app, the leader picker) and the
+tour stay on the menu bar. The hush pill stays up top too — it rides
 `haus.hush.enable` rather than this table.
 
 Needs `haus.sill.bottom.enable`; without it nothing here is drawn.
@@ -2759,7 +2757,8 @@ Example:
 ```nix
 {
   cpu = true;
-  memory = true;
+  media = true;
+  weather = true;
 }
 ```
 
@@ -2781,6 +2780,14 @@ A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, 
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
+### `haus.sill.bottom.items.battery`
+
+`boolean` · default `false`
+
+The battery pill.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
 ### `haus.sill.bottom.items.caffeinate`
 
 `boolean` · default `false`
@@ -2794,6 +2801,14 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 `boolean` · default `false`
 
 Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.clock`
+
+`boolean` · default `false`
+
+The clock pill, pinned to the far right.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
@@ -2821,6 +2836,14 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
+### `haus.sill.bottom.items.media`
+
+`boolean` · default `false`
+
+The now-playing track (scrolls; auto-hides when nothing plays, dims when paused, click to play/pause). It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says which app the sound is coming from. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
 ### `haus.sill.bottom.items.memory`
 
 `boolean` · default `false`
@@ -2834,6 +2857,22 @@ Memory-pressure percentage pill.
 `boolean` · default `false`
 
 Output volume / mute state.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.weather`
+
+`boolean` · default `false`
+
+The weather pill and its click-to-open forecast popover.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.wifi`
+
+`boolean` · default `false`
+
+The Wi-Fi status pill.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
