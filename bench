@@ -72,6 +72,13 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # like every other edge here. trill is still listed so `bench status` reports the
 # checkout, but the rice dropped it (nebelhaus#213) and its repo is archived, so
 # it has no lock edge below it and no release path above it.
+#
+# ⚠️ That `trill` is the ARCHIVED MESSAGES CLIENT, not the notification
+# compositor incubating at `incubator/trill` — which will want this same
+# directory name when it ejects. FAMILY entries are directory names
+# (`local_src` → `$ROOT/$1`), so the archived checkout has to be renamed with
+# its repo and this entry updated before that happens, or `bench status`
+# reports one repo under the other's name. notes/hausfold-rename.md §3.4.
 FAMILY=(nebelung pounce trill perch holt nebelhaus)
 GH_ORG="nebelhaus"
 

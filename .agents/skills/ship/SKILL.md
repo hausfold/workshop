@@ -212,7 +212,7 @@ merging, so confirm it's approved before you ripple.
   Only flag an activation when it's genuinely *risky* — something a user could feel break, or
   a change that's hard to roll back.
 - **Release** (`bench release <repo>`: stamps today's CalVer date → tag → CI publishes →
-  bumps `homebrew-tap`; releasable repos are pounce, trill, nebelhaus) is **always gated.**
+  bumps `homebrew-tap`; releasable repos are pounce, perch, holt, nebelhaus — the archived Messages client no longer is) is **always gated.**
   Never run it unprompted — but if this ship touched user-facing behavior in a tagged repo,
   **propose one** (nudging is expected, tagging is my call). Ship first, then release.
 

@@ -32,7 +32,7 @@
 # drawing alerts for it. Desktop is on when EITHER bit is set.
 #
 # Bits 3, 4 and 2 all cleared = that app is silent and drawing nothing, while
-# notifications still flow to Notification Center for flick to mirror.
+# notifications still flow to Notification Center for trill to mirror.
 #
 # TCC: the group container is protected, so reading this needs Full Disk
 # Access. A terminal that already holds FDA will read it without complaint and
@@ -56,7 +56,7 @@ if [[ "${1:-}" == "--tcc" ]]; then
 	echo "Full Disk Access check for this process:"
 	if head -c 16 "$USERNOTED_DB" >/dev/null 2>&1; then
 		echo "  GRANTED — usernoted db2/db is readable."
-		echo "  Careful: this says the *terminal* is granted, not flick."
+		echo "  Careful: this says the *terminal* is granted, not trill."
 	else
 		echo "  DENIED — usernoted db2/db is unreadable."
 		echo "  A doctor check running like this must report \"unknown\","
@@ -120,8 +120,8 @@ python3 - "$USERNOTED" "${1:-}" <<-'PY'
 	    # "Allow notifications" first, always. macOS freezes the style and
 	    # sound bits at their last values when that master switch goes off, so
 	    # reading them without it reports every app the user silenced years
-	    # ago — the exact bug flick shipped once, and this probe is what an
-	    # agent uses to corroborate flick, so the two have to agree.
+	    # ago — the exact bug trill shipped once, and this probe is what an
+	    # agent uses to corroborate trill, so the two have to agree.
 	    allowed = bool(f & ALLOW)
 	    d, s = allowed and bool(f & DESKTOP), allowed and bool(f & SOUND)
 	    if d or s:
