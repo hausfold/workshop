@@ -76,7 +76,7 @@ per-page descriptions is at ${SITE}/llms.txt.
 This documents the LATEST rice. A machine is pinned to a revision and may not
 have the newest options — \`haus status\` says how far behind it is, and an
 installed machine carries its own generated reference at
-~/.claude/skills/nebelhaus/references/options.md.
+~/.claude/skills/haus/references/options.md.
 
 ---
 
