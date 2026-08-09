@@ -135,7 +135,13 @@ reference](/reference/haus/#the-writable-settings-overlay) for the exact model.
 haus.git.name = "Ada Lovelace";
 haus.git.email = "ada@example.com";
 haus.git.signingKey = "6F7BD6F43A7C1420";  # "" to disable commit signing
+haus.git.org = "analytical-engine";        # the GitHub owner your work lives under
 ```
+
+`org` is the odd one out — not who you are, but where you work. Today only
+gh-dash reads it: it fills `⌘G`'s PR tabs with that owner's open, green, red and
+just-shipped work, so an org rename is one word here rather than one per tab.
+See [Your review queue](/guides/the-shell/#your-review-queue).
 
 ### The look
 

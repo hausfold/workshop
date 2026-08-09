@@ -81,7 +81,7 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
 | `Super F` | **Find** — full-text search over the focused pane, live as you type (see [Finding things](#finding-things)) |
 | `Super ⇧F` | The same overlay, across **every pane** in the session |
-| `Super G` | **gh-dash** — GitHub review queue in a borderless fullscreen overlay (when `haus.hearth.ghDash.enable = true`) |
+| `Super G` | **gh-dash** — GitHub review queue in a borderless fullscreen overlay (see [Your review queue](#your-review-queue)) |
 | `Super ⏎` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super Y` | **yazi peek** — a floating browser with live previews, sized to cover the terminal window that summoned it; `Enter` on a directory opens a new tab there. Same **worktree hop** as `Super P` |
 | `Super ⇧Y` | **yazi peek, stay here** — the no-hop sibling, for browsing a `claude --worktree` checkout itself |
@@ -150,6 +150,33 @@ real pane, which is nicer for a shell you're already reading — it just can't s
 an alt-screen agent pane, which is why the overlay exists next to it rather than
 instead of it. Its exits now return you to **Locked**, not Normal.
 </Aside>
+
+### Your review queue
+
+`⌘G` opens **gh-dash** — GitHub, as a borderless overlay over the tiled layout,
+themed like everything else and gone again on `q`. It's off unless you ask for
+it: [`haus.hearth.ghDash.enable`](/reference/options/#haushearthghdashenable).
+
+Turning it on gets you the tabs that are about *you* — issues you opened, issues
+assigned to you, unread notifications, and the threads you're participating in
+(gh-dash's own eight notification tabs, cut to the two worth a count).
+
+The tabs about your *work* need one more thing, because a PR tab is a GitHub
+search and a search needs a scope:
+[`haus.git.org`](/reference/options/#hausgitorg), the owner your repos live
+under — an organisation, or your own account. Set it and four more tabs appear:
+
+- **open** — everything open in that owner, drafts included.
+- **green** and **red** — the same queue split by whether CI passed on the head
+  commit. Together they *are* the merge decision; a branch still building shows
+  in neither, which is the "come back in a minute" bucket.
+- **shipped** — up to ten PRs merged in the last week.
+
+Leave `haus.git.org` empty — the right answer if you read several owners at
+once — and those four simply aren't written, so gh-dash keeps its own defaults.
+Any of the lists can be replaced from your host through
+`programs.gh-dash.settings`; each is a `mkDefault`, per list, so overriding the
+PR tabs leaves the rest alone.
 
 ### Layouts
 
