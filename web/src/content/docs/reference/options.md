@@ -2703,6 +2703,140 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
+### `haus.sill.bottom.enable`
+
+`boolean` · default `false`
+
+Draw a SECOND bar along the bottom of the screen, at the same time as
+the menu bar one. `haus.sill.bottom.items` picks what goes on it; an
+empty set draws an empty strip, which the module warns about.
+
+SketchyBar has no two-bars-in-one-process mode — an instance is named
+after `basename(argv[0])` and keys both its lock file and its mach
+service on that name — so this is a second launchd agent running the
+SAME binary under a second name, `sill-bottom`. That name is also the
+CLI for it: `sill-bottom --set cpu label=…` talks to the bottom bar the
+way `sketchybar --set` talks to the menu bar one.
+
+Two things macOS does not do for you here. It reserves the top strip of
+every display for the menu bar but reserves NOTHING at the bottom, so
+windows would sit under this bar: prowl carves the room out of its
+outer-bottom gap whenever this is on (with `haus.prowl.enable = false`,
+nothing reserves it and your windows will run underneath). And the Dock,
+if you keep it at the bottom, shares that edge — move it to a side, or
+leave it hidden.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items`
+
+`submodule` · default `{ }`
+
+Which pills the bottom bar draws, one bool each, all default false. A
+pill named here MOVES: it is drawn on the bottom bar and not on the menu
+bar, whatever `haus.sill.items` says about it — so there is one switch
+per pill per bar and never two copies of the same readout.
+
+The set is the `haus.sill.items` extras (`cpu`, `memory`, `volume`,
+`calendar`, `caffeinate`, `agents`, `aiUsage`, `elgato`, `harvest`). The
+five core pills — `clock`, `weather`, `media`, `battery`, `wifi` — and
+the whole left side (workspace pills, front app, the leader picker, the
+tour) stay on the menu bar: those are hand-written in `sketchybarrc`,
+while every name above is emitted from Nix and can therefore be emitted
+against either bar. The hush pill stays up top too — it rides
+`haus.hush.enable` rather than this table.
+
+Needs `haus.sill.bottom.enable`; without it nothing here is drawn.
+
+Example:
+
+```nix
+{
+  cpu = true;
+  memory = true;
+}
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.agents`
+
+`boolean` · default `false`
+
+A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.aiUsage`
+
+`boolean` · default `false`
+
+A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.caffeinate`
+
+`boolean` · default `false`
+
+A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-hour duration, or indefinitely. The display may still turn off; closing a MacBook lid still sleeps it. Uses macOS's built-in `caffeinate`, so there is no extra package.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.calendar`
+
+`boolean` · default `false`
+
+Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.cpu`
+
+`boolean` · default `false`
+
+Total CPU load, as a percentage pill.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.elgato`
+
+`boolean` · default `false`
+
+Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `haus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.harvest`
+
+`boolean` · default `false`
+
+A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh you provide.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.memory`
+
+`boolean` · default `false`
+
+Memory-pressure percentage pill.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.volume`
+
+`boolean` · default `false`
+
+Output volume / mute state.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
 ### `haus.sill.clock.mode`
 
 `one of "full", "compact"` · default `"full"`
@@ -2770,6 +2904,10 @@ only what you want to change:
 A pill set false is never created (its update script doesn't run either).
 The hush (Do-Not-Disturb) pill is separate — it rides
 haus.hush.enable, not this set.
+
+This is the MENU BAR's set. `haus.sill.bottom.items` is the same table
+for the optional second bar along the bottom of the screen, and a pill
+named there moves down rather than being drawn twice.
 
 Example:
 
