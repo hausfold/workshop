@@ -15,7 +15,7 @@ the bench — every repo in one place, and the tool that moves changes between t
 ---
 
 This directory is the working checkout of the whole
-[nebelhaus](https://github.com/nebelhaus) org. Each subdirectory is its own repo;
+[hausfold](https://github.com/hausfold) org. Each subdirectory is its own repo;
 this folder itself is a small repo holding this README, an `AGENTS.md`, the
 `bench` script and `web/` (nebelhaus.com), plus `assets/` and `test/`.
 
@@ -40,10 +40,12 @@ every release — you almost never touch it), 🔔
 [**trill**](https://github.com/hausfold/trill) (the notification compositor —
 ejected from the incubator 2026-08-09; deliberately *not* a family repo, so
 `bench` neither clones nor ships it), and ⌂
-[**hausfold**](https://github.com/hausfold/hausfold.co) — hausfold.co, the site for
+[**hausfold.co**](https://github.com/hausfold/hausfold.co) — the site for
 the platform that all of this is becoming (decided 2026-08-08; see
-[`notes/hausfold-rename.md`](notes/hausfold-rename.md)). hausfold.co used to be
-the only private checkout here; it's public as of 2026-08-08. Your
+[`notes/hausfold-rename.md`](notes/hausfold-rename.md)). Its checkout is
+`hausfold.co/`, **with the `.co`** — plain `hausfold/` is the rice, so site work
+sent to the short name edits the desktop and nothing errors. hausfold.co used to
+be the only private checkout here; it's public as of 2026-08-08. Your
 `~/.config/nix` lives outside this dir entirely.
 
 ## the one gotcha
