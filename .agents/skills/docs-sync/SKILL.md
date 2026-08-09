@@ -52,7 +52,7 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 |---|---|
 | `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
 | `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
-| `trill/` app behavior — **the notification compositor**, once it ejects (`incubator/trill` until then) | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists. ⚠️ `guides/trill.mdx` was the *archived Messages client's* page and is deleted; `/trill` on the site still redirects to that repo. See `notes/hausfold-rename.md` §3.4. |
+| `trill/` app behavior — the notification compositor, once it ejects (`incubator/trill` until then) | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. |
 | `nebelhaus/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
 | a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
 | a new/changed keybind | `reference/keybindings.md` — **always** |
@@ -111,9 +111,7 @@ A surfaced judgment call is cheap; a wrong doc is expensive.
 
 The docs read like a person who knows the system explaining it to a friend — never like
 generated reference. Match the file you're editing; when in doubt, read
-`guides/the-bar.mdx` as the reference for tone (`guides/trill.mdx` was the
-old pointer here; it was deleted with the archived Messages client's page in
-workshop#204).
+`guides/the-bar.mdx` as the reference for tone.
 
 - **Slim and dense.** Every sentence earns its place. Cut hedging, preamble and
   restatement. If a paragraph can be a sentence, make it a sentence.

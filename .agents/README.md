@@ -96,11 +96,10 @@ allows, and add a row.
 ## The rest of the family
 
 Every repo now carries this layer, one PR each: the rice (`nebelhaus`),
-`nebelung`, `pounce`, the archived Messages client, `perch`, `org-profile` (the
-`nebelhaus/.github` repo), `homebrew-tap`, the incubating `incubator/trill`
-(the notification compositor, which took the `trill` name), and the consumer
-config (`~/.config/nix`). Each keeps its **own** rules — only the shape is
-shared. The differences worth knowing:
+`nebelung`, `pounce`, `perch`, `org-profile` (the `nebelhaus/.github` repo),
+`homebrew-tap`, the incubating `incubator/trill` (the notification compositor),
+and the consumer config (`~/.config/nix`). Each keeps its **own** rules — only
+the shape is shared. The differences worth knowing:
 
 - **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a
   flake, so there is nothing to bootstrap; their `.agents/README.md` records

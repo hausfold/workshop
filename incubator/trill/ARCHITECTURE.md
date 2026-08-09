@@ -181,9 +181,8 @@ clearing the hover it just pushed into the waiting line.
 
 ### The undocumented mirror
 
-`SystemMirrorProvider` treats the usernoted store the way the family's archived
-Messages client treated `chat.db`: independently probed, explicitly enabled,
-never assumed.
+`SystemMirrorProvider` treats the usernoted store the way any undocumented
+Apple store deserves: independently probed, explicitly enabled, never assumed.
 The probe checks existence, readability, and expected tables before any
 session; drift produces `unavailable(reason:)` — a settings string, not a
 crash. Ingest (WAL-watching vs polling, Focus interaction, per-app field

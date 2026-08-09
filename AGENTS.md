@@ -44,8 +44,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
 | the org's GitHub front page | `./org-profile` — the checkout of the `nebelhaus/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
-| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./incubator/trill` — **incubating**: a complete repo-to-be awaiting eject to `hausfold/trill` (see its `BOOTSTRAP.md`); after eject, `./trill`. Called **flick** until 2026-08-08 — it took the name back from the archived Messages client below. |
-| the archived **Messages client** (iMessage/SMS/RCS), which used to be called trill | `nebelhaus/messages` — **archived 2026-08-04, read-only, and it stays in the `nebelhaus` org** rather than transferring with everything else. Renamed out of `trill` on 2026-08-08 to free that name for the row above; `./messages` locally, and `nebelhaus/trill` still redirects. Its last release stays downloadable, but its Homebrew cask was **deleted** — two casks cannot hold one token. All of it: [`notes/hausfold-rename.md`](notes/hausfold-rename.md) §3.4. |
+| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./incubator/trill` — **incubating**: a complete repo-to-be awaiting eject to `hausfold/trill` (see its `BOOTSTRAP.md`); after eject, `./trill`. Called **flick** until 2026-08-08. |
 | holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([nebelhaus/holt](https://github.com/nebelhaus/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/nebelhaus/nebelhaus/pull/245)) — there is no fallback to roll back to. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
@@ -254,9 +253,8 @@ cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `assets`, `web/`). The family
 sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
-`hausfold/`,
-`org-profile/`, `homebrew-tap/` (and the archived `trill/`) — are **not here at
-all.** This is **NOT** a `.gitignore`
+`hausfold/`, `org-profile/`, `homebrew-tap/` — are **not here at all.** This is
+**NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
 is an independent repo that lives only beside the workshop's main checkout.
@@ -381,9 +379,8 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   afterward to ripple that lock downstream — or `bench release <repo> --ship`
   to do both). **`bench release` BLOCKS** until the CI run finishes, drawing
   its jobs live, and exits non-zero if the run goes red. That wait is
-  load-bearing, not decoration: the archived Messages client's and perch's runs
-  commit `nix/release.nix` back to the repo, so returning early would leave a
-  checkout behind origin and
+  load-bearing, not decoration: perch's run commits `nix/release.nix` back to
+  the repo, so returning early would leave a checkout behind origin and
   a `bench ship` that ripples a superseded rev. It fast-forwards for you when
   the run goes green.
 - **`holt` is the one semver repo, and it's forced, not chosen:**

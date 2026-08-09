@@ -22,11 +22,8 @@ const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path trave
 
 // The apps with signed + notarized release artifacts on GitHub. Keys are the
 // URL slugs; each repo lives at github.com/nebelhaus/<app>.
-// The archived Messages client used to hold a third slug here. It was dropped
-// on 2026-08-08 with the rest of its public surface: the site presents the
-// living family only, and a /download route for a finished app is a promise we
-// don't want to keep. Its releases are still on GitHub for anyone who has the
-// link. `trill` is therefore free for the notification compositor.
+// A slug here is a promise to keep serving that app's latest release, so only
+// apps the site actually presents belong in this set.
 const DOWNLOADABLE = new Set(["pounce", "perch"]);
 // The human-facing artifact, most-preferred first. A DMG outranks the archive
 // on purpose: pounce's release ships BOTH — the tarball is the Homebrew
