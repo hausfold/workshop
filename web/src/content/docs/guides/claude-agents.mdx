@@ -332,6 +332,20 @@ Flush right on row one, a few small per-session chips: how far behind your pinne
 nebelhaus is (`⇡N`, what `haus update` would pull), context used, session cost,
 then the two that tell you what this pane is *actually running*.
 
+**Context.** The `N%` chip is how full this session's context window is, and it's
+coloured by how many **tokens** are in it — green under 100k, yellow to 200k, red
+past that. Tokens, not the percentage, because the percentage is measured against
+the model's window: 200k on most, 1M on the extended-context ones. The same `42%`
+is 84k tokens in one pane and 420k in the next, so a colour keyed to it would
+mean two different things side by side. Tokens are what cost money, slow a turn
+down and decide when a compaction lands.
+
+The bands are absolute, so they land differently per model on purpose: on a 200k
+model red is unreachable (a compaction fires first) and yellow starts around
+half-full, while on a 1M model yellow arrives at 10%. The number itself never
+changes meaning — the colour is a second reading of it, so a terminal that drops
+colour loses nothing.
+
 **Permission mode.** Auto is the rice's default, so it's the silent one — same
 "no news is good news" rule as the status token. Everything else is a positive
 mark, told apart by how many chevrons it has rather than by colour alone:
