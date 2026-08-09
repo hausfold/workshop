@@ -154,12 +154,15 @@ input sources), and `--watch N` is what makes the running-app question visible.
 macOS writes, since `AppleEnabledInputSources` resolves layouts by
 `KeyboardLayout Name` while never validating the `KeyboardLayout ID` beside it.
 
-Power is the one group with an open row: its write test needs root, which on
-this machine is an interactive Touch ID prompt, so section C is opt-in behind
-`POWER_SWEEP_WRITE=1` and skips itself with instructions rather than guessing.
-The gate is an env var, not a `sudo -n` check, so a warm sudo timestamp can't
-make it run unattended. Sections A, B and D still settle the shape —
-`systemsetup` has no power-source selector and nix-darwin discards its stderr.
+Power's write test needs root — a Touch ID prompt here — so section C is opt-in
+behind `POWER_SWEEP_WRITE=1` (an env gate, not a `sudo -n` check, so a warm sudo
+timestamp can't make it run unattended). It was run on 2026-08-08 and **came
+back negative**: `sudo systemsetup -setcomputersleep 17` exits 0, prints
+`setcomputersleep: 17` like a confirmation, logs an internal `-99` from the
+Admin framework on stderr, and moves `System Sleep Timer` on neither power
+source — while nix-darwin discards all three streams. Section C now runs a
+`pmset` control immediately after, to separate "systemsetup is broken" from
+"this machine won't take a computer-sleep change from anyone".
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 

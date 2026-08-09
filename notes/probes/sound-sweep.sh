@@ -134,18 +134,35 @@ cat <<'EOF'
 EOF
 
 if [ -n "$audible" ]; then
-  say "  --audible: three beeps — Submarine, a bogus path, then the machine's own default"
-  printf '  1/3 beep.sound = Submarine.aiff\n'
+  say "  --audible: a control beep first, then Submarine, then a bogus path"
+  # Section C leaves uiaudio.enabled=0 and beep.feedback=0 set. Beeping under
+  # our own mute is how the first run of this produced four silent "beeps" and
+  # no information at all — so put every key back and prove the channel works
+  # BEFORE testing anything.
+  for k in "${keys[@]}"; do restore_key "$k"; done
+  sleep 1
+  printf '  0/3 control — pristine settings, alert volume %s. You should hear a beep.\n' "$(alertvol)"
+  osascript -e 'beep' >/dev/null 2>&1; sleep 2
+  cat <<'EOF'
+      Heard nothing? Then rows 1–3 below prove nothing either. Check: output
+      device and its volume, a Focus/Do-Not-Disturb that suppresses alerts, and
+      System Settings ▸ Sound ▸ Alert sound not set to "None". Fix that, re-run.
+EOF
+  printf '\n  1/3 beep.sound = Submarine.aiff (a sound that exists)\n'
   defaults write -g com.apple.sound.beep.sound -string /System/Library/Sounds/Submarine.aiff
   sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 2
   printf '  2/3 beep.sound = /nope/does-not-exist.aiff\n'
   defaults write -g com.apple.sound.beep.sound -string /nope/does-not-exist.aiff
   sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 2
-  printf '  3/3 key restored — this is the reference the second beep has to be compared to\n'
+  printf '  3/3 key deleted again — same reference as 0/3\n'
   restore_key com.apple.sound.beep.sound
   sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 1
-  printf '\n  Did 2 sound at all, and did it match 3 or 1? Bogus path → default beep is a\n'
-  printf '  degrade; bogus path → silence is a broken option that reads as applied.\n'
+  cat <<'EOF'
+
+  Did 1 differ from 0? Then the key works at all. Did 2 sound, and did it match
+  3 or 1? Bogus path → default beep is a degrade a rice can live with; bogus
+  path → silence is a broken option that reads as applied.
+EOF
 fi
 
 # ---- D. the startup chime ---------------------------------------------------

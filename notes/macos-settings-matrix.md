@@ -462,7 +462,7 @@ key at all.
 |---|---|---|
 | **Sound** | ✅ buildable today | the volume leaf is an exponential, not a fraction — and the UI writes the same key back |
 | **Locale** | ✅ buildable, with one piece nothing in nix-darwin can express | a **distributed notification**, without which running apps never see the change |
-| **Power** | ◐ buildable, but not as `system.defaults` | `systemsetup` is power-source-blind and nix-darwin discards its stderr |
+| **Power** | ⚠️ buildable, but **not** on the typed options | `systemsetup` is power-source-blind, its `-setcomputersleep` **did not apply at all** on 26.6.1, and nix-darwin discards the error that says so |
 
 ### Sound — works, but the number lies
 
@@ -585,7 +585,9 @@ not the rice's `modules/`) and `man systemsetup`:
    actually has — is not expressible through the typed options.
 2. **Every call ends in `&> /dev/null`.** A refusal, an unsupported verb and a
    success are indistinguishable, which is the failure mode §5.6 exists to
-   avoid, one layer below `system.defaults`.
+   avoid, one layer below `system.defaults`. This one is not hypothetical — see
+   the write test below, where the discarded stream was the only sign the
+   setting hadn't applied.
 
 Not typed at all, and unreachable through `system.defaults`: Low Power Mode
 (`pmset -a lowpowermode`), per-source anything (`pmset -b`/`-c`), lid and
@@ -594,16 +596,36 @@ root-only writes into a root-owned plist, so a curated `nebelhaus.power.*`
 belongs in the `security.firewall` family (an activation step of our own),
 **not** in the `hotCorners`/`screenshots`/`menuBar` family.
 
-- [ ] ◻️ **The one open row.** Does the `systemsetup` path still work on macOS
-      26, and does it move one power source or both? It needs root, which here
-      means an interactive Touch ID prompt, so the write test is opt-in:
-      `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh` from a terminal runs
-      it (capturing the stderr nix-darwin throws away) and restores computer
-      *and* display sleep on both sources — display sleep because macOS clamps
-      it to ≤ computer sleep, so one write can move two settings. The gate is an
-      env var rather than a sudo check on purpose: a warm sudo timestamp must
-      not be enough to make this run unattended. Until it is run, treat
-      `power.sleep.*` as *unverified on 26*, not broken.
+**⚠️ The write test ran 2026-08-08, and `systemsetup` did not apply the
+setting.** From Ghostty (an FDA-holding terminal, so this is *not* the
+universalaccess gate), as root:
+
+```
+$ sudo systemsetup -setcomputersleep 17
+### Error:-99 File:…/Admin/InternetServices.m Line:395
+setcomputersleep: 17                      ← reads exactly like a confirmation
+exit=0
+before: AC=1 battery=1        after: AC=1 battery=1        ← nothing moved
+```
+
+Exit 0, a confirmation-shaped line on stdout, an internal `-99` from the Admin
+framework on stderr, and `System Sleep Timer` unchanged on **both** power
+sources. **nix-darwin sends every one of those streams to `/dev/null`**, so
+`power.sleep.computer = 17` on this machine is a setting that reports success
+during activation and does nothing — the exact failure §5.6 exists to prevent,
+one layer below `system.defaults`. Add `writable-no-op`'s CLI cousin to the
+reachability vocabulary: **`activation-no-op`**.
+
+- [ ] ◻️ **The remaining open row, now narrower.** Is `systemsetup` broken, or
+      is computer sleep unsettable on this machine at all? `power-sweep.sh`
+      section C now runs a `pmset -c sleep 18 -b sleep 19` control immediately
+      after, which separates the two: if pmset lands and systemsetup doesn't,
+      the six typed options are a no-op and a curated group must be built on
+      pmset. Re-run `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`.
+      (The gate is an env var rather than a sudo check on purpose: a warm sudo
+      timestamp must not be enough to make this run unattended. It restores
+      computer *and* display sleep on both sources — display sleep because
+      macOS clamps it to ≤ computer sleep, so one write can move two settings.)
 
 ---
 

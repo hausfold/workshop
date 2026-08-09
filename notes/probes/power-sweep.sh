@@ -130,20 +130,46 @@ restore_power() {
 }
 trap restore_power EXIT INT TERM
 
-printf '  running: sudo systemsetup -setcomputersleep 17   (stderr NOT discarded)\n'
+printf '\n  1/2 the nix-darwin path: sudo systemsetup -setcomputersleep 17\n'
+printf '      (stderr NOT discarded — nix-darwin sends all of this to /dev/null)\n'
 out=$(sudo systemsetup -setcomputersleep 17 2>&1); rc=$?
-printf '    exit=%s output: %s\n' "$rc" "${out:-<silent>}"
+printf '      exit=%s output: %s\n' "$rc" "${out:-<silent>}"
 sleep 1
-after_ac=$(timer "AC Power" "System Sleep Timer")
-after_bat=$(timer "Battery Power" "System Sleep Timer")
-printf '    after:  AC=%s battery=%s · display sleep AC=%s battery=%s\n' \
-  "$after_ac" "$after_bat" \
-  "$(timer 'AC Power' 'Display Sleep Timer')" "$(timer 'Battery Power' 'Display Sleep Timer')"
-if [ "$after_ac" = "$after_bat" ]; then
-  printf '    → source-blind: one option, both sources. Confirms the limit above.\n'
+ss_ac=$(timer "AC Power" "System Sleep Timer")
+ss_bat=$(timer "Battery Power" "System Sleep Timer")
+printf '      after:  AC=%s battery=%s\n' "$ss_ac" "$ss_bat"
+verdict() {  # $1 new AC, $2 new battery, $3 what we asked for
+  if [ "$1" = "$before_ac" ] && [ "$2" = "$before_bat" ]; then
+    printf '      → ✗ NOTHING MOVED. The call reported success and did not apply.\n'
+  elif [ "$1" = "$3" ] && [ "$2" = "$3" ]; then
+    printf '      → source-blind: one call, both sources. Confirms the limit above.\n'
+  else
+    printf '      → only one source moved: the setting silently means "whichever\n'
+    printf '        source you were on when the rebuild ran".\n'
+  fi
+}
+verdict "$ss_ac" "$ss_bat" 17
+
+# The control that turns "systemsetup is broken" into a usable finding. If the
+# pmset path DOES move the same timer, then the recommendation to build a
+# curated power group on pmset rather than on `power.sleep.*` is measured
+# rather than merely preferred — and nix-darwin's six typed options are a
+# no-op wearing an option's clothes.
+printf '\n  2/2 the control: sudo pmset -c sleep 18 -b sleep 19\n'
+out=$(sudo pmset -c sleep 18 -b sleep 19 2>&1); rc=$?
+printf '      exit=%s output: %s\n' "$rc" "${out:-<silent>}"
+sleep 1
+pm_ac=$(timer "AC Power" "System Sleep Timer")
+pm_bat=$(timer "Battery Power" "System Sleep Timer")
+printf '      after:  AC=%s battery=%s\n' "$pm_ac" "$pm_bat"
+if [ "$pm_ac" = 18 ] && [ "$pm_bat" = 19 ]; then
+  printf '      → ✓ pmset lands, per source, as asked.\n'
+elif [ "$pm_ac" = "$before_ac" ] && [ "$pm_bat" = "$before_bat" ]; then
+  printf '      → ✗ pmset did not move it either — this machine may not permit a\n'
+  printf '        computer-sleep change at all (Apple silicon / a profile), so the\n'
+  printf '        systemsetup result above is NOT evidence about systemsetup.\n'
 else
-  printf '    → only one source moved. Worse: the option silently means "the\n'
-  printf '      source you were plugged into when the rebuild ran".\n'
+  printf '      → partial: asked 18/19, got %s/%s.\n' "$pm_ac" "$pm_bat"
 fi
 }
 
