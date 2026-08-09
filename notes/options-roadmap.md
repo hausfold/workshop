@@ -2103,10 +2103,13 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
       `hausax` refusing to remove the last one). **A group whose options are
       all "leave it alone by default" can still contain one that owns a list,
       and that one needs a different kind of care.**
-- [ ] File upstream against `LnL7/nix-darwin`: `power.sleep.*` writes only one
-      power profile on macOS 26 — `-setcomputersleep` moved AC while the machine
-      was on battery — and `system.activationScripts.power` discards the stderr
-      that would show it. `notes/probes/power-sweep.sh` is the reproducer.
+- [x] File upstream against nix-darwin — **[nix-darwin#1850](https://github.com/nix-darwin/nix-darwin/issues/1850)**,
+      2026-08-08. `power.sleep.*` writes only one power profile on macOS 26
+      (`-setcomputersleep` moved AC while the machine was on battery) and
+      `system.activationScripts.power` discards the stderr that would show it;
+      `notes/probes/power-sweep.sh` is the reproducer. Cross-referenced
+      nix-darwin#1421, an open request for `pmset`-based options — this is the
+      evidence that the existing ones can't stand in for it.
 
 Each entry carries metadata from the §4 matrix:
 
