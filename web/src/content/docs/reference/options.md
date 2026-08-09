@@ -2708,7 +2708,8 @@ Example:
 `boolean` · default `false`
 
 Draw a SECOND bar along the bottom of the screen, at the same time as
-the menu bar one. `haus.sill.bottom.items` picks what goes on it; an
+the menu bar one. `haus.sill.bottom.items` picks what goes on it and
+which of its three groups — left, center, right — each pill lands in; an
 empty set draws an empty strip, which the module warns about.
 
 SketchyBar has no two-bars-in-one-process mode — an instance is named
@@ -2738,10 +2739,29 @@ true
 
 `submodule` · default `{ }`
 
-Which pills the bottom bar draws, one bool each, all default false. A
-pill named here MOVES: it is drawn on the bottom bar and not on the menu
-bar, whatever `haus.sill.items` says about it — so there is one switch
-per pill per bar and never two copies of the same readout.
+Which pills the bottom bar draws, and WHERE along it — one value each,
+all default false. A pill named here MOVES: it is drawn on the bottom
+bar and not on the menu bar, whatever `haus.sill.items` says about it —
+so there is one switch per pill per bar and never two copies of the
+same readout.
+
+Each value is `false` (not on this bar), one of `"left"`, `"center"`,
+`"right"` — the bar's three groups — or `true`, which is `"right"`:
+
+  haus.sill.bottom.items = {
+    agents = "left";
+    media = "center";
+    clock = "right";
+    cpu = true;       # same as "right"
+  };
+
+Within a group the order is fixed (the same order the menu bar uses),
+and each group packs outward from its own edge: on the `right` the
+first pill sits furthest right, exactly as `clock` does up top, while
+`left` fills rightward from the left edge and `center` grows around the
+middle of the screen. All three are offered here and only `right` is
+offered on the menu bar, because this strip has nothing else on it:
+no workspace pills, no front-app slot, and no notch across its middle.
 
 The set is the five core pills (`clock`, `weather`, `media`, `battery`,
 `wifi`) plus the `haus.sill.items` extras (`cpu`, `memory`, `volume`,
@@ -2756,9 +2776,9 @@ Example:
 
 ```nix
 {
-  cpu = true;
-  media = true;
-  weather = true;
+  agents = "left";
+  clock = "right";
+  media = "center";
 }
 ```
 
@@ -2766,7 +2786,7 @@ Example:
 
 ### `haus.sill.bottom.items.agents`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
@@ -2774,7 +2794,7 @@ A paw pill tracking your agent-worktree panes — amber when one is blocked on y
 
 ### `haus.sill.bottom.items.aiUsage`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
 
@@ -2782,7 +2802,7 @@ A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, 
 
 ### `haus.sill.bottom.items.battery`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 The battery pill.
 
@@ -2790,7 +2810,7 @@ The battery pill.
 
 ### `haus.sill.bottom.items.caffeinate`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-hour duration, or indefinitely. The display may still turn off; closing a MacBook lid still sleeps it. Uses macOS's built-in `caffeinate`, so there is no extra package.
 
@@ -2798,7 +2818,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 ### `haus.sill.bottom.items.calendar`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
 
@@ -2806,7 +2826,7 @@ Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy
 
 ### `haus.sill.bottom.items.clock`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 The clock pill, pinned to the far right.
 
@@ -2814,7 +2834,7 @@ The clock pill, pinned to the far right.
 
 ### `haus.sill.bottom.items.cpu`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 Total CPU load, as a percentage pill.
 
@@ -2822,7 +2842,7 @@ Total CPU load, as a percentage pill.
 
 ### `haus.sill.bottom.items.elgato`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `haus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
 
@@ -2830,7 +2850,7 @@ Toggles an Elgato Key Light on the local network. The light is found over mDNS (
 
 ### `haus.sill.bottom.items.harvest`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh you provide.
 
@@ -2838,7 +2858,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 ### `haus.sill.bottom.items.hush`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the pill but does not enable the Hush room by itself.
 
@@ -2846,7 +2866,7 @@ The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the
 
 ### `haus.sill.bottom.items.media`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 The now-playing track (scrolls; auto-hides when nothing plays, dims when paused, click to play/pause). It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says which app the sound is coming from. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
@@ -2854,7 +2874,7 @@ The now-playing track (scrolls; auto-hides when nothing plays, dims when paused,
 
 ### `haus.sill.bottom.items.memory`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 Memory-pressure percentage pill.
 
@@ -2862,7 +2882,7 @@ Memory-pressure percentage pill.
 
 ### `haus.sill.bottom.items.volume`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 Output volume / mute state.
 
@@ -2870,7 +2890,7 @@ Output volume / mute state.
 
 ### `haus.sill.bottom.items.weather`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 The weather pill and its click-to-open forecast popover.
 
@@ -2878,7 +2898,7 @@ The weather pill and its click-to-open forecast popover.
 
 ### `haus.sill.bottom.items.wifi`
 
-`boolean` · default `false`
+`boolean or one of "left", "center", "right"` · default `false`
 
 The Wi-Fi status pill.
 
@@ -2953,9 +2973,14 @@ The hush (Do-Not-Disturb) pill is separate — it rides
 haus.hush.enable, not this set. It can still be moved to the second bar
 with `haus.sill.bottom.items.hush`.
 
-This is the MENU BAR's set. `haus.sill.bottom.items` mirrors these pills
-for the optional second bar and also accepts `hush`; a pill named there
-moves down rather than being drawn twice.
+This is the MENU BAR's set, and it is one group: the movable pills all
+sit on the right, because its left is the workspace pills, the front app
+and the leader picker, and its center is kept clear — that is the one
+span a MacBook's notch covers when the bar is at the top, which is where
+it is by default. `haus.sill.bottom.items` mirrors these pills
+for the optional second bar, also accepts `hush`, and takes a side
+(`"left"` / `"center"` / `"right"`) rather than a bare bool; a pill named
+there moves down rather than being drawn twice.
 
 Example:
 
