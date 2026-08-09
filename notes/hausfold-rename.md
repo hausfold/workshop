@@ -715,20 +715,24 @@ Easy to miss and it breaks *your* sessions, not users':
 
 - ✅ `nebelhaus.claude.globalMd` → `haus.claude.globalMd`, in `hearth` — done in
   nebelhaus#261 with the rest of the namespace.
-- ✅ The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
-  skill's own `name:` + description — **nebelhaus#263 + workshop#268,
-  2026-08-08.**
+- 🟨 The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
+  skill's own `name:` + description — **written and verified 2026-08-08; PRs
+  open as nebelhaus#263 (the rice) and workshop#268 (the docs that point at
+  it). Merge the rice one first.**
   ⚠️ **Two golden tests pin that path by hand.** The literal line
   `file .claude/skills/nebelhaus/references/this-machine.md moves` is in
   **both** `expectedScaleTable` (`nebelhaus/flake.nix:1233`) and
   `expectedFontTable` (`:1350`). So the rename fails the *scale-reach* and
   *font-reach* checks — errors about scale and fonts, the last two places anyone
   would look. Fix only one and the other still fires. Move both in the same commit.
-  🚨 **And `nix flake check --no-build` passes anyway.** Both are derivations;
-  the table comparison only runs when they are BUILT. The eval-only check is
-  the one an agent reaches for, and it is blind here — `nix build
-  .#checks.aarch64-darwin.{scale-reach,font-reach}` is the actual gate. Same
-  shape as §1.1a's "what only a build caught, twice".
+  🚨 **And `nix flake check --no-build` passes anyway.** Both are
+  `pkgs.runCommand` with the `diff -u` in the *builder*, so the table
+  comparison only runs when they are BUILT. The rice's CI does run the full
+  `nix flake check` (`.github/workflows/check.yml:36`) and would have caught
+  it — so the gap isn't in the pipeline, it's in the shortcut an agent reaches
+  for locally. `nix build .#checks.aarch64-darwin.{scale-reach,font-reach}` is
+  the local equivalent. Same shape as §1.1a's "what only a build caught,
+  twice": eval-green is not the same claim as build-green.
 
   **A do-not-touch list is the one place a rename must delete an entry, not
   edit it.** `nebelhaus/AGENTS.md` carries a "three things stay `nebelhaus`, and
@@ -750,12 +754,17 @@ Easy to miss and it breaks *your* sessions, not users':
   user-visible cost is that the slash command becomes **`/haus`**, and a
   session running across the rebuild keeps the old skill until it restarts.
 - ⚠️ **The state directories are NOT part of this phase, and that is a
-  decision, not an oversight.** `~/.local/state/nebelhaus/` (which holds
-  `settings-snapshots`, what `haus set`'s undo reads), `~/.config/nebelhaus/`
-  and `share/nebelhaus/host-options.nix` all still carry the old name.
-  Renaming them orphans live rollback state on every installed machine for a
-  cosmetic gain — the same trade §0.6 made the *other* way for perch, and it
-  came out differently here only because there is no deadline forcing it.
+  decision, not an oversight.** `~/.local/state/nebelhaus/`,
+  `~/.config/nebelhaus/` and `share/nebelhaus/host-options.nix` all still carry
+  the old name. The state dir holds `settings-snapshots` — written by `haus
+  capture` and by every rebuild, and read by **`haus revert-settings`**
+  (`modules/den/haus.sh:619`, `:733`, `:781`). Not `haus set`'s undo, which is
+  `unset`/`reset` and edits Nix options; getting that wrong understates the
+  stakes, because `revert-settings` is the *only* escape hatch for macOS
+  defaults that a Nix rollback cannot reach. Renaming the dir orphans that
+  state on every installed machine for a cosmetic gain — the same trade §0.6
+  made the *other* way for perch, and it came out differently here only
+  because there is no deadline forcing it.
   Decide it with §4, or leave it forever; either is defensible, silently
   half-doing it is not.
 - `~/.claude/CLAUDE.md`'s generated body (rendered from the option above) —
