@@ -743,22 +743,20 @@ step 4 works.
   ⚠️ **Leave the archived Messages client's `FAMILY` entry alone.** `bench:72-74`
   keeps it there deliberately so `bench status` still reports the checkout; it
   carries no lock edge and no release path. Removing it is a behavior change.
-  🚨 **Which word that entry is depends on whether workshop#269 has landed —
-  check before acting, don't trust this line.** Until it merges the entry reads
-  `trill`; #269 renames the repo, the entry and the on-disk dir to `messages`
-  together (§3.4), *and* gives the name `trill` to the notification compositor,
-  which is deliberately **not** in `FAMILY`. So in the window between, a `trill`
-  in `FAMILY` looks exactly like stale residue from the compositor's rename —
-  and deleting it is the behavior change this warning exists to stop.
+  It reads **`messages`** as of workshop#269 (merged 2026-08-09), which renamed
+  the repo, this entry and the on-disk dir together — §3.4. ⚠️ **Never let it
+  become `trill` again**: that name now belongs to the notification compositor,
+  which is deliberately *not* in `FAMILY`, so a `trill` here would read as
+  either repo depending on who looked.
 - ✅ **workshop — done 2026-08-09.** `README.md` title + `part_of` badge,
   `AGENTS.md`'s opening ("the **hausfold** workshop … every repo in the
   **hausfold** family"), the three `.agents/skills/*` descriptions and
   `.codex/config.toml:1`, all of which said "the nebelhaus family / workshop".
   The routing table itself is repo names and stays.
-  ⏳ **One badge deferred on purpose:** `incubator/flick/README.md:11` also
-  carries `part_of-nebelhaus`, and workshop#269 renames that whole directory —
-  sweeping it here buys a conflict for one line. Do it in the same pass as the
-  compositor's own rename, or immediately after #269 lands.
+  ✅ Including `incubator/trill/README.md:11`'s badge, swept once workshop#269
+  landed and stopped moving that directory out from under it. *(It was
+  `incubator/flick/` when this bullet was written — deferring one line was
+  cheaper than conflicting with a whole-directory rename.)*
 
   **Plus the namespace residue §1 structurally couldn't reach.** §1 renamed the
   *rice*; nothing renamed the option paths quoted in **other** repos' prose, and
