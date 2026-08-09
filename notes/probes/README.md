@@ -8,8 +8,12 @@ same shelf: a claim in a notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
+swift notes/probes/locale-effective.swift          # resolved locale + enabled input sources
 swift notes/probes/displays.swift                  # displays, persistent UUIDs, HiDPI modes
 ./notes/probes/ncprefs-flags.sh                    # per-app notification switches
+./notes/probes/sound-sweep.sh                      # alert volume, beep sound, startup chime
+./notes/probes/locale-sweep.sh                     # region keys, input sources
+./notes/probes/power-sweep.sh                      # sleep/pmset (section C needs root)
 ```
 
 `accessibility-effective.swift` reports what macOS *actually* honours, not what
@@ -104,6 +108,94 @@ It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
 effect) from keys with none (persistence only — it pauses ~10s so you can look).
 That split is deliberate: "the write succeeded" was never sufficient evidence
 here, since `com.apple.Accessibility` writes succeed and change nothing.
+
+## `sound-sweep.sh` · `locale-sweep.sh` · `power-sweep.sh` — §5.6's last three groups
+
+Added 2026-08-08 to settle the three curated-settings groups the roadmap had
+deferred *because nothing had been spiked*. Full results in
+[`../macos-settings-matrix.md`](../macos-settings-matrix.md#sound--localeinput-sources--power--swept-2026-08-08);
+the short version is that all three are reachable and the stated reason for
+deferring each one was wrong — Sound, Locale and Power have 2, 4 and 6 typed
+options respectively.
+
+```sh
+./notes/probes/sound-sweep.sh              # add --audible to hear the beep rows
+./notes/probes/locale-sweep.sh
+./notes/probes/power-sweep.sh              # A/B/D read-only
+POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh   # + the root write test
+```
+
+Three findings this shelf's own rules predicted and one it didn't:
+
+- **`com.apple.sound.beep.volume` is `e^(slider − 1)`, not a fraction.** `0.5`
+  is 31% and anything ≤ `e⁻¹` is silence. Oracle: `osascript -e 'get volume
+  settings'`, which reads CoreAudio rather than the plist. The same key is
+  written back by the volume keys, so it is a two-writers leaf.
+- **`AppleMeasurementUnits` — typed, friendly, inert.** Of the four typed region
+  keys, the one with the nice `Inches`/`Centimeters` enum is the only one that
+  moves nothing; `AppleMetricUnits` is load-bearing. The "second key that makes
+  the first a lie", with the roles reversed.
+- **`AppleFirstWeekday` lands and lies** — the second dict-valued key here to do
+  so after `FontSizeCategory`. Structured keys in Apple's global domain are
+  GUI-only until one proves otherwise.
+- **A bad `com.apple.sound.beep.sound` path is silence, not a fallback** —
+  settled by ear (control ✅, Submarine ✅, `/nope/does-not-exist.aiff` ❌). A
+  curated alert-sound option has to validate its path, or take an enum over
+  `/System/Library/Sounds`. `--audible` asks per row now, because batching the
+  question at the end produced "I heard one beep" — true and unattributable.
+  **When the oracle is a human, record per row.**
+- **The one nobody predicted: the missing piece is a *notification*.** A
+  `defaults write` reaches new processes only; a running app never notices, not
+  even through `Locale.autoupdatingCurrent`. Posting
+  `AppleDatePreferencesChangedNotification` right after the write flips it
+  within one sample, and a made-up notification name does nothing — so it is
+  name-specific, not a cache poke. `restart-map.nix` can say `killall` and
+  `logout`; this family needs a third verb.
+
+`locale-effective.swift` is the oracle (resolved locale, languages, measurement
+system, temperature unit, ICU hour skeleton, first weekday, current + enabled
+input sources), and `--watch N` is what makes the running-app question visible.
+`tis-toggle.swift` enables/disables ONE keyboard layout through the documented
+`TISEnableInputSource` — used both as a control and as the way to learn what
+macOS writes, since `AppleEnabledInputSources` resolves layouts by
+`KeyboardLayout Name` while never validating the `KeyboardLayout ID` beside it.
+
+Power's write test needs root — a Touch ID prompt here — so section C is opt-in
+behind `POWER_SWEEP_WRITE=1` (an env gate, not a `sudo -n` check, so a warm sudo
+timestamp can't make it run unattended). **It is also the probe on this shelf
+that has been wrong the most times, and its shape is the lesson.**
+
+Run 1: `sudo systemsetup -setcomputersleep 17` exits 0, prints
+`setcomputersleep: 17` like a confirmation, logs an internal `-99` on stderr,
+and moves `System Sleep Timer` on neither source — while nix-darwin discards
+all three streams. Conclusion drawn: nix-darwin ships six silent no-ops.
+
+Run 2, with a `pmset` control added: pmset didn't move it either. So the
+*setting* is pinned on this Mac and run 1 was never evidence about
+`systemsetup`. **A failed write says nothing about the writer until a second
+writer has failed the same way and a second setting has succeeded** — the
+negative-result twin of this shelf's "the write succeeded ≠ it took effect".
+
+Run 3, the full 2×2 (setting × caller): four timer writes failed and `pmset -a
+lowpowermode 1` **landed**, same shell, same root, same run — except the four
+failures were read from the plist file and the one success from `pmset -g
+custom`. **Two oracles, opposite verdicts.**
+
+Run 4, reading `pmset -g custom` throughout: **every write had been landing all
+along.** The plist is a file `powerd` flushes on its own cadence, and the probe
+caught it mid-lag on the way out — `computer AC=18(file:1)`.
+
+**Four runs, three wrong conclusions, none of them a macOS surprise.** The rule
+this shelf takes from it: *where a domain exposes two readable states, decide
+which one is the oracle before running anything* — and a table whose rows are
+judged by different readers is not a cross, it's two experiments sharing a
+heading. `timer()` reads `pmset -g custom`; the plist is a cross-check column
+that flags a split as `10(file:21)`.
+
+The finding that survived all four: **`systemsetup` writes ONE power profile.**
+Asked for computer sleep 17 while the machine was on battery, it set AC. So
+nix-darwin's `power.sleep.*` configures a source the config never named, and
+`pmset -b`/`-c` is the only honest way to build the group.
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 

@@ -437,6 +437,265 @@ The rice sets 19. Correcting the roadmap's "several hundred".
 
 ---
 
+## Sound · Locale/input sources · Power — swept 2026-08-08
+
+The three §5.6 groups that were deferred *because nothing had been spiked*.
+Same method as the rest of this file: macOS 26.6.1 (25G76), nix-darwin
+`a1fa429`, effective-state oracles rather than plist read-back, every domain
+snapshotted and restored — and the restore then *verified* by comparing each
+touched key's XML fragment (value **and** type) against the snapshot, because
+`defaults read` renders a float and a string identically. Re-runnable:
+
+```sh
+./notes/probes/sound-sweep.sh      # + --audible for the one row that needs an ear
+./notes/probes/locale-sweep.sh
+./notes/probes/power-sweep.sh      # A/B/D read-only; C is opt-in, see below
+```
+
+**Headline: all three are reachable, and the roadmap's stated reason for
+deferring each one was wrong.** Sound and Locale both *do* have typed
+nix-darwin keys (six between them), and Power has six typed options of its own.
+What actually blocks each group is smaller, different, and in two cases not a
+key at all.
+
+| group | verdict | what actually blocks it |
+|---|---|---|
+| **Sound** | ✅ **buildable today, fully settled** | the volume leaf is an exponential, not a fraction; the UI writes the same key back; and a bad `beep.sound` path is silence, so the option must validate it |
+| **Locale** | ✅ buildable, with one piece nothing in nix-darwin can express | a **distributed notification**, without which running apps never see the change |
+| **Power** | ⚠️ buildable on `pmset`, **not** on the typed options | `systemsetup` works, but writes ONE profile: asked for computer sleep 17 while on battery, it set AC and left battery alone — so `power.sleep.*` configures a source the config never named, silently |
+
+### Sound — works, but the number lies
+
+Oracle: `osascript -e 'get volume settings'` → CoreAudio's live alert volume
+(0–100). Not a plist re-read.
+
+| key | nix-darwin | reachability | notes |
+|---|---|---|---|
+| `com.apple.sound.beep.volume` | ✅ typed float | **typed-and-effective** | live, no restart, **no FDA gate** — an agent rebuild can set it |
+| `com.apple.sound.beep.feedback` | ✅ typed bool | writable, no oracle | volume-key feedback; nothing reads it back |
+| `com.apple.sound.beep.sound` | ❌ → `CustomUserPreferences` | **typed-and-effective, with a trap** | absolute path, **unvalidated** — and a bad path is SILENCE, not a fallback (heard 2026-08-08) |
+| `com.apple.sound.uiaudio.enabled` | ❌ → `CustomUserPreferences` | writable, no oracle | UI sound effects |
+| startup chime | — | `nvram StartupMute`, root | firmware, not a plist; outside `system.defaults` entirely |
+
+**1. The volume leaf is `e^(slider − 1)`, not a percentage.** Measured:
+
+| written | 1.0 | 0.7788008 | 0.6065307 | 0.5 | 0.4723665 | 0.3678794 | 0.0 |
+|---|---|---|---|---|---|---|---|
+| alert volume | 100 | 75 | 50 | **31** | 25 | **0** | 0 |
+
+Everything at or below `e⁻¹ ≈ 0.3679` is silence. nix-darwin's own docstring
+lists 75/50/25% as three magic constants and never says the curve, so `0.5`
+reads as "half" and is 31%. A curated `sound.alertVolume` should take 0–100 and
+convert; exposing the raw float would ship a silent lie.
+
+**2. It is a two-writers key.** `set volume alert volume 60` — the path the
+Sound pane and the volume keys use — writes `0.67032` into the *same*
+`NSGlobalDomain` key (`e^(0.6−1)` exactly). So a declared value silently
+reverts a hand-set alert volume at every rebuild, and a later drag of the
+slider silently diverges from the declaration. §5.7's two-writers question,
+inside a settings group.
+
+**3. Null really is write-nothing.** Deleting the key returns the alert volume
+to 100 (the OS default) rather than to 0 — the group's default policy holds.
+
+**4. ✅ SETTLED by ear, 2026-08-08 — a bad `beep.sound` path is SILENCE, not a
+fallback.** Recorded row by row:
+
+| row | `beep.sound` | heard? |
+|---|---|---|
+| 0 control | unset (OS default) | ✅ yes |
+| 1 | `/System/Library/Sounds/Submarine.aiff` | ✅ yes |
+| 2 | `/nope/does-not-exist.aiff` | ❌ **no** |
+
+So the key works, and a typo turns the alert beep off while the plist reads
+exactly like a working configuration. **A curated `sound.alertSound` must
+validate the path — at eval time if it takes a path at all, or by taking an
+enum of the 14 names in `/System/Library/Sounds` and building the path
+itself.** This is `screencapture.location`'s missing-directory trap (above) in
+the same settings group, with a worse failure: there, screenshots quietly go to
+the Desktop; here, the machine quietly stops making a sound you asked it to
+make.
+
+Getting that answer took three attempts, and the probe carries the fixes:
+`--audible` restores every key first (section C leaves `uiaudio.enabled = 0`
+set, so the first run beeped four times under the probe's own mute — four
+silences, no information), plays a **control** at pristine settings, and per
+row waits for ⏎ and asks `heard it? [y/N]` while you still know which beep it
+was. The middle run produced "I heard one beep": true, unattributable, worth
+nothing. **When the oracle is a human, record per row — do not batch the
+question.**
+
+### Locale / input sources — works, and the missing piece is a notification
+
+Oracle: `notes/probes/locale-effective.swift` — Foundation + Carbon TIS in a
+**fresh** process (locale, preferred languages, measurement system, temperature
+unit via `MeasurementFormatter(.naturalScale)`, ICU hour skeleton, first
+weekday, current + enabled input sources).
+
+| key | nix-darwin | effect on a fresh process |
+|---|---|---|
+| `AppleICUForce24HourTime` | ✅ typed | ✅ hour skeleton `h a` → `HH` |
+| `AppleMetricUnits` | ✅ typed | ✅ measurement system → `ussystem` |
+| `AppleTemperatureUnit` | ✅ typed | ✅ 20 °C → 68 °F |
+| `AppleMeasurementUnits` | ✅ typed (`Inches`/`Centimeters`) | ❌ **nothing** — no oracle here moves |
+| `AppleLocale` | ❌ → `CustomUserPreferences` | ✅ moves hour format, measurement system **and** first weekday together |
+| `AppleLanguages` | ❌ → `CustomUserPreferences` | ✅ `Locale.preferredLanguages`; UI language follows on app **relaunch** |
+| `AppleFirstWeekday` (dict) | ❌ | ❌ **lands and lies** — stored, no error, `Calendar` ignores it |
+
+**1. `AppleMeasurementUnits` is this group's "second key that makes the first a
+lie", inverted.** It is the friendly, obviously-named, *typed* one — and it is
+the inert one. macOS writes all three unit keys together when you change the
+region; a rice that sets only the obvious one gets a plist that reads right and
+a machine that ignores it. `AppleMetricUnits` is the load-bearing key.
+
+**2. `AppleFirstWeekday` is the second dict-valued key in this file to land and
+do nothing** (after `FontSizeCategory`). Set `AppleLocale` instead — `de_DE`
+moves the first weekday to Monday on its own. Working rule: **treat
+structured keys in Apple's global domain as GUI-only until one proves
+otherwise.**
+
+**3. The finding that decides the group: a running app never notices.** A
+`defaults write` reaches new processes only. Watched at 2s intervals for 8s
+after the write, *nothing* changed — not even `Locale.autoupdatingCurrent`, the
+flavour documented to track changes. Posting
+`AppleDatePreferencesChangedNotification` (a **distributed** notification)
+immediately after the write flips both flavours within one sample.
+`AppleMeasurementSystemPreferencesChangedNotification` works too; a made-up
+name does nothing, so this is name-specific, not a generic cache poke.
+
+So the group's missing piece is neither a key nor a `killall`, and
+`modules/lib/restart-map.nix` has no vocabulary for it. This is the first
+setting family whose "restart" is a **notification post** — worth a third verb
+beside `killall`/`logout`.
+(It does **not** rescue `AppleLanguages`: which `.lproj` a bundle loads is
+decided at launch, so the UI-language half is honestly "takes effect on app
+relaunch".)
+
+**4. Input sources are settable from a plist — and the authoritative-looking
+key is the decorative one.** `com.apple.HIToolbox` `AppleEnabledInputSources`
+is honoured live (TIS saw a layout appear the moment `defaults import`
+returned):
+
+| entry written | result |
+|---|---|
+| `{Name: German}`, no ID | ❌ stored, silently nothing |
+| `{ID: 3, Name: German}` | ✅ German |
+| `{ID: 99999, Name: French}` | ✅ **French** — the bogus ID is never validated |
+| `{ID: 1, Name: Nonexistent}` | ❌ silently nothing |
+
+`KeyboardLayout ID` must merely be *present*; `KeyboardLayout Name` is what
+resolves the layout. That is the exact inverse of the hot-corners finding,
+where the integer was the truth. And the name is not derivable from the input
+source ID — `com.apple.keylayout.SwissFrench` is `"Swiss French"`,
+`com.apple.keylayout.ABC-QWERTZ` is `"ABC-QWERTZ"` — so a hand-typed name table
+in Nix would be wrong for exactly the layouts nobody here tests. Learn each one
+by letting macOS write it: `swift notes/probes/tis-toggle.swift enable <id>`
+uses the documented `TISEnableInputSource`, which is live, reversible, and
+writes the canonical entry for you.
+
+### Power — typed after all, but source-blind and silent
+
+`power.sleep.{computer,display,harddisk,allowSleepByPowerButton}` and
+`power.restartAfter{PowerFailure,Freeze}` are all typed. They are **not**
+`system.defaults`: like `networking.applicationFirewall`, nix-darwin shells out
+in its own activation script — here to `systemsetup` — so no restart-map entry,
+no plist, and none of this file's usual `defaults`-based evidence applies.
+
+Two limits, from `<nix-darwin>/modules/power/*.nix` (its tree, not the rice's
+`modules/`), `man systemsetup`, and the write test below:
+
+1. **No power-source selector exists — and the missing selector is not neutral.**
+   Every `systemsetup` sleep verb is source-blind, while macOS stores the two
+   sources separately (`Wake On LAN` 1 vs 0 here, `ReduceBrightness`
+   battery-only). Measured: `-setcomputersleep 17` wrote the **AC** profile and
+   left battery alone, *while the machine was running on battery*. So the typed
+   options cannot express "sleep at 5 min on battery, never on AC" — the only
+   opinion a laptop rice has — and worse, what they do write goes somewhere the
+   config never named.
+2. **Every call ends in `&> /dev/null`.** A refusal, an unsupported verb and a
+   success are indistinguishable, which is the failure mode §5.6 exists to
+   avoid, one layer below `system.defaults`. Not hypothetical: `systemsetup`
+   emits an Admin-framework `-99` on stderr on this machine even when the write
+   succeeds, so there is real content in a stream nobody reads.
+
+Not typed at all, and unreachable through `system.defaults`: Low Power Mode
+(`pmset -a lowpowermode`), per-source anything (`pmset -b`/`-c`), lid and
+clamshell (`lidwake`, `disablesleep`), `hibernatemode`, `womp`. All are
+root-only writes into a root-owned plist, so a curated `nebelhaus.power.*`
+belongs in the `security.firewall` family (an activation step of our own),
+**not** in the `hotCorners`/`screenshots`/`menuBar` family.
+
+### The write test, and the trap it set for its own author
+
+Ran 2026-08-08 from Ghostty (an FDA-holding terminal, so none of this is the
+universalaccess gate), as root. **Read this section for the method as much as
+the result** — the first two runs each produced a confident wrong conclusion.
+
+**Run 1 — `systemsetup` looked like it applied nothing:**
+
+```
+$ sudo systemsetup -setcomputersleep 17
+### Error:-99 File:…/Admin/InternetServices.m Line:395
+setcomputersleep: 17                      ← reads exactly like a confirmation
+exit=0
+before: AC=1 battery=1        after: AC=1 battery=1        ← read from the plist
+```
+
+Exit 0, a confirmation-shaped line, an internal `-99` from the Admin framework
+on stderr, and no visible change — with nix-darwin sending every one of those
+streams to `/dev/null`. The obvious reading is "nix-darwin's six typed options
+are a silent no-op on macOS 26, file it upstream". **It was wrong**, and the
+`-99` is noise: the write had landed. Keep the line in mind anyway — a genuine
+failure would look identical from nix-darwin's side, because nothing is read.
+
+**Run 2 — the `pmset` control didn't move it either**, so the reading became
+"computer sleep is immutable here". **Run 3** added the full 2×2 and produced a
+third story: four timer writes failed while `pmset -a lowpowermode 1` landed,
+same shell, same root, same run.
+
+**Run 4 — the oracle was the bug, and every write had been landing all along.**
+Runs 1–3 read `/Library/Preferences/com.apple.PowerManagement.plist`; `powerd`
+flushes that file on its own cadence. Reading `pmset -g custom` instead:
+
+| setting | via `systemsetup` | via `pmset` |
+|---|---|---|
+| computer sleep | ⚠️ **AC only** (asked 17 → AC=17, battery=1) | ✅ AC=18, battery=19, as named |
+| display sleep | ✅ AC=21 | ✅ AC=22, battery=23, as named |
+| Low Power Mode | *(not offered)* | ✅ landed |
+
+The probe caught the stale file in the act on its way out — `computer
+AC=18(file:1) bat=19(file:1)`: live state 18/19, the file still saying 1.
+
+★ **Four runs, three wrong conclusions, and not one of them was a macOS
+surprise — they were all measurement errors.** In order: a single row read as a
+verdict; a negative result with no control (*a failed write says nothing about
+the writer until a second writer has failed the same way and a second setting
+has succeeded*); and finally two different oracles inside one table, which is
+not a cross but two experiments sharing a heading. The rule this earns, and it
+generalises past power: **where a domain exposes two readable states, decide
+which one is the oracle before running anything — and never let one table's
+rows be judged by different readers.** The plist here is what
+`com.apple.Accessibility` was to §4: the thing that reads like evidence and
+isn't.
+
+**So the real limit is not that `systemsetup` fails. It is that it writes one
+profile.** Asked for computer sleep 17 while the machine was running *on
+battery*, it set **AC** and left battery alone. `power.sleep.computer = 17`
+therefore configures a laptop's AC profile only, silently, and a user who set
+it to protect their battery gets nothing — while `pmset -b`/`-c` does exactly
+what it is told. That is a determinism and correctness bug the config cannot
+see, and it is worth filing upstream.
+
+- [ ] Report to `LnL7/nix-darwin`: `power.sleep.*` writes only one power
+      profile on macOS 26 (`systemsetup -setcomputersleep` moved AC while the
+      machine was on battery), and `system.activationScripts.power` discards
+      stderr, so nothing surfaces. `power-sweep.sh` is the reproducer.
+- [ ] ◻️ One row is measured on AC only: whether `systemsetup -setdisplaysleep`
+      is also AC-only was not read for the battery profile in run 4. The probe
+      now prints both sources for that row, so the next run settles it.
+
+---
+
 ## Consequences for the roadmap
 
 1. **`nebelhaus.accessibility` as designed is mostly unbuildable.** Vision and
@@ -468,6 +727,20 @@ The rice sets 19. Correcting the roadmap's "several hundred".
    plist-only diff would have called all three no-op writes above "applied" —
    and the appearance one twice over, since that key reads back the write you
    just made.
+6. **`restart-map.nix` needs a third verb: `notify`** (added 2026-08-08). The
+   locale family's "restart" is a distributed notification post, not a
+   `killall` and not a logout, and there is no daemon to kill — every app is
+   the consumer. Without it a locale group ships settings that are correct on
+   the next login and invisible today.
+7. **A curated leaf may not expose a raw macOS scalar just because it is
+   typed.** `com.apple.sound.beep.volume` is an exponential wearing a
+   fraction's clothing, and `KeyboardLayout ID` is a required field nothing
+   validates. The unit of curation is the *user's* quantity (0–100 volume, a
+   `com.apple.keylayout.*` id), with the conversion in the module.
+8. **Two of §5.6's three "no typed surface" claims were wrong** — Sound has two
+   typed keys, Locale four, Power six. The check that would have caught it is
+   `grep mkOption` over `modules/system/defaults/*.nix` plus `modules/power/`,
+   which is cheaper than the spike it was used to defer.
 
 ---
 
