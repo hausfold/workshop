@@ -713,15 +713,51 @@ erroring**, so every renderer of someone else's data needs a floor.
 
 Easy to miss and it breaks *your* sessions, not users':
 
-- `nebelhaus.claude.globalMd` → `haus.claude.globalMd`, in `hearth`.
-- The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
-  skill's own `name:` + description.
+- ✅ `nebelhaus.claude.globalMd` → `haus.claude.globalMd`, in `hearth` — done in
+  nebelhaus#261 with the rest of the namespace.
+- ✅ The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
+  skill's own `name:` + description — **nebelhaus#263 + workshop#268,
+  2026-08-08.**
   ⚠️ **Two golden tests pin that path by hand.** The literal line
   `file .claude/skills/nebelhaus/references/this-machine.md moves` is in
-  **both** `expectedScaleTable` (`nebelhaus/flake.nix:1194`) and
-  `expectedFontTable` (`:1311`). So the rename fails the *scale-reach* and
+  **both** `expectedScaleTable` (`nebelhaus/flake.nix:1233`) and
+  `expectedFontTable` (`:1350`). So the rename fails the *scale-reach* and
   *font-reach* checks — errors about scale and fonts, the last two places anyone
   would look. Fix only one and the other still fires. Move both in the same commit.
+  🚨 **And `nix flake check --no-build` passes anyway.** Both are derivations;
+  the table comparison only runs when they are BUILT. The eval-only check is
+  the one an agent reaches for, and it is blind here — `nix build
+  .#checks.aarch64-darwin.{scale-reach,font-reach}` is the actual gate. Same
+  shape as §1.1a's "what only a build caught, twice".
+
+  **A do-not-touch list is the one place a rename must delete an entry, not
+  edit it.** `nebelhaus/AGENTS.md` carries a "three things stay `nebelhaus`, and
+  they are not drift" stanza that listed the skill path. The bulk rename
+  rewrote it *in place*, so the rice's own instructions ended up asserting that
+  `~/.claude/skills/haus/` is a thing that stays `nebelhaus` and isn't the
+  current phase — a licence for the next session to put the old path back.
+  Caught by the assurance pass, not by any build.
+
+  Two more the pass caught, both downstream and neither self-healing: the
+  workshop's `guides/ai-agent.mdx` had a copy-paste block that would have
+  **ENOENT**'d the day this merged, and `web/src/pages/llms{,-full}.txt.ts` —
+  the pointer we hand to *other* models — named the old path. Generated
+  `reference/options.md` self-heals, but only on the next `options-drift` run.
+
+  Migration needed nothing: the six files are plain `home.file` entries, so
+  home-manager's cleanup removes the orphaned leaves and `rmdir`s
+  `skills/nebelhaus/` on the same rebuild that creates `skills/haus/`. The
+  user-visible cost is that the slash command becomes **`/haus`**, and a
+  session running across the rebuild keeps the old skill until it restarts.
+- ⚠️ **The state directories are NOT part of this phase, and that is a
+  decision, not an oversight.** `~/.local/state/nebelhaus/` (which holds
+  `settings-snapshots`, what `haus set`'s undo reads), `~/.config/nebelhaus/`
+  and `share/nebelhaus/host-options.nix` all still carry the old name.
+  Renaming them orphans live rollback state on every installed machine for a
+  cosmetic gain — the same trade §0.6 made the *other* way for perch, and it
+  came out differently here only because there is no deadline forcing it.
+  Decide it with §4, or leave it forever; either is defensible, silently
+  half-doing it is not.
 - `~/.claude/CLAUDE.md`'s generated body (rendered from the option above) —
   its routing table, its `holt` section.
 - `HAUS_CONSUMER` — already `haus`-prefixed, **no change**.

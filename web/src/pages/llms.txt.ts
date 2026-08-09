@@ -64,7 +64,7 @@ Orienting facts, so you don't have to infer them:
 - A user's own config is a thin flake at \`~/.config/nix\` that pins the rice. The only file they edit is \`hosts/<hostname>/default.nix\`, where they set \`nebelhaus.*\` options. They never edit the rice itself.
 - \`haus\` is the end-user CLI: \`rebuild\`, \`update\`, \`rollback\`, \`generations\`, \`status\`, \`edit\`, \`doctor\`. It always builds before it switches, so a broken config never reaches the running system.
 - The options reference below is generated from the rice's module system, so it is authoritative — but it documents the LATEST rice. A given machine is pinned to a revision and may not have the newest options; \`haus status\` says how far behind it is.
-- On an installed machine the rice ships a Claude Code skill at \`~/.claude/skills/nebelhaus\` whose option reference is generated from that machine's own pinned revision. Prefer it over this site when advising on a specific machine.
+- On an installed machine the rice ships a Claude Code skill at \`~/.claude/skills/haus\` whose option reference is generated from that machine's own pinned revision. Prefer it over this site when advising on a specific machine.
 - macOS only, Apple Silicon only.
 
 ${sections}

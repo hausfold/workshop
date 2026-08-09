@@ -19,7 +19,7 @@ The missing half was knowledge. So the rice ships it.
 
 ## What's installed
 
-Every rebuild writes a Claude Code **skill** to `~/.claude/skills/nebelhaus`:
+Every rebuild writes a Claude Code **skill** to `~/.claude/skills/haus`:
 
 | File | What it is |
 |---|---|
@@ -129,9 +129,14 @@ skill. A starter pair ships inside the skill; nothing writes it for you, because
 it's your repo and you should own the files:
 
 ```sh
-cp ~/.claude/skills/nebelhaus/consumer-AGENTS.md ~/.config/nix/AGENTS.md
-cp ~/.claude/skills/nebelhaus/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
+install -m 644 ~/.claude/skills/haus/consumer-AGENTS.md ~/.config/nix/AGENTS.md
+install -m 644 ~/.claude/skills/haus/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
 ```
+
+`install -m 644`, not `cp`: the starter pair are symlinks into the Nix store,
+whose files are `r--r--r--`. A plain `cp` preserves that mode, so you land on an
+`AGENTS.md` your editor refuses to save — on the one file the whole point of
+copying is to then edit.
 
 Two files, because the tools disagree about the filename. **`AGENTS.md` is the
 one that carries the rules** — Codex, OpenCode, Cursor, Zed, Copilot and
