@@ -70,10 +70,11 @@ the Apple identity migration** are done. `bench try` builds the current local
 family, and the private consumer now uses canonical `haus.*` with no
 obsolete-option traces (`nix-config` `452b9b8`).
 
-**§5.2 is the only substantial 🤖 work left** — the Astro/docs/Worker port into
-`hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com` 301s.
-Besides it there is exactly one small 🤖 job, §4.2's `com.local.pounce`
-association removal (below); everything else outstanding is 👤.
+**§5.2 is the only substantial 🤖 work left** — the docs/Worker consolidation
+into `hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com`
+301s. 🚨 **It is a rebuild on Fumadocs, not a port of the Astro/Starlight
+tree** (👤's call, 2026-08-09 — see §5.2's decision box before reading anything
+below it as a move). Everything else outstanding is 👤.
 
 What changed since the morning handoff:
 
@@ -87,8 +88,9 @@ What changed since the morning handoff:
   *pounce* plist, `com.hausfold.pounce.plist` (it holds eleven plists in total —
   don't read that `ls` as a clean sheet). The old `org.nixos.pounce` label is
   gone, which is §4.2's riskiest step confirmed rather than assumed.
-  ⚠️ **The closeout's second half did not run**: `com.local.pounce` is still in
-  the rice's `AssociatedBundleIdentifiers`. See §4.2's open box.
+  ✅ **The closeout's second half has now run too** — `com.local.pounce` is out
+  of the rice's `AssociatedBundleIdentifiers` (hausfold#282). One 👤 check rides
+  on activating it; see §4.2.
 - **§5.4 is done** — no `support@nebelhaus.com` survives anywhere in the family
   except as struck-through history, **and the address is settled: `hi@hausfold.co`**,
   not `support@hausfold.co`. The sweep exposed that both were in play; `hi@` won
@@ -1687,15 +1689,25 @@ hausfold#275 to pin that main commit **and remove `com.local.pounce` from the
 association**". The pin happened — the rice locks pounce at `e3c2305`, the
 release commit, on main. The removal did not:
 
-- [ ] 🤖 **Drop `com.local.pounce` from `AssociatedBundleIdentifiers`** —
-  `hausfold/modules/pounce/default.nix:788-791`, and it is live in the installed
-  `~/Library/LaunchAgents/com.hausfold.pounce.plist`. The comment beside it says
-  "Remove `com.local.pounce` with that lock ripple", and **that ripple has
-  already happened**, so the condition it waits on is met and the entry is now
-  pure residue. This is the association that decides which app macOS attributes
-  a permission prompt to — leaving a stale id in it is exactly the class of
-  thing that put the maintainer's legal name back in a prompt once before.
-  Small, rice-repo, one PR.
+- [x] 🤖 **Drop `com.local.pounce` from `AssociatedBundleIdentifiers`** —
+  `hausfold/modules/pounce/default.nix`, live in the installed
+  `~/Library/LaunchAgents/com.hausfold.pounce.plist`. The comment beside it said
+  "Remove `com.local.pounce` with that lock ripple", and **that ripple had
+  already happened**, so the entry was residue. This is the association that
+  decides which app macOS attributes the agent to — leaving a stale id in it is
+  exactly the class of thing that put the maintainer's legal name in a Login
+  Items row once before. **Done: hausfold#282.** The evidence chain is in that
+  PR: the pin is `e3c2305`, whose `pkgs/pounce/Info.plist` declares
+  `com.hausfold.pounce` and whose `build.sh` rewrites only the version keys, so
+  the unsigned path and the signing-failure fallback both resolve to the id
+  that stays. `bench try` green; the `example` host (the unsigned one) evals to
+  a one-element array.
+  - [ ] 👤 **After activating it, re-check the attribution** — System Settings ▸
+    Login Items & Extensions still reads "Pounce", not a person's name, and on
+    Tahoe the "Allow in the Background" toggle didn't flip off. ⚠️ Activation
+    does **not** bounce the daemon here (`kickstartPounce` fires on a
+    `.signed-from` lag and `signedFrom` didn't move), so "the daemon didn't
+    restart" is not evidence the change failed to apply.
 
 ⚠️ And what the launchd check does **not** cover is §4.4: a loaded job proves the
 label moved, not that the TCC grants came back. Bundle-ID-keyed grants are
@@ -1925,6 +1937,48 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
+#### 🚨 Decided 2026-08-09 — the docs are rebuilt on **Fumadocs**, not ported from Starlight
+
+👤's call, and it changes what §5.2 *is*. Everything below this box was written
+as a **port**: move `workshop/web`'s Astro + Starlight tree into the site repo,
+keep the build, redesign only the landing pages. That is no longer the job.
+**The docs get rebuilt on [Fumadocs](https://fumadocs.dev); Starlight does not
+come across.** Read every "port"/"move" below as "re-author into Fumadocs,
+carrying the content".
+
+What that changes, and what it doesn't:
+
+- **The content is still the salvage list.** MDX bodies, the copy, the
+  frontmatter meaning — all of it carries over. Fumadocs eats MDX, so this is a
+  re-shell, not a rewrite of the prose. Nothing in the table below stops being
+  load-bearing.
+- ⚠️ **The stack changes underneath, and that is the part with teeth.** Starlight
+  is Astro; **Fumadocs is React on Next.js**. The site repo today is a
+  Cloudflare Worker serving static assets, and `workshop/web` is Astro + a
+  hand-written `worker.js`. A Next app on Cloudflare is a different deployment
+  shape — either a static export, or the OpenNext adapter, and those two have
+  very different answers for `worker.js`'s dynamic routes (`/init.sh`,
+  `/download/<app>`, `/api/release/<app>`). **Pick that before writing any
+  page**, because it decides whether `worker.js` survives as-is beside the app
+  or has to become route handlers. `wrangler.toml`'s `custom_domain = true`
+  note below still applies either way.
+- ⚠️ **The Starlight-shaped things do not have Fumadocs equivalents by default,
+  and each is a decision, not a lookup:** the sidebar/tree config, the
+  `editLink` baseUrl, and the two generated routes (`llms.txt.ts`,
+  `llms-full.txt.ts`) which are Astro endpoints and become Next route handlers.
+- ✅ **§5.1's Nix-removal work is unaffected and still paid for.** `site-data`
+  publishes three JSON files and both scripts read a directory; that is
+  framework-agnostic. Fumadocs consuming `docs/site-data/` is the same read.
+- ⚠️ **Slug preservation gets harder, not easier.** §5.2's "preserve slugs"
+  bullet assumed one docs framework's routing carried to itself. Across
+  frameworks the redirect list has to be *derived* from the old build's actual
+  output, not assumed — enumerate the live `nebelhaus.com` URLs before the old
+  site goes away, or the 301 map is guesswork.
+
+Not yet decided (and don't decide them by accident while building): static
+export vs OpenNext, and whether the landing pages become Next pages too or stay
+hand-written HTML beside it.
+
 The pages get redesigned. **These are not pages and must survive verbatim:**
 
 | Salvage | Why it's load-bearing |
@@ -2019,9 +2073,14 @@ The sweep exposed that two addresses were in play and nothing reconciled them.
 The seller surface that actually shipped used **`hi@hausfold.co`**
 (`hausfold.co/public/terms/index.html:187,194` — the contact of record on a
 *legal* page), while perch gated on **`support@hausfold.co`** existing in three
-places (`perch/docs/going-paid.md:60`, `perch/docs/app-store.md:169`,
-`perch-monetization.md:153`). `going-paid.md:62` recorded the split; nothing
-resolved it.
+places (perch's `docs/going-paid.md` and `docs/app-store.md`, and
+`perch-monetization.md`'s Phase 3 — line numbers deliberately omitted, they
+move). `going-paid.md` recorded the split; nothing resolved it.
+
+Measured while deciding: `hi@hausfold.co` is on **all nine** of the site's HTML
+pages *and* in the JSON-LD organization record, while `support@hausfold.co`
+appears in **zero** shipped surfaces across every family repo — only in those
+three checkboxes.
 
 **`hi@` wins, and the deciding fact is that it is the one that exists.**
 `support@hausfold.co` appeared in exactly three unchecked checkboxes and on zero
