@@ -101,7 +101,8 @@ Nearly every repo carries this layer, one PR each: the rice (`hausfold`),
 (`~/.config/nix`). Each keeps its **own** rules — only the shape is shared. The
 differences worth knowing — including the two repos that are still gaps:
 
-- ❌ **`holt` has none of it** — no `AGENTS.md`, no `CLAUDE.md`, no
+- 🔧 **`holt` had none of it** ([holt#31](https://github.com/hausfold/holt/pull/31)
+  fixes this; the description below is what it was fixing) — no `AGENTS.md`, no `CLAUDE.md`, no
   `.agents/`, no `.github/copilot-instructions.md`, just a `.claude/` holding a
   permission allowlist. It ejected from the incubator on 2026-08-03 — the same
   day this layer rolled out across the family — and was missed *during* that
@@ -112,7 +113,9 @@ differences worth knowing — including the two repos that are still gaps:
   the sharpest boundary to state — five published SDKs sharing one semver, and a
   "substrate, not orchestrator" rule that isn't written down anywhere it's
   enforced.
-- ⚠️ **`hausfold.co` has half of it** — `AGENTS.md` + `CLAUDE.md` only, no
+- 🔧 **`hausfold.co` had half of it**
+  ([hausfold.co#4](https://github.com/hausfold/hausfold.co/pull/4) fixes this) —
+  `AGENTS.md` + `CLAUDE.md` only, no
   `GEMINI.md`, `opencode.json`, `.agents/` or `.github/copilot-instructions.md`.
   It was recreated public on 2026-08-08 (§5.1) and carried its instructions
   across, not its wiring. Copilot reviews that repo's PRs with no instructions at
