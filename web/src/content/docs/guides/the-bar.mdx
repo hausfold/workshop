@@ -23,7 +23,7 @@ highlighted. The front app's title sits alongside.
 - **Clock** and **battery**
 - **Wi-Fi** state
 - **Weather** — a compact pill that opens a full popover on click
-- **Media** — the currently-playing track, scrolling
+- **Media** — what's playing, and the controls for it (see [The media pill](#the-media-pill))
 
 Any of these five can be switched off individually — see
 [Toggling bar items](#toggling-bar-items) below.
@@ -39,9 +39,65 @@ behave like every other menu on the Mac: **click anywhere else and the dropdown
 closes**, clicking the pill again also closes it, and opening one dropdown closes
 whichever was already open.
 
+The media pill is the one exception to the *click* half of that rule: its left
+click is play/pause, so its dropdown is on **right**-click. Everything about
+dismissing it is the same.
+
 (SketchyBar itself only ever hears about clicks on its own pills, so the rice
 ships a small helper — `sillpop` — to notice the click outside. It runs only
 while a dropdown is open, and needs no Accessibility permission.)
+
+## The media pill
+
+The media pill reads the same system-wide session Control Center does, so it
+follows a browser tab as readily as Apple Music or Spotify — and it hides itself
+entirely when nothing is playing.
+
+Its glyph and colour say what **kind** of thing is playing: an app it knows gets
+that app's mark, and a browser gets video or music depending on whether the page
+published an album (every music service does, no video site does). It cannot say
+which *site* — macOS's now-playing session carries no URL, and neither window
+titles nor artwork nor the session's process id can recover one — so it draws a
+neutral video glyph rather than a YouTube logo that would be wrong on a Netflix
+tab. If you know that on your machine browser video means YouTube, say so:
+
+```nix
+haus.sill.media.icons."browser.video" = "󰗃";
+```
+
+Two other habits worth knowing. A title scrolls for a few seconds after a track
+changes and then settles, so nothing moves in the corner of your eye forever —
+hover to read the whole thing again. And anything longer than twenty minutes
+counts **down** (`-38m`) instead of scrolling a name you already know, which is
+the number you actually keep glancing at the bar for.
+
+The gestures:
+
+| | |
+|---|---|
+| left click | play / pause |
+| right click | the dropdown |
+| ⌥ click | next track |
+| ⇧ click | previous track |
+| ⌘ click | bring the app the sound is coming from forward |
+| scroll | seek ±10s |
+
+That ⌘ click is the one to remember: it's the answer to "something is making
+noise and I can't find the tab".
+
+The dropdown carries the cover art (or, for the many sources that publish none,
+the source app's own icon), the title, artist and album, a position slider you
+can **click to scrub**, transport rows, and a short **recently played** list.
+That last one exists because macOS keeps no now-playing history at all — nothing
+on the machine can tell you what the track before this one was, so the bar
+writes each change down as it happens.
+
+Two options tune it, both off by default:
+`haus.sill.media.collapse` draws the pill as its glyph alone until you hover it
+(worth having on a MacBook, where the bar's centre span is under the notch), and
+`haus.sill.media.artworkTint` colours the glyph from the current cover — sampled
+and then snapped to the nearest colour in your palette, so an album cover can
+never put a colour on the bar that isn't part of your theme.
 
 ## The weather popover
 
