@@ -276,6 +276,13 @@ overrides() { # every family input redirected at the local checkouts
   # see ensure_perch_dev_app), so when there's local SOURCE to test we hand its
   # flake a login-session-built .app via the `prebuilt` input. Empty otherwise →
   # the flake wraps the release, unchanged.
+  #
+  # 🚨 Every `nebelhaus` below is a FLAKE INPUT NAME, not a repo — it is what
+  # ~/.config/nix's flake calls its input (`inputs.nebelhaus.url`), and the rice
+  # keeps that name (hausfold-rename.md §6). Only `local_src`'s argument is a
+  # repo/directory, and that one moved to `hausfold`. Do NOT "finish the rename"
+  # here: renaming these addresses an input that doesn't exist, and every
+  # override silently stops applying.
   local perch_prebuilt=""
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input nebelhaus/perch/prebuilt path:$PERCH_DEV_APP_DIR"
