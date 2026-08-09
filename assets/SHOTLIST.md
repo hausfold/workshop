@@ -35,7 +35,7 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 graphic per the policy above, not a survivor-table hero; the old
 `swatch-cascade.webp` marketing loop was retired.)*
 
-*(The pounce/trill/perch landings show the app **in code**, not in a capture:
+*(The pounce/perch landings show the app **in code**, not in a capture:
 `web/src/components/ProductDemo.astro` draws each UI in HTML/CSS inside an SVG
 MacBook. Those aren't survivor-table assets — nothing was shot, nothing rots,
 and no byte ships. Don't "fix" them by pointing a landing at a video.)*

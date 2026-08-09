@@ -458,7 +458,7 @@ JSON
 @test "docs_watermark is empty for a repo the state file doesn't know" {
   DOCS_STATE="$ROOT/.docs-sync.json"
   echo '{"repos": {"pounce": {"rev": "deadbeef"}}}' > "$DOCS_STATE"
-  run docs_watermark trill
+  run docs_watermark messages
   [ "$output" = "" ]
 }
 

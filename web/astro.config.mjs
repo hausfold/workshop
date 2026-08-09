@@ -17,29 +17,15 @@ export default defineConfig({
   // keeps HTML revalidating (belt-and-suspenders, and it freshens hashed JS), but
   // rendering no longer depends on any cache header being honored by any client.
   build: { inlineStylesheets: 'always' },
-  // The Messages client was archived 2026-08-04 and is no longer part of the
-  // family the site presents: no landing page, no guide, no sidebar entry, no
-  // llms.txt row. It was called **trill** then, and its repo was renamed to
-  // `nebelhaus/messages` on 2026-08-08 so the notification compositor could
-  // take that name (notes/hausfold-rename.md §3.4).
-  //
-  // The `/trill*` PATHS still have to resolve, and none can ever be edited:
-  // nebelhaus.com/trill was printed in a shipped Homebrew cask and in the app's
-  // own about box, and /guides/trill/ is linked twice from that README — whose
-  // repo is ARCHIVED, hence read-only, hence frozen with those links in it
-  // forever. So they redirect to the renamed repo, which is the honest
-  // destination: the code, the last release, and the archive notice. The
-  // targets are spelled `messages` rather than riding GitHub's rename redirect.
-  //
-  // ⚠️ The compositor will want `/trill` for its own docs page. It cannot have
-  // it while these four entries stand — a redirect beats a page. Retiring them
-  // means accepting that a frozen cask and a frozen about box start 404ing.
-  redirects: {
-    '/trill': 'https://github.com/nebelhaus/messages',
-    '/trill/': 'https://github.com/nebelhaus/messages',
-    '/guides/trill': 'https://github.com/nebelhaus/messages',
-    '/guides/trill/': 'https://github.com/nebelhaus/messages',
-  },
+  // The site presents the living family only. The archived Messages client
+  // (called trill until 2026-08-08, now nebelhaus/messages) had four
+  // `/trill*` redirects here pointing at its repo; they were removed with the
+  // rest of its public surface. Consequence, accepted knowingly: the URL its
+  // about box prints, and the two /guides/trill/ links frozen into its
+  // archived README, now 404. Nothing else referenced them — the Homebrew
+  // cask that also printed one was deleted the same day, and the app has no
+  // install base. This is also what frees `/trill` for the notification
+  // compositor's own docs page.
   // Custom landing page lives at src/pages/index.astro; Starlight owns the rest.
   integrations: [
     starlight({

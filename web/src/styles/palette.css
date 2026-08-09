@@ -54,7 +54,6 @@
    */
   --neb-product-rice: var(--neb-pink);
   --neb-product-pounce: var(--neb-peach);
-  --neb-product-trill: var(--neb-blue);
   --neb-product-perch: var(--neb-green);
 
   /* Hover tints are one step lighter than each product's accent. Hand-picked —
@@ -62,7 +61,6 @@
    * derived, and they are the one thing to update alongside a product accent. */
   --neb-product-rice-hover: #f6d0eb;
   --neb-product-pounce-hover: #f8c8aa;
-  --neb-product-trill-hover: #a8c7f7;
   --neb-product-perch-hover: #c4ecbf;
 
   /* ---- Type ---- */
