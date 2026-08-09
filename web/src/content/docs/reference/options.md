@@ -240,7 +240,7 @@ Always float this app's windows instead of tiling them — an
 AeroSpace `on-window-detected` rule generated from `appId`
 (`run = 'layout floating'`). Right for a picker/dialog/status
 window that would otherwise reflow the whole workspace every time
-it opens (FaceTime, Flick's Settings/Inbox), not for something you
+it opens (FaceTime, Trill's Settings/Inbox), not for something you
 work inside. Requires `appId`; ignored (with a warning) without it.
 
 <small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
@@ -1334,8 +1334,8 @@ Example:
 
 `boolean` · default `true`
 
-Install the `nebelhaus` Claude Code skill into
-~/.claude/skills/nebelhaus, so an agent asked to "install Slack" or
+Install the `haus` Claude Code skill into
+~/.claude/skills/haus, so an agent asked to "install Slack" or
 "make everything bigger" edits your host file and runs `haus rebuild`
 instead of guessing at dotfiles and `brew install`.
 
