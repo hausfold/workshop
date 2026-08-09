@@ -790,7 +790,12 @@ over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` 
 transfers in one sitting**, then one lock ripple — a half-migrated org means
 flake inputs resolving through redirects for days.
 
-### 3.1 👤 Pre-flight
+### 3.1 🟨 Pre-flight — audited 2026-08-08, one 👤 command left
+
+**Four of the five bullets below are now measured rather than pending**, which
+turns the transfer sitting into clicking. The audit also found four
+owner-keyed identifiers the original list didn't have — they are the part that
+breaks *after* the transfer, while everything local still passes.
 
 - [ ] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
       Confirm **no GitHub name collision** with an incoming repo — there isn't
@@ -814,15 +819,81 @@ flake inputs resolving through redirects for days.
       platform) and `workshop/hausfold.co/` (the site) — each named for its repo.
       *(This read `workshop/website/` until 2026-08-08, when the site repo was
       recreated under a new name; the on-disk name follows the repo.)*
-- [ ] Confirm you can create repos in `hausfold` and that transfer targets show it.
-- [ ] **Repo secrets travel with the repo; org-level secrets do not.** perch's
-      `MACOS_CERT_P12` / `NOTARY_*` / `ASC_*` / `IOS_DIST_*` are repo secrets →
-      fine. Check pounce, holt, homebrew-tap for anything org-scoped.
-- [ ] **Deploy keys and Actions permissions** — the homebrew-tap bump uses a
-      deploy key (see the pounce release pipeline). Confirm it survives, or
-      re-issue it after.
-- [ ] Cloudflare Pages / Workers GitHub integrations bound to `nebelhaus/*`
-      repos will need re-authorizing against the new owner.
+- [x] Confirm you can create repos in `hausfold` and that transfer targets show
+      it. **✅ measured 2026-08-08:** `gh api user/memberships/orgs/hausfold` and
+      `…/nebelhaus` both return `admin` / `active`, so both ends of every row in
+      §3.2 are yours — which is the condition GitHub puts on the transfer form
+      offering an org as a target at all.
+- [x] **Repo secrets travel with the repo; org-level secrets do not.**
+      **✅ measured 2026-08-08 — every secret the family uses is repo-level**, so
+      the transfer carries all of them:
+
+      | repo | secrets |
+      |---|---|
+      | `perch` | `ASC_*` ×3, `IOS_DIST_CERT_P12`+`_PASSWORD`, `MACOS_CERT_P12`+`_PASSWORD`, `NOTARY_*` ×3, `TAP_DEPLOY_KEY` |
+      | `pounce` | `MACOS_CERT_*`, `NOTARY_*` ×3, `TAP_DEPLOY_KEY` |
+      | `workshop` | `CLOUDFLARE_ACCOUNT_ID` / `_API_TOKEN` / `_ZONE_ID` |
+      | `holt` | `MIRROR_TOKEN` — ⚠️ the one that doesn't survive, see below |
+      | `nebelhaus`, `nebelung`, `homebrew-tap`, `.github`, `holt-swift` | none |
+
+      ⚠️ **The org half of this check is still open and needs one command.**
+      `gh api orgs/nebelhaus/actions/secrets` 403s — not a permissions problem
+      with the org (you're admin) but a missing token scope. Run
+      `gh auth refresh -h github.com -s admin:org`, then list; an org secret
+      would silently stop reaching a transferred repo.
+- [x] **Deploy keys and Actions permissions** — **✅ measured: the three keys all
+      live on `homebrew-tap`** (the *receiving* end of the bump, which is where a
+      deploy key has to be), titled `pounce release workflow`,
+      `perch release workflow` and `trill release workflow`, all
+      **read-only = false**. Deploy keys are repo objects and travel with the
+      repo, so pounce/perch keep pushing after the transfer, and their private
+      halves are the `TAP_DEPLOY_KEY` secrets in the table above — both ends move
+      together. Two notes: the `trill release workflow` key is **dead** (§3.4
+      deleted that cask) and is a live write key to the tap, so delete it while
+      you're in the settings page; and the workflows themselves hardcode
+      `repository: nebelhaus/homebrew-tap` (`perch/.github/workflows/release.yml:156`,
+      the same line in pounce's), which is §3.3's sweep, not a credential.
+- [x] Cloudflare Pages / Workers GitHub integrations bound to `nebelhaus/*`
+      repos will need re-authorizing against the new owner. **✅ measured: there
+      are none, and this bullet is a non-issue.** Both sites deploy by running
+      `npx wrangler deploy` inside a GitHub Actions job authenticated with the
+      `CLOUDFLARE_API_TOKEN` repo secret (`.github/workflows/deploy-web.yml:58`,
+      `preview-web.yml`, and `hausfold.co`'s ported `preview.yml`) — there is no
+      Cloudflare↔GitHub app installation to re-point, and an API token is scoped
+      to a Cloudflare account, which the transfer doesn't touch.
+
+#### 🚨 Four identifiers that do **not** travel with a transfer
+
+The bullets above are the reassuring half: secrets and deploy keys are repo
+objects and move with the repo. These four are keyed to the **owner**, so they
+break at the moment of transfer while every test still passes locally — and all
+four are in `holt`, the one repo that publishes to the outside world.
+
+| | What breaks | Fix |
+|---|---|---|
+| `MIRROR_TOKEN` | a fine-grained PAT's resource owner is an **org**, so a token scoped to `nebelhaus/holt-swift` cannot write to `hausfold/holt-swift` (`holt/.github/workflows/release.yml:37`) | re-mint against `hausfold`, replace the repo secret |
+| npm / PyPI / crates.io **trusted publishers** | all three authenticate by OIDC with **no fallback token**, and each is configured with owner `nebelhaus` (`holt/docs/releasing.md:93-95`). GitHub's OIDC claim carries the *current* owner, so the next publish fails the trust check | edit the publisher on each of the three registries — a browser job, 5 min, and it can be done **before** the transfer only on registries that allow a pending publisher |
+| the **Go SDK's module path** | `module github.com/nebelhaus/holt/sdk/go` (`sdk/go/go.mod:1`), already published at `v0.2.1` on the immutable proxy | see below — a decision, not a chore |
+| the **SwiftPM mirror URL** | `holt/sdk/swift/sync-mirror.sh:22` and every consumer's `Package.swift` dependency URL | sweep in §3.3; SPM follows a redirect but records the old URL in `Package.resolved` |
+
+**The Go one is the only one with a real fork, and it should be taken
+deliberately rather than by whichever agent runs §3.3.** A Go module *is* its
+import path. Two options:
+
+- **Keep `github.com/nebelhaus/holt/sdk/go` forever.** Costs nothing and breaks
+  nobody: `go get` follows GitHub's redirect, and the path in `go.mod` still
+  matches what was requested, so new tags keep resolving. The smell is a
+  `hausfold` SDK importing as `nebelhaus` for the rest of its life.
+- **Move it to `github.com/hausfold/holt/sdk/go`.** That is a *different module*
+  in Go's eyes — every importer edits their imports, the two paths' version
+  histories diverge on the proxy, and the published `v0.1.0`/`v0.2.x` lines stay
+  at the old path forever.
+
+⚠️ Whichever way it goes, remember `bench release holt`'s invariant: **five SDKs
+share one version number.** A path change is therefore a version-contract event
+for all five, so it belongs in a release, not in the transfer sitting. **Take
+option 1 for the transfer** and revisit at the next major bump — where an import
+path is *allowed* to change and nobody is surprised.
 
 ### 3.2 👤 Transfer, in this order
 
