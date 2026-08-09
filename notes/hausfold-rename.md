@@ -965,15 +965,19 @@ flake inputs resolving through redirects for days.
 
 ### 3.1 🟨 Pre-flight — audited 2026-08-08, one 👤 command left
 
-**Four of the five bullets below are now measured rather than pending**, which
+**All six bullets below are now settled** — four measured against the live API
+2026-08-08, and the first two ticked because their own prose already resolved
+them (there is no name collision; the on-disk one is resolved by §5.1). Which
 turns the transfer sitting into clicking. The audit also found four
 owner-keyed identifiers the original list didn't have — they are the part that
 breaks *after* the transfer, while everything local still passes.
 
-- [ ] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
+- [x] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
       Confirm **no GitHub name collision** with an incoming repo — there isn't
       one, none of the three is on §3.2's transfer list.
-- [ ] ⚠️ **There IS an on-disk collision, and it must be decided before §2.1.**
+- [x] ⚠️ **There IS an on-disk collision, and it must be decided before §2.1.**
+      *(Decided here — but **still unimplemented in `bench`, and pointing the
+      wrong way**. See §3.3's `bench` subsection: that is where it gets fixed.)*
       `bench` resolves `FAMILY` entries as *directory names* under the workshop
       root (`local_src` → `$ROOT/$1` at `bench:252`; `cmd_clone`'s
       `[ -d "$ROOT/$name/.git" ]` at `bench:1541`). Renaming the FAMILY entry
@@ -1007,6 +1011,7 @@ breaks *after* the transfer, while everything local still passes.
       | `pounce` | `MACOS_CERT_*`, `NOTARY_*` ×3, `TAP_DEPLOY_KEY` |
       | `workshop` | `CLOUDFLARE_ACCOUNT_ID` / `_API_TOKEN` / `_ZONE_ID` |
       | `holt` | `MIRROR_TOKEN` — ⚠️ the one that doesn't survive, see below |
+      | `messages` (archived, **stays in `nebelhaus`** — §3.4) | `MACOS_CERT_*`, `NOTARY_*` ×3, `TAP_DEPLOY_KEY` |
       | `nebelhaus`, `nebelung`, `homebrew-tap`, `.github`, `holt-swift` | none |
 
       ⚠️ **The org half of this check is still open and needs one command.**
@@ -1020,18 +1025,25 @@ breaks *after* the transfer, while everything local still passes.
       `perch release workflow` and `trill release workflow`, all
       **read-only = false**. Deploy keys are repo objects and travel with the
       repo, so pounce/perch keep pushing after the transfer, and their private
-      halves are the `TAP_DEPLOY_KEY` secrets in the table above — both ends move
-      together. Two notes: the `trill release workflow` key is **dead** (§3.4
-      deleted that cask) and is a live write key to the tap, so delete it while
-      you're in the settings page; and the workflows themselves hardcode
-      `repository: nebelhaus/homebrew-tap` (`perch/.github/workflows/release.yml:156`,
-      the same line in pounce's), which is §3.3's sweep, not a credential.
+      halves are the `TAP_DEPLOY_KEY` secrets in the table above — for those two,
+      both ends move together. ⚠️ **The third key is the exception, and it
+      sharpens the advice rather than softening it:** `trill release workflow`'s
+      private half is the `TAP_DEPLOY_KEY` in **`nebelhaus/messages`**, which per
+      §3.4 does *not* transfer — so after the sitting a repo left behind in the
+      dead org still holds a live **write** key to the tap in its new org. The
+      cask it existed for is already deleted, so **delete the key** (tap →
+      Settings → Deploy keys) while you're in there; nothing uses it. The
+      workflows themselves hardcode `repository: nebelhaus/homebrew-tap` —
+      `perch/.github/workflows/release.yml:156` and
+      `pounce/.github/workflows/release.yml:185` (**not** the same line number;
+      pounce's job name is at `:179`) — which is §3.3's sweep, not a credential.
 - [x] Cloudflare Pages / Workers GitHub integrations bound to `nebelhaus/*`
       repos will need re-authorizing against the new owner. **✅ measured: there
       are none, and this bullet is a non-issue.** Both sites deploy by running
       `npx wrangler deploy` inside a GitHub Actions job authenticated with the
       `CLOUDFLARE_API_TOKEN` repo secret (`.github/workflows/deploy-web.yml:58`,
-      `preview-web.yml`, and `hausfold.co`'s ported `preview.yml`) — there is no
+      `preview-web.yml`, and `hausfold.co`'s own `deploy.yml:52-64` — its
+      `preview.yml` is the PR preview, not the deploy) — there is no
       Cloudflare↔GitHub app installation to re-point, and an API token is scoped
       to a Cloudflare account, which the transfer doesn't touch.
 
@@ -1045,9 +1057,25 @@ four are in `holt`, the one repo that publishes to the outside world.
 | | What breaks | Fix |
 |---|---|---|
 | `MIRROR_TOKEN` | a fine-grained PAT's resource owner is an **org**, so a token scoped to `nebelhaus/holt-swift` cannot write to `hausfold/holt-swift` (`holt/.github/workflows/release.yml:37`) | re-mint against `hausfold`, replace the repo secret |
-| npm / PyPI / crates.io **trusted publishers** | all three authenticate by OIDC with **no fallback token**, and each is configured with owner `nebelhaus` (`holt/docs/releasing.md:93-95`). GitHub's OIDC claim carries the *current* owner, so the next publish fails the trust check | edit the publisher on each of the three registries — a browser job, 5 min, and it can be done **before** the transfer only on registries that allow a pending publisher |
-| the **Go SDK's module path** | `module github.com/nebelhaus/holt/sdk/go` (`sdk/go/go.mod:1`), already published at `v0.2.1` on the immutable proxy | see below — a decision, not a chore |
-| the **SwiftPM mirror URL** | `holt/sdk/swift/sync-mirror.sh:22` and every consumer's `Package.swift` dependency URL | sweep in §3.3; SPM follows a redirect but records the old URL in `Package.resolved` |
+| npm / PyPI / crates.io **trusted publishers** | all three authenticate by OIDC with **no fallback token**, and each is configured with owner `nebelhaus` (`holt/docs/releasing.md:93-95`, restated in the workflow header at `holt/.github/workflows/release.yml:28-33`). GitHub's OIDC claim carries the *current* owner, so the next publish fails the trust check | **add a *second* trusted publisher for `hausfold/holt` alongside the existing one, before the transfer.** Not a *pending* publisher — that's for packages that don't exist yet, and all three (`@hausfold/holt`, `hausfold-holt` ×2) already do. PyPI and crates.io accept multiple publishers, so both can be pre-armed; **npm's is single-valued and must be flipped after** the transfer, which makes npm the one narrow window |
+| the **Go SDK's module path** | `module github.com/nebelhaus/holt/sdk/go` (`sdk/go/go.mod:1`), already published at `v0.2.1` on the immutable proxy. ⚠️ And it is **not one line** — see §3.3's Tier D: the *root* module `holt/go.mod:1` is `github.com/nebelhaus/holt`, spelled out in 60 imports across 23 `.go` files | see below — a decision, not a chore, and **✅ decided: keep the path.** Recorded in §6 so a later sweep can't undo it |
+| the **SwiftPM mirror URL** | `holt/sdk/swift/sync-mirror.sh:22`'s default *and* the live one — the credentialed push URL CI actually uses, `holt/.github/workflows/release.yml:239` — plus every consumer's `Package.swift` dependency URL | sweep in §3.3; SPM follows a redirect but records the old URL in `Package.resolved` |
+
+⚠️ **None of these four is reachable by §3.3's gate**, which checks locks, a
+build and a clone. All four fail for the first time at the next
+`bench release holt` — which blocks on CI and would go red **mid-release**, with
+some SDKs published and some not. So they get boxes of their own, and §3.3's
+gate names them: **no `bench release holt` until all four are ticked.**
+
+- [ ] `MIRROR_TOKEN` re-minted against `hausfold` and replaced as holt's repo secret
+- [ ] second trusted publisher armed on PyPI and crates.io **before** the transfer;
+      npm's flipped **after** it
+- [ ] the Go module path decision honoured (keep it — §6) rather than swept
+- [ ] the SwiftPM mirror URL rewritten in both places, and `Package.resolved`
+      refreshed in any consumer
+
+If one does fire mid-release anyway, the publish jobs are independent and
+idempotent, so `gh run rerun --failed` recovers it once the identifier is fixed.
 
 **The Go one is the only one with a real fork, and it should be taken
 deliberately rather than by whichever agent runs §3.3.** A Go module *is* its
@@ -1057,6 +1085,11 @@ import path. Two options:
   nobody: `go get` follows GitHub's redirect, and the path in `go.mod` still
   matches what was requested, so new tags keep resolving. The smell is a
   `hausfold` SDK importing as `nebelhaus` for the rest of its life.
+  ⚠️ **This option has a dependency, and it is written down two sections away:**
+  it works only because §3.2 commits to keeping the `nebelhaus` org alive to hold
+  redirects. Delete that org and every `go get` of the SDK stops resolving. Same
+  dependency as the shipped-binary update endpoints in §3.3 — the dead org is
+  load-bearing infrastructure, not a courtesy.
 - **Move it to `github.com/hausfold/holt/sdk/go`.** That is a *different module*
   in Go's eyes — every importer edits their imports, the two paths' version
   histories diverge on the proxy, and the published `v0.1.0`/`v0.2.x` lines stay
@@ -1313,6 +1346,11 @@ one that catches the `GH_ORG` split — nothing else exercises it); `local_src` 
 every `FAMILY` entry resolves to that repo's own checkout; a clean `git clone` of
 each new URL works without redirect.
 
+⚠️ **And a gate this one cannot see: §3.1's four owner-keyed identifiers.** None
+of the checks above touches them — they fail for the first time *inside* a
+`bench release holt` run, half-published. **No `bench release holt` until all
+four boxes in §3.1 are ticked.**
+
 ---
 
 ## §4 — Apple identity
@@ -1440,8 +1478,11 @@ rice inside `/desktops`, so its landing page has no domain to be the front door 
 This decision does two useful things beyond tidiness:
 
 1. **It dissolves §3.1's on-disk collision.** Checkouts become
-   `workshop/hausfold/` (the platform) and `workshop/website/` (the site) —
+   `workshop/hausfold/` (the platform) and `workshop/hausfold.co/` (the site) —
    which is just what the repos are called. Take §3.1 option (b).
+   ⚠️ *Written before the site repo was renamed; this said `workshop/website/`
+   until 2026-08-09. And "dissolves" is optimistic — `bench` still implements
+   the opposite and the collision is live today. §3.3 has the fix.*
 2. **It removes the duplicate perch surface** — perch marketing currently exists
    in both repos.
 
@@ -1661,6 +1702,19 @@ Write these down or they get "fixed" by a later session:
   hausfold rename — an independent decision that happened to land in the same
   week.
 - **Team ID, signing certs, notary keys** — unchanged.
+- 🚨 **holt's Go module path stays `github.com/nebelhaus/holt`** — the root
+  module (`holt/go.mod:1`) *and* the SDK's (`sdk/go/go.mod:1`). Decided in §3.1;
+  written here because §3.3 is a 🤖 "rewrite **every** edge" step whose own file
+  list names `sync-mirror.sh`, `Package.swift` URLs and workflows, and an agent
+  sweeping that list will otherwise "fix" a module path that is **irreversible
+  on Go's immutable proxy**. It is 60 imports across 23 `.go` files, it is
+  nobody's API (the root module is a binary), and a change is a version-contract
+  event for all five SDKs at once. Revisit only at a major bump.
+- **`/Library/Application Support/nebelhaus/perch.installed-from`** — the rice
+  keeps its name, so this marker is correctly spelled. It is also a **two-repo
+  contract** (written by `nebelhaus/modules/perch/default.nix`, read by
+  `perch/Perch/Platform/UpdateCheck.swift:118`); renaming it in one repo makes
+  perch stop recognising rice installs. See §3.3's Tier D.
 - **`~/.cache/claude-worktrees/`** — already historical, stays.
 - **Roadmap §5 bodies, commit messages, PR titles** — historical record.
 
