@@ -62,6 +62,34 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
+### Current handoff — 2026-08-09
+
+**The rename is green through §3.** The option namespace, in-repo
+brand surface, GitHub transfers, checkout rename, lock ripple and clean-clone
+gate are done. `bench try` builds the current local family, and the private
+consumer now uses canonical `haus.*` with no obsolete-option traces
+(`nix-config` `452b9b8`).
+
+What remains is deliberately narrower than the unchecked boxes below make it
+look:
+
+- **§4 Apple identity:** the macOS identifiers are registered and the code
+  migration is in review (perch#51, pounce#72, hausfold#275); the combined
+  `bench try-batch pounce perch hausfold` build is green. What remains is the
+  activation/TCC feel-test, the gated Pounce release, and the optional deletion
+  of the old App Store record and its two identifiers.
+  **Do not run `bench release pounce`** until the rice activation/TCC check and
+  the direct-install login-item bridge have both been felt, and the user
+  explicitly approves the release.
+- **§5 domains/site:** the Astro/docs/Worker consolidation, per-rice installer,
+  `nebelhaus.com` 301s and support-address move have not landed.
+- **Compatibility cleanup, later:** `modules/renamed.nix` stays while external
+  configs may still use `nebelhaus.*`; narrowing `checkRice` and deleting the
+  aliases is not part of the first rename landing.
+
+The trademark search in §0.2 and the old App Store record deletion are still
+human loose ends, but neither blocks the repo work at today’s exposure level.
+
 ---
 
 ## §0 — Before anything moves
@@ -238,11 +266,13 @@ Re-logged in `go-to-market.md` §9 decision 4 as decided-accept.
 change after an app record exists.**
 
 **Audited 2026-08-08 — 🚨 THE GATE FIRED. An app record exists with an uploaded
-build.**
+build. Rechecked 2026-08-09 after route A: the old record is Developer Rejected,
+and the replacement is Waiting for Review.**
 
 | Found | Status |
 |---|---|
-| App Store Connect → My Apps: **"Perch for Mac" iOS 1.0** | **Waiting for Review** |
+| App Store Connect → My Apps: **"Perch for Mac" iOS 1.0**, Apple ID `6799010687` | **Developer Rejected**; optional cleanup, but it still owns the old App ID |
+| App Store Connect → My Apps: **"Perch Companion" iOS 1.0** | **Waiting for Review** under `com.hausfold.perch.ios` |
 | `XC com nebelhaus perch ios` → `com.nebelhaus.perch.ios` | App ID, **bound to that record** |
 | `XC com nebelhaus perch ios share` → `com.nebelhaus.perch.ios.share` | App ID, share extension |
 | `group.com.nebelhaus.perch` | **registered App Group — it exists** |
@@ -297,7 +327,8 @@ The ordering, in one line each — full version in perch's doc:
       SKU `perch-ios-hausfold`
 - [x] 🤖 TestFlight build green — run `31261461679`, marketing `2026.8.8`, build 70
 - [x] 🤖 perch#42 — docs updated to the new name
-- [ ] 👤 Re-enter listing metadata on the new record and submit
+- [x] 👤 Re-enter listing metadata on the new record and submit — **Waiting for
+      Review 2026-08-09**
 - [ ] 👤 Delete the old `Perch for Mac` record (optional cleanup, no deadline)
 
 **The green build is the proof, not the diff.** `-allowProvisioningUpdates`
@@ -465,7 +496,7 @@ system, so a `{ haus = …; }` rice is rejected by a string comparison
 **both names for the length of the transition** and narrow to `haus` only at
 step 6 — third-party rices are exactly the consumers who move last.
 
-### 1.1a 🟨 Alias path — **written and verified 2026-08-08; PR open as nebelhaus#261**
+### 1.1a ✅ Alias path — **landed and verified 2026-08-08 as hausfold#261**
 
 1. `haus.*` is the canonical namespace in all **14** `options.nix` files —
    a one-line change each (`options.nebelhaus` → `options.haus`).
@@ -480,9 +511,11 @@ step 6 — third-party rices are exactly the consumers who move last.
 5. `presets/*.nix`, `packs/*.nix`, `hosts/example/default.nix` moved too, along
    with `bootstrap.sh`, `haus set`, pounce's Install-App generator and the
    shipped Claude skill — see the box below for why that wasn't optional.
-6. `~/.config/nix/hosts/mbp/default.nix` moves to `haus.*` — 👤 **still
-   outstanding, and deliberately so**: the alias holds, so it can happen any
-   time, and leaving it un-moved is what keeps proving the alias works.
+6. ✅ `~/.config/nix/hosts/mbp/default.nix` moved to `haus.*` on 2026-08-09
+   (`nix-config` `452b9b8`), together with the private repo's current GitHub
+   links and `haus.git.org = "hausfold"`. `bench try` built with **zero**
+   obsolete-option traces; the old spelling had already proved the alias on
+   every preceding rebuild.
 7. Aliases deleted, and `checkRice` narrowed to `haus` alone, in a follow-up PR
    **after** the last consumer moves.
 
@@ -967,17 +1000,18 @@ over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` 
 transfers in one sitting**, then one lock ripple — a half-migrated org means
 flake inputs resolving through redirects for days.
 
-### 3.1 🟨 Pre-flight — ✅ complete 2026-08-09; the transfer ran on it
+### 3.1 ✅ Pre-flight — complete
 
 **All six bullets below are now settled** — four measured against the live API
 2026-08-08, and the first two ticked because their own prose already resolved
 them (there is no name collision; the on-disk one is resolved by §5.1). Which
 turns the transfer sitting into clicking.
 
-**But the section closes with five open boxes, not one.** `gh auth refresh` is
-the only *command*; the other four are the owner-keyed identifiers the original
-list didn't have, and §3.3's gate now depends on all four. They break *after*
-the transfer, while everything local still passes:
+**This section originally closed with five open boxes, not one.** `gh auth
+refresh` was the only command; the other four were owner-keyed identifiers the
+original list missed. As of 2026-08-09 every box is checked, including npm's
+post-transfer publisher flip, so §3.3's owner-identifier gate and the holt
+release gate are satisfied.
 
 - [x] 👤 `gh auth refresh -h github.com -s admin:org`, then list the org secrets.
       **✅ run 2026-08-09: `orgs/nebelhaus/actions/secrets` returns
@@ -992,8 +1026,7 @@ the transfer, while everything local still passes:
       every `FAMILY` member is in one org again. **`GH_ORG="hausfold"` landed in
       workshop#8017988**, with a `gh_repo <name>` indirection for the two
       checkouts whose directory name isn't their repo name.
-- [ ] the four identifiers below (their own checklist follows the table) — the
-      only genuinely open boxes left in §3.1
+- [x] npm's trusted publisher below — flipped to `hausfold/holt` 2026-08-09
 
 - [x] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
       Confirm **no GitHub name collision** with an incoming repo — there isn't
@@ -1037,11 +1070,9 @@ the transfer, while everything local still passes:
       | `messages` (archived, **stays in `nebelhaus`** — §3.4) | `MACOS_CERT_*`, `NOTARY_*` ×3, `TAP_DEPLOY_KEY` |
       | `nebelhaus`, `nebelung`, `homebrew-tap`, `.github`, `holt-swift` | none |
 
-      ⚠️ **The org half of this check is still open and needs one command.**
-      `gh api orgs/nebelhaus/actions/secrets` 403s — not a permissions problem
-      with the org (you're admin) but a missing token scope. Run
-      `gh auth refresh -h github.com -s admin:org`, then list; an org secret
-      would silently stop reaching a transferred repo.
+      ✅ **The org half is closed.** After refreshing the token's `admin:org`
+      scope, `gh api orgs/nebelhaus/actions/secrets` returned `total_count: 0`;
+      there was no owner-scoped secret to strand.
 - [x] **Deploy keys and Actions permissions** — **✅ measured: the three keys all
       live on `homebrew-tap`** (the *receiving* end of the bump, which is where a
       deploy key has to be), titled `pounce release workflow`,
@@ -1090,15 +1121,18 @@ build and a clone. All four fail for the first time at the next
 some SDKs published and some not. So they get boxes of their own, and §3.3's
 gate names them: **no `bench release holt` until all four are ticked.**
 
-- [ ] `MIRROR_TOKEN` re-minted against `hausfold` and replaced as holt's repo secret
+- [x] `MIRROR_TOKEN` re-minted against `hausfold` and replaced as holt's repo
+      secret — the secret was replaced 2026-08-09 after the transfer.
 - [x] second trusted publisher armed on PyPI and crates.io **before** the
       transfer — **done 2026-08-09, ahead of the sitting.**
-- [ ] ⏳ **npm's trusted publisher flipped to `hausfold/holt`.** Single-valued,
-      so it could not be pre-armed; the transfer has happened, so this is due
-      now and it is the one that fails a publish.
-- [ ] the Go module path decision honoured (keep it — §6) rather than swept
-- [ ] the SwiftPM mirror URL rewritten in both places, and `Package.resolved`
-      refreshed in any consumer
+- [x] **npm's trusted publisher flipped to `hausfold/holt` 2026-08-09.** It is
+      single-valued, so this was the one publisher that had to wait until after
+      the transfer.
+- [x] the Go module path decision honoured (keep it — §6) rather than swept —
+      both `go.mod` files and the 60 internal imports still use the published
+      path.
+- [x] the SwiftPM mirror URL rewritten in both places; no family consumer has a
+      `Package.resolved` entry for it to refresh.
 
 If one does fire mid-release anyway, the publish jobs are independent and
 idempotent, so `gh run rerun --failed` recovers it once the identifier is fixed.
@@ -1283,8 +1317,8 @@ isn't.
 > `bench:89`'s comment, which exists to describe the dead org; the
 > `name: bump nebelhaus/homebrew-tap` job labels (a display string, and the
 > `bench` fixtures that assert on it); `~/.config/nebelhaus/`;
-> `/Library/Application Support/nebelhaus/`; `.nebelhauslicense` (§4);
-> `nebelhaus.com` (§5); and the synthetic slugs in holt's five `fake-holt.sh`
+> `/Library/Application Support/nebelhaus/`; `nebelhaus.com` (§5); and the
+> synthetic slugs in holt's five `fake-holt.sh`
 > fixtures and `test/statusline.bats`.
 >
 > ⚠️ **One Tier D row below has expired and is NOT a hold any more.** "`nebelhaus/modules/…`
@@ -1294,8 +1328,9 @@ isn't.
 > are cross-repo *comments* in pounce and perch — not owner references, so out
 > of this sweep, but a real cleanup and not something to defend.
 >
-> ⚠️ **`~/.config/nix/flake.nix:7` and npm's trusted publisher are 👤 and
-> still open** — neither is reachable from a repo. See the boxes below.
+> ✅ **npm's trusted publisher was flipped 2026-08-09.** The private consumer's
+> `flake.nix:7` now points at `github:hausfold/hausfold`; only the flake input
+> *name* remains `nebelhaus`, deliberately (§6 / the input-name box above).
 
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
 that's a landmine.
@@ -1516,6 +1551,13 @@ one that catches the `GH_ORG` split — nothing else exercises it); `local_src` 
 every `FAMILY` entry resolves to that repo's own checkout; a clean `git clone` of
 each new URL works without redirect.
 
+**✅ Measured green 2026-08-09.** `bench ship` rippled the final pounce/perch
+commits through `hausfold` and the private consumer; `bench status` then showed
+all six lock edges current; `bench try` built; and a fresh workshop clone's
+`bench clone` populated all eight expected checkouts at direct
+`github.com/hausfold/*` URLs, with `hausfold/` holding the platform and
+`hausfold.co/` holding the site.
+
 ⚠️ **And a gate this one cannot see: §3.1's four owner-keyed identifiers.** None
 of the checks above touches them — they fail for the first time *inside* a
 `bench release holt` run, half-published. **No `bench release holt` until all
@@ -1531,29 +1573,41 @@ Mac immediately.
 ### 4.1 👤 Developer portal, before touching code
 
 ✅ **The iOS half is already done and pulled forward** — §0.5 route A, perch#41.
-What remains here is macOS only.
+The product migration here is macOS; the old iOS record and identifiers remain
+as optional, approval-gated cleanup.
 
-- Register the macOS App IDs: `com.hausfold.perch`, `com.hausfold.pounce`,
-  `com.hausfold.trill`. These ship Developer ID + notarized, never through the
-  App Store, so they're unconstrained by any record.
+- [x] **Registered and verified 2026-08-09:** `com.hausfold.perch`,
+  `com.hausfold.pounce`, `com.hausfold.trill`. These ship Developer ID +
+  notarized, never through the App Store, so they're unconstrained by any record.
 - ✅ **`com.nebelhaus.perch` → `com.hausfold.perch` is done** — perch#44,
   2026-08-08, pulled forward out of this phase exactly like the iOS half. See
-  §0.6 for what it cost. The App ID above still needs registering for signing;
-  the code side of it is no longer pending.
-- `org.nixos.pounce` → `com.hausfold.pounce` is the launchd label; the notes
-  below still apply.
-- 🚨 **`.nebelhauslicense` — the one user-facing artifact named after the
-  demoted brand, and it is in the same deadline class as the bundle IDs.**
+  §0.6 for what it cost. The App ID is now registered too; the code side was
+  already complete.
+- Pounce actually had **three** identifiers to migrate, not the one this plan
+  originally recorded: app bundle `com.local.pounce`, embedded standalone agent
+  `com.local.pounce.daemon`, and rice launchd label `org.nixos.pounce`. The code
+  table below is the corrected inventory.
+- ✅ **`.perchlicense` decided 2026-08-09.** `.nebelhauslicense` was the one
+  user-facing artifact named after the demoted brand, and it was in the same
+  deadline class as the bundle IDs.
   `perch-monetization.md:43` defines it as the signed JSON blob a customer
   receives, and shipped code parses it (perch#27). It is free to rename today
   and unrecoverable after the first sale — a renamed extension orphans every
   license file already in a customer's hands. **Decide it in the same breath as
   §0.6's Mac container, and land both before Phase 2 bakes the public key.**
-  Candidates: `.hausfoldlicense`, or a neutral `.perchlicense` (it's
-  product-scoped anyway, so the house name earns nothing in the filename).
-- Regenerate provisioning profiles; re-export `IOS_DIST_CERT_P12` if bound.
-- 👤 **Delete the two `XC com nebelhaus perch ios*` Identifiers** once the new
-  ones sign a build. Safe: no app record ever claimed them.
+  The neutral `.perchlicense` won because it is product-scoped already. No
+  compatibility alias: the production key is still empty and no valid customer
+  license has existed under the old extension. Code + docs are in perch#51.
+- [x] The replacement iOS App IDs, App Group, provisioning and signing path were
+  proved by TestFlight build 70 (§0.5). The three macOS apps use Developer ID
+  distribution and need no App Store provisioning-profile migration.
+- [ ] 👤 **Delete the old `Perch for Mac` App Store record first, then the two
+  `XC com nebelhaus perch ios*` Identifiers.** The 2026-08-09 portal audit
+  corrected the earlier claim that they were unclaimed: `com.nebelhaus.perch.ios`
+  is still bound to Apple ID `6799010687`, so the identifiers cannot be treated
+  as independent cleanup. **Do not delete any of them until `Perch Companion`
+  has been approved** (or a later explicit human milestone replaces that guard).
+  Deletion is permanent; the replacement record is only Waiting for Review.
 - **Team ID `88M28542LQ` does not change.** Certificates don't change.
 
 ### 4.2 🤖 The code
@@ -1563,23 +1617,48 @@ What remains here is macOS only.
 | ✅ `com.nebelhaus.perch` (+ `.ios`, `.ios.share`, `.mobile-*`, `.dev`, `.tests`, `.transfer`, `.promises`, `.export`) | `com.hausfold.perch…` — done, perch#41 + perch#44 |
 | ✅ `group.com.nebelhaus.perch` | `group.com.hausfold.perch` — done, perch#41 |
 | ✅ `com.nebelhaus.flick` | `com.hausfold.trill` (+ `.debug`, `.tests`) — done in the incubator, 2026-08-08, in the same change that renamed the app. Never shipped under either old id, so there is no install base and nothing to migrate. |
-| **`org.nixos.pounce`** | `com.hausfold.pounce` |
+| **`com.local.pounce`** app bundle | `com.hausfold.pounce` — pounce#72 |
+| **`com.local.pounce.daemon`** standalone embedded login agent | `com.hausfold.pounce.daemon` — pounce#72 |
+| **`org.nixos.pounce`** rice launchd agent | `com.hausfold.pounce` — hausfold#275 |
 
-`org.nixos.pounce` is a nix-darwin launchd convention leaking into a product —
-worth fixing regardless of this rename. But it's the **launchd label**, so:
+`org.nixos.pounce` is a nix-darwin launchd convention leaking into a product,
+while `com.local.pounce` escaped the original census entirely. The migration is
+split by ownership: pounce owns the app and standalone agent; the rice owns its
+launchd agent and re-signing identity. Because launchd labels move:
 
-- The old agent must be unloaded before the new one loads. nix-darwin handles
-  this, but verify with `launchctl list | grep -i pounce` that only one remains.
+- The old agent must be unloaded before the new one loads. The rice activation
+  explicitly boots out `org.nixos.pounce`; still verify with
+  `launchctl list | grep -i pounce` that only one remains.
+- Direct installs keep the legacy embedded plist as a permanent upgrade bridge,
+  because their updater can skip any number of releases. A serialized detached
+  helper unregisters the old SMAppService job, waits for its socket to vanish,
+  then registers the canonical label. The plist remains; the loaded old job does
+  not.
+- The rice temporarily associates both app bundle IDs so its supported unsigned
+  and signing-failure paths still resolve the currently pinned old Pounce app.
+  The exact closeout sequence is: merge pounce#72 first; update hausfold#275 to
+  pin that main commit and remove `com.local.pounce` from the association; rerun
+  the combined build; only then merge hausfold#275. A later mechanical
+  `bench ship` lock ripple does **not** remove source compatibility by itself.
 - **The `AssociatedBundleIdentifiers` work is keyed to that label.** Re-verify
   the maintainer's legal name doesn't reappear in macOS permission prompts —
   that was a five-PR chain to fix and this step can undo it.
 - The daemon-restart race is real: force
-  `launchctl kickstart -k com.hausfold.pounce` and verify by binary timestamp.
+  `launchctl kickstart -k "gui/$(id -u)/com.hausfold.pounce"` and verify by
+  binary timestamp.
+
+✅ **Combined build green 2026-08-09:** `bench try-batch pounce perch hausfold`
+integrated pounce#72, perch#51 and hausfold#275 onto throwaway trees and built
+the full `mbp` system. Nothing was merged or activated.
 
 ### 4.3 🤖+👤 The App Group is a data container, not just an identifier
 
 **Applies under §0.5 option A only.** Under B the group is untouched and this
 section is dead. `group.com.nebelhaus.perch` is confirmed registered.
+
+✅ **Decided and landed before external testing: discard.** perch#41 moved to
+`group.com.hausfold.perch`; TestFlight build 70 proved the registered group and
+signing path. No external tester data existed, so there is no migration shim.
 
 **This one silently destroys perch's state and nothing else in §4 covers it.**
 `group.com.nebelhaus.perch` is passed to
@@ -1589,7 +1668,7 @@ Renaming it gives you a **new, empty container and empty defaults**: every shelf
 item and every setting goes invisible, and the old container is orphaned on disk
 with no UI pointing at it.
 
-Pick one, explicitly:
+The decision considered:
 
 - **(a) Migrate** — on first launch under the new group, copy the old
   container's contents and read the old `UserDefaults` suite, keeping the old ID
@@ -1615,6 +1694,11 @@ without warning does not file a bug, they uninstall.
 Does perch's offline-Ed25519 license bind to the bundle ID? If yes, **this must
 land before the first sale**, and any test licenses you've issued are void.
 If no, note it here so nobody re-checks.
+
+✅ **No.** The signed canonical payload contains `product`, `email`, `purchased`
+and `seats`; it contains no bundle identifier. The stored license blob likewise
+has no bundle-ID field. The `.perchlicense` spelling therefore changes file
+recognition only, and it lands while the production public key is still empty.
 
 **Gate:** pounce launches and its palette runs a plugin command; perch's shelf
 accepts a drop; `codesign -dv` shows the new IDs; nothing prompts with a legal

@@ -44,8 +44,9 @@ itself carries the gate.**
 
 ## 2. The license file format — design it once, for both apps
 
-`.nebelhauslicense` — a signed JSON blob, product-scoped so trill reuses the
-format, the signer, and the mail template untouched:
+`.perchlicense` — a signed JSON blob. The filename is Perch-specific; the
+payload remains product-scoped so trill can reuse the format, signer, and mail
+template under its own extension:
 
 ```json
 {
