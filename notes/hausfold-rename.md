@@ -1320,6 +1320,44 @@ So: **`hausfold/hausfold` commits `options.json` as a generated, drift-checked
 artifact** (its CI already has Nix), and the site reads that file. No Nix in the
 site repo, and the drift check stays where the derivation is.
 
+✅ **Built 2026-08-09, ahead of the move — nebelhaus#268 + workshop#277.** The
+rice ships `.#site-data`, commits it at `docs/site-data/`, and pins the two with
+a `site-data-current` flake check; both web scripts read that directory and both
+drift workflows dropped `nix-installer-action`. **The site repo's Nix dependency
+is now zero, before the port rather than during it** — which was the point of
+doing this piece early: it is the riskiest part of §5.2 and the only one that
+doesn't depend on who owns the repos, so it could run in parallel with §3.
+
+Three things the build found that this section didn't have:
+
+1. 🚨 **It was never only `options.json`.** `check-rice-bindings.mjs` shells out
+   to `nix build .#wm-bindings-json` for the keybinding tripwire, so solving the
+   options half alone would have left the site repo needing Nix anyway and the
+   condition would have read as met while being false. `site-data` publishes
+   **three** files — options, group blurbs, bindings.
+2. **The committed copy has to be `jq -S`'d and filtered, or nobody can review
+   the drift PR.** Raw `options.json` is one 148 KB line; sorted and indented
+   it's 3549 readable ones. Filtering to `haus.*` drops nixpkgs' own
+   `_module.args`, whose description text churns on every nixpkgs bump — a
+   committed artifact that moves for reasons unrelated to the rice trains
+   everyone to merge its diffs unread.
+3. **The friction moves upstream, and that's the improvement.** A rice PR that
+   edits an option description now goes red until it regenerates. That cost
+   already existed; it just used to surface a week later as a red drift run in
+   *another* repo, where the person who could fix it wasn't. It's now fixable in
+   the PR that caused it.
+   ⚠️ **The residue: the site now checks a snapshot, not the source.** The cron
+   used to re-derive from the rice's live module system and so could not be
+   fooled; it now reads the rice's committed copy. If a rice commit ever reaches
+   `main` with `docs/site-data/` stale — an admin merge, a skipped check — the
+   site's drift run goes **green** on a stale page and nothing anywhere says so.
+   The rice's CI runs the full `nix flake check` (not `--no-build`) and
+   `site-data-current` is in the all-systems set, so that path is closed today.
+   It reopens the day anyone weakens either.
+
+The two drift workflows keep their jobs unchanged otherwise — the Monday cron
+still opens the regeneration PR, it just no longer installs Nix to do it.
+
 ### 5.2 🤖 The move — and the salvage list
 
 The pages get redesigned. **These are not pages and must survive verbatim:**
