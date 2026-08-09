@@ -1952,16 +1952,11 @@ What that changes, and what it doesn't:
   frontmatter meaning — all of it carries over. Fumadocs eats MDX, so this is a
   re-shell, not a rewrite of the prose. Nothing in the table below stops being
   load-bearing.
-- ⚠️ **The stack changes underneath, and that is the part with teeth.** Starlight
-  is Astro; **Fumadocs is React on Next.js**. The site repo today is a
-  Cloudflare Worker serving static assets, and `workshop/web` is Astro + a
-  hand-written `worker.js`. A Next app on Cloudflare is a different deployment
-  shape — either a static export, or the OpenNext adapter, and those two have
-  very different answers for `worker.js`'s dynamic routes (`/init.sh`,
-  `/download/<app>`, `/api/release/<app>`). **Pick that before writing any
-  page**, because it decides whether `worker.js` survives as-is beside the app
-  or has to become route handlers. `wrangler.toml`'s `custom_domain = true`
-  note below still applies either way.
+- **The stack changes underneath** — Starlight is Astro; **Fumadocs is React on
+  Next.js** — but ✅ **the deployment shape does not.** That fork (static export
+  vs the OpenNext adapter, and with it whether `worker.js` survives or becomes
+  route handlers) was the part with teeth, and it is **settled: static export,
+  `worker.js` unchanged.** See the decision box below.
 - ⚠️ **The Starlight-shaped things do not have Fumadocs equivalents by default,
   and each is a decision, not a lookup:** the sidebar/tree config, the
   `editLink` baseUrl, and the two generated routes (`llms.txt.ts`,
@@ -1975,9 +1970,58 @@ What that changes, and what it doesn't:
   output, not assumed — enumerate the live `nebelhaus.com` URLs before the old
   site goes away, or the 301 map is guesswork.
 
-Not yet decided (and don't decide them by accident while building): static
-export vs OpenNext, and whether the landing pages become Next pages too or stay
-hand-written HTML beside it.
+#### ✅ Decided 2026-08-09 — **static export**, and `worker.js` survives unchanged
+
+👤's call, taken with the Fumadocs one. Next builds with `output: 'export'`; the
+**OpenNext adapter is not used**. The docs are static, and this keeps the
+install one-liner — the thing printed in every README and every doc — running on
+code that is already proven rather than on a freshly-ported runtime.
+
+**The shape this lands in already exists in this repo, and that's the argument.**
+`web/wrangler.toml` is *today* a Worker with `main = "worker.js"` **and** an
+`[assets]` binding over a static build, on the apex route:
+
+> *"Static assets short-circuit first; only `/init.sh` (and any non-asset path)
+> reaches `worker.js`."*
+
+So the target config is that file's shape with hausfold.co's routes. Concretely,
+`hausfold.co/wrangler.toml` gains a `main` and `binding = "ASSETS"`, and its
+`directory` moves from `./public` to Next's export output:
+
+- ✅ **Keep `custom_domain = true`** on both routes. Its comment explains why —
+  the zone has no DNS records and a plain `pattern` route needs a proxied record
+  to already exist. Gaining a `main` does not change that.
+- ✅ **Keep `not_found_handling = "404-page"`.** It survived the last move
+  intact; Next's export emits a root `404.html` from `app/not-found`, so the key
+  keeps working with a Fumadocs-rendered page behind it.
+- ✅ **`html_handling` stays default (`auto-trailing-slash`)** — that's what maps
+  `/desktops` to `desktops/index.html`. Next's export produces exactly that
+  directory-with-`index.html` layout **when `trailingSlash: true`**. ⚠️ **Pin
+  that setting deliberately.** Leave it off and every docs URL changes shape,
+  which quietly doubles §5.2's 301 map for no reason.
+- The four dynamic routes (`/init.sh` → `/<rice>.sh`, `/download/<app>`,
+  `/api/release/<app>`) stay in `worker.js`, and `web/test/*.js`'s four suites
+  come across with it and keep passing. That is the whole point of this choice.
+
+⚠️ **The one thing static export genuinely costs, and it needs checking first:
+docs search.** Starlight ships search built in. Fumadocs' default search is a
+**server route**, which `output: 'export'` cannot emit — so a docs site can be
+built, deployed, and look complete while search silently does nothing. Fumadocs
+supports a static/client-side search index for exactly this case. **Prove search
+works on a throwaway export before porting page content**, not after: it is the
+one feature whose absence a reader notices immediately and a build never
+reports. If it can't be made to work statically, that reopens this decision —
+which is much cheaper to discover on a spike than on a finished port.
+
+⚠️ Other `output: 'export'` constraints, so they're not rediscovered one by one:
+no server components doing runtime work, no middleware, no ISR/SSR, and
+`next/image` needs `images.unoptimized`. None of these are wanted here — the
+site is a docs tree and some landing pages — but each fails at build time in a
+way that reads as a config error rather than as this decision.
+
+Still not decided (don't settle it by accident while building): whether the
+landing pages become Next pages too, or stay the hand-written HTML they are
+today, served from the same assets directory beside the exported docs.
 
 The pages get redesigned. **These are not pages and must survive verbatim:**
 
