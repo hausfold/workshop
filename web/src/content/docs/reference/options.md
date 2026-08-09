@@ -39,7 +39,7 @@ Example:
 "ada@example.com"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.git.name`
 
@@ -53,7 +53,7 @@ Example:
 "Ada Lovelace"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.git.org`
 
@@ -92,7 +92,7 @@ Example:
 "nebelhaus"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.git.shellAliases`
 
@@ -114,7 +114,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.git.signingKey`
 
@@ -130,7 +130,7 @@ Example:
 "6F7BD6F43A7C1420"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ## haus.roster
 
@@ -187,7 +187,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.appId`
 
@@ -205,7 +205,7 @@ Example:
 "com.tinyspeck.slackmacgap"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.appStoreId`
 
@@ -228,7 +228,7 @@ Example:
 497799835
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.brew`
 
@@ -245,7 +245,7 @@ Example:
 "ical-buddy"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.cask`
 
@@ -261,7 +261,7 @@ Example:
 "slack"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.enable`
 
@@ -269,7 +269,7 @@ Example:
 
 Whether this app participates in the shared launcher roster.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.float`
 
@@ -282,7 +282,7 @@ window that would otherwise reflow the whole workspace every time
 it opens (FaceTime, Trill's Settings/Inbox), not for something you
 work inside. Requires `appId`; ignored (with a warning) without it.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.installedBy`
 
@@ -305,7 +305,7 @@ Example:
 "haus.perch"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.key`
 
@@ -326,7 +326,7 @@ Example:
 "s"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.label`
 
@@ -340,7 +340,7 @@ Example:
 "Slack"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.name`
 
@@ -357,7 +357,7 @@ Example:
 "Slack"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.order`
 
@@ -365,7 +365,7 @@ Example:
 
 Roster order; lower values appear first. Ties are sorted by app id.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.package`
 
@@ -383,7 +383,7 @@ Example:
 pkgs.orbstack
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.packageName`
 
@@ -409,7 +409,7 @@ Example:
 "orbstack"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.scope`
 
@@ -429,7 +429,7 @@ Which profile `package` installs into.
 
 Ignored when `package` is null — Homebrew has no such split.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.roster.<name>.titleRegex`
 
@@ -452,7 +452,7 @@ Example:
 "^Picture in Picture$"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.workspaces
 
@@ -497,7 +497,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.workspaces.<name>.apps`
 
@@ -529,7 +529,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.workspaces.<name>.icon`
 
@@ -546,7 +546,7 @@ Example:
 ":slack:"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.workspaces.<name>.key`
 
@@ -569,7 +569,7 @@ Example:
 "c"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.appStore
 
@@ -596,7 +596,7 @@ for a password prompt that a rebuild has no terminal to show,
 and the rebuild hangs. The activation step this option enables
 is already running as root, so it neither prompts nor wedges.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.apps
 
@@ -632,7 +632,7 @@ This sets the USER default (via `duti`) — the same record Finder's
 Get Info ▸ Change All writes, so it is undoable by hand. Set false to
 install the app and leave every association alone.
 
-<small>Declared in [`modules/apps/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/apps/options.nix).</small>
+<small>Declared in [`modules/apps/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/apps/options.nix).</small>
 
 ### `haus.apps.videoPlayer.enable`
 
@@ -653,7 +653,7 @@ entry. Once on it is a roster entry like any other: give it a leader
 letter with `haus.roster.iina.key`, or pin a different build
 with `haus.roster.iina.package`.
 
-<small>Declared in [`modules/apps/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/apps/options.nix).</small>
+<small>Declared in [`modules/apps/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/apps/options.nix).</small>
 
 ## haus.theme
 
@@ -710,7 +710,7 @@ Example:
 "sapphire"
 ```
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/theme/options.nix).</small>
 
 ### `haus.theme.contrast`
 
@@ -747,7 +747,7 @@ Example:
 "high"
 ```
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/theme/options.nix).</small>
 
 ### `haus.theme.flavor`
 
@@ -800,7 +800,7 @@ Example:
 "latte"
 ```
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/theme/options.nix).</small>
 
 ### `haus.theme.ports.enable`
 
@@ -830,7 +830,7 @@ Ports whose install is a merge into an existing config file, or that need
 a compile step first, are reported but never written: silently
 half-applying someone's config is worse than saying so.
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/theme/options.nix).</small>
 
 ### `haus.theme.systemAppearance`
 
@@ -888,7 +888,7 @@ Example:
 "flavor"
 ```
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/theme/options.nix).</small>
 
 ### `haus.theme.wallpaper`
 
@@ -912,7 +912,7 @@ Example:
 "orbits"
 ```
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/theme/options.nix).</small>
 
 ## haus.fonts
 
@@ -945,7 +945,7 @@ Example:
 "Berkeley Mono"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.fonts.mono.package`
 
@@ -967,7 +967,7 @@ Example:
 pkgs.nerd-fonts.fira-code
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.fonts.mono.packageName`
 
@@ -992,7 +992,7 @@ Example:
 "nerd-fonts.fira-code"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.fonts.mono.size`
 
@@ -1015,7 +1015,7 @@ Example:
 24
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.ui
 
@@ -1085,7 +1085,7 @@ Example:
 1.35
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.displays
 
@@ -1129,7 +1129,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/displays/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/displays/options.nix).</small>
+<small>Declared in [`modules/displays/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/displays/options.nix).</small>
 
 ### `haus.displays.<name>.uiScale`
 
@@ -1171,7 +1171,7 @@ Example:
 "larger-text"
 ```
 
-<small>Declared in [`modules/displays/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/displays/options.nix).</small>
+<small>Declared in [`modules/displays/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/displays/options.nix).</small>
 
 ## haus.hearth
 
@@ -1195,7 +1195,7 @@ Example:
 "nvim"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.hearth.ghDash.enable`
 
@@ -1221,7 +1221,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.hearth.hijackFileAssociations`
 
@@ -1238,7 +1238,7 @@ like `bench` are NOT covered — macOS gates the public.unix-executable
 handler behind an interactive dialog; set it by hand once if wanted:
 `duti -s org.nebelhaus.editoropen public.unix-executable all`.)
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.hearth.obsidianVaults`
 
@@ -1262,7 +1262,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.hearth.zellijStartLocked`
 
@@ -1279,7 +1279,7 @@ readline/vim word motions the pane's app wants. The bar's bottom-right
 quick-hint block only shows in Locked mode. Set false to start in Normal
 mode (zellij's own default).
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ## haus.agents
 
@@ -1318,7 +1318,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.agents.default`
 
@@ -1349,7 +1349,7 @@ Example:
 "codex"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.claude
 
@@ -1377,7 +1377,7 @@ Example:
 ''
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.claude.skill`
 
@@ -1401,7 +1401,7 @@ haus.developer.agents.enable. This is a plain file drop: a machine
 that never runs an agent just carries an unread markdown file. Set
 false to leave ~/.claude/skills alone entirely.
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ## haus.accessibility
 
@@ -1434,7 +1434,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.accessibility.increaseContrast`
 
@@ -1464,7 +1464,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.keys
 
@@ -1501,7 +1501,7 @@ Example:
 "none"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.keys.leaderExtras`
 
@@ -1526,7 +1526,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.keys.leaderExtras.*.caption`
 
@@ -1541,7 +1541,7 @@ Example:
 "Things Quick Entry"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.keys.leaderExtras.*.command`
 
@@ -1559,7 +1559,7 @@ Example:
 "osascript -e 'tell application \"Things3\" to show quick entry panel'"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.keys.leaderExtras.*.key`
 
@@ -1580,7 +1580,7 @@ Example:
 "enter"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.keys.palette`
 
@@ -1604,7 +1604,7 @@ Example:
 "none"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.keys.windowNav`
 
@@ -1649,7 +1649,7 @@ Example:
 "ctrl-alt"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.hotCorners
 
@@ -1697,7 +1697,7 @@ Example:
 "mission-control"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.hotCorners.bottomRight`
 
@@ -1741,7 +1741,7 @@ Example:
 "mission-control"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.hotCorners.topLeft`
 
@@ -1785,7 +1785,7 @@ Example:
 "mission-control"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.hotCorners.topRight`
 
@@ -1829,7 +1829,7 @@ Example:
 "mission-control"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.screenshots
 
@@ -1853,7 +1853,7 @@ Example:
 "png"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.screenshots.includeDate`
 
@@ -1869,7 +1869,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.screenshots.location`
 
@@ -1891,7 +1891,7 @@ Example:
 "~/Pictures/Screenshots"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.screenshots.shadow`
 
@@ -1912,7 +1912,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.screenshots.thumbnail`
 
@@ -1933,7 +1933,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.lock
 
@@ -1955,7 +1955,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.lock.requirePasswordDelay`
 
@@ -1974,7 +1974,7 @@ Example:
 5
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.menuBar
 
@@ -1993,7 +1993,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.clock.format`
 
@@ -2008,7 +2008,7 @@ Example:
 "24h"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.clock.showDate`
 
@@ -2023,7 +2023,7 @@ Example:
 "always"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.clock.showDayOfWeek`
 
@@ -2038,7 +2038,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.clock.showSeconds`
 
@@ -2053,7 +2053,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.airdrop`
 
@@ -2067,7 +2067,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.batteryPercentage`
 
@@ -2082,7 +2082,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.bluetooth`
 
@@ -2096,7 +2096,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.displayBrightness`
 
@@ -2110,7 +2110,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.focus`
 
@@ -2124,7 +2124,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.nowPlaying`
 
@@ -2138,7 +2138,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.menuBar.controlCenter.sound`
 
@@ -2152,7 +2152,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.security
 
@@ -2172,7 +2172,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.security.firewall.allowSignedApp`
 
@@ -2188,7 +2188,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.security.firewall.blockAllIncoming`
 
@@ -2205,7 +2205,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.security.firewall.enable`
 
@@ -2223,7 +2223,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.security.firewall.stealthMode`
 
@@ -2240,7 +2240,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.sound
 
@@ -2272,7 +2272,7 @@ Example:
 "Submarine"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.sound.alertVolume`
 
@@ -2297,7 +2297,7 @@ Example:
 50
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.sound.startupChime`
 
@@ -2316,7 +2316,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.sound.uiSounds`
 
@@ -2332,7 +2332,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.sound.volumeFeedback`
 
@@ -2347,7 +2347,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.locale
 
@@ -2371,7 +2371,7 @@ Example:
 "24h"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.locale.inputSources`
 
@@ -2407,7 +2407,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.locale.language`
 
@@ -2434,7 +2434,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.locale.metric`
 
@@ -2455,7 +2455,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.locale.region`
 
@@ -2480,7 +2480,7 @@ Example:
 "de_DE"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.locale.temperature`
 
@@ -2497,7 +2497,7 @@ Example:
 "celsius"
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.power
 
@@ -2519,7 +2519,7 @@ Example:
 10
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.computerSleep.charger`
 
@@ -2537,7 +2537,7 @@ Example:
 10
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.diskSleep.battery`
 
@@ -2555,7 +2555,7 @@ Example:
 10
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.diskSleep.charger`
 
@@ -2573,7 +2573,7 @@ Example:
 10
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.displaySleep.battery`
 
@@ -2591,7 +2591,7 @@ Example:
 10
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.displaySleep.charger`
 
@@ -2609,7 +2609,7 @@ Example:
 10
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.lowPowerMode.battery`
 
@@ -2628,7 +2628,7 @@ Example:
 true
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.power.lowPowerMode.charger`
 
@@ -2643,7 +2643,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.prowl
 
@@ -2660,7 +2660,7 @@ wake-time window re-sort and the key remap entirely. To keep the tiler but
 leave the keyboard alone, use haus.keys.leader = "none" and
 haus.keys.windowNav = "none" instead of turning the room off.
 
-<small>Declared in [`modules/prowl/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/prowl/options.nix).</small>
+<small>Declared in [`modules/prowl/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/prowl/options.nix).</small>
 
 ## haus.sill
 
@@ -2686,7 +2686,7 @@ Example:
 "claude"
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.battery.hideOver`
 
@@ -2701,7 +2701,7 @@ Example:
 80
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.clock.mode`
 
@@ -2716,7 +2716,7 @@ Example:
 "compact"
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.elgato.host`
 
@@ -2739,7 +2739,7 @@ Example:
 "elgato-key-light-mini-57a3.local"
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.enable`
 
@@ -2748,7 +2748,7 @@ Example:
 The SketchyBar menu bar. When off, the native macOS menu bar is kept
 (nebelhaus stops hiding it) and no bar is drawn.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items`
 
@@ -2780,7 +2780,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.agents`
 
@@ -2788,7 +2788,7 @@ Example:
 
 A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.aiUsage`
 
@@ -2796,7 +2796,7 @@ A paw pill tracking your agent-worktree panes — amber when one is blocked on y
 
 A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.battery`
 
@@ -2804,7 +2804,7 @@ A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, 
 
 The battery pill.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.caffeinate`
 
@@ -2812,7 +2812,7 @@ The battery pill.
 
 A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-hour duration, or indefinitely. The display may still turn off; closing a MacBook lid still sleeps it. Uses macOS's built-in `caffeinate`, so there is no extra package.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.calendar`
 
@@ -2820,7 +2820,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.claudeUsage`
 
@@ -2828,7 +2828,7 @@ Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy
 
 Deprecated alias for `aiUsage`.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.clock`
 
@@ -2836,7 +2836,7 @@ Deprecated alias for `aiUsage`.
 
 The clock pill, pinned to the far right.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.cpu`
 
@@ -2844,7 +2844,7 @@ The clock pill, pinned to the far right.
 
 Total CPU load, as a percentage pill.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.elgato`
 
@@ -2852,7 +2852,7 @@ Total CPU load, as a percentage pill.
 
 Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `haus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.harvest`
 
@@ -2860,15 +2860,15 @@ Toggles an Elgato Key Light on the local network. The light is found over mDNS (
 
 A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh you provide.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.media`
 
 `boolean` · default `true`
 
-The now-playing track (scrolls; auto-hides when nothing plays).
+The now-playing track (scrolls; auto-hides when nothing plays, dims when paused, click to play/pause). It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says which app the sound is coming from. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.memory`
 
@@ -2876,7 +2876,7 @@ The now-playing track (scrolls; auto-hides when nothing plays).
 
 Memory-pressure percentage pill.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.volume`
 
@@ -2884,7 +2884,7 @@ Memory-pressure percentage pill.
 
 Output volume / mute state.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.weather`
 
@@ -2892,7 +2892,7 @@ Output volume / mute state.
 
 The weather pill and its click-to-open forecast popover.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.items.wifi`
 
@@ -2900,7 +2900,7 @@ The weather pill and its click-to-open forecast popover.
 
 The Wi-Fi status pill.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.sill.position`
 
@@ -2923,7 +2923,7 @@ Example:
 "auto"
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ## haus.pounce
 
@@ -2935,7 +2935,7 @@ The ⌘Space command palette.
 
 The pounce command palette daemon (⌘Space) + its rice commands.
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.followSystemAppearance`
 
@@ -2955,7 +2955,7 @@ whatever flavor pins.
 false pins pounce to the flavor like every other port, which is exactly
 what it did before this option existed.
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.items`
 
@@ -3019,7 +3019,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.items.<name>.alias`
 
@@ -3034,7 +3034,7 @@ Example:
 "emo"
 ```
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.items.<name>.caption`
 
@@ -3058,7 +3058,7 @@ Example:
 "Clipboard history"
 ```
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.items.<name>.hotkey`
 
@@ -3083,7 +3083,7 @@ Example:
 "opt+space e"
 ```
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.items.<name>.listed`
 
@@ -3098,7 +3098,7 @@ reach by key — or clear the launcher of tools someone else on this
 Mac has no use for, which is the closest thing to a "pack" the
 surface has today. (It writes pounce's own `enabled` key.)
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.scale`
 
@@ -3130,7 +3130,7 @@ Example:
 1.4
 ```
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.signingIdentity`
 
@@ -3162,7 +3162,7 @@ Example:
 "Developer ID Application: Jane Doe (ABCDE12345)"
 ```
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.windowMode`
 
@@ -3177,7 +3177,7 @@ This is shape, not size: how BIG the palette is drawn is
 haus.pounce.scale. The two compose — a compact palette at scale 1.4
 is still the compact layout, just readable from further away.
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.windowSwitcher`
 
@@ -3203,7 +3203,7 @@ the grant the event tap can't install and stock ⌘Tab keeps working, so
 this default is safe on a fresh, not-yet-granted install. false leaves
 ⌘Tab native even when the grant is there.
 
-<small>Declared in [`modules/pounce/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/pounce/options.nix).</small>
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ## haus.perch
 
@@ -3215,7 +3215,7 @@ The notch file shelf.
 
 The perch notch file shelf, installed via the perch flake (copied to /Applications).
 
-<small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
+<small>Declared in [`modules/perch/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/perch/options.nix).</small>
 
 ### `haus.perch.followSystemAppearance`
 
@@ -3236,7 +3236,7 @@ Perch has no theme picker of its own — the shelf is a five-second
 surface with nowhere to put one — so this is the only word on its
 colors.
 
-<small>Declared in [`modules/perch/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/perch/options.nix).</small>
+<small>Declared in [`modules/perch/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/perch/options.nix).</small>
 
 ## haus.hush
 
@@ -3257,7 +3257,7 @@ once in System Settings. The keypress needs an Accessibility grant on
 whatever app invokes hush (palette runs inherit pounce's; grant
 sketchybar once for the pill). `hush doctor` walks the one-time steps.
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ### `haus.hush.hooks`
 
@@ -3274,7 +3274,7 @@ Example:
 [ ./onair-light.sh "/Users/ada/bin/pause-music" ]
 ```
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ### `haus.hush.slack.enable`
 
@@ -3286,7 +3286,7 @@ Slack user token (scopes users.profile:write + dnd:write) provided
 via tokenCommand. The previous status is saved and restored on
 unhush.
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ### `haus.hush.slack.snooze`
 
@@ -3296,7 +3296,7 @@ Also pause Slack's own notifications (dnd.setSnooze) while hushed —
 this is what silences the phone. Ended on unhush; capped at 24h as
 a failsafe if you forget.
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ### `haus.hush.slack.statusEmoji`
 
@@ -3304,7 +3304,7 @@ a failsafe if you forget.
 
 Slack status emoji while hushed.
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ### `haus.hush.slack.statusText`
 
@@ -3312,7 +3312,7 @@ Slack status emoji while hushed.
 
 Slack status text while hushed.
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ### `haus.hush.slack.tokenCommand`
 
@@ -3328,7 +3328,7 @@ Example:
 "security find-generic-password -s hush-slack -w"
 ```
 
-<small>Declared in [`modules/hush/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hush/options.nix).</small>
+<small>Declared in [`modules/hush/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hush/options.nix).</small>
 
 ## haus.snippets
 
@@ -3353,7 +3353,7 @@ nixpkgs bumps — you grant it once, not on every rebuild (and so the
 espanso troubleshooting window stops popping up at login, since that
 window only ever meant "the grant went missing").
 
-<small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
+<small>Declared in [`modules/snippets/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/snippets/options.nix).</small>
 
 ### `haus.snippets.matches`
 
@@ -3374,7 +3374,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
+<small>Declared in [`modules/snippets/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/snippets/options.nix).</small>
 
 ### `haus.snippets.matches.*.replace`
 
@@ -3388,7 +3388,7 @@ Example:
 "ada@example.com"
 ```
 
-<small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
+<small>Declared in [`modules/snippets/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/snippets/options.nix).</small>
 
 ### `haus.snippets.matches.*.trigger`
 
@@ -3402,7 +3402,7 @@ Example:
 "@@"
 ```
 
-<small>Declared in [`modules/snippets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/snippets/options.nix).</small>
+<small>Declared in [`modules/snippets/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/snippets/options.nix).</small>
 
 ## haus.tour
 
@@ -3424,7 +3424,7 @@ Needs prowl + sill (it silently stays out of the bar without them);
 the ⌘Space step is dropped when pounce is off. Progress lives in
 ~/.local/state/nebelhaus — `haus tour reset` re-arms a finished tour.
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.tour.steps`
 
@@ -3455,7 +3455,7 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.tour.steps.*.detect`
 
@@ -3473,7 +3473,7 @@ Example:
 "palette"
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ### `haus.tour.steps.*.hint`
 
@@ -3494,7 +3494,7 @@ Example:
 "Press {palette}, type calendar, then hit ↵"
 ```
 
-<small>Declared in [`modules/sill/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/sill/options.nix).</small>
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
 ## haus.developer
 
@@ -3514,7 +3514,7 @@ Off is right for any machine not running coding agents — it's a large
 surface a non-developer never sees. It also empties `agents.clients`,
 since a client with no `holt` to park it is not the deal on offer.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.developer.enable`
 
@@ -3541,7 +3541,7 @@ Example:
 false
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.developer.git.enable`
 
@@ -3552,7 +3552,7 @@ config, delta (diff pager), lazygit, `gh`, and gnupg for commit
 signing. Off drops all of them, and `haus.git.*` then has
 nothing to configure.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.developer.languages`
 
@@ -3570,7 +3570,7 @@ Example:
 [ ]
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ### `haus.developer.toolbelt.enable`
 
@@ -3584,7 +3584,7 @@ around.
 Off leaves a plain shell. The prompt (starship) and the colour scheme
 stay: these are the *tools*, not the appearance.
 
-<small>Declared in [`modules/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
 ## haus.collar
 
@@ -3601,7 +3601,7 @@ multiplexer (tmux/zellij/screen), where it otherwise beachballs.
 Off means macOS's stock password prompt everywhere, including for the
 rebuild below. Nothing else in the rice depends on it.
 
-<small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
+<small>Declared in [`modules/collar/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/collar/options.nix).</small>
 
 ### `haus.collar.passwordlessRebuild`
 
@@ -3620,7 +3620,7 @@ authenticated to build it), but on a shared or managed machine it's the
 knob to turn off. With it off, activation prompts via Touch ID (or a
 password when `enable` is false) and nothing else changes.
 
-<small>Declared in [`modules/collar/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/collar/options.nix).</small>
+<small>Declared in [`modules/collar/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/collar/options.nix).</small>
 
 ## haus.secrets
 
@@ -3653,7 +3653,7 @@ Example:
 "gcsm"
 ```
 
-<small>Declared in [`modules/secrets/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/secrets/options.nix).</small>
+<small>Declared in [`modules/secrets/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/secrets/options.nix).</small>
 
 ## haus.homebrew
 
@@ -3667,7 +3667,7 @@ Run `brew update` before activating the Homebrew step on every
 rebuild. Off by default — reproducible rebuilds shouldn't silently
 pull newer formulae. Turn on if you want brew to track upstream.
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.homebrew.cleanup`
 
@@ -3684,7 +3684,7 @@ installed but NOT declared anywhere in your config.
   no backup — on the very next rebuild. Only choose this once every
   app you keep is declared (bootstrap can adopt your current casks).
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ### `haus.homebrew.upgrade`
 
@@ -3693,7 +3693,7 @@ installed but NOT declared anywhere in your config.
 Upgrade outdated Homebrew packages on every rebuild. Off by default
 for the same reproducibility reason as autoUpdate.
 
-<small>Declared in [`modules/den/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/den/options.nix).</small>
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
 
 ## haus.zen
 ### `haus.zen.extensions`
@@ -3735,7 +3735,7 @@ Example:
 }
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extensions.<name>.enable`
 
@@ -3743,7 +3743,7 @@ Example:
 
 Whether to deploy this extension. Set false to remove one an imported rice added.
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extensions.<name>.id`
 
@@ -3765,7 +3765,7 @@ Example:
 "{7a7a4a92-a2a0-41d1-9fd7-1e92480d612d}"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extensions.<name>.mode`
 
@@ -3776,7 +3776,7 @@ and stops the user removing it (the point, for a rice that
 wants an extension present); `normal_installed` installs it
 but leaves it removable.
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extensions.<name>.slug`
 
@@ -3792,7 +3792,7 @@ Example:
 "styl-us"
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extensions.<name>.url`
 
@@ -3802,7 +3802,7 @@ Where the .xpi comes from. Defaults to AMO's "latest" endpoint
 for `slug`, so the add-on updates itself; point it at a pinned
 version or a self-hosted file to freeze it.
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extraPolicies`
 
@@ -3820,4 +3820,4 @@ Example:
 { DisableTelemetry = true; }
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/nebelhaus/nebelhaus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/hearth/options.nix).</small>
