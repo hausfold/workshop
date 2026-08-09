@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PAGE = join(here, '../src/content/docs/reference/options.md');
-const REPO = 'https://github.com/nebelhaus/nebelhaus/blob/main';
+const REPO = 'https://github.com/hausfold/hausfold/blob/main';
 
 const args = process.argv.slice(2);
 const check = args.includes('--check');
@@ -60,7 +60,7 @@ function riceFile(name, why) {
         `${why}\n\n` +
         'That directory is generated and committed by the rice (`nix build .#site-data`).\n' +
         'The checkout predates nebelhaus#268 — update it (CI pulls\n' +
-        'nebelhaus/nebelhaus main) and re-run.\n',
+        'hausfold/hausfold main) and re-run.\n',
     );
     process.exit(1);
   }

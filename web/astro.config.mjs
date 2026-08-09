@@ -43,10 +43,10 @@ export default defineConfig({
       // only — the theme/rendering is unchanged.
       expressiveCode: { emitExternalStylesheet: false },
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/nebelhaus' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/hausfold' },
       ],
       editLink: {
-        baseUrl: 'https://github.com/nebelhaus/workshop/edit/main/web/',
+        baseUrl: 'https://github.com/hausfold/workshop/edit/main/web/',
       },
       head: [
         {

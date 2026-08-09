@@ -13,15 +13,15 @@
 //
 // We PROXY (fetch), not redirect, so the pretty URL is what curl sees and there's
 // no hop to a raw.githubusercontent.com link. By default /init.sh serves the
-// latest GitHub *release* tag of nebelhaus/nebelhaus (cached ~1h to stay well
+// latest GitHub *release* tag of hausfold/hausfold (cached ~1h to stay well
 // under GitHub's unauthenticated API limit), falling back to `main` before the
 // first release. `?ref=v2026.07.18` pins an exact ref; a REF wrangler var hard-pins one.
 
-const REPO = "nebelhaus/nebelhaus";
+const REPO = "hausfold/hausfold";
 const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path traversal
 
 // The apps with signed + notarized release artifacts on GitHub. Keys are the
-// URL slugs; each repo lives at github.com/nebelhaus/<app>.
+// URL slugs; each repo lives at github.com/hausfold/<app>.
 // A slug here is a promise to keep serving that app's latest release, so only
 // apps the site actually presents belong in this set.
 const DOWNLOADABLE = new Set(["pounce", "perch"]);
@@ -72,7 +72,7 @@ async function latestAppRelease(app) {
   const cached = await cache.match(key);
   if (cached) return cached.json();
   try {
-    const r = await fetch(`https://api.github.com/repos/nebelhaus/${app}/releases/latest`, {
+    const r = await fetch(`https://api.github.com/repos/hausfold/${app}/releases/latest`, {
       headers: { "user-agent": "nebelhaus-download", accept: "application/vnd.github+json" },
     });
     if (r.ok) {
@@ -107,7 +107,7 @@ async function latestAppRelease(app) {
 async function serveDownload(app) {
   const release = await latestAppRelease(app);
   // Even on an API hiccup the user still lands somewhere useful.
-  const target = release?.url ?? `https://github.com/nebelhaus/${app}/releases/latest`;
+  const target = release?.url ?? `https://github.com/hausfold/${app}/releases/latest`;
   return new Response(null, {
     status: 302,
     headers: { location: target, "cache-control": "public, max-age=300" },
@@ -155,6 +155,6 @@ export default {
     // matching assets are served automatically before the Worker even runs;
     // this fallback covers requests that reach the Worker anyway.
     if (env.ASSETS) return env.ASSETS.fetch(request);
-    return text("nebelhaus — https://github.com/nebelhaus/nebelhaus\n", 404);
+    return text("nebelhaus — https://github.com/hausfold/hausfold\n", 404);
   },
 };

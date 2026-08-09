@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          repository: nebelhaus/nebelhaus
+          repository: hausfold/hausfold
           path: .rice
       # No Nix step: the binding table is read out of the rice's committed
       # docs/site-data/, which its own `site-data-current` flake check keeps

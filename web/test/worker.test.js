@@ -75,7 +75,7 @@ describe('/init.sh ref validation (path-traversal guard)', () => {
 
   it('accepts a well-formed tag and proxies bootstrap.sh', async () => {
     globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/v1.2.3/bootstrap.sh', body: '#!/bin/bash\n' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/v1.2.3/bootstrap.sh', body: '#!/bin/bash\n' },
     ]);
     const res = await worker.fetch(req('/init.sh?ref=v1.2.3'), {});
     expect(res.status).toBe(200);
@@ -87,7 +87,7 @@ describe('/init.sh ref validation (path-traversal guard)', () => {
 describe('latestRef() fallback chain', () => {
   it('env.REF hard-pin wins without any fetch or cache read', async () => {
     globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/v9.9.9/bootstrap.sh', body: 'PINNED' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/v9.9.9/bootstrap.sh', body: 'PINNED' },
     ]);
     const res = await worker.fetch(req('/init.sh'), { REF: 'v9.9.9' });
     expect(res.headers.get('x-nebelhaus-ref')).toBe('v9.9.9');
@@ -98,7 +98,7 @@ describe('latestRef() fallback chain', () => {
   it('resolves and caches the latest release tag from the GitHub API', async () => {
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', json: { tag_name: 'v2.0.0' } },
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/v2.0.0/bootstrap.sh', body: 'LATEST' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/v2.0.0/bootstrap.sh', body: 'LATEST' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('v2.0.0');
@@ -108,7 +108,7 @@ describe('latestRef() fallback chain', () => {
   it('serves a cached ref without hitting the API', async () => {
     globalThis.caches._store.set(RELEASE_KEY, 'v1.5.0');
     globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/v1.5.0/bootstrap.sh', body: 'CACHED' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/v1.5.0/bootstrap.sh', body: 'CACHED' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('v1.5.0');
@@ -118,7 +118,7 @@ describe('latestRef() fallback chain', () => {
   it('falls back to main when the API returns a non-2xx', async () => {
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', status: 403, body: 'rate limited' },
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/main/bootstrap.sh', body: 'MAIN' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/main/bootstrap.sh', body: 'MAIN' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
@@ -127,7 +127,7 @@ describe('latestRef() fallback chain', () => {
   it('falls back to main when the API throws (network hiccup)', async () => {
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', throws: true },
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/main/bootstrap.sh', body: 'MAIN' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/main/bootstrap.sh', body: 'MAIN' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
@@ -137,7 +137,7 @@ describe('latestRef() fallback chain', () => {
     // A compromised/garbage release tag must not become a fetch path.
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', json: { tag_name: '../../evil' } },
-      { match: 'raw.githubusercontent.com/nebelhaus/nebelhaus/main/bootstrap.sh', body: 'MAIN' },
+      { match: 'raw.githubusercontent.com/hausfold/hausfold/main/bootstrap.sh', body: 'MAIN' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
@@ -168,13 +168,13 @@ describe('/download and /api/release', () => {
     tag_name: 'v2026.07.29',
     published_at: '2026-07-29T00:00:00Z',
     assets: [
-      { name: 'pounce-v2026.07.29-macos.tar.gz', size: 701478, browser_download_url: 'https://github.com/nebelhaus/pounce/releases/download/v2026.07.29/pounce-v2026.07.29-macos.tar.gz' },
+      { name: 'pounce-v2026.07.29-macos.tar.gz', size: 701478, browser_download_url: 'https://github.com/hausfold/pounce/releases/download/v2026.07.29/pounce-v2026.07.29-macos.tar.gz' },
     ],
   };
 
   it('302s /download/<app> to the latest macOS asset', async () => {
     globalThis.fetch = makeFetch([
-      { match: 'api.github.com/repos/nebelhaus/pounce/releases/latest', json: PONCE_RELEASE },
+      { match: 'api.github.com/repos/hausfold/pounce/releases/latest', json: PONCE_RELEASE },
     ]);
     const res = await worker.fetch(req('/download/pounce'), {});
     expect(res.status).toBe(302);
@@ -184,7 +184,7 @@ describe('/download and /api/release', () => {
   it('picks the -macos asset over other assets', async () => {
     globalThis.fetch = makeFetch([
       {
-        match: 'api.github.com/repos/nebelhaus/perch/releases/latest',
+        match: 'api.github.com/repos/hausfold/perch/releases/latest',
         json: {
           tag_name: 'v1',
           assets: [
@@ -205,7 +205,7 @@ describe('/download and /api/release', () => {
     // handing them the tarball strands them with a half-installed palette.
     globalThis.fetch = makeFetch([
       {
-        match: 'api.github.com/repos/nebelhaus/pounce/releases/latest',
+        match: 'api.github.com/repos/hausfold/pounce/releases/latest',
         json: {
           tag_name: 'v2026.07.31',
           assets: [
@@ -223,12 +223,12 @@ describe('/download and /api/release', () => {
     globalThis.fetch = makeFetch([{ match: 'api.github.com', throws: true }]);
     const res = await worker.fetch(req('/download/perch'), {});
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('https://github.com/nebelhaus/perch/releases/latest');
+    expect(res.headers.get('location')).toBe('https://github.com/hausfold/perch/releases/latest');
   });
 
   it('serves release metadata as JSON and caches it', async () => {
     globalThis.fetch = makeFetch([
-      { match: 'api.github.com/repos/nebelhaus/pounce/releases/latest', json: PONCE_RELEASE },
+      { match: 'api.github.com/repos/hausfold/pounce/releases/latest', json: PONCE_RELEASE },
     ]);
     const res = await worker.fetch(req('/api/release/pounce'), {});
     expect(res.status).toBe(200);
@@ -268,6 +268,6 @@ describe('router', () => {
   it('returns a 404 text fallback when ASSETS is absent', async () => {
     const res = await worker.fetch(req('/whatever'), {});
     expect(res.status).toBe(404);
-    expect(await res.text()).toContain('github.com/nebelhaus');
+    expect(await res.text()).toContain('github.com/hausfold');
   });
 });
