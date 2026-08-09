@@ -2073,9 +2073,11 @@ green. Everything else is strictly sequential.
   ✅ **The legitimate way to make bench see it — closed 2026-08-09.** `trill`
   (and `hausfold.co`) now sit in **`DOCS_REPOS`**, `bench clone` and `bench
   pull`, and in none of `FAMILY`/`try`/`try-batch`/`ship`/`status`. Docs
-  coverage and lock coverage are different questions, and the daily
-  `/docs-sync` sweep had been reporting the compositor's docs clean forever
-  because `docs-since` walks `DOCS_REPOS` and nothing planted the checkout.
+  coverage and lock coverage are different questions, and `docs-since` walks
+  `DOCS_REPOS` — so from the eject until this change the compositor was
+  unreachable to the daily sweep, which reports a repo with no arm exactly the
+  same way it reports a repo with nothing to say. (The local checkout existed;
+  membership was the gap. `clone`/`pull` follow so a cloud run has one too.)
   That is the whole of the concession: no lock edge, no ripple, no release path.
   ⚠️ And `FAMILY` was never the single source of truth for the word — §3.3's
   `bench` subsection lists eight more places `nebelhaus` is a literal. See §2.1.

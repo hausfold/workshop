@@ -103,9 +103,10 @@ differences worth knowing — including the two repos that are still gaps:
 
 - ❌ **`holt` has none of it** — no `AGENTS.md`, no `CLAUDE.md`, no
   `.agents/`, no `.github/copilot-instructions.md`, just a `.claude/` holding a
-  permission allowlist. It ejected from the incubator on 2026-08-03, before this
-  layer was a pattern, and nothing has gone back for it. That is a real gap, not
-  a decision: it's the one family repo where an agent lands with no boundary
+  permission allowlist. It ejected from the incubator on 2026-08-03 — the same
+  day this layer rolled out across the family — and was missed *during* that
+  rollout rather than predating it; nothing has gone back for it since. That is
+  a real gap, not a decision: it's the one family repo where an agent lands with no boundary
   rules, and where `/ship`'s Step 2.5 assurance pass has no repo doc to read
   (that step says what to substitute in the meantime). It's also the repo with
   the sharpest boundary to state — five published SDKs sharing one semver, and a

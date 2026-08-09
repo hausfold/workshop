@@ -38,8 +38,9 @@ Four more ride along: 🐙 [**org-profile**](https://github.com/hausfold/.github
 [**homebrew-tap**](https://github.com/hausfold/homebrew-tap) (CI bumps it on
 every release — you almost never touch it), 🔔
 [**trill**](https://github.com/hausfold/trill) (the notification compositor —
-ejected from the incubator 2026-08-09; deliberately *not* a family repo, so
-`bench` neither clones nor ships it), and ⌂
+ejected from the incubator 2026-08-09; deliberately *not* a family repo — no
+lock edge, so `bench try`/`ship`/`status` never walk it, though `bench
+clone`/`pull` plant it and the docs sweep reads it), and ⌂
 [**hausfold.co**](https://github.com/hausfold/hausfold.co) — the site for
 the platform that all of this is becoming (decided 2026-08-08; see
 [`notes/hausfold-rename.md`](notes/hausfold-rename.md)). Its checkout is

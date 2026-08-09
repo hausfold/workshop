@@ -1514,11 +1514,11 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.
 # `trill` and `hausfold.co` are deliberately outside `FAMILY` (no flake input, so
 # try/try-batch/ship must never walk them) — but both have a README, in-repo docs
-# and a live audience, so a sweep that skips them reports their docs clean
-# forever. That is exactly what happened between trill's eject (2026-08-09) and
-# this line: the compositor's docs were structurally unreachable, and the sweep
-# said nothing. Docs coverage and lock coverage are different questions; keep
-# them different lists.
+# and a live audience, so a sweep that skips them reports their docs clean for
+# as long as the omission lasts — silently, because a repo with no arm looks
+# exactly like a repo with nothing to say. trill was in that state from its
+# eject (2026-08-09) until this line. Docs coverage and lock coverage are
+# different questions; keep them different lists.
 DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co)
 
 docs_watermark() { # docs_watermark <repo> — last reconciled rev, "" if never
@@ -1549,13 +1549,22 @@ cmd_docs_since() {
     local head; head="$(git -C "$dir" rev-parse HEAD)"
     local base; base="$(docs_watermark "$name")"
 
-    # Never reconciled, or the watermark was rewritten away? Fall back to a
-    # day's worth of history rather than replaying the repo from its birth.
-    # Announce it: the fallback window is a guess, so a repo that just joined
-    # DOCS_REPOS must not pass for one that was genuinely reconciled yesterday.
-    if [ -z "$base" ] || ! git -C "$dir" cat-file -e "$base^{commit}" 2>/dev/null; then
+    # Two different "no watermark"s, and they want opposite answers:
+    #
+    #   no entry at all — the repo just joined DOCS_REPOS, so NOTHING of it has
+    #     ever been reconciled. Read the whole history: a one-day window here
+    #     silently drops the backlog that adding the repo was meant to reach,
+    #     and the next --mark then pins the watermark past it forever.
+    #
+    #   an entry whose rev is gone (rebased/force-pushed away) — the repo HAS
+    #     been swept, we just can't say from where. Replaying it from birth
+    #     would bury a real day's work, so fall back to a day and say the range
+    #     is a guess.
+    if [ -z "$base" ]; then
+      warn "$name: first sweep — no watermark, reading its FULL history ($(git -C "$dir" rev-list --count HEAD) commits)"
+    elif ! git -C "$dir" cat-file -e "$base^{commit}" 2>/dev/null; then
+      warn "$name: watermark ${base:0:7} is gone (rebased away?) — reading the last day only"
       base="$(git -C "$dir" rev-list -1 --before='1 day ago' HEAD 2>/dev/null || echo "")"
-      warn "$name: no usable watermark — reading the last day only (--mark fixes it)"
     fi
     [ "$base" = "$head" ] && continue
 
@@ -1641,11 +1650,13 @@ cmd_clone() {
   # This dir held a stale `hausfold/website` clone until 2026-08-09; it was
   # deleted, and nothing should recreate it.
   #
-  # The repo is `hausfold/hausfold.co` as of 2026-08-08, and it is PUBLIC. It was
-  # the private `hausfold/website` until then; that repo is archived and stays
-  # private forever (its history carries the name register and a Cloudflare
-  # account id, and PR refs survive any scrub — hausfold-rename.md §5.1). Don't
-  # point this back at it: you'd clone a dead snapshot over the live site.
+  # The remote comes from gh_repo like everyone else's, so `hausfold.co` resolves
+  # to `hausfold/hausfold.co` — PUBLIC as of 2026-08-08. It was the private
+  # `hausfold/website` until then; that repo is archived and stays private forever
+  # (its history carries the name register and a Cloudflare account id, and PR
+  # refs survive any scrub — hausfold-rename.md §5.1). Never add a gh_repo arm
+  # pointing this name back at `website`: you'd clone a dead snapshot over the
+  # live site.
   for name in trill hausfold.co; do
     if [ -d "$ROOT/$name/.git" ]; then
       say "$name already here"

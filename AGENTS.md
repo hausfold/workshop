@@ -6,7 +6,7 @@ This folder's own repo holds the README, this file, `bench`, `web/` (the
 nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
 `assets/` and `test/`; the subdirectories are independent git repos.
 
-> 🚨 **`nebelhaus` means four different things and only one of them is being
+> 🚨 **`nebelhaus` means five different things and only some of them are being
 > renamed.** `notes/hausfold-rename.md` is the plan of record; §2's table is the
 > rule. In one line each:
 >

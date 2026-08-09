@@ -34,17 +34,19 @@ four days still picks up all four.
 pounce, perch, holt, hausfold), `org-profile`, `homebrew-tap`, and the two repos that
 carry docs without carrying a lock edge — **`trill`** and **`hausfold.co`**. That last
 pair is why this list is not `FAMILY` plus trimmings: docs coverage and lock coverage
-are different questions, and between trill's eject (2026-08-09) and workshop#296 the
-compositor's docs were structurally unreachable — the sweep reported them clean forever
-and said nothing. If you find yourself "tidying" `DOCS_REPOS` toward `FAMILY`, don't.
+are different questions: from trill's eject (2026-08-09) until workshop#296 the
+compositor's docs were structurally unreachable, and a repo with no arm here looks
+exactly like a repo with nothing to say. If you find yourself "tidying" `DOCS_REPOS`
+toward `FAMILY`, don't.
 
-> ⚠️ **Two lines in that output are holes, not clean repos — read them.**
-> `no checkout at …` means the repo was never cloned and was **not swept** (fix:
-> `bench clone`); `no usable watermark — reading the last day only` means the range is
-> a one-day guess, not a reconciled baseline, so that repo's older commits have never
-> been read by anyone. Both print as `⚠` lines in the normal output and neither aborts
-> the sweep. Carry either into the report rather than letting a quiet run pass for a
-> complete one.
+> ⚠️ **Three `⚠` lines in that output are holes, not clean repos — read them.**
+> `no checkout at …` — never cloned, so **not swept at all** (fix: `bench clone`).
+> `first sweep — reading its FULL history` — the repo just joined the list, so treat
+> its whole backlog as unreconciled; that run is bigger than a normal day and its PR
+> should say so. `watermark … is gone` — the range is a **one-day guess**, not a
+> baseline, so commits older than that were read by nobody; widen it by hand if the
+> repo matters. None of the three aborts the sweep, so a quiet run can still be an
+> incomplete one — carry them into the report.
 
 **Do not `--mark` yet**; that happens at the very end,
 only for what you actually reconciled.
