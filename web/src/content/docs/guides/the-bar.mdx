@@ -52,9 +52,10 @@ nicer flourishes and a good demo of what SketchyBar can do.
 
 ## Toggling bar items
 
-Every right-side pill is a single boolean in `haus.sill.items`. The five
-core pills (`clock`, `weather`, `media`, `battery`, `wifi`) default **on**; the
-extras below default **off**. Set only the ones you want to change:
+Every right-side pill is a single boolean in `haus.sill.items` (or in
+`haus.sill.bottom.items`, if you've given it [a second bar](#a-second-bar-along-the-bottom)).
+The five core pills (`clock`, `weather`, `media`, `battery`, `wifi`) default
+**on**; the extras below default **off**. Set only the ones you want to change:
 
 ```nix
 haus.sill.items = {
@@ -197,6 +198,45 @@ your Codex login from `~/.codex/auth.json` the same way: at runtime, from the
 file OpenAI's own tooling wrote, never through Nix.
 </Aside>
 
+## A second bar along the bottom
+
+One bar is the default. If you want more room — or you'd rather keep the
+readouts off the menu bar entirely — sill can draw a **second bar along the
+bottom of the screen**, running at the same time as the top one:
+
+```nix
+haus.sill.bottom = {
+  enable = true;
+  items = { cpu = true; memory = true; caffeinate = true; };
+};
+```
+
+A pill named in `bottom.items` **moves**: it's drawn on the bottom bar and not
+on the menu bar, whatever `haus.sill.items` says about it. One switch per pill
+per bar, and never two copies of the same readout racing each other.
+
+The set is the extras — `cpu`, `memory`, `volume`, `calendar`, `caffeinate`,
+`agents`, `aiUsage`, `elgato`, `harvest`. The five core pills and the whole left
+side (workspace pills, front app, the leader picker) stay on the menu bar, and
+so does the hush pill.
+
+Three things worth knowing before you turn it on:
+
+- **macOS reserves the top of your screen for the menu bar and reserves nothing
+  at the bottom.** prowl carves the room out instead, so tiled windows stop
+  above the new bar — but with `haus.prowl.enable = false` nothing does, and your
+  windows will run underneath it.
+- **The Dock shares that edge.** Move it to a side, or leave it hidden.
+- **Don't put both bars on the same edge.** `haus.sill.position = "bottom"` with
+  a second bar means two bars stacked in one place; the rice warns you on
+  rebuild rather than quietly drawing one over the other.
+
+Under the hood it really is a second program: SketchyBar draws exactly one bar
+per process and names each instance after the binary it was launched as, so the
+rice launches the same binary a second time under the name `sill-bottom`. That
+name is also how you poke it by hand — `sill-bottom --set cpu label=hello`,
+where the top bar takes `sketchybar --set`.
+
 ## Turning it off
 
 ```nix
@@ -204,7 +244,8 @@ haus.sill.enable = false;
 ```
 
 With sill disabled, the native macOS menu bar is shown again (the rice only
-hides it when sill is on). Tiling and the rest of the rice are unaffected.
+hides it when sill is on) — and the bottom bar goes with it, whatever
+`haus.sill.bottom.enable` says. Tiling and the rest of the rice are unaffected.
 
 ## Under the hood
 
@@ -214,3 +255,7 @@ nebelung palette as `0xAARRGGBB` values, a `workspaces.sh` built from your app
 roster, and a `plugins/` directory of small shell scripts (one per bar item).
 The palette and your roster are the single sources of truth, so the bar always
 matches the rest of the system.
+
+With a second bar there's a `sill-bottomrc` beside the first rc, and a `bar.sh`
+that tells each shared plugin which of the two bars it's talking to — the pills
+themselves are the same scripts, drawn twice over.
