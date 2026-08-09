@@ -1202,8 +1202,116 @@ Also: `holt/sdk/swift/sync-mirror.sh` and any `Package.swift` URL, the
 homebrew-tap's formula/cask `homepage`/`url` (👤 CI-owned — hand-edit only to
 bootstrap), and `.github/workflows/*` that reference `nebelhaus/`.
 
+#### The census, taken 2026-08-09 — and the grep count is a lie
+
+**609 owner-keyed hits** across the eleven checkouts (`nebelhaus/<repo>`, all
+repos, `.git`/`DerivedData`/`node_modules`/`flake.lock` excluded). That number is
+worth writing down only so nobody plans around it: **almost none of it is the
+work.** 175 of the 609 are one generated file, and a further ~90 must NOT be
+touched at all. Sweep by tier, not by grep:
+
+| Tier | What | Count | When |
+|---|---|---|---|
+| **A — breaks, no redirect saves it** | the three `flake.nix` `original` owners (table above); `bench`'s `GH_ORG`/`FAMILY`/`$ROOT` assumptions (below); holt's `MIRROR_TOKEN` PAT + three OIDC trusted publishers (§3.1) | ~15 lines | **in the sitting** |
+| **B — rides a redirect, but the redirect is now permanent** | perch's and pounce's `UpdateCheck` endpoints (below); the tap's `url`/`homepage` (CI rewrites them at the next release, so they self-heal); 8 `.github/workflows/*` files with an owner-qualified `repository:`; every release-asset URL | ~40 lines | verify after, don't rush |
+| **C — prose, cosmetic, sweep at leisure** | READMEs, `AGENTS.md`s, `docs/`, the site's hand-written pages | ~430 lines | any time |
+| **D — false positives, do NOT sweep** | everything under "the rice keeps its name" (below) | ~90 lines | never |
+
+**The single largest concentration is generated, and that makes it the cheapest
+thing here, not the most expensive.** `web/src/content/docs/reference/options.md`
+carries **175** `github.com/nebelhaus/nebelhaus/blob/main/modules/…/options.nix`
+"declared in" links — one per documented option. It is a `GENERATED FILE — do not
+edit by hand`, produced by `web/scripts/gen-options.mjs` (2 owner-keyed lines).
+Fix those two lines and all 175 follow. Left alone they are Tier D anyway, since
+the rice repo is the thing being renamed to `hausfold/hausfold` — so this is a
+one-line edit that a naive census would have priced at 175.
+
+#### 🚨 `bench` is the Tier-A repo, and it has two problems the plan hasn't recorded
+
+**1. `GH_ORG` can no longer be a single value — `bench clone` hard-fails on a
+fresh machine.** `bench:83` is `FAMILY=(nebelung pounce messages perch holt
+nebelhaus)` and `bench:84` is `GH_ORG="nebelhaus"`; `cmd_clone` (`bench:1551-1558`)
+loops `"${FAMILY[@]}" org-profile homebrew-tap` and clones
+`https://github.com/$GH_ORG/$repo.git`. **§3.4 decided the archived Messages
+client stays in the `nebelhaus` org** — so the moment `GH_ORG` becomes `hausfold`,
+that loop asks for `hausfold/messages`, which will never exist. The clone is a
+bare `git clone` with no `|| warn` (unlike the `hausfold.co` clone twenty lines
+below, which was deliberately made non-fatal), so `bench clone` dies partway
+through. `$GH_ORG` is also interpolated into `gh pr list` / `gh run list` /
+`gh run view` at `bench:799,1238,1267,1425,1433,1441` — same wrong owner for
+`messages`, in the release path. **Fix: `messages` needs a per-repo owner, not a
+global one** — the family now spans two orgs and `bench` assumes one.
+
+**2. The `$ROOT/hausfold` directory collision that §3.1 marked resolved is still
+live in code, and pointing the wrong way.** §3.1 resolved it as (b): "the
+checkouts become `workshop/hausfold/` (the **platform**) and `workshop/hausfold.co/`
+(the site) — each named for its repo." `bench` implements the opposite —
+`bench:1572-1579` plants **the site** at `$ROOT/hausfold`
+(`git clone https://github.com/hausfold/hausfold.co.git "$ROOT/hausfold"`), and on
+this machine today `workshop/hausfold/` is a **stale clone of the archived,
+private `hausfold/website`** while `workshop/hausfold.co/` holds the real site.
+This bites the moment §3.3 renames the `FAMILY` entry `nebelhaus` → `hausfold`:
+`local_src()` (`bench:254-260`) resolves a family repo as `$ROOT/$1`, so
+`local_src hausfold` returns the **website checkout**, and `bench try`'s
+`--override-input` would silently build the rice against it. Nothing errors —
+the override just points somewhere absurd.
+
+- [ ] `rm -rf ~/code/workshop/hausfold` (the stale `hausfold/website` clone —
+      that repo is archived, and `hausfold.co/` supersedes it)
+- [ ] repoint `bench:1572-1579`'s site clone at `$ROOT/hausfold.co`, and update
+      `bench:1011`'s `repos=(… hausfold consumer)` list and the `bench:1008` and
+      `bench:1562-1571` comments with it
+- [ ] only then rename the `FAMILY` entry
+
+**Both of these are `bench` edits and they belong in the same PR as `GH_ORG`.**
+Do them *before* the transfer sitting, not after: neither depends on the repos
+having moved, and doing them first means the sitting's only follow-up is locks.
+
+#### The two shipped-binary edges — why the dead org can never be deleted
+
+§3.2 already says "keep the `nebelhaus` org alive and empty. It costs nothing and
+holds every redirect." That is stronger than housekeeping, because **two shipped
+binaries hardcode the old owner and can never be swept:**
+
+- `perch/Perch/Platform/UpdateCheck.swift:191,194` —
+  `api.github.com/repos/nebelhaus/perch/releases/latest` and the matching
+  `releases/latest` web URL
+- `pounce/pkgs/pounce/UpdateCheck.swift:136` — the same endpoint for pounce
+
+Every copy already installed carries those URLs; editing the source only fixes
+the *next* release. GitHub's API redirects a transferred repo and `URLSession`
+follows it, so the update nudge keeps working — **for exactly as long as the
+`nebelhaus` org exists.** Deleting it doesn't break links, it breaks update
+checks on installed apps, silently, with no error a user would report. Write that
+next to the org, not just here.
+
+#### Tier D — the rice keeps its name, so these are correct as they stand
+
+⚠️ **The highest-risk thing in §3.3 is a later session "finishing the job".**
+`nebelhaus` is still the rice (§6), so a large share of the census is *right*:
+
+| Do not sweep | Why |
+|---|---|
+| `/Library/Application Support/nebelhaus/perch.installed-from` | a **two-repo contract**: written by the rice (`nebelhaus/modules/perch/default.nix`), read by perch (`Perch/Platform/UpdateCheck.swift:118`, documented at `perch/docs/architecture-decisions/0003-*.md`). Rename it in one repo and perch stops recognising a rice install — it would start nudging rice users to download from GitHub. It is the *rice's* directory and the rice keeps its name. |
+| `~/.local/state/nebelhaus/` | §2.2, deliberately held |
+| `nebelhaus/modules/…` source paths in docs | the rice's own tree |
+| everything in `messages/` (24 hits) | §3.4 — it stays in the `nebelhaus` org |
+| holt's 60 internal `github.com/nebelhaus/holt/internal/…` imports across 23 `.go` files | see below |
+
+**Correction to §3.1's identifier table: holt's Go module path is not one line.**
+That table cites `sdk/go/go.mod:1`, but `holt/go.mod:1` is
+`module github.com/nebelhaus/holt` — the *root* module — and every internal
+import in the repo spells it out: **60 import lines across 23 `.go` files**, plus
+the nested SDK module. The recommendation there ("take option 1 — keep the path,
+revisit at the next major bump") is unchanged and now better supported: the root
+module is a **binary**, so its path is nobody's API, and a path change is a
+60-line sweep coupled to a five-SDK version contract. Keep it.
+
 **Gate:** `bench status` shows every lock edge fresh and no OFF-MAIN pin;
-`bench try` builds; a clean `git clone` of each new URL works without redirect.
+`bench try` builds; `bench clone` into an empty directory completes (this is the
+one that catches the `GH_ORG` split — nothing else exercises it); `local_src` for
+every `FAMILY` entry resolves to that repo's own checkout; a clean `git clone` of
+each new URL works without redirect.
 
 ---
 
