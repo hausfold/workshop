@@ -42,7 +42,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | colors / palette / how a tool is themed | `./nebelung` |
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
-| the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
+| the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./hausfold` — the platform repo `hausfold/hausfold`. **The directory was `./nebelhaus` until 2026-08-09**; the repo moved and was renamed in the org migration, and the checkout followed. The *rice* is still called nebelhaus (§6) — the directory is named for its repo, not for the rice. |
 | the org's GitHub front page | `./org-profile` — the checkout of the `nebelhaus/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./incubator/trill` — **incubating**: a complete repo-to-be awaiting eject to `hausfold/trill` (see its `BOOTSTRAP.md`); after eject, `./trill`. Called **flick** until 2026-08-08. |
 | holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([nebelhaus/holt](https://github.com/nebelhaus/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/nebelhaus/nebelhaus/pull/245)) — there is no fallback to roll back to. |
@@ -113,7 +113,7 @@ Never hand-walk that ripple; the tooling does it:
 - **Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that
   already exist do NOT hot-reload** — a running server caches plugin wasm in
   memory for its whole lifetime, so these need a fresh server. Use **`zscratch`**
-  — a rice dev CLI (`nebelhaus/modules/den`, next to `holt`, on PATH) that renders
+  — a rice dev CLI (`hausfold/modules/den`, next to `holt`, on PATH) that renders
   your candidate over a copy of the live `~/.config/zellij` into a temp
   `--config-dir` and boots a throwaway session in its own Ghostty window, so the
   working multiplexer is untouched (`zscratch --config`/`--layout`/`--theme
@@ -142,7 +142,7 @@ the workshop. Worktrees live OUTSIDE the repos so trees stay clean and `bench
 try`'s `path:` overrides never swallow them. (`Ctrl Alt Shift a` is the in-place
 variant: the one agent per tab allowed to edit the real checkout.)
 
-Its bash predecessor `wt.sh` (`nebelhaus/modules/den/wt.sh`) has been retired
+Its bash predecessor `wt.sh` (`hausfold/modules/den/wt.sh`) has been retired
 entirely — `holt` is the only worktree-lifecycle tool the family ships, and
 every caller (Claude Code's hooks, pounce's Spawn Agent, `bench status`) is
 already on it.
@@ -252,7 +252,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `assets`, `web/`). The family
-sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
+sub-repos — the platform (`hausfold/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
 `hausfold/`, `org-profile/`, `homebrew-tap/` — are **not here at all.** This is
 **NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked

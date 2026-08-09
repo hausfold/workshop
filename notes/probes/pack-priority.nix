@@ -8,7 +8,7 @@
 #
 #   nix-instantiate --eval --strict --json notes/probes/pack-priority.nix
 #   nix-instantiate --eval --strict --json notes/probes/pack-priority.nix \
-#     --arg rice /Users/you/code/workshop/nebelhaus     # from a worktree
+#     --arg rice /Users/you/code/workshop/hausfold     # from a worktree
 #
 # (`nix eval --file` does not apply `--arg`, and the rice path has to be an
 # argument because a workshop worktree cannot see the sibling repos.)
@@ -44,7 +44,7 @@
 # takes arguments, and mkDefault is lib.mkDefault. Whatever ships has to be
 # applied at the import seam.
 {
-  rice ? ../../nebelhaus,
+  rice ? ../../hausfold,
 }:
 let
   # The rice's pinned nixpkgs, so the module-system semantics under test are the

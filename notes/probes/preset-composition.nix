@@ -8,7 +8,7 @@
 # the gallery a launch produces is a pile of presets, not packs.
 #
 #   nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
-#     --arg rice /Users/you/code/workshop/nebelhaus
+#     --arg rice /Users/you/code/workshop/hausfold
 #
 # (Same shape as pack-priority.nix: `nix eval --file` ignores `--arg`, and the
 # rice path has to be an argument because a workshop worktree cannot see the
@@ -80,7 +80,7 @@
 #      no warning at all. Composition has two failure modes, and the roadmap
 #      only ever described the loud one.
 {
-  rice ? ../../nebelhaus,
+  rice ? ../../hausfold,
 }:
 let
   # The rice's pinned nixpkgs, so the module-system semantics under test are the

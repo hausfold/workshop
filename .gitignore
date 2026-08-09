@@ -1,18 +1,15 @@
 # The family repos live inside this dir but are their own git repos.
 #
-# 🚨 The rice's checkout is still `nebelhaus/` here, and that line stays until
-# `bench` moves. §3.1 decided the end state — `hausfold/` the platform,
-# `hausfold.co/` the site, each dir named for its own repo — but today
-# `cmd_clone` still plants the SITE at `$ROOT/hausfold`, `FAMILY` still spells
-# the rice `nebelhaus`, and `$ROOT/hausfold` holds a stale clone of the
-# archived `hausfold/website`. Retiring `/nebelhaus/` here is step 3 of
-# hausfold-rename.md §3.3's checklist, not step 1: do it out of order and the
-# entire rice checkout shows up untracked in this tree, one `git add -A` away
-# from being committed into the workshop.
+# ✅ §3.3's checklist has run, so these two now mean what §3.1 decided:
+# `hausfold/` is the PLATFORM checkout (`hausfold/hausfold` — this was
+# `nebelhaus/` until 2026-08-09) and `hausfold.co/` is the SITE
+# (`hausfold/hausfold.co`, not in FAMILY). Two different repos; each directory
+# is named for its own. `/nebelhaus/` is gone from this list because no such
+# checkout exists any more — if one ever reappears, something re-cloned the
+# rice under its pre-migration name and `bench` will not find it.
 /hausfold/
 /hausfold.co/
 /holt/
-/nebelhaus/
 /nebelung/
 /pounce/
 /perch/

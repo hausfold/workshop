@@ -3,7 +3,7 @@
 #
 # The family is a chain of flakes, each pinning the one before it:
 #
-#   nebelung (theme) ──> pounce (palette app) ──> nebelhaus (the rice) ──> ~/.config/nix (your machine)
+#   nebelung (theme) ──> pounce (palette app) ──> hausfold (the platform) ──> ~/.config/nix (your machine)
 #                └────────────────────────────────────┘
 #
 # Editing upstream means nothing until the downstream locks catch up. This
@@ -65,17 +65,17 @@ if [ -n "$_bench_common" ]; then ROOT="$(dirname "$_bench_common")"; else ROOT="
 CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
-# perch sits before nebelhaus: it's a flake input of the rice (which installs it
+# perch sits before hausfold: it's a flake input of the platform (which installs it
 # via Nix, not Homebrew), so its lock edge ripples downstream like the others.
 # holt sits there too — the rice takes it as an input and ships it on PATH, so a
-# holt commit is invisible to this machine until nebelhaus's lock moves, exactly
+# holt commit is invisible to this machine until hausfold's lock moves, exactly
 # like every other edge here.
 #
 # FAMILY entries ARE directory names (`local_src` → `$ROOT/$1`), so an entry only
 # ever names a repo whose checkout sits at `$ROOT/<entry>` — a repo renamed on
 # GitHub without renaming its checkout would have `bench status` reporting one
 # repo under the other's name.
-FAMILY=(nebelung pounce perch holt nebelhaus)
+FAMILY=(nebelung pounce perch holt hausfold)
 
 # The org every checkout here came from, since the 2026-08-09 transfer. One
 # value is right again only because #283 dropped the archived Messages client
@@ -98,7 +98,7 @@ GH_ORG="hausfold"
 # builds a signed .app in your login session and injects it via the flake's
 # `prebuilt` input (see ensure_perch_dev_app), so it feel-tests at source level
 # like the pure-Nix repos.
-OVERRIDABLE=(nebelung pounce perch holt nebelhaus)
+OVERRIDABLE=(nebelung pounce perch holt hausfold)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -142,7 +142,7 @@ hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
 # Every later eval needing that blob dies with the cryptic libgit2 message
 # "object not found - no match for id …" — nothing but clearing the cache fixes
 # it. The tarball-/fetcher-caches are pure and regenerable, so on that exact
-# signature we wipe them and retry once. Mirrors nebelhaus/modules/den/haus.sh.
+# signature we wipe them and retry once. Mirrors hausfold/modules/den/haus.sh.
 NIX_CACHE_CORRUPT_SIG='no match for id'
 
 nix_cache_wipe() { # drop the regenerable fetch caches for both the user and root nix stores
@@ -191,11 +191,8 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 # `git clone` below silently retargets it, with no error anywhere.
 gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
   case "$1" in
-    # The rice: its checkout is still ./nebelhaus (FAMILY, local_src and this
-    # dir's .gitignore all still spell it that way), but the repo is now
-    # hausfold/hausfold. Retire this arm only in the same commit that renames
-    # the directory — §3.3's step 4, which touches nine more literals.
-    nebelhaus)   echo "$GH_ORG/hausfold" ;;
+    # (The rice's arm retired in §3.3 step 4: the checkout is ./hausfold now,
+    # so `hausfold` → `hausfold/hausfold` falls out of the default below.)
     # GitHub's org front page lives in a repo that must be named `.github`; the
     # checkout can't be, because a dotdir there is invisible and collides with
     # this repo's own ./.github. This arm used to be inline in cmd_clone.
@@ -256,11 +253,11 @@ rev_on_main() {
 # The lock edges of the family graph: "<consumer-repo> <input-name> <source-repo>"
 EDGES=(
   "pounce nebelung nebelung"
-  "nebelhaus nebelung nebelung"
-  "nebelhaus pounce pounce"
-  "nebelhaus perch perch"
-  "nebelhaus holt holt"
-  "consumer nebelhaus nebelhaus"
+  "hausfold nebelung nebelung"
+  "hausfold pounce pounce"
+  "hausfold perch perch"
+  "hausfold holt holt"
+  "consumer nebelhaus hausfold"
 )
 
 host_name() { # the darwinConfiguration to build in the consumer flake
@@ -325,14 +322,15 @@ overrides() { # every family input redirected at the local checkouts
   # unknown input is not a hard failure. `bench try` would report that it built
   # your branch while building the pinned rice.
   #
-  # The ONE token here that is a directory is `local_src nebelhaus`'s argument,
-  # and it has NOT moved yet: the checkout is still $ROOT/nebelhaus. When §3.3's
-  # step 4 renames it to $ROOT/hausfold, that argument moves in the same commit
-  # — and only that one. The `nebelhaus/…` input paths stay exactly as they are.
+  # The ONE token here that is a directory is `local_src`'s argument, and §3.3's
+  # step 4 moved it — and only it — to `hausfold`, in the same commit that
+  # renamed the checkout. The `nebelhaus/…` input paths stayed exactly as they
+  # were, which is what makes this line the clearest illustration of the rule:
+  # two spellings of the same word on one line, meaning different things.
   local perch_prebuilt=""
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input nebelhaus/perch/prebuilt path:$PERCH_DEV_APP_DIR"
-  echo "--override-input nebelhaus path:$(local_src nebelhaus) \
+  echo "--override-input nebelhaus path:$(local_src hausfold) \
         --override-input nebelhaus/nebelung path:$(local_src nebelung) \
         --override-input nebelhaus/pounce path:$(local_src pounce) \
         --override-input nebelhaus/perch path:$(local_src perch)$perch_prebuilt \
@@ -397,7 +395,7 @@ ensure_perch_dev_app() {
 }
 
 # Release bookkeeping. Releases are what users actually consume — pounce via
-# the Homebrew tap, nebelhaus via nebelhaus.com/init.sh (which serves the
+# the Homebrew tap, the rice via nebelhaus.com/init.sh (which serves the
 # LATEST RELEASE's bootstrap, not main) — so a tag that falls behind main is
 # every bit as stale as a lock edge, just invisible without this.
 latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if none
@@ -579,14 +577,14 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce perch nebelhaus holt; do
+  for name in pounce perch hausfold holt; do
     local dir tag behind audience cut
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
       perch)     audience="brew + the rice's flake pin" ;;
-      nebelhaus) audience="nebelhaus.com/init.sh" ;;
+      hausfold)  audience="nebelhaus.com/init.sh (the rice)" ;;
       # holt is the only one whose release lands OUTSIDE our own infrastructure:
       # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins holt's
       # main, so this machine sees a holt commit via the lock edge above — but
@@ -648,7 +646,7 @@ cmd_status() {
 # With `overrides` in play that second eval is the expensive one, since it walks
 # the local checkouts too.
 #
-# `haus-activate` (shipped by the rice — nebelhaus/modules/den) does only the
+# `haus-activate` (shipped by the rice — hausfold/modules/den) does only the
 # privileged half: set the system profile, then run that build's own
 # `darwin-rebuild activate`. Both routes go through a stable
 # /run/current-system path, never ./result or a store path: collar's
@@ -1089,7 +1087,7 @@ version_file() { # version_file <repo> — WHERE a releasable repo's version liv
   case "$1" in
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
     perch)     echo "$(repo_dir "$1")/VERSION" ;;
-    nebelhaus) echo "$(repo_dir "$1")/VERSION" ;;
+    hausfold)  echo "$(repo_dir "$1")/VERSION" ;;
     holt)      echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
   esac
@@ -1100,7 +1098,7 @@ read_version() { # read_version <repo> — the version string that repo tags at
   case "$1" in
     pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
     perch)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
-    nebelhaus) tr -d '[:space:]' < "$f" 2>/dev/null ;;
+    hausfold)  tr -d '[:space:]' < "$f" 2>/dev/null ;;
     holt)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
 }
@@ -1114,7 +1112,7 @@ write_version() { # write_version <repo> <version> — stamp the version source 
     # -i suffix arg, so the portable path is redirect + mv.
     pounce)    local t; t="$(mktemp)"; sed -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" >"$t" && mv "$t" "$f" ;;
     perch)     printf '%s\n' "$2" > "$f" ;;
-    nebelhaus) printf '%s\n' "$2" > "$f" ;;
+    hausfold)  printf '%s\n' "$2" > "$f" ;;
     # holt's version lives in FOUR files, not one — VERSION plus three SDK
     # manifests (npm/PyPI/crates each declare their own). bench doesn't learn
     # their shapes; the repo owns that, so the knowledge sits next to the
@@ -1168,7 +1166,7 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # supersede. Blocking, then fast-forwarding, closes that window.
 #
 # There is exactly ONE workflow to watch — each repo's `release`, holding 1–3
-# jobs (nebelhaus: publish; pounce: publish + bump-tap; perch: those plus
+# jobs (hausfold: publish; pounce: publish + bump-tap; perch: those plus
 # bump-flake). The tap bump is a plain push into homebrew-tap, which has no
 # workflows of its own, so when this run goes green the release IS live —
 # nothing further to chase.
@@ -1409,13 +1407,13 @@ cmd_release() {
     esac
     shift
   done
-  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, nebelhaus, holt)"
+  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, hausfold, holt)"
   [ -n "$name" ] || die "$usage"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   version_file "$name" >/dev/null \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, nebelhaus, holt)"
+    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, hausfold, holt)"
 
   local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
   if [ "$scheme" = semver ]; then
@@ -1595,9 +1593,10 @@ EOF
 }
 
 cmd_clone() {
-  # Directory name from the loop, remote from gh_repo — they differ for the rice
-  # (./nebelhaus ← hausfold/hausfold) and for org-profile (./org-profile ←
-  # hausfold/.github), and gh_repo is the only place that knows.
+  # Directory name from the loop, remote from gh_repo — they still differ for
+  # org-profile (./org-profile ← hausfold/.github), and gh_repo is the only
+  # place that knows. The rice's arm retired at §3.3 step 4: its checkout is
+  # ./hausfold now, so it falls through gh_repo's default like everyone else.
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
     if [ -d "$ROOT/$name/.git" ]; then
       say "$name already here"
@@ -1612,10 +1611,10 @@ cmd_clone() {
   # FAMILY. The workshop dir is still where it lives, so clone it here.
   #
   # 🚨 It goes at $ROOT/hausfold.co, NOT $ROOT/hausfold. The directory is named
-  # for its repo, which is the rule §3.1 settled: $ROOT/hausfold is reserved for
-  # the PLATFORM checkout the rice's ./nebelhaus becomes at §3.3's step 4. Plant
-  # the site there instead and `local_src hausfold` later resolves the rice to a
-  # folder of HTML — `bench try` then builds the wrong tree and reports success.
+  # for its repo, which is the rule §3.1 settled — and $ROOT/hausfold is no
+  # longer merely reserved, it IS the platform checkout as of §3.3's step 4.
+  # Plant the site there instead and `local_src hausfold` resolves the rice to a
+  # folder of HTML: `bench try` builds the wrong tree and reports success.
   # This dir held a stale `hausfold/website` clone until 2026-08-09; it was
   # deleted, and nothing should recreate it.
   #

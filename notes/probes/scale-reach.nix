@@ -9,7 +9,7 @@
 # paragraph.
 #
 #   nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
-#     --arg rice /Users/you/code/workshop/nebelhaus
+#     --arg rice /Users/you/code/workshop/hausfold
 #
 # (Same argument convention as pack-priority.nix / preset-composition.nix: a
 # workshop worktree cannot see the sibling repos, and `nix eval --file` ignores
@@ -68,7 +68,7 @@
 # the same day. This file stays the scratch version: it prints the numeric-leaf
 # census and the resolved values, which is what you want the first time.
 {
-  rice ? ../../nebelhaus,
+  rice ? ../../hausfold,
   scales ? [
     1.0
     1.4
