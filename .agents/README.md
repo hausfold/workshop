@@ -96,8 +96,9 @@ allows, and add a row.
 ## The rest of the family
 
 Every repo now carries this layer, one PR each: the rice (`nebelhaus`),
-`nebelung`, `pounce`, `trill`, `perch`, `org-profile` (the `nebelhaus/.github`
-repo), `homebrew-tap`, the incubating `incubator/flick`, and the consumer
+`nebelung`, `pounce`, the archived Messages client, `perch`, `org-profile` (the
+`nebelhaus/.github` repo), `homebrew-tap`, the incubating `incubator/trill`
+(the notification compositor, which took the `trill` name), and the consumer
 config (`~/.config/nix`). Each keeps its **own** rules — only the shape is
 shared. The differences worth knowing:
 
@@ -111,8 +112,8 @@ shared. The differences worth knowing:
   `docs-sync` are here. Its `.claude/settings.local.json` stays put — a
   pre-approved tool-call allowlist is machine-local permission state, not a
   project rule.
-- **`incubator/flick` has no `.github/copilot-instructions.md` yet.** It's still
-  inside this repo's tree, and `incubator/flick/.github/` is not a path GitHub
+- **`incubator/trill` has no `.github/copilot-instructions.md` yet.** It's still
+  inside this repo's tree, and `incubator/trill/.github/` is not a path GitHub
   resolves; it's on the eject checklist in its `BOOTSTRAP.md`.
 - **The rice ships this shape to users, too.** `nebelhaus.claude.skill` now
   installs a `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather

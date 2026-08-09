@@ -1,6 +1,6 @@
 ---
 interface Props {
-  product: 'pounce' | 'trill' | 'perch';
+  product: 'pounce' | 'perch';
 }
 
 const { product } = Astro.props;
@@ -10,11 +10,6 @@ const content = {
     label: '⌘ space to done',
     title: 'Thought to action, before the thought leaves.',
     copy: 'Summon it, type what you mean, and get back to the work. No dashboard. No ceremony.',
-  },
-  trill: {
-    label: 'your inbox at working speed',
-    title: 'A conversation, not a control room.',
-    copy: 'Triage the thread, find the thing, write the reply. Your messages stay local and close to the keyboard.',
   },
   perch: {
     label: 'the notch earns its keep',
@@ -61,8 +56,8 @@ const content = {
                         <em>Application</em>
                       </div>
                       <div class="palette-row">
-                        <img class="row-icon real flush" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
-                        <b>trill</b>
+                        <img class="row-icon real flush" src="/media/app-icons/perch.png" alt="" loading="lazy" decoding="async" />
+                        <b>Perch</b>
                         <em>Application</em>
                       </div>
                       <div class="palette-row">
@@ -147,190 +142,11 @@ const content = {
                     </div>
                   </div>
                 </div>
-              ) : product === 'trill' ? (
-                <div
-                  class="trill-demo"
-                  role="img"
-                  aria-label="Trill working a Messages inbox: a tapback and a live reply arrive, an answer is typed and sent with a five-second undo window, ⇧⌘F searches every conversation with from: and has:link operators, ⇧⌘R filters the sidebar to threads still waiting on you, and ⌘⇧L opens a library of every image, link, and file ever shared"
-                >
-                  <div class="trill-sidebar" aria-hidden="true">
-                    <div class="window-tools"><i /><i /><i /></div>
-                    <div class="trill-search">⌕&nbsp;&nbsp;Search everything</div>
-                    <div class="sidebar-lists">
-                      <div class="list-inbox">
-                        <div class="inbox-label"><span>inbox</span><b>12</b></div>
-                        <div class="chat-row">
-                          <span class="avatar mauve">JM</span>
-                          <span><b>Jo</b><small>landing demo is looking sharp</small></span>
-                          <time>now</time>
-                        </div>
-                        <div class="chat-row selected">
-                          <span class="avatar blue">AK</span>
-                          <span>
-                            <b>Alex</b>
-                            <span class="flip">
-                              <small class="preview-a">Can you send the build?</small>
-                              <small class="preview-b">Perfect. That was fast.</small>
-                              <small class="preview-c">glad it landed!</small>
-                            </span>
-                          </span>
-                          <time class="flip stamps">
-                            <i class="stamp-a">9:41</i>
-                            <i class="stamp-b">now</i>
-                          </time>
-                        </div>
-                        <div class="chat-row">
-                          <span class="avatar green">ops</span>
-                          <span><b>Backend</b><small>deploy finished cleanly</small></span>
-                          <time>9:32</time>
-                        </div>
-                        <div class="chat-row dim">
-                          <span class="avatar peach">M</span>
-                          <span><b>Mom</b><small>Photo</small></span>
-                          <time>Tue</time>
-                        </div>
-                        <div class="side-folders">
-                          <div class="side-label">folders</div>
-                          <div class="folder-row"><i class="fld" /><span>work</span><b>4</b></div>
-                          <div class="folder-row"><i class="fld" /><span>family</span><b>2</b></div>
-                        </div>
-                      </div>
-                      <div class="list-triage">
-                        <div class="inbox-label">
-                          <span>needs reply</span>
-                          <b class="flip count">
-                            <i class="count-a">3</i>
-                            <i class="count-b">2</i>
-                          </b>
-                        </div>
-                        <div class="chat-row">
-                          <span class="avatar mauve">JM</span>
-                          <span><b>Jo</b><small>landing demo is looking sharp</small></span>
-                          <time>4m</time>
-                        </div>
-                        <div class="chat-row">
-                          <span class="avatar green">ops</span>
-                          <span><b>Backend</b><small>deploy finished cleanly</small></span>
-                          <time>12m</time>
-                        </div>
-                        <div class="chat-row snoozed">
-                          <span class="avatar peach">M</span>
-                          <span><b>Mom</b><small>Photo</small></span>
-                          <em class="snooze">☾ 3h</em>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="trill-thread" aria-hidden="true">
-                    <header>
-                      <span class="avatar blue">AK</span>
-                      <span><b>Alex</b><small>iMessage · local</small></span>
-                      <em>⌘ K</em>
-                    </header>
-                    <div class="message-space">
-                      <div class="day">today 9:41</div>
-                      <p class="bubble received">Can you send the build?</p>
-                      <p class="bubble sent reacted">
-                        Already there — check Releases.
-                        <i class="tapback">!!</i>
-                      </p>
-                      <p class="bubble received incoming">Perfect. That was fast.</p>
-                      <p class="bubble sent reply">glad it landed!</p>
-                      <div class="send-meta">
-                        <em class="undo-pill">↩ undo · 5s</em>
-                        <small class="delivered">Delivered</small>
-                      </div>
-                    </div>
-                    <footer>
-                      <span class="placeholder">Message Alex…</span>
-                      <b class="typed">glad it landed!</b>
-                      <span class="caret-slot"><i class="caret" /></span>
-                      <b class="send-key">↑</b>
-                    </footer>
-                    <div class="search-sheet">
-                      <div class="sheet-field">
-                        <i class="glass">⌕</i>
-                        <b class="query"><i class="op">from:</i>alex&nbsp;<i class="op">has:</i>link</b>
-                        <i class="caret" />
-                      </div>
-                      <div class="sheet-results v1">
-                        <div class="s-row">
-                          <span class="dot" />
-                          <b>Can you send the build?</b>
-                          <em>9:41</em>
-                        </div>
-                        <div class="s-row">
-                          <span class="dot" />
-                          <b>Perfect. That was fast.</b>
-                          <em>9:41</em>
-                        </div>
-                        <div class="s-row">
-                          <span class="dot" />
-                          <b>can we ship thursday?</b>
-                          <em>Mon</em>
-                        </div>
-                      </div>
-                      <div class="sheet-results v2">
-                        <div class="s-row selected">
-                          <span class="chip">github.com</span>
-                          <b>nebelhaus/trill · Releases v2026.07</b>
-                          <em>Tue</em>
-                        </div>
-                        <div class="s-row">
-                          <span class="chip">figma.com</span>
-                          <b>launch page mockups</b>
-                          <em>Jun 12</em>
-                        </div>
-                        <div class="s-row">
-                          <span class="chip">nebelhaus.com</span>
-                          <b>the trill landing draft</b>
-                          <em>May 30</em>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="library-pane">
-                      <header>
-                        <span class="lib-name">Library</span>
-                        <span class="lib-chips"><i class="on">all</i><i>images</i><i>links</i><i>files</i></span>
-                      </header>
-                      <div class="lib-grid">
-                        <div class="lib-tile art-a" />
-                        <div class="lib-tile link sel">
-                          <b>github.com</b>
-                          <small>nebelhaus/trill · Releases</small>
-                        </div>
-                        <div class="lib-tile art-b" />
-                        <div class="lib-tile file">
-                          <i class="document" />
-                          <small>build-2026.07.zip</small>
-                        </div>
-                        <div class="lib-tile art-c" />
-                        <div class="lib-tile link">
-                          <b>figma.com</b>
-                          <small>launch page mockups</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <aside class="trill-detail" aria-hidden="true">
-                    <span class="avatar blue">AK</span>
-                    <h3>Alex Kim</h3>
-                    <p class="flip detail-meta">
-                      <span class="meta-a">needs reply · 2 links · 4 files</span>
-                      <span class="meta-b">replied · 2 links · 4 files</span>
-                    </p>
-                    <div><b>local notes</b><span>release follow-up</span></div>
-                    <div><b>shared today</b><span>v2026.07.29</span></div>
-                  </aside>
-                  <i class="key-cast kc-a" aria-hidden="true">⇧⌘F</i>
-                  <i class="key-cast kc-b" aria-hidden="true">⇧⌘R</i>
-                  <i class="key-cast kc-c" aria-hidden="true">⌘⇧L</i>
-                </div>
               ) : (
                 <div
                   class="perch-demo"
                   role="img"
-                  aria-label="Perch ferrying a QA session through the notch shelf: ⇧⌘3 captures the trill landing page and the floating thumbnail is dragged into the shelf, which grows out of the notch and tucks away whenever the cursor leaves; clicking Download for macOS lands Trill in the Dock's Downloads stack, which fans open so the download can be dragged in too; then Finder opens and both drag out one at a time — the screenshot into the shots folder, Trill into Applications — copy-only throughout, originals untouched"
+                  aria-label="Perch ferrying a QA session through the notch shelf: ⇧⌘3 captures the pounce landing page and the floating thumbnail is dragged into the shelf, which grows out of the notch and tucks away whenever the cursor leaves; clicking Download for macOS lands Pounce in the Dock's Downloads stack, which fans open so the download can be dragged in too; then Finder opens and both drag out one at a time — the screenshot into the shots folder, Pounce into Applications — copy-only throughout, originals untouched"
                 >
                   <div class="desktop-menu" aria-hidden="true">
                     <span>⌁ &nbsp; Finder &nbsp; File &nbsp; Edit &nbsp; View</span>
@@ -339,7 +155,7 @@ const content = {
                   <div class="desktop-window win-browser" aria-hidden="true">
                     <header>
                       <i /><i /><i />
-                      <span class="url-pill">nebelhaus.com/trill</span>
+                      <span class="url-pill">nebelhaus.com/pounce</span>
                     </header>
                     <div class="browser-page">
                       <p class="bp-eyebrow">native · keyboard-first · local-first</p>
@@ -377,8 +193,8 @@ const content = {
                         <span>Slack</span>
                       </div>
                       <div class="file-card card-app">
-                        <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
-                        <span>Trill</span>
+                        <img class="app-ico" src="/media/app-icons/pounce.png" alt="" loading="lazy" decoding="async" />
+                        <span>Pounce</span>
                       </div>
                     </div>
                   </div>
@@ -390,8 +206,8 @@ const content = {
                     <span class="stack">↓<b class="dl-badge">1</b></span>
                   </div>
                   <div class="dl-fan" aria-hidden="true">
-                    <img src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
-                    <em>Trill.zip</em>
+                    <img src="/media/app-icons/pounce.png" alt="" loading="lazy" decoding="async" />
+                    <em>Pounce.zip</em>
                   </div>
                   <div class="perch-shelf" aria-hidden="true">
                     <header>
@@ -406,8 +222,8 @@ const content = {
                     <div class="shelf-items">
                       <div class="shelf-item sh-a"><i class="shot-mini mini-browser" /><span>landing.png</span></div>
                       <div class="shelf-item sh-b">
-                        <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
-                        <span>Trill.zip</span>
+                        <img class="app-ico" src="/media/app-icons/pounce.png" alt="" loading="lazy" decoding="async" />
+                        <span>Pounce.zip</span>
                       </div>
                     </div>
                   </div>
@@ -416,14 +232,14 @@ const content = {
                   <span class="thumb thumb-a" aria-hidden="true"><i class="shot-mini mini-browser" /></span>
                   <i class="drag-ghost g-shot-in" aria-hidden="true"><i class="shot-mini mini-browser" /></i>
                   <i class="drag-ghost g-dl-in" aria-hidden="true">
-                    <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                    <img class="app-ico" src="/media/app-icons/pounce.png" alt="" loading="lazy" decoding="async" />
                   </i>
                   <i class="drag-ghost g-shot-out" aria-hidden="true">
                     <i class="shot-mini mini-browser" />
                     <em class="copy-pill">copy</em>
                   </i>
                   <i class="drag-ghost g-dl-out" aria-hidden="true">
-                    <img class="app-ico" src="/media/app-icons/trill.png" alt="" loading="lazy" decoding="async" />
+                    <img class="app-ico" src="/media/app-icons/pounce.png" alt="" loading="lazy" decoding="async" />
                     <em class="copy-pill">copy</em>
                   </i>
                   <i class="cursor" aria-hidden="true" />
@@ -848,7 +664,7 @@ const content = {
     border-radius: 0;
   }
 
-  /* Trill's icns is full-bleed (no baked margin) — no compensation needed. */
+  /* Perch's icns is full-bleed (no baked margin) — no compensation needed. */
   .row-icon.real.flush {
     width: 2em;
     height: 2em;
@@ -1005,30 +821,6 @@ const content = {
   .answer-well {
     min-height: 0;
     overflow: hidden;
-  }
-
-  /* Trill's code-native preview: real layout language, synthetic data. */
-  /* Full-bleed to the panel edge: the notch (42–58% of the screen, ~6% tall)
-     overlays the thread header's empty middle — the avatar/name sit left of
-     it and the ⌘K chip right of it, so it bites nothing. Starting below the
-     notch instead left a dead black band along the top. */
-  .trill-demo {
-    display: grid;
-    position: absolute;
-    grid-template-columns: 29% 48% 23%;
-    inset: 0;
-    overflow: hidden;
-    background: var(--base);
-    color: var(--text);
-    font-family: var(--font);
-    font-size: clamp(7px, 1.25cqw, 12px);
-    text-align: left;
-  }
-
-  .trill-sidebar {
-    padding: 3.7% 3.6% 2%;
-    background: var(--mantle);
-    border-right: 1px solid var(--surface0);
   }
 
   /* The inbox list and the ⇧⌘R needs-reply list are twins stacked in one
@@ -1193,15 +985,6 @@ const content = {
     border-radius: 50%;
   }
 
-  .trill-search {
-    padding: 5% 6%;
-    background: var(--crust);
-    border: 1px solid var(--surface0);
-    border-radius: 7px;
-    color: var(--overlay1);
-    font-family: var(--mono);
-  }
-
   .inbox-label {
     display: flex;
     justify-content: space-between;
@@ -1234,15 +1017,12 @@ const content = {
     opacity: 0.62;
   }
 
-  .chat-row > span:nth-child(2),
-  .trill-thread > header > span:nth-child(2) {
+  .chat-row > span:nth-child(2) {
     min-width: 0;
   }
 
   .chat-row b,
-  .chat-row small,
-  .trill-thread > header b,
-  .trill-thread > header small {
+  .chat-row small {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1250,8 +1030,7 @@ const content = {
   }
 
   .chat-row small,
-  .chat-row time,
-  .trill-thread > header small {
+  .chat-row time {
     color: var(--overlay1);
     font-size: 0.8em;
   }
@@ -1281,39 +1060,6 @@ const content = {
 
   .avatar.peach {
     background: var(--peach);
-  }
-
-  .trill-thread {
-    display: grid;
-    position: relative;
-    grid-template-rows: auto 1fr auto;
-    min-width: 0;
-    background: var(--base);
-  }
-
-  /* Top padding clears the header row under the notch's ~6% bite — the
-     avatar/name sit left of it, but the subtitle's tail would graze it
-     when vertically centered. */
-  .trill-thread > header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 13%;
-    padding: 4.2% 4% 1.6%;
-    background: color-mix(in srgb, var(--mantle) 72%, transparent);
-    border-bottom: 1px solid var(--surface0);
-  }
-
-  .trill-thread > header em {
-    margin-left: auto;
-    padding: 2px 6px;
-    background: var(--crust);
-    border: 1px solid var(--surface0);
-    border-radius: 4px;
-    color: var(--overlay1);
-    font-family: var(--mono);
-    font-size: 0.74em;
-    font-style: normal;
   }
 
   .message-space {
@@ -1424,34 +1170,6 @@ const content = {
     animation: delivers 18s linear infinite;
   }
 
-  .trill-thread > footer {
-    display: flex;
-    position: relative;
-    align-items: center;
-    margin: 0 4% 4%;
-    padding: 2.4% 2.6% 2.4% 4%;
-    background: var(--mantle);
-    border: 1px solid var(--surface0);
-    border-radius: 9px;
-    color: var(--overlay1);
-  }
-
-  .trill-thread > footer .placeholder {
-    position: absolute;
-    left: 4%;
-    animation: placeholder-yields 18s linear infinite;
-  }
-
-  .trill-thread > footer .typed {
-    width: 0;
-    overflow: hidden;
-    color: var(--text);
-    font-family: var(--mono);
-    font-weight: 400;
-    white-space: nowrap;
-    animation: types-reply 18s linear infinite;
-  }
-
   /* The slot gates the caret to the composing window; the caret inside it
      blinks on its own fast clock — two opacities multiply, they can't share
      one animation slot. */
@@ -1467,18 +1185,6 @@ const content = {
     height: 1.15em;
     background: var(--blue);
     animation: caret-blinks 1.06s steps(2, jump-none) infinite;
-  }
-
-  .trill-thread > footer .send-key {
-    display: grid;
-    width: 19px;
-    height: 19px;
-    margin-left: auto;
-    place-items: center;
-    background: var(--blue);
-    border-radius: 5px;
-    color: var(--crust);
-    animation: send-blips 18s linear infinite;
   }
 
   /* ⇧⌘F: a search sheet over the thread. Twin result lists stacked in one
@@ -1752,7 +1458,7 @@ const content = {
       lib-actioned 18s linear infinite;
   }
 
-  /* The keystroke drives each beat — trill is keyboard-first, so the
+  /* The keystroke drives each beat — pounce is keyboard-first, so the
      shortcut IS the story. One chip per beat, cast over the pane it acts on. */
   .key-cast {
     position: absolute;
@@ -1787,58 +1493,8 @@ const content = {
     animation: keycast-library 18s ease-out infinite;
   }
 
-  .trill-detail {
-    padding: 17% 8% 4%;
-    background: var(--mantle);
-    border-left: 1px solid var(--surface0);
-    text-align: center;
-  }
-
-  .trill-detail > .avatar {
-    width: 44px;
-    height: 44px;
-    margin: auto;
-  }
-
-  .trill-detail h3 {
-    margin: 5% 0 0;
-    font-size: 1.1em;
-  }
-
-  .trill-detail > p {
-    margin: 2% 0 12%;
-    color: var(--subtext0);
-    font-size: 0.82em;
-  }
-
-  .trill-detail div {
-    margin: 5% 0;
-    padding: 7%;
-    background: var(--crust);
-    border: 1px solid var(--surface0);
-    border-radius: 7px;
-    text-align: left;
-  }
-
-  .trill-detail div b,
-  .trill-detail div span {
-    display: block;
-  }
-
-  .trill-detail div b {
-    margin-bottom: 3%;
-    color: var(--blue);
-    font-family: var(--mono);
-    font-size: 0.74em;
-  }
-
-  .trill-detail div span {
-    color: var(--text);
-    font-size: 0.88em;
-  }
-
   /* Perch's code-native preview: the cursor is the actor the way keystrokes
-     are trill's — every scene change is a drag it performs. */
+     are pounce's — every scene change is a drag it performs. */
   .perch-demo {
     position: relative;
     width: 100%;
@@ -1911,7 +1567,7 @@ const content = {
     font-size: 0.72em;
   }
 
-  /* The page under test: the trill landing, in miniature. */
+  /* The page under test: the pounce landing, in miniature. */
   .browser-page {
     display: grid;
     justify-items: center;
@@ -2060,7 +1716,6 @@ const content = {
     content: '';
     opacity: 0.85;
   }
-
 
   /* The capture flash, then the floating thumbnail macOS parks bottom-right. */
   .shutter {
@@ -2685,20 +2340,13 @@ const content = {
     }
   }
 
-  /* Trill's 18s clock, in seconds: Alex tapbacks the sent bubble at 0.6 and
-     his reply lands at 1.2 — the sidebar preview and timestamp follow on the
-     same frame. The composer focuses at 1.75, types 15 chars by 3.15, and ↑
-     sends at 3.4: the bubble pops with a five-second undo pill that yields
-     to Delivered at 5.0. ⇧⌘F at 5.4 drops global search over the thread —
-     "from:alex" is typed by 6.8 and three matches snap in mid-word; then
-     " has:link" lands by 7.6 and the list refines to link rows on the same
-     frame; ↵ blips the selection at 8.8, closed by 9.7. ⇧⌘R at 9.9 swaps
-     the sidebar to needs-reply — Alex is absent, you just answered him —
-     and Mom's thread snoozes at 11.6, ticking the count 3 → 2; restored by
-     13.1. ⌘⇧L at 13.5 opens the Library over the thread: shared images,
-     links, and files bloom in a grid, one link blips at 15.7, gone by 16.6.
-     The thread's additions fade out around 17.5 so the loop seam lands on
-     the plain thread, invisible. */
+  /* ORPHANED — these keyframes and the ~70 classes below them (.chat-row,
+     .bubble, .tapback, .undo-pill, .search-sheet, .library-pane, .lib-tile,
+     .avatar, .preview-*, .stamp-*, .meta-*, .count-*, .kc-*, …) styled a third
+     product demo that this component no longer renders. Nothing references
+     them; they are kept in one pass rather than purged in the same change that
+     removed the markup, so a broken pounce/perch demo could never be blamed on
+     a name change. Safe to delete wholesale — check `grep class= ` above first. */
   @keyframes tapback-pops {
     0%, 3.5% {
       opacity: 0;
@@ -3108,19 +2756,19 @@ const content = {
     }
   }
 
-  /* Perch's 20s clock, in seconds: you're QA-ing the trill landing page.
+  /* Perch's 20s clock, in seconds: you're QA-ing the pounce landing page.
      ⇧⌘3 at 1.0 — flash — and macOS parks the thumbnail bottom-right; the
      cursor drags it toward the notch and the shelf grows out of it at 2.7
      ("drop to stash"); the shot lands at 3.5 — "1 thing waiting" — and the
      shelf tucks away as the cursor walks off. It clicks Download for macOS
      at 5.2: the Dock's Downloads stack bounces and takes a badge; clicking
-     the stack at 6.7 fans Trill.zip open, and dragging it up re-opens the
+     the stack at 6.7 fans Pounce.zip open, and dragging it up re-opens the
      shelf — "2 things waiting" at 8.9 — which closes again once the cursor
      leaves. Finder appears at 10.4 on the shots folder; a notch hover at
      11.7 re-opens the shelf and the screenshot files into the glowing
      folder at 13.7. A click on the Applications favorite at 14.7 lights
      the row and snaps the view — Zen and Slack already live there — and
-     Trill lands beside them at 16.5. "Nothing waiting"; the shelf tucks
+     Pounce lands beside them at 16.5. "Nothing waiting"; the shelf tucks
      away at 17.8 and the desk rests on the installed result before the
      seam snaps back. */
   @keyframes shelf-opens {
@@ -3762,9 +3410,6 @@ const content = {
     .bubble.reply,
     .undo-pill,
     .delivered,
-    .trill-thread > footer .placeholder,
-    .trill-thread > footer .typed,
-    .trill-thread > footer .send-key,
     .caret-slot,
     .caret-slot .caret,
     .sheet-field .caret,
@@ -3800,8 +3445,8 @@ const content = {
       transform: translate(-50%, 0) scale(1);
     }
 
-    /* Trill's still is the finished conversation: tapback, reply, Delivered,
-       an empty composer — every overlay, keycast, and pill stays hidden. */
+    /* ORPHANED (see the note above the keyframes) — the reduced-motion still
+       for the demo this component no longer renders. */
     .tapback,
     .bubble.incoming,
     .bubble.reply,
@@ -3819,7 +3464,7 @@ const content = {
       opacity: 0;
     }
 
-    /* Perch's still is mid-errand: the screenshot and the Trill download
+    /* Perch's still is mid-errand: the screenshot and the Pounce download
        waiting in the open shelf, Finder on the shots folder below — no
        cursor, no ghosts, no thumbnail, nothing filed yet. */
     .perch-shelf {

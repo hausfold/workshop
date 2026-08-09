@@ -17,7 +17,6 @@ describe('product landing demos', () => {
     expect(component).not.toMatch(/<video|<source|\.webp|\.mp4|\.gif/i);
     expect(component).not.toContain('demoMedia');
     expect(component).toContain('class="pounce-demo"');
-    expect(component).toContain('class="trill-demo"');
     expect(component).toContain('class="perch-demo"');
   });
 

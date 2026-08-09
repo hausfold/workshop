@@ -26,7 +26,7 @@ them:
 | 3 | **`hausfold.co`**, accept the `.co` | `hausfold.com` isn't unbought, it's **unbuyable** — an operating laundry business holds it, checked 2026-08-08. §0.4. |
 | 4 | **Rename now, neutralize defaults later** | the sweep is mechanical and provable; the rice carve-out is design work (§7). |
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
-| 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror and the archived `trill`. |
+| 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror. ⚠️ **Amended 2026-08-08 — the archived `trill` does NOT transfer.** It is renamed in place and stays in `nebelhaus`, because the notification compositor claims `hausfold/trill`. See §3.4. |
 | 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
 
 ### And these three reverse earlier written decisions
@@ -123,7 +123,7 @@ paid products**, it's a different check:
 | | Status |
 |---|---|
 | npm — `hausfold` as a package name | ✅ **free** (2026-08-08) |
-| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation |
+| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked, and only matters if that app ever publishes an SDK — today only holt does.) |
 | GitHub — any `hausfold*` squatting near you | ✅ nothing found; the org is ours |
 | A web search for an existing company using it | 🚨 **found one** — see below |
 | USPTO TESS + EUIPO, software classes (9/42) | ❌ **not done.** The USPTO search API needs a key; this needs the web UI or a service. **Still 👤.** |
@@ -786,8 +786,9 @@ over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` 
 
 ## §3 — The GitHub org migration
 
-10 repos. **Do all transfers in one sitting**, then one lock ripple — a
-half-migrated org means flake inputs resolving through redirects for days.
+9 repos (10 until §3.4 took the archived Messages client off the list). **Do all
+transfers in one sitting**, then one lock ripple — a half-migrated org means
+flake inputs resolving through redirects for days.
 
 ### 3.1 👤 Pre-flight
 
@@ -838,19 +839,90 @@ Upstream first, so each lock bump has a settled target:
 | 7 | `nebelhaus/workshop` | `hausfold/workshop` | |
 | 8 | `nebelhaus/homebrew-tap` | `hausfold/homebrew-tap` | |
 | 9 | `nebelhaus/.github` | `hausfold/.github` | the org front page |
-| 10 | `nebelhaus/trill` | `hausfold/trill` | archived; transfer or leave, low stakes |
+| 10 | ~~`nebelhaus/trill`~~ | ✅ **done — `nebelhaus/messages`, and it stays there** | reversed and executed 2026-08-08, see §3.4. It does NOT transfer, and it must never arrive at `hausfold/trill` — the notification compositor holds that name. |
 
 **Keep the `nebelhaus` org alive and empty.** It costs nothing and holds every
 redirect. Deleting it breaks them permanently.
 
-⚠️ **One repo that doesn't exist yet still has to be repointed: `flick`.** Its
-eject target is written as `nebelhaus/flick` in `AGENTS.md:30`,
-`incubator/flick/BOOTSTRAP.md:30,65`, `CLAUDE.md:22`, `.agents/README.md:38,41`
-and `nix/package.nix:45,80`. There is no row for it in the table above because
-there's no repo to transfer — which is exactly how it gets created in the dead
-org months from now. **Repoint it to `hausfold/flick` in §2's sweep**, and treat
-"a repo that doesn't exist yet" as a category the transfer table structurally
-can't see.
+✅ **One repo that doesn't exist yet still had to be repointed: `flick` — done
+2026-08-08, and it came back as `trill`.** Its eject target was written as
+`nebelhaus/flick` across `AGENTS.md`, its own `BOOTSTRAP.md` and `CLAUDE.md`,
+`.agents/README.md` and `nix/package.nix`. There was no row for it in the table
+above because there was no repo to transfer — which is exactly how it gets
+created in the dead org months from now. It now points at **`hausfold/trill`**.
+Treat "a repo that doesn't exist yet" as a category the transfer table
+structurally can't see.
+
+### 3.4 ✅ Decided 2026-08-08 — flick becomes **trill**, and the old trill stays behind
+
+The family's iMessage/SMS client was archived 2026-08-04, which freed the name
+it was using. The notification compositor incubating as **flick** took it: a
+trill is the small chirred note a cat makes in passing, which is what a quiet
+notification compositor *is*. An ear-flick was the second-best version of the
+same image, and the name was free for the price of a `git mv` — the app has no
+repo, no release, no cask and no install base yet, so this is the cheapest it
+will ever be. **After eject it costs a repo rename, a cask token change, a
+bundle-ID change that strands the TCC grant, and a flake-input ripple.**
+
+Two consequences that reverse rows written above:
+
+1. **The archived client does not transfer.** §3.2 row 10 said "transfer or
+   leave, low stakes"; it is now "leave, and rename", because leaving it named
+   `trill` anywhere the compositor also lives is what makes it not low stakes.
+   It is renamed in place inside `nebelhaus` — the org stays alive to hold
+   redirects (§3.2 already says so), and GitHub redirects `nebelhaus/trill` to
+   `nebelhaus/messages`, including its release-asset URLs. **Renaming needs it
+   unarchived and re-archived** — GitHub makes an archived repo's settings
+   read-only.
+2. **`flick` leaves §6's do-not-change list** and `com.nebelhaus.flick` leaves
+   §4.2's pending column — both are already done.
+
+**The new name is `messages`** — decided 2026-08-08, chosen over
+`trill-messages` for a clean break rather than a tombstone that keeps the word
+"trill" in search results beside the live app. All three slots the old app held
+are now free:
+
+| Slot | Was | State |
+|---|---|---|
+| GitHub repo name | `nebelhaus/trill` | ✅ **`nebelhaus/messages`**, still archived. Never needed to move for the compositor (different org) — renamed so the two apps are never both "trill". |
+| on-disk `~/code/workshop/trill` | the archived clone | ✅ `~/code/workshop/messages`, remote repointed, `.gitignore` and `bench`'s `FAMILY` entry follow (§3.1's rule: each checkout named for its repo). The dir is what the eject's final `mv` needs. |
+| Homebrew cask token `trill` | `homebrew-tap/Casks/trill.rb` | ✅ **deleted.** Not `disable!`-then-deleted: the cask had no install base (`brew list --cask` found it nowhere, no `Trill.app` on disk), and the final release stays downloadable regardless. |
+
+How the rename was done, because it isn't the obvious one-liner:
+
+```sh
+gh api -X PATCH repos/nebelhaus/trill  -F archived=false   # settings are
+gh api -X PATCH repos/nebelhaus/trill  -f name=messages     # read-only while
+gh api -X PATCH repos/nebelhaus/messages -F archived=true   # archived
+```
+
+GitHub keeps the `nebelhaus/trill` → `nebelhaus/messages` redirect for the web
+UI, the API and **release-asset URLs** (verified: the v2026.08.04-1 zip still
+returns 200 through the old path). Everything we own is spelled `messages`
+anyway rather than living on that redirect.
+
+This is §3.1's on-disk-collision finding recurring with different names: two
+family repos wanting one directory. It was resolved there by naming each
+checkout for its repo, and the same rule settles it here.
+
+**Inherited leftovers in `web/`, and one of them is load-bearing** — the old
+Trill's product page is gone, but the name still has plumbing:
+
+- 🚨 `astro.config.mjs`'s `redirects` sends `/trill`, `/trill/`, `/guides/trill`
+  and `/guides/trill/` to `github.com/nebelhaus/messages` (repointed with the
+  rename rather than left riding GitHub's redirect). **A docs page at `/trill`
+  for the compositor cannot exist until those four entries come out** — a
+  redirect beats a page — and retiring them means accepting that a frozen cask
+  and a frozen about box start 404ing.
+- ✅ `worker.js`'s `DOWNLOADABLE` slug moved `trill` → `messages` (with its
+  test and `web/README.md`), so `/download/trill` is free for the compositor
+  and `/download/messages` serves the archived app under its real name.
+- ⏳ `--neb-product-trill` (+ `-hover`) in `styles/palette.css` and the
+  `'trill'` slot in `FamilyNav.astro` still describe the *archived* app. Purely
+  presentational, so they wait for whoever builds the compositor's page.
+
+Whoever builds the compositor's page inherits all of it; check each one means
+the right app rather than assuming the name carried over cleanly.
 
 ### 3.3 🤖 Rewrite every edge
 
@@ -866,7 +938,8 @@ of them:
 | `pounce/flake.nix` | nebelung |
 | 👤 `~/.config/nix/flake.nix` (`$HAUS_CONSUMER`) | nebelhaus |
 
-`perch`, `holt`, `nebelung`, `trill` and `incubator/flick` have none.
+`perch`, `holt`, `nebelung`, the archived Messages client and `incubator/trill`
+have none.
 
 ```sh
 rg 'github:nebelhaus/' --type nix          # from ~/code/workshop — misses the consumer
@@ -901,7 +974,7 @@ Mac immediately.
 What remains here is macOS only.
 
 - Register the macOS App IDs: `com.hausfold.perch`, `com.hausfold.pounce`,
-  `com.hausfold.flick`. These ship Developer ID + notarized, never through the
+  `com.hausfold.trill`. These ship Developer ID + notarized, never through the
   App Store, so they're unconstrained by any record.
 - ✅ **`com.nebelhaus.perch` → `com.hausfold.perch` is done** — perch#44,
   2026-08-08, pulled forward out of this phase exactly like the iOS half. See
@@ -929,7 +1002,7 @@ What remains here is macOS only.
 |---|---|
 | ✅ `com.nebelhaus.perch` (+ `.ios`, `.ios.share`, `.mobile-*`, `.dev`, `.tests`, `.transfer`, `.promises`, `.export`) | `com.hausfold.perch…` — done, perch#41 + perch#44 |
 | ✅ `group.com.nebelhaus.perch` | `group.com.hausfold.perch` — done, perch#41 |
-| `com.nebelhaus.flick` | `com.hausfold.flick` |
+| ✅ `com.nebelhaus.flick` | `com.hausfold.trill` (+ `.debug`, `.tests`) — done in the incubator, 2026-08-08, in the same change that renamed the app. Never shipped under either old id, so there is no install base and nothing to migrate. |
 | **`org.nixos.pounce`** | `com.hausfold.pounce` |
 
 `org.nixos.pounce` is a nix-darwin launchd convention leaking into a product —
@@ -1191,8 +1264,12 @@ Write these down or they get "fixed" by a later session:
   and the first entry in `/desktops`. Don't let "no landing page" turn into "no
   page" — `curl … /init.sh | bash` installs it, so something has to describe it.
 - **`haus` the CLI** — unchanged, and now the namespace matches it.
-- **`holt`, `pounce`, `perch`, `flick`, `prowl`, `sill`, `den`, `hearth`,
-  `collar`, `hush`** — all product/room names, all unchanged.
+- **`holt`, `pounce`, `perch`, `trill`, `prowl`, `sill`, `den`, `hearth`,
+  `collar`, `hush`** — all product/room names, all unchanged. ~~`flick`~~ is the
+  one exception this list ever took: it became **`trill`** on 2026-08-08 (§3.4),
+  reusing the name the archived Messages client gave up. Not part of the
+  hausfold rename — an independent decision that happened to land in the same
+  week.
 - **Team ID, signing certs, notary keys** — unchanged.
 - **`~/.cache/claude-worktrees/`** — already historical, stays.
 - **Roadmap §5 bodies, commit messages, PR titles** — historical record.
@@ -1276,9 +1353,14 @@ green. Everything else is strictly sequential.
 
 ## §9 — Loose ends found while writing this
 
-- `bench:75` still lists **`trill`** in `FAMILY` — and that's **deliberate**
+- `bench:75` still lists **`trill`** in `FAMILY` — and that was **deliberate**
   (`bench:72-74`), so `bench status` keeps reporting the checkout. Recorded here
   only because it reads like drift and will get "fixed" otherwise. See §2.1.
+  ⚠️ **§3.4 changed what that entry means.** `FAMILY` entries are directory
+  names, and the directory is about to belong to the *notification compositor*.
+  When the archived client's repo is renamed, its checkout renames with it and
+  this entry must follow — or `bench status` silently reports one repo under the
+  other's name. Decide there whether the dead client is worth an entry at all.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**
   carry-over (`guides/the-bar.mdx:128`) — unrelated, but it's in the same file
   you'll be editing.

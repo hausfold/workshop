@@ -177,6 +177,12 @@ deliberately INERT** *(~2–3 sessions; the big one)*
   stop and re-read the principle at the top.
 ## 5. Trill — why it isn't the bet
 
+> ⚠️ **"Trill" throughout this section is the archived Messages client**, now
+> `nebelhaus/messages`. The name was reused on 2026-08-08 by the notification
+> compositor (`notes/hausfold-rename.md` §3.4), which is a different product
+> and has its own monetization question, unasked. Kept as written — this is a
+> historical record of a decision, not a description of anything live.
+
 **Decided 2026-08-04.** Trill was the intended flagship: highest potential in
 the family eval, ~$39 one-time, positioned as "your local, private aggregator".
 It is now **not a monetized product**, and its Beeper track is frozen

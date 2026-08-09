@@ -69,10 +69,18 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # via Nix, not Homebrew), so its lock edge ripples downstream like the others.
 # holt sits there too — the rice takes it as an input and ships it on PATH, so a
 # holt commit is invisible to this machine until nebelhaus's lock moves, exactly
-# like every other edge here. trill is still listed so `bench status` reports the
-# checkout, but the rice dropped it (nebelhaus#213) and its repo is archived, so
-# it has no lock edge below it and no release path above it.
-FAMILY=(nebelung pounce trill perch holt nebelhaus)
+# like every other edge here. `messages` is the ARCHIVED Messages client — still
+# listed so `bench status` reports the checkout, but the rice dropped it
+# (nebelhaus#213) and its repo is archived, so it has no lock edge below it and
+# no release path above it.
+#
+# It was `trill` until 2026-08-08, when the repo, this entry AND the checkout dir
+# were renamed together to free that name for the notification compositor
+# incubating at `incubator/trill`, which takes this directory when it ejects.
+# FAMILY entries ARE directory names (`local_src` → `$ROOT/$1`), so a rename that
+# stopped at GitHub would have left `bench status` reporting one repo under the
+# other's name. notes/hausfold-rename.md §3.4.
+FAMILY=(nebelung pounce messages perch holt nebelhaus)
 GH_ORG="nebelhaus"
 
 # The family repos that are flake INPUTS of the rice, so `overrides()` can point
@@ -1024,10 +1032,12 @@ cmd_pull() {
   done
 }
 
-# trill is deliberately absent from all three: its repo is ARCHIVED (read-only
-# on GitHub as of 2026-08-04), so a tag can't be pushed to it. `bench status`
-# still reports its release edge — the last cask stays installable — but there
-# is no release path left to describe.
+# `messages` (the archived Messages client, `trill` until 2026-08-08) is
+# deliberately absent from all three: its repo is ARCHIVED (read-only on GitHub
+# as of 2026-08-04), so a tag can't be pushed to it. `bench status` still
+# reports its release edge — the last release stays downloadable — but there is
+# no release path left to describe, and its Homebrew cask was deleted with the
+# rename.
 version_file() { # version_file <repo> — WHERE a releasable repo's version lives
   case "$1" in
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;

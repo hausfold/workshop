@@ -17,21 +17,15 @@ export default defineConfig({
   // keeps HTML revalidating (belt-and-suspenders, and it freshens hashed JS), but
   // rendering no longer depends on any cache header being honored by any client.
   build: { inlineStylesheets: 'always' },
-  // trill was archived 2026-08-04 and is no longer part of the family the site
-  // presents: no landing page, no guide, no sidebar entry, no llms.txt row.
-  //
-  // Both URLs still have to resolve, though, and neither can ever be edited:
-  // nebelhaus.com/trill was printed in a shipped Homebrew cask and in the app's
-  // own about box, and /guides/trill/ is linked twice from trill's README —
-  // whose repo is ARCHIVED, hence read-only, hence frozen with those links in
-  // it forever. So they redirect to the archived repo, which is the honest
-  // destination: the code, the last release, and the archive notice.
-  redirects: {
-    '/trill': 'https://github.com/nebelhaus/trill',
-    '/trill/': 'https://github.com/nebelhaus/trill',
-    '/guides/trill': 'https://github.com/nebelhaus/trill',
-    '/guides/trill/': 'https://github.com/nebelhaus/trill',
-  },
+  // The site presents the living family only. The archived Messages client
+  // (called trill until 2026-08-08, now nebelhaus/messages) had four
+  // `/trill*` redirects here pointing at its repo; they were removed with the
+  // rest of its public surface. Consequence, accepted knowingly: the URL its
+  // about box prints, and the two /guides/trill/ links frozen into its
+  // archived README, now 404. Nothing else referenced them — the Homebrew
+  // cask that also printed one was deleted the same day, and the app has no
+  // install base. This is also what frees `/trill` for the notification
+  // compositor's own docs page.
   // Custom landing page lives at src/pages/index.astro; Starlight owns the rest.
   integrations: [
     starlight({
