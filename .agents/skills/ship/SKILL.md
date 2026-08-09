@@ -106,10 +106,11 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 Two properties that make this worth doing rather than ritual:
 
 - **It reads the reviewed repo's own `AGENTS.md`**, not the workshop's. A `pounce` PR is
-  judged by pounce's boundary rules; a rice PR by the rice's. **`holt` has none yet** (it
-  ejected before the `.agents/` layer reached it) — pass the workshop's `AGENTS.md` routing
-  table plus `holt/README.md` and `holt/SPEC.md` instead, and say in the PR body that the
-  pass ran without a repo boundary doc. Don't skip the pass over a missing file.
+  judged by pounce's boundary rules; a rice PR by the rice's. If a repo has no `AGENTS.md`
+  (holt was that repo until [holt#31](https://github.com/hausfold/holt/pull/31)), pass the
+  workshop's routing table plus that repo's `README.md` and design docs instead, and say in
+  the PR body that the pass ran without a repo boundary doc. Don't skip the pass over a
+  missing file.
 - **It's advisory, never a gate.** It does not block `gh pr create`. A false positive
   that stops a ship trains you to skip the step, and a skipped step assures nothing.
 
