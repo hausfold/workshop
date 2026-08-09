@@ -17,7 +17,7 @@ Four command-line tools, two jobs — keeping them straight is half the battle:
 `haus` and `bench` never overlap — named apart on purpose so they can't shadow
 each other (`haus` = your machine; `bench` = these repos). `holt` and `zscratch`
 are dev tools the rice puts on `PATH` regardless of whether you contribute.
-(`holt` has [its own repo](https://github.com/nebelhaus/holt); the rice takes it
+(`holt` has [its own repo](https://github.com/hausfold/holt); the rice takes it
 as a flake input. Its bash predecessor `wt.sh` has been retired entirely — there
 is no fallback to roll back to.)
 
@@ -63,7 +63,7 @@ looking at.
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
 # an agent lands work by opening a PR — never by pushing to or merging into main:
-git -C nebelung push -u origin worktree-<name> && gh pr create -R nebelhaus/nebelung
+git -C nebelung push -u origin worktree-<name> && gh pr create -R hausfold/nebelung
 ```
 
 A PR is conflict-detected and atomic, so parallel agents can't clobber each
@@ -182,7 +182,7 @@ zscratch clean            # reap the throwaway session
 
 The real activation still happens once via `bench try switch`, at the end. Full
 flag set in the rice's `CLAUDE.md`
-([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
+([nebelhaus#69](https://github.com/hausfold/hausfold/pull/69)).
 
 ## The whole life of a change
 

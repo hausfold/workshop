@@ -75,7 +75,7 @@ jobs:
       # workflow ever writes `ci/options-drift`, which is what makes the force
       # safe.
       #
-      # Opening the PR needs an ORG setting the nebelhaus org currently has OFF:
+      # Opening the PR needs an ORG setting the hausfold org currently has OFF:
       # Settings → Actions → General → Workflow permissions → "Allow GitHub
       # Actions to create and approve pull requests". A repo-level toggle can't
       # override it (PUT .../actions/permissions/workflow 409s), so until

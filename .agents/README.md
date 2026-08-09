@@ -95,8 +95,8 @@ allows, and add a row.
 
 ## The rest of the family
 
-Every repo now carries this layer, one PR each: the rice (`nebelhaus`),
-`nebelung`, `pounce`, `perch`, `org-profile` (the `nebelhaus/.github` repo),
+Every repo now carries this layer, one PR each: the rice (`hausfold`),
+`nebelung`, `pounce`, `perch`, `org-profile` (the `hausfold/.github` repo),
 `homebrew-tap`, `trill` (the notification compositor),
 and the consumer config (`~/.config/nix`). Each keeps its **own** rules — only
 the shape is shared. The differences worth knowing:

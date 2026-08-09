@@ -71,7 +71,7 @@ branch be checked out in exactly one worktree at a time — that exclusivity is
 the one genuinely private place a worktree has. A stash is, mechanically, a
 commit anyway; the only thing the stash machinery adds is the shared stack.
 
-So [holt](https://github.com/nebelhaus/holt) — the worktree-lifecycle substrate
+So [holt](https://github.com/hausfold/holt) — the worktree-lifecycle substrate
 this rice ships — has `park`:
 
 ```sh
@@ -105,6 +105,6 @@ your branch; a `wip:` commit isn't.
 </Aside>
 
 If you run coding agents in worktrees — any agent, any repo, this rice or not —
-holt is [its own standalone tool](https://github.com/nebelhaus/holt), and the
+holt is [its own standalone tool](https://github.com/hausfold/holt), and the
 [coding-agents guide](/guides/claude-agents/) shows the rest of the lifecycle:
 create, park, resume, reap, reship.

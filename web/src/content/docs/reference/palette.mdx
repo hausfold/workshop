@@ -27,7 +27,7 @@ identical. The result is a fog-grey scheme named for a cat breed the colour of
 high fog. Grey is the point.
 
 The source of truth is `palette/nebelung.hex.json` in the
-[nebelung repo](https://github.com/nebelhaus/nebelung).
+[nebelung repo](https://github.com/hausfold/nebelung).
 
 ## The four variants
 
@@ -53,7 +53,7 @@ Each variant also renders as its own Catppuccin flavor, so its files are named
 after it — Ghostty's light theme is
 `latte/ghostty/themes/catppuccin-latte.conf`. The swatches below are the default
 variant; view any of them in the
-[interactive preview](https://htmlpreview.github.io/?https://github.com/nebelhaus/nebelung/blob/main/preview/nebelung-latte.html).
+[interactive preview](https://htmlpreview.github.io/?https://github.com/hausfold/nebelung/blob/main/preview/nebelung-latte.html).
 
 ## The neutral ramp
 
@@ -89,7 +89,7 @@ Two ways to consume them:
 - **Consume the flake** from your own Nix config:
 
   ```nix
-  inputs.nebelung.url = "github:nebelhaus/nebelung";
+  inputs.nebelung.url = "github:hausfold/nebelung";
   # rendered themes:
   #   ${nebelung.packages.${system}.default}/<tool>/...
   # raw palette (name → "#hex") for configs you generate yourself:
@@ -122,4 +122,4 @@ Then regenerate and re-render:
 ```
 
 This is a change in the nebelung repo, not your host file — see the nebelung
-[README](https://github.com/nebelhaus/nebelung) for the full workflow.
+[README](https://github.com/hausfold/nebelung) for the full workflow.

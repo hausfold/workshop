@@ -252,7 +252,7 @@ looks stock, `haus doctor` tells you exactly where each one stands:
 
 A ✓ is live now. A ⓘ tells you the one move left. nebelung publishes which is
 which per tool — the full table is in its
-[ports documentation](https://github.com/nebelhaus/nebelung/blob/main/docs/ports.md).
+[ports documentation](https://github.com/hausfold/nebelung/blob/main/docs/ports.md).
 
 <Aside type="note" title="Merges are reported, never applied">
 Ports installed by merging into an existing config file (VS Code's
@@ -280,7 +280,7 @@ of nebelhaus. Two ways:
 - **Consume the flake.** Add the input and reference the built output:
 
   ```nix
-  inputs.nebelung.url = "github:nebelhaus/nebelung";
+  inputs.nebelung.url = "github:hausfold/nebelung";
   # then: ${nebelung.packages.${system}.default}/<tool>/...
   ```
 

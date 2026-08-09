@@ -31,14 +31,14 @@ nix shell nixpkgs#nodejs_22 --command npm run dev      # http://localhost:4321
 
 Content lives in `src/content/docs/` (Markdown/MDX). The sidebar is defined in
 `astro.config.mjs`. The landing page is `src/pages/index.astro`. Colours are the
-[nebelung](https://github.com/nebelhaus/nebelung) palette, applied to Starlight
+[nebelung](https://github.com/hausfold/nebelung) palette, applied to Starlight
 in `src/styles/nebelung.css` and inline on the landing page.
 
 ## The `/init.sh` proxy
 
 `worker.js` **proxies** (not redirects) the rice's `bootstrap.sh`, served as
 `text/plain`, so the pretty URL is what `curl` sees. By default it serves the
-**latest GitHub release tag** of `nebelhaus/nebelhaus` (cached ~1h), falling back
+**latest GitHub release tag** of `hausfold/hausfold` (cached ~1h), falling back
 to `main` before the first release exists. Pin an exact one with
 `?ref=v2026.07.18` (releases are date-tagged), or hard-pin for everyone via the
 `REF` var in `wrangler.toml`.

@@ -64,7 +64,7 @@ if (!existsSync(WM_BINDINGS)) {
       'That file is the binding table this snapshot is derived from. It is',
       'generated and committed by the rice (`nix build .#site-data`), so the',
       'checkout predates nebelhaus#268 — update it (CI pulls',
-      'nebelhaus/nebelhaus main) and re-run.',
+      'hausfold/hausfold main) and re-run.',
       '',
     ].join('\n'),
   );

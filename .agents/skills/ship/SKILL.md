@@ -230,8 +230,8 @@ child-repo PRs) — list **every** one, oldest first:
 ```
 ## 🧪 To verify — live on `main`, not released. Break something? Fresh agent + the link + what broke.
 
-- [pounce#35](https://github.com/nebelhaus/pounce/pull/35) — <one line: what changed> · **check:** <1–3 concrete, observable steps>
-- [nebelung#12](https://github.com/nebelhaus/nebelung/pull/12) — <what changed> · **check:** <steps>
+- [pounce#35](https://github.com/hausfold/pounce/pull/35) — <one line: what changed> · **check:** <1–3 concrete, observable steps>
+- [nebelung#12](https://github.com/hausfold/nebelung/pull/12) — <what changed> · **check:** <steps>
 
 Activate (idempotent; /ship already ran this on main — re-run if needed): `bench try switch`
 ```
