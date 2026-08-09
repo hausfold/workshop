@@ -1146,6 +1146,14 @@ created in the dead org months from now. It now points at **`hausfold/trill`**.
 Treat "a repo that doesn't exist yet" as a category the transfer table
 structurally can't see.
 
+✅ **And that repo now exists: `hausfold/trill`, public, ejected 2026-08-09**
+(workshop#286). Born in the right org on the first try — which is the whole
+point of having repointed it while it was still a string in a checklist. Three
+`github.com/nebelhaus` links in its own tree (`AGENTS.md`, `README.md`,
+`.agents/README.md`) were caught in the same change; a repo born in the new org
+linking the old one is the same trap one indirection out. The workshop's
+`incubator/` is gone with it.
+
 ### 3.4 ✅ Decided 2026-08-08 — flick becomes **trill**, and the old trill stays behind
 
 The family's iMessage/SMS client was archived 2026-08-04, which freed the name
@@ -1915,6 +1923,12 @@ green. Everything else is strictly sequential.
   lock edge below it, no release path above it. `FAMILY` is `(nebelung pounce
   perch holt nebelhaus)` at `bench:78`, and it must **never** contain `trill` —
   that name is the compositor's, which is deliberately not a family repo.
+  ⚠️ **The rice consuming trill's overlay does not change this.** `flake.nix`
+  says "the rice adds this overlay", and `FAMILY` is about the *lock-ripple
+  chain*, not about who imports whom: trill is a leaf with nothing pinned below
+  it, so `bench ship` has no edge to walk and `bench status` has no staleness to
+  report. Adding it to `FAMILY` to "make bench see it" is the mistake this
+  bullet exists to prevent — the rice-wiring PR should say so in its body.
   ⚠️ And `FAMILY` was never the single source of truth for the word — §3.3's
   `bench` subsection lists eight more places `nebelhaus` is a literal. See §2.1.
 - `notes/launch-phase-1.md` §0 has an unresolved **`.bak` discrepancy**

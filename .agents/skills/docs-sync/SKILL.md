@@ -52,7 +52,7 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 |---|---|
 | `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
 | `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
-| `trill/` app behavior — the notification compositor, once it ejects (`incubator/trill` until then) | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. |
+| `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. ⚠️ Not in `FAMILY`, so a sweep that iterates `bench`'s list alone will skip it. |
 | `nebelhaus/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
 | a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
 | a new/changed keybind | `reference/keybindings.md` — **always** |
