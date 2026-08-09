@@ -2745,10 +2745,10 @@ per pill per bar and never two copies of the same readout.
 
 The set is the five core pills (`clock`, `weather`, `media`, `battery`,
 `wifi`) plus the `haus.sill.items` extras (`cpu`, `memory`, `volume`,
-`calendar`, `caffeinate`, `agents`, `aiUsage`, `elgato`, `harvest`). The
-whole left side (workspace pills, front app, the leader picker) and the
-tour stay on the menu bar. The hush pill stays up top too — it rides
-`haus.hush.enable` rather than this table.
+`calendar`, `caffeinate`, `agents`, `aiUsage`, `elgato`, `harvest`), plus
+the Hush pill when `haus.hush.enable` is on. The whole left side
+(workspace pills, front app, the leader picker) and the tour stay on the
+menu bar.
 
 Needs `haus.sill.bottom.enable`; without it nothing here is drawn.
 
@@ -2833,6 +2833,14 @@ Toggles an Elgato Key Light on the local network. The light is found over mDNS (
 `boolean` · default `false`
 
 A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh you provide.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.bottom.items.hush`
+
+`boolean` · default `false`
+
+The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the pill but does not enable the Hush room by itself.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
@@ -2942,11 +2950,12 @@ only what you want to change:
 
 A pill set false is never created (its update script doesn't run either).
 The hush (Do-Not-Disturb) pill is separate — it rides
-haus.hush.enable, not this set.
+haus.hush.enable, not this set. It can still be moved to the second bar
+with `haus.sill.bottom.items.hush`.
 
-This is the MENU BAR's set. `haus.sill.bottom.items` is the same table
-for the optional second bar along the bottom of the screen, and a pill
-named there moves down rather than being drawn twice.
+This is the MENU BAR's set. `haus.sill.bottom.items` mirrors these pills
+for the optional second bar and also accepts `hush`; a pill named there
+moves down rather than being drawn twice.
 
 Example:
 

@@ -189,7 +189,8 @@ awake off
   `~/.config/sketchybar/harvest_secrets.sh`.
 
 The **hush** (Do-Not-Disturb) pill is separate: it rides
-[`haus.hush.enable`](/guides/hush/), not `sill.items`.
+[`haus.hush.enable`](/guides/hush/), not `sill.items`. It can still move to the
+second bar with `haus.sill.bottom.items.hush = true`.
 
 <Aside type="note" title="Secrets stay out of Nix">
 sill never bakes tokens into the store. The harvest plugin sources your
@@ -207,7 +208,7 @@ bottom of the screen**, running at the same time as the top one:
 ```nix
 haus.sill.bottom = {
   enable = true;
-  items = { weather = true; media = true; cpu = true; };
+  items = { weather = true; media = true; hush = true; };
 };
 ```
 
@@ -217,8 +218,9 @@ per bar, and never two copies of the same readout racing each other.
 
 The set includes the five core pills — `clock`, `weather`, `media`, `battery`,
 `wifi` — and the extras: `cpu`, `memory`, `volume`, `calendar`, `caffeinate`,
-`agents`, `aiUsage`, `elgato`, `harvest`. The whole left side (workspace pills,
-front app, the leader picker), the tour, and the hush pill stay on the menu bar.
+`agents`, `aiUsage`, `elgato`, `harvest`. Hush can move too when
+`haus.hush.enable` is on. The whole left side (workspace pills, front app, the
+leader picker) and the tour stay on the menu bar.
 
 Three things worth knowing before you turn it on:
 
