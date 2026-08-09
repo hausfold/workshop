@@ -28,7 +28,15 @@ bench docs-since
 
 This prints, per repo, every commit past the last reconciled watermark plus the files
 each touched. It is watermark-based, not "since yesterday" — a sweep that didn't run for
-four days still picks up all four. **Do not `--mark` yet**; that happens at the very end,
+four days still picks up all four.
+
+> ⚠️ **`trill` is not in this output.** `docs-since` walks `DOCS_REPOS` (`bench:1512`
+> — the workshop, `FAMILY`, `org-profile`, `homebrew-tap`), and trill is deliberately
+> not a family repo: no lock edge, so `bench` neither clones nor ships it. Check
+> `git -C "$ROOT/trill" log` by hand until it earns an arm of its own. A sweep that
+> trusts this command alone will report the compositor's docs as clean forever.
+
+**Do not `--mark` yet**; that happens at the very end,
 only for what you actually reconciled.
 
 If it says nothing is new, say so and stop. A no-op day is a fine outcome — don't go
@@ -52,7 +60,7 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 |---|---|
 | `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
 | `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
-| `trill/` app behavior — the notification compositor, once it ejects (`incubator/trill` until then) | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. |
+| `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. ⚠️ You only reach this row if you looked — see Step 1. |
 | `nebelhaus/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
 | a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
 | a new/changed keybind | `reference/keybindings.md` — **always** |

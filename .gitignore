@@ -15,8 +15,6 @@
 /perch/
 /org-profile/
 /homebrew-tap/
+/trill/
 /web/.wrangler/
 .DS_Store
-
-# Coverage artifacts from `xcodebuild test` in the incubator projects.
-*.profraw

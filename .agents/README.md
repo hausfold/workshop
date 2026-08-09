@@ -97,7 +97,7 @@ allows, and add a row.
 
 Every repo now carries this layer, one PR each: the rice (`nebelhaus`),
 `nebelung`, `pounce`, `perch`, `org-profile` (the `nebelhaus/.github` repo),
-`homebrew-tap`, the incubating `incubator/trill` (the notification compositor),
+`homebrew-tap`, `trill` (the notification compositor),
 and the consumer config (`~/.config/nix`). Each keeps its **own** rules — only
 the shape is shared. The differences worth knowing:
 
@@ -111,9 +111,12 @@ the shape is shared. The differences worth knowing:
   `docs-sync` are here. Its `.claude/settings.local.json` stays put — a
   pre-approved tool-call allowlist is machine-local permission state, not a
   project rule.
-- **`incubator/trill` has no `.github/copilot-instructions.md` yet.** It's still
-  inside this repo's tree, and `incubator/trill/.github/` is not a path GitHub
-  resolves; it's on the eject checklist in its `BOOTSTRAP.md`.
+- **`trill` grew its `.github/copilot-instructions.md` at eject, not before.**
+  While it incubated there was no `hausfold/trill` for Copilot to read one from,
+  and `incubator/trill/.github/` is not a path GitHub resolves — so it was the
+  single piece of the layer deliberately deferred, and it landed 2026-08-09 with
+  the eject. Everything else was already whole, which is what made the eject a
+  move rather than a rebuild.
 - **The rice ships this shape to users, too.** `haus.claude.skill` now
   installs a `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather
   than a lone `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one
