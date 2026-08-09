@@ -1,7 +1,7 @@
 ---
 name: ship
 description: >-
-  Finish a piece of work in the nebelhaus family and land it: commit stragglers, verify
+  Finish a piece of work in the hausfold family and land it: commit stragglers, verify
   with `bench try`, run the pre-PR assurance pass (Step 2.5 — a clean-context subagent
   over `git diff main...HEAD`, which every PR in the family runs, not just /ship'd ones),
   open a PR and merge it, clean up every worktree the session spun up,
@@ -12,7 +12,7 @@ description: >-
   release` stays gated. Never opens or closes a zellij pane.
 ---
 
-# Ship (nebelhaus workshop): verify → PR → merge → clean up → ripple → activate
+# Ship (hausfold workshop): verify → PR → merge → clean up → ripple → activate
 
 The nebelhaus repos form a chain of pinned flake inputs
 (`nebelung → pounce → nebelhaus → ~/.config/nix`). A commit is invisible downstream until
@@ -94,7 +94,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 |---|---|
 | **Routing** | the change is in the wrong repo — a color hex landing in `nebelhaus` instead of `nebelung`, launchd logic in `pounce` instead of the rice. The workshop's routing table decides, and "it works here" is not a defence. |
 | **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `web/src/content/docs/` (the SOT), `reference/options.md`, `reference/keybindings.md`, or the repo's README. An option a user can set and can't discover is a bug. |
-| **Atomicity** | a breaking `nebelhaus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
+| **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(prowl) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
 | **Raw worktree adds** | a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
 | **Release blast radius** | the diff touches `homebrew-tap`, changes what `bench release` would stamp, moves a flake-input edge, or touches secrets / `~/.config/nix` identity. Any of those is ≥3/5 by definition and belongs in the PR body loudly. |

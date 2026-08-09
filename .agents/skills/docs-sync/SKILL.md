@@ -1,7 +1,7 @@
 ---
 name: docs-sync
 description: >-
-  The daily docs sweep for the nebelhaus family: read every commit landed since the last
+  The daily docs sweep for the hausfold family: read every commit landed since the last
   sweep, find what those commits made stale or left undocumented across the web docs (the
   SOT), READMEs, in-repo docs and code comments, and open a PR per repo with the fixes.
   Use when I say /docs-sync, "sync the docs", "docs audit", "are the docs stale", or when

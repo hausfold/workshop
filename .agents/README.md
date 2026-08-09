@@ -115,7 +115,7 @@ shared. The differences worth knowing:
 - **`incubator/trill` has no `.github/copilot-instructions.md` yet.** It's still
   inside this repo's tree, and `incubator/trill/.github/` is not a path GitHub
   resolves; it's on the eject checklist in its `BOOTSTRAP.md`.
-- **The rice ships this shape to users, too.** `nebelhaus.claude.skill` now
+- **The rice ships this shape to users, too.** `haus.claude.skill` now
   installs a `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather
   than a lone `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one
   layer out.
