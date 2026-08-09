@@ -88,6 +88,15 @@ a preset deliberately. That makes `unset` and `reset` distinct:
 - `haus reset lock.requirePassword` deletes the generated module, so whatever
   the host file, preset, or rice says underneath becomes effective again.
 
+:::note[The namespace used to be `nebelhaus.*`]
+Every option on this site is spelled `haus.*`. Older configurations write
+`nebelhaus.*`, and **they still work** — the rice carries each old path as an
+alias that sets the new one and prints an obsolete-option warning on rebuild.
+Nothing breaks if you leave your host file alone; renaming the prefix is how you
+silence the warnings. The aliases go away once the last configuration has moved,
+so treat them as a grace period rather than a second spelling.
+:::
+
 Only `haus.*` paths are accepted. The prefix is optional for convenience;
 passing `system.defaults.*`, `homebrew.*`, or an unknown option fails before a
 file is written. Values use the obvious shell form for strings (`teal`) and JSON

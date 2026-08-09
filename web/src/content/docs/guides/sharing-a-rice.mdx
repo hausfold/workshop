@@ -12,11 +12,11 @@ other rices, and override from a host file.
 ## The format
 
 The file evaluates to an attribute set whose only top-level key is
-`nebelhaus`:
+`haus`:
 
 ```nix
 {
-  nebelhaus = {
+  haus = {
     developer.enable = false;
     prowl.enable = false;
     keys.leader = "none";
@@ -196,7 +196,7 @@ different trust model and should be labelled as one.
 
 ## Before you share
 
-- [ ] The file has only a top-level `nebelhaus` key.
+- [ ] The file has only a top-level `haus` key.
 - [ ] `checkRice` prints `true`.
 - [ ] A real host configuration evaluates.
 - [ ] The rice composes with an unrelated layer.

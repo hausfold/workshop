@@ -673,11 +673,31 @@ erroring**, so every renderer of someone else's data needs a floor.
   (`#one-list-nebelhausroster`, a truncation of a heading slug), which is the
   argument for asserting rather than substituting.
 
+  🚨 **A dot-based sweep does not find the namespace's other spelling, and the
+  assurance pass is what caught it.** A rice file's top-level key is the
+  namespace with no dot after it — `{ haus = { … }; }` — so
+  `guides/sharing-a-rice.mdx` and `guides/making-it-yours.mdx` went on teaching
+  `{ nebelhaus = …; }` while the *same pages*, edited by the same commit, said
+  "a file that changes only `haus.*`". Self-contradictory 30 lines apart, and
+  every regex above was blind to it because there is nothing after the word.
+  `checkRice` still accepts both keys (§1.1a step 4), so nothing would have
+  failed — a reader would just have copied the deprecated form out of the
+  authoring guide. Two more of the same shape: `web/src/pages/` is not under
+  `content/docs/` and its `perch.astro` teaches an option in landing-page copy,
+  and the sweep's own summary called what remained "brand prose" when three
+  namespace misses were still in the tree. **Grep the bare word too, and read
+  the result — most hits are the brand and must stay.**
+
+  Added while there: a `haus.md` aside saying `nebelhaus.*` still works via the
+  alias. The docs had renamed the namespace with no signal to the people whose
+  host files are entirely the old spelling.
+
   Verified by running it: `gen-options.mjs --check` current,
-  `check-rice-bindings.mjs` unchanged, `npm run build` green at 33 pages.
-  What's left for §2 in `web/` is **brand** prose — `what-is-nebelhaus.md` and
-  its redirect, `astro.config.mjs`'s `site:` — which belongs with §5's domain
-  move, not here.
+  `check-rice-bindings.mjs` unchanged, `npm run build` green at 33 pages, every
+  `#haus` fragment resolves and a site-wide fragment check finds zero dangling.
+  What's left for §2 in `web/` is genuinely **brand** prose —
+  `what-is-nebelhaus.md` and its redirect, `astro.config.mjs`'s `site:` — which
+  belongs with §5's domain move, not here.
 - **bench**: `FAMILY=(…)` at `bench:75`, the repo lists at `:1003`, `:1455`,
   `:1541`, and the `--override-input nebelhaus/*` block at `:281-284`.
   ⚠️ **Leave `trill` in `FAMILY` alone.** `bench:72-74` keeps it there
