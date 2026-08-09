@@ -462,7 +462,7 @@ key at all.
 |---|---|---|
 | **Sound** | ✅ **buildable today, fully settled** | the volume leaf is an exponential, not a fraction; the UI writes the same key back; and a bad `beep.sound` path is silence, so the option must validate it |
 | **Locale** | ✅ buildable, with one piece nothing in nix-darwin can express | a **distributed notification**, without which running apps never see the change |
-| **Power** | ⚠️ buildable, but **not** on the typed options | `systemsetup` is power-source-blind and nix-darwin discards its stderr; on 26.6.1 `-setcomputersleep` applied nothing — and neither did `pmset`, so computer sleep is pinned here whoever asks |
+| **Power** | ⚠️ buildable on `pmset`, **not** on the typed options | `systemsetup` works, but writes ONE profile: asked for computer sleep 17 while on battery, it set AC and left battery alone — so `power.sleep.*` configures a source the config never named, silently |
 
 ### Sound — works, but the number lies
 
@@ -601,20 +601,22 @@ writes the canonical entry for you.
 in its own activation script — here to `systemsetup` — so no restart-map entry,
 no plist, and none of this file's usual `defaults`-based evidence applies.
 
-Two limits, both read straight off `<nix-darwin>/modules/power/*.nix` (its tree,
-not the rice's `modules/`) and `man systemsetup`:
+Two limits, from `<nix-darwin>/modules/power/*.nix` (its tree, not the rice's
+`modules/`), `man systemsetup`, and the write test below:
 
-1. **No power-source selector exists.** Every `systemsetup` sleep verb is
-   source-blind, while macOS stores the two sources separately —
-   `/Library/Preferences/com.apple.PowerManagement.plist` on this machine
-   differs between them (`Wake On LAN` 1 vs 0, `ReduceBrightness` battery-only).
-   "Sleep at 5 min on battery, never on AC" — the only opinion a laptop rice
-   actually has — is not expressible through the typed options.
+1. **No power-source selector exists — and the missing selector is not neutral.**
+   Every `systemsetup` sleep verb is source-blind, while macOS stores the two
+   sources separately (`Wake On LAN` 1 vs 0 here, `ReduceBrightness`
+   battery-only). Measured: `-setcomputersleep 17` wrote the **AC** profile and
+   left battery alone, *while the machine was running on battery*. So the typed
+   options cannot express "sleep at 5 min on battery, never on AC" — the only
+   opinion a laptop rice has — and worse, what they do write goes somewhere the
+   config never named.
 2. **Every call ends in `&> /dev/null`.** A refusal, an unsupported verb and a
    success are indistinguishable, which is the failure mode §5.6 exists to
-   avoid, one layer below `system.defaults`. This one is not hypothetical — see
-   the write test below, where the discarded stream was the only sign the
-   setting hadn't applied.
+   avoid, one layer below `system.defaults`. Not hypothetical: `systemsetup`
+   emits an Admin-framework `-99` on stderr on this machine even when the write
+   succeeds, so there is real content in a stream nobody reads.
 
 Not typed at all, and unreachable through `system.defaults`: Low Power Mode
 (`pmset -a lowpowermode`), per-source anything (`pmset -b`/`-c`), lid and
@@ -629,68 +631,68 @@ Ran 2026-08-08 from Ghostty (an FDA-holding terminal, so none of this is the
 universalaccess gate), as root. **Read this section for the method as much as
 the result** — the first two runs each produced a confident wrong conclusion.
 
-**Run 1 — `systemsetup` reports success and applies nothing:**
+**Run 1 — `systemsetup` looked like it applied nothing:**
 
 ```
 $ sudo systemsetup -setcomputersleep 17
 ### Error:-99 File:…/Admin/InternetServices.m Line:395
 setcomputersleep: 17                      ← reads exactly like a confirmation
 exit=0
-before: AC=1 battery=1        after: AC=1 battery=1        ← nothing moved
+before: AC=1 battery=1        after: AC=1 battery=1        ← read from the plist
 ```
 
-Exit 0, a confirmation-shaped line on stdout, an internal `-99` from the Admin
-framework on stderr, `System Sleep Timer` unchanged on **both** sources — and
-nix-darwin sends every one of those streams to `/dev/null`. The obvious reading
-is "nix-darwin's six typed options are a silent no-op on macOS 26, file it
-upstream". That reading was wrong, or at least unearned.
+Exit 0, a confirmation-shaped line, an internal `-99` from the Admin framework
+on stderr, and no visible change — with nix-darwin sending every one of those
+streams to `/dev/null`. The obvious reading is "nix-darwin's six typed options
+are a silent no-op on macOS 26, file it upstream". **It was wrong**, and the
+`-99` is noise: the write had landed. Keep the line in mind anyway — a genuine
+failure would look identical from nix-darwin's side, because nothing is read.
 
-**Run 2 — the `pmset` control didn't move it either:**
+**Run 2 — the `pmset` control didn't move it either**, so the reading became
+"computer sleep is immutable here". **Run 3** added the full 2×2 and produced a
+third story: four timer writes failed while `pmset -a lowpowermode 1` landed,
+same shell, same root, same run.
 
-```
-$ sudo pmset -c sleep 18 -b sleep 19        exit=0, silent
-after: AC=1 battery=1                       ← still nothing
-```
-
-Read as "computer sleep is immutable here, so run 1 says nothing about
-`systemsetup`". ★ **The lesson stands and is the reason this section is long: a
-failed write is not evidence about the writer until a second writer has failed
-the same way and a second *setting* has succeeded.** One row of a two-variable
-cross is not a result — the negative-result twin of this file's older "the
-write succeeded ≠ it took effect".
-
-**Run 3 — the 2×2, and it caught a confound of the probe's own making:**
+**Run 4 — the oracle was the bug, and every write had been landing all along.**
+Runs 1–3 read `/Library/Preferences/com.apple.PowerManagement.plist`; `powerd`
+flushes that file on its own cadence. Reading `pmset -g custom` instead:
 
 | setting | via `systemsetup` | via `pmset` |
 |---|---|---|
-| computer sleep | ✗ unchanged | ✗ unchanged |
-| display sleep | ✗ unchanged | ✗ unchanged |
-| **Low Power Mode** | *(not offered)* | ✅ **landed** |
+| computer sleep | ⚠️ **AC only** (asked 17 → AC=17, battery=1) | ✅ AC=18, battery=19, as named |
+| display sleep | ✅ AC=21 | ✅ AC=22, battery=23, as named |
+| Low Power Mode | *(not offered)* | ✅ landed |
 
-Four timer writes failed and one non-timer write succeeded — from the same
-shell, in the same run, as the same root. That rules out privileges, sudo and
-`pmset` itself. But it does **not** yet rule out the probe: the four failures
-were judged by reading
-`/Library/Preferences/com.apple.PowerManagement.plist`, while the one success
-was judged by reading `pmset -g custom`. **Different oracles, opposite
-verdicts.** The plist is a file `powerd` writes on its own cadence; `pmset -g
-custom` is the live state. A write that landed and hadn't been flushed to disk
-would look exactly like this.
+The probe caught the stale file in the act on its way out — `computer
+AC=18(file:1) bat=19(file:1)`: live state 18/19, the file still saying 1.
 
-- [ ] ◻️ **One more run, with the oracle fixed.** `timer()` now reads `pmset -g
-      custom` and the plist is a cross-check column that flags a split
-      (`10(file:21)`), so a stale file can no longer masquerade as a refused
-      write. Re-run `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`. Either
-      the timers move (and all three earlier "it didn't apply" readings were the
-      probe's own fault) or they don't (and the timers really are pinned on this
-      hardware while `pmset` works fine for everything else). ★ **Third wrong
-      conclusion from this one section — and each was a measurement error, not
-      a macOS surprise.** Where a domain has two readable states, name which one
-      decides the verdict *before* running anything.
-      (The env gate is deliberate: a warm sudo timestamp must not be enough to
-      run this unattended. It restores computer *and* display sleep on both
-      sources plus Low Power Mode — display sleep because macOS clamps it to ≤
-      computer sleep, so one write can move two settings.)
+★ **Four runs, three wrong conclusions, and not one of them was a macOS
+surprise — they were all measurement errors.** In order: a single row read as a
+verdict; a negative result with no control (*a failed write says nothing about
+the writer until a second writer has failed the same way and a second setting
+has succeeded*); and finally two different oracles inside one table, which is
+not a cross but two experiments sharing a heading. The rule this earns, and it
+generalises past power: **where a domain exposes two readable states, decide
+which one is the oracle before running anything — and never let one table's
+rows be judged by different readers.** The plist here is what
+`com.apple.Accessibility` was to §4: the thing that reads like evidence and
+isn't.
+
+**So the real limit is not that `systemsetup` fails. It is that it writes one
+profile.** Asked for computer sleep 17 while the machine was running *on
+battery*, it set **AC** and left battery alone. `power.sleep.computer = 17`
+therefore configures a laptop's AC profile only, silently, and a user who set
+it to protect their battery gets nothing — while `pmset -b`/`-c` does exactly
+what it is told. That is a determinism and correctness bug the config cannot
+see, and it is worth filing upstream.
+
+- [ ] Report to `LnL7/nix-darwin`: `power.sleep.*` writes only one power
+      profile on macOS 26 (`systemsetup -setcomputersleep` moved AC while the
+      machine was on battery), and `system.activationScripts.power` discards
+      stderr, so nothing surfaces. `power-sweep.sh` is the reproducer.
+- [ ] ◻️ One row is measured on AC only: whether `systemsetup -setdisplaysleep`
+      is also AC-only was not read for the battery profile in run 4. The probe
+      now prints both sources for that row, so the next run settles it.
 
 ---
 

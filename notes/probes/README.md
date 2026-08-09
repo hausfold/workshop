@@ -177,17 +177,25 @@ writer has failed the same way and a second setting has succeeded** — the
 negative-result twin of this shelf's "the write succeeded ≠ it took effect".
 
 Run 3, the full 2×2 (setting × caller): four timer writes failed and `pmset -a
-lowpowermode 1` **landed**, same shell, same root, same run. Which clears
-privileges and pmset — except the four failures were read from the plist file
-and the one success from `pmset -g custom`. **Two oracles, opposite verdicts**,
-and a landed-but-unflushed write looks exactly like a refused one.
+lowpowermode 1` **landed**, same shell, same root, same run — except the four
+failures were read from the plist file and the one success from `pmset -g
+custom`. **Two oracles, opposite verdicts.**
 
-**Three wrong conclusions, all measurement errors, none a macOS surprise.** The
-rule this shelf takes from it: *where a domain exposes two readable states,
-decide which one is the oracle before running anything* — and a table whose
-rows are judged by different readers is not a cross, it's two experiments
-sharing a heading. `timer()` now reads `pmset -g custom`; the plist is a
-cross-check column that flags a split as `10(file:21)`.
+Run 4, reading `pmset -g custom` throughout: **every write had been landing all
+along.** The plist is a file `powerd` flushes on its own cadence, and the probe
+caught it mid-lag on the way out — `computer AC=18(file:1)`.
+
+**Four runs, three wrong conclusions, none of them a macOS surprise.** The rule
+this shelf takes from it: *where a domain exposes two readable states, decide
+which one is the oracle before running anything* — and a table whose rows are
+judged by different readers is not a cross, it's two experiments sharing a
+heading. `timer()` reads `pmset -g custom`; the plist is a cross-check column
+that flags a split as `10(file:21)`.
+
+The finding that survived all four: **`systemsetup` writes ONE power profile.**
+Asked for computer sleep 17 while the machine was on battery, it set AC. So
+nix-darwin's `power.sleep.*` configures a source the config never named, and
+`pmset -b`/`-c` is the only honest way to build the group.
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 

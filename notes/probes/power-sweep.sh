@@ -183,12 +183,25 @@ state() {
     "$(lowpower)"
 }
 
+# WHICH SOURCES did a write reach? The interesting answer is neither "both"
+# nor "none" but "one" — a source-blind CLI that quietly writes a single
+# profile makes the setting depend on how the laptop was plugged in when the
+# rebuild ran, which is a determinism bug a rice cannot see.
+where_landed() {  # $1 asked-for value, $2 AC now, $3 battery now
+  if [ "$2" = "$1" ] && [ "$3" = "$1" ]; then printf '✓ landed on BOTH sources'
+  elif [ "$2" = "$1" ]; then printf '⚠️  landed on AC ONLY — battery untouched'
+  elif [ "$3" = "$1" ]; then printf '⚠️  landed on BATTERY ONLY — AC untouched'
+  else printf '✗ did not land'
+  fi
+}
+
+printf '\n  running on: %s\n' "$(pmset -g batt | head -1 | sed "s/Now drawing from //")"
 printf '\n  1/4 nix-darwin path, computer sleep: systemsetup -setcomputersleep 17\n'
 printf '      (stderr NOT discarded — nix-darwin sends all of this to /dev/null)\n'
 row "sudo systemsetup -setcomputersleep 17" sudo systemsetup -setcomputersleep 17
 ss_ac=$(timer 'AC Power' sleep); ss_bat=$(timer 'Battery Power' sleep)
 printf '      computer sleep → AC=%s battery=%s %s\n' "$ss_ac" "$ss_bat" \
-  "$([ "$ss_ac" = "$before_ac" ] && [ "$ss_bat" = "$before_bat" ] && printf '✗ nothing moved' || printf '✓ moved')"
+  "$(where_landed 17 "$ss_ac" "$ss_bat")"
 
 printf '\n  2/4 control, same setting via pmset (per source)\n'
 row "sudo pmset -c sleep 18 -b sleep 19" sudo pmset -c sleep 18 -b sleep 19
@@ -198,9 +211,9 @@ printf '      computer sleep → AC=%s battery=%s %s\n' "$pm_ac" "$pm_bat" \
 
 printf '\n  3/4 a DIFFERENT setting, both callers: display sleep\n'
 row "sudo systemsetup -setdisplaysleep 21" sudo systemsetup -setdisplaysleep 21
-ds_ss=$(timer 'AC Power' displaysleep)
-printf '      display sleep AC → %s %s\n' "$ds_ss" \
-  "$([ "$ds_ss" = 21 ] && printf '✓ systemsetup landed' || printf '✗ systemsetup did not land')"
+ds_ss=$(timer 'AC Power' displaysleep); ds_ss_bat=$(timer 'Battery Power' displaysleep)
+printf '      display sleep → AC=%s battery=%s %s\n' "$ds_ss" "$ds_ss_bat" \
+  "$(where_landed 21 "$ds_ss" "$ds_ss_bat")"
 row "sudo pmset -c displaysleep 22 -b displaysleep 23" sudo pmset -c displaysleep 22 -b displaysleep 23
 ds_ac=$(timer 'AC Power' displaysleep); ds_bat=$(timer 'Battery Power' displaysleep)
 printf '      display sleep → AC=%s battery=%s %s\n' "$ds_ac" "$ds_bat" \
@@ -213,19 +226,33 @@ printf '      lowpowermode → %s %s\n' "$lpm" \
   "$([ "$lpm" = 1 ] && printf '✓ landed' || printf '✗ did not land')"
 
 printf '\n  Verdict:\n'
-if [ "$ds_ac" = 22 ] && [ "$ds_ss" != 21 ]; then
-  printf '    systemsetup is BROKEN on 26 — pmset moves display sleep, systemsetup\n'
-  printf '    does not. nix-darwin ships six typed options that silently do nothing.\n'
-  printf '    → worth filing upstream against LnL7/nix-darwin.\n'
-elif [ "$ds_ac" = 22 ] && [ "$ds_ss" = 21 ]; then
-  printf '    systemsetup works for display sleep — so computer sleep is immutable\n'
-  printf '    on this hardware, not broken tooling. `power.sleep.computer` cannot\n'
-  printf '    work here for a reason no nix-darwin fix would change.\n'
-else
-  printf '    Neither caller moved anything. Something machine-wide is pinning\n'
-  printf '    these (a configuration profile, or Apple silicon policy) — the group\n'
-  printf '    is not buildable on this Mac at all, whatever the tooling does.\n'
-fi
+pmset_ok=no
+[ "$pm_ac" = 18 ] && [ "$pm_bat" = 19 ] && [ "$ds_ac" = 22 ] && [ "$ds_bat" = 23 ] && pmset_ok=yes
+ss_sources=both
+[ "$ss_ac" = 17 ] && [ "$ss_bat" != 17 ] && ss_sources=ac-only
+[ "$ss_ac" != 17 ] && [ "$ss_bat" = 17 ] && ss_sources=battery-only
+[ "$ss_ac" != 17 ] && [ "$ss_bat" != 17 ] && ss_sources=none
+
+case "$pmset_ok:$ss_sources" in
+  yes:ac-only|yes:battery-only)
+    printf '    systemsetup WORKS but writes ONE power profile, while pmset writes the\n'
+    printf '    one you name. So nix-darwin`s power.sleep.* silently means "whichever\n'
+    printf '    source systemsetup felt like" — a setting whose result depends on\n'
+    printf '    something the config cannot see. Build on pmset; this is worth filing.\n' ;;
+  yes:both)
+    printf '    systemsetup works and is simply source-blind: one call, both profiles.\n'
+    printf '    Usable, but it cannot express battery-vs-AC, which is the only opinion\n'
+    printf '    a laptop rice has. Build on pmset for that; the typed options are fine\n'
+    printf '    for a symmetric value.\n' ;;
+  yes:none)
+    printf '    pmset lands and systemsetup does not: systemsetup is BROKEN on 26 and\n'
+    printf '    nix-darwin ships six typed options that silently do nothing.\n'
+    printf '    → worth filing upstream against LnL7/nix-darwin.\n' ;;
+  *)
+    printf '    pmset itself did not land as asked, so nothing above is evidence about\n'
+    printf '    systemsetup. Check for a configuration profile pinning power settings,\n'
+    printf '    and re-run before concluding anything.\n' ;;
+esac
 state
 }
 

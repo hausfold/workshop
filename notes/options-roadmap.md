@@ -128,17 +128,15 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   not `system.defaults` — the `security.firewall` family, not the `hotCorners`
 >   one. No `systemsetup` verb takes a power source, while macOS stores battery
 >   and AC separately, so "sleep at 5 min on battery, never on AC" — the only
->   opinion a laptop rice has — is not expressible. **And the write test came
->   back negative:** `sudo systemsetup -setcomputersleep 17` from an
->   FDA-holding terminal exits 0, prints `setcomputersleep: 17` like a
->   confirmation, emits an internal `-99` from the Admin framework on stderr,
->   and changes `System Sleep Timer` on neither source — while nix-darwin sends
->   every one of those streams to `/dev/null`. ★ **But the `pmset` control
->   didn't move it either**, so computer sleep is pinned on this Mac whoever
->   asks, and run 1 is not evidence about `systemsetup` at all. The probe now
->   crosses setting × caller (see §5.6's checklist); until that runs, "the typed
->   options are a no-op" is a hypothesis, not a finding. Low Power Mode, lid
->   behaviour and per-source anything are `pmset`, root-only, untyped
+>   opinion a laptop rice has — is not expressible. ★ **And the missing selector
+>   is not neutral: measured, `systemsetup -setcomputersleep 17` run while the
+>   machine was on BATTERY wrote the AC profile and left battery alone.** So
+>   `power.sleep.computer` configures a power source the config never named,
+>   silently, while `pmset -b`/`-c` does exactly as told. nix-darwin also sends
+>   every call to `&> /dev/null`, and `systemsetup` really does emit an
+>   Admin-framework `-99` on stderr — even on a write that succeeds — so there
+>   is live content in a stream nobody reads. Worth filing upstream. Low Power
+>   Mode, lid behaviour and per-source anything are `pmset`, root-only, untyped
 >   regardless.
 >
 > **★ The Power row has now produced three confident wrong answers, and that is
@@ -158,17 +156,28 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   lowpowermode 1` **landed**, same shell, same run, same root. That clears
 >   privileges and `pmset` itself… except the four failures were read from
 >   `/Library/Preferences/com.apple.PowerManagement.plist` and the one success
->   from `pmset -g custom`. **Two oracles, opposite verdicts.** The plist is a
->   file `powerd` flushes on its own cadence; a landed-but-unflushed write looks
->   identical to a refused one.
+>   from `pmset -g custom`. **Two oracles, opposite verdicts.**
+> - **Run 4**, reading `pmset -g custom` — **every write had been landing all
+>   along.** The plist is a file `powerd` flushes on its own cadence; the probe
+>   caught it in the act on the way out, printing `computer AC=18(file:1)`.
 >
-> ★ **Every one of the three was a measurement error, not a macOS surprise.**
-> The rule this earns: **where a domain exposes two readable states, decide
-> which one is the oracle before running anything** — and if the same section
-> judges different rows by different readers, it is not a cross, it is two
-> experiments wearing one table. `timer()` now reads `pmset -g custom`, with the
-> plist demoted to a cross-check column that flags a split (`10(file:21)`). One
-> more run settles Power either way.
+> ★ **Four runs, three wrong conclusions, and not one was a macOS surprise —
+> all three were measurement errors.** A single row read as a verdict; a
+> negative result with no control; and finally two oracles inside one table,
+> which is not a cross but two experiments sharing a heading. The rule, which
+> generalises well past power: **where a domain exposes two readable states,
+> decide which one is the oracle before running anything, and never let one
+> table's rows be judged by different readers.** The PowerManagement plist is to
+> this section what `com.apple.Accessibility` was to §4 — the thing that reads
+> like evidence and isn't.
+>
+> **And the real limit turns out to be sharper than "source-blind".**
+> `systemsetup -setcomputersleep 17`, run while the machine was on **battery**,
+> set the **AC** profile and left battery alone. So `power.sleep.computer`
+> doesn't merely fail to express battery-vs-AC — it writes a profile the config
+> never named, silently, while `pmset -b`/`-c` does exactly as told. That is a
+> correctness bug worth filing upstream, and it is the reason a curated group
+> must be built on `pmset`.
 >
 > **What this unblocks.** §5.6's rule — no unspiked domain gets curated — is now
 > satisfied for every row in its table except the two deliberately-deferred
@@ -1979,7 +1988,7 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 | **Menu bar & Control Center** | ✅ **`nebelhaus.menuBar.{clock,controlCenter}.*` — rice#250.** Clock format/seconds/date/day-of-week/analog (`com.apple.menuExtraClock`, restarts `SystemUIServer`) + which Control Center glyphs show (battery %, sound, bluetooth, AirDrop, display, Focus, Now Playing — `com.apple.controlcenter`, restarts `ControlCenter`, a whitelisted process since rice#249 that nothing had written into until now) |
 | **Sound** | ◻️ **spiked 2026-08-08, buildable — nothing blocking it.** Two keys ARE typed (`com.apple.sound.beep.{volume,feedback}`); alert sound + UI sounds route through `CustomUserPreferences`; the startup chime is `nvram`, not a plist. Writes are live, need no restart and no FDA. The trap: the volume leaf is `e^(slider − 1)`, so `0.5` is 31% — curate 0–100 and convert. Also a two-writers key (the volume keys write it back) |
 | **Locale / input sources** | ◻️ **spiked 2026-08-08, buildable once restart-map learns `notify`.** Four typed keys (`AppleICUForce24HourTime`, `AppleMetricUnits`, `AppleTemperatureUnit`, and the inert `AppleMeasurementUnits`); `AppleLocale`/`AppleLanguages`/input sources via `CustomUserPreferences`. **Blocker: a running app only sees the change if `AppleDatePreferencesChangedNotification` is posted** — the first family whose "restart" is a notification. UI language remains relaunch-only |
-| **Power** | ⚠️ **spiked 2026-08-08 — typed after all, and the typed path doesn't work.** Six typed options (`power.sleep.*`, `power.restartAfter*`) that shell out to `systemsetup` in nix-darwin's own activation script, `security.firewall`-style. Three limits: no `systemsetup` verb takes a power source (so battery-vs-AC, the only opinion a laptop rice has, is inexpressible); every call ends in `&> /dev/null`; and on 26.6.1 `-setcomputersleep` exits 0, prints a confirmation, logs an internal `-99`, and **changes nothing on either source**. Build this group on `pmset`, not on those options. Low Power Mode / lid / per-source are `pmset`, root-only, untyped |
+| **Power** | ⚠️ **spiked 2026-08-08 — typed after all, and the typed path writes the wrong power source.** Six typed options (`power.sleep.*`, `power.restartAfter*`) that shell out to `systemsetup` in nix-darwin's own activation script, `security.firewall`-style. They work — but no verb takes a power source, and measured on 26.6.1, `-setcomputersleep 17` run **on battery** wrote the **AC** profile and left battery alone. So the option configures a source the config never named; `pmset -b`/`-c` does as told. Every call also ends in `&> /dev/null`, over a stderr that carries a real `-99`. **Build this group on `pmset`**, and file the asymmetry upstream. Low Power Mode / lid / per-source are `pmset`, root-only, untyped |
 | **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
 | **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
@@ -2071,15 +2080,13 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
       `power.sleep.*` — those six typed options cannot say "battery", cannot
       report a failure, and on 26.6.1 the one that was tested did not apply at
       all (exit 0, a confirmation line, an internal `-99`, nothing moved).
-- [ ] Re-run the setting × caller cross with the fixed oracle
-      (`POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`). Three readings so
-      far, all from a possibly-stale plist; `timer()` now reads `pmset -g
-      custom`. If the timers move, every earlier "it didn't apply" was the
-      probe's fault and Power is ordinary. If they still don't while
-      `lowpowermode` does, the timers are pinned on this hardware — and the
-      deciding row for **upstream** is display sleep under `pmset` but not
-      `systemsetup`, which would mean `power.sleep.*` is a silent no-op for
-      every macOS 26 user, not just this rice.
+- [x] Cross setting × caller with a live oracle — **done, run 4.** Every write
+      lands; `systemsetup` writes one profile (AC) and `pmset` writes the one
+      you name. Runs 1–3 were reading a stale plist.
+- [ ] File upstream against `LnL7/nix-darwin`: `power.sleep.*` writes only one
+      power profile on macOS 26 — `-setcomputersleep` moved AC while the machine
+      was on battery — and `system.activationScripts.power` discards the stderr
+      that would show it. `notes/probes/power-sweep.sh` is the reproducer.
 
 Each entry carries metadata from the §4 matrix:
 
