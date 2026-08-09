@@ -52,12 +52,12 @@ nicer flourishes and a good demo of what SketchyBar can do.
 
 ## Toggling bar items
 
-Every right-side pill is a single boolean in `nebelhaus.sill.items`. The five
+Every right-side pill is a single boolean in `haus.sill.items`. The five
 core pills (`clock`, `weather`, `media`, `battery`, `wifi`) default **on**; the
 extras below default **off**. Set only the ones you want to change:
 
 ```nix
-nebelhaus.sill.items = {
+haus.sill.items = {
   weather = false;      # drop a default-on core pill
   cpu = true;           # add an off-by-default readout
   caffeinate = true;    # add the keep-awake controller
@@ -179,7 +179,7 @@ awake off
   the messages it inherited more than once.
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
   The light is found for you over mDNS and remembered, so one that takes a new
-  address just comes back; pin it with `nebelhaus.sill.elgato.host` if you have
+  address just comes back; pin it with `haus.sill.elgato.host` if you have
   more than one light or mDNS is unreliable on your network. A light it cannot
   reach at all — asleep, off the wifi, flat battery — draws **dim**, which is
   deliberately not the same as the pill's "switched off" look.
@@ -188,7 +188,7 @@ awake off
   `~/.config/sketchybar/harvest_secrets.sh`.
 
 The **hush** (Do-Not-Disturb) pill is separate: it rides
-[`nebelhaus.hush.enable`](/guides/hush/), not `sill.items`.
+[`haus.hush.enable`](/guides/hush/), not `sill.items`.
 
 <Aside type="note" title="Secrets stay out of Nix">
 sill never bakes tokens into the store. The harvest plugin sources your
@@ -200,7 +200,7 @@ file OpenAI's own tooling wrote, never through Nix.
 ## Turning it off
 
 ```nix
-nebelhaus.sill.enable = false;
+haus.sill.enable = false;
 ```
 
 With sill disabled, the native macOS menu bar is shown again (the rice only

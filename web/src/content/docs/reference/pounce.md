@@ -25,7 +25,7 @@ be memorised or copied out of this page.
 
 It never overwrites a config you already have: it writes `config.json.new` beside
 it instead, and `--force` replaces. **Inside the rice it refuses**, because your
-config.json is generated from [`nebelhaus.pounce.*`](/reference/options/#nebelhauspounce)
+config.json is generated from [`haus.pounce.*`](/reference/options/#hauspounce)
 and the next `haus rebuild` would put the generated one straight back — change it
 in your host file instead.
 
@@ -180,7 +180,7 @@ width is held inside the visible screen. That matters most on a Mac that has
 things bigger, and they multiply.
 
 On the rice this is written for you from
-[`nebelhaus.ui.scale`](/reference/options/#nebelhausuiscale), so the palette grows
+[`haus.ui.scale`](/reference/options/#hausuiscale), so the palette grows
 with the rest of the desktop.
 
 ## Per-item settings (`items`)
@@ -220,7 +220,7 @@ search shorthand, give it a global key. Each entry is keyed by an **item key**:
   fires only on a lone tap, so Fn combinations keep working, and it replaces
   macOS's stock Globe action only while armed. `"globe"` and `"function"` are
   accepted aliases. nebelhaus ships this emoji binding by default; set
-  `nebelhaus.pounce.items."mode:emoji".hotkey = null` to leave Globe native.
+  `haus.pounce.items."mode:emoji".hotkey = null` to leave Globe native.
 
 ### Leader sequences
 
@@ -339,5 +339,5 @@ Installing via `brew install pounce` puts these on your `PATH`:
 | `pounce-palette` | The launcher wrapper (bind a hotkey to this) |
 | `pounce-<command>` | A wrapper per built-in command (e.g. `pounce-clipboard`) |
 
-Inside nebelhaus, set the palette up via [`nebelhaus.pounce`](/reference/options/#nebelhauspounce)
+Inside nebelhaus, set the palette up via [`haus.pounce`](/reference/options/#hauspounce)
 instead — the module handles the daemon, hotkey, and permission survival for you.

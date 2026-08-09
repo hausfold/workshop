@@ -139,7 +139,7 @@ rows.
 It's **off by default** because it needs the Accessibility grant to install an
 event tap. Turn it on with the `windows` block in
 [config](/reference/pounce/#config-file) (or
-[`nebelhaus.pounce.windowSwitcher`](/reference/options/#nebelhauspouncewindowswitcher)
+[`haus.pounce.windowSwitcher`](/reference/options/#hauspouncewindowswitcher)
 in the rice, where it defaults on). If you run AeroSpace, rows are gathered by
 workspace under a header each — workspace order is itself most-recently-used, so
 the list reads "here, then where I was before that" — and focusing goes through
@@ -255,7 +255,7 @@ pounce --check-accessibility      # prints true when granted
 
 <Aside type="caution" title="Nix rebuilds and Accessibility">
 Nix builds are ad-hoc signed, so a plain rebuild would drop the Accessibility
-grant. Inside nebelhaus, set `nebelhaus.pounce.signingIdentity` and the rice
+grant. Inside nebelhaus, set `haus.pounce.signingIdentity` and the rice
 re-signs a stable copy of the app with your identity, so the grant persists. See
 [Pounce config](/reference/pounce/).
 </Aside>

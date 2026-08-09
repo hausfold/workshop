@@ -643,6 +643,41 @@ erroring**, so every renderer of someone else's data needs a floor.
   generator, so `main`'s own drift check was already red. Regenerated in
   workshop#266, which is how it surfaced: the check fires on every PR, not only
   on the Monday cron, so an unrelated branch inherits it.)*
+
+  ✅ **The namespace half is done — workshop#267, 2026-08-08.** nebelhaus#261
+  merged at 22:43Z and a release (`2026.08.08-1`) was cut straight on top of it,
+  so `main`'s options-drift went red within four minutes: the docs' single source
+  of truth had renamed itself and nothing here had moved. Regenerated
+  `reference/options.md` (155 options, all `haus.*`) and swept the 20 hand-written
+  pages, 159 lines, verified as a pure substitution.
+
+  **Two things that a naive `nebelhaus.` → `haus.` sweep gets wrong, and the rule
+  that separates them.** The namespace is not the only thing spelled
+  `nebelhaus.<word>`: the docs also carry the **flake input** and its outputs
+  (`nebelhaus.url`, `nebelhaus.mkNebelhaus`, `nebelhaus.presets.everyday`,
+  `nebelhaus.lib.pack`), the **domain** (`nebelhaus.com`, §5) and a **bundle id**
+  (`org.nebelhaus.editoropen`, §4) — none of which move in this phase. Don't
+  eyeball the difference: **the regenerated `options.md` is the authority.**
+  Extract its 155 keys, take the 31 distinct top-level roots, and rename only
+  `nebelhaus.<root>`. That test also correctly keeps `<name>` submodule instances
+  (`nebelhaus.roster.slack`, `nebelhaus.workspaces.D`) — which read like data,
+  not options, and a hand-curated list would have missed.
+
+  🚨 **And it silently breaks 20 in-page links, because the anchor is the option
+  name with the dots removed.** `/reference/options/#nebelhausthemeaccent` still
+  resolves to a page that exists, so nothing 404s, nothing fails the build, and
+  Starlight does not check fragments — the reader just lands at the top of a
+  700-line page. Sweep `#nebelhaus<slug>` → `#haus<slug>` in the same pass and
+  assert every anchor against the regenerated headings; that check found the one
+  link that had **already** been broken before the rename
+  (`#one-list-nebelhausroster`, a truncation of a heading slug), which is the
+  argument for asserting rather than substituting.
+
+  Verified by running it: `gen-options.mjs --check` current,
+  `check-rice-bindings.mjs` unchanged, `npm run build` green at 33 pages.
+  What's left for §2 in `web/` is **brand** prose — `what-is-nebelhaus.md` and
+  its redirect, `astro.config.mjs`'s `site:` — which belongs with §5's domain
+  move, not here.
 - **bench**: `FAMILY=(…)` at `bench:75`, the repo lists at `:1003`, `:1455`,
   `:1541`, and the `--override-input nebelhaus/*` block at `:281-284`.
   ⚠️ **Leave `trill` in `FAMILY` alone.** `bench:72-74` keeps it there

@@ -36,9 +36,9 @@ required — but `⌥H/J/K/L` is there for the hands that want it.
 Both halves of that vocabulary are options, so none of the above is baked in:
 
 ```nix
-nebelhaus.keys.leader    = "caps";       # caps | alt-space | none
-nebelhaus.keys.windowNav = "alt";        # alt | ctrl-alt | cmd-alt | none
-nebelhaus.keys.palette   = "cmd-space";  # cmd-space | alt-space | ctrl-space | none
+haus.keys.leader    = "caps";       # caps | alt-space | none
+haus.keys.windowNav = "alt";        # alt | ctrl-alt | cmd-alt | none
+haus.keys.palette   = "cmd-space";  # cmd-space | alt-space | ctrl-space | none
 ```
 
 Three reasons people change them, in rough order of how often:
@@ -134,19 +134,19 @@ For the less-frequent structural operations:
 
 ## Your app roster
 
-The launcher letters come from **one keyed app map**: `nebelhaus.roster`. Which
+The launcher letters come from **one keyed app map**: `haus.roster`. Which
 workspace an app lands on is *not* a field here — that's
-[`nebelhaus.workspaces`](#your-workspaces) below, so several apps can share one
+[`haus.workspaces`](#your-workspaces) below, so several apps can share one
 workspace. Out of the box the roster is just a terminal and a browser. Entries
 compose across modules, so add only your own:
 
 ```nix
-nebelhaus.roster.slack = {
+haus.roster.slack = {
   key = "s"; name = "Slack";
   appId = "com.tinyspeck.slackmacgap";
   label = "Slack"; cask = "slack";
 };
-nebelhaus.roster.discord = {
+haus.roster.discord = {
   key = "d"; name = "Discord";
   appId = "com.hnc.Discord"; cask = "discord";
 };
@@ -187,20 +187,20 @@ appear together. For a workspace and a bar pill, keep reading.
 
 ## Your workspaces
 
-`nebelhaus.workspaces` is the other half: the named AeroSpace workspaces this
+`haus.workspaces` is the other half: the named AeroSpace workspaces this
 machine declares, and which roster apps live on each. Out of the box that's a
 terminal workspace (`T`) and a browser one (`B`).
 
 ```nix
 # Role workspace: three apps, one pill, one throw key.
-nebelhaus.workspaces.comms = {
+haus.workspaces.comms = {
   key = "c";
   icon = ":slack:";
   apps = [ "slack" "discord" ];
 };
 
 # Single-app workspace: the common case, one entry each.
-nebelhaus.workspaces.D = {
+haus.workspaces.D = {
   key = "d";
   icon = ":discord:";
   apps = [ "discord" ];
@@ -237,7 +237,7 @@ can trigger it yourself any time by tapping <kbd>⇪</kbd>, then
 
 ## Turning it off
 
-Don't want tiling? Set `nebelhaus.prowl.enable = false;` and the Caps-Lock
+Don't want tiling? Set `haus.prowl.enable = false;` and the Caps-Lock
 remap, launcher, and AeroSpace all stay out of your way. The rest of the rice
 still works.
 

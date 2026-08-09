@@ -5,7 +5,7 @@ description: Author, validate, and publish a data-only nebelhaus rice that other
 
 import { Aside } from '@astrojs/starlight/components';
 
-A shared rice is an ordinary `.nix` file that changes only `nebelhaus.*`.
+A shared rice is an ordinary `.nix` file that changes only `haus.*`.
 Keeping that boundary small makes the result easy to inspect, combine with
 other rices, and override from a host file.
 
@@ -41,7 +41,7 @@ The file evaluates to an attribute set whose only top-level key is
 It is not a module function: there is no `{ pkgs, lib, config, ... }:` header.
 It also does not set `system.defaults`, install packages, or add activation
 scripts. Every setting stays inside the documented
-[`nebelhaus.*` option surface](/reference/options/).
+[`haus.*` option surface](/reference/options/).
 
 <Aside type="tip" title="Whole rice or layer?">
 A **whole rice** describes a kind of machine or person and usually chooses all
@@ -59,7 +59,7 @@ nix eval --impure --expr \
   '(builtins.getFlake "github:nebelhaus/nebelhaus").lib.checkRice ./writer.nix'
 ```
 
-If the file is an app **pack** — only `nebelhaus.roster`, the apps on a machine —
+If the file is an app **pack** — only `haus.roster`, the apps on a machine —
 run `lib.checkPack` instead. It is the same rule one level in, and it is what
 makes the pack safe to import through `lib.pack` below.
 
@@ -120,7 +120,7 @@ direction — but naming the same option is not the problem people assume it is:
 - **Same option, different values** — the build stops, and tells you plenty:
 
   ```text
-  error: The option `nebelhaus.sill.enable' has conflicting definition values:
+  error: The option `haus.sill.enable' has conflicting definition values:
          - In `…/presets/minimal.nix': false
          - In `…/presets/everyday.nix': true
          Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
@@ -148,7 +148,7 @@ to be the only one.
 </Aside>
 
 <Aside type="note" title="App packs are the exception">
-A pack — a rice narrowed to `nebelhaus.roster`, the apps on a machine — is
+A pack — a rice narrowed to `haus.roster`, the apps on a machine — is
 imported through `nebelhaus.lib.pack`, which lowers every field it sets so the
 consumer's own host wins with a plain assignment and no `mkForce`. That is a
 property of the seam, not of the file: the same pack imported as a bare path
@@ -186,7 +186,7 @@ Keep these in a private host file or an explicitly more powerful module:
 
 - identity, secrets, tokens, device UUIDs, and personal account names;
 - a personal app roster that reveals more than the rice needs;
-- raw macOS defaults outside `nebelhaus.*`;
+- raw macOS defaults outside `haus.*`;
 - package or store paths that require `pkgs`;
 - activation hooks and shell commands.
 

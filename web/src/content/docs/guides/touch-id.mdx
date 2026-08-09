@@ -46,7 +46,7 @@ else is exempt.
 `haus-activate` takes a path, which looks like the broader grant — but it isn't
 a widening. `darwin-rebuild switch --flake <anything>` already meant "anything I
 can build, I can activate as root, unprompted". Both lines are the same grant,
-and `nebelhaus.collar.passwordlessRebuild = false` drops both.
+and `haus.collar.passwordlessRebuild = false` drops both.
 </Aside>
 
 <Aside type="caution" title="Why the stable path, not the store path">
@@ -84,15 +84,15 @@ handled by `gpg-agent` + `pinentry-mac` at runtime. This keeps secrets off the
 Nix store and lets you manage hardware keys the normal way.
 
 Commit signing itself is wired up in [hearth](/guides/the-shell/) from your
-`nebelhaus.git.signingKey` — collar only handles the `sudo` authentication path.
+`haus.git.signingKey` — collar only handles the `sudo` authentication path.
 
 ## Two switches
 
 collar is on by default and has exactly two knobs:
 
 ```nix
-nebelhaus.collar.enable = true;              # Touch ID for sudo, reattach and all
-nebelhaus.collar.passwordlessRebuild = true; # activation never authenticates
+haus.collar.enable = true;              # Touch ID for sudo, reattach and all
+haus.collar.passwordlessRebuild = true; # activation never authenticates
 ```
 
 Turn the second off on a machine you don't administer alone, and activation goes

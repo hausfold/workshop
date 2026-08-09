@@ -20,8 +20,8 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus generations` | List the generations you can roll back to. |
 | `haus status` | Show the current generation and how stale the pinned rice is. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
-| `haus options` | Refresh the annotated catalogue of every `nebelhaus.*` option on this machine's pinned rice. |
-| `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `nebelhaus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. |
+| `haus options` | Refresh the annotated catalogue of every `haus.*` option on this machine's pinned rice. |
+| `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `haus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
 | `haus unset <path> [<path>…]` | Explicitly set nullable options to `null`, then rebuild once. Takes a list, all-or-nothing. |
 | `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host/preset/rice value again, then rebuild once. Takes a list, all-or-nothing. A path that has no override is reported and skipped; if none of them had one, nothing is rebuilt. |
@@ -88,7 +88,7 @@ a preset deliberately. That makes `unset` and `reset` distinct:
 - `haus reset lock.requirePassword` deletes the generated module, so whatever
   the host file, preset, or rice says underneath becomes effective again.
 
-Only `nebelhaus.*` paths are accepted. The prefix is optional for convenience;
+Only `haus.*` paths are accepted. The prefix is optional for convenience;
 passing `system.defaults.*`, `homebrew.*`, or an unknown option fails before a
 file is written. Values use the obvious shell form for strings (`teal`) and JSON
 syntax for booleans, numbers, lists, and attribute sets. A type-invalid value is

@@ -69,10 +69,10 @@ haus edit
 
 ```nix
 {
-  nebelhaus.prowl.enable = false;
-  nebelhaus.sill.enable = false;
-  nebelhaus.pounce.enable = false;
-  nebelhaus.hush.enable = false;
+  haus.prowl.enable = false;
+  haus.sill.enable = false;
+  haus.pounce.enable = false;
+  haus.hush.enable = false;
 }
 ```
 
@@ -92,7 +92,7 @@ disables the selected rooms:
 
 After rebuilding, verify the macOS controls those rooms used — especially Caps
 Lock, the native menu bar, Spotlight's shortcut, and Accessibility permissions —
-are set the way you want. See [nebelhaus.\* options](/reference/options/) for
+are set the way you want. See [haus.\* options](/reference/options/) for
 what each toggle governs.
 
 ## Take down the system layer
@@ -197,7 +197,7 @@ would be an exciting policy in all the wrong ways.
 
 This section is for Pounce installed directly through Homebrew, not Pounce
 managed as a nebelhaus room. (Removing the room is just
-`nebelhaus.pounce.enable = false;` above.)
+`haus.pounce.enable = false;` above.)
 
 Stop its service, uninstall it, and optionally remove the tap if you use nothing
 else from it:
@@ -248,7 +248,7 @@ that existed before installation. Check these after leaving:
 - Caps Lock behaviour
 - Spotlight's `⌘Space` shortcut
 - wallpaper
-- file associations, if `nebelhaus.hearth.hijackFileAssociations` was enabled
+- file associations, if `haus.hearth.hijackFileAssociations` was enabled
 - Pounce Accessibility access
 - Touch ID for `sudo`
 

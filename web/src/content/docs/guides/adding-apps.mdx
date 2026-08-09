@@ -39,7 +39,7 @@ which package source backs each pick. Each choice is written as a small Nix
 module under `hosts/<hostname>/packages/` and applied with `haus rebuild`; a
 Homebrew cask or App Store app can also be added to the tiling roster, including
 its launcher key and — optionally — a workspace of its own, written as a paired
-`nebelhaus.workspaces` entry naming it. For a workspace app, Pounce checks the
+`haus.workspaces` entry naming it. For a workspace app, Pounce checks the
 pinned
 [SketchyBar App Font mapping](https://github.com/kvndrsslr/sketchybar-app-font)
 and writes the verified `icon` ligature too. If upstream has no match, the
@@ -56,19 +56,19 @@ There's nothing to set up first — no data files, no options to point at. Each
 selection lands as its own Nix module under `hosts/<hostname>/packages/`, and
 Pounce stages and commits just that file after a successful rebuild.
 
-## One list: `nebelhaus.roster`, and one that pairs with it
+## One list: `haus.roster`, and one that pairs with it
 
 Everything the machine has goes in the same roster — apps, fonts, CLI tools,
 Nixpkgs packages, App Store apps. You don't choose an *option*; you choose which
 **fields** to set, and that's what the entry means. (Which workspace an app
 lives on is the one thing that isn't a field here — it's
-`nebelhaus.workspaces`, naming this entry, so a workspace can hold several
+`haus.workspaces`, naming this entry, so a workspace can hold several
 apps. See [Window management](/guides/window-management/#your-workspaces).)
 
 <CardGrid>
   <Card title="A GUI app I'll live in" icon="laptop">
     Set **`key`** for a Caps-Lock letter and a cheatsheet row, and name it in a
-    **`nebelhaus.workspaces`** entry for its own workspace, a bar pill and the
+    **`haus.workspaces`** entry for its own workspace, a bar pill and the
     auto-tiling rule — and it installs it.
   </Card>
   <Card title="A GUI app, no fuss" icon="download">
@@ -109,8 +109,8 @@ The practical effect: when you add a leader key for an app the rice ships, you
 write only the launcher half.
 
 ```nix
-# Perch's name, bundle id and installer come from nebelhaus.perch.
-nebelhaus.roster.perch = {
+# Perch's name, bundle id and installer come from haus.perch.
+haus.roster.perch = {
   key = "e";
 };
 ```
@@ -142,12 +142,12 @@ hatch for the rare thing that isn't an app at all, like a tap.
 ## A GUI app with a launcher key (the roster)
 
 This is the nebelhaus-native way to add an app you actually work in. One keyed
-entry in `nebelhaus.roster` gives it a Caps-Lock letter to launch/focus it, a
-row in the cheatsheet, and the install itself; one `nebelhaus.workspaces` entry
+entry in `haus.roster` gives it a Caps-Lock letter to launch/focus it, a
+row in the cheatsheet, and the install itself; one `haus.workspaces` entry
 naming it gives it a workspace, a pill in the bar, and the auto-tiling rule.
 
 ```nix
-nebelhaus.roster.slack = {
+haus.roster.slack = {
   key = "s";
   name = "Slack";
   appId = "com.tinyspeck.slackmacgap";
@@ -155,7 +155,7 @@ nebelhaus.roster.slack = {
   cask = "slack";
 };
 
-nebelhaus.workspaces.S = {
+haus.workspaces.S = {
   key = "s";
   icon = ":slack:";
   apps = [ "slack" ];
@@ -210,13 +210,13 @@ from Spotlight-muscle-memory, a thing you touch once a month. Same roster, minus
 the launcher fields:
 
 ```nix
-nebelhaus.roster = {
+haus.roster = {
   discord = { name = "Discord"; cask = "discord"; };
   figma   = { name = "Figma";   cask = "figma"; };
 };
 ```
 
-No `key`, so no Caps-Lock letter and no cheatsheet row. No `nebelhaus.workspaces`
+No `key`, so no Caps-Lock letter and no cheatsheet row. No `haus.workspaces`
 entry names them, so no pill and no auto-tiling rule. They're simply installed —
 and, crucially, *declared*,
 which is what stops [`cleanup = "zap"`](/guides/making-it-yours/#homebrew-behaviour)
@@ -235,7 +235,7 @@ brew search --cask obsidian
 Casks are installed *by* the rebuild but aren't tracked in Nix generations — so
 `haus rollback` won't uninstall an app you added, and won't bring back one you
 removed. Removing a cask from your config also won't delete the app by default
-(`nebelhaus.homebrew.cleanup` is `"none"`, on purpose, so nothing you installed
+(`haus.homebrew.cleanup` is `"none"`, on purpose, so nothing you installed
 by hand ever vanishes). To actually remove one: `brew uninstall --zap <cask>`.
 See [Making it yours](/guides/making-it-yours/#homebrew-behaviour) for the
 `cleanup` / `autoUpdate` / `upgrade` knobs.
@@ -255,7 +255,7 @@ for your password or Touch ID, which a silent rebuild would have nowhere to show
 By hand, an App Store app is a roster entry like any other:
 
 ```nix
-nebelhaus.roster.xcode = {
+haus.roster.xcode = {
   name = "Xcode";
   appStoreId = 497799835;   # the digits in its App Store URL
 };
@@ -264,7 +264,7 @@ nebelhaus.roster.xcode = {
 Recording the id is always safe. **Installing** from it is opt-in:
 
 ```nix
-nebelhaus.appStore.install = true;
+haus.appStore.install = true;
 ```
 
 Then a rebuild fetches any `appStoreId` entry that isn't already installed. It's
@@ -291,13 +291,13 @@ For anything already on the machine — Safari, Music, an app you installed by h
 all and it's pure launcher wiring:
 
 ```nix
-nebelhaus.roster.music = {
+haus.roster.music = {
   key = "m";
   name = "Music";
   appId = "com.apple.Music";
 };
 
-nebelhaus.workspaces.M = {
+haus.workspaces.M = {
   key = "m";
   icon = ":apple_music:";
   apps = [ "music" ];
@@ -309,21 +309,21 @@ nebelhaus.workspaces.M = {
 ## The apps the rice picks for you
 
 A few apps arrive without you asking, because a machine the rice calls finished
-should have them. They live in their own room — `nebelhaus.apps` — and each is
+should have them. They live in their own room — `haus.apps` — and each is
 one switch:
 
 ```nix
 # IINA, the video player. On by default; it also takes over the video file
 # types macOS hands QuickTime Player, TV and your browser.
-nebelhaus.apps.videoPlayer.enable = false;          # don't install it at all
-nebelhaus.apps.videoPlayer.claimFileTypes = false;  # install it, rebind nothing
+haus.apps.videoPlayer.enable = false;          # don't install it at all
+haus.apps.videoPlayer.claimFileTypes = false;  # install it, rebind nothing
 ```
 
 The distinction the room draws: an app a *room needs to work* belongs to that
 room (prowl brings AeroSpace because it **is** the tiler), while an app the rice
 merely **chooses for you** belongs here, behind a switch. What it installs is an
 ordinary roster entry, so you can give IINA a launcher key
-(`nebelhaus.roster.iina.key = "v";`) or pin a different build without leaving
+(`haus.roster.iina.key = "v";`) or pin a different build without leaving
 the list everything else lives in.
 
 The file types are the ordinary user default — the same record Finder's *Get
@@ -333,7 +333,7 @@ vob): audio, `.gif`, playlists and dead or professional containers like `.rm`,
 `.mxf` and `.dv` are never touched, and neither is the transport-stream trio
 `.ts`/`.mts`/`.m2ts` — on a developer's machine those are TypeScript far more
 often than video, so the [editor
-hijack](/reference/options/#nebelhaushearthhijackfileassociations) owns them.
+hijack](/reference/options/#haushearthhijackfileassociations) owns them.
 
 <Aside type="caution" title="One owner per type">
 That last exclusion is a rule, not a preference. Two rice-owned apps claiming
@@ -355,7 +355,7 @@ the exact Nixpkgs revision pinned by your flake and writes a roster entry under
 tool just has no launcher fields to set:
 
 ```nix
-nebelhaus.roster = {
+haus.roster = {
   ripgrep = { package = pkgs.ripgrep; };
   httpie  = { package = pkgs.httpie; };
   ffmpeg  = { package = pkgs.ffmpeg; };
@@ -383,7 +383,7 @@ nix search nixpkgs ripgrep
   what a tool called by a daemon or a `sudo` workflow actually needs.
 
 ```nix
-nebelhaus.roster.age = {
+haus.roster.age = {
   package = pkgs.age;
   scope = "system";   # a launchd job needs to find it
 };
