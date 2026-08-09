@@ -96,6 +96,13 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   typed float would ship a lie that reads as a bug in *our* option. Same key
 >   is written back by the volume keys, so it is also a two-writers leaf (§5.7's
 >   question, inside a settings group).
+> - **A bad `beep.sound` path is SILENCE, not a fallback** — settled by ear
+>   2026-08-08 (control beeped, Submarine beeped, `/nope/does-not-exist.aiff`
+>   did not). So `sound.alertSound` must validate its path at eval time, or take
+>   an enum of the 14 names in `/System/Library/Sounds` and build the path
+>   itself. Same family as `screencapture.location`'s missing directory, worse
+>   consequence: there you find your screenshots on the Desktop, here the
+>   machine just stops making the sound you asked for.
 > - **`AppleMeasurementUnits` is typed, friendly, and inert.** Of the four typed
 >   region keys it is the only one that moves nothing measurable, and it is the
 >   one a rice reaches for first (`Inches`/`Centimeters` enum). `AppleMetricUnits`
@@ -134,22 +141,34 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   behaviour and per-source anything are `pmset`, root-only, untyped
 >   regardless.
 >
-> **★ The open row twice produced a confident wrong answer, and that is the
-> most useful thing in this pass.** Section C is opt-in behind
+> **★ The Power row has now produced three confident wrong answers, and that is
+> the most useful thing in this pass.** Section C is opt-in behind
 > `POWER_SWEEP_WRITE=1` (an env gate, not a sudo-cache check, so a warm
-> timestamp can't make an agent run it by accident). Run 1: `systemsetup`
-> applied nothing → "nix-darwin ships six silent no-ops, file it upstream."
-> Run 2, with a `pmset` control: pmset applied nothing either → the *setting* is
-> pinned on this Mac and run 1 was never evidence about `systemsetup`.
-> **A failed write says nothing about the writer until a second writer has
-> failed the same way and a second setting has succeeded.** That is the same
-> shape as this document's older "the write succeeded ≠ it took effect", one
-> level up: a *negative* result needs a control as much as a positive one does.
-> Section C is now a 2×2 — setting (computer sleep · display sleep · Low Power
-> Mode) × caller (`systemsetup` · `pmset`) — which distinguishes "systemsetup is
-> broken" from "the hardware pins it" from "nothing here is settable" in one
-> run, and prints which. Until that runs, treat "the typed options are a no-op"
-> as a hypothesis.
+> timestamp can't make an agent run it by accident).
+>
+> - **Run 1** — `systemsetup` applied nothing → *"nix-darwin ships six silent
+>   no-ops, file it upstream."*
+> - **Run 2**, with a `pmset` control — pmset applied nothing either → the
+>   *setting* is pinned on this Mac, and run 1 was never evidence about
+>   `systemsetup`. **A failed write says nothing about the writer until a second
+>   writer has failed the same way and a second setting has succeeded**: the
+>   negative-result twin of this document's "the write succeeded ≠ it took
+>   effect".
+> - **Run 3**, the full 2×2 — four timer writes failed and `pmset -a
+>   lowpowermode 1` **landed**, same shell, same run, same root. That clears
+>   privileges and `pmset` itself… except the four failures were read from
+>   `/Library/Preferences/com.apple.PowerManagement.plist` and the one success
+>   from `pmset -g custom`. **Two oracles, opposite verdicts.** The plist is a
+>   file `powerd` flushes on its own cadence; a landed-but-unflushed write looks
+>   identical to a refused one.
+>
+> ★ **Every one of the three was a measurement error, not a macOS surprise.**
+> The rule this earns: **where a domain exposes two readable states, decide
+> which one is the oracle before running anything** — and if the same section
+> judges different rows by different readers, it is not a cross, it is two
+> experiments wearing one table. `timer()` now reads `pmset -g custom`, with the
+> plist demoted to a cross-check column that flags a split (`10(file:21)`). One
+> more run settles Power either way.
 >
 > **What this unblocks.** §5.6's rule — no unspiked domain gets curated — is now
 > satisfied for every row in its table except the two deliberately-deferred
@@ -2041,23 +2060,26 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
       that lands at next login, and neither `killall` nor `logout` can express
       it. `AppleDatePreferencesChangedNotification` is the name; a bogus name
       does nothing, so it must be the real one.
-- [ ] Build **Sound** first of the three — it needs nothing new: live writes, no
-      FDA, no restart. Curate `alertVolume` as 0–100 with the `e^(p−1)`
-      conversion in the module (never the raw float), and decide the two-writers
-      question the way §5.7 decided it for `haus set`.
+- [ ] Build **Sound** first of the three — it is fully settled and needs nothing
+      new: live writes, no FDA, no restart. Curate `alertVolume` as 0–100 with
+      the `e^(p−1)` conversion in the module (never the raw float); make
+      `alertSound` an enum over `/System/Library/Sounds` (or validate the path
+      at eval time — a bad path is silence, not a fallback); and decide the
+      two-writers question the way §5.7 decided it for `haus set`.
 - [ ] Build **Power** as an activation step of the rice's own (`pmset`, per
       power source), not as a `system.defaults` group and **not** on top of
       `power.sleep.*` — those six typed options cannot say "battery", cannot
       report a failure, and on 26.6.1 the one that was tested did not apply at
       all (exit 0, a confirmation line, an internal `-99`, nothing moved).
-- [ ] Run the probe's setting × caller cross once
-      (`POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`). Computer sleep is
-      already known dead from both callers here, so the deciding row is
-      **display sleep**: if it moves under `pmset` but not `systemsetup`, file
-      it upstream against nix-darwin — `power.sleep.*` would be shipping a
-      silent no-op to every macOS 26 user, not just this rice. If it moves
-      under both, `systemsetup` is fine and only computer sleep is pinned, which
-      is a hardware fact no upstream fix touches.
+- [ ] Re-run the setting × caller cross with the fixed oracle
+      (`POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`). Three readings so
+      far, all from a possibly-stale plist; `timer()` now reads `pmset -g
+      custom`. If the timers move, every earlier "it didn't apply" was the
+      probe's fault and Power is ordinary. If they still don't while
+      `lowpowermode` does, the timers are pinned on this hardware — and the
+      deciding row for **upstream** is display sleep under `pmset` but not
+      `systemsetup`, which would mean `power.sleep.*` is a silent no-op for
+      every macOS 26 user, not just this rice.
 
 Each entry carries metadata from the §4 matrix:
 

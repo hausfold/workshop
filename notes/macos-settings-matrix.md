@@ -460,7 +460,7 @@ key at all.
 
 | group | verdict | what actually blocks it |
 |---|---|---|
-| **Sound** | ✅ buildable today | the volume leaf is an exponential, not a fraction — and the UI writes the same key back |
+| **Sound** | ✅ **buildable today, fully settled** | the volume leaf is an exponential, not a fraction; the UI writes the same key back; and a bad `beep.sound` path is silence, so the option must validate it |
 | **Locale** | ✅ buildable, with one piece nothing in nix-darwin can express | a **distributed notification**, without which running apps never see the change |
 | **Power** | ⚠️ buildable, but **not** on the typed options | `systemsetup` is power-source-blind and nix-darwin discards its stderr; on 26.6.1 `-setcomputersleep` applied nothing — and neither did `pmset`, so computer sleep is pinned here whoever asks |
 
@@ -473,7 +473,7 @@ Oracle: `osascript -e 'get volume settings'` → CoreAudio's live alert volume
 |---|---|---|---|
 | `com.apple.sound.beep.volume` | ✅ typed float | **typed-and-effective** | live, no restart, **no FDA gate** — an agent rebuild can set it |
 | `com.apple.sound.beep.feedback` | ✅ typed bool | writable, no oracle | volume-key feedback; nothing reads it back |
-| `com.apple.sound.beep.sound` | ❌ → `CustomUserPreferences` | writable, effect unconfirmed | absolute path, **unvalidated** — a typo persists exactly like a real path |
+| `com.apple.sound.beep.sound` | ❌ → `CustomUserPreferences` | **typed-and-effective, with a trap** | absolute path, **unvalidated** — and a bad path is SILENCE, not a fallback (heard 2026-08-08) |
 | `com.apple.sound.uiaudio.enabled` | ❌ → `CustomUserPreferences` | writable, no oracle | UI sound effects |
 | startup chime | — | `nvram StartupMute`, root | firmware, not a plist; outside `system.defaults` entirely |
 
@@ -498,16 +498,32 @@ inside a settings group.
 **3. Null really is write-nothing.** Deleting the key returns the alert volume
 to 100 (the OS default) rather than to 0 — the group's default policy holds.
 
-**4. The `beep.sound` bad-path row still needs an ear, and the probe now takes
-notes for you.** `--audible` restores every key first — section C leaves
-`uiaudio.enabled = 0` set, and the first run beeped four times under the
-probe's own mute: four silences, no information — then plays a **control** beep
-at pristine settings and, for each row, waits for ⏎ and asks `heard it? [y/N]`
-before moving on. Attribution beats memory: the second run produced "I heard
-one beep", which is true, unattributable, and worth nothing. The script now
-prints the verdict itself (bad path → silence means a curated `alertSound` must
-validate its path at eval time; bad path → default beep means a typo is merely
-cosmetic).
+**4. ✅ SETTLED by ear, 2026-08-08 — a bad `beep.sound` path is SILENCE, not a
+fallback.** Recorded row by row:
+
+| row | `beep.sound` | heard? |
+|---|---|---|
+| 0 control | unset (OS default) | ✅ yes |
+| 1 | `/System/Library/Sounds/Submarine.aiff` | ✅ yes |
+| 2 | `/nope/does-not-exist.aiff` | ❌ **no** |
+
+So the key works, and a typo turns the alert beep off while the plist reads
+exactly like a working configuration. **A curated `sound.alertSound` must
+validate the path — at eval time if it takes a path at all, or by taking an
+enum of the 14 names in `/System/Library/Sounds` and building the path
+itself.** This is `screencapture.location`'s missing-directory trap (above) in
+the same settings group, with a worse failure: there, screenshots quietly go to
+the Desktop; here, the machine quietly stops making a sound you asked it to
+make.
+
+Getting that answer took three attempts, and the probe carries the fixes:
+`--audible` restores every key first (section C leaves `uiaudio.enabled = 0`
+set, so the first run beeped four times under the probe's own mute — four
+silences, no information), plays a **control** at pristine settings, and per
+row waits for ⏎ and asks `heard it? [y/N]` while you still know which beep it
+was. The middle run produced "I heard one beep": true, unattributable, worth
+nothing. **When the oracle is a human, record per row — do not batch the
+question.**
 
 ### Locale / input sources — works, and the missing piece is a notification
 
@@ -636,27 +652,45 @@ $ sudo pmset -c sleep 18 -b sleep 19        exit=0, silent
 after: AC=1 battery=1                       ← still nothing
 ```
 
-So **computer sleep is immutable on this machine from any caller**, and run 1
-says nothing about `systemsetup` at all. ★ **The transferable lesson: a failed
-write is not evidence about the writer until a second writer has failed the
-same way — and a second *setting* has succeeded.** One row of a two-variable
-cross is not a result, which is the same shape as this file's older
-"the write succeeded" ≠ "it took effect".
+Read as "computer sleep is immutable here, so run 1 says nothing about
+`systemsetup`". ★ **The lesson stands and is the reason this section is long: a
+failed write is not evidence about the writer until a second writer has failed
+the same way and a second *setting* has succeeded.** One row of a two-variable
+cross is not a result — the negative-result twin of this file's older "the
+write succeeded ≠ it took effect".
 
-- [ ] ◻️ **The remaining open row, now a 2×2 rather than a yes/no.**
-      `power-sweep.sh` section C crosses **which setting** (computer sleep ·
-      display sleep · Low Power Mode) against **which caller** (`systemsetup` ·
-      `pmset`), so one run distinguishes three futures:
-      display sleep moves under `pmset` only → `systemsetup` really is broken
-      and the typed options are a no-op for every macOS 26 user (→ upstream);
-      display sleep moves under both → `systemsetup` is fine and computer sleep
-      is simply pinned by the hardware, which no nix-darwin fix would change;
-      nothing moves at all → the whole group is unbuildable on this Mac.
-      Re-run `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`.
-      (Env gate rather than a sudo check on purpose: a warm sudo timestamp must
-      not be enough to run this unattended. It restores computer *and* display
-      sleep on both sources plus Low Power Mode — display sleep because macOS
-      clamps it to ≤ computer sleep, so one write can move two settings.)
+**Run 3 — the 2×2, and it caught a confound of the probe's own making:**
+
+| setting | via `systemsetup` | via `pmset` |
+|---|---|---|
+| computer sleep | ✗ unchanged | ✗ unchanged |
+| display sleep | ✗ unchanged | ✗ unchanged |
+| **Low Power Mode** | *(not offered)* | ✅ **landed** |
+
+Four timer writes failed and one non-timer write succeeded — from the same
+shell, in the same run, as the same root. That rules out privileges, sudo and
+`pmset` itself. But it does **not** yet rule out the probe: the four failures
+were judged by reading
+`/Library/Preferences/com.apple.PowerManagement.plist`, while the one success
+was judged by reading `pmset -g custom`. **Different oracles, opposite
+verdicts.** The plist is a file `powerd` writes on its own cadence; `pmset -g
+custom` is the live state. A write that landed and hadn't been flushed to disk
+would look exactly like this.
+
+- [ ] ◻️ **One more run, with the oracle fixed.** `timer()` now reads `pmset -g
+      custom` and the plist is a cross-check column that flags a split
+      (`10(file:21)`), so a stale file can no longer masquerade as a refused
+      write. Re-run `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`. Either
+      the timers move (and all three earlier "it didn't apply" readings were the
+      probe's own fault) or they don't (and the timers really are pinned on this
+      hardware while `pmset` works fine for everything else). ★ **Third wrong
+      conclusion from this one section — and each was a measurement error, not
+      a macOS surprise.** Where a domain has two readable states, name which one
+      decides the verdict *before* running anything.
+      (The env gate is deliberate: a warm sudo timestamp must not be enough to
+      run this unattended. It restores computer *and* display sleep on both
+      sources plus Low Power Mode — display sleep because macOS clamps it to ≤
+      computer sleep, so one write can move two settings.)
 
 ---
 

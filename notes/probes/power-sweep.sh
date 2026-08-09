@@ -70,14 +70,32 @@ cat <<'EOF'
 EOF
 
 # ---- C. the write test ------------------------------------------------------
-# Read one timer out of the root-owned plist. Prints an empty string, not a
-# sentinel, when the key is absent — the restore path has to be able to tell
-# "was 10" from "wasn't there", and a "?" that silently means "skip the
-# restore" is how a probe leaves a machine changed.
-timer() {  # $1 = "AC Power" | "Battery Power", $2 = timer key
+# TWO oracles, because the first version of this section used only the second
+# and drew a conclusion from it. `pmset -g custom` is powerd's LIVE state;
+# /Library/Preferences/com.apple.PowerManagement.plist is a file powerd writes
+# on its own cadence. They can disagree, and a probe that reads only the file
+# will report a landed write as a failure — which is exactly what happened
+# here: the sleep rows were judged from the file and "failed", while the Low
+# Power Mode row was judged from pmset and passed, in the same run. Different
+# oracles, opposite verdicts, one confound.
+#
+# `timer` is the live reading and decides every verdict; `timer_file` is the
+# cross-check, and a disagreement between them is itself a finding.
+timer() {  # $1 = "AC Power" | "Battery Power", $2 = pmset key (sleep|displaysleep)
+  pmset -g custom | awk -v want="$1" -v key="$2" '
+    /^[A-Za-z].*Power:/ { section = substr($0, 1, index($0, ":") - 1) }
+    $1 == key && section == want { print $2; exit }'
+}
+timer_file() {  # $1 = "AC Power" | "Battery Power", $2 = plist timer key
   /usr/bin/python3 -c "import plistlib,sys
 p=plistlib.load(open(sys.argv[1],'rb')).get(sys.argv[2],{})
 print(p.get(sys.argv[3],''))" "$plist" "$1" "$2"
+}
+both() {  # $1 source, $2 pmset key, $3 plist key — "live/file", flagged if split
+  local live file
+  live=$(timer "$1" "$2"); file=$(timer_file "$1" "$3")
+  if [ "$live" = "$file" ]; then printf '%s' "$live"
+  else printf '%s(file:%s)' "$live" "${file:-<absent>}"; fi
 }
 
 write_test() {
@@ -102,13 +120,13 @@ fi
 sudo -n true 2>/dev/null || printf '  (needs root — you will be asked to authenticate)\n'
 
 lowpower() { pmset -g custom | awk '/lowpowermode/{print $2; exit}'; }
-before_ac=$(timer "AC Power" "System Sleep Timer")
-before_bat=$(timer "Battery Power" "System Sleep Timer")
+before_ac=$(timer 'AC Power' sleep)
+before_bat=$(timer 'Battery Power' sleep)
 lpm_before=$(lowpower)
 # systemsetup clamps display sleep to <= computer sleep, so a machine whose
 # display sleep is above 17 gets a SECOND setting moved by this one write.
-disp_ac=$(timer "AC Power" "Display Sleep Timer")
-disp_bat=$(timer "Battery Power" "Display Sleep Timer")
+disp_ac=$(timer 'AC Power' displaysleep)
+disp_bat=$(timer 'Battery Power' displaysleep)
 printf '  before: computer AC=%s bat=%s · display AC=%s bat=%s · lowpowermode %s\n' \
   "${before_ac:-<unset>}" "${before_bat:-<unset>}" "${disp_ac:-<unset>}" \
   "${disp_bat:-<unset>}" "${lpm_before:-<unset>}"
@@ -160,31 +178,31 @@ row() {  # $1 label, $2… command
 }
 state() {
   printf '    now: computer AC=%s bat=%s · display AC=%s bat=%s · lowpowermode %s\n' \
-    "$(timer 'AC Power' 'System Sleep Timer')" "$(timer 'Battery Power' 'System Sleep Timer')" \
-    "$(timer 'AC Power' 'Display Sleep Timer')" "$(timer 'Battery Power' 'Display Sleep Timer')" \
+    "$(both 'AC Power' sleep 'System Sleep Timer')" "$(both 'Battery Power' sleep 'System Sleep Timer')" \
+    "$(both 'AC Power' displaysleep 'Display Sleep Timer')" "$(both 'Battery Power' displaysleep 'Display Sleep Timer')" \
     "$(lowpower)"
 }
 
 printf '\n  1/4 nix-darwin path, computer sleep: systemsetup -setcomputersleep 17\n'
 printf '      (stderr NOT discarded — nix-darwin sends all of this to /dev/null)\n'
 row "sudo systemsetup -setcomputersleep 17" sudo systemsetup -setcomputersleep 17
-ss_ac=$(timer "AC Power" "System Sleep Timer"); ss_bat=$(timer "Battery Power" "System Sleep Timer")
+ss_ac=$(timer 'AC Power' sleep); ss_bat=$(timer 'Battery Power' sleep)
 printf '      computer sleep → AC=%s battery=%s %s\n' "$ss_ac" "$ss_bat" \
   "$([ "$ss_ac" = "$before_ac" ] && [ "$ss_bat" = "$before_bat" ] && printf '✗ nothing moved' || printf '✓ moved')"
 
 printf '\n  2/4 control, same setting via pmset (per source)\n'
 row "sudo pmset -c sleep 18 -b sleep 19" sudo pmset -c sleep 18 -b sleep 19
-pm_ac=$(timer "AC Power" "System Sleep Timer"); pm_bat=$(timer "Battery Power" "System Sleep Timer")
+pm_ac=$(timer 'AC Power' sleep); pm_bat=$(timer 'Battery Power' sleep)
 printf '      computer sleep → AC=%s battery=%s %s\n' "$pm_ac" "$pm_bat" \
   "$([ "$pm_ac" = 18 ] && [ "$pm_bat" = 19 ] && printf '✓ landed, per source' || printf '✗ did not land')"
 
 printf '\n  3/4 a DIFFERENT setting, both callers: display sleep\n'
 row "sudo systemsetup -setdisplaysleep 21" sudo systemsetup -setdisplaysleep 21
-ds_ss=$(timer "AC Power" "Display Sleep Timer")
+ds_ss=$(timer 'AC Power' displaysleep)
 printf '      display sleep AC → %s %s\n' "$ds_ss" \
   "$([ "$ds_ss" = 21 ] && printf '✓ systemsetup landed' || printf '✗ systemsetup did not land')"
 row "sudo pmset -c displaysleep 22 -b displaysleep 23" sudo pmset -c displaysleep 22 -b displaysleep 23
-ds_ac=$(timer "AC Power" "Display Sleep Timer"); ds_bat=$(timer "Battery Power" "Display Sleep Timer")
+ds_ac=$(timer 'AC Power' displaysleep); ds_bat=$(timer 'Battery Power' displaysleep)
 printf '      display sleep → AC=%s battery=%s %s\n' "$ds_ac" "$ds_bat" \
   "$([ "$ds_ac" = 22 ] && [ "$ds_bat" = 23 ] && printf '✓ pmset landed, per source' || printf '✗ pmset did not land')"
 

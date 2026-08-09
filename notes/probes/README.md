@@ -138,6 +138,12 @@ Three findings this shelf's own rules predicted and one it didn't:
 - **`AppleFirstWeekday` lands and lies** — the second dict-valued key here to do
   so after `FontSizeCategory`. Structured keys in Apple's global domain are
   GUI-only until one proves otherwise.
+- **A bad `com.apple.sound.beep.sound` path is silence, not a fallback** —
+  settled by ear (control ✅, Submarine ✅, `/nope/does-not-exist.aiff` ❌). A
+  curated alert-sound option has to validate its path, or take an enum over
+  `/System/Library/Sounds`. `--audible` asks per row now, because batching the
+  question at the end produced "I heard one beep" — true and unattributable.
+  **When the oracle is a human, record per row.**
 - **The one nobody predicted: the missing piece is a *notification*.** A
   `defaults write` reaches new processes only; a running app never notices, not
   even through `Locale.autoupdatingCurrent`. Posting
@@ -170,9 +176,18 @@ Run 2, with a `pmset` control added: pmset didn't move it either. So the
 writer has failed the same way and a second setting has succeeded** — the
 negative-result twin of this shelf's "the write succeeded ≠ it took effect".
 
-Section C is now a 2×2: setting (computer sleep · display sleep · Low Power
-Mode) × caller (`systemsetup` · `pmset`). One run says which of three worlds
-we're in, and prints it.
+Run 3, the full 2×2 (setting × caller): four timer writes failed and `pmset -a
+lowpowermode 1` **landed**, same shell, same root, same run. Which clears
+privileges and pmset — except the four failures were read from the plist file
+and the one success from `pmset -g custom`. **Two oracles, opposite verdicts**,
+and a landed-but-unflushed write looks exactly like a refused one.
+
+**Three wrong conclusions, all measurement errors, none a macOS surprise.** The
+rule this shelf takes from it: *where a domain exposes two readable states,
+decide which one is the oracle before running anything* — and a table whose
+rows are judged by different readers is not a cross, it's two experiments
+sharing a heading. `timer()` now reads `pmset -g custom`; the plist is a
+cross-check column that flags a split as `10(file:21)`.
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 
