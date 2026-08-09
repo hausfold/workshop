@@ -121,7 +121,8 @@ options respectively.
 ```sh
 ./notes/probes/sound-sweep.sh              # add --audible to hear the beep rows
 ./notes/probes/locale-sweep.sh
-./notes/probes/power-sweep.sh              # A/B/D read-only; C needs root
+./notes/probes/power-sweep.sh              # A/B/D read-only
+POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh   # + the root write test
 ```
 
 Three findings this shelf's own rules predicted and one it didn't:
@@ -154,8 +155,10 @@ macOS writes, since `AppleEnabledInputSources` resolves layouts by
 `KeyboardLayout Name` while never validating the `KeyboardLayout ID` beside it.
 
 Power is the one group with an open row: its write test needs root, which on
-this machine is an interactive Touch ID prompt, so section C skips itself with
-instructions rather than guessing. Sections A, B and D still settle the shape —
+this machine is an interactive Touch ID prompt, so section C is opt-in behind
+`POWER_SWEEP_WRITE=1` and skips itself with instructions rather than guessing.
+The gate is an env var, not a `sudo -n` check, so a warm sudo timestamp can't
+make it run unattended. Sections A, B and D still settle the shape —
 `systemsetup` has no power-source selector and nix-darwin discards its stderr.
 
 ## `pack-priority.nix` — the first probe that isn't about macOS

@@ -46,13 +46,33 @@ restore_key() {
     defaults delete -g "$k" >/dev/null 2>&1
   fi
 }
+frag() { /usr/libexec/PlistBuddy -x -c "Print :$1" "$2" 2>/dev/null || printf '<absent>'; }
 cleanup() {
   printf '\n→ restoring…\n'
   for k in "${keys[@]}"; do restore_key "$k"; done
-  [ -s "$hisnap" ] && defaults import com.apple.HIToolbox "$hisnap"
+  if [ -s "$hisnap" ]; then defaults import com.apple.HIToolbox "$hisnap"; fi
   sleep 1
+  # Verify, don't assume: compare every touched key's XML fragment (value AND
+  # type) against the snapshot, rather than eyeballing the census line.
+  local bad=0 after="$tmp/after.plist" hiafter="$tmp/hitoolbox-after.plist"
+  defaults export -g "$after"
+  defaults export com.apple.HIToolbox "$hiafter"
+  for k in "${keys[@]}"; do
+    if [ "$(frag "$k" "$snap")" != "$(frag "$k" "$after")" ]; then
+      printf '  ✗ %s did not come back\n' "$k"; bad=1
+    fi
+  done
+  if [ "$(frag AppleEnabledInputSources "$hisnap")" \
+     != "$(frag AppleEnabledInputSources "$hiafter")" ]; then
+    printf '  ✗ com.apple.HIToolbox AppleEnabledInputSources did not come back\n'; bad=1
+  fi
   printf '  %s\n' "$(swift "$oracle_swift")"
-  printf '  (snapshots kept at %s until you delete them)\n' "$tmp"
+  if [ $bad -eq 0 ]; then
+    printf '  ✓ every touched key back to its original state, value and type\n'
+    rm -rf "$tmp"
+  else
+    printf '  snapshots kept at %s — restore by hand from there\n' "$tmp"
+  fi
 }
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
@@ -115,18 +135,27 @@ EOF
 
 # ---- C. does a running app notice? -----------------------------------------
 say "C. The load-bearing finding — a running process needs a NOTIFICATION"
-for mode in "silent" "notified"; do
-  printf '\n  %s: write at t=4s%s\n' "$mode" \
-    "$([ "$mode" = notified ] && printf ', then post AppleDatePreferencesChangedNotification' || true)"
+# Four arms, because "post a notification" is not the finding — "post THIS
+# notification" is. Without the bogus arm the result is indistinguishable from
+# any distributed post nudging CFPreferences, and the whole `notify` verb this
+# probe recommends would rest on an untested assumption.
+notifications=(
+  ""                                                     # no post at all
+  "AppleDatePreferencesChangedNotification"
+  "AppleMeasurementSystemPreferencesChangedNotification"
+  "nebelhaus.totally.bogus.notification"                 # control
+)
+for name in "${notifications[@]}"; do
+  printf '\n  write at t=4s, then post: %s\n' "${name:-<nothing>}"
   swift "$oracle_swift" --watch 12 > "$tmp/watch.out" 2>&1 &
   w=$!
   sleep 4
   defaults write -g AppleICUForce24HourTime -bool true
-  if [ "$mode" = notified ]; then
-    swift -e 'import Foundation
+  if [ -n "$name" ]; then
+    swift -e "import Foundation
       DistributedNotificationCenter.default().postNotificationName(
-        Notification.Name("AppleDatePreferencesChangedNotification"),
-        object: nil, userInfo: nil, deliverImmediately: true)' >/dev/null 2>&1
+        Notification.Name(\"$name\"),
+        object: nil, userInfo: nil, deliverImmediately: true)" >/dev/null 2>&1
   fi
   wait $w
   sed 's/^/    /' "$tmp/watch.out"
@@ -134,15 +163,14 @@ for mode in "silent" "notified"; do
 done
 cat <<'EOF'
 
-  Silent: the value never arrives — not in 8 seconds, not in `autoupdatingCurrent`,
-  which is the flavour documented to track changes.
-  Notified: both flavours flip within one sample.
+  No post: the value never arrives — not in 8 seconds, not in
+  `autoupdatingCurrent`, which is the flavour documented to track changes.
+  Either Apple name: both flavours flip within one sample.
+  The bogus name: nothing — so this is name-specific, not a generic
+  distributed-notification poke of CFPreferences.
 
   So the group's missing piece is not a key and not a `killall`: it is a
-  distributed notification, which restart-map.nix has no vocabulary for. A
-  bogus notification name does nothing, so this is name-specific, not a generic
-  cache poke. `AppleMeasurementSystemPreferencesChangedNotification` works too —
-  either name invalidates the whole resolved locale.
+  distributed notification, which restart-map.nix has no vocabulary for.
 
   Caveat this does NOT cover: `AppleLanguages` changes which .lproj a bundle
   loads at launch. No notification can retrofit that into a running app, so the
@@ -162,18 +190,23 @@ sleep 1
 
 printf '\n  the plist path — which key actually resolves the layout?\n'
 plistwrite() {  # $1 = python dict literal appended to AppleEnabledInputSources
-  /usr/bin/python3 - "$hisnap" "$tmp/new.plist" "$1" <<'PY'
+  rm -f "$tmp/new.plist"   # never let a previous row's file stand in for this one
+  if ! /usr/bin/python3 - "$hisnap" "$tmp/new.plist" "$1" <<'PY'
 import ast, plistlib, sys
 snap, out, entry = sys.argv[1], sys.argv[2], ast.literal_eval(sys.argv[3])
 p = plistlib.loads(open(snap, "rb").read())
 p["AppleEnabledInputSources"] = list(p["AppleEnabledInputSources"]) + [entry]
 open(out, "wb").write(plistlib.dumps(p))
 PY
+  then
+    printf '    ✗ could not build the candidate plist — row skipped\n'
+    return 1
+  fi
   defaults import com.apple.HIToolbox "$tmp/new.plist"
   sleep 2
 }
 try() {
-  plistwrite "$1"
+  plistwrite "$1" || return
   printf '    %-34s → %s\n' "$2" "$(o | sed 's/.*inputEnabled=//')"
   defaults import com.apple.HIToolbox "$hisnap"; sleep 1
 }

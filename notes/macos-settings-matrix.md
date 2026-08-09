@@ -442,13 +442,14 @@ The rice sets 19. Correcting the roadmap's "several hundred".
 The three §5.6 groups that were deferred *because nothing had been spiked*.
 Same method as the rest of this file: macOS 26.6.1 (25G76), nix-darwin
 `a1fa429`, effective-state oracles rather than plist read-back, every domain
-snapshotted and restored (each script verifies its own restore and prints the
-result). Re-runnable:
+snapshotted and restored — and the restore then *verified* by comparing each
+touched key's XML fragment (value **and** type) against the snapshot, because
+`defaults read` renders a float and a string identically. Re-runnable:
 
 ```sh
 ./notes/probes/sound-sweep.sh      # + --audible for the one row that needs an ear
 ./notes/probes/locale-sweep.sh
-./notes/probes/power-sweep.sh      # sections A/B/D read-only; C needs root
+./notes/probes/power-sweep.sh      # A/B/D read-only; C is opt-in, see below
 ```
 
 **Headline: all three are reachable, and the roadmap's stated reason for
@@ -573,7 +574,8 @@ writes the canonical entry for you.
 in its own activation script — here to `systemsetup` — so no restart-map entry,
 no plist, and none of this file's usual `defaults`-based evidence applies.
 
-Two limits, both read straight off `modules/power/*.nix` and `man systemsetup`:
+Two limits, both read straight off `<nix-darwin>/modules/power/*.nix` (its tree,
+not the rice's `modules/`) and `man systemsetup`:
 
 1. **No power-source selector exists.** Every `systemsetup` sleep verb is
    source-blind, while macOS stores the two sources separately —
@@ -594,11 +596,14 @@ belongs in the `security.firewall` family (an activation step of our own),
 
 - [ ] ◻️ **The one open row.** Does the `systemsetup` path still work on macOS
       26, and does it move one power source or both? It needs root, which here
-      means an interactive Touch ID prompt, so no agent can settle it —
-      `./notes/probes/power-sweep.sh` from a terminal runs the write test
-      (capturing the stderr nix-darwin throws away) and restores the original
-      timers. Until then, treat `power.sleep.*` as *unverified on 26*, not
-      broken.
+      means an interactive Touch ID prompt, so the write test is opt-in:
+      `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh` from a terminal runs
+      it (capturing the stderr nix-darwin throws away) and restores computer
+      *and* display sleep on both sources — display sleep because macOS clamps
+      it to ≤ computer sleep, so one write can move two settings. The gate is an
+      env var rather than a sudo check on purpose: a warm sudo timestamp must
+      not be enough to make this run unattended. Until it is run, treat
+      `power.sleep.*` as *unverified on 26*, not broken.
 
 ---
 

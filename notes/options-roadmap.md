@@ -71,8 +71,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > (`notes/probes/{sound,locale,power}-sweep.sh`, `locale-effective.swift`,
 > `tis-toggle.swift`); the full results are in
 > [`macos-settings-matrix.md`](./macos-settings-matrix.md#sound--localeinput-sources--power--swept-2026-08-08).
-> Each script snapshots, restores and verifies its own restore — the machine
-> ends byte-identical, as with every sweep in that file.
+> The two `defaults`-based scripts snapshot, restore, and then compare every
+> touched key's XML fragment (value *and* type) against the snapshot before
+> claiming success; the machine ends byte-identical, as with every sweep in that
+> file. `power-sweep.sh` writes nothing at all unless you ask it to
+> (`POWER_SWEEP_WRITE=1`), because its write is root-level and per-machine.
 >
 > **What the spike found, in the order it changes decisions.**
 >
@@ -124,10 +127,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > **One row stays open, and it is honestly open.** Whether the `systemsetup`
 > path still works on macOS 26 — and whether it moves one power source or both —
-> needs root, which on this machine means an interactive Touch ID prompt. No
-> agent can settle it, so `power-sweep.sh`'s section C skips itself with the
-> exact command rather than guessing, and `power.sleep.*` is recorded as
-> *unverified on 26*, not broken. Sections A/B/D still settle the group's shape.
+> needs root, which on this machine means an interactive Touch ID prompt. So
+> `power-sweep.sh`'s section C is opt-in behind `POWER_SWEEP_WRITE=1` (an
+> env gate, not a sudo-cache check, so a warm timestamp can't make an agent run
+> it by accident) and prints the exact command instead of guessing.
+> `power.sleep.*` is recorded as *unverified on 26*, not broken. Sections A/B/D
+> still settle the group's shape.
 >
 > **What this unblocks.** §5.6's rule — no unspiked domain gets curated — is now
 > satisfied for every row in its table except the two deliberately-deferred
@@ -1926,7 +1931,7 @@ nebelhaus.keys = {
       authored user-facing TEXT needs the same seam.**
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
-### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **five of nine groups shipped or part-shipped; every row is now spiked (Sound/Locale/Power, 2026-08-08) and three remain unbuilt — two logout-only by choice, Locale gated on a `notify` verb**
+### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **five of nine groups shipped or part-shipped; every row is now spiked (Sound/Locale/Power, 2026-08-08). Four rows remain unbuilt: Windows (logout-only, by choice) plus Sound, Locale and Power — Sound needs nothing new, Locale is gated on a `notify` verb, Power belongs in a `pmset` activation step**
 Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 

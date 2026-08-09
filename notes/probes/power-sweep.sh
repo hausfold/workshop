@@ -19,8 +19,9 @@
 #      a typo'd value, an unsupported verb: all identical to success.
 #
 # Sections A, B and D are read-only and run anywhere. Section C is the write
-# test and needs root, which on this machine means a Touch ID prompt — so an
-# agent cannot run it and the script says so rather than pretending.
+# test: it needs root (a Touch ID prompt on this machine) and is opt-in behind
+# POWER_SWEEP_WRITE=1, so a warm sudo timestamp can never make it run by
+# accident. It says so and skips rather than pretending.
 
 set -uo pipefail
 
@@ -30,8 +31,8 @@ plist=/Library/Preferences/com.apple.PowerManagement.plist
 # ---- A. what nix-darwin actually emits --------------------------------------
 say "A. The typed surface, and how it is implemented"
 cat <<'EOF'
-  modules/power/sleep.nix + modules/power/default.nix, in
-  system.activationScripts.power:
+  <nix-darwin>/modules/power/sleep.nix + default.nix (nix-darwin's own tree, NOT
+  the rice's modules/), in system.activationScripts.power:
 
     systemsetup -setComputerSleep '<minutes|Never>'          &> /dev/null
     systemsetup -setDisplaySleep '<minutes|Never>'           &> /dev/null
@@ -69,36 +70,63 @@ cat <<'EOF'
 EOF
 
 # ---- C. the write test ------------------------------------------------------
+# Read one timer out of the root-owned plist. Prints an empty string, not a
+# sentinel, when the key is absent — the restore path has to be able to tell
+# "was 10" from "wasn't there", and a "?" that silently means "skip the
+# restore" is how a probe leaves a machine changed.
+timer() {  # $1 = "AC Power" | "Battery Power", $2 = timer key
+  /usr/bin/python3 -c "import plistlib,sys
+p=plistlib.load(open(sys.argv[1],'rb')).get(sys.argv[2],{})
+print(p.get(sys.argv[3],''))" "$plist" "$1" "$2"
+}
+
 write_test() {
-if ! sudo -n true 2>/dev/null; then
-  if [ ! -t 0 ]; then
-    cat <<EOF
-  ⏭  SKIPPED — this needs root, and root here means an interactive Touch ID
-     prompt. That makes it the one section an agent cannot run, so it is left
-     for a person at the keyboard rather than guessed at:
+if [ "${POWER_SWEEP_WRITE:-}" != 1 ]; then
+  cat <<EOF
+  ⏭  SKIPPED — this section writes a real power setting as root, so it is opt-in
+     rather than gated on whether sudo happens to be cached (an agent inheriting
+     a warm sudo timestamp must not silently run it):
 
-       $0
+       POWER_SWEEP_WRITE=1 $0
 
-     It will: read the current computer-sleep timer, set it to 17 via
-     systemsetup (capturing the stderr nix-darwin discards), re-read
-     $plist to see whether ONE source moved
-     or both, and put the original value back.
+     Run it from a terminal, at a keyboard — root here means a Touch ID prompt.
+     It will: read the current computer- and display-sleep timers, set computer
+     sleep to 17 via systemsetup (capturing the stderr nix-darwin discards),
+     re-read $plist to see whether ONE
+     source moved or both, and put both timers back on both sources.
 EOF
-    return 0
-  fi
-  printf '  (needs root — you will be asked to authenticate)\n'
+  return 0
 fi
+sudo -n true 2>/dev/null || printf '  (needs root — you will be asked to authenticate)\n'
 
-before_ac=$(/usr/bin/python3 -c "import plistlib,sys;print(plistlib.load(open('$plist','rb')).get('AC Power',{}).get('System Sleep Timer','?'))")
-before_bat=$(/usr/bin/python3 -c "import plistlib,sys;print(plistlib.load(open('$plist','rb')).get('Battery Power',{}).get('System Sleep Timer','?'))")
-printf '  before: AC=%s battery=%s\n' "$before_ac" "$before_bat"
+before_ac=$(timer "AC Power" "System Sleep Timer")
+before_bat=$(timer "Battery Power" "System Sleep Timer")
+# systemsetup clamps display sleep to <= computer sleep, so a machine whose
+# display sleep is above 17 gets a SECOND setting moved by this one write.
+disp_ac=$(timer "AC Power" "Display Sleep Timer")
+disp_bat=$(timer "Battery Power" "Display Sleep Timer")
+printf '  before: computer sleep AC=%s battery=%s · display sleep AC=%s battery=%s\n' \
+  "${before_ac:-<unset>}" "${before_bat:-<unset>}" "${disp_ac:-<unset>}" "${disp_bat:-<unset>}"
 
+put_back() {  # $1 = -c|-b, $2 = sleep|displaysleep, $3 = value, $4 = label
+  if [ -z "$3" ]; then
+    printf '  ⚠️  %s had no stored value — NOT restored. Check `pmset -g custom`\n' "$4"
+    printf '      and set it by hand; this probe will not guess.\n'
+    return
+  fi
+  sudo pmset "$1" "$2" "$3" 2>/dev/null \
+    || printf '  ⚠️  could not restore %s to %s — do it by hand\n' "$4" "$3"
+}
 restore_power() {
-  printf '\n→ restoring computer sleep to AC=%s battery=%s…\n' "$before_ac" "$before_bat"
-  [ "$before_ac" != "?" ] && sudo pmset -c sleep "$before_ac" 2>/dev/null
-  [ "$before_bat" != "?" ] && sudo pmset -b sleep "$before_bat" 2>/dev/null
+  printf '\n→ restoring…\n'
+  put_back -c sleep "$before_ac" "AC computer sleep"
+  put_back -b sleep "$before_bat" "battery computer sleep"
+  put_back -c displaysleep "$disp_ac" "AC display sleep"
+  put_back -b displaysleep "$disp_bat" "battery display sleep"
   sleep 1
-  printf '  now: %s\n' "$(pmset -g custom | tr '\n' ' ' | tr -s ' ')"
+  printf '  now: computer sleep AC=%s battery=%s · display sleep AC=%s battery=%s\n' \
+    "$(timer 'AC Power' 'System Sleep Timer')" "$(timer 'Battery Power' 'System Sleep Timer')" \
+    "$(timer 'AC Power' 'Display Sleep Timer')" "$(timer 'Battery Power' 'Display Sleep Timer')"
 }
 trap restore_power EXIT INT TERM
 
@@ -106,9 +134,11 @@ printf '  running: sudo systemsetup -setcomputersleep 17   (stderr NOT discarded
 out=$(sudo systemsetup -setcomputersleep 17 2>&1); rc=$?
 printf '    exit=%s output: %s\n' "$rc" "${out:-<silent>}"
 sleep 1
-after_ac=$(/usr/bin/python3 -c "import plistlib,sys;print(plistlib.load(open('$plist','rb')).get('AC Power',{}).get('System Sleep Timer','?'))")
-after_bat=$(/usr/bin/python3 -c "import plistlib,sys;print(plistlib.load(open('$plist','rb')).get('Battery Power',{}).get('System Sleep Timer','?'))")
-printf '    after:  AC=%s battery=%s\n' "$after_ac" "$after_bat"
+after_ac=$(timer "AC Power" "System Sleep Timer")
+after_bat=$(timer "Battery Power" "System Sleep Timer")
+printf '    after:  AC=%s battery=%s · display sleep AC=%s battery=%s\n' \
+  "$after_ac" "$after_bat" \
+  "$(timer 'AC Power' 'Display Sleep Timer')" "$(timer 'Battery Power' 'Display Sleep Timer')"
 if [ "$after_ac" = "$after_bat" ]; then
   printf '    → source-blind: one option, both sources. Confirms the limit above.\n'
 else

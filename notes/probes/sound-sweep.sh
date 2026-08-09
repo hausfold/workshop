@@ -12,8 +12,10 @@
 # NSWorkspace for accessibility — it is not a re-read of the plist we just wrote.
 # The keys with no such oracle say so and stop at persistence.
 #
-# Safe: per-key snapshot (this is NSGlobalDomain — never import the whole
-# domain), restored via an EXIT/INT trap, plus a residue check at the end.
+# Safe: the whole global domain is exported for reading, but only OUR keys are
+# written back (never `defaults import` NSGlobalDomain), restored via an
+# EXIT/INT trap and then compared fragment-by-fragment against the snapshot, so
+# a retyped or missing key is reported rather than assumed.
 # No sudo, no rebuild. Nothing is played unless you pass --audible.
 
 set -uo pipefail
@@ -27,37 +29,45 @@ keys=(
   com.apple.sound.beep.sound
   com.apple.sound.uiaudio.enabled
 )
-declare -A had val
+tmp="$(mktemp -d)"
+snap="$tmp/global.plist"
 
-snapshot() {
-  for k in "${keys[@]}"; do
-    if v=$(defaults read -g "$k" 2>/dev/null); then had[$k]=1; val[$k]="$v"
-    else had[$k]=""; fi
-  done
-}
-restore() {
-  for k in "${keys[@]}"; do
-    if [ -n "${had[$k]:-}" ]; then defaults write -g "$k" "${val[$k]}"
-    else defaults delete -g "$k" >/dev/null 2>&1; fi
-  done
+# Snapshot and restore through PlistBuddy XML fragments, not `defaults read` +
+# a bare `defaults write`. The bare form writes every value back as a STRING —
+# beep.volume is a float and the two switches are bools — and a text comparison
+# of `defaults read` output cannot see the difference, so the naive version of
+# this script printed a green restore while retyping three keys.
+frag() { /usr/libexec/PlistBuddy -x -c "Print :$1" "${2:-$snap}" 2>/dev/null || printf '<absent>'; }
+restore_key() {
+  local x
+  if x=$(/usr/libexec/PlistBuddy -x -c "Print :$1" "$snap" 2>/dev/null); then
+    defaults write -g "$1" "$x"
+  else
+    defaults delete -g "$1" >/dev/null 2>&1
+  fi
 }
 cleanup() {
   printf '\n→ restoring…\n'
-  restore
-  local bad=0
+  for k in "${keys[@]}"; do restore_key "$k"; done
+  local bad=0 after="$tmp/after.plist"
+  defaults export -g "$after"
   for k in "${keys[@]}"; do
-    now=$(defaults read -g "$k" 2>/dev/null); now=${now:-<unset>}
-    want=${had[$k]:+${val[$k]}}; want=${want:-<unset>}
-    [ "$now" = "$want" ] || { printf '  ✗ %s is %s, was %s\n' "$k" "$now" "$want"; bad=1; }
+    if [ "$(frag "$k" "$snap")" != "$(frag "$k" "$after")" ]; then
+      printf '  ✗ %s did not come back — snapshot kept at %s\n' "$k" "$snap"
+      bad=1
+    fi
   done
-  [ $bad -eq 0 ] && printf '  ✓ every key back to its original state\n'
+  if [ $bad -eq 0 ]; then
+    printf '  ✓ every key back to its original state, VALUE AND TYPE\n'
+    rm -rf "$tmp"
+  fi
   printf '  alert volume now: %s\n' "$(alertvol)"
 }
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 alertvol() { osascript -e 'get volume settings' 2>/dev/null | sed 's/.*alert volume:\([0-9]*\).*/\1/'; }
 
-snapshot
+defaults export -g "$snap" || { printf 'could not snapshot NSGlobalDomain\n'; exit 1; }
 trap cleanup EXIT INT TERM
 
 printf 'baseline alert volume: %s\n' "$(alertvol)"
@@ -70,12 +80,19 @@ for v in 1.0 0.7788008 0.6065307 0.4723665 0.5 0.3678794 0.0; do
   sleep 0.5
   printf '  %-12s %-14s %s\n' "$v" "$(alertvol)" "$(awk -v x="$v" 'BEGIN{printf "%d", x*100}')"
 done
+defaults delete -g com.apple.sound.beep.volume >/dev/null 2>&1
+sleep 0.5
+printf '  %-12s %-14s %s\n' "<deleted>" "$(alertvol)" "— null = write nothing"
 cat <<'EOF'
 
   The mapping is exponential: stored = e^(slider − 1), i.e. slider = 1 + ln(v).
   So 0.5 is 31%, not 50%, and everything at or below e^-1 ≈ 0.3679 is silence.
   nix-darwin's docstring lists 75/50/25% as magic constants without saying the
   shape, which is exactly how a rice ends up shipping "half volume" that isn't.
+
+  The <deleted> row is the group's default policy, measured rather than assumed:
+  removing the key returns the alert volume to the OS default (100), NOT to the
+  last written value and not to 0. Null really is "write nothing".
 EOF
 
 # ---- B. the same key is written from the other side -------------------------
@@ -117,11 +134,18 @@ cat <<'EOF'
 EOF
 
 if [ -n "$audible" ]; then
-  say "  --audible: playing three beeps (Submarine, then a bogus path, then restored)"
-  osascript -e 'beep' >/dev/null 2>&1; sleep 1
+  say "  --audible: three beeps — Submarine, a bogus path, then the machine's own default"
+  printf '  1/3 beep.sound = Submarine.aiff\n'
+  defaults write -g com.apple.sound.beep.sound -string /System/Library/Sounds/Submarine.aiff
+  sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 2
+  printf '  2/3 beep.sound = /nope/does-not-exist.aiff\n'
   defaults write -g com.apple.sound.beep.sound -string /nope/does-not-exist.aiff
+  sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 2
+  printf '  3/3 key restored — this is the reference the second beep has to be compared to\n'
+  restore_key com.apple.sound.beep.sound
   sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 1
-  printf '  did the second beep still sound, and was it the default? ^ that is the answer\n'
+  printf '\n  Did 2 sound at all, and did it match 3 or 1? Bogus path → default beep is a\n'
+  printf '  degrade; bogus path → silence is a broken option that reads as applied.\n'
 fi
 
 # ---- D. the startup chime ---------------------------------------------------
