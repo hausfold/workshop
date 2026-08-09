@@ -148,4 +148,4 @@ bootstrap in [`.agents/`](./.agents/README.md).
 
 ## license
 
-MIT © nebelhaus
+MIT © hausfold

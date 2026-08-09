@@ -814,9 +814,22 @@ step 4 works.
   licence, so its holder is a legal-identity choice — `hausfold`
   (unincorporated today, §0.2) or the person — not a naming one, and swapping
   the word in the README alone would leave the README and the LICENSE naming
-  two different holders. **All five lines left untouched and escalated
-  2026-08-09.** Reconcile them in one deliberate pass, with §0.2's
-  incorporation trigger.
+  two different holders.
+
+  ✅ **Decided 2026-08-09: `hausfold`, on all five.** The seller is hausfold,
+  and perch's holder is the name that ends up on a receipt — so the brand, not
+  the person, and not the rice. Landed as nebelung#34, pounce#69,
+  workshop#275, perch#47.
+  ⚠️ **`perch/LICENSE:9` needs one hand edit and perch#47 must not merge
+  without it.** The agent harness refuses an agent editing a licence holder
+  line — the right default — so that PR carries the README half only, and its
+  README *quotes* the LICENSE. Half of it is worse than none of it.
+  ⏳ **And the other three LICENSE files still say `Julien Martel`**
+  (nebelhaus, nebelung, pounce — all MIT). That mismatch predates the rename
+  and is not a regression, but it is now the whole remaining inconsistency:
+  four READMEs saying `hausfold` over three LICENSEs saying a person. One
+  deliberate pass, with §0.2's incorporation trigger — the same question,
+  which is why it isn't worth answering twice.
 
 ### 2.2 🤖 The agent surface specifically
 
