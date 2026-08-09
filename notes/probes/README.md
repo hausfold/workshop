@@ -8,8 +8,12 @@ same shelf: a claim in a notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
+swift notes/probes/locale-effective.swift          # resolved locale + enabled input sources
 swift notes/probes/displays.swift                  # displays, persistent UUIDs, HiDPI modes
 ./notes/probes/ncprefs-flags.sh                    # per-app notification switches
+./notes/probes/sound-sweep.sh                      # alert volume, beep sound, startup chime
+./notes/probes/locale-sweep.sh                     # region keys, input sources
+./notes/probes/power-sweep.sh                      # sleep/pmset (section C needs root)
 ```
 
 `accessibility-effective.swift` reports what macOS *actually* honours, not what
@@ -104,6 +108,55 @@ It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
 effect) from keys with none (persistence only — it pauses ~10s so you can look).
 That split is deliberate: "the write succeeded" was never sufficient evidence
 here, since `com.apple.Accessibility` writes succeed and change nothing.
+
+## `sound-sweep.sh` · `locale-sweep.sh` · `power-sweep.sh` — §5.6's last three groups
+
+Added 2026-08-08 to settle the three curated-settings groups the roadmap had
+deferred *because nothing had been spiked*. Full results in
+[`../macos-settings-matrix.md`](../macos-settings-matrix.md#sound--localeinput-sources--power--swept-2026-08-08);
+the short version is that all three are reachable and the stated reason for
+deferring each one was wrong — Sound, Locale and Power have 2, 4 and 6 typed
+options respectively.
+
+```sh
+./notes/probes/sound-sweep.sh              # add --audible to hear the beep rows
+./notes/probes/locale-sweep.sh
+./notes/probes/power-sweep.sh              # A/B/D read-only; C needs root
+```
+
+Three findings this shelf's own rules predicted and one it didn't:
+
+- **`com.apple.sound.beep.volume` is `e^(slider − 1)`, not a fraction.** `0.5`
+  is 31% and anything ≤ `e⁻¹` is silence. Oracle: `osascript -e 'get volume
+  settings'`, which reads CoreAudio rather than the plist. The same key is
+  written back by the volume keys, so it is a two-writers leaf.
+- **`AppleMeasurementUnits` — typed, friendly, inert.** Of the four typed region
+  keys, the one with the nice `Inches`/`Centimeters` enum is the only one that
+  moves nothing; `AppleMetricUnits` is load-bearing. The "second key that makes
+  the first a lie", with the roles reversed.
+- **`AppleFirstWeekday` lands and lies** — the second dict-valued key here to do
+  so after `FontSizeCategory`. Structured keys in Apple's global domain are
+  GUI-only until one proves otherwise.
+- **The one nobody predicted: the missing piece is a *notification*.** A
+  `defaults write` reaches new processes only; a running app never notices, not
+  even through `Locale.autoupdatingCurrent`. Posting
+  `AppleDatePreferencesChangedNotification` right after the write flips it
+  within one sample, and a made-up notification name does nothing — so it is
+  name-specific, not a cache poke. `restart-map.nix` can say `killall` and
+  `logout`; this family needs a third verb.
+
+`locale-effective.swift` is the oracle (resolved locale, languages, measurement
+system, temperature unit, ICU hour skeleton, first weekday, current + enabled
+input sources), and `--watch N` is what makes the running-app question visible.
+`tis-toggle.swift` enables/disables ONE keyboard layout through the documented
+`TISEnableInputSource` — used both as a control and as the way to learn what
+macOS writes, since `AppleEnabledInputSources` resolves layouts by
+`KeyboardLayout Name` while never validating the `KeyboardLayout ID` beside it.
+
+Power is the one group with an open row: its write test needs root, which on
+this machine is an interactive Touch ID prompt, so section C skips itself with
+instructions rather than guessing. Sections A, B and D still settle the shape —
+`systemsetup` has no power-source selector and nix-darwin discards its stderr.
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 

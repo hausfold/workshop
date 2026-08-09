@@ -51,6 +51,92 @@ already exist, and one it treated as a detail is the actual root blocker.
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-08 (sixteenth pass) — §5.6's last unspiked box is closed:
+> Sound, Locale/input sources and Power are all reachable, and the reason given
+> for deferring each of them was wrong.**
+>
+> This is a **notes-and-probes pass, nothing shipped in the rice.** The eleventh
+> pass (below) deferred these three groups because "no domain for any of them
+> has been spiked for effect on this machine at all (typed or not), so there is
+> nothing yet to curate honestly, only to guess at" — a good rule that was
+> applied to a false premise. All three have typed nix-darwin surfaces: **Sound
+> two keys, Locale four, Power six.** The check that would have caught it is
+> `grep mkOption modules/system/defaults/*.nix modules/power/*.nix`, which costs
+> less than the spike it was used to postpone. ★ **The transferable bit: a
+> deferral needs its premise verified as hard as a shipped option does.** This
+> document's own "verified, not remembered" language protects what we build and
+> not, until now, what we decline to build.
+>
+> Three probes and two oracles are on the shelf
+> (`notes/probes/{sound,locale,power}-sweep.sh`, `locale-effective.swift`,
+> `tis-toggle.swift`); the full results are in
+> [`macos-settings-matrix.md`](./macos-settings-matrix.md#sound--localeinput-sources--power--swept-2026-08-08).
+> Each script snapshots, restores and verifies its own restore — the machine
+> ends byte-identical, as with every sweep in that file.
+>
+> **What the spike found, in the order it changes decisions.**
+>
+> - ★ **The missing piece for Locale is not a key — it is a distributed
+>   notification.** A `defaults write` reaches newly launched processes only; a
+>   running app never notices, not even through `Locale.autoupdatingCurrent`,
+>   the flavour documented to track changes. Posting
+>   `AppleDatePreferencesChangedNotification` immediately after the write flips
+>   it within one sample, and a made-up notification name does nothing. This is
+>   the first setting family whose "restart" is neither a `killall` nor a
+>   logout, so `modules/lib/restart-map.nix` (rice#249) needs a **third verb**
+>   before this group can ship honestly. That is now the gating work item, and
+>   it is small.
+> - **`com.apple.sound.beep.volume` is `e^(slider − 1)`, not a fraction** —
+>   `0.5` is 31% and anything at or below `e⁻¹ ≈ 0.368` is silence. nix-darwin's
+>   docstring lists 75/50/25% as three magic constants and never names the
+>   curve. A curated `sound.alertVolume` takes 0–100 and converts; exposing the
+>   typed float would ship a lie that reads as a bug in *our* option. Same key
+>   is written back by the volume keys, so it is also a two-writers leaf (§5.7's
+>   question, inside a settings group).
+> - **`AppleMeasurementUnits` is typed, friendly, and inert.** Of the four typed
+>   region keys it is the only one that moves nothing measurable, and it is the
+>   one a rice reaches for first (`Inches`/`Centimeters` enum). `AppleMetricUnits`
+>   is load-bearing. §5.6's "what second key makes the first a lie", with the
+>   roles reversed — here the *decorative* key is the well-typed one.
+> - **`AppleFirstWeekday` lands and lies**, the second dict-valued key to do so
+>   after `FontSizeCategory`. Promoting that to a rule: **treat structured keys
+>   in Apple's global domain as GUI-only until one proves otherwise.** Set
+>   `AppleLocale` instead — it moves hour format, measurement system and first
+>   weekday together, and is the group's real lever (untyped →
+>   `CustomUserPreferences`).
+> - **Input sources are settable from a plist, and the authoritative-looking key
+>   is the decorative one.** `AppleEnabledInputSources` resolves a layout by
+>   `KeyboardLayout Name`; the `KeyboardLayout ID` beside it must merely be
+>   *present* and is never validated (`99999` works fine). Exact inverse of the
+>   hot-corners finding. And the name isn't derivable from the input-source id
+>   (`com.apple.keylayout.SwissFrench` → `"Swiss French"`), so a hand-typed table
+>   in Nix would be wrong for precisely the layouts nobody here tests: the option
+>   should take the stable `com.apple.keylayout.*` id and resolve it through the
+>   documented TIS API at activation.
+> - **Power is typed but source-blind.** `power.sleep.*` and
+>   `power.restartAfter*` shell out to `systemsetup`, not `system.defaults` — the
+>   `security.firewall` family, not the `hotCorners` one. No `systemsetup` verb
+>   takes a power source, while macOS stores battery and AC separately, so
+>   "sleep at 5 min on battery, never on AC" — the only opinion a laptop rice
+>   has — is not expressible. And nix-darwin sends every call to `&> /dev/null`,
+>   so a refusal and a success are indistinguishable. Low Power Mode, lid
+>   behaviour and per-source anything are `pmset`, root-only, untyped.
+>
+> **One row stays open, and it is honestly open.** Whether the `systemsetup`
+> path still works on macOS 26 — and whether it moves one power source or both —
+> needs root, which on this machine means an interactive Touch ID prompt. No
+> agent can settle it, so `power-sweep.sh`'s section C skips itself with the
+> exact command rather than guessing, and `power.sleep.*` is recorded as
+> *unverified on 26*, not broken. Sections A/B/D still settle the group's shape.
+>
+> **What this unblocks.** §5.6's rule — no unspiked domain gets curated — is now
+> satisfied for every row in its table except the two deliberately-deferred
+> logout-only ones (`loginwindow`, `WindowManager`). Sound is buildable today.
+> Locale is buildable once restart-map learns `notify`. Power is buildable as an
+> activation step of the rice's own, and should not pretend to be a
+> `system.defaults` group.
+
+
 > **Status, 2026-08-08 (fifteenth pass) — §5.1's macOS Light/Dark box is shipped,
 > and the spike falsified the box's own premise: `AppleInterfaceStyle` is inert in
 > BOTH directions on macOS 26, not just the "off" one.**
@@ -1840,7 +1926,7 @@ nebelhaus.keys = {
       authored user-facing TEXT needs the same seam.**
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
-### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **five of nine groups shipped or part-shipped; the restart-map gate is gone, but three groups still want a §4-style spike**
+### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **five of nine groups shipped or part-shipped; every row is now spiked (Sound/Locale/Power, 2026-08-08) and three remain unbuilt — two logout-only by choice, Locale gated on a `notify` verb**
 Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
@@ -1850,9 +1936,9 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 | **Screenshots** | ✅ **`nebelhaus.screenshots.*` — rice#198.** Folder, format, shadow, thumbnail, date |
 | **Lock / login / screensaver** | ◐ **`nebelhaus.lock.*` — rice#250.** The LOCK half only (`requirePassword`, `requirePasswordDelay`, `com.apple.screensaver`). The LOGIN half (guest account, login window text) is `com.apple.loginwindow` — read once at boot, no live-reload path, and killing `loginwindow` to force one would end the current session — so it stays out until this group has an honest way to say "takes effect at next login" instead of shipping a setting that silently doesn't apply. |
 | **Menu bar & Control Center** | ✅ **`nebelhaus.menuBar.{clock,controlCenter}.*` — rice#250.** Clock format/seconds/date/day-of-week/analog (`com.apple.menuExtraClock`, restarts `SystemUIServer`) + which Control Center glyphs show (battery %, sound, bluetooth, AirDrop, display, Focus, Now Playing — `com.apple.controlcenter`, restarts `ControlCenter`, a whitelisted process since rice#249 that nothing had written into until now) |
-| **Sound** | alert sound, volume feedback, startup chime (`nvram StartupMute`) — the whole audio layer is untouched; no typed nix-darwin domain covers it (would route through raw `NSGlobalDomain` keys never spiked for effect) |
-| **Locale / input sources** | language, keyboard layouts, 12/24h, units, first day of week — **blocks every non-English community rice entirely**; same problem as Sound, no spiked domain to build on |
-| **Power** | battery vs charger sleep, Low Power Mode, lid/docked behaviour — nix-darwin has no typed surface for this at all |
+| **Sound** | ◻️ **spiked 2026-08-08, buildable — nothing blocking it.** Two keys ARE typed (`com.apple.sound.beep.{volume,feedback}`); alert sound + UI sounds route through `CustomUserPreferences`; the startup chime is `nvram`, not a plist. Writes are live, need no restart and no FDA. The trap: the volume leaf is `e^(slider − 1)`, so `0.5` is 31% — curate 0–100 and convert. Also a two-writers key (the volume keys write it back) |
+| **Locale / input sources** | ◻️ **spiked 2026-08-08, buildable once restart-map learns `notify`.** Four typed keys (`AppleICUForce24HourTime`, `AppleMetricUnits`, `AppleTemperatureUnit`, and the inert `AppleMeasurementUnits`); `AppleLocale`/`AppleLanguages`/input sources via `CustomUserPreferences`. **Blocker: a running app only sees the change if `AppleDatePreferencesChangedNotification` is posted** — the first family whose "restart" is a notification. UI language remains relaunch-only |
+| **Power** | ◻️ **spiked 2026-08-08 — typed after all, but not as `system.defaults`.** Six typed options (`power.sleep.*`, `power.restartAfter*`) that shell out to `systemsetup` in nix-darwin's own activation script, `security.firewall`-style. Two limits: no `systemsetup` verb takes a power source (so battery-vs-AC, the only opinion a laptop rice has, is inexpressible), and every call ends in `&> /dev/null`. Low Power Mode / lid / per-source are `pmset`, root-only, untyped |
 | **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
 | **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
@@ -1897,10 +1983,19 @@ screensaver" (`com.apple.loginwindow` — guest account, login window text) and
 all of **Windows** (`com.apple.WindowManager`) are both logout-only per the §4
 matrix and modules/lib/restart-map.nix, which is precisely the shape this
 section's own guardrail rules out — a group that silently needs a logout is
-worse than no group. **Sound**, **Locale/input sources** and **Power** are
-deferred for the opposite reason: no domain for them has been spiked for effect
+worse than no group. **Sound**, **Locale/input sources** and **Power** were
+deferred for the opposite reason: no domain for them had been spiked for effect
 at all, typed or not, so building on top of them would be a guess wearing this
 document's own "verified, not remembered" language.
+
+★ **That deferral has since been closed, and its premise was false** (sixteenth
+pass, 2026-08-08). All three groups do have typed nix-darwin surfaces — Sound
+two keys, Locale four, Power six — so the sentence above was itself an
+unverified claim, in a section whose whole subject is unverified claims. The
+generalisation, and the reason it is written here rather than only in the status
+log: **a deferral needs its premise checked as hard as a shipped option does.**
+The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
+`modules/power/`.
 
 - [ ] Confirm `lock`/`menuBar` by eye — set a value, `bench try switch`, and see
   it happen without a restart. This is the same class of open box as the
@@ -1910,9 +2005,28 @@ document's own "verified, not remembered" language.
   way to say "takes effect at next login" (the way `nebelhaus.accessibility`
   says "needs Full Disk Access") — that's what unblocks building them, not a
   fix to the domain itself, since neither has a live-reload path on macOS 26.
-- [ ] Spike Sound, Locale/input sources and Power the way §4 spiked
-  universalaccess/dock/finder/etc — nothing here can be curated honestly until
-  that exists.
+- [x] Spike Sound, Locale/input sources and Power the way §4 spiked
+      universalaccess/dock/finder/etc — **done 2026-08-08**, three probes on the
+      shelf (`notes/probes/{sound,locale,power}-sweep.sh`) plus two oracles
+      (`locale-effective.swift`, `tis-toggle.swift`), results in
+      [`macos-settings-matrix.md`](./macos-settings-matrix.md#sound--localeinput-sources--power--swept-2026-08-08).
+      All three are reachable. One row is honestly open: the `systemsetup` write
+      test needs root (Touch ID), so `power.sleep.*` is *unverified on 26*
+      rather than proven.
+- [ ] Teach `modules/lib/restart-map.nix` a third verb — **`notify`**, a
+      distributed notification post — before building the Locale group. It is
+      the whole difference between a locale setting that lands today and one
+      that lands at next login, and neither `killall` nor `logout` can express
+      it. `AppleDatePreferencesChangedNotification` is the name; a bogus name
+      does nothing, so it must be the real one.
+- [ ] Build **Sound** first of the three — it needs nothing new: live writes, no
+      FDA, no restart. Curate `alertVolume` as 0–100 with the `e^(p−1)`
+      conversion in the module (never the raw float), and decide the two-writers
+      question the way §5.7 decided it for `haus set`.
+- [ ] Build **Power** as an activation step of the rice's own (`pmset`, per
+      power source), not as a `system.defaults` group and not on top of
+      `power.sleep.*` — those six typed options cannot say "battery" and cannot
+      report a failure.
 
 Each entry carries metadata from the §4 matrix:
 
@@ -2682,9 +2796,13 @@ that visible, and turned up two things that were already broken:
       half only), `menuBar.{clock,controlCenter}` and `security.firewall`
       (rice#250) — i.e. three of the seven that were still open after rice#198.
       Of the four rows left, **one is deferred on a reason** (Windows is
-      logout-only) and **three are blocked on a spike that doesn't exist yet**
-      (Sound, Locale/input sources, Power). Two *halves* inside shipped groups
-      are deferred on the same logout reason: `lock`'s login half and
+      logout-only) and **three are now spiked and unbuilt** (Sound, Locale/input
+      sources, Power — 2026-08-08; the "blocked on a spike that doesn't exist
+      yet" this line used to say is closed, and the spike found all three
+      reachable). Sound needs nothing new; Locale is gated on restart-map
+      learning a `notify` verb; Power should be built as a `pmset` activation
+      step rather than a `system.defaults` group. Two *halves* inside shipped
+      groups are deferred on the same logout reason: `lock`'s login half and
       `security`'s guest-user/remote-login half.
 - ◐ §5.9 — **pounce's half arrived from the app side (pounce#43), the rice-side
       item generator shipped in rice#149.** Three boxes remain: sill widgets,
