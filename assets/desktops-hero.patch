@@ -1,0 +1,71 @@
+diff --git a/public/desktops/index.html b/public/desktops/index.html
+index 3836d61..734ff03 100644
+--- a/public/desktops/index.html
++++ b/public/desktops/index.html
+@@ -86,8 +86,14 @@
+               helix toolbelt, and the Nix flake that puts all of it there.
+               Silver-grey, keyboard-first, reproducible.
+             </p>
+-            <div class="shot shot--wide">
+-              <span>the nebelhaus desktop — tiled, with the bar<br />[ shot not taken yet ]</span>
++            <div class="shot shot--wide shot--filled">
++              <img
++                src="/media/nebelhaus-desktop.webp"
++                width="1600"
++                height="1039"
++                alt="The nebelhaus desktop: a bar along the top edge and a second along the bottom, a terminal and a browser tiled side by side between them, and the pounce launcher open across the seam answering a unit conversion."
++                decoding="async"
++              />
+             </div>
+             <p class="entry-line">
+               <a href="/desktops/nebelhaus">What's in it, and how to install it</a>
+diff --git a/public/desktops/nebelhaus/index.html b/public/desktops/nebelhaus/index.html
+index 460cfef..ff4c053 100644
+--- a/public/desktops/nebelhaus/index.html
++++ b/public/desktops/nebelhaus/index.html
+@@ -100,8 +100,14 @@
+       <section class="block">
+         <h2>What it looks like</h2>
+         <div class="shots">
+-          <div class="shot shot--wide">
+-            <span>the desktop — tiled, with the bar<br />[ shot not taken yet ]</span>
++          <div class="shot shot--wide shot--filled">
++            <img
++              src="/media/nebelhaus-desktop.webp"
++              width="1600"
++              height="1039"
++              alt="The nebelhaus desktop: a bar along the top edge and a second along the bottom, a terminal and a browser tiled side by side between them, and the pounce launcher open across the seam answering a unit conversion."
++              decoding="async"
++            />
+           </div>
+           <div class="shot">
+             <span>pounce, mid-launch<br />[ shot not taken yet ]</span>
+diff --git a/public/hausfold.css b/public/hausfold.css
+index 9684693..50ae3f2 100644
+--- a/public/hausfold.css
++++ b/public/hausfold.css
+@@ -529,6 +529,24 @@ body {
+   grid-column: 1 / -1;
+ }
+ 
++/* A frame holding a real capture stops being a placeholder. The picture
++   brings its own aspect ratio — the 14" panel this was shot on is 1.54:1,
++   not 16:10 — and forcing either of the ratios above with object-fit:cover
++   would shave the top and bottom bars off, which are two of the things the
++   shot exists to show. So the <img> sets the height and the frame follows
++   it. Declared after .shot--wide so it wins on equal specificity. */
++.shot--filled {
++  aspect-ratio: auto;
++  border-style: solid;
++  padding: 0;
++  overflow: hidden;
++}
++
++.shot--filled img {
++  height: auto;
++  object-fit: fill;
++}
++
+ /* --- sections ------------------------------------------------------ */
+ 
+ .block {

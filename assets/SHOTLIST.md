@@ -27,7 +27,7 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
 | 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
-| 2 | **Rice hero desktop** | `nebelhaus/assets/hero.png` | rice README · org README · landing poster | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(Still a placeholder — the one shot genuinely worth capturing.)* |
+| 2 | **Rice hero desktop** | `hausfold/assets/hero.png` | rice README · org README · `hausfold.co/desktops/` ×2 | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder. The staged replacement is speced in [`SHOT-nebelhaus-desktop.md`](./SHOT-nebelhaus-desktop.md) — scene, pre-capture checklist, export sizes and a ready-to-apply site patch.)* |
 | 3 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
 | 4 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
 
@@ -64,7 +64,12 @@ to "fill in" the set; the set is the five above.
 **Staging still matters for the shots that survive** — consistency is what makes
 a rice read as *designed*, not *dumped*. Before capturing #1–#5:
 
-- Flat fog-grey wallpaper near `base #202020`; default `mauve #c9a8f1` accent.
+- A Nebelung wallpaper on `base #202020`; accent **`pink`**, not the option's
+  default mauve — `hausfold.co` sets `--a-nebelhaus: var(--nebelung-pink)` and
+  the logo's ears are pink, so a mauve capture is the odd one out on every
+  surface it lands on.
 - Clean clock (**9:41**), a fog-appropriate weather city, neutral clipboard/tabs, fresh git state.
+- Personal pills off (`aiUsage`, `elgato`, `harvest`); no username, battery
+  percentage or uptime anywhere in frame.
 - Default gaps (inner `10px` / outer `20px`); KeyCastr bottom-center for any video.
 - Record on the retina display, 60fps, export @2x; bump Ghostty to ~22px for video legibility.
