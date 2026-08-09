@@ -27,7 +27,7 @@ So this skill is about the two things `bench` deliberately doesn't decide:
 |---|---|---|---|
 | `pounce` | CalVer | `bench release pounce` | Homebrew tap |
 | `perch` | CalVer | `bench release perch` | Homebrew tap + the rice's flake pin |
-| `nebelhaus` | CalVer | `bench release nebelhaus` | `nebelhaus.com/init.sh` |
+| `hausfold` | CalVer | `bench release hausfold` | `nebelhaus.com/init.sh` |
 | `holt` | **semver** | `bench release holt <X.Y.Z>` | npm, PyPI, crates.io, SwiftPM, the Go proxy |
 
 CalVer repos take **no** version argument — the date IS the version, and `bench` refuses an
@@ -98,7 +98,7 @@ Then, for the repo you're cutting:
 ## Run it
 
 ```sh
-bench release holt 0.2.0          # or: bench release nebelhaus
+bench release holt 0.2.0          # or: bench release hausfold
 ```
 
 It stamps, commits, pushes, tags, then paints a live job tree until CI finishes. For holt

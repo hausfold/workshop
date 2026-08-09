@@ -11,7 +11,7 @@ tableOfContents:
      To change an option's description, edit its declaration in the rice
      (modules/<room>/options.nix) and regenerate:
 
-         node web/scripts/gen-options.mjs --rice ../nebelhaus
+         node web/scripts/gen-options.mjs --rice ../hausfold
 
      CI re-renders this and fails if it differs, so a hand edit here is
      guaranteed to be reverted. -->

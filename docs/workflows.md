@@ -36,7 +36,7 @@ The important one. You never need to push to "see" a change; `try` builds your
 real machine config against the **local checkouts**, uncommitted edits and all:
 
 ```sh
-# edit anything in nebelung/, pounce/, nebelhaus/…
+# edit anything in nebelung/, pounce/, hausfold/…
 ./bench try            # does it build?  (nothing pushed, nothing activated)
 ./bench try switch     # run it on this Mac  (still nothing pushed)
 # happy? commit in the repo(s) you touched, then:
@@ -153,7 +153,7 @@ the repo's version source, commits, and tags it.
                             # CI publishes the release + bumps the homebrew formula
 ./bench release perch       # date-stamps VERSION + tags v<date> — CI bumps the
                             # homebrew cask AND the rice's flake pin (nix/release.nix)
-./bench release nebelhaus   # date-stamps VERSION + tags v<date> — this is what
+./bench release hausfold    # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
 ```
 

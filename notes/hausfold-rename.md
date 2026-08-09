@@ -967,7 +967,7 @@ over-broad gate §1.2 warns gets deleted rather than met.)* *(No `haus rebuild` 
 transfers in one sitting**, then one lock ripple — a half-migrated org means
 flake inputs resolving through redirects for days.
 
-### 3.1 🟨 Pre-flight — audited 2026-08-08, **five boxes left**
+### 3.1 🟨 Pre-flight — ✅ complete 2026-08-09; the transfer ran on it
 
 **All six bullets below are now settled** — four measured against the live API
 2026-08-08, and the first two ticked because their own prose already resolved
@@ -979,14 +979,21 @@ the only *command*; the other four are the owner-keyed identifiers the original
 list didn't have, and §3.3's gate now depends on all four. They break *after*
 the transfer, while everything local still passes:
 
-- [ ] 👤 `gh auth refresh -h github.com -s admin:org`, then list the org secrets
-- [ ] 🤖 **`bench`'s `GH_ORG` can no longer be one value** — §3.4 keeps the
-      archived Messages client in `nebelhaus` while `FAMILY` still lists it, so
-      `bench clone` hard-fails on a fresh machine the moment `GH_ORG` moves.
-      The diagnosis, the fix and the seven other `bench` sites are in **§3.3**,
-      but the box lives here because §8's order runs §3.3 *after* the transfer
-      and this one has to be done *before* it.
-- [ ] the four identifiers below (their own checklist follows the table)
+- [x] 👤 `gh auth refresh -h github.com -s admin:org`, then list the org secrets.
+      **✅ run 2026-08-09: `orgs/nebelhaus/actions/secrets` returns
+      `total_count: 0`.** There were never any org secrets, so nothing was
+      silently left behind by the transfer — the repo-level table above is the
+      whole picture.
+- [x] 🤖 ~~**`bench`'s `GH_ORG` can no longer be one value**~~ — **dissolved
+      2026-08-09 by workshop#283**, which reaped the archived Messages client
+      from `FAMILY` entirely. The finding was real when written: §3.4 keeps that
+      repo in the `nebelhaus` org, so a single `GH_ORG` would have made
+      `bench clone` ask for `hausfold/messages` and die. With the entry gone,
+      every `FAMILY` member is in one org again. **`GH_ORG="hausfold"` landed in
+      workshop#8017988**, with a `gh_repo <name>` indirection for the two
+      checkouts whose directory name isn't their repo name.
+- [ ] the four identifiers below (their own checklist follows the table) — the
+      only genuinely open boxes left in §3.1
 
 - [x] `hausfold` org has `website` (archived), `hausfold.co` and `ops` today.
       Confirm **no GitHub name collision** with an incoming repo — there isn't
@@ -1084,8 +1091,11 @@ some SDKs published and some not. So they get boxes of their own, and §3.3's
 gate names them: **no `bench release holt` until all four are ticked.**
 
 - [ ] `MIRROR_TOKEN` re-minted against `hausfold` and replaced as holt's repo secret
-- [ ] second trusted publisher armed on PyPI and crates.io **before** the transfer;
-      npm's flipped **after** it
+- [x] second trusted publisher armed on PyPI and crates.io **before** the
+      transfer — **done 2026-08-09, ahead of the sitting.**
+- [ ] ⏳ **npm's trusted publisher flipped to `hausfold/holt`.** Single-valued,
+      so it could not be pre-armed; the transfer has happened, so this is due
+      now and it is the one that fails a publish.
 - [ ] the Go module path decision honoured (keep it — §6) rather than swept
 - [ ] the SwiftPM mirror URL rewritten in both places, and `Package.resolved`
       refreshed in any consumer
@@ -1369,18 +1379,26 @@ hardcoded `local_src nebelhaus`. So:
   **Nothing errors.** This is the one to avoid, and it is the state a careful
   half-finished sweep lands in.
 
-- [ ] `rm -rf ~/code/workshop/hausfold` (the stale `hausfold/website` clone —
-      that repo is archived, and `hausfold.co/` supersedes it)
-- [ ] repoint `bench:1560-1568`'s site clone at `$ROOT/hausfold.co`, and update
+- [x] `rm -rf ~/code/workshop/hausfold` (the stale `hausfold/website` clone —
+      that repo is archived, and `hausfold.co/` supersedes it). **Done
+      2026-08-09**, verified clean and fully pushed first.
+- [x] **Done in workshop#8017988.** Repoint `cmd_clone`'s site clone at
+      `$ROOT/hausfold.co`, and update
       `bench:1005`'s `repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap
       hausfold consumer)` with it — `cmd_pull`'s list already names the site
       `hausfold`, so once `FAMILY` holds `hausfold` too **the same name appears
       twice in one array**, and `bench pull` fast-forwards one checkout under
       the other's identity. The `bench:1002-1004` and `bench:1550-1559` comments
       follow.
-- [ ] add `/hausfold.co/` to the workshop's `.gitignore` and retire `/nebelhaus/`
-      there once the FAMILY entry moves — the ignore file names both checkouts
-- [ ] **only then** rename the `FAMILY` entry — and when you do, rename it
+- [x] add `/hausfold.co/` to the workshop's `.gitignore` and retire
+      `/nebelhaus/` there once the FAMILY entry moves — the ignore file names
+      both checkouts. **Done 2026-08-09**, in the same commit as the entry.
+- [x] **Done 2026-08-09 — and it was `mv ~/code/workshop/nebelhaus
+      ~/code/workshop/hausfold` plus the literals below, in one commit, because
+      a `bench` that disagrees with the disk finds no rice at all.** The rice's
+      live agent worktree survived the `mv`; both gitdir pointers were checked
+      and `git worktree repair` was a no-op. **Only then** rename the `FAMILY`
+      entry — and when you do, rename it
       *everywhere*, because `nebelhaus` is spelled out as a literal in eight
       more places `FAMILY` doesn't reach: `OVERRIDABLE` (`bench:88`), the
       lock-edge table (`:219-223`), `overrides()` (`:281-286`), the

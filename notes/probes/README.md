@@ -206,7 +206,7 @@ wins, rather than colliding with it.
 ```sh
 nix-instantiate --eval --strict --json notes/probes/pack-priority.nix
 nix-instantiate --eval --strict --json notes/probes/pack-priority.nix \
-  --arg rice ~/code/workshop/nebelhaus      # from a workshop worktree
+  --arg rice ~/code/workshop/hausfold      # from a workshop worktree
 ```
 
 No machine, no darwin system, no build — it evaluates the rice's pure-lib option
@@ -225,7 +225,7 @@ the one a gallery produces.
 
 ```sh
 nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
-  --arg rice ~/code/workshop/nebelhaus
+  --arg rice ~/code/workshop/hausfold
 ```
 
 All six pairs of the four shipped presets, both escape hatches, and two candidate
@@ -250,7 +250,7 @@ macOS bump too** — two of its rows are nix-darwin defaults (`dock.tilesize`,
 
 ```sh
 nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
-  --arg rice ~/code/workshop/nebelhaus
+  --arg rice ~/code/workshop/hausfold
 ```
 
 Evidence for [`../options-roadmap.md`](../options-roadmap.md) §5.2's two

@@ -17,8 +17,8 @@
 // snapshot with --update.
 //
 // Usage:
-//   node web/scripts/check-rice-bindings.mjs --rice <nebelhaus-checkout>
-//   node web/scripts/check-rice-bindings.mjs --rice <nebelhaus-checkout> --update
+//   node web/scripts/check-rice-bindings.mjs --rice <rice-checkout>
+//   node web/scripts/check-rice-bindings.mjs --rice <rice-checkout> --update
 //
 // Needs a rice CHECKOUT and nothing else — no Nix. See gen-options.mjs's header
 // for why (notes/hausfold-rename.md §5.1: the docs must not drag Nix into their
@@ -39,7 +39,7 @@ const rice = riceIdx >= 0 ? args[riceIdx + 1] : process.env.RICE_DIR;
 // of the checkout, so a typo'd path would otherwise fall through to the
 // missing-site-data branch and be reported as an out-of-date rice.
 if (!rice || !existsSync(rice)) {
-  console.error('usage: check-rice-bindings.mjs --rice <nebelhaus-checkout> [--update]');
+  console.error('usage: check-rice-bindings.mjs --rice <rice-checkout> [--update]');
   process.exit(2);
 }
 
@@ -141,5 +141,5 @@ Update the docs to match the rice —
   web/src/content/docs/guides/window-management.mdx
   web/src/content/docs/start/first-run.mdx (the "four moves" + sequence)
 — then refresh the snapshot:
-  node web/scripts/check-rice-bindings.mjs --rice <nebelhaus-checkout> --update`);
+  node web/scripts/check-rice-bindings.mjs --rice <rice-checkout> --update`);
 process.exit(1);

@@ -15,8 +15,8 @@
 // Narrative guides stay hand-written. This is the REFERENCE only.
 //
 // Usage:
-//   node web/scripts/gen-options.mjs --rice <nebelhaus-checkout>
-//   node web/scripts/gen-options.mjs --rice <nebelhaus-checkout> --check
+//   node web/scripts/gen-options.mjs --rice <rice-checkout>
+//   node web/scripts/gen-options.mjs --rice <rice-checkout> --check
 //
 // Needs a rice CHECKOUT and nothing else — no Nix, no flake pin, no nixpkgs
 // fetch. It used to shell out to `nix build .#options-json`, which meant this
@@ -38,7 +38,7 @@ const check = args.includes('--check');
 const riceIdx = args.indexOf('--rice');
 const rice = riceIdx >= 0 ? args[riceIdx + 1] : process.env.RICE_DIR;
 if (!rice || !existsSync(rice)) {
-  console.error('usage: gen-options.mjs --rice <nebelhaus-checkout> [--check]');
+  console.error('usage: gen-options.mjs --rice <rice-checkout> [--check]');
   process.exit(2);
 }
 
@@ -176,7 +176,7 @@ tableOfContents:
      To change an option's description, edit its declaration in the rice
      (modules/<room>/options.nix) and regenerate:
 
-         node web/scripts/gen-options.mjs --rice ../nebelhaus
+         node web/scripts/gen-options.mjs --rice ../hausfold
 
      CI re-renders this and fails if it differs, so a hand edit here is
      guaranteed to be reverted. -->
@@ -200,7 +200,7 @@ if (check) {
   console.error(
     'options reference is STALE.\n\n' +
       'The rice\'s options changed and this page was not regenerated. Run:\n' +
-      '  node web/scripts/gen-options.mjs --rice <nebelhaus-checkout>\n' +
+      '  node web/scripts/gen-options.mjs --rice <rice-checkout>\n' +
       'and commit the result. Do not edit the page by hand.\n',
   );
   process.exit(1);
