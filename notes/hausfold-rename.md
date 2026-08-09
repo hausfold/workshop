@@ -89,10 +89,12 @@ What changed since the morning handoff:
   gone, which is §4.2's riskiest step confirmed rather than assumed.
   ⚠️ **The closeout's second half did not run**: `com.local.pounce` is still in
   the rice's `AssociatedBundleIdentifiers`. See §4.2's open box.
-- **§5.4 is effectively done** — no `support@nebelhaus.com` survives anywhere in
-  the family except as struck-through history. But the address that actually
-  shipped is `hi@hausfold.co`, not `support@hausfold.co`; §5.4 now carries that
-  discrepancy as an open 👤 call.
+- **§5.4 is done** — no `support@nebelhaus.com` survives anywhere in the family
+  except as struck-through history, **and the address is settled: `hi@hausfold.co`**,
+  not `support@hausfold.co`. The sweep exposed that both were in play; `hi@` won
+  because it is the one that exists and is already on `/terms`. Three perch
+  pre-flight boxes that were *create a mailbox* tasks are now *decide an SLA*
+  tasks, and an SLA doesn't gate a receipt.
 - **§9's `options-modules.nix` duplication is closed** — `modules/default.nix`
   imports the list now.
 
@@ -1994,12 +1996,13 @@ fix later.
 - ⚠️ **Cloudflare edge-caches 404s.** Cache-bust when verifying, or you'll chase
   a redirect that already works.
 
-### 5.4 🟨 Support address — the text sweep is done, the address isn't decided
+### 5.4 ✅ Support address — swept, and settled on `hi@hausfold.co`
 
 ~~`support@nebelhaus.com` → `support@hausfold.co` in perch's terms, the site
 footer, `perch-monetization.md`, and the Paddle application notes.~~ *That was
-the instruction; the sweep found the target address itself is unsettled, so
-this line no longer prescribes `support@` — read the open box below instead.*
+the instruction, and its target address was wrong — the sweep found `support@`
+was never created and `hi@hausfold.co` was already doing the job. See the
+decision below; the destination changed, the sweep itself still happened.*
 
 ✅ **Swept, verified 2026-08-09.** `rg 'support@nebelhaus'` across the whole
 workshop and every family checkout returns **five hits, four of them history**:
@@ -2010,25 +2013,45 @@ and must stay — deleting them is how a settled decision gets re-litigated. The
 fifth is the struck-through instruction line directly above, which is this
 section's own task text, not history. **No live occurrence is left to change.**
 
-⚠️ **But two addresses are now in play, and nothing reconciles them.** The
-seller surface that actually shipped uses **`hi@hausfold.co`**
-(`hausfold.co/public/terms/index.html:187,194` — the contact of record on a
-*legal* page), while perch gates on **`support@hausfold.co`** existing in three
-places (`perch/docs/going-paid.md:60`, `perch/docs/app-store.md:169`,
-`perch-monetization.md:153`). `going-paid.md:62` already notes the split, so it
-isn't unrecorded — but nothing *resolves* it, and all three are unchecked boxes,
-so neither mailbox is proven to exist yet. This is still free to settle; it
-stops being free the moment a receipt goes out carrying one of them.
+#### ✅ Decided 2026-08-09 — the address is `hi@hausfold.co`
 
-- [ ] 👤 **Decide: one address or two.** `hi@` reads right on a small seller's
-  terms page; `support@` is what a buyer looks for and what a checklist can
-  assert. An alias of one onto the other costs nothing and is the obvious
-  answer — but *which one is canonical* determines what gets printed on
-  receipts, and that's the part you can't quietly change later.
-- [ ] 👤 Create the mailbox/alias, then tick `going-paid.md:60`,
-  `app-store.md:169` and `perch-monetization.md:153` — those boxes are the real
-  gate, not this section.
-- [ ] 👤 Paddle application notes (in `hausfold/ops`, not here).
+The sweep exposed that two addresses were in play and nothing reconciled them.
+The seller surface that actually shipped used **`hi@hausfold.co`**
+(`hausfold.co/public/terms/index.html:187,194` — the contact of record on a
+*legal* page), while perch gated on **`support@hausfold.co`** existing in three
+places (`perch/docs/going-paid.md:60`, `perch/docs/app-store.md:169`,
+`perch-monetization.md:153`). `going-paid.md:62` recorded the split; nothing
+resolved it.
+
+**`hi@` wins, and the deciding fact is that it is the one that exists.**
+`support@hausfold.co` appeared in exactly three unchecked checkboxes and on zero
+pages; `hi@` is live, routes today, and is already printed on `/terms` and
+`/refunds` — the two pages a buyer is pointed at when something goes wrong. So
+the choice was never "which address is better", it was "keep the working one, or
+create a second one and then find-and-replace the legal pages onto it before the
+first receipt". The second is strictly more work for a distinction no buyer of a
+one-person product notices.
+
+What that buys, concretely: **three pre-flight boxes stop being blockers.** They
+were written as *create a mailbox* tasks; they become *decide an SLA* tasks, and
+an SLA doesn't gate a receipt.
+
+- ⚠️ **The one real cost:** `support@` is what a buyer types when guessing. If
+  that ever bites, the fix is an **alias** `support@ → hi@`, which is additive
+  and changes nothing printed. **Do not** make `support@` canonical later —
+  aliasing in is free, but moving the *printed* address after receipts exist
+  means old receipts point at a mailbox you then have to keep forever.
+- ⚠️ **Don't "fix" `hi@` to `support@` on the site.** It reads informal and a
+  later session will want to. It's deliberate; this is the record.
+
+- [x] 🤖 `perch/docs/going-paid.md`, `perch/docs/app-store.md`,
+  `perch-monetization.md`, `go-to-market.md` — all four now say `hi@` and carry
+  the reason, so none of them re-opens this.
+- [ ] 👤 Decide the SLA you'll honour on `hi@` before the first receipt. That's
+  the part of the old checkbox that survives.
+- [ ] 👤 Paddle application notes (in `hausfold/ops`, not here) — make sure the
+  merchant-of-record contact matches `hi@`, since Paddle prints it on the
+  receipt and that copy is outside this repo's reach.
 
 ### §5's gate
 

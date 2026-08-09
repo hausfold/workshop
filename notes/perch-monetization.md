@@ -150,12 +150,17 @@ deliberately INERT** *(~2–3 sessions; the big one)*
       the privacy restraint, and the price. Dev detail moves below the fold.
 - [ ] Paddle overlay checkout on that page; FAQ covers fair-source, the
       update-year, seats, refunds (MoR handles the mechanics).
-- [ ] `support@hausfold.co` (or alias) with an SLA you'll actually honor —
-      paying customers change the tone of the issue tracker.
+- [ ] An SLA for **`hi@hausfold.co`** that you'll actually honor — paying
+      customers change the tone of the issue tracker. ✅ The *mailbox* half of
+      this box is closed: `hi@` already routes and is already the contact on
+      `/terms` and `/refunds`, so nothing has to be created before the first
+      receipt. What's left is the promise, not the address.
       *(Was `support@nebelhaus.com`, on the reasoning that people bought a
       nebelhaus product. Reversed 2026-08-08 with [`go-to-market.md`](./go-to-market.md)
       §6: they buy a hausfold product now, and hausfold is the name on the
-      receipt they'll already have seen.)*
+      receipt they'll already have seen. Then briefly `support@hausfold.co` —
+      settled to `hi@` 2026-08-09, [`hausfold-rename.md`](./hausfold-rename.md)
+      §5.4.)*
 
 **Phase 4 — launch** *(gated on me, like any release)*
 - [ ] First FSL + gated build ships via the normal `bench release perch`.
