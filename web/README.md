@@ -168,7 +168,7 @@ curl -sI "https://nebelhaus.com${css}"
 
 ## On a release
 
-`bench release nebelhaus` date-stamps `VERSION` and tags `v<date>`; CI publishes
+`bench release hausfold` date-stamps `VERSION` and tags `v<date>`; CI publishes
 the GitHub release. The
 Worker picks up the new tag for `/init.sh` within the cache hour — **the script
 needs no redeploy**. The *site* only changes when you rebuild and redeploy it.
