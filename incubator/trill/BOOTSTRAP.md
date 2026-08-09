@@ -9,22 +9,22 @@ It was scaffolded as **flick** and renamed to **trill** on 2026-08-08, taking
 the name back from the archived Messages client. That rename is why the eject
 now has preconditions it didn't have before — read §0 before running §1.
 
-## §0 — Preconditions the name reuse created
+## §0 — Preconditions the name reuse created — ✅ all clear
 
-The old Trill still holds three slots this app needs. **None of them blocks
-the eject itself**, but each one breaks something later if it's still standing
-when that later thing happens. Tick them off in order.
+The old Trill held three slots this app needs. All three were freed on
+2026-08-08, in the same day as the rename; this section stays so nobody
+re-discovers the constraint and assumes it's still live.
 
-| # | Slot | Held by | Frees it | Blocks |
-|---|---|---|---|---|
-| 1 | GitHub repo name | `nebelhaus/trill` (archived) | different org — **no conflict**, `hausfold/trill` is free today | nothing |
-| 2 | on-disk checkout `~/code/workshop/trill` | the archived client's clone | rename the repo, then the dir, then `bench:75`'s `FAMILY` entry and `.gitignore` | **step 2.3 below** — the eject `mv`s into that exact path |
-| 3 | Homebrew cask token `trill` | `homebrew-tap/Casks/trill.rb`, deprecated 2026-08-04 | retire that cask (delete, or `disable!` then delete) | the **first release**, not the eject |
+| # | Slot | State |
+|---|---|---|
+| 1 | GitHub repo name | ✅ the archived client is **`nebelhaus/messages`** (unarchive → rename → re-archive; GitHub keeps the `nebelhaus/trill` redirect). It never conflicted — different org — but two live apps called "trill" would have. |
+| 2 | on-disk checkout `~/code/workshop/trill` | ✅ now `~/code/workshop/messages`, with its remote, `.gitignore` and `bench`'s `FAMILY` entry moved with it. **This is the one that mattered for the eject** — step 2 below `mv`s into that exact path. |
+| 3 | Homebrew cask token `trill` | ✅ `homebrew-tap/Casks/trill.rb` **deleted** — it had no install base. Blocked the first release, never the eject. |
 
-Slot 2 is the one to get right before running §1: `bench` resolves family
-repos as *directory names* under the workshop root (`local_src` → `$ROOT/$1`),
-so two things called `trill` in that dir is not a cosmetic clash — it is
-`bench status` reporting the wrong repo.
+Slot 2 was the load-bearing one: `bench` resolves family repos as *directory
+names* under the workshop root (`local_src` → `$ROOT/$1`), so two things called
+`trill` in that dir was never a cosmetic clash — it is `bench status` reporting
+the wrong repo.
 
 ## §1 — One-time eject (≈2 minutes, from the workshop main checkout)
 
@@ -55,9 +55,10 @@ so two things called `trill` in that dir is not a cosmetic clash — it is
    mv /tmp/trill-eject ~/code/workshop/trill   # its place in the family dir
    ```
 
-   ⚠️ That last `mv` is §0's slot 2. If the archived client's checkout is
-   still sitting at `~/code/workshop/trill`, the `mv` nests one repo inside
-   the other instead of failing loudly. Check first.
+   That last `mv` is §0's slot 2, and it is clear: the archived client's
+   checkout moved to `~/code/workshop/messages` on 2026-08-08. Check anyway —
+   if something is sitting at `~/code/workshop/trill`, the `mv` nests one repo
+   inside the other instead of failing loudly.
 
 3. Back in the workshop repo: delete `incubator/` (this file goes with it),
    add `/trill/` to `.gitignore` next to the other family repos, and commit.
@@ -93,13 +94,13 @@ Then feel it: run Trill.app, `trill ping`, `trill send --title hello`.
   `on-window-detected` rule is pointing at a bundle id that no longer exists.
 - **web**: a docs page at nebelhaus.com/trill — 🚨 **which cannot exist until
   `web/astro.config.mjs`'s `redirects` block stops sending `/trill`,
-  `/trill/`, `/guides/trill` and `/guides/trill/` to the archived repo.** The
-  redirect wins over a page. Same for the other leftovers of the old Trill's
-  product page: a `--neb-product-trill` palette token, a `'trill'` slot in
-  `FamilyNav`, `"trill"` in `worker.js`'s `DOWNLOADABLE` set, and the
-  assertions in `web/README.md` and `web/test/worker.test.js` that call trill
-  a downloadable app. They are inherited, not deleted: check each one means
-  *this* app before relying on it.
+  `/trill/`, `/guides/trill` and `/guides/trill/` to `nebelhaus/messages`.**
+  A redirect beats a page, and retiring those four means accepting that a
+  frozen Homebrew cask and a frozen about box start 404ing. `/download/trill`
+  **is** free — that slug moved to `messages` with the rename. Still inherited
+  from the old product page and still describing the archived app: the
+  `--neb-product-trill` palette token and the `'trill'` slot in `FamilyNav`.
+  Check each one means *this* app before relying on it.
 - **workshop**: routing-table row (already in the workshop's `AGENTS.md`).
 - **`.github/copilot-instructions.md`**: the one piece of the agent-config layer
   deliberately left out while incubating — a file at `incubator/trill/.github/`
@@ -111,5 +112,5 @@ Then feel it: run Trill.app, `trill ping`, `trill send --title hello`.
   already in place and ejects as-is.
 - **homebrew-tap / release.yml**: only when the first release is cut
   (CalVer via `bench release trill`); `nix/release.nix` carries a
-  placeholder until CI stamps it. §0's slot 3 has to be closed by then —
-  two `Casks/trill.rb` cannot coexist.
+  placeholder until CI stamps it. §0's slot 3 is already closed — the old
+  `Casks/trill.rb` was deleted, so the token is free for this app's cask.

@@ -184,18 +184,18 @@ describe('/download and /api/release', () => {
   it('picks the -macos asset over other assets', async () => {
     globalThis.fetch = makeFetch([
       {
-        match: 'api.github.com/repos/nebelhaus/trill/releases/latest',
+        match: 'api.github.com/repos/nebelhaus/messages/releases/latest',
         json: {
           tag_name: 'v1',
           assets: [
             { name: 'checksums.txt', size: 10, browser_download_url: 'https://example.com/checksums.txt' },
-            { name: 'trill-v1-macos.zip', size: 99, browser_download_url: 'https://example.com/trill-v1-macos.zip' },
+            { name: 'messages-v1-macos.zip', size: 99, browser_download_url: 'https://example.com/messages-v1-macos.zip' },
           ],
         },
       },
     ]);
-    const res = await worker.fetch(req('/download/trill'), {});
-    expect(res.headers.get('location')).toBe('https://example.com/trill-v1-macos.zip');
+    const res = await worker.fetch(req('/download/messages'), {});
+    expect(res.headers.get('location')).toBe('https://example.com/messages-v1-macos.zip');
   });
 
   it('prefers the DMG over the tarball when a release ships both', async () => {

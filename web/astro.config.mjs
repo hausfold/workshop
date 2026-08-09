@@ -17,20 +17,28 @@ export default defineConfig({
   // keeps HTML revalidating (belt-and-suspenders, and it freshens hashed JS), but
   // rendering no longer depends on any cache header being honored by any client.
   build: { inlineStylesheets: 'always' },
-  // trill was archived 2026-08-04 and is no longer part of the family the site
-  // presents: no landing page, no guide, no sidebar entry, no llms.txt row.
+  // The Messages client was archived 2026-08-04 and is no longer part of the
+  // family the site presents: no landing page, no guide, no sidebar entry, no
+  // llms.txt row. It was called **trill** then, and its repo was renamed to
+  // `nebelhaus/messages` on 2026-08-08 so the notification compositor could
+  // take that name (notes/hausfold-rename.md §3.4).
   //
-  // Both URLs still have to resolve, though, and neither can ever be edited:
+  // The `/trill*` PATHS still have to resolve, and none can ever be edited:
   // nebelhaus.com/trill was printed in a shipped Homebrew cask and in the app's
-  // own about box, and /guides/trill/ is linked twice from trill's README —
-  // whose repo is ARCHIVED, hence read-only, hence frozen with those links in
-  // it forever. So they redirect to the archived repo, which is the honest
-  // destination: the code, the last release, and the archive notice.
+  // own about box, and /guides/trill/ is linked twice from that README — whose
+  // repo is ARCHIVED, hence read-only, hence frozen with those links in it
+  // forever. So they redirect to the renamed repo, which is the honest
+  // destination: the code, the last release, and the archive notice. The
+  // targets are spelled `messages` rather than riding GitHub's rename redirect.
+  //
+  // ⚠️ The compositor will want `/trill` for its own docs page. It cannot have
+  // it while these four entries stand — a redirect beats a page. Retiring them
+  // means accepting that a frozen cask and a frozen about box start 404ing.
   redirects: {
-    '/trill': 'https://github.com/nebelhaus/trill',
-    '/trill/': 'https://github.com/nebelhaus/trill',
-    '/guides/trill': 'https://github.com/nebelhaus/trill',
-    '/guides/trill/': 'https://github.com/nebelhaus/trill',
+    '/trill': 'https://github.com/nebelhaus/messages',
+    '/trill/': 'https://github.com/nebelhaus/messages',
+    '/guides/trill': 'https://github.com/nebelhaus/messages',
+    '/guides/trill/': 'https://github.com/nebelhaus/messages',
   },
   // Custom landing page lives at src/pages/index.astro; Starlight owns the rest.
   integrations: [

@@ -794,7 +794,7 @@ Upstream first, so each lock bump has a settled target:
 | 7 | `nebelhaus/workshop` | `hausfold/workshop` | |
 | 8 | `nebelhaus/homebrew-tap` | `hausfold/homebrew-tap` | |
 | 9 | `nebelhaus/.github` | `hausfold/.github` | the org front page |
-| 10 | `nebelhaus/trill` | **stays in `nebelhaus`, renamed in place** | ⚠️ reversed 2026-08-08 — see §3.4. It must NOT arrive at `hausfold/trill`; the notification compositor claims that name. |
+| 10 | ~~`nebelhaus/trill`~~ | ✅ **done — `nebelhaus/messages`, and it stays there** | reversed and executed 2026-08-08, see §3.4. It does NOT transfer, and it must never arrive at `hausfold/trill` — the notification compositor holds that name. |
 
 **Keep the `nebelhaus` org alive and empty.** It costs nothing and holds every
 redirect. Deleting it breaks them permanently.
@@ -826,40 +826,35 @@ Two consequences that reverse rows written above:
    `trill` anywhere the compositor also lives is what makes it not low stakes.
    It is renamed in place inside `nebelhaus` — the org stays alive to hold
    redirects (§3.2 already says so), and GitHub redirects `nebelhaus/trill` to
-   the new name, including its release-asset URLs, so the deprecated cask keeps
-   resolving. **Renaming needs it unarchived and re-archived** — GitHub makes an
-   archived repo's settings read-only.
+   `nebelhaus/messages`, including its release-asset URLs. **Renaming needs it
+   unarchived and re-archived** — GitHub makes an archived repo's settings
+   read-only.
 2. **`flick` leaves §6's do-not-change list** and `com.nebelhaus.flick` leaves
    §4.2's pending column — both are already done.
 
-Three slots the old app still holds, in the order they bite:
+**The new name is `messages`** — decided 2026-08-08, chosen over
+`trill-messages` for a clean break rather than a tombstone that keeps the word
+"trill" in search results beside the live app. All three slots the old app held
+are now free:
 
-| Slot | Held by | Blocks | State |
-|---|---|---|---|
-| GitHub repo name | `nebelhaus/trill` | nothing — different org, `hausfold/trill` is free either way | ⏳ 👤 rename anyway, so the two apps are never both "trill" |
-| on-disk `~/code/workshop/trill` | the archived clone | the eject's final `mv`, and `bench` (it resolves `FAMILY` as *directory* names, `local_src` → `$ROOT/$1`) | ⏳ rename the dir with the repo, then `bench:75` and `.gitignore` |
-| Homebrew cask token `trill` | `homebrew-tap/Casks/trill.rb` | the compositor's **first release**, not the eject | ⏳ 👤 retire that cask — it is deprecated, final, and CI no longer writes it |
+| Slot | Was | State |
+|---|---|---|
+| GitHub repo name | `nebelhaus/trill` | ✅ **`nebelhaus/messages`**, still archived. Never needed to move for the compositor (different org) — renamed so the two apps are never both "trill". |
+| on-disk `~/code/workshop/trill` | the archived clone | ✅ `~/code/workshop/messages`, remote repointed, `.gitignore` and `bench`'s `FAMILY` entry follow (§3.1's rule: each checkout named for its repo). The dir is what the eject's final `mv` needs. |
+| Homebrew cask token `trill` | `homebrew-tap/Casks/trill.rb` | ✅ **deleted.** Not `disable!`-then-deleted: the cask had no install base (`brew list --cask` found it nowhere, no `Trill.app` on disk), and the final release stays downloadable regardless. |
 
-**👤 The archived repo's new name is not decided yet, and §3.2 row 10 has no
-target until it is.** Candidates, with the argument each one loses on:
+How the rename was done, because it isn't the obvious one-liner:
 
-- **`trill-messages`** — self-documenting tombstone: it reads as "the thing
-  formerly called Trill, which was a Messages client", and anyone who
-  bookmarked the old name still finds it through the redirect. Loses on:
-  keeps the word "trill" in search results next to the new app.
-- **`messages`** — cleanest break. Loses on: reads like an *active* product,
-  and collides conceptually with Apple's own Messages.
+```sh
+gh api -X PATCH repos/nebelhaus/trill  -F archived=false   # settings are
+gh api -X PATCH repos/nebelhaus/trill  -f name=messages     # read-only while
+gh api -X PATCH repos/nebelhaus/messages -F archived=true   # archived
+```
 
-Whatever it is, the on-disk checkout takes the same name (§3.1's rule: each
-checkout named for its repo), and `bench:75`'s `FAMILY` entry follows — or
-decide there that a dead client doesn't earn a `FAMILY` entry at all.
-
-⚠️ **Renaming needs the repo unarchived and re-archived.** GitHub makes an
-archived repo's settings read-only, so the sequence is unarchive → rename →
-re-archive, and the repo is briefly writable in between. Release-asset URLs
-follow the rename redirect, so `homebrew-tap/Casks/trill.rb` keeps resolving
-without an edit — but update its `url`/`homepage` anyway rather than living on
-a redirect.
+GitHub keeps the `nebelhaus/trill` → `nebelhaus/messages` redirect for the web
+UI, the API and **release-asset URLs** (verified: the v2026.08.04-1 zip still
+returns 200 through the old path). Everything we own is spelled `messages`
+anyway rather than living on that redirect.
 
 This is §3.1's on-disk-collision finding recurring with different names: two
 family repos wanting one directory. It was resolved there by naming each
@@ -869,14 +864,17 @@ checkout for its repo, and the same rule settles it here.
 Trill's product page is gone, but the name still has plumbing:
 
 - 🚨 `astro.config.mjs`'s `redirects` sends `/trill`, `/trill/`, `/guides/trill`
-  and `/guides/trill/` to `github.com/nebelhaus/trill`. **A docs page at
-  `/trill` for the compositor cannot exist until those come out** — the
-  redirect wins. And each target needs repointing at whatever §3.4 renames the
-  archived repo to, or it rides a GitHub redirect forever.
-- `--neb-product-trill` (+ `-hover`) in `styles/palette.css`, a `'trill'` slot
-  in `FamilyNav.astro`, `"trill"` in `worker.js`'s `DOWNLOADABLE`, and the
-  assertions in `test/worker.test.js` + `README.md` that call trill a
-  downloadable app — all still describe the *archived* one.
+  and `/guides/trill/` to `github.com/nebelhaus/messages` (repointed with the
+  rename rather than left riding GitHub's redirect). **A docs page at `/trill`
+  for the compositor cannot exist until those four entries come out** — a
+  redirect beats a page — and retiring them means accepting that a frozen cask
+  and a frozen about box start 404ing.
+- ✅ `worker.js`'s `DOWNLOADABLE` slug moved `trill` → `messages` (with its
+  test and `web/README.md`), so `/download/trill` is free for the compositor
+  and `/download/messages` serves the archived app under its real name.
+- ⏳ `--neb-product-trill` (+ `-hover`) in `styles/palette.css` and the
+  `'trill'` slot in `FamilyNav.astro` still describe the *archived* app. Purely
+  presentational, so they wait for whoever builds the compositor's page.
 
 Whoever builds the compositor's page inherits all of it; check each one means
 the right app rather than assuming the name carried over cleanly.

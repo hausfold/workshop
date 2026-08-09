@@ -14,8 +14,9 @@ like pounce and perch.
 > version of the same image. If you find a reference to "Trill, the Messages
 > client", it is about the archived repo in the `nebelhaus` org, **not** about
 > this codebase — don't reconcile the two, and don't "restore" the flick name.
-> The old app's checkout, repo and deprecated Homebrew cask are covered in the
-> workshop's `notes/hausfold-rename.md`.
+> The old app now lives at `nebelhaus/messages`, archived, and its Homebrew
+> cask is gone; the whole story is in the workshop's
+> `notes/hausfold-rename.md` §3.4.
 
 **This file is the one set of instructions, for every agent.** Claude Code,
 Codex, OpenCode, Cursor, Copilot — TUI or GUI — all read *this*, directly or
@@ -36,7 +37,7 @@ it's launched, themed at the source, or packaged.
 | how trill is *installed* on the system (flake wiring, launchd) | `nebelhaus` (the rice) |
 | the palette trill is themed with (source hex) | `nebelung` |
 | DND / Focus toggling ("Hush") | `nebelhaus` (the rice) — trill only deep-links there |
-| trill's Homebrew cask (once released) | `homebrew-tap` — CI-owned. ⚠️ `Casks/trill.rb` there is the **archived Messages client's** final, deprecated cask. The token has to be freed before this app can claim it. |
+| trill's Homebrew cask (once released) | `homebrew-tap` — CI-owned. The `trill` token is free: the archived Messages client's cask was deleted on 2026-08-08. |
 | the flake's release pin (`nix/release.nix`) | this repo — **CI-owned**; never hand-bump |
 
 > **Whatever agent you are, enforce this.** A color hex, a launchd plist, or a
