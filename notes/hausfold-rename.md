@@ -783,13 +783,29 @@ step 4 works.
   `gen-options.mjs:5` (they describe options as they were named at the time),
   everything under `notes/` (historical record, `options-roadmap.md` §5.14),
   and `docs/workflows.md`, whose every hit is a repo name, a URL or the domain.
-- 🟨 **nebelung / pounce / perch** (+ the rice): the `part_of-nebelhaus` shields
-  badge — the family is hausfold now, and the badge is safe before §3
-  (shields.io, no GitHub dependency). Plus `perch/AGENTS.md:3`, "in the
-  nebelhaus family". Everything else in these three is a repo URL, the tap slug,
-  or `nebelhaus` meaning the rice. **holt has zero hits.** `org-profile` and
-  `homebrew-tap` are §3, not §2: `nebelhaus/.github` and `nebelhaus/tap` are the
-  org's own name, and the tap slug is what `brew tap` resolves.
+- ✅ **nebelung / pounce / perch** (+ the rice) — **done 2026-08-09**:
+  nebelhaus#266, nebelung#33, pounce#68, perch#46. The `part_of-nebelhaus`
+  shields badge in each (the family is hausfold now, and the badge is safe
+  before §3 — shields.io, no GitHub dependency), `perch/AGENTS.md:3`'s "in the
+  nebelhaus family", and **fifteen live option references the rice's own rename
+  structurally could not reach**: pounce's `docs/reference.md` and two Swift
+  files (one of them the stderr line a user reads when they try to edit a
+  store-owned `config.json` — it told them to go edit `nebelhaus.pounce.*`),
+  perch's `AGENTS.md`, `docs/reference.md` and `RicePalette.swift`, and
+  nebelung's palette-generator comment. Everything else in these repos is a
+  repo URL, the tap slug, or `nebelhaus` meaning the rice. **holt has zero
+  hits.** `org-profile` and `homebrew-tap` are §3, not §2: `nebelhaus/.github`
+  and `nebelhaus/tap` are the org's own name, and the tap slug is what
+  `brew tap` resolves.
+
+  **Two exclusions worth naming, because both look like misses:**
+  `perch/docs/architecture-decisions/0002` keeps the old spelling — an ADR is a
+  dated record of what was decided, and rewriting the option name inside one
+  makes it claim a decision taken against a namespace that didn't exist yet.
+  And `nebelhaus/test/haus-settings.sh:37-38` keeps it because it *is* the
+  regression test for `modules/renamed.nix`: it asserts `haus set` accepts the
+  pre-rename prefix and does not write it back. Renaming those two lines
+  deletes the only coverage the alias has.
 
   🚨 **The copyright surface is one escalation, not four edits, and it is
   already self-contradictory.** Four READMEs say `© nebelhaus`
