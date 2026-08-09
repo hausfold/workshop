@@ -125,24 +125,31 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   back negative:** `sudo systemsetup -setcomputersleep 17` from an
 >   FDA-holding terminal exits 0, prints `setcomputersleep: 17` like a
 >   confirmation, emits an internal `-99` from the Admin framework on stderr,
->   and changes `System Sleep Timer` on neither source. nix-darwin sends every
->   one of those streams to `/dev/null`, so `power.sleep.computer` is a setting
->   that reports success during activation and does nothing — the failure this
->   whole section exists to prevent, one layer below `system.defaults`. Low
->   Power Mode, lid behaviour and per-source anything are `pmset`, root-only,
->   untyped — and a `pmset` control arm is now in the probe to prove pmset lands
->   where systemsetup doesn't.
+>   and changes `System Sleep Timer` on neither source — while nix-darwin sends
+>   every one of those streams to `/dev/null`. ★ **But the `pmset` control
+>   didn't move it either**, so computer sleep is pinned on this Mac whoever
+>   asks, and run 1 is not evidence about `systemsetup` at all. The probe now
+>   crosses setting × caller (see §5.6's checklist); until that runs, "the typed
+>   options are a no-op" is a hypothesis, not a finding. Low Power Mode, lid
+>   behaviour and per-source anything are `pmset`, root-only, untyped
+>   regardless.
 >
-> **The row that was open is now answered, and the answer is worse than the
-> question.** Section C is opt-in behind `POWER_SWEEP_WRITE=1` (an env gate,
-> not a sudo-cache check, so a warm timestamp can't make an agent run it by
-> accident); Julien ran it the same evening and `systemsetup` did not apply the
-> setting — see the Power bullet above. What remains open is narrower: is
-> `systemsetup` broken, or is computer sleep unsettable on this machine at all?
-> A `pmset -c sleep 18 -b sleep 19` control now runs immediately after the
-> systemsetup call and separates the two in one run. If pmset lands where
-> systemsetup doesn't, **nix-darwin's six typed power options should be treated
-> as unusable on macOS 26**, not merely awkward.
+> **★ The open row twice produced a confident wrong answer, and that is the
+> most useful thing in this pass.** Section C is opt-in behind
+> `POWER_SWEEP_WRITE=1` (an env gate, not a sudo-cache check, so a warm
+> timestamp can't make an agent run it by accident). Run 1: `systemsetup`
+> applied nothing → "nix-darwin ships six silent no-ops, file it upstream."
+> Run 2, with a `pmset` control: pmset applied nothing either → the *setting* is
+> pinned on this Mac and run 1 was never evidence about `systemsetup`.
+> **A failed write says nothing about the writer until a second writer has
+> failed the same way and a second setting has succeeded.** That is the same
+> shape as this document's older "the write succeeded ≠ it took effect", one
+> level up: a *negative* result needs a control as much as a positive one does.
+> Section C is now a 2×2 — setting (computer sleep · display sleep · Low Power
+> Mode) × caller (`systemsetup` · `pmset`) — which distinguishes "systemsetup is
+> broken" from "the hardware pins it" from "nothing here is settable" in one
+> run, and prints which. Until that runs, treat "the typed options are a no-op"
+> as a hypothesis.
 >
 > **What this unblocks.** §5.6's rule — no unspiked domain gets curated — is now
 > satisfied for every row in its table except the two deliberately-deferred
@@ -2043,11 +2050,14 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
       `power.sleep.*` — those six typed options cannot say "battery", cannot
       report a failure, and on 26.6.1 the one that was tested did not apply at
       all (exit 0, a confirmation line, an internal `-99`, nothing moved).
-- [ ] Confirm with the probe's `pmset` control arm whether `systemsetup` alone
-      is broken or this machine refuses a computer-sleep change from any caller.
-      One `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh` settles it; if
-      pmset lands, **file it upstream against nix-darwin** — `power.sleep.*` is
-      shipping a silent no-op to every macOS 26 user, not just this rice.
+- [ ] Run the probe's setting × caller cross once
+      (`POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`). Computer sleep is
+      already known dead from both callers here, so the deciding row is
+      **display sleep**: if it moves under `pmset` but not `systemsetup`, file
+      it upstream against nix-darwin — `power.sleep.*` would be shipping a
+      silent no-op to every macOS 26 user, not just this rice. If it moves
+      under both, `systemsetup` is fine and only computer sleep is pinned, which
+      is a hardware fact no upstream fix touches.
 
 Each entry carries metadata from the §4 matrix:
 

@@ -156,13 +156,23 @@ macOS writes, since `AppleEnabledInputSources` resolves layouts by
 
 Power's write test needs root — a Touch ID prompt here — so section C is opt-in
 behind `POWER_SWEEP_WRITE=1` (an env gate, not a `sudo -n` check, so a warm sudo
-timestamp can't make it run unattended). It was run on 2026-08-08 and **came
-back negative**: `sudo systemsetup -setcomputersleep 17` exits 0, prints
-`setcomputersleep: 17` like a confirmation, logs an internal `-99` from the
-Admin framework on stderr, and moves `System Sleep Timer` on neither power
-source — while nix-darwin discards all three streams. Section C now runs a
-`pmset` control immediately after, to separate "systemsetup is broken" from
-"this machine won't take a computer-sleep change from anyone".
+timestamp can't make it run unattended). **It is also the probe on this shelf
+that has been wrong the most times, and its shape is the lesson.**
+
+Run 1: `sudo systemsetup -setcomputersleep 17` exits 0, prints
+`setcomputersleep: 17` like a confirmation, logs an internal `-99` on stderr,
+and moves `System Sleep Timer` on neither source — while nix-darwin discards
+all three streams. Conclusion drawn: nix-darwin ships six silent no-ops.
+
+Run 2, with a `pmset` control added: pmset didn't move it either. So the
+*setting* is pinned on this Mac and run 1 was never evidence about
+`systemsetup`. **A failed write says nothing about the writer until a second
+writer has failed the same way and a second setting has succeeded** — the
+negative-result twin of this shelf's "the write succeeded ≠ it took effect".
+
+Section C is now a 2×2: setting (computer sleep · display sleep · Low Power
+Mode) × caller (`systemsetup` · `pmset`). One run says which of three worlds
+we're in, and prints it.
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 

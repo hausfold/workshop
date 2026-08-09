@@ -134,35 +134,58 @@ cat <<'EOF'
 EOF
 
 if [ -n "$audible" ]; then
-  say "  --audible: a control beep first, then Submarine, then a bogus path"
-  # Section C leaves uiaudio.enabled=0 and beep.feedback=0 set. Beeping under
-  # our own mute is how the first run of this produced four silent "beeps" and
-  # no information at all — so put every key back and prove the channel works
-  # BEFORE testing anything.
+  say "  --audible: one beep at a time, and the script records what you heard"
+  # Two lessons from the first two runs, both baked in here.
+  #   1. Section C leaves uiaudio.enabled=0 and beep.feedback=0 SET, so the
+  #      beeps went out under the probe's own mute — four silences and no
+  #      information. Every key is restored first, and a control beep proves
+  #      the channel works before anything is tested.
+  #   2. Four beeps two seconds apart, then one question at the end, produced
+  #      "I heard one beep" — true, useless, and unattributable. Each row now
+  #      waits for you and asks immediately, while you still know which it was.
   for k in "${keys[@]}"; do restore_key "$k"; done
   sleep 1
-  printf '  0/3 control — pristine settings, alert volume %s. You should hear a beep.\n' "$(alertvol)"
-  osascript -e 'beep' >/dev/null 2>&1; sleep 2
-  cat <<'EOF'
-      Heard nothing? Then rows 1–3 below prove nothing either. Check: output
-      device and its volume, a Focus/Do-Not-Disturb that suppresses alerts, and
-      System Settings ▸ Sound ▸ Alert sound not set to "None". Fix that, re-run.
-EOF
-  printf '\n  1/3 beep.sound = Submarine.aiff (a sound that exists)\n'
-  defaults write -g com.apple.sound.beep.sound -string /System/Library/Sounds/Submarine.aiff
-  sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 2
-  printf '  2/3 beep.sound = /nope/does-not-exist.aiff\n'
-  defaults write -g com.apple.sound.beep.sound -string /nope/does-not-exist.aiff
-  sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 2
-  printf '  3/3 key deleted again — same reference as 0/3\n'
-  restore_key com.apple.sound.beep.sound
-  sleep 1; osascript -e 'beep' >/dev/null 2>&1; sleep 1
-  cat <<'EOF'
 
-  Did 1 differ from 0? Then the key works at all. Did 2 sound, and did it match
-  3 or 1? Bogus path → default beep is a degrade a rice can live with; bogus
-  path → silence is a broken option that reads as applied.
+  ask() {  # $1 = label, returns 0 if heard
+    local reply
+    printf '\n  %s\n' "$1"
+    read -r -p '      press ⏎ to play… ' _ </dev/tty
+    osascript -e 'beep' >/dev/null 2>&1
+    sleep 1
+    read -r -p '      heard it? [y/N] ' reply </dev/tty
+    case "$reply" in [yY]*) return 0 ;; *) return 1 ;; esac
+  }
+
+  control=1 exists=1 bogus=1
+  ask "0/3 CONTROL — pristine settings, alert volume $(alertvol)" && control=0
+
+  defaults write -g com.apple.sound.beep.sound -string /System/Library/Sounds/Submarine.aiff
+  ask "1/3 beep.sound = Submarine.aiff (a sound that exists — should differ from 0)" && exists=0
+
+  defaults write -g com.apple.sound.beep.sound -string /nope/does-not-exist.aiff
+  ask "2/3 beep.sound = /nope/does-not-exist.aiff" && bogus=0
+
+  restore_key com.apple.sound.beep.sound
+
+  printf '\n  Verdict:\n'
+  if [ $control -ne 0 ]; then
+    cat <<'EOF'
+    Control was silent, so rows 1 and 2 prove nothing. Check: output device and
+    its volume, a Focus/Do-Not-Disturb that suppresses alerts, and System
+    Settings ▸ Sound ▸ Alert sound not set to "None". Fix, then re-run.
 EOF
+  elif [ $exists -ne 0 ]; then
+    printf '    The key changed the beep to SILENCE even with a real path.\n'
+    printf '    beep.sound is not usable from a plist write — do not curate it.\n'
+  elif [ $bogus -ne 0 ]; then
+    printf '    A bad path SILENCES the beep rather than degrading to the default.\n'
+    printf '    So a typo in a curated sound.alertSound is a broken option that\n'
+    printf '    reads as applied — the option must validate the path at eval time.\n'
+  else
+    printf '    A bad path still beeps, so macOS degrades to its default sound.\n'
+    printf '    Survivable: a typo is cosmetic, not silent breakage. Still worth\n'
+    printf '    validating the path, but it need not be a build-time assertion.\n'
+  fi
 fi
 
 # ---- D. the startup chime ---------------------------------------------------

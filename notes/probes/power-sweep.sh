@@ -90,23 +90,28 @@ if [ "${POWER_SWEEP_WRITE:-}" != 1 ]; then
        POWER_SWEEP_WRITE=1 $0
 
      Run it from a terminal, at a keyboard — root here means a Touch ID prompt.
-     It will: read the current computer- and display-sleep timers, set computer
-     sleep to 17 via systemsetup (capturing the stderr nix-darwin discards),
-     re-read $plist to see whether ONE
-     source moved or both, and put both timers back on both sources.
+     It crosses two variables — which SETTING (computer sleep, display sleep,
+     Low Power Mode) against which CALLER (nix-darwin's systemsetup vs pmset) —
+     capturing the stderr nix-darwin discards and re-reading
+     $plist after each, then puts
+     every timer back on both sources. One run separates "systemsetup is
+     broken" from "the setting is immutable on this hardware".
 EOF
   return 0
 fi
 sudo -n true 2>/dev/null || printf '  (needs root — you will be asked to authenticate)\n'
 
+lowpower() { pmset -g custom | awk '/lowpowermode/{print $2; exit}'; }
 before_ac=$(timer "AC Power" "System Sleep Timer")
 before_bat=$(timer "Battery Power" "System Sleep Timer")
+lpm_before=$(lowpower)
 # systemsetup clamps display sleep to <= computer sleep, so a machine whose
 # display sleep is above 17 gets a SECOND setting moved by this one write.
 disp_ac=$(timer "AC Power" "Display Sleep Timer")
 disp_bat=$(timer "Battery Power" "Display Sleep Timer")
-printf '  before: computer sleep AC=%s battery=%s · display sleep AC=%s battery=%s\n' \
-  "${before_ac:-<unset>}" "${before_bat:-<unset>}" "${disp_ac:-<unset>}" "${disp_bat:-<unset>}"
+printf '  before: computer AC=%s bat=%s · display AC=%s bat=%s · lowpowermode %s\n' \
+  "${before_ac:-<unset>}" "${before_bat:-<unset>}" "${disp_ac:-<unset>}" \
+  "${disp_bat:-<unset>}" "${lpm_before:-<unset>}"
 
 put_back() {  # $1 = -c|-b, $2 = sleep|displaysleep, $3 = value, $4 = label
   if [ -z "$3" ]; then
@@ -123,54 +128,87 @@ restore_power() {
   put_back -b sleep "$before_bat" "battery computer sleep"
   put_back -c displaysleep "$disp_ac" "AC display sleep"
   put_back -b displaysleep "$disp_bat" "battery display sleep"
+  [ -n "$lpm_before" ] && sudo pmset -a lowpowermode "$lpm_before" 2>/dev/null
   sleep 1
-  printf '  now: computer sleep AC=%s battery=%s · display sleep AC=%s battery=%s\n' \
-    "$(timer 'AC Power' 'System Sleep Timer')" "$(timer 'Battery Power' 'System Sleep Timer')" \
-    "$(timer 'AC Power' 'Display Sleep Timer')" "$(timer 'Battery Power' 'Display Sleep Timer')"
+  state
 }
 trap restore_power EXIT INT TERM
 
-printf '\n  1/2 the nix-darwin path: sudo systemsetup -setcomputersleep 17\n'
-printf '      (stderr NOT discarded — nix-darwin sends all of this to /dev/null)\n'
-out=$(sudo systemsetup -setcomputersleep 17 2>&1); rc=$?
-printf '      exit=%s output: %s\n' "$rc" "${out:-<silent>}"
-sleep 1
-ss_ac=$(timer "AC Power" "System Sleep Timer")
-ss_bat=$(timer "Battery Power" "System Sleep Timer")
-printf '      after:  AC=%s battery=%s\n' "$ss_ac" "$ss_bat"
-verdict() {  # $1 new AC, $2 new battery, $3 what we asked for
-  if [ "$1" = "$before_ac" ] && [ "$2" = "$before_bat" ]; then
-    printf '      → ✗ NOTHING MOVED. The call reported success and did not apply.\n'
-  elif [ "$1" = "$3" ] && [ "$2" = "$3" ]; then
-    printf '      → source-blind: one call, both sources. Confirms the limit above.\n'
-  else
-    printf '      → only one source moved: the setting silently means "whichever\n'
-    printf '        source you were on when the rebuild ran".\n'
-  fi
+# Two variables, crossed: WHICH SETTING (computer sleep vs display sleep vs Low
+# Power Mode) and WHICH CALLER (nix-darwin's systemsetup vs pmset). One run of
+# the cross tells you what a single row cannot:
+#
+#   computer sleep dead both ways        → the SETTING is immutable here
+#                                          (Apple silicon pins it), and the
+#                                          systemsetup row says nothing about
+#                                          systemsetup
+#   display sleep moves under pmset only → systemsetup IS broken, and
+#                                          nix-darwin's six options are a no-op
+#                                          for every macOS 26 user → upstream
+#   both move                            → systemsetup is fine; only the
+#                                          source-blindness limits it
+#
+# The first draft of this probe ran only the first row and drew a conclusion
+# about `systemsetup` from it, which was one crossed variable short of evidence.
+row() {  # $1 label, $2… command
+  local label="$1"; shift
+  local out rc
+  out=$("$@" 2>&1); rc=$?
+  printf '  %-46s exit=%s %s\n' "$label" "$rc" \
+    "$([ -n "$out" ] && printf 'output: %s' "$(printf '%s' "$out" | tail -1)")"
+  sleep 1
 }
-verdict "$ss_ac" "$ss_bat" 17
+state() {
+  printf '    now: computer AC=%s bat=%s · display AC=%s bat=%s · lowpowermode %s\n' \
+    "$(timer 'AC Power' 'System Sleep Timer')" "$(timer 'Battery Power' 'System Sleep Timer')" \
+    "$(timer 'AC Power' 'Display Sleep Timer')" "$(timer 'Battery Power' 'Display Sleep Timer')" \
+    "$(lowpower)"
+}
 
-# The control that turns "systemsetup is broken" into a usable finding. If the
-# pmset path DOES move the same timer, then the recommendation to build a
-# curated power group on pmset rather than on `power.sleep.*` is measured
-# rather than merely preferred — and nix-darwin's six typed options are a
-# no-op wearing an option's clothes.
-printf '\n  2/2 the control: sudo pmset -c sleep 18 -b sleep 19\n'
-out=$(sudo pmset -c sleep 18 -b sleep 19 2>&1); rc=$?
-printf '      exit=%s output: %s\n' "$rc" "${out:-<silent>}"
-sleep 1
-pm_ac=$(timer "AC Power" "System Sleep Timer")
-pm_bat=$(timer "Battery Power" "System Sleep Timer")
-printf '      after:  AC=%s battery=%s\n' "$pm_ac" "$pm_bat"
-if [ "$pm_ac" = 18 ] && [ "$pm_bat" = 19 ]; then
-  printf '      → ✓ pmset lands, per source, as asked.\n'
-elif [ "$pm_ac" = "$before_ac" ] && [ "$pm_bat" = "$before_bat" ]; then
-  printf '      → ✗ pmset did not move it either — this machine may not permit a\n'
-  printf '        computer-sleep change at all (Apple silicon / a profile), so the\n'
-  printf '        systemsetup result above is NOT evidence about systemsetup.\n'
+printf '\n  1/4 nix-darwin path, computer sleep: systemsetup -setcomputersleep 17\n'
+printf '      (stderr NOT discarded — nix-darwin sends all of this to /dev/null)\n'
+row "sudo systemsetup -setcomputersleep 17" sudo systemsetup -setcomputersleep 17
+ss_ac=$(timer "AC Power" "System Sleep Timer"); ss_bat=$(timer "Battery Power" "System Sleep Timer")
+printf '      computer sleep → AC=%s battery=%s %s\n' "$ss_ac" "$ss_bat" \
+  "$([ "$ss_ac" = "$before_ac" ] && [ "$ss_bat" = "$before_bat" ] && printf '✗ nothing moved' || printf '✓ moved')"
+
+printf '\n  2/4 control, same setting via pmset (per source)\n'
+row "sudo pmset -c sleep 18 -b sleep 19" sudo pmset -c sleep 18 -b sleep 19
+pm_ac=$(timer "AC Power" "System Sleep Timer"); pm_bat=$(timer "Battery Power" "System Sleep Timer")
+printf '      computer sleep → AC=%s battery=%s %s\n' "$pm_ac" "$pm_bat" \
+  "$([ "$pm_ac" = 18 ] && [ "$pm_bat" = 19 ] && printf '✓ landed, per source' || printf '✗ did not land')"
+
+printf '\n  3/4 a DIFFERENT setting, both callers: display sleep\n'
+row "sudo systemsetup -setdisplaysleep 21" sudo systemsetup -setdisplaysleep 21
+ds_ss=$(timer "AC Power" "Display Sleep Timer")
+printf '      display sleep AC → %s %s\n' "$ds_ss" \
+  "$([ "$ds_ss" = 21 ] && printf '✓ systemsetup landed' || printf '✗ systemsetup did not land')"
+row "sudo pmset -c displaysleep 22 -b displaysleep 23" sudo pmset -c displaysleep 22 -b displaysleep 23
+ds_ac=$(timer "AC Power" "Display Sleep Timer"); ds_bat=$(timer "Battery Power" "Display Sleep Timer")
+printf '      display sleep → AC=%s battery=%s %s\n' "$ds_ac" "$ds_bat" \
+  "$([ "$ds_ac" = 22 ] && [ "$ds_bat" = 23 ] && printf '✓ pmset landed, per source' || printf '✗ pmset did not land')"
+
+printf '\n  4/4 the flagship power opinion nothing types: Low Power Mode\n'
+row "sudo pmset -a lowpowermode 1" sudo pmset -a lowpowermode 1
+lpm=$(pmset -g custom | awk '/lowpowermode/{print $2; exit}')
+printf '      lowpowermode → %s %s\n' "$lpm" \
+  "$([ "$lpm" = 1 ] && printf '✓ landed' || printf '✗ did not land')"
+
+printf '\n  Verdict:\n'
+if [ "$ds_ac" = 22 ] && [ "$ds_ss" != 21 ]; then
+  printf '    systemsetup is BROKEN on 26 — pmset moves display sleep, systemsetup\n'
+  printf '    does not. nix-darwin ships six typed options that silently do nothing.\n'
+  printf '    → worth filing upstream against LnL7/nix-darwin.\n'
+elif [ "$ds_ac" = 22 ] && [ "$ds_ss" = 21 ]; then
+  printf '    systemsetup works for display sleep — so computer sleep is immutable\n'
+  printf '    on this hardware, not broken tooling. `power.sleep.computer` cannot\n'
+  printf '    work here for a reason no nix-darwin fix would change.\n'
 else
-  printf '      → partial: asked 18/19, got %s/%s.\n' "$pm_ac" "$pm_bat"
+  printf '    Neither caller moved anything. Something machine-wide is pinning\n'
+  printf '    these (a configuration profile, or Apple silicon policy) — the group\n'
+  printf '    is not buildable on this Mac at all, whatever the tooling does.\n'
 fi
+state
 }
 
 say "C. Does the systemsetup path work on macOS 26 — and which source moves?"

@@ -462,7 +462,7 @@ key at all.
 |---|---|---|
 | **Sound** | ✅ buildable today | the volume leaf is an exponential, not a fraction — and the UI writes the same key back |
 | **Locale** | ✅ buildable, with one piece nothing in nix-darwin can express | a **distributed notification**, without which running apps never see the change |
-| **Power** | ⚠️ buildable, but **not** on the typed options | `systemsetup` is power-source-blind, its `-setcomputersleep` **did not apply at all** on 26.6.1, and nix-darwin discards the error that says so |
+| **Power** | ⚠️ buildable, but **not** on the typed options | `systemsetup` is power-source-blind and nix-darwin discards its stderr; on 26.6.1 `-setcomputersleep` applied nothing — and neither did `pmset`, so computer sleep is pinned here whoever asks |
 
 ### Sound — works, but the number lies
 
@@ -497,6 +497,17 @@ inside a settings group.
 
 **3. Null really is write-nothing.** Deleting the key returns the alert volume
 to 100 (the OS default) rather than to 0 — the group's default policy holds.
+
+**4. The `beep.sound` bad-path row still needs an ear, and the probe now takes
+notes for you.** `--audible` restores every key first — section C leaves
+`uiaudio.enabled = 0` set, and the first run beeped four times under the
+probe's own mute: four silences, no information — then plays a **control** beep
+at pristine settings and, for each row, waits for ⏎ and asks `heard it? [y/N]`
+before moving on. Attribution beats memory: the second run produced "I heard
+one beep", which is true, unattributable, and worth nothing. The script now
+prints the verdict itself (bad path → silence means a curated `alertSound` must
+validate its path at eval time; bad path → default beep means a typo is merely
+cosmetic).
 
 ### Locale / input sources — works, and the missing piece is a notification
 
@@ -596,9 +607,13 @@ root-only writes into a root-owned plist, so a curated `nebelhaus.power.*`
 belongs in the `security.firewall` family (an activation step of our own),
 **not** in the `hotCorners`/`screenshots`/`menuBar` family.
 
-**⚠️ The write test ran 2026-08-08, and `systemsetup` did not apply the
-setting.** From Ghostty (an FDA-holding terminal, so this is *not* the
-universalaccess gate), as root:
+### The write test, and the trap it set for its own author
+
+Ran 2026-08-08 from Ghostty (an FDA-holding terminal, so none of this is the
+universalaccess gate), as root. **Read this section for the method as much as
+the result** — the first two runs each produced a confident wrong conclusion.
+
+**Run 1 — `systemsetup` reports success and applies nothing:**
 
 ```
 $ sudo systemsetup -setcomputersleep 17
@@ -609,23 +624,39 @@ before: AC=1 battery=1        after: AC=1 battery=1        ← nothing moved
 ```
 
 Exit 0, a confirmation-shaped line on stdout, an internal `-99` from the Admin
-framework on stderr, and `System Sleep Timer` unchanged on **both** power
-sources. **nix-darwin sends every one of those streams to `/dev/null`**, so
-`power.sleep.computer = 17` on this machine is a setting that reports success
-during activation and does nothing — the exact failure §5.6 exists to prevent,
-one layer below `system.defaults`. Add `writable-no-op`'s CLI cousin to the
-reachability vocabulary: **`activation-no-op`**.
+framework on stderr, `System Sleep Timer` unchanged on **both** sources — and
+nix-darwin sends every one of those streams to `/dev/null`. The obvious reading
+is "nix-darwin's six typed options are a silent no-op on macOS 26, file it
+upstream". That reading was wrong, or at least unearned.
 
-- [ ] ◻️ **The remaining open row, now narrower.** Is `systemsetup` broken, or
-      is computer sleep unsettable on this machine at all? `power-sweep.sh`
-      section C now runs a `pmset -c sleep 18 -b sleep 19` control immediately
-      after, which separates the two: if pmset lands and systemsetup doesn't,
-      the six typed options are a no-op and a curated group must be built on
-      pmset. Re-run `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`.
-      (The gate is an env var rather than a sudo check on purpose: a warm sudo
-      timestamp must not be enough to make this run unattended. It restores
-      computer *and* display sleep on both sources — display sleep because
-      macOS clamps it to ≤ computer sleep, so one write can move two settings.)
+**Run 2 — the `pmset` control didn't move it either:**
+
+```
+$ sudo pmset -c sleep 18 -b sleep 19        exit=0, silent
+after: AC=1 battery=1                       ← still nothing
+```
+
+So **computer sleep is immutable on this machine from any caller**, and run 1
+says nothing about `systemsetup` at all. ★ **The transferable lesson: a failed
+write is not evidence about the writer until a second writer has failed the
+same way — and a second *setting* has succeeded.** One row of a two-variable
+cross is not a result, which is the same shape as this file's older
+"the write succeeded" ≠ "it took effect".
+
+- [ ] ◻️ **The remaining open row, now a 2×2 rather than a yes/no.**
+      `power-sweep.sh` section C crosses **which setting** (computer sleep ·
+      display sleep · Low Power Mode) against **which caller** (`systemsetup` ·
+      `pmset`), so one run distinguishes three futures:
+      display sleep moves under `pmset` only → `systemsetup` really is broken
+      and the typed options are a no-op for every macOS 26 user (→ upstream);
+      display sleep moves under both → `systemsetup` is fine and computer sleep
+      is simply pinned by the hardware, which no nix-darwin fix would change;
+      nothing moves at all → the whole group is unbuildable on this Mac.
+      Re-run `POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh`.
+      (Env gate rather than a sudo check on purpose: a warm sudo timestamp must
+      not be enough to run this unattended. It restores computer *and* display
+      sleep on both sources plus Low Power Mode — display sleep because macOS
+      clamps it to ≤ computer sleep, so one write can move two settings.)
 
 ---
 
