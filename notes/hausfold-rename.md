@@ -824,15 +824,29 @@ step 4 works.
   without it.** The agent harness refuses an agent editing a licence holder
   line — the right default — so that PR carries the README half only, and its
   README *quotes* the LICENSE. Half of it is worse than none of it.
-  🚨 **perch#47 merged anyway, 2026-08-09, without the hand edit — so perch is
-  in the half-state this warning existed to prevent.** `perch/README.md:94`
-  now reads `FSL-1.1-ALv2 © hausfold` and links to a `perch/LICENSE:9` that
-  still reads `Copyright (c) 2026 nebelhaus`: one repo, two holders, on the
-  **paid** product's licence. It is one word, `nebelhaus` → `hausfold`, and
-  👤's — no agent can make it. Until it lands, don't read the ✅ above as
-  finished. *(The warning was written on the PR, and the merge is what the
-  gate could not stop: a "must not merge without X" that lives only in a note
-  is not a gate. Nothing enforces this one; it just has to be done.)*
+  🟨 **perch#47 merged anyway, 2026-08-09, without the hand edit — closed the
+  same day by [perch#48](https://github.com/nebelhaus/perch/pull/48).** For a
+  few hours perch sat in exactly the half-state this warning existed to
+  prevent: `README.md:94` reading `FSL-1.1-ALv2 © hausfold` over a
+  `LICENSE:9` still reading `Copyright (c) 2026 nebelhaus` — one repo, two
+  holders, on the **paid** product's licence. perch#48 is the one word, made
+  on the user's explicit instruction; absent that, agents leave a licence
+  holder line alone. The repo has exactly two copyright lines and they now
+  agree verbatim.
+  *(Worth keeping after the ✅: the merge is what the gate could not stop. A
+  "must not merge without X" that lives only in a note is not a gate — nothing
+  enforced this one, and nothing will enforce the next.)*
+  ⚠️ **The substance behind the word is NOT settled: `hausfold` is not a legal
+  person.** Copyright vests in the author; an unincorporated brand can neither
+  hold nor assign title, so today the notice is a trade name. Ordinary on an
+  MIT repo, sharper on perch — the FSL hangs its patent grant, its
+  Competing-Use carve-out and its **trademark reservation** on the same
+  `Licensor ("We")`, and perch is the product with hausfold as seller of
+  record. Nothing is lost by writing it now (incorporating means an
+  author→entity assignment either way), but this is an **accepted** position,
+  not a resolved one. Re-read all five notices at §0.2's trigger — filing,
+  paid marketing, or incorporating — which is the same moment the three
+  `Julien Martel` MIT files get answered.
   ⏳ **And the other three LICENSE files still say `Julien Martel`**
   (nebelhaus, nebelung, pounce — all MIT). That mismatch predates the rename
   and is not a regression, but it is now the whole remaining inconsistency:
