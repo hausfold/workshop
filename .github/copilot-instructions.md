@@ -8,7 +8,7 @@ duplication below; if the two ever disagree, `AGENTS.md` wins.)
 The short version:
 
 - This repo is the **workshop**: a parent directory holding every repo in the
-  [nebelhaus](https://github.com/nebelhaus) family, plus `bench`, the script that
+  [hausfold](https://github.com/hausfold) family, plus `bench`, the script that
   moves changes between them, and `web/` (nebelhaus.com). The sibling repos are
   independent git repos that are *not* checked out in a linked worktree or a
   cloud container — don't hunt for them, and don't report them as gitignored.

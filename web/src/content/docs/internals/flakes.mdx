@@ -17,7 +17,7 @@ The installer scaffolds `~/.config/nix` as a **thin consumer** of the rice. Its
 
 ```nix
 {
-  inputs.nebelhaus.url = "github:nebelhaus/nebelhaus";
+  inputs.nebelhaus.url = "github:hausfold/hausfold";
 
   outputs = { nebelhaus, ... }: {
     darwinConfigurations.<hostname> = nebelhaus.mkNebelhaus {

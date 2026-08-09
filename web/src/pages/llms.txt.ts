@@ -76,7 +76,7 @@ ${EXTRA.map((e) => line(e.label, e.path, e.description)).join('\n')}
 ## Optional
 
 - [llms-full.txt](${SITE}/llms-full.txt): every page above, inlined as one document.
-- [The rice itself](https://github.com/nebelhaus/nebelhaus): the source of every option on this site.
+- [The rice itself](https://github.com/hausfold/hausfold): the source of every option on this site.
 `;
 
   return new Response(body, {

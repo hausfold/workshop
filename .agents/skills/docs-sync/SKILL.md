@@ -61,12 +61,12 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 | `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
 | `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
 | `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free. ⚠️ You only reach this row if you looked — see Step 1. |
-| `nebelhaus/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
+| `hausfold/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
 | a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
 | a new/changed keybind | `reference/keybindings.md` — **always** |
 | `bench`, workshop `README.md` | `internals/contributing.mdx`, `internals/flakes.mdx`, workshop `README.md`/`AGENTS.md` |
 | `homebrew-tap`, release CI | `start/install.mdx`, `guides/staying-in-sync.mdx` |
-| `org-profile` (the `nebelhaus/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against `start/the-family.md` |
+| `org-profile` (the `hausfold/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against `start/the-family.md` |
 | a shot/asset placement anywhere | `assets/SHOTLIST.md` in the workshop — it tracks which README each still has landed in, so a placement commit makes it stale |
 
 **Every repo here is both an input and a target.** The question is never only "does
@@ -152,7 +152,7 @@ git -C <repo> commit -m "docs: <what you reconciled>
 Docs-Sync: <YYYY-MM-DD>"
 git -C <repo> push -u origin docs-sync-<YYYY-MM-DD>
 # write the findings body to a scratch file first (see the template below)
-gh pr create -R nebelhaus/<repo> --head docs-sync-<YYYY-MM-DD> \
+gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
   --title "docs: sync <YYYY-MM-DD>" --body-file /tmp/docs-sync-<repo>.md
 ```
 

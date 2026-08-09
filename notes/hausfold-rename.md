@@ -1264,6 +1264,39 @@ isn't.
 
 ### 3.3 🤖 Rewrite every edge — **but not every hit**
 
+> ✅ **Swept 2026-08-09**, one PR per repo, seven of them. Everything below is kept
+> as written because it is the *reasoning*, and a later session re-reading it
+> needs the Tier D table more than it needs a tick. What actually landed:
+>
+> | repo | the edge that mattered |
+> |---|---|
+> | nebelung | the two `templates/css/*.tera` headers, stamped into eight `dist/**` files consumers copy — `dist/` regenerated in the same commit |
+> | pounce | `flake.nix`'s `nebelung` input + lock; `update-pounce.sh` and `UpdateCheck.swift`'s self-update endpoints; the release asset URL the tap is fed |
+> | perch | `nix/package.nix`'s `fetchurl` (proved with a real build — the sha256 was not allowed to move); `UpdateCheck.swift` + its test literals; the tap checkout and both asset URLs |
+> | holt | the SwiftPM mirror (`sync-mirror.sh:22`, `release.yml:239`) and the written record of all three trusted publishers. **The Go module path was NOT touched** — see Tier D |
+> | homebrew-tap | `url` *and* `homepage` in both files. Only `url` self-heals at the next release; nothing in CI ever rewrites `homepage` |
+> | the rice | the four `github:` inputs + lock (all four repin at the same revs, on main); `bootstrap.sh`'s three URLs, keeping the `inputs.nebelhaus` NAME; `refresh_family_apps`' brew-tap directory |
+> | workshop | the site's install commands, family tables and repo links; `README.md`, `AGENTS.md`'s four-spellings box, `docs/`, `.agents/**`; `check-rice-bindings.mjs`; `options-drift.yml`'s org note; this file's own §3.3 |
+>
+> **Left deliberately, and each for a reason above:** the Go module path; the
+> `--override-input nebelhaus/…` input names in `bench` and `test/bench.bats`;
+> `bench:89`'s comment, which exists to describe the dead org; the
+> `name: bump nebelhaus/homebrew-tap` job labels (a display string, and the
+> `bench` fixtures that assert on it); `~/.config/nebelhaus/`;
+> `/Library/Application Support/nebelhaus/`; `.nebelhauslicense` (§4);
+> `nebelhaus.com` (§5); and the synthetic slugs in holt's five `fake-holt.sh`
+> fixtures and `test/statusline.bats`.
+>
+> ⚠️ **One Tier D row below has expired and is NOT a hold any more.** "`nebelhaus/modules/…`
+> source paths in docs" was written when the rice's checkout was `./nebelhaus`.
+> It is `./hausfold` now, so `hausfold/modules/…` is what those paths mean, and
+> `bench` and this repo's `.agents/` already write it that way. The stragglers
+> are cross-repo *comments* in pounce and perch — not owner references, so out
+> of this sweep, but a real cleanup and not something to defend.
+>
+> ⚠️ **`~/.config/nix/flake.nix:7` and npm's trusted publisher are 👤 and
+> still open** — neither is reachable from a repo. See the boxes below.
+
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
 that's a landmine.
 

@@ -145,7 +145,7 @@ Setting `hotkey.enabled` to `false` frees the hotkey so an external launcher
 
 Any `theme` value that isn't a built-in resolves to
 `~/.config/pounce/themes/<name>.json` — a flat catppuccin-style
-`name → "#hex"` map ([nebelung's](https://github.com/nebelhaus/nebelung)
+`name → "#hex"` map ([nebelung's](https://github.com/hausfold/nebelung)
 `palette/*.hex.json` files verbatim), re-read on each open like the config
 itself. That's how the rice's `theme.flavor` / `theme.contrast` reach Pounce
 without a rebuild, and it works the same on a Homebrew install:
@@ -153,7 +153,7 @@ without a rebuild, and it works the same on a Homebrew install:
 ```sh
 mkdir -p ~/.config/pounce/themes
 curl -fsSLo ~/.config/pounce/themes/nebelung-latte.json \
-  https://raw.githubusercontent.com/nebelhaus/nebelung/main/palette/nebelung-latte.hex.json
+  https://raw.githubusercontent.com/hausfold/nebelung/main/palette/nebelung-latte.hex.json
 # config.json:  "theme": "nebelung-latte"
 ```
 

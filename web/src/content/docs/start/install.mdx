@@ -31,7 +31,7 @@ stock Nix, the installer will stop and explain — nebelhaus expects Determinate
 ## Reading it first (recommended)
 
 `curl … | bash` runs whatever the URL serves. `nebelhaus.com/init.sh` only
-**proxies** the rice's [`bootstrap.sh`](https://github.com/nebelhaus/nebelhaus/blob/main/bootstrap.sh)
+**proxies** the rice's [`bootstrap.sh`](https://github.com/hausfold/hausfold/blob/main/bootstrap.sh)
 from this org's own repo — it's boring and readable on purpose. To inspect it
 before running:
 
@@ -74,7 +74,7 @@ release it falls back to `main`. Releases are date-tagged, so add
    repeat, Caps-Lock remap if prowl is on, ⌘Space reassignment if pounce is on).
 
 5. **Scaffold.** Creates `~/.config/nix/` with a thin `flake.nix` that imports
-   `github:nebelhaus/nebelhaus`, plus a `hosts/<hostname>/default.nix` holding
+   `github:hausfold/hausfold`, plus a `hosts/<hostname>/default.nix` holding
    your identity and choices. It `git init`s and commits the result.
 
 </Steps>
@@ -183,7 +183,7 @@ You don't have to take the whole rice:
   <TabItem label="pounce (Homebrew)">
 
 ```sh
-brew tap nebelhaus/tap
+brew tap hausfold/tap
 brew install pounce
 brew services start pounce
 pounce --request-accessibility
@@ -193,7 +193,7 @@ pounce --request-accessibility
   <TabItem label="pounce (Nix)">
 
 ```sh
-nix run github:nebelhaus/pounce -- --help
+nix run github:hausfold/pounce -- --help
 ```
 
   </TabItem>
@@ -202,7 +202,7 @@ nix run github:nebelhaus/pounce -- --help
 Add the flake and pull rendered themes for any tool:
 
 ```nix
-inputs.nebelung.url = "github:nebelhaus/nebelung";
+inputs.nebelung.url = "github:hausfold/nebelung";
 # then reference ${nebelung.packages.${system}.default}/<tool>/...
 ```
 

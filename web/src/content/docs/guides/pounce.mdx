@@ -14,7 +14,7 @@ Its whole personality is one idea: **every command is a file.** Drop a shell
 script in a folder and it's in the palette — no plugin API, no extension store,
 no account.
 
-It's [MIT licensed](https://github.com/nebelhaus/pounce/blob/main/LICENSE) and
+It's [MIT licensed](https://github.com/hausfold/pounce/blob/main/LICENSE) and
 free — every feature on this page, no paid tier.
 
 <Aside type="note" title="Standalone or part of the rice">
@@ -214,7 +214,7 @@ pounce-commands.override { plugins = [ "docker" "ssh" "tailscale" ]; }
 An enabled plugin behaves exactly like a built-in — same palette discovery, same
 `pounce-<id>` bin for hotkey bindings, still shadowable from your user dir. Not
 on Nix? Every plugin is still just one script: copy it from
-[`pkgs/pounce-commands/optional/`](https://github.com/nebelhaus/pounce/tree/main/pkgs/pounce-commands/optional)
+[`pkgs/pounce-commands/optional/`](https://github.com/hausfold/pounce/tree/main/pkgs/pounce-commands/optional)
 into `~/.config/pounce/commands/` and it's live on the next ⌘Space.
 
 <Aside type="note" title="Bluetooth needs a one-time grant">
@@ -226,7 +226,7 @@ device list appears; the plugin walks you there if the dialog was dismissed.
 ## Install it standalone
 
 ```sh
-brew tap nebelhaus/tap
+brew tap hausfold/tap
 brew install pounce
 brew services start pounce        # start the daemon
 pounce --request-accessibility    # one-time, for paste-back and event-tap bindings
@@ -240,7 +240,7 @@ release is arm64 only.
 Because that signing identity is stable, the Accessibility grant **survives
 `brew upgrade`** — you approve it once, not once per release.
 
-Or with Nix: `nix run github:nebelhaus/pounce -- --help`.
+Or with Nix: `nix run github:hausfold/pounce -- --help`.
 
 ## Grant Accessibility
 

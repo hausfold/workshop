@@ -10,7 +10,7 @@
  * which kept lavender because that one hex lived somewhere nobody thought to
  * grep. Add colours here and nowhere else.
  *
- * These values mirror the nebelung flake (github.com/nebelhaus/nebelung). That
+ * These values mirror the nebelung flake (github.com/hausfold/nebelung). That
  * repo generates them via OKLCH colour math and is authoritative; this file is a
  * hand-kept copy because the site is built by Astro, not Nix. If the palette is
  * ever retuned upstream, re-copy the ramp and accents here in one edit.

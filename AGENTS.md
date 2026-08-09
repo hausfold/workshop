@@ -14,7 +14,8 @@ nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
 > |---|---|---|
 > | `haus.<option>` | the option namespace | ✅ **already renamed** (nebelhaus#261). `nebelhaus.*` still evaluates via `modules/renamed.nix`, with a warning — never write it. |
 > | **nebelhaus** bare | the **rice** — one desktop built on the platform | **stays**, forever (§6) |
-> | `github.com/nebelhaus/*`, `nebelhaus.url`, `--override-input nebelhaus/…`, `GH_ORG` | the org, the repos, the flake input | **§3**, all in one sitting. Not now: a doc that names a repo before it moves 404s. |
+> | `github.com/nebelhaus/*`, `GH_ORG` | the org and its repos | ✅ **already renamed** — every *family* repo is `github.com/hausfold/*` (§3, 2026-08-09). The archived Messages client stayed behind (§3.4), and the dead org is kept alive forever regardless: shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` for their update check and only a live org redirects them. |
+> | `--override-input nebelhaus/…` in `bench`, `nebelhaus.url` | the consumer's flake **input name** | **not renamed** — it names the rice, not the org (§3.3's flake-input-paths box). Nix doesn't hard-fail an override for an unknown input, so renaming these makes `bench try` build the pinned rice while reporting your branch. Whether the consumer's own input gets renamed is a still-open 👤 call on a 👤 file. |
 > | `nebelhaus.com` | the domain | **§5**, with the 301s |
 >
 > Plus `com.nebelhaus.*` / `org.nixos.pounce` bundle ids (**§4**), the state
@@ -45,7 +46,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./hausfold` — the platform repo `hausfold/hausfold`. **The directory was `./nebelhaus` until 2026-08-09**; the repo moved and was renamed in the org migration, and the checkout followed. The *rice* is still called nebelhaus (§6) — the directory is named for its repo, not for the rice. |
 | the org's GitHub front page | `./org-profile` — the checkout of the `hausfold/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` — its own repo now ([hausfold/trill](https://github.com/hausfold/trill)), ejected from the incubator 2026-08-09. Called **flick** until 2026-08-08. **Deliberately not a family repo**: it is not in `bench`'s `FAMILY` and carries no lock edge (§9 of `notes/hausfold-rename.md` — that name must never appear there), so `bench status`/`ship` don't see it and `bench clone` doesn't fetch it. The rice will consume it as a leaf overlay, which is not the same thing as joining the ripple chain. |
-| holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/nebelhaus/nebelhaus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/nebelhaus/nebelhaus/pull/245)) — there is no fallback to roll back to. |
+| holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/hausfold/hausfold/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/hausfold/hausfold/pull/245)) — there is no fallback to roll back to. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
@@ -57,7 +58,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 ## The one gotcha that explains everything
 
 The repos form a chain of pinned flake inputs:
-`nebelung → pounce → nebelhaus → ~/.config/nix`. A commit — even a pushed one —
+`nebelung → pounce → hausfold → ~/.config/nix`. A commit — even a pushed one —
 is **invisible downstream** until each downstream `flake.lock` is updated.
 Never hand-walk that ripple; the tooling does it:
 
@@ -122,7 +123,7 @@ Never hand-walk that ripple; the tooling does it:
   not a `bench` command — the full flag set + the permission-cache gotchas live
   in the [rice's
   AGENTS.md](https://github.com/hausfold/hausfold/blob/main/AGENTS.md) and the
-  `zscratch.sh` header ([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
+  `zscratch.sh` header ([nebelhaus#69](https://github.com/hausfold/hausfold/pull/69)).
 
 ## Agent worktrees (parallel agent sessions)
 

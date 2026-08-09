@@ -4,20 +4,20 @@ description: The repos that make up nebelhaus, what each one owns, and how they 
 ---
 
 nebelhaus is not one repo — it's a small family, each piece owning one job and
-usable on its own. The rice ([nebelhaus](https://github.com/nebelhaus/nebelhaus))
+usable on its own. The rice ([nebelhaus](https://github.com/hausfold/hausfold))
 ties them together, but pounce, perch, and nebelung stand alone too.
 
 ## The repos
 
 | Repo | Owns | You touch it when… |
 |---|---|---|
-| 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
-| 🐾 [**pounce**](https://github.com/nebelhaus/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
-| 🐈 [**perch**](https://github.com/nebelhaus/perch) | the shelf — a native notch file tray that stages dropped files and drags them out as one group | you want to change the file shelf |
-| 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
-| 🪵 [**holt**](https://github.com/nebelhaus/holt) | the worktree substrate — agent worktrees for any repo and any client, which the rice takes as a flake input | you want to change how agent worktrees are made, parked or reaped |
-| 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every release |
-| 🧰 [**workshop**](https://github.com/nebelhaus/workshop) | every repo checked out side-by-side + the `bench` dev CLI | you're hacking on the family itself |
+| 🏠 [**nebelhaus**](https://github.com/hausfold/hausfold) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
+| 🐾 [**pounce**](https://github.com/hausfold/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
+| 🐈 [**perch**](https://github.com/hausfold/perch) | the shelf — a native notch file tray that stages dropped files and drags them out as one group | you want to change the file shelf |
+| 🌫 [**nebelung**](https://github.com/hausfold/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
+| 🪵 [**holt**](https://github.com/hausfold/holt) | the worktree substrate — agent worktrees for any repo and any client, which the rice takes as a flake input | you want to change how agent worktrees are made, parked or reaped |
+| 🍺 [**homebrew-tap**](https://github.com/hausfold/homebrew-tap) | the Homebrew tap (`brew tap hausfold/tap`) | almost never — CI bumps it on every release |
+| 🧰 [**workshop**](https://github.com/hausfold/workshop) | every repo checked out side-by-side + the `bench` dev CLI | you're hacking on the family itself |
 
 Your private machine config — identity, secrets, your app roster — lives at
 `~/.config/nix` and is **yours**, never part of the rice.
@@ -41,14 +41,14 @@ can't shadow each other. `haus` knows only *your machine*; `bench` knows only
 `PATH` whether or not you ever contribute — `holt` especially is worth knowing
 for **anyone** who runs Claude Code, nebelhaus contributor or not. It's the one
 that isn't really nebelhaus's at all: [its own
-repo](https://github.com/nebelhaus/holt), which the rice merely takes as a flake
+repo](https://github.com/hausfold/holt), which the rice merely takes as a flake
 input. Its bash predecessor `wt.sh` has been retired entirely.
 
 ## The rooms, standalone
 
 - **[pounce](/guides/pounce/)** installs from Homebrew (`brew install pounce`)
   with zero Nix. It's a general command palette; the rice just wires it up.
-- **[perch](https://github.com/nebelhaus/perch)** is a plain menu-bar app — the
+- **[perch](https://github.com/hausfold/perch)** is a plain menu-bar app — the
   notch file shelf — that needs none of the rest of the family to run.
 - **[nebelung](/reference/palette/)** is a plain colour system. Any tool —
   Ghostty, bat, lazygit, Slack, Zen — can consume its rendered themes without
