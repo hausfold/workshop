@@ -13,6 +13,11 @@ hidden so the bar is the single source of glanceable state.
 
 ## What's on the bar
 
+**Far left — the haus logo.** The pill where macOS puts the Apple menu. It is a
+house glyph in your accent colour, it changes colour when something on the
+machine wants you, and it opens the system menu on click — see
+[The logo pill](#the-logo-pill).
+
 **Left — workspace pills.** One pill per workspace you've
 [declared](/guides/window-management/#your-workspaces). A pill shows either the
 workspace's own id or its `icon` (e.g. `:slack:`), and the focused workspace is
@@ -46,6 +51,87 @@ dismissing it is the same.
 (SketchyBar itself only ever hears about clicks on its own pills, so the rice
 ships a small helper — `sillpop` — to notice the click outside. It runs only
 while a dropdown is open, and needs no Accessibility permission.)
+
+## The logo pill
+
+The leftmost pill is the rice's own mark, sitting where macOS puts the Apple
+menu. It does three things.
+
+### It opens the system menu
+
+| gesture | what you get |
+|---|---|
+| **click** | the **haus menu** — System Settings, Activity Monitor, Lock Screen, Nix Config, Haus Settings, Rebuild System, Reload SketchyBar |
+| **⌘ click** | `haus rebuild`, straight into a floating terminal |
+| **right click** | the full [pounce](/guides/pounce/) palette — the same thing ⌘Space opens |
+
+The menu is drawn by pounce, and each of its rows *is* the palette command of
+the same name — so anything you can do from the menu you can also reach by
+typing, and there is only one copy of each to go wrong. All three gestures need
+`haus.pounce.enable` (on by default); `haus.sill.logo.gestures = false` turns
+them off, so the pill is plainly not a button rather than a button that does
+nothing.
+
+### It tells you the machine is fine
+
+The colour is a status light — it shows the worst thing currently true:
+
+| colour | meaning |
+|---|---|
+| your accent | everything the rice runs is up |
+| yellow | a newer rice is available — `haus update` |
+| red | something the rice runs is enabled but **not running** |
+
+Red is the one worth having. A wedged background agent is otherwise invisible:
+AeroSpace stops tiling but leaves every window exactly where it was, and a
+stopped bar keeps the last frame it drew on screen — a bar that has died and a
+bar with nothing to say look identical. The check is local and free (it is the
+same one `haus doctor` opens with), and runs every five minutes.
+
+The **yellow** half is the exception and is **off by default**: it asks GitHub
+whether the rice you pinned has moved, which is the only thing this pill does
+that leaves your machine. Turn it on with `haus.sill.logo.updateCheck = true`.
+
+<Aside type="tip" title="Hover it">
+Resting the pointer on the pill sweeps it through the six hausfold accents —
+the same six that turn through the mark on
+[hausfold.co](https://hausfold.co). It only runs while the pill is at its
+resting colour: a pill that has gone yellow or red has something to say, and
+does not also get a rainbow. `haus.sill.logo.sweep = false` if you'd rather it
+sat still.
+</Aside>
+
+### It changes shape for the leader
+
+Tap ⇪ and the pill fills in — the accent moves from the glyph to the pill
+behind it — while the rest of the left side becomes the
+[launcher picker](/guides/window-management/). Same glyph, inverted; the status
+colours and the hover sweep stand down until you're out of launch mode.
+
+### Changing the glyph
+
+`haus.sill.logo.icon` takes a character, `haus.sill.logo.size` its point size,
+and `haus.sill.logo.color` an accent name (left alone it follows
+[`haus.theme.accent`](/guides/theming/)). The default is a solid Nerd Font house
+at 20pt.
+
+```nix
+haus.sill.logo.icon = "⌂";   # the hausfold mark itself
+haus.sill.logo.size = 25;    # it needs the extra points — see below
+haus.sill.logo.color = "teal";
+```
+
+Whatever you pick has to hold up at 28pt with a pill's padding around it, which
+rules out more than you'd expect — `⌂` (`U+2302`) is drawn hairline-thin and
+does not get heavier at Bold, so beside the workspace pills it reads much
+lighter than everything near it. The option's
+[reference entry](/reference/options/) lists six that work, with codepoints.
+
+There is no way to point this at an image file, on purpose: SketchyBar draws a
+background image left-anchored, at a scale you hand-tune per asset, and applies
+no colour to it — so a picture here could follow neither your accent nor any of
+the states above, and could not sweep. The rice drew this pill as a PNG for a
+while and every one of those was a real limitation of it.
 
 ## The media pill
 
