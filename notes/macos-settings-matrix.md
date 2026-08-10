@@ -317,6 +317,23 @@ why.
 | `com.apple.WindowManager` | logout | 12 typed keys |
 | `com.apple.controlcenter` | `killall ControlCenter` — not done | ByHost domain |
 
+**The animation keys are the one family in these domains shipped without a
+per-key sweep** (`haus.animations`, rice#286: `autohide-time-modifier`,
+`expose-animation-duration`, `launchanim`, `mineffect`,
+`NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`). That's deliberate and it
+is the honest limit of this file's method: every sweep here works by comparing a
+plist write against an *effective-state oracle*, and there is no oracle for "did
+the Dock slide faster" — the effect is a duration a person perceives, not a
+property any API reports. They rest on the domain-level rows above instead. The
+one measurable claim about that family is a negative one, and it IS checked:
+none of the five touch `NSWorkspace.accessibilityDisplayShouldReduceMotion` —
+the flag browsers read as `prefers-reduced-motion`, and the same property
+`hausax` prints — which is why the rice curates these five rather than
+`universalaccess reduceMotion`. Worth carrying forward: `NSGlobalDomain`'s
+"varies per key" restart column covers a case the other rows don't, since
+`NSAutomaticWindowAnimationsEnabled` is read by each app **at launch** and
+`activateSettings -u` cannot reach back into a running `NSApplication`.
+
 ### `NSGlobalDomain AppleInterfaceStyle` — the write-that-lies family's newest member, and the only one that lies *back*
 
 Swept 2026-08-08 on **macOS 26.6**, with a Swift probe reading
