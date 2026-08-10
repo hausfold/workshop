@@ -71,28 +71,29 @@ What this costs, and doesn't:
   **prose** meant the layer. §2's class table (in §2, not at the top of this
   file) has been amended to match; the `nebelhaus` reading table at the top of
   `AGENTS.md` is the rule for reading a `nebelhaus` hit, and is unaffected.
-- 📝 **The prose surfaces that say "hausfold" and mean the layer** — §0.1's
-  precedent applies here, because a decision left unwritten gets "corrected"
-  back by the next session. **Do these first:**
+- ✅ **The prose surfaces that say "hausfold" and mean the layer — swept
+  2026-08-10, workshop#313.** §0.1's precedent applied here, because a decision
+  left unwritten gets "corrected" back by the next session. Landed in one PR:
   `.agents/skills/docs-sync/SKILL.md` (the daily sweep *writes* its wording into
   other repos, so a stale line there propagates), then this repo's `AGENTS.md`
   and `README.md`. Then, when convenient: `notes/options-roadmap.md`'s naming
   banner, `notes/go-to-market.md`'s "read this first" box and its portfolio
-  table, and `bench`'s ripple-diagram comment. In the **rice repo** (a separate
+  table, and `bench`'s ripple-diagram comment (`bench:6` now reads *hausfold
+  (the haus layer)*). In the **rice repo** (a separate
   checkout): `hausfold/AGENTS.md` and `hausfold/README.md` — ✅ **done
   2026-08-10, [hausfold#305](https://github.com/hausfold/hausfold/pull/305)**;
   the gap there turned out not to be a wrong platform claim (neither file had
   one) but the missing layer-vs-rice distinction. Untouched on
   purpose: `notes/perch-monetization.md` (receipt/seller sense — correct as
   written) and every repo-name or workflow reference.
-- 👤 **§0.2's name clearance has never been run for `haus`.** It was run for
-  `hausfold` precisely because a platform with paid products is a different
-  check from an internal codename — and decision 8 promotes `haus` from a verb
-  and a namespace to the public name of the thing people install. `haus` is a
-  generic German noun: expect it taken on npm/PyPI and weak as a mark, which
-  cuts the other way from §0.2's hausfold coexistence analysis. Run the matrix
-  before the triggers that made it matter last time (a filing, paid marketing,
-  incorporation). Nothing about the *page* waits on this.
+  ⚠️ **Neither file ever called the layer "hausfold" — measured, not assumed**,
+  and worth keeping because the *shape* of that gap is the reusable part. A
+  grep of the rice's `AGENTS.md`, `README.md`, `docs/` and `.agents/`, excluding
+  the domain, the org, the repo slug, the checkout path and PR refs, returns
+  **zero layer-sense hits**. So there was never a wrong word to replace; what
+  #305 added was a distinction those files had never drawn. Don't read "the rice
+  repo is behind" as licence to sweep `hausfold` → `haus` there — the sweep
+  would have found nothing and broken identifiers looking.
 - ✅ **`PRESENCE.md` in `hausfold/ops` needed the same header amendment**, and
   was the one place to check whether a public-facing `haus` wants a register row
   of its own. **Both done 2026-08-10, in that repo.** The answer and its
@@ -100,6 +101,15 @@ What this costs, and doesn't:
   public, and it is the *shape* of the reasoning, not just the gaps, that has to
   stay private. If a later session finds itself about to fill in §0.2's matrix
   for `haus` in *this* repo, that's the mistake: it belongs in `ops`.
+- ✅ **§0.2's *register* half has now been run for `haus` too — 2026-08-10, and
+  it does not disturb this decision.** This bullet used to predict "expect it
+  taken on npm/PyPI and weak as a mark." The trademark register says: weak as
+  predicted, but **not blocked** — one *pending* US class-42 application and no
+  live registration in the software classes. **Don't file `haus`; the mark is
+  `hausfold`**, which is what decision 8 already says. §0.2 has the numbers.
+  ⚠️ **The namespace-availability half of that matrix is deliberately NOT here** —
+  see the `PRESENCE.md` bullet above. Which handles and package names are free
+  is register-of-gaps material and belongs in the private repo.
 
 ### And these three reverse earlier written decisions
 
@@ -134,21 +144,49 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-09 (second revision, evening)
+### Current handoff — 2026-08-10 (morning)
 
-**The rename is green through §4.** The option namespace, in-repo brand
-surface, GitHub transfers, checkout rename, lock ripple, clean-clone gate **and
-the Apple identity migration** are done. `bench try` builds the current local
-family, and the private consumer now uses canonical `haus.*` with no
-obsolete-option traces (`nix-config` `452b9b8`).
+**The rename is green through §4, and §5.2 is now the *whole* of the 🤖 work
+left.** The option namespace, in-repo brand surface, GitHub transfers, checkout
+rename, lock ripple, clean-clone gate **and** the Apple identity migration are
+done. `bench try` builds the current local family, and the private consumer
+uses canonical `haus.*` with no obsolete-option traces (`nix-config`
+`452b9b8`).
 
-**§5.2 is the only substantial 🤖 work left** — the docs/Worker consolidation
-into `hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com`
-301s. 🚨 **It is a rebuild on Fumadocs, not a port of the Astro/Starlight
-tree** (👤's call, 2026-08-09 — see §5.2's decision box before reading anything
-below it as a move). Everything else outstanding is 👤.
+**§5.2** is the docs/Worker consolidation into `hausfold/hausfold.co`, the
+per-rice installer, and the `nebelhaus.com` 301s. 🚨 **It is a rebuild on
+Fumadocs, not a port of the Astro/Starlight tree** (👤's call, 2026-08-09 — see
+§5.2's decision box before reading anything below it as a move); its stack,
+deployment shape and search are all decided and spiked, so what remains is
+build work, not design work. **Every other open *step* in this document is 👤**
+— audited 2026-08-10: all six unchecked boxes in the file carry 👤, and no 🤖
+section outside §5.2 is unfinished. (The one exception is not a step: §9's
+carry-over about a `.bak` sentence in `notes/launch-phase-1.md` is untagged and
+belongs to that note, not to this one.)
 
-What changed since the morning handoff:
+What changed on 2026-08-10:
+
+- **Decision 8 recorded and swept** — the layer's public name is `haus`,
+  `hausfold` is the org/maker/seller (workshop#313). Its prose surfaces are
+  done; the rice repo turned out to need nothing (grep-measured — see the ✅ in
+  decision 8's box). ⚠️ It is **not** a licence to sweep `hausfold` → `haus`:
+  the word is a live identifier in `bench` and in two workflows.
+- **§4.2's association cleanup landed** — `com.local.pounce` is out of the
+  rice's `AssociatedBundleIdentifiers` (hausfold#282, merged 06:24). §4 now has
+  **no 🤖 work at all**; what's left there is the 👤 attribution re-check after
+  activation and §4.4's TCC feel-test.
+- **§0.2's register search ran**, for `hausfold` and (new, per decision 8)
+  `haus`. It had been 👤 because "the USPTO search API needs a key" —
+  **TMview's does not**, and it aggregates USPTO + EUIPO + ~73 more offices.
+  Headline: `hausfold` is **clear worldwide, zero records**, and the Charleston
+  laundry business never filed anywhere, so §0.4's coexistence is with a
+  common-law user rather than a registrant. `haus` on the register is
+  weak-but-unblocked, with **one pending US class-42 application** —
+  `Haus Analytics, Inc.`, US 99283190 — as the single thing to watch. Its
+  package/handle availability ran the same day and lives in `hausfold/ops`, not
+  here (§0.2's 🔒 box says why). Nothing asks for a naming change.
+
+What changed on 2026-08-09 (kept — the evening handoff):
 
 - **§4 landed and shipped.** perch#51, pounce#72 and hausfold#275 all merged
   2026-08-09 13:39–13:40; pounce released `v2026.08.09-3` and perch
@@ -174,7 +212,12 @@ What changed since the morning handoff:
 
 Still 👤, none of it blocking the repo work at today's exposure level:
 
-- §0.2's USPTO/EUIPO trademark search.
+- ~~§0.2's USPTO/EUIPO trademark search.~~ ✅ **Run 2026-08-10** — via TMview
+  rather than TESS, for `hausfold` *and* `haus`. `hausfold` is clear worldwide
+  and the Charleston laundry business holds no registration; `haus` is weak but
+  unblocked, with one pending US class-42 application to watch. §0.2 carries the
+  numbers and the API recipe. What remains 👤 is the clearance *opinion*, which
+  keeps its original trigger (filing / paid marketing / incorporation).
 - §4.4's TCC re-grant feel-test — specifically the **palette** running a plugin
   command, which no agent can press. An agent can confirm the label; it cannot
   confirm the grant.
@@ -239,18 +282,122 @@ Hence the two filters: what this gate is actually looking for is an assertion
 that is **still standing** — not one struck through (`~~`) or quoted inside a
 reversal blockquote (`> `). Marked-as-dead is the goal state, not a violation.
 
-### 0.2 👤 Name clearance — partly run 2026-08-08
+### 0.2 👤 Name clearance — registries 2026-08-08, register 2026-08-10
 
 "hausfold" as an *umbrella* was low exposure. As a **platform with a market and
 paid products**, it's a different check:
 
 | | Status |
 |---|---|
-| npm — `hausfold` as a package name | ✅ **free** (2026-08-08) |
-| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked, and only matters if that app ever publishes an SDK — today only holt does.) |
+| npm — `hausfold` as a package name | ✅ **free** (2026-08-08, re-checked 2026-08-10) |
+| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08, re-checked 2026-08-10). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked, and only matters if that app ever publishes an SDK — today only holt does.) |
+| crates.io — `hausfold` | ✅ **free** (2026-08-10) |
 | GitHub — any `hausfold*` squatting near you | ✅ nothing found; the org is ours |
 | A web search for an existing company using it | 🚨 **found one** — see below |
-| USPTO TESS + EUIPO, software classes (9/42) | ❌ **not done.** The USPTO search API needs a key; this needs the web UI or a service. **Still 👤.** |
+| USPTO + EUIPO, software classes (9/42) | ✅ **run 2026-08-10 — `hausfold` returns ZERO records worldwide.** See the box below for how, and for what it does and doesn't prove. |
+
+#### ✅ Run 2026-08-10 — the register half, for both `hausfold` and `haus`
+
+**Not through TESS.** USPTO's own search needs a key or the web UI, which is why
+this row sat undone. The way through is **[TMview](https://www.tmdn.org/tmview/)**
+— EUIPO-operated, aggregating ~75 participating offices *including USPTO and
+EUIPO*, with an unauthenticated JSON API behind the web UI:
+
+```sh
+UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'    # NOT optional — see below
+# GET the app first for a session cookie, then POST the search
+curl -s -A "$UA" -c jar https://www.tmdn.org/tmview/ -o /dev/null
+curl -s -A "$UA" -b jar -X POST https://www.tmdn.org/tmview/api/search/results \
+  -H 'Content-Type: application/json' -H 'Referer: https://www.tmdn.org/tmview/' \
+  -d '{"page":1,"pageSize":100,"criteria":"E","basicSearch":"haus",
+       "offices":["US","EM"],"niceClass":["9","42"],
+       "territories":[],"tmStatus":[],"tmTypes":[]}'
+```
+
+⚠️ **Five gotchas, every one of which returns a confident wrong answer rather
+than an error.** Four of them are indistinguishable from "nothing found":
+
+- **A browser `User-Agent` is required.** With curl's default UA the WAF resets
+  the POST — `exit 56`, http `000`, reproducibly — *even with a valid cookie*.
+  Because the next gotcha primes you to blame the session, this one costs real
+  time. Set `-A` on both requests.
+- **The session cookie is required** — POST without the GET and the API returns
+  an empty body, not an error. An empty body parsed as "no results" is a false
+  all-clear, which is the worst possible failure for this check.
+- **The nice-class filter key is `niceClass`.** `niceClasses` and `classes` are
+  accepted and **silently ignored** — same query came back 2,566 vs 566.
+- **`criteria:"E"` is not "exact".** It word-matches, so it returns `WolfHaus`,
+  `ModelHaus`, `KOOL HAUS AI`. Filter `tmName` yourself for a true exact hit.
+  **`criteria:"C"` is the substring search**, and the two disagree in the
+  direction that fools you: `haus fold` gives **5** under `"C"` and **0** under
+  `"E"`. Use `"C"` for a phrase or a fragment; never read an `"E"` zero as
+  clearance for one.
+- **Run a positive control with the *same* parameters you're using**, so an
+  empty result is known to mean empty. `nike` is 15,854 wide open
+  (`criteria:"C"`, no office or class filter) but **37** under this box's
+  narrowed query (`"E"`, US+EM, 9/42). Quoting the wide number while running the
+  narrow query is how you conclude the API is broken.
+
+**`hausfold`: zero records, worldwide, any class, any status** — under `"E"` and
+`"C"` alike. So is `housefold`. The register is clear.
+
+**And the SC laundry business never filed.** `haus fold` (`criteria:"C"`)
+returns 5 marks, none theirs (`FOLDHAUS`, `PARKETTHAUS SCHEFFOLD` ×2, an exhaust
+manifold, a Japanese *HOUSING FOLDER*). That
+materially improves §0.4's coexistence position: HAUS FOLD is a **common-law
+user only** — no registration, a services class, three cities in one state.
+First in time, yes; but with nothing on the register to assert.
+
+⚠️ **One near-mark, and it's a law firm.** `HAUSFELD` — one letter out,
+near-identical to an English speaker — is registered by **Hausfeld LLP** at
+USPTO, EUIPO and UKIPO, all in **class 45 (legal services)**. Different class,
+different trade, coexistence is ordinary; log it because the registrant being a
+litigation firm raises the odds of a letter above what the class distance would
+suggest. (`CAMPBELL HAUSFELD`, class 7 air compressors, is noise.)
+
+**`haus` — the check decision 8 created, and the result is not what the
+decision's own note predicted.** It guessed "expect it taken and weak as a
+mark." Half right:
+
+| `haus` | |
+|---|---|
+| exact word **HAUS**, US+EUIPO, **class 9 or 42** | **7 records, 6 dead.** The one live: **US 99283190, `Haus Analytics, Inc.`**, filed 2025-07-14, cls 35+42, word mark, still **pending** |
+| exact word **HAUS**, US+EUIPO, all classes | 44 records, 13 live — and **none of the 13 is registered in 9 or 42.** They sit in 1, 8, 16, 18, 25, 30, 32, 33, 35, 36, 41 and 43: drink, clothing, hospitality, real estate |
+| word-*containing* haus, US+EUIPO, cls 9/42 | **566 records, 318 live** — `WolfHaus`, `ModelHaus`, `KOOL HAUS AI`, `HealthyHaus`, … |
+| package registries, handles, the CLI name | 🔒 **ran the same day; the results live in `hausfold/ops`'s `PRESENCE.md`, not here.** See the box below. |
+
+🔒 **Why half of `haus`'s matrix isn't in this file.** Which registries,
+handles and package names are *free* is precisely the register-of-gaps material
+`PRESENCE.md` exists to hold, and **the workshop is public** — publishing a list
+of what nobody has claimed hands it to whoever reads it first. The rule is
+stated in decision 8's `PRESENCE.md` bullet at the top of this file: if a
+session finds itself filling in §0.2's matrix for `haus` *here*, that's the
+mistake. The register half above is different in kind and stays — trademark
+records are public documents, and quoting them discloses nothing that
+`tmdn.org` doesn't already serve to anyone.
+
+**So read the register half on its own terms.** As a *mark*, don't file `haus`
+and don't lean on it: **566 records containing haus in our own classes, 318 of
+them live**, is a crowded field, and a word that crowded is weak, expensive to
+register and impossible to police. **The mark is `hausfold`** — exactly decision
+8's split (the layer is `haus`, the house is `hausfold`), so nothing here asks
+for a naming change. The practical question underneath — *can people actually
+type `haus`* — was answered the same day and answered well; it's just answered
+in `ops`.
+
+🚨 **The one thing to watch: US 99283190.** If Haus Analytics' class-42
+application registers, a live senior registrant owns bare "HAUS" for software
+services in the US. It does not reach `haus` used as a product name under the
+hausfold house mark — but it does mean: never file HAUS alone, and never market
+the layer as a standalone brand detached from hausfold. Re-check its status at
+the same trigger below.
+
+⚠️ **This is a knockout screening, not a clearance opinion**, and the difference
+is not pedantry. It reads the register only: it does **not** cover unregistered
+common-law use, phonetic and foreign-equivalent marks beyond the two checked
+here, design marks, or state registrations. Everything below the trigger line
+stays as it was — this box lowers the unknowns, it doesn't replace counsel at
+the moment one is warranted.
 
 🚨 **`hausfold.com` is an operating US business: HAUS FOLD, in-home laundry and
 light housekeeping in Charleston / Columbia / Greenville, South Carolina.**
@@ -258,17 +405,29 @@ Registered 2025-04-19, live site, phone, pricing, testimonials, and
 `instagram.com/hausfold`. Not German or Austrian, which is why the original
 phrasing of this check wouldn't have found it. Full detail in §0.4.
 
-**Gate: passed, provisionally — no forced rename.** They sell a household
+**Gate: passed on the register half — no forced rename.** They sell a household
 *service*; we sell software. Different Nice classes coexist routinely and
-nobody confuses a laundry round with a nix-darwin platform. But they are **first
-in time on the word, in the US, in commercial use**, so this is coexistence
-rather than clearance, and the one check that would settle it is the one still
-undone.
+nobody confuses a laundry round with a nix-darwin platform. The 2026-08-10
+search adds one fact: they hold **no registration anywhere**.
 
-⚠️ **The undone half has a trigger, not a date.** Run the USPTO/EUIPO search
-before **any** of: filing an application, paid marketing, or incorporating an
-entity that trades under the name. Below that line the exposure is logged and
-accepted. Above it, "we looked at their website" is not a clearance opinion.
+🚨 **Do not read that as the risk shrinking — US common-law rights don't depend
+on registration.** They remain **first in time on the word, in the US, in
+commercial use**, and that is the whole of the exposure both before and after
+this search. What changed is that the exposure is now *shaped* rather than
+unknown: unregistered, one service class, three cities in one state, with
+nothing on the register to assert against a software mark. The word
+"provisionally" came off the register clause only.
+
+⚠️ **What's still undone has a trigger, not a date.** The *register* has been
+searched (see the box above). What hasn't: **the common-law position of the very
+business found here**, any other unregistered user, phonetic and foreign
+equivalents past `hausfeld`/`housefold`, design marks, state registrations — i.e.
+everything a real clearance opinion adds, and the first item on that list is the
+one that matters most. Get one before **any** of: filing an application, paid
+marketing, or incorporating an entity that trades under the name. Below that
+line the exposure is logged and accepted. Above it, a knockout screening is
+still not a clearance opinion — it just means counsel starts from a clear
+register instead of an unknown one.
 
 ### 0.3 🟨 Drain the queue — PR/lock half green 2026-08-08, branches still open
 
@@ -347,11 +506,17 @@ was wrong from the start rather than expired. Three things follow:
    their own site — which is why the register records `hausfold.co` there.
    Anywhere else the bare `hausfold` was "unavailable", assume the same cause
    and stop re-checking.
-3. **It promotes the trademark question.** A same-word mark in commercial use in
+3. **It promotes the trademark question.** A same-word user in commercial use in
    the US, first in time. Likely fine — a household *service* against *software*
-   are different Nice classes — but that is a reading, not a search. **Get a real
-   USPTO search before filing anything, spending on marketing, or incorporating
-   under the name.** Nothing here was checked against the trademark register.
+   are different Nice classes — but that was a reading, not a search.
+   ✅ **The search has now been run — 2026-08-10, §0.2's box.** The register is
+   clear: **zero records for `hausfold` at any office**, and **this business has
+   never filed**, so it is a common-law user, not a registrant. ⚠️ Which is not
+   the same as safe: US common-law rights don't require registration, so first-in-
+   time still means something. **Get a clearance opinion before filing anything,
+   spending on marketing, or incorporating under the name** — that trigger is
+   unchanged. What's different is that counsel now starts from a searched
+   register rather than an unsearched one.
 
 Re-logged in `go-to-market.md` §9 decision 4 as decided-accept.
 
@@ -2533,11 +2698,16 @@ that the first person who finds it harmless ignores the whole thing.
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-09 evening):** §0 green bar §0.2's trademark search and
-§0.3's branch clause; §1–§3 green; §4's code merged and released, with its 👤 TCC
-feel-test and one 🤖 association cleanup open. **§5 is the live phase**, and its
-§5.1 groundwork (site repo public, `site-data` published so the site needs no
-Nix) is already done — what's left is §5.2's port itself, then §5.3's deploy.
+**You are here (2026-08-10):** §0 green bar §0.3's branch clause — §0.2's
+register search ran 2026-08-10 and leaves only the clearance *opinion*, which is
+trigger-gated, not a step; §1–§3 green; **§4 fully merged and released, with no 🤖
+work left in it** (hausfold#282 closed the last one) — its 👤 TCC feel-test and
+its post-activation attribution re-check are what remain. **§5 is the live
+phase**, and its §5.1 groundwork (site repo public, `site-data` published so the
+site needs no Nix) is already done — what's left is §5.2's rebuild itself, then
+§5.3's deploy. **§5.2 is the only step in this document an agent takes
+unattended; §5.3 is 👤** — DNS records and `npx wrangler deploy` are a
+production change on a live zone, and the section is tagged 👤 for that reason.
 
 ## §9 — Loose ends found while writing this
 
