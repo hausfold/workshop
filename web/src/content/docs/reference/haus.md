@@ -21,7 +21,7 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus status` | Show the current generation and how stale the pinned rice is. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
 | `haus options` | Refresh the annotated catalogue of every `haus.*` option on this machine's pinned rice. |
-| `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `haus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. |
+| `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `haus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. A path may address one key inside an option (`sill.items.aiUsage`). |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
 | `haus unset <path> [<path>…]` | Explicitly set nullable options to `null`, then rebuild once. Takes a list, all-or-nothing. |
 | `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host/preset/rice value again, then rebuild once. Takes a list, all-or-nothing. A path that has no override is reported and skipped; if none of them had one, nothing is rebuilt. |
@@ -104,6 +104,39 @@ syntax for booleans, numbers, lists, and attribute sets. A type-invalid value is
 written and staged only long enough to evaluate the real module; on rejection,
 the previous file is restored and that path is staged before any rebuild or
 activation.
+
+### One key inside an option
+
+A path may go *inside* an option, not merely up to it:
+
+```sh
+haus set sill.items.aiUsage true              # one pill, not the whole bar
+haus set displays.internal.uiScale larger-text
+haus set displays.37D8832A-2D66-02CA-B9F7-8F30A301B230.uiScale more-space
+```
+
+Prefer that to naming the enclosing attribute set. The overlay is `mkForce`, so
+`haus set sill.items '{"aiUsage":true}'` forces the *whole* set — every pill you
+didn't name falls back to its own default, and a bar you spent three commands
+arranging goes back to stock. Setting the leaf touches only the leaf.
+
+The two kinds of nesting behave differently underneath, and the CLI hides the
+difference:
+
+- **A submodule's declared sub-options** — `sill.items.<pill>`,
+  `sill.bottom.items.<pill>` — are checked like any other option, so a misspelled
+  pill is refused before a file is written.
+- **An `attrsOf` option's keys** — `displays.<screen>` — are yours to invent, so
+  the key is taken as given and what sits *under* it is checked. A key may start
+  with a digit (display UUIDs routinely do); the generated module quotes it.
+  `haus get` on a key nothing has defined yet says so rather than printing a
+  blank line, and `haus reset` on the last override defining a key removes the
+  key rather than revealing a value beneath it.
+
+A path and one of its ancestors cannot both hold an override — `sill.items` set
+whole and `sill.items.cpu` set on its own are two `mkForce` definitions of the
+same value — so the second is refused, naming the first and the `haus reset` that
+clears it.
 
 Pounce's **Haus Settings** command is the same mechanism with three intent-sized
 buttons: **Make text bigger**, **Switch to light mode**, and **High contrast on**.

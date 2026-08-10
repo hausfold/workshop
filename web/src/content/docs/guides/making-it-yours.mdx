@@ -122,6 +122,12 @@ haus get theme.accent        # teal
 haus reset theme.accent      # remove the override; inherit the rice/preset again
 ```
 
+A path may go *inside* an option — `haus set sill.items.aiUsage true` switches
+one pill, `haus set displays.internal.uiScale larger-text` scales one screen.
+Prefer that to naming the whole attribute set: the overlay is `mkForce`, so
+`haus set sill.items '{"aiUsage":true}'` would send every pill you didn't name
+back to its default.
+
 Only `haus.*` options cross this writable boundary (the prefix is optional
 on the command line). `haus unset <path> […]` explicitly writes `null` for
 nullable options; `haus reset <path> […]` removes the generated overrides. Both
