@@ -25,7 +25,7 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
 | `haus unset <path> [<path>…]` | Explicitly set nullable options to `null`, then rebuild once. Takes a list, all-or-nothing. |
 | `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host/preset/rice value again, then rebuild once. Takes a list, all-or-nothing. A path that has no override is reported and skipped; if none of them had one, nothing is rebuilt. |
-| `haus plan` | Preview what the next `haus rebuild` would change — settings, packages, casks — read-only, nothing built into place. |
+| `haus plan` | Preview what the next `haus rebuild` would change — packages, macOS settings, the files home-manager writes into your home (and which `onChange` hooks that would fire), launchd jobs, casks — read-only, nothing built into place. |
 | `haus diff` | The config declared for this machine vs what macOS actually has right now — effective state, not just the plist. |
 | `haus capture [cat…]` | Turn this Mac's current settings into config lines *and* a snapshot. Defaults to `dock keyboard finder`; name a literal plist domain (e.g. `com.apple.Terminal`) for anything else. |
 | `haus revert-settings [snapshot\|list]` | Put back a `haus capture` snapshot — the macOS defaults a generation rollback leaves untouched. `list` shows what you've captured. |
@@ -176,6 +176,32 @@ change — and both consult a live NSWorkspace probe for the accessibility keys
 macOS accepts silently and then ignores, instead of trusting the plist. `capture`
 before a risky change and `revert-settings` after is the macOS-defaults
 equivalent of `haus rollback`.
+
+`plan` reports five things, and the middle two are the ones people expect to be
+missing: packages (a closure diff), macOS settings, **the files home-manager
+writes into your home**, **launchd jobs**, and new casks. The file section
+matters because most of what a rice changes is neither a package nor a
+`system.defaults` key — switching a bar pill on moves a config file and nothing
+else, and a closure diff won't show it (the whole tree is one unversioned store
+path). It lists what would move, then names the `onChange` hooks that would
+fire, which is the answer to "it's on disk, but will the running daemon notice?"
+
+It covers what home-manager **links**, which is nearly everything but not quite:
+a few files the rice writes with an activation script instead — zellij's
+`config.kdl`, deliberately a real file so its mtime hot-reload works — are
+outside that set and still won't appear.
+
+:::caution[`plan` reads your config directory, not the directory you're in]
+`haus` always evaluates `$CONSUMER` — `~/.config/nix` unless you override it.
+Run `haus plan` from a **linked git worktree** of that config (an agent lane,
+say) and it previews the config on *main*, not the branch checked out where you
+are standing. It says so now, in a warning naming both paths, and the fix is to
+point it at the tree you mean:
+
+```sh
+HAUS_CONSUMER="$PWD" haus plan
+```
+:::
 
 ## Typical sessions
 
