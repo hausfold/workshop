@@ -174,12 +174,13 @@ The gestures:
 That ⌘ click is the one to remember: it's the answer to "something is making
 noise and I can't find the tab".
 
-The dropdown carries the cover art (or, for the many sources that publish none,
-the source app's own icon), the title, artist and album, a position slider you
-can **click to scrub**, transport rows, and a short **recently played** list.
-That last one exists because macOS keeps no now-playing history at all — nothing
-on the machine can tell you what the track before this one was, so the bar
-writes each change down as it happens.
+The dropdown carries the cover art when the source published one, the title,
+artist and album, and a position slider you can **click to scrub**, plus
+transport rows. A title or album long enough to overflow the dropdown sweeps
+once when it opens, the same marquee the pill itself does on hover. Sources
+that publish no cover — most browser tabs among them — get a small app-icon
+badge next to the row that brings that app forward, rather than a cover-sized
+stand-in.
 
 Two options tune it, both off by default:
 `haus.sill.media.collapse` draws the pill as its glyph alone until you hover it
