@@ -2087,6 +2087,40 @@ timestamp. Without it, this box's ✅ decays silently into a claim.
 `web/src/pages/llms.txt.ts` and `llms-full.txt.ts` as must-survive — they don't
 need re-authoring, they come with the template.
 
+##### ✅ And it indexes the **live `haus.*` option surface**, because that page is part of the corpus
+
+The determinism that matters day to day isn't build reproducibility — it's
+*"does search find an option I added last week?"* It does, and the chain is
+already built (§5.1), unchanged by the move to Fumadocs:
+
+```
+rice module system  →  nix build .#site-data  →  hausfold/docs/site-data/options.json
+     (committed in the rice, pinned by its own `site-data-current` flake check)
+         ↓  web/scripts/gen-options.mjs
+     src/content/docs/reference/options.md   (generated, COMMITTED)
+         ↓  the docs build
+     a normal page  →  indexed like any other  →  searchable
+```
+
+The options reference is a **generated file that is committed**, not rendered at
+build time — `gen-options.mjs` runs in the drift workflow (Monday cron + a PR
+check), not in `npm run build`. So a deploy indexes whatever snapshot is
+committed. That is §5.1's already-recorded residue ("the site checks a snapshot,
+not the source"), and it is the *only* gap between "live options" and "what
+search returns". Nothing about Fumadocs changes it: same script, same input,
+output lands in the content dir, Fumadocs indexes it.
+
+✅ **Confirmed by the measurement below rather than assumed** — `options.md` was
+in the 29-page corpus that produced the 3,004-section index, so the numbers
+already cover the whole option surface.
+
+⚠️ **And it's the reason the index is big.** `reference/options.md` is
+**151 KB of the corpus's 429 KB (35%)** and carries **226 of its 477 headings
+(47%)**. So the search index's size is, roughly, *the option reference*. If the
+457 KB brotli figure ever needs to come down, that page — not the prose docs —
+is the lever, and trimming what's indexed per option beats changing search
+engines.
+
 ##### 🚨 Then measured against the **real** corpus, and the index is big
 
 A 2-page scaffold proves nothing about size. The 29 real pages from
