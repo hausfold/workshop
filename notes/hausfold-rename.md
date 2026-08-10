@@ -180,11 +180,11 @@ What changed on 2026-08-10:
   **TMview's does not**, and it aggregates USPTO + EUIPO + ~73 more offices.
   Headline: `hausfold` is **clear worldwide, zero records**, and the Charleston
   laundry business never filed anywhere, so §0.4's coexistence is with a
-  common-law user rather than a registrant. `haus` is free in nixpkgs and
-  Homebrew and has no competing CLI, gone on npm/PyPI/crates (dormant stubs, and
-  only holt publishes SDKs), and on the register is weak-but-unblocked with **one
-  pending US class-42 application** — `Haus Analytics, Inc.`, US 99283190 — as
-  the single thing to watch. Nothing asks for a naming change.
+  common-law user rather than a registrant. `haus` on the register is
+  weak-but-unblocked, with **one pending US class-42 application** —
+  `Haus Analytics, Inc.`, US 99283190 — as the single thing to watch. Its
+  package/handle availability ran the same day and lives in `hausfold/ops`, not
+  here (§0.2's 🔒 box says why). Nothing asks for a naming change.
 
 What changed on 2026-08-09 (kept — the evening handoff):
 
@@ -364,28 +364,26 @@ mark." Half right:
 | exact word **HAUS**, US+EUIPO, **class 9 or 42** | **7 records, 6 dead.** The one live: **US 99283190, `Haus Analytics, Inc.`**, filed 2025-07-14, cls 35+42, word mark, still **pending** |
 | exact word **HAUS**, US+EUIPO, all classes | 44 records, 13 live — and **none of the 13 is registered in 9 or 42.** They sit in 1, 8, 16, 18, 25, 30, 32, 33, 35, 36, 41 and 43: drink, clothing, hospitality, real estate |
 | word-*containing* haus, US+EUIPO, cls 9/42 | **566 records, 318 live** — `WolfHaus`, `ModelHaus`, `KOOL HAUS AI`, `HealthyHaus`, … |
-| npm `haus` | ❌ taken — `0.0.0`, "HTML And Useful Styling (HAUS) is a CLI for web development", last touched 2022 |
-| PyPI `haus` | ❌ taken — `0.1.0`, a WSGI framework, `houseofhaus.org` |
-| crates.io `haus` | ❌ taken — `0.0.0`, 1,523 downloads, 2022 |
-| GitHub user `haus` | ❌ taken — an individual, account since 2009 |
-| **Homebrew** formula *and* cask `haus` | ✅ **free** |
-| **nixpkgs** attribute `haus` | ✅ **free** (`nix eval nixpkgs#haus` → no such attribute) |
-| a *maintained* competing `haus` command | ✅ none found. The npm row above is nominally a CLI, but it is `0.0.0` and untouched since 2022 — nothing anyone would have on `PATH` |
+| package registries, handles, the CLI name | 🔒 **ran the same day; the results live in `hausfold/ops`'s `PRESENCE.md`, not here.** See the box below. |
 
-**Read those two halves in opposite directions**, because they answer different
-questions:
+🔒 **Why half of `haus`'s matrix isn't in this file.** Which registries,
+handles and package names are *free* is precisely the register-of-gaps material
+`PRESENCE.md` exists to hold, and **the workshop is public** — publishing a list
+of what nobody has claimed hands it to whoever reads it first. The rule is
+stated in decision 8's `PRESENCE.md` bullet at the top of this file: if a
+session finds itself filling in §0.2's matrix for `haus` *here*, that's the
+mistake. The register half above is different in kind and stays — trademark
+records are public documents, and quoting them discloses nothing that
+`tmdn.org` doesn't already serve to anyone.
 
-- **As a name people type, `haus` is clear where it counts.** The rice ships
-  through nixpkgs and Homebrew, and it is free in both — plus no competing
-  `haus` command exists to shadow on `PATH`. The three code registries are gone,
-  but all three holders are dormant `0.0.0`/`0.1.0` stubs, and **it costs nothing
-  today**: only holt publishes SDKs. If `haus` ever needs one, publish scoped —
-  `@hausfold/haus` — rather than chasing a PEP 541 reclaim.
-- **As a *mark*, don't file it, and don't lean on it.** 318 live `*haus`
-  composites in our own classes is a crowded field: a word that crowded is weak,
-  expensive to register, and impossible to police. **The mark is `hausfold`** —
-  which is exactly decision 8's split (the layer is `haus`, the house is
-  `hausfold`), so nothing here asks for a naming change.
+**So read the register half on its own terms.** As a *mark*, don't file `haus`
+and don't lean on it: **566 records containing haus in our own classes, 318 of
+them live**, is a crowded field, and a word that crowded is weak, expensive to
+register and impossible to police. **The mark is `hausfold`** — exactly decision
+8's split (the layer is `haus`, the house is `hausfold`), so nothing here asks
+for a naming change. The practical question underneath — *can people actually
+type `haus`* — was answered the same day and answered well; it's just answered
+in `ops`.
 
 🚨 **The one thing to watch: US 99283190.** If Haus Analytics' class-42
 application registers, a live senior registrant owns bare "HAUS" for software
