@@ -39,8 +39,8 @@ Then `haus rebuild`. The accent re-tints the tools that render per-accent
 variants — **lazygit** borders, **fzf** highlights, **yazi**, and the **Zen
 browser**. Yazi's `glow` Markdown headings use that same accent in both the side
 preview and fullscreen pager — while the single-file dotfiles (Ghostty, starship, tmux, bat,
-zellij) keep their built-in theme. The `bold` wallpaper is generated from the
-accent hex, so it follows too, as does any app in your
+zellij) keep their built-in theme. The generated desktop follows it too — the
+bloom behind the mark in `minimal`, and the whole sweep in `bold` — as does any app in your
 [roster](/guides/adding-apps/) whose nebelung port ships a per-accent matrix
 (`zed`, `gh-dash`, `mpv`).
 
@@ -178,10 +178,86 @@ Mac they stay dark even under `flavor = "latte"`. Pin them to the flavor with
 two follow the flavor anyway and pinning them is only needed while macOS stays
 unmanaged.
 
-The three hand-made [wallpapers](/reference/options/#hausthemewallpaper) do
-keep their dark palette — their pixels are already coloured. `wallpaper = "bold"`
-is generated and follows your accent.
+The generated [`minimal` desktop](#the-desktop) follows the flavor in every
+part — field, mark, bloom and debug band. The three hand-made looks do not:
+their pixels are already coloured dark. `style = "bold"` is generated but
+follows your accent rather than the flavor.
 </Aside>
+
+## The desktop
+
+The wallpaper is generated on your machine, not shipped as a picture:
+
+```nix
+haus.wallpaper.style = "minimal";
+```
+
+`minimal` is one flat colour out of your palette, the haus mark **⌂** at the
+centre, and a very broad bloom in your accent behind it. That is the whole
+design — there is no photograph to clash with a terminal in front of it, and
+nothing that stops reading as a background once you have windows open.
+
+Every part of it is a knob, and the defaults are the look above:
+
+| | |
+|---|---|
+| `haus.wallpaper.depth` | how far in from the palette's outermost tone the field sits, `0`–`5`. `0` is our blackest black in a dark rice and our whitest white in a light one; `2` (the default) sits one rung inside that. In a dark rice that lands on exactly the colour your terminal draws on; in a light one the canvas is already the lightest tone there is, so the default is a step below it — which is the better end of the trade for a whole screen of near-white. `depth = 0` matches the terminal exactly in light mode. `haus.wallpaper.background` overrides it with a literal hex. |
+| `haus.wallpaper.mark.*` | `enable`, `size`, `weight`, `opacity`, `rise` (how far above centre it sits), and `color` — `muted`, `ink`, `accent`, or `spectrum`, which is the six-product conic sweep the ⌂ wears when you hover it on [hausfold.co](https://hausfold.co), held still. |
+| `haus.wallpaper.glow.*` | the bloom: `color` (your accent unless you say otherwise), `strength` as a percentage, and `spread` as a multiple of the long edge. |
+| `haus.wallpaper.grain` | film grain, and the reason the bloom doesn't band — see below. |
+| `haus.wallpaper.size` | the pixel size to render at. |
+
+### Why it doesn't band
+
+A soft gradient across two thousand pixels spends about ten of the 256 levels
+an 8-bit PNG has, so it quantises into visible contour rings — the stepped look
+a hand-made wallpaper picks up on the way out of an image editor. The rice
+composes the field at **16 bits**, adds a couple of levels of grain, and only
+then reduces to 8 — so the noise dithers the reduction instead of the reduction
+drawing rings. `grain = 0` turns it off, and you should only do that with
+`glow.enable = false` as well.
+
+Measured at the defaults, since it's easier to state than to argue about —
+distinct colours in the finished PNG, and what it costs, noise being the one
+thing that doesn't compress:
+
+| `grain` | colours | size | |
+|---|---|---|---|
+| `0` | 127 | 0.1 MB | rings, visibly |
+| `0.004` | 182 | 1.2 MB | the floor worth using |
+| `0.01` | 291 | 2.5 MB | the default |
+| `0.02` | 588 | 4.2 MB | |
+
+The other half is `size`. Set it to your display's **native pixel count**
+(`system_profiler SPDisplaysDataType` prints it) and macOS has nothing left to
+rescale; anything else is resampled, and resampling undoes the dither. macOS
+also fills the screen and crops the overflow, so a picture of a different shape
+than your display loses its top and bottom.
+
+Preview any of this without rebuilding a Mac:
+
+```sh
+nix build github:hausfold/hausfold#wallpaper && open result
+```
+
+### The lock-edge band
+
+Off by default:
+
+```nix
+haus.wallpaper.debug.enable = true;
+```
+
+It prints which revision of each family repo this machine was built from —
+`haus`, `nebelung`, `pounce`, `perch`, `holt` by default, and
+`haus.wallpaper.debug.inputs` picks the list. Small, dim, wide-tracked, bottom
+left.
+
+The placement is the point: it sits at exactly the inset a tiled window's
+bottom-left corner lands on, read from the same gap numbers
+[prowl](/guides/window-management/) writes into its config. So it is completely hidden the
+moment anything is on screen, and only ever surfaces on a bare desktop.
+`haus.wallpaper.debug.inset` overrides that in pixels.
 
 ## Obsidian vaults
 
