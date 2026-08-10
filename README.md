@@ -42,7 +42,8 @@ ejected from the incubator 2026-08-09; deliberately *not* a family repo — no
 lock edge, so `bench try`/`ship`/`status` never walk it, though `bench
 clone`/`pull` plant it and the docs sweep reads it), and ⌂
 [**hausfold.co**](https://github.com/hausfold/hausfold.co) — the site for
-the platform that all of this is becoming (decided 2026-08-08; see
+**haus**, the nix-darwin layer all of this is becoming, sold and shipped under
+the name hausfold (decided 2026-08-08, named 2026-08-10; see
 [`notes/hausfold-rename.md`](notes/hausfold-rename.md)). Its checkout is
 `hausfold.co/`, **with the `.co`** — plain `hausfold/` is the rice, so site work
 sent to the short name edits the desktop and nothing errors. hausfold.co used to

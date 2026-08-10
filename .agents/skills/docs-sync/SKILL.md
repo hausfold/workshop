@@ -100,7 +100,7 @@ A docs sweep is exactly where a well-meant find-replace does damage, so before y
 | you see | it is | you |
 |---|---|---|
 | `nebelhaus.<option>` | the retired option namespace | **fix** → `haus.<option>` |
-| **nebelhaus** bare, about the desktop | the rice — one rice on the hausfold platform | **leave**, forever |
+| **nebelhaus** bare, about the desktop | the rice — one rice on **haus**, the nix-darwin layer (`hausfold` is the org/maker/seller; decision 8, 2026-08-10) | **leave**, forever |
 | `github.com/nebelhaus/*` | the dead org | **fix** → `hausfold/*` (the archived Messages client stays) |
 | `--override-input nebelhaus/…`, `nebelhaus.url` | a flake **input name** | **leave** — renaming it silently builds the pinned rice |
 | `nebelhaus.com`, `com.nebelhaus.*` | the domain / bundle ids | **leave** unless the section is about the migration |
