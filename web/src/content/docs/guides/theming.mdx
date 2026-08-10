@@ -201,8 +201,8 @@ Every part of it is a knob, and the defaults are the look above:
 
 | | |
 |---|---|
-| `haus.wallpaper.depth` | how far in from the palette's outermost tone the field sits, `0`–`5`. `0` is our blackest black in a dark rice and our whitest white in a light one; `2` (the default) sits one rung inside that. In a dark rice that lands on exactly the colour your terminal draws on; in a light one the canvas is already the lightest tone there is, so the default is a step below it — which is the better end of the trade for a whole screen of near-white. `depth = 0` matches the terminal exactly in light mode. `haus.wallpaper.background` overrides it with a literal hex. |
-| `haus.wallpaper.mark.*` | `enable`, `size`, `weight`, `opacity`, `rise` (how far above centre it sits), and `color` — `muted`, `ink`, `accent`, or `spectrum`, which is the six-product conic sweep the ⌂ wears when you hover it on [hausfold.co](https://hausfold.co), held still. |
+| `haus.wallpaper.depth` | how far in from the palette's outermost tone the field sits, `0`–`5`. `0` is our blackest black in a dark rice and our whitest white in a light one; `1` (the default) sits exactly one rung inside that in either polarity — `#191919` dark, `#e9e9e9` light. That is one step below the colour your terminal draws on in a dark rice, which is what keeps a whole screen of it reading as a wall rather than as a very large terminal window; in a light rice the canvas is already the lightest tone there is, so a step below it is the better end of the trade for a whole screen of near-white. `depth = 2` matches the terminal exactly in dark mode, `depth = 0` in light. `haus.wallpaper.background` overrides it with a literal hex. |
+| `haus.wallpaper.mark.*` | `enable`, `size`, `weight`, `opacity`, `rise` (how far above centre it sits), and `color` — `muted`, `ink`, `accent`, or `spectrum`, which is the six-product conic sweep the ⌂ wears when you hover it on [hausfold.co](https://hausfold.co), held still. The shape is the real **U+2302**, traced off the outline the site renders, so the roof ends on the walls rather than overhanging them — the weight is the one thing that isn't the glyph's, at about half of it, since a stem that reads right in a line of type is heavy drawn a foot wide. |
 | `haus.wallpaper.glow.*` | the bloom: `color` (your accent unless you say otherwise), `strength` as a percentage, and `spread` as a multiple of the long edge. |
 | `haus.wallpaper.grain` | film grain, and the reason the bloom doesn't band — see below. |
 | `haus.wallpaper.size` | the pixel size to render at. |
@@ -223,10 +223,10 @@ thing that doesn't compress:
 
 | `grain` | colours | size | |
 |---|---|---|---|
-| `0` | 127 | 0.1 MB | rings, visibly |
-| `0.004` | 182 | 1.2 MB | the floor worth using |
-| `0.01` | 291 | 2.5 MB | the default |
-| `0.02` | 588 | 4.2 MB | |
+| `0` | 137 | 0.1 MB | rings, visibly |
+| `0.004` | 193 | 1.1 MB | the floor worth using |
+| `0.01` | 329 | 2.5 MB | the default |
+| `0.02` | 625 | 4.2 MB | |
 
 The other half is `size`. Set it to your display's **native pixel count**
 (`system_profiler SPDisplaysDataType` prints it) and macOS has nothing left to
