@@ -102,6 +102,16 @@ Two options tune it, both off by default:
 and then snapped to the nearest colour in your palette, so an album cover can
 never put a colour on the bar that isn't part of your theme.
 
+A third sets how much room the title gets before it starts sweeping:
+
+```nix
+haus.sill.media.width = 16;   # characters, not pixels. 25 by default.
+```
+
+It's a **maximum**, not a fixed size — a short title still draws a short pill,
+so widening it costs nothing until something long plays. `collapse` is the
+blunter version of the same trade.
+
 ## The weather popover
 
 Click the weather pill and a popover blooms open with the full picture:
@@ -132,6 +142,12 @@ A pill set `false` is never created — its update script doesn't even run.
 - **`memory`** — memory-pressure percentage pill.
 - **`volume`** — output volume / mute state.
 - **`calendar`** — your next timed event, with a click-popup of the next five.
+  It reads `in 12m · Design review`: countdown first, because a label is clipped
+  from the *end* and the number is the part you can never afford to lose. A name
+  too long for the pill sweeps past rather than being cut off with an ellipsis
+  — it scrolls for a few seconds when the next event changes, then settles, and
+  hovering brings the whole name back. `haus.sill.calendar.width` sets how much
+  room it gets, in characters — 25 by default, same as the media pill.
   Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for
   Calendar access on first run.
 - **`caffeinate`** — a coffee pill for preventing idle system sleep. Click it
