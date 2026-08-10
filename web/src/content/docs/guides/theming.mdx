@@ -201,7 +201,7 @@ Every part of it is a knob, and the defaults are the look above:
 
 | | |
 |---|---|
-| `haus.wallpaper.depth` | how far in from the palette's outermost tone the field sits, `0`–`5`. `0` is our blackest black in a dark rice and our whitest white in a light one; `2` (the default) is the same canvas the terminal draws on. `haus.wallpaper.background` overrides it with a literal hex. |
+| `haus.wallpaper.depth` | how far in from the palette's outermost tone the field sits, `0`–`5`. `0` is our blackest black in a dark rice and our whitest white in a light one; `2` (the default) sits one rung inside that. In a dark rice that lands on exactly the colour your terminal draws on; in a light one the canvas is already the lightest tone there is, so the default is a step below it — which is the better end of the trade for a whole screen of near-white. `depth = 0` matches the terminal exactly in light mode. `haus.wallpaper.background` overrides it with a literal hex. |
 | `haus.wallpaper.mark.*` | `enable`, `size`, `weight`, `opacity`, `rise` (how far above centre it sits), and `color` — `muted`, `ink`, `accent`, or `spectrum`, which is the six-product conic sweep the ⌂ wears when you hover it on [hausfold.co](https://hausfold.co), held still. |
 | `haus.wallpaper.glow.*` | the bloom: `color` (your accent unless you say otherwise), `strength` as a percentage, and `spread` as a multiple of the long edge. |
 | `haus.wallpaper.grain` | film grain, and the reason the bloom doesn't band — see below. |
@@ -216,6 +216,17 @@ composes the field at **16 bits**, adds a couple of levels of grain, and only
 then reduces to 8 — so the noise dithers the reduction instead of the reduction
 drawing rings. `grain = 0` turns it off, and you should only do that with
 `glow.enable = false` as well.
+
+Measured at the defaults, since it's easier to state than to argue about —
+distinct colours in the finished PNG, and what it costs, noise being the one
+thing that doesn't compress:
+
+| `grain` | colours | size | |
+|---|---|---|---|
+| `0` | 127 | 0.1 MB | rings, visibly |
+| `0.004` | 182 | 1.2 MB | the floor worth using |
+| `0.01` | 291 | 2.5 MB | the default |
+| `0.02` | 588 | 4.2 MB | |
 
 The other half is `size`. Set it to your display's **native pixel count**
 (`system_profiler SPDisplaysDataType` prints it) and macOS has nothing left to
