@@ -219,10 +219,14 @@ remove.
 Consequences, revised:
 
 - ~~**Product support stays `support@nebelhaus.com`.**~~ **Reversed** — people
-  now buy a *hausfold* product, so support moves to `support@hausfold.co`. The
+  now buy a *hausfold* product, so support moves to the hausfold.co domain. The
   original reasoning ("routing them to a name they've never seen is friction")
   is exactly why it moves: hausfold is the name they *will* have seen.
   [`perch-monetization.md` Phase 3](./perch-monetization.md#3-phases) updated.
+  **The address is `hi@hausfold.co`** — settled 2026-08-09, see
+  [`hausfold-rename.md`](./hausfold-rename.md) §5.4. This bullet said
+  `support@hausfold.co` for a day; that mailbox was never created and isn't
+  going to be.
 - ~~**Nothing in the family migrates to the hausfold org.** Not the gallery, not
   holt, not a repo, ever.~~ **Reversed — everything migrates**, all ten repos.
   See [`hausfold-rename.md`](./hausfold-rename.md) §3 for the order and the

@@ -70,10 +70,11 @@ the Apple identity migration** are done. `bench try` builds the current local
 family, and the private consumer now uses canonical `haus.*` with no
 obsolete-option traces (`nix-config` `452b9b8`).
 
-**§5.2 is the only substantial 🤖 work left** — the Astro/docs/Worker port into
-`hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com` 301s.
-Besides it there is exactly one small 🤖 job, §4.2's `com.local.pounce`
-association removal (below); everything else outstanding is 👤.
+**§5.2 is the only substantial 🤖 work left** — the docs/Worker consolidation
+into `hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com`
+301s. 🚨 **It is a rebuild on Fumadocs, not a port of the Astro/Starlight
+tree** (👤's call, 2026-08-09 — see §5.2's decision box before reading anything
+below it as a move). Everything else outstanding is 👤.
 
 What changed since the morning handoff:
 
@@ -87,12 +88,15 @@ What changed since the morning handoff:
   *pounce* plist, `com.hausfold.pounce.plist` (it holds eleven plists in total —
   don't read that `ls` as a clean sheet). The old `org.nixos.pounce` label is
   gone, which is §4.2's riskiest step confirmed rather than assumed.
-  ⚠️ **The closeout's second half did not run**: `com.local.pounce` is still in
-  the rice's `AssociatedBundleIdentifiers`. See §4.2's open box.
-- **§5.4 is effectively done** — no `support@nebelhaus.com` survives anywhere in
-  the family except as struck-through history. But the address that actually
-  shipped is `hi@hausfold.co`, not `support@hausfold.co`; §5.4 now carries that
-  discrepancy as an open 👤 call.
+  ✅ **The closeout's second half has now run too** — `com.local.pounce` is out
+  of the rice's `AssociatedBundleIdentifiers` (hausfold#282). One 👤 check rides
+  on activating it; see §4.2.
+- **§5.4 is done** — no `support@nebelhaus.com` survives anywhere in the family
+  except as struck-through history, **and the address is settled: `hi@hausfold.co`**,
+  not `support@hausfold.co`. The sweep exposed that both were in play; `hi@` won
+  because it is the one that exists and is already on `/terms`. Three perch
+  pre-flight boxes that were *create a mailbox* tasks are now *decide an SLA*
+  tasks, and an SLA doesn't gate a receipt.
 - **§9's `options-modules.nix` duplication is closed** — `modules/default.nix`
   imports the list now.
 
@@ -1685,15 +1689,25 @@ hausfold#275 to pin that main commit **and remove `com.local.pounce` from the
 association**". The pin happened — the rice locks pounce at `e3c2305`, the
 release commit, on main. The removal did not:
 
-- [ ] 🤖 **Drop `com.local.pounce` from `AssociatedBundleIdentifiers`** —
-  `hausfold/modules/pounce/default.nix:788-791`, and it is live in the installed
-  `~/Library/LaunchAgents/com.hausfold.pounce.plist`. The comment beside it says
-  "Remove `com.local.pounce` with that lock ripple", and **that ripple has
-  already happened**, so the condition it waits on is met and the entry is now
-  pure residue. This is the association that decides which app macOS attributes
-  a permission prompt to — leaving a stale id in it is exactly the class of
-  thing that put the maintainer's legal name back in a prompt once before.
-  Small, rice-repo, one PR.
+- [x] 🤖 **Drop `com.local.pounce` from `AssociatedBundleIdentifiers`** —
+  `hausfold/modules/pounce/default.nix`, live in the installed
+  `~/Library/LaunchAgents/com.hausfold.pounce.plist`. The comment beside it said
+  "Remove `com.local.pounce` with that lock ripple", and **that ripple had
+  already happened**, so the entry was residue. This is the association that
+  decides which app macOS attributes the agent to — leaving a stale id in it is
+  exactly the class of thing that put the maintainer's legal name in a Login
+  Items row once before. **Done: hausfold#282.** The evidence chain is in that
+  PR: the pin is `e3c2305`, whose `pkgs/pounce/Info.plist` declares
+  `com.hausfold.pounce` and whose `build.sh` rewrites only the version keys, so
+  the unsigned path and the signing-failure fallback both resolve to the id
+  that stays. `bench try` green; the `example` host (the unsigned one) evals to
+  a one-element array.
+  - [ ] 👤 **After activating it, re-check the attribution** — System Settings ▸
+    Login Items & Extensions still reads "Pounce", not a person's name, and on
+    Tahoe the "Allow in the Background" toggle didn't flip off. ⚠️ Activation
+    does **not** bounce the daemon here (`kickstartPounce` fires on a
+    `.signed-from` lag and `signedFrom` didn't move), so "the daemon didn't
+    restart" is not evidence the change failed to apply.
 
 ⚠️ And what the launchd check does **not** cover is §4.4: a loaded job proves the
 label moved, not that the TCC grants came back. Bundle-ID-keyed grants are
@@ -1923,6 +1937,264 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
+#### 🚨 Decided 2026-08-09 — the docs are rebuilt on **Fumadocs**, not ported from Starlight
+
+👤's call, and it changes what §5.2 *is*. Everything below this box was written
+as a **port**: move `workshop/web`'s Astro + Starlight tree into the site repo,
+keep the build, redesign only the landing pages. That is no longer the job.
+**The docs get rebuilt on [Fumadocs](https://fumadocs.dev); Starlight does not
+come across.** Read every "port"/"move" below as "re-author into Fumadocs,
+carrying the content".
+
+What that changes, and what it doesn't:
+
+- **The content is still the salvage list.** MDX bodies, the copy, the
+  frontmatter meaning — all of it carries over. Fumadocs eats MDX, so this is a
+  re-shell, not a rewrite of the prose. Nothing in the table below stops being
+  load-bearing.
+- **The stack changes underneath** — Starlight is Astro; **Fumadocs is React on
+  Next.js** — but ✅ **the deployment shape does not.** That fork (static export
+  vs the OpenNext adapter, and with it whether `worker.js` survives or becomes
+  route handlers) was the part with teeth, and it is **settled: static export,
+  `worker.js` unchanged.** See the decision box below.
+- ⚠️ **The Starlight-shaped things do not have Fumadocs equivalents by default,
+  and each is a decision, not a lookup:** the sidebar/tree config, the
+  `editLink` baseUrl, and the two generated routes (`llms.txt.ts`,
+  `llms-full.txt.ts`) which are Astro endpoints and become Next route handlers.
+- ✅ **§5.1's Nix-removal work is unaffected and still paid for.** `site-data`
+  publishes three JSON files and both scripts read a directory; that is
+  framework-agnostic. Fumadocs consuming `docs/site-data/` is the same read.
+- ⚠️ **Slug preservation gets harder, not easier.** §5.2's "preserve slugs"
+  bullet assumed one docs framework's routing carried to itself. Across
+  frameworks the redirect list has to be *derived* from the old build's actual
+  output, not assumed — enumerate the live `nebelhaus.com` URLs before the old
+  site goes away, or the 301 map is guesswork.
+
+#### ✅ Decided 2026-08-09 — **static export**, and `worker.js` survives unchanged
+
+👤's call, taken with the Fumadocs one. Next builds with `output: 'export'`; the
+**OpenNext adapter is not used**. The docs are static, and this keeps the
+install one-liner — the thing printed in every README and every doc — running on
+code that is already proven rather than on a freshly-ported runtime.
+
+**The shape this lands in already exists in this repo, and that's the argument.**
+`web/wrangler.toml` is *today* a Worker with `main = "worker.js"` **and** an
+`[assets]` binding over a static build, on the apex route:
+
+> *"Static assets short-circuit first; only `/init.sh` (and any non-asset path)
+> reaches `worker.js`."*
+
+So the target config is that file's shape with hausfold.co's routes. Concretely,
+`hausfold.co/wrangler.toml` gains a `main` and `binding = "ASSETS"`, and its
+`directory` moves from `./public` to Next's export output:
+
+- ✅ **Keep `custom_domain = true`** on both routes. Its comment explains why —
+  the zone has no DNS records and a plain `pattern` route needs a proxied record
+  to already exist. Gaining a `main` does not change that.
+- ✅ **Keep `not_found_handling = "404-page"`.** It survived the last move
+  intact; Next's export emits a root `404.html` from `app/not-found`, so the key
+  keeps working with a Fumadocs-rendered page behind it.
+- ✅ **`html_handling` stays default (`auto-trailing-slash`)** — that's what maps
+  `/desktops` to `desktops/index.html`. Next's export produces exactly that
+  directory-with-`index.html` layout **when `trailingSlash: true`**. ⚠️ **Pin
+  that setting deliberately.** Leave it off and every docs URL changes shape,
+  which quietly doubles §5.2's 301 map for no reason.
+- The four dynamic routes (`/init.sh` → `/<rice>.sh`, `/download/<app>`,
+  `/api/release/<app>`) stay in `worker.js`, and `web/test/*.js`'s four suites
+  come across with it and keep passing. That is the whole point of this choice.
+
+#### ✅ Search: spiked and measured 2026-08-09 — it works, and the index is byte-deterministic
+
+The gate this section used to carry ("prove search works on a throwaway export
+**before** porting content, because a docs site can build, deploy and look
+complete while search silently does nothing") **has been run.** Result: static
+search works, and the emitted index is reproducible. Recorded here so the port
+doesn't re-spike it.
+
+**How it's wired** — and the scaffolder does all of it, which is the headline:
+
+```sh
+npx create-fumadocs-app@latest <name> \
+  --template "+next+fuma-docs-mdx+static" --search orama \
+  --pm npm --src --linter eslint --og-image next-og --install
+```
+
+There is a **first-class static template**. It emits `next.config.mjs` with
+`output: 'export'`, `src/app/api/search/route.ts` holding
+`export const { staticGET: GET } = createFromSource(source, { language: 'english' })`
+plus `export const revalidate = false`, and `src/components/search.tsx` using
+`staticClient()` from `fumadocs-core/search/client/orama-static`. Nothing had to
+be hand-wired. ⚠️ **Pass every flag** — it still prompts interactively for any
+you omit, which hangs an unattended run.
+
+**Proof it answers queries**, not just that a file exists (the failure mode is
+an index that loads and returns nothing). Loading `out/api/search` the way
+`staticClient` does — `create({schema:{_:'string'}})` then `load()` — and
+querying it:
+
+| term | hits |
+|---|---|
+| `fumadocs` | 2 — `/docs#what-is-next`, `/docs/test#cards` |
+| `writing` | 1 — `/docs` |
+| `document` | 2 |
+| `zzzznotathing` | **0** (so it isn't matching everything) |
+
+Real URLs with heading anchors, and a negative control.
+
+**Determinism — the actual question, and the answer is yes for the index.**
+Built three times: twice in the same directory, once from a copy at a
+**different absolute path** (a build that embeds its own cwd looks reproducible
+locally and breaks the day CI checks out elsewhere). All three:
+
+```
+0446fb413a3b5f5d5005c3d057f9385cd983c1bf8870b92be45d81844a1ef841  b1/api/search
+0446fb413a3b5f5d5005c3d057f9385cd983c1bf8870b92be45d81844a1ef841  b2/api/search
+0446fb413a3b5f5d5005c3d057f9385cd983c1bf8870b92be45d81844a1ef841  b3/api/search
+```
+
+**Why** it's stable, so the property is understood rather than observed: the
+file is a fully serialized Orama database (`type: "advanced"`) whose document
+ids are **derived from page slugs** — `/docs`, `/docs-0`, `/docs-1`, … — not
+generated. Grepping it for `created|updated|timestamp|date|buildId|generatedAt`
+returns nothing. No clock, no randomness, no absolute paths.
+
+🚨 **But the rest of the export is NOT deterministic by default, and that is a
+separate finding.** Next mints a **random `buildId` per build** and embeds it in
+`_next/static/<buildId>/`, in every RSC `.txt` payload and in `404.html` — so
+two builds of identical source differ in dozens of files, *including two runs in
+the same directory a minute apart*. Measured, then fixed and re-measured:
+
+```js
+// next.config.mjs
+generateBuildId: () => 'hausfold',   // or the release tag / commit sha
+```
+
+With that pinned, `diff -rq` across two builds is **empty — the whole export is
+byte-identical**, and the index hash is unchanged by the pin. **Set it during
+the port**, not after: without it "did this deploy change anything?" is
+unanswerable, and a diffable deploy is most of the value of a static site.
+
+⚠️ **This is a property of these versions, so it needs a check, not a memory.**
+Measured on `fumadocs-core` 16.14.3, `fumadocs-mdx` 15.2.3,
+`fumadocs-ui`(`@fumadocs/base-ui`) 16.14.3, `next` 16.3.0. **Add a CI step that
+builds twice and diffs `out/`** — it costs one extra build and it is the only
+thing that would catch a future Fumadocs or Next release quietly introducing a
+timestamp. Without it, this box's ✅ decays silently into a claim.
+
+✅ **Bonus, and it's on the salvage list:** the same template already ships
+`llms.txt` and `llms-full.txt` as static routes, plus per-page
+`llms.mdx/docs/*/content.md` and OG images. §5.2's table lists
+`web/src/pages/llms.txt.ts` and `llms-full.txt.ts` as must-survive — they don't
+need re-authoring, they come with the template.
+
+##### ✅ And it indexes the **live `haus.*` option surface**, because that page is part of the corpus
+
+The determinism that matters day to day isn't build reproducibility — it's
+*"does search find an option I added last week?"* It does, and the chain is
+already built (§5.1), unchanged by the move to Fumadocs:
+
+```
+rice module system  →  nix build .#site-data  →  hausfold/docs/site-data/options.json
+     (committed in the rice, pinned by its own `site-data-current` flake check)
+         ↓  web/scripts/gen-options.mjs
+     src/content/docs/reference/options.md   (generated, COMMITTED)
+         ↓  the docs build
+     a normal page  →  indexed like any other  →  searchable
+```
+
+The options reference is a **generated file that is committed**, not rendered at
+build time — `gen-options.mjs` runs in the drift workflow (Monday cron + a PR
+check), not in `npm run build`. So a deploy indexes whatever snapshot is
+committed. That is §5.1's already-recorded residue ("the site checks a snapshot,
+not the source"), and it is the *only* gap between "live options" and "what
+search returns". Nothing about Fumadocs changes it: same script, same input,
+output lands in the content dir, Fumadocs indexes it.
+
+✅ **Confirmed by the measurement below rather than assumed** — `options.md` was
+in the 29-page corpus that produced the 3,004-section index, so the numbers
+already cover the whole option surface.
+
+⚠️ **And it's the reason the index is big.** `reference/options.md` is
+**151 KB of the corpus's 429 KB (35%)** and carries **226 of its 477 headings
+(47%)**. So the search index's size is, roughly, *the option reference*. If the
+457 KB brotli figure ever needs to come down, that page — not the prose docs —
+is the lever, and trimming what's indexed per option beats changing search
+engines.
+
+##### 🚨 Then measured against the **real** corpus, and the index is big
+
+A 2-page scaffold proves nothing about size. The 29 real pages from
+`web/src/content/docs` (prose only — see the caveat below) were built through
+the same pipeline:
+
+| | |
+|---|---|
+| source prose indexed | 381 KB across 29 pages |
+| indexed sections | **3,004** |
+| `out/api/search` raw | **4,185,685 bytes (4.2 MB)** |
+| gzip -9 | 798 KB |
+| brotli -q 11 | **457 KB** |
+| determinism | ✅ still byte-identical across two builds (`8af65f22…`) |
+
+**An 11× blowup over the prose**, and ~450 KB even brotli'd. Determinism holds
+at real scale, which was the question — but the size is the thing this spike
+found that nobody had asked about, and it is exactly what Fumadocs' own docs
+warn about ("for large docs sites, it can be expensive").
+
+Three things make that liveable, in order of importance:
+
+1. ✅ **It is fetched lazily, on the first query — not on page load.**
+   `staticClient`'s `getDBCached` is called inside `search(query)`
+   (`fumadocs-core/dist/search/client/orama-static.js`), and cached per URL
+   afterwards. So the cost lands only on readers who actually open search, once
+   per session. This is the fact that keeps 4.2 MB from being a page-weight
+   regression.
+2. 🚨 **But verify it's actually compressed, because the filename fights you.**
+   Next writes the file as `out/api/search` — **no extension**. Cloudflare
+   infers content type from the extension and only compresses compressible
+   types, so an extensionless file can be served as
+   `application/octet-stream` and shipped **uncompressed — 4.2 MB, not 457 KB**,
+   with nothing failing or warning. **Check `content-encoding` and
+   `content-type` on the deployed URL** (`curl -sI -H 'Accept-Encoding: br'`),
+   and if it's wrong, set it in `public/_headers` — which this site already
+   ships and already knows how to use.
+3. If it still reads as too much, the lever is *what gets indexed* (trim page
+   content in `createFromSource`, or split per section) — not switching search
+   engines. Don't reach for it before measuring point 2, which is a
+   one-line-of-config difference between 457 KB and 4.2 MB.
+
+⚠️ **Caveat on the measurement, stated so nobody over-trusts it.** The Starlight
+MDX does **not** compile under Fumadocs unmodified, so the corpus was stripped
+to prose (JSX components, imports, `:::` asides and images removed) to get it
+through the build. Real pages will index *somewhat* more (component text) —
+call 4.2 MB a floor, not a ceiling. Two concrete incompatibilities found while
+doing it, both worth knowing before the port:
+
+- **Markdown images become build-time module imports.** `![](/media/ripple.webp)`
+  compiles to `import __img0 from "../../public/media/ripple.webp"`, resolved
+  **relative to the content file**. In Starlight that string is just a public
+  URL that's never resolved. So a missing asset is a **hard build failure**
+  under Fumadocs where it was a broken `<img>` under Starlight — better, but it
+  will bite on day one, and the corpus has exactly one such image
+  (`/media/ripple.webp?v=2`, used in two pages).
+- Every Starlight component (`<Card>`, `<Tabs>`, `:::note`) needs a Fumadocs
+  equivalent or removal; MDX that merely *looks* portable fails at `acorn`
+  parse time, not with a helpful message.
+
+⚠️ Other `output: 'export'` constraints, so they're not rediscovered one by one:
+no server components doing runtime work, no middleware, no ISR/SSR, and
+`next/image` needs `images.unoptimized`. None of these are wanted here — the
+site is a docs tree and some landing pages — but each fails at build time in a
+way that reads as a config error rather than as this decision.
+
+Still not decided (don't settle it by accident while building): whether the
+landing pages become Next pages too, or stay the hand-written HTML they are
+today, served from the same assets directory beside the exported docs.
+
+**The three things this decision hands the port as concrete work**, all proven
+below rather than guessed: pin `generateBuildId`, verify the search index is
+served compressed, and add a build-twice-and-diff check to CI.
+
 The pages get redesigned. **These are not pages and must survive verbatim:**
 
 | Salvage | Why it's load-bearing |
@@ -1994,12 +2266,13 @@ fix later.
 - ⚠️ **Cloudflare edge-caches 404s.** Cache-bust when verifying, or you'll chase
   a redirect that already works.
 
-### 5.4 🟨 Support address — the text sweep is done, the address isn't decided
+### 5.4 ✅ Support address — swept, and settled on `hi@hausfold.co`
 
 ~~`support@nebelhaus.com` → `support@hausfold.co` in perch's terms, the site
 footer, `perch-monetization.md`, and the Paddle application notes.~~ *That was
-the instruction; the sweep found the target address itself is unsettled, so
-this line no longer prescribes `support@` — read the open box below instead.*
+the instruction, and its target address was wrong — the sweep found `support@`
+was never created and `hi@hausfold.co` was already doing the job. See the
+decision below; the destination changed, the sweep itself still happened.*
 
 ✅ **Swept, verified 2026-08-09.** `rg 'support@nebelhaus'` across the whole
 workshop and every family checkout returns **five hits, four of them history**:
@@ -2010,25 +2283,50 @@ and must stay — deleting them is how a settled decision gets re-litigated. The
 fifth is the struck-through instruction line directly above, which is this
 section's own task text, not history. **No live occurrence is left to change.**
 
-⚠️ **But two addresses are now in play, and nothing reconciles them.** The
-seller surface that actually shipped uses **`hi@hausfold.co`**
-(`hausfold.co/public/terms/index.html:187,194` — the contact of record on a
-*legal* page), while perch gates on **`support@hausfold.co`** existing in three
-places (`perch/docs/going-paid.md:60`, `perch/docs/app-store.md:169`,
-`perch-monetization.md:153`). `going-paid.md:62` already notes the split, so it
-isn't unrecorded — but nothing *resolves* it, and all three are unchecked boxes,
-so neither mailbox is proven to exist yet. This is still free to settle; it
-stops being free the moment a receipt goes out carrying one of them.
+#### ✅ Decided 2026-08-09 — the address is `hi@hausfold.co`
 
-- [ ] 👤 **Decide: one address or two.** `hi@` reads right on a small seller's
-  terms page; `support@` is what a buyer looks for and what a checklist can
-  assert. An alias of one onto the other costs nothing and is the obvious
-  answer — but *which one is canonical* determines what gets printed on
-  receipts, and that's the part you can't quietly change later.
-- [ ] 👤 Create the mailbox/alias, then tick `going-paid.md:60`,
-  `app-store.md:169` and `perch-monetization.md:153` — those boxes are the real
-  gate, not this section.
-- [ ] 👤 Paddle application notes (in `hausfold/ops`, not here).
+The sweep exposed that two addresses were in play and nothing reconciled them.
+The seller surface that actually shipped used **`hi@hausfold.co`**
+(`hausfold.co/public/terms/index.html:187,194` — the contact of record on a
+*legal* page), while perch gated on **`support@hausfold.co`** existing in three
+places (perch's `docs/going-paid.md` and `docs/app-store.md`, and
+`perch-monetization.md`'s Phase 3 — line numbers deliberately omitted, they
+move). `going-paid.md` recorded the split; nothing resolved it.
+
+Measured while deciding: `hi@hausfold.co` is on **all nine** of the site's HTML
+pages *and* in the JSON-LD organization record, while `support@hausfold.co`
+appears in **zero** shipped surfaces across every family repo — only in those
+three checkboxes.
+
+**`hi@` wins, and the deciding fact is that it is the one that exists.**
+`support@hausfold.co` appeared in exactly three unchecked checkboxes and on zero
+pages; `hi@` is live, routes today, and is already printed on `/terms` and
+`/refunds` — the two pages a buyer is pointed at when something goes wrong. So
+the choice was never "which address is better", it was "keep the working one, or
+create a second one and then find-and-replace the legal pages onto it before the
+first receipt". The second is strictly more work for a distinction no buyer of a
+one-person product notices.
+
+What that buys, concretely: **three pre-flight boxes stop being blockers.** They
+were written as *create a mailbox* tasks; they become *decide an SLA* tasks, and
+an SLA doesn't gate a receipt.
+
+- ⚠️ **The one real cost:** `support@` is what a buyer types when guessing. If
+  that ever bites, the fix is an **alias** `support@ → hi@`, which is additive
+  and changes nothing printed. **Do not** make `support@` canonical later —
+  aliasing in is free, but moving the *printed* address after receipts exist
+  means old receipts point at a mailbox you then have to keep forever.
+- ⚠️ **Don't "fix" `hi@` to `support@` on the site.** It reads informal and a
+  later session will want to. It's deliberate; this is the record.
+
+- [x] 🤖 `perch/docs/going-paid.md`, `perch/docs/app-store.md`,
+  `perch-monetization.md`, `go-to-market.md` — all four now say `hi@` and carry
+  the reason, so none of them re-opens this.
+- [ ] 👤 Decide the SLA you'll honour on `hi@` before the first receipt. That's
+  the part of the old checkbox that survives.
+- [ ] 👤 Paddle application notes (in `hausfold/ops`, not here) — make sure the
+  merchant-of-record contact matches `hi@`, since Paddle prints it on the
+  receipt and that copy is outside this repo's reach.
 
 ### §5's gate
 
