@@ -157,9 +157,11 @@ per-rice installer, and the `nebelhaus.com` 301s. 🚨 **It is a rebuild on
 Fumadocs, not a port of the Astro/Starlight tree** (👤's call, 2026-08-09 — see
 §5.2's decision box before reading anything below it as a move); its stack,
 deployment shape and search are all decided and spiked, so what remains is
-build work, not design work. **Every other open item in this document is 👤** —
-audited 2026-08-10: every unchecked box in the file carries 👤, and no 🤖
-section outside §5.2 is unfinished.
+build work, not design work. **Every other open *step* in this document is 👤**
+— audited 2026-08-10: all six unchecked boxes in the file carry 👤, and no 🤖
+section outside §5.2 is unfinished. (The one exception is not a step: §9's
+carry-over about a `.bak` sentence in `notes/launch-phase-1.md` is untagged and
+belongs to that note, not to this one.)
 
 What changed on 2026-08-10:
 
@@ -2564,8 +2566,9 @@ work left in it** (hausfold#282 closed the last one) — its 👤 TCC feel-test 
 its post-activation attribution re-check are what remain. **§5 is the live
 phase**, and its §5.1 groundwork (site repo public, `site-data` published so the
 site needs no Nix) is already done — what's left is §5.2's rebuild itself, then
-§5.3's deploy. Those two are the only steps in this document an agent can take
-unattended.
+§5.3's deploy. **§5.2 is the only step in this document an agent takes
+unattended; §5.3 is 👤** — DNS records and `npx wrangler deploy` are a
+production change on a live zone, and the section is tagged 👤 for that reason.
 
 ## §9 — Loose ends found while writing this
 
