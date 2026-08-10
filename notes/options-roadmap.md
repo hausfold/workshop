@@ -1992,7 +1992,7 @@ nebelhaus.keys = {
       authored user-facing TEXT needs the same seam.**
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
-### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **eight of nine groups shipped or part-shipped (rice#198, #250, #267); every row is spiked. One row is unbuilt and stays that way on purpose: Windows, which is logout-only. Two half-groups are deferred on the same reason — `lock`'s login half and `security`'s guest/remote-login half**
+### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **nine of ten groups shipped or part-shipped (rice#198, #250, #267, #286); every row is spiked except `animations`, which ships unspiked on purpose (below). One row is unbuilt and stays that way on purpose: Windows, which is logout-only. Two half-groups are deferred on the same reason — `lock`'s login half and `security`'s guest/remote-login half**
 Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
@@ -2006,6 +2006,7 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 | **Locale / input sources** | ✅ **`haus.locale.*` — rice#267.** `language`, `region`, `metric` (writes both unit keys), `temperature`, `hourFormat`, `inputSources` (exhaustive; via the TIS API). Needed restart-map's third verb, `notify:<name>` — this family has no daemon to kill, so a write reaches newly launched processes only until `AppleDatePreferencesChangedNotification` is posted. No `firstWeekday`: that key is stored and ignored |
 | **Power** | ✅ **`haus.power.*` — rice#267.** Sleep timers and Low Power Mode, per power source, as a `pmset` activation step — the `security.firewall` family rather than the `system.defaults` one. Deliberately NOT on nix-darwin's typed `power.sleep.*`: measured on 26.6.1, `systemsetup -setcomputersleep` wrote the AC profile while the machine was on battery, with its stderr discarded upstream (reported) |
 | **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
+| **Animations** | ✅ **`haus.animations` — rice#286.** Five keys across two already-verified domains: the Dock's `autohide-time-modifier` / `expose-animation-duration` / `launchanim` / `mineffect`, plus `NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`. **The one group here that ships an OPINION rather than null leaves** — see the policy note below. Two firsts worth knowing: it's the only group with no per-key spike (there is no oracle for "did the Dock slide faster" — the keys are felt, not measured), and its NSGlobalDomain half is read by each app AT LAUNCH, so running apps keep animating until relaunched. What it deliberately is NOT is `universalaccess reduceMotion`: that flag is what every browser reads as `prefers-reduced-motion`, via the same `NSWorkspace` property `hausax` prints — so the negative claim is checkable (`hausax \| jq .reduceMotion` stays `false`) even though the positive ones aren't |
 | **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
 The first two shipped settled the group's **default policy**, which was the real
@@ -2017,6 +2018,20 @@ would have erased one silently. A curated setting group is a place to make an
 opinion *available*, not to impose one; a preset is where an opinion belongs.
 `lock`/`menuBar`/`security.firewall` (2026-08-07) inherit the same policy without
 re-deriving it.
+
+**`animations` (rice#286) is the one deliberate exception, and it's worth
+recording as an exception rather than quietly widening the rule.** It defaults to
+`"fast"` — it writes on a machine that didn't ask. Two things make that
+defensible where a hot corner wasn't: the domain is one the rice *already* holds
+three opinions in a few lines away (`autohide`, `mru-spaces`, `orientation`), so
+there's no "a rice naming a key it doesn't care about" problem to have; and
+desktop motion is a whole-feel decision, which is the kind a rice exists to have
+already made. The cost is real and is stated in the option itself: the escape
+hatch (`"system"`) stops writing but cannot restore, because a `defaults` write
+is sticky and macOS keeps no memory of the prior value — and unlike a fresh
+install, this one landed on machines already running. **If a second group ever
+wants an opinion by default, it doesn't inherit this — it argues its own case
+here.** Everything else in this section still defaults to null.
 
 They also each turned up one silent failure that reads as "the option doesn't
 work", which is the failure mode this whole section exists to avoid:
