@@ -198,7 +198,16 @@ cat") — same event, same mechanism, zero extra infrastructure.
 > *reasoning* still explains why the split was drawn, and one half of it survived.
 
 **hausfold is the platform, the org, and the seller. nebelhaus is one rice built
-on it.** The nix-darwin ricing platform, the mac apps, the open-source tools and
+on it.**
+
+> **★ Refined 2026-08-10 — the layer is called `haus`.** Decision 8 in
+> [`hausfold-rename.md`](./hausfold-rename.md) splits the two jobs this sentence
+> gives one word: **`haus`** is the nix-darwin layer a user installs and writes
+> options for, **`hausfold`** is the org, the maker and the entity on the
+> receipt. It is not a fourth position — hausfold still *makes* the platform,
+> the org migration and the domain are untouched, and nothing in code moves.
+> Read every "hausfold" below that means the layer as "haus"; the ones that mean
+> the seller, the org or the domain are still right as written. The nix-darwin ricing platform, the mac apps, the open-source tools and
 the entity on the receipt are all hausfold; `haus.*` is the option namespace
 every rice sets, and nebelhaus is the developer-focused rice that ships first.
 

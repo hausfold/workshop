@@ -1,8 +1,10 @@
 # The hausfold rename — a walkthrough
 
-Working doc, written 2026-08-08. **Separates `hausfold` (the platform, the org,
-the seller) from `nebelhaus` (one rice built on it — the developer-focused
-one, and the first).**
+Working doc, written 2026-08-08. **Separates `hausfold` (the org, the maker,
+the seller) from `nebelhaus` (one rice — the developer-focused one, and the
+first).** The nix-darwin layer between them is **`haus`**, which is also its
+CLI and its option namespace — amended 2026-08-10, decision 8 below, and it is
+a naming refinement rather than a fourth position: nothing in code moves.
 
 This is the walkable version: every step is tagged 👤 (you, at a keyboard or a
 web console) or 🤖 (an agent, unattended), in dependency order, with a gate at
@@ -28,6 +30,44 @@ them:
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror. ⚠️ **Amended 2026-08-08 — the archived `trill` does NOT transfer.** It is renamed in place and stays in `nebelhaus`, because the notification compositor claims `hausfold/trill`. See §3.4. |
 | 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
+| 8 | **The layer's public name is `haus`; `hausfold` is the org, the maker and the seller** | added 2026-08-10, in conversation, after looking at the page. **This refines decision 1, it does not reverse it** — see the box below. |
+
+#### Decision 8, spelled out — because it looks like a third flip and isn't
+
+**Say `haus` when you mean the nix-darwin layer. Say `hausfold` when you mean
+who makes it, sells it, and owns the org.** So: *haus* is the platform, *nebelhaus*
+is one rice on it, *pounce/perch/holt/trill* are the apps, and *hausfold* is the
+house all of that ships from and the name on the receipt.
+
+Why this isn't a re-reversal of 2026-08-08. That reversal answered **"is hausfold
+merely a holding company?"** — no: it makes the platform, and the org and the
+repos move to it. All of that **stands**. Decision 8 answers a different and
+narrower question the reversal never asked: **which word do we put in front of a
+user for the layer itself?** And the answer was already sitting in decision 1 —
+`haus` is the verb they type (`haus rebuild`) *and* the namespace they write
+(`haus.*`), so they will call it haus no matter what the site says. Naming it
+hausfold makes the copy fight the muscle memory.
+
+Read decision 1's *brand ≠ namespace* as what it was defending: **the namespace
+must not be named after one desktop.** It isn't. That the namespace and the
+layer's name now coincide is the nixpkgs shape, not a collision — nobody is
+confused that `nix` names the tool and `nix` starts the option paths.
+
+What this costs, and doesn't:
+
+- **Nothing in code.** The namespace was already `haus.*` (§1.1a, landed), the
+  org already `hausfold` (§3.2, transferred), the domain already `hausfold.co`.
+  This is a **copy** decision. It renames no repo, no option, no bundle id.
+- **§3, §4 and §5 are untouched.** Don't re-open the org migration, the bundle
+  ids, or the domain over this.
+- 🚨 **Do NOT sweep `hausfold` → `haus`.** Every existing spelling is still
+  right for what it names. The word only changes where prose meant *the layer*,
+  which today is `hausfold.co`'s `/haus`, its landing index and `/desktops`
+  ([hausfold.co#8](https://github.com/hausfold/hausfold.co/pull/8)). §2's table
+  at the top of this file is still the rule for reading any other hit.
+- 👤 **`PRESENCE.md` in `hausfold/ops` needs the same header amendment**, and is
+  the one place to check whether a public-facing `haus` wants a register row of
+  its own. Not restated here — the workshop is public.
 
 ### And these three reverse earlier written decisions
 
@@ -2349,7 +2389,10 @@ Write these down or they get "fixed" by a later session:
   landing page, but it still needs a *page*: it's the developer-focused showcase
   and the first entry in `/desktops`. Don't let "no landing page" turn into "no
   page" — `curl … /init.sh | bash` installs it, so something has to describe it.
-- **`haus` the CLI** — unchanged, and now the namespace matches it.
+- **`haus` the CLI** — unchanged, and now the namespace matches it. As of
+  2026-08-10 the *layer* is called `haus` in user-facing copy too (decision 8),
+  which makes verb, namespace and name one word on purpose. `hausfold` stays
+  the org, the maker and the seller — do **not** sweep one into the other.
 - **`holt`, `pounce`, `perch`, `trill`, `prowl`, `sill`, `den`, `hearth`,
   `collar`, `hush`** — all product/room names, all unchanged. ~~`flick`~~ is the
   one exception this list ever took: it became **`trill`** on 2026-08-08 (§3.4),
