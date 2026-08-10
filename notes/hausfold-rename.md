@@ -289,12 +289,22 @@ paid products**, it's a different check:
 
 | | Status |
 |---|---|
-| npm — `hausfold` as a package name | ✅ **free** (2026-08-08, re-checked 2026-08-10) |
-| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08, re-checked 2026-08-10). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked, and only matters if that app ever publishes an SDK — today only holt does.) |
-| crates.io — `hausfold` | ✅ **free** (2026-08-10) |
-| GitHub — any `hausfold*` squatting near you | ✅ nothing found; the org is ours |
+| package registries, handles, namespaces | 🔒 **run 2026-08-08, re-checked 2026-08-10 — results in `hausfold/ops`'s `PRESENCE.md`, not here.** See the 🔒 box below. ⚠️ One line survives because it's about *loss*, not availability: `flick`, `nebelung`, `pounce` and `perch` are all **taken** on PyPI by unrelated projects, not recoverable, and PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked and only matters if that app ever publishes an SDK — today only holt does.) |
 | A web search for an existing company using it | 🚨 **found one** — see below |
 | USPTO + EUIPO, software classes (9/42) | ✅ **run 2026-08-10 — `hausfold` returns ZERO records worldwide.** See the box below for how, and for what it does and doesn't prove. |
+
+🔒 **Why the availability rows moved out of this file — 2026-08-10.** They said
+which registries and handles were **free**, and *free* is the half that makes
+the register private: a list of what nobody has claimed hands it to whoever
+reads it first, and **this repo is public**. The rule is decision 8's
+`PRESENCE.md` bullet at the top of this file, and it now binds `hausfold`'s rows
+as well as `haus`'s — they predated the rule rather than being exempt from it.
+`hausfold/ops` holds both sets.
+
+**The trademark rows stay, and the difference is not a judgement call:** those
+quote *public register records*, so reproducing them discloses nothing
+`tmdn.org` doesn't already serve to anyone who asks. Availability is a gap;
+a registration is a document.
 
 #### ✅ Run 2026-08-10 — the register half, for both `hausfold` and `haus`
 

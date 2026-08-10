@@ -16,5 +16,11 @@
 /org-profile/
 /homebrew-tap/
 /trill/
+# `ops` is private and NOT in bench's FAMILY, DOCS_REPOS or clone list — it is
+# cloned by hand when name-register work needs it, so most machines won't have
+# it. The line is here anyway: without it, the one clone that does happen leaves
+# `?? ops/` in this tree and a `git add -A` up here tries to add a nested repo.
+# That is exactly the trap #283 left behind with `messages/`; don't wait for it.
+/ops/
 /web/.wrangler/
 .DS_Store
