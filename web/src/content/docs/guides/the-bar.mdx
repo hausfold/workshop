@@ -166,7 +166,7 @@ awake off
   (Claude Code, Codex), or the day's dollars for token-billed Opencode. It
   follows whichever provider reported most recently, showing the higher of the
   5-hour or weekly window and colouring to match (green under 50%, yellow past
-  50%, peach past 75%, red at 90%). A dollar figure is drawn teal instead: a
+  50%, peach past 75%, red at 90%). A dollar figure is drawn blue instead: a
   spend has no ceiling to be 90% of, so it can't honestly be "green as in
   plenty left".
 
@@ -186,7 +186,7 @@ awake off
 
   - **Claude Code** rides its own statusline feed. Nothing is polled and no
     token is read, so the row appears once a Claude session first reports and
-    greys out if none has in half an hour.
+    greys out if none has in five minutes.
   - **Opencode** is read straight out of its local sqlite db. Also no network.
   - **Codex** is the exception. It keeps no usage data on disk at all — the
     desktop app holds threads server-side, and only the CLI and the VS Code
