@@ -166,14 +166,27 @@ awake off
   (Claude Code, Codex), or the day's dollars for token-billed Opencode. It
   follows whichever provider reported most recently, showing the higher of the
   5-hour or weekly window and colouring to match (green under 50%, yellow past
-  50%, peach past 75%, red at 90%). Click it for every provider's windows with
-  their reset times.
+  50%, peach past 75%, red at 90%). A dollar figure is drawn blue instead: a
+  spend has no ceiling to be 90% of, so it can't honestly be "green as in
+  plenty left".
+
+  Click it for every provider's windows, each with a ten-cell meter, its reset
+  time, and the same colour ladder on the number — so the row you opened the
+  pill to read looks the way the pill did. The dropdown holds one rule worth
+  knowing, because everything else follows from it: **a colour on a mark means
+  identity, a colour on a number means state.** The glyph beside each provider
+  is its brand accent (Claude, Codex, whatever Opencode is pointed at), drawn
+  from the half of the palette the ladder never uses; nothing but a value is
+  ever green or red. A provider whose feed has gone quiet greys out as a whole
+  block — mark, name and figures — rather than leaving numbers behind that
+  nothing has checked in hours, with an `as of 4d 20h ago` footnote saying how
+  long.
 
   Where each row comes from matters, because one of them leaves the machine:
 
   - **Claude Code** rides its own statusline feed. Nothing is polled and no
     token is read, so the row appears once a Claude session first reports and
-    greys out if none has in half an hour.
+    greys out if none has in five minutes.
   - **Opencode** is read straight out of its local sqlite db. Also no network.
   - **Codex** is the exception. It keeps no usage data on disk at all — the
     desktop app holds threads server-side, and only the CLI and the VS Code
@@ -199,8 +212,8 @@ awake off
 
   ```
   ✳ Claude
-    session  48%  ·  resets 11:50
-    weekly   13%  ·  resets Sat 03:00
+    session   48%  █████▁▁▁▁▁  ·  resets 11:50
+    weekly    13%  █▁▁▁▁▁▁▁▁▁  ·  resets Sat 03:00
     tokens   220M d  ·  2.02B w
              590M m  ·  7.65B total
   …
@@ -212,8 +225,11 @@ awake off
   It exists purely for the fun of watching the number climb. Every other figure
   in the pill is a fraction of something you're allowed; this is the count of
   what you've actually moved, which no client shows you anywhere. It's a score,
-  not a limit — nothing warns on it, nothing throttles on it, and it never
-  reaches the pill's own label, which keeps showing the number you can act on.
+  not a limit — nothing warns on it, nothing throttles on it, it never reaches
+  the pill's own label, which keeps showing the number you can act on, and it's
+  drawn a shade quieter than the meters above it, uncoloured and unbolded,
+  because a count with no ceiling can't be urgent and colouring it would make
+  the ladder mean less.
   Expect it to be enormous: it counts cache reads alongside real input and
   output, and cache reads are most of what an agent session does.
 
