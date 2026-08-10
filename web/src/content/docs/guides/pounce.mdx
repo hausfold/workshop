@@ -163,8 +163,16 @@ it on with the `autoQuit` block in [config](/reference/pounce/#config-file) (or
 the rice, where it defaults **off**).
 
 **Asked, not killed.** It's the same Quit event ⌘Q sends, so an app with unsaved
-work puts its sheet up and stays open — and Pounce won't ask again until it has
-a window once more. Nothing here can lose work that ⌘Q wouldn't.
+work puts its sheet up and stays open — and Pounce won't ask it again until it
+has a real window once more (an app that declines with a modal alert can't
+re-arm on that alert, or cancelling it would put the same sheet straight back
+up). Nothing here can lose work that ⌘Q wouldn't.
+
+**Three things are never asked at all**, which is what keeps this off your menu
+bar: an app that was already windowless when the daemon started (so a utility
+that lives in the menu bar is out of scope until it opens a window), an app
+whose accessibility reply times out (busy is not the same as empty), and
+anything without a bundle id — there'd be nothing you could put in `exclude`.
 
 **The delay is load-bearing.** `delay` (2s, clamped to 0.25–3600) is what tells
 "I'm done with this app" apart from "close this window, open another" — which is
@@ -287,7 +295,9 @@ Or with Nix: `nix run github:hausfold/pounce -- --help`.
 
 Clipboard auto-paste and emoji paste synthesize a ⌘V into your previous app,
 while modifier-only bindings such as a lone Fn/Globe tap use a keyboard event
-tap. macOS gates both paths behind Accessibility:
+tap. The [window switcher](#a-window-switcher-not-an-app-switcher-opt-in) and
+[auto-quit](#quit-an-app-when-its-last-window-closes-opt-in) need it too, for
+the window snapshot they share. macOS gates all of those behind Accessibility:
 
 ```sh
 pounce --request-accessibility    # approve the dialog

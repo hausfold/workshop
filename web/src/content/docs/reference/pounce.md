@@ -9,7 +9,17 @@ your own commands, see [Writing pounce commands](/guides/pounce-commands/).
 ## Config file
 
 Pounce reads `~/.config/pounce/config.json`. Every key is optional; the file is
-re-read each time the palette opens (no daemon restart needed).
+re-read each time the palette opens (no daemon restart needed). The exceptions
+are the three things the daemon sets **up at startup** — `windows`, `autoQuit`
+and the `items` hotkeys — which are captured when it arms them and need a
+restart to change:
+
+```sh
+launchctl kickstart -k "gui/$(id -u)/com.hausfold.pounce"
+```
+
+Inside nebelhaus a rebuild does that bounce for you when one of those keys
+moves.
 
 ### Start from a config that documents itself
 
@@ -128,10 +138,8 @@ It reads the same window snapshot as `windows`, so it wants the same
 Accessibility grant and shares those observers rather than taking its own —
 turning both on costs one set, not two. The whole `autoQuit` block is one of the
 startup-only exceptions above — the daemon captures `delay` and `exclude` when
-it arms auto-quit and never re-reads them — so **any** edit in here needs a
-daemon restart (`launchctl kickstart -k gui/$(id -u)/com.hausfold.pounce`), not
-just flipping `enabled`. Inside nebelhaus the rice does that bounce for you on
-the next rebuild.
+it arms auto-quit and never re-reads them — so **any** edit in here needs the
+restart, not just flipping `enabled`.
 
 `quickAnswers.currency` and `updates.check` are the only two things in Pounce
 that touch the network. The first fetches the ECB daily reference rates from
