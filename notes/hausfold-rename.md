@@ -282,7 +282,7 @@ Hence the two filters: what this gate is actually looking for is an assertion
 that is **still standing** — not one struck through (`~~`) or quoted inside a
 reversal blockquote (`> `). Marked-as-dead is the goal state, not a violation.
 
-### 0.2 👤 Name clearance — partly run 2026-08-08
+### 0.2 👤 Name clearance — registries 2026-08-08, register 2026-08-10
 
 "hausfold" as an *umbrella* was low exposure. As a **platform with a market and
 paid products**, it's a different check:
@@ -304,17 +304,23 @@ this row sat undone. The way through is **[TMview](https://www.tmdn.org/tmview/)
 EUIPO*, with an unauthenticated JSON API behind the web UI:
 
 ```sh
+UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'    # NOT optional — see below
 # GET the app first for a session cookie, then POST the search
-curl -s -c jar https://www.tmdn.org/tmview/ -o /dev/null
-curl -s -b jar -X POST https://www.tmdn.org/tmview/api/search/results \
+curl -s -A "$UA" -c jar https://www.tmdn.org/tmview/ -o /dev/null
+curl -s -A "$UA" -b jar -X POST https://www.tmdn.org/tmview/api/search/results \
   -H 'Content-Type: application/json' -H 'Referer: https://www.tmdn.org/tmview/' \
   -d '{"page":1,"pageSize":100,"criteria":"E","basicSearch":"haus",
        "offices":["US","EM"],"niceClass":["9","42"],
        "territories":[],"tmStatus":[],"tmTypes":[]}'
 ```
 
-⚠️ **Three gotchas that will otherwise produce a confidently wrong answer:**
+⚠️ **Five gotchas, every one of which returns a confident wrong answer rather
+than an error.** Four of them are indistinguishable from "nothing found":
 
+- **A browser `User-Agent` is required.** With curl's default UA the WAF resets
+  the POST — `exit 56`, http `000`, reproducibly — *even with a valid cookie*.
+  Because the next gotcha primes you to blame the session, this one costs real
+  time. Set `-A` on both requests.
 - **The session cookie is required** — POST without the GET and the API returns
   an empty body, not an error. An empty body parsed as "no results" is a false
   all-clear, which is the worst possible failure for this check.
@@ -322,14 +328,22 @@ curl -s -b jar -X POST https://www.tmdn.org/tmview/api/search/results \
   accepted and **silently ignored** — same query came back 2,566 vs 566.
 - **`criteria:"E"` is not "exact".** It word-matches, so it returns `WolfHaus`,
   `ModelHaus`, `KOOL HAUS AI`. Filter `tmName` yourself for a true exact hit.
-  **Always run a positive control** (`nike` → 15,854) so an empty result is
-  known to mean empty.
+  **`criteria:"C"` is the substring search**, and the two disagree in the
+  direction that fools you: `haus fold` gives **5** under `"C"` and **0** under
+  `"E"`. Use `"C"` for a phrase or a fragment; never read an `"E"` zero as
+  clearance for one.
+- **Run a positive control with the *same* parameters you're using**, so an
+  empty result is known to mean empty. `nike` is 15,854 wide open
+  (`criteria:"C"`, no office or class filter) but **37** under this box's
+  narrowed query (`"E"`, US+EM, 9/42). Quoting the wide number while running the
+  narrow query is how you conclude the API is broken.
 
-**`hausfold`: zero records, worldwide, any class, any status.** So is
-`housefold`. The register is clear.
+**`hausfold`: zero records, worldwide, any class, any status** — under `"E"` and
+`"C"` alike. So is `housefold`. The register is clear.
 
-**And the SC laundry business never filed.** `haus fold` returns 5 marks, none
-theirs (`FOLDHAUS`, `PARKETTHAUS SCHEFFOLD`, an exhaust manifold). That
+**And the SC laundry business never filed.** `haus fold` (`criteria:"C"`)
+returns 5 marks, none theirs (`FOLDHAUS`, `PARKETTHAUS SCHEFFOLD` ×2, an exhaust
+manifold, a Japanese *HOUSING FOLDER*). That
 materially improves §0.4's coexistence position: HAUS FOLD is a **common-law
 user only** — no registration, a services class, three cities in one state.
 First in time, yes; but with nothing on the register to assert.
@@ -348,7 +362,7 @@ mark." Half right:
 | `haus` | |
 |---|---|
 | exact word **HAUS**, US+EUIPO, **class 9 or 42** | **7 records, 6 dead.** The one live: **US 99283190, `Haus Analytics, Inc.`**, filed 2025-07-14, cls 35+42, word mark, still **pending** |
-| exact word **HAUS**, US+EUIPO, all classes | 44 records, 13 live — and **none of the 13 is registered in 9 or 42** (they sit in 41, 36, 35, 33, 16, 8, 1, 25) |
+| exact word **HAUS**, US+EUIPO, all classes | 44 records, 13 live — and **none of the 13 is registered in 9 or 42.** They sit in 1, 8, 16, 18, 25, 30, 32, 33, 35, 36, 41 and 43: drink, clothing, hospitality, real estate |
 | word-*containing* haus, US+EUIPO, cls 9/42 | **566 records, 318 live** — `WolfHaus`, `ModelHaus`, `KOOL HAUS AI`, `HealthyHaus`, … |
 | npm `haus` | ❌ taken — `0.0.0`, "HTML And Useful Styling (HAUS) is a CLI for web development", last touched 2022 |
 | PyPI `haus` | ❌ taken — `0.1.0`, a WSGI framework, `houseofhaus.org` |
@@ -356,7 +370,7 @@ mark." Half right:
 | GitHub user `haus` | ❌ taken — an individual, account since 2009 |
 | **Homebrew** formula *and* cask `haus` | ✅ **free** |
 | **nixpkgs** attribute `haus` | ✅ **free** (`nix eval nixpkgs#haus` → no such attribute) |
-| another CLI named `haus` in the wild | ✅ none found |
+| a *maintained* competing `haus` command | ✅ none found. The npm row above is nominally a CLI, but it is `0.0.0` and untouched since 2022 — nothing anyone would have on `PATH` |
 
 **Read those two halves in opposite directions**, because they answer different
 questions:
@@ -393,22 +407,27 @@ Registered 2025-04-19, live site, phone, pricing, testimonials, and
 `instagram.com/hausfold`. Not German or Austrian, which is why the original
 phrasing of this check wouldn't have found it. Full detail in §0.4.
 
-**Gate: passed — no forced rename, and the register half no longer hedges it.**
-They sell a household *service*; we sell software. Different Nice classes
-coexist routinely and nobody confuses a laundry round with a nix-darwin
-platform. They remain **first in time on the word, in the US, in commercial
-use** — that part doesn't change — but the 2026-08-10 search establishes they
-hold **no registration anywhere**, so what they have is common-law rights in a
-service class, in one state. Coexistence, with the stronger side of it now
-measured rather than assumed.
+**Gate: passed on the register half — no forced rename.** They sell a household
+*service*; we sell software. Different Nice classes coexist routinely and
+nobody confuses a laundry round with a nix-darwin platform. The 2026-08-10
+search adds one fact: they hold **no registration anywhere**.
+
+🚨 **Do not read that as the risk shrinking — US common-law rights don't depend
+on registration.** They remain **first in time on the word, in the US, in
+commercial use**, and that is the whole of the exposure both before and after
+this search. What changed is that the exposure is now *shaped* rather than
+unknown: unregistered, one service class, three cities in one state, with
+nothing on the register to assert against a software mark. The word
+"provisionally" came off the register clause only.
 
 ⚠️ **What's still undone has a trigger, not a date.** The *register* has been
-searched (see the box above). What hasn't: common-law use beyond the one
-business found, phonetic and foreign equivalents past `hausfeld`/`housefold`,
-design marks, state registrations — i.e. everything a real clearance opinion
-adds. Get one before **any** of: filing an application, paid marketing, or
-incorporating an entity that trades under the name. Below that line the exposure
-is logged and accepted, and now quantified. Above it, a knockout screening is
+searched (see the box above). What hasn't: **the common-law position of the very
+business found here**, any other unregistered user, phonetic and foreign
+equivalents past `hausfeld`/`housefold`, design marks, state registrations — i.e.
+everything a real clearance opinion adds, and the first item on that list is the
+one that matters most. Get one before **any** of: filing an application, paid
+marketing, or incorporating an entity that trades under the name. Below that
+line the exposure is logged and accepted. Above it, a knockout screening is
 still not a clearance opinion — it just means counsel starts from a clear
 register instead of an unknown one.
 
@@ -489,11 +508,17 @@ was wrong from the start rather than expired. Three things follow:
    their own site — which is why the register records `hausfold.co` there.
    Anywhere else the bare `hausfold` was "unavailable", assume the same cause
    and stop re-checking.
-3. **It promotes the trademark question.** A same-word mark in commercial use in
+3. **It promotes the trademark question.** A same-word user in commercial use in
    the US, first in time. Likely fine — a household *service* against *software*
-   are different Nice classes — but that is a reading, not a search. **Get a real
-   USPTO search before filing anything, spending on marketing, or incorporating
-   under the name.** Nothing here was checked against the trademark register.
+   are different Nice classes — but that was a reading, not a search.
+   ✅ **The search has now been run — 2026-08-10, §0.2's box.** The register is
+   clear: **zero records for `hausfold` at any office**, and **this business has
+   never filed**, so it is a common-law user, not a registrant. ⚠️ Which is not
+   the same as safe: US common-law rights don't require registration, so first-in-
+   time still means something. **Get a clearance opinion before filing anything,
+   spending on marketing, or incorporating under the name** — that trigger is
+   unchanged. What's different is that counsel now starts from a searched
+   register rather than an unsearched one.
 
 Re-logged in `go-to-market.md` §9 decision 4 as decided-accept.
 
