@@ -79,7 +79,10 @@ What this costs, and doesn't:
   and `README.md`. Then, when convenient: `notes/options-roadmap.md`'s naming
   banner, `notes/go-to-market.md`'s "read this first" box and its portfolio
   table, and `bench`'s ripple-diagram comment. In the **rice repo** (a separate
-  checkout): `hausfold/AGENTS.md` and `hausfold/README.md`. Untouched on
+  checkout): `hausfold/AGENTS.md` and `hausfold/README.md` — ✅ **done
+  2026-08-10, [hausfold#305](https://github.com/hausfold/hausfold/pull/305)**;
+  the gap there turned out not to be a wrong platform claim (neither file had
+  one) but the missing layer-vs-rice distinction. Untouched on
   purpose: `notes/perch-monetization.md` (receipt/seller sense — correct as
   written) and every repo-name or workflow reference.
 - 👤 **§0.2's name clearance has never been run for `haus`.** It was run for
@@ -90,9 +93,13 @@ What this costs, and doesn't:
   cuts the other way from §0.2's hausfold coexistence analysis. Run the matrix
   before the triggers that made it matter last time (a filing, paid marketing,
   incorporation). Nothing about the *page* waits on this.
-- 👤 **`PRESENCE.md` in `hausfold/ops` needs the same header amendment**, and is
-  the one place to check whether a public-facing `haus` wants a register row of
-  its own. Not restated here — the workshop is public.
+- ✅ **`PRESENCE.md` in `hausfold/ops` needed the same header amendment**, and
+  was the one place to check whether a public-facing `haus` wants a register row
+  of its own. **Both done 2026-08-10, in that repo.** The answer and its
+  reasoning stay there and are deliberately not restated here — the workshop is
+  public, and it is the *shape* of the reasoning, not just the gaps, that has to
+  stay private. If a later session finds itself about to fill in §0.2's matrix
+  for `haus` in *this* repo, that's the mistake: it belongs in `ops`.
 
 ### And these three reverse earlier written decisions
 
@@ -1874,9 +1881,11 @@ Two site codebases exist today and they merge into the second:
   assets-only Worker: the landing page, `/desktops`, `/perch/privacy`, `404`.
 
 **Everything moves into `hausfold/hausfold.co`: `/`, `/haus`, `/docs`,
-`/desktops`, `/holt`, `/pounce`, `/perch`.** *(`/haus` — the platform page —
-was added 2026-08-10 with decision 8, ahead of the build, the way `/desktops`
-and `/perch` were.)* One repo, one domain, one deploy. The landing pages get
+`/desktops`, `/holt`, `/pounce`, `/perch`.** *(`/haus` — the layer's page — was
+added to this list 2026-08-10 with decision 8, ~~ahead of the build~~ **and it
+shipped the same morning**, from a parallel session: `hausfold/hausfold.co` PR
+#8, live at `hausfold.co/haus`. Same pattern as `/desktops` — the page beat the
+plan by hours, so read this list as "already true for `/haus`", not "to do".)* One repo, one domain, one deploy. The landing pages get
 **redesigned**, not ported — nebelhaus stops being a destination and becomes one
 rice inside `/desktops`, so its landing page has no domain to be the front door of.
 
