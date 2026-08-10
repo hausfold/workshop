@@ -152,12 +152,19 @@ See [Your review queue](/guides/the-shell/#your-review-queue).
 ### The look
 
 ```nix
-haus.theme.accent = "sapphire";   # any of 14 Catppuccin accent names
-haus.theme.wallpaper = "orbits";  # none | orbits | constellation | flow | bold
+haus.theme.accent = "sapphire";     # any of 14 Catppuccin accent names
+haus.wallpaper.style = "minimal";   # none | minimal | orbits | constellation | flow | bold
 ```
 
-`accent` recolours lazygit, fzf, yazi/Glow, and the browser accent; `bold` generates
-a wallpaper from your accent. Full palette on [Theming & accents](/guides/theming/).
+`accent` recolours lazygit, fzf, yazi/Glow, and the browser accent. Full palette
+on [Theming & accents](/guides/theming/).
+
+`minimal` is the desktop the rice generates for you: a flat field in your
+palette, the haus mark ⌂ at its centre, and a bloom in your accent. It has a
+room of its own — the field's depth, the mark's size and colour, the bloom, the
+grain, and an off-by-default band of this machine's lock edges — under
+[`haus.wallpaper.*`](/reference/options/#hauswallpaperstyle) and on
+[Theming & accents](/guides/theming/#the-desktop).
 
 ### The shell
 
