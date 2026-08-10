@@ -75,9 +75,19 @@ Other quick fixes:
 ```sh
 launchctl bootout gui/$(id -u)/org.nixos.sketchybar 2>/dev/null
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.sketchybar.plist
-# or, if it's running but stale:
-sketchybar --reload
 ```
+
+**Running, but stale?** A pill you added isn't there, or a colour change didn't
+land. A rebuild rewrites the bar's config but the live bar read it once at boot —
+normally auto-reloaded, but you can force it:
+
+```sh
+sketchybar --reload    # the menu-bar bar
+sill-bottom --reload   # the bottom bar, if haus.sill.bottom.enable is on
+```
+
+Each bar is its own instance under its own name, so each takes its own reload:
+`sketchybar --reload` leaves the bottom bar exactly as it was.
 
 If you'd rather not run a custom bar at all, set `haus.sill.enable = false`
 and the native macOS menu bar comes back.
