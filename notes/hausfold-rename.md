@@ -113,7 +113,7 @@ What this costs, and doesn't:
 
 ### And these three reverse earlier written decisions
 
-`go-to-market.md` §6 (decided 2026-08-04) and `hausfold/PRESENCE.md` currently
+`go-to-market.md` §6 (decided 2026-08-04) and `hausfold/ops`'s `PRESENCE.md` currently
 say the opposite. **They are read by every agent session**, so if they aren't
 rewritten first, a future session will "correct" this work back:
 
@@ -129,7 +129,7 @@ rewritten first, a future session will "correct" this work back:
 > shipped under that name: a parallel session building it put `/market`,
 > `/gallery`, `/rices` and `/desktops` to the user and was told `/desktops` —
 > plainer English, a generic noun rather than a name, and therefore no row
-> needed in `hausfold/PRESENCE.md`. Told the two had collided, the user chose to
+> needed in `hausfold/ops`'s `PRESENCE.md`. Told the two had collided, the user chose to
 > amend the plan rather than rename the live page.
 >
 > Two things the swap is **not**. It isn't a retreat from commerce — nothing
@@ -240,7 +240,11 @@ that contradicts the work in front of it.
 
 - `notes/go-to-market.md` — §1 portfolio table (hausfold row), §5 (the gallery
   question — where it lives), §6 (the whole section), §9 (open decisions 1 and 4).
-- `hausfold/PRESENCE.md` — the "deliberately separate, nothing belongs here" rule.
+- `hausfold/ops`'s `PRESENCE.md` — the "deliberately separate, nothing belongs
+  here" rule. ⚠️ It was `hausfold/PRESENCE.md` when this list was written, and
+  that path now means a file in the **rice** checkout (the dir was renamed
+  2026-08-09). The register never lived there; it moved to its own private repo
+  on 2026-08-08.
 - **`hausfold/AGENTS.md` and `hausfold/README.md`** — both quote that rule, and
   AGENTS.md's pre-PR checklist *instructs future reviewers to enforce it*. A
   repeal hides in the checklist that quotes the rule, not in the paragraph you
@@ -282,7 +286,7 @@ Hence the two filters: what this gate is actually looking for is an assertion
 that is **still standing** — not one struck through (`~~`) or quoted inside a
 reversal blockquote (`> `). Marked-as-dead is the goal state, not a violation.
 
-### 0.2 👤 Name clearance — registries 2026-08-08, register 2026-08-10
+### 0.2 👤 Name clearance — registries 🔒 in `ops`, register 2026-08-10
 
 "hausfold" as an *umbrella* was low exposure. As a **platform with a market and
 paid products**, it's a different check:
@@ -2496,7 +2500,7 @@ carries the command, so nothing waits on the gallery).
 ⚠️ **That page prints the old one-liner today** —
 `curl -fsSL https://nebelhaus.com/init.sh | bash`, hand-copied from
 `nebelhaus/README.md`. It is correct now and wrong the moment this decision
-lands. `hausfold/PRESENCE.md`'s Gaps records the duplication; **this is the step
+lands. `hausfold/ops`'s `PRESENCE.md` Gaps records the duplication; **this is the step
 that has to edit it**, and nothing checks the two agree.
 
 That generalizes for free: `hausfold.co/<rice>.sh` is every rice's own
