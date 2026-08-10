@@ -71,20 +71,29 @@ What this costs, and doesn't:
   **prose** meant the layer. §2's class table (in §2, not at the top of this
   file) has been amended to match; the `nebelhaus` reading table at the top of
   `AGENTS.md` is the rule for reading a `nebelhaus` hit, and is unaffected.
-- 📝 **The prose surfaces that say "hausfold" and mean the layer** — §0.1's
-  precedent applies here, because a decision left unwritten gets "corrected"
-  back by the next session. **Do these first:**
+- ✅ **The prose surfaces that say "hausfold" and mean the layer — swept
+  2026-08-10, workshop#313.** §0.1's precedent applied here, because a decision
+  left unwritten gets "corrected" back by the next session. Landed in one PR:
   `.agents/skills/docs-sync/SKILL.md` (the daily sweep *writes* its wording into
   other repos, so a stale line there propagates), then this repo's `AGENTS.md`
   and `README.md`. Then, when convenient: `notes/options-roadmap.md`'s naming
   banner, `notes/go-to-market.md`'s "read this first" box and its portfolio
-  table, and `bench`'s ripple-diagram comment. In the **rice repo** (a separate
+  table, and `bench`'s ripple-diagram comment (`bench:6` now reads *hausfold
+  (the haus layer)*). In the **rice repo** (a separate
   checkout): `hausfold/AGENTS.md` and `hausfold/README.md` — ✅ **done
   2026-08-10, [hausfold#305](https://github.com/hausfold/hausfold/pull/305)**;
   the gap there turned out not to be a wrong platform claim (neither file had
   one) but the missing layer-vs-rice distinction. Untouched on
   purpose: `notes/perch-monetization.md` (receipt/seller sense — correct as
   written) and every repo-name or workflow reference.
+  ⚠️ **Neither file ever called the layer "hausfold" — measured, not assumed**,
+  and worth keeping because the *shape* of that gap is the reusable part. A
+  grep of the rice's `AGENTS.md`, `README.md`, `docs/` and `.agents/`, excluding
+  the domain, the org, the repo slug, the checkout path and PR refs, returns
+  **zero layer-sense hits**. So there was never a wrong word to replace; what
+  #305 added was a distinction those files had never drawn. Don't read "the rice
+  repo is behind" as licence to sweep `hausfold` → `haus` there — the sweep
+  would have found nothing and broken identifiers looking.
 - 👤 **§0.2's name clearance has never been run for `haus`.** It was run for
   `hausfold` precisely because a platform with paid products is a different
   check from an internal codename — and decision 8 promotes `haus` from a verb
@@ -134,21 +143,37 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-09 (second revision, evening)
+### Current handoff — 2026-08-10 (morning)
 
-**The rename is green through §4.** The option namespace, in-repo brand
-surface, GitHub transfers, checkout rename, lock ripple, clean-clone gate **and
-the Apple identity migration** are done. `bench try` builds the current local
-family, and the private consumer now uses canonical `haus.*` with no
-obsolete-option traces (`nix-config` `452b9b8`).
+**The rename is green through §4, and §5.2 is now the *whole* of the 🤖 work
+left.** The option namespace, in-repo brand surface, GitHub transfers, checkout
+rename, lock ripple, clean-clone gate **and** the Apple identity migration are
+done. `bench try` builds the current local family, and the private consumer
+uses canonical `haus.*` with no obsolete-option traces (`nix-config`
+`452b9b8`).
 
-**§5.2 is the only substantial 🤖 work left** — the docs/Worker consolidation
-into `hausfold/hausfold.co`, the per-rice installer, and the `nebelhaus.com`
-301s. 🚨 **It is a rebuild on Fumadocs, not a port of the Astro/Starlight
-tree** (👤's call, 2026-08-09 — see §5.2's decision box before reading anything
-below it as a move). Everything else outstanding is 👤.
+**§5.2** is the docs/Worker consolidation into `hausfold/hausfold.co`, the
+per-rice installer, and the `nebelhaus.com` 301s. 🚨 **It is a rebuild on
+Fumadocs, not a port of the Astro/Starlight tree** (👤's call, 2026-08-09 — see
+§5.2's decision box before reading anything below it as a move); its stack,
+deployment shape and search are all decided and spiked, so what remains is
+build work, not design work. **Every other open item in this document is 👤** —
+audited 2026-08-10: every unchecked box in the file carries 👤, and no 🤖
+section outside §5.2 is unfinished.
 
-What changed since the morning handoff:
+What changed on 2026-08-10:
+
+- **Decision 8 recorded and swept** — the layer's public name is `haus`,
+  `hausfold` is the org/maker/seller (workshop#313). Its prose surfaces are
+  done; the rice repo turned out to need nothing (grep-measured — see the ✅ in
+  decision 8's box). ⚠️ It is **not** a licence to sweep `hausfold` → `haus`:
+  the word is a live identifier in `bench` and in two workflows.
+- **§4.2's association cleanup landed** — `com.local.pounce` is out of the
+  rice's `AssociatedBundleIdentifiers` (hausfold#282, merged 06:24). §4 now has
+  **no 🤖 work at all**; what's left there is the 👤 attribution re-check after
+  activation and §4.4's TCC feel-test.
+
+What changed on 2026-08-09 (kept — the evening handoff):
 
 - **§4 landed and shipped.** perch#51, pounce#72 and hausfold#275 all merged
   2026-08-09 13:39–13:40; pounce released `v2026.08.09-3` and perch
@@ -2533,11 +2558,14 @@ that the first person who finds it harmless ignores the whole thing.
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-09 evening):** §0 green bar §0.2's trademark search and
-§0.3's branch clause; §1–§3 green; §4's code merged and released, with its 👤 TCC
-feel-test and one 🤖 association cleanup open. **§5 is the live phase**, and its
-§5.1 groundwork (site repo public, `site-data` published so the site needs no
-Nix) is already done — what's left is §5.2's port itself, then §5.3's deploy.
+**You are here (2026-08-10 morning):** §0 green bar §0.2's trademark search and
+§0.3's branch clause; §1–§3 green; **§4 fully merged and released, with no 🤖
+work left in it** (hausfold#282 closed the last one) — its 👤 TCC feel-test and
+its post-activation attribution re-check are what remain. **§5 is the live
+phase**, and its §5.1 groundwork (site repo public, `site-data` published so the
+site needs no Nix) is already done — what's left is §5.2's rebuild itself, then
+§5.3's deploy. Those two are the only steps in this document an agent can take
+unattended.
 
 ## §9 — Loose ends found while writing this
 
