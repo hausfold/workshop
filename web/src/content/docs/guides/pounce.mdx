@@ -153,6 +153,47 @@ looking at, so landing there wouldn't be a switch — moving between visible til
 is [windowNav's focus keys](/guides/window-management/), not the switcher's job.
 The skipped siblings are still the rows right below you.
 
+## Quit an app when its last window closes (opt-in)
+
+macOS keeps an app running after you close its last window. If your muscle
+memory is from Windows, every windowless app is a ⌘Q you forgot — so Pounce can
+close that gap: when an app's last window goes away, it is asked to quit. Turn
+it on with the `autoQuit` block in [config](/reference/pounce/#config-file) (or
+[`haus.pounce.autoQuit.enable`](/reference/options/#hauspounceautoquitenable) in
+the rice, where it defaults **off**).
+
+**Asked, not killed.** It's the same Quit event ⌘Q sends, so an app with unsaved
+work puts its sheet up and stays open — and Pounce won't ask again until it has
+a window once more. Nothing here can lose work that ⌘Q wouldn't.
+
+**The delay is load-bearing.** `delay` (2s, clamped to 0.25–3600) is what tells
+"I'm done with this app" apart from "close this window, open another" — which is
+what a browser does when you close its last window and hit ⌘N. After the wait
+Pounce looks again, and anything open at all, including panels and dialogs the
+switcher wouldn't list, calls the quit off.
+
+**`exclude` replaces its default, it doesn't extend it.** Out of the box the
+list is `["com.apple.finder"]` — Finder is the one app macOS runs windowless by
+design, and quitting it blinks the desktop out while it relaunches. Write your
+own list and Finder is in it only if you put it there. Read a bundle id off any
+running app with `osascript -e 'id of app "Notes"'`.
+
+It reads the same window snapshot as the switcher above, so it wants the same
+Accessibility grant and shares those observers rather than taking its own.
+Without the grant it stays off and says so in the log rather than guessing — an
+app Pounce can't see into looks exactly like an app with nothing open, and
+acting on that would quit whatever was busy. Grant it while the daemon runs and
+auto-quit arms itself within a couple of seconds; revoke it and it stands down
+live. The settings themselves are captured when auto-quit arms, so editing any
+of them — `enabled`, `delay` or `exclude` — needs a daemon restart to land (the
+rice does that bounce for you on rebuild).
+
+**The one thing that will surprise you:** an app doing work in the background is
+still just an app with a window. Close the Docker Desktop dashboard and Docker is
+asked to quit, which stops your containers; the same shape catches media players
+(⌘W on Music stops playback), torrent clients, and the chat and mail apps you keep
+running for their notifications. That class of app is what `exclude` is for.
+
 ## Two-step commands (submenus)
 
 Some commands open a second picker instead of acting immediately — "Brew
