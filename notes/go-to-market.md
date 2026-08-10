@@ -16,8 +16,10 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 
 > **★ Superseded in part, 2026-08-08 — read this first.** This file was written
 > when hausfold was an umbrella and nebelhaus was the brand. That is reversed:
-> **hausfold is the platform, the org and the seller; nebelhaus is one rice
-> built on it** — the developer-focused one, and the first. The plan and its
+> **hausfold is the org, the maker and the seller; `haus` is the nix-darwin
+> layer it makes; nebelhaus is one rice built on that** — the developer-focused
+> one, and the first. *(The hausfold/haus split is decision 8, 2026-08-10; §6
+> has it in full.)* The plan and its
 > ordering are [`hausfold-rename.md`](./hausfold-rename.md); this file keeps the
 > *funnel* thinking, which mostly survives, and each section below carries a
 > note where it doesn't. The three reversals: hausfold is a product surface now,
@@ -29,8 +31,8 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **nebelung** | free | MIT | Taste door. Palette people meet the visual language before they meet Nix. |
 | **pounce** | free, **no paid tier ever** | MIT | Utility door. A native launcher installable without adopting anything. The site already promises "no paid tier" — that promise is load-bearing, don't reopen it. |
 | **holt** | free | MIT | Dev-tool door. The only piece whose audience isn't macOS ricers. |
-| **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on the hausfold platform** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
-| **hausfold** (platform) | free | MIT | **The destination.** The nix-darwin ricing platform every rice sets options on, and the org everything ships under. Was the umbrella; became the product on 2026-08-08. |
+| **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on `haus`** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
+| **haus** (the layer) / **hausfold** (the house) | free | MIT | **The destination.** `haus` is the nix-darwin layer every rice sets options on; `hausfold` is the org it ships under and the name on the receipt. Was the umbrella; became the product on 2026-08-08; got the two-word split on 2026-08-10 (decision 8). |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
 | ~~**trill**~~ (the Messages client; the repo is `nebelhaus/messages` since 2026-08-08, and the *name* now belongs to the notification compositor — `hausfold-rename.md` §3.4) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
 | ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, nebelhaus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
@@ -207,8 +209,13 @@ on it.**
 > receipt. It is not a fourth position — hausfold still *makes* the platform,
 > the org migration and the domain are untouched, and nothing in code moves.
 > Read every "hausfold" below that means the layer as "haus"; the ones that mean
-> the seller, the org or the domain are still right as written. The nix-darwin ricing platform, the mac apps, the open-source tools and
-the entity on the receipt are all hausfold; `haus.*` is the option namespace
+> the seller, the org or the domain are still right as written. That includes
+> §1's "read this first" box at the top of this file and the portfolio table's
+> hausfold row — both 180 lines above this one, and both out of reach of the
+> word "below".
+
+The nix-darwin ricing platform is **haus**; the mac apps, the open-source tools
+and the entity on the receipt are hausfold; `haus.*` is the option namespace
 every rice sets, and nebelhaus is the developer-focused rice that ships first.
 
 What actually changed, and what didn't:
@@ -286,7 +293,7 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold is the platform** (and still the seller) — §6, and [`hausfold-rename.md`](./hausfold-rename.md). Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
+| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6, and [`hausfold-rename.md`](./hausfold-rename.md). Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
 | 2 | Archive trill? | **Closed** — archived on GitHub, module and flake input deleted (rice#212/#213), taken out of every family list. [`perch-monetization.md`](./perch-monetization.md) §5.5. The launch-blocking version of this question is gone. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
 | 4 | `hausfold.com` — buy it or accept the `.co`? | **Closed 2026-08-08: accept the `.co`, because there is nothing to buy.** ~~Still cheap to reverse; still gets more expensive with brand value.~~ Checked the same day: the `.com` has been registered since 2025-04 and serves **HAUS FOLD**, an operating in-home laundry service in South Carolina. Not parked, not for sale. The `.co`-beside-someone-else's-`.com` tax is real and permanent — the name is the platform, the docs domain *and* the seller on a receipt — but it was never avoidable. Promotes the trademark question: same word mark, first in time, US commercial use, plausibly different Nice classes. **Get a real USPTO search before filing, marketing spend, or incorporation.** [`hausfold-rename.md`](./hausfold-rename.md) §0.4. |

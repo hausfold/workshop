@@ -29,7 +29,7 @@ them:
 | 4 | **Rename now, neutralize defaults later** | the sweep is mechanical and provable; the rice carve-out is design work (§7). |
 | 5 | **All Apple bundle IDs move to `com.hausfold.*`** | free today, impossible after an App Store record exists. |
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror. ⚠️ **Amended 2026-08-08 — the archived `trill` does NOT transfer.** It is renamed in place and stays in `nebelhaus`, because the notification compositor claims `hausfold/trill`. See §3.4. |
-| 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch`. `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
+| 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/haus`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch` (`/haus` added 2026-08-10 with decision 8). `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
 | 8 | **The layer's public name is `haus`; `hausfold` is the org, the maker and the seller** | added 2026-08-10, in conversation, after looking at the page. **This refines decision 1, it does not reverse it** — see the box below. |
 
 #### Decision 8, spelled out — because it looks like a third flip and isn't
@@ -50,21 +50,46 @@ hausfold makes the copy fight the muscle memory.
 
 Read decision 1's *brand ≠ namespace* as what it was defending: **the namespace
 must not be named after one desktop.** It isn't. That the namespace and the
-layer's name now coincide is the nixpkgs shape, not a collision — nobody is
-confused that `nix` names the tool and `nix` starts the option paths.
+layer's name now coincide is the ordinary nix shape, not a collision — nobody
+is confused that home-manager's options live under `home.*`, or that
+`nix-darwin`'s CLI is `darwin-rebuild`.
 
 What this costs, and doesn't:
 
 - **Nothing in code.** The namespace was already `haus.*` (§1.1a, landed), the
   org already `hausfold` (§3.2, transferred), the domain already `hausfold.co`.
   This is a **copy** decision. It renames no repo, no option, no bundle id.
-- **§3, §4 and §5 are untouched.** Don't re-open the org migration, the bundle
-  ids, or the domain over this.
-- 🚨 **Do NOT sweep `hausfold` → `haus`.** Every existing spelling is still
-  right for what it names. The word only changes where prose meant *the layer*,
-  which today is `hausfold.co`'s `/haus`, its landing index and `/desktops`
-  ([hausfold.co#8](https://github.com/hausfold/hausfold.co/pull/8)). §2's table
-  at the top of this file is still the rule for reading any other hit.
+- **§3 and §4 are untouched.** Don't re-open the org migration or the bundle
+  ids over this. **§5 gains exactly one thing**: the route `/haus`, added to
+  decision 7's list and §5.1's, and nothing else about the domain moves.
+- 🚨 **Do NOT sweep `hausfold` → `haus`, and do not let §2 sweep the other
+  way either.** Every existing spelling still names the thing it always named,
+  and `hausfold` is a live *identifier* — `bench`'s `FAMILY`, `GH_ORG`,
+  `OVERRIDABLE`, `$ROOT/hausfold` and the release arms, plus
+  `test/bench.bats`'s fixtures and `keybindings-drift.yml`'s `repository:` —
+  so a sweep breaks the build, not just the copy. The word changes only where
+  **prose** meant the layer. §2's class table (in §2, not at the top of this
+  file) has been amended to match; the `nebelhaus` reading table at the top of
+  `AGENTS.md` is the rule for reading a `nebelhaus` hit, and is unaffected.
+- 📝 **The prose surfaces that say "hausfold" and mean the layer** — §0.1's
+  precedent applies here, because a decision left unwritten gets "corrected"
+  back by the next session. **Do these first:**
+  `.agents/skills/docs-sync/SKILL.md` (the daily sweep *writes* its wording into
+  other repos, so a stale line there propagates), then this repo's `AGENTS.md`
+  and `README.md`. Then, when convenient: `notes/options-roadmap.md`'s naming
+  banner, `notes/go-to-market.md`'s "read this first" box and its portfolio
+  table, and `bench`'s ripple-diagram comment. In the **rice repo** (a separate
+  checkout): `hausfold/AGENTS.md` and `hausfold/README.md`. Untouched on
+  purpose: `notes/perch-monetization.md` (receipt/seller sense — correct as
+  written) and every repo-name or workflow reference.
+- 👤 **§0.2's name clearance has never been run for `haus`.** It was run for
+  `hausfold` precisely because a platform with paid products is a different
+  check from an internal codename — and decision 8 promotes `haus` from a verb
+  and a namespace to the public name of the thing people install. `haus` is a
+  generic German noun: expect it taken on npm/PyPI and weak as a mark, which
+  cuts the other way from §0.2's hausfold coexistence analysis. Run the matrix
+  before the triggers that made it matter last time (a filing, paid marketing,
+  incorporation). Nothing about the *page* waits on this.
 - 👤 **`PRESENCE.md` in `hausfold/ops` needs the same header amendment**, and is
   the one place to check whether a public-facing `haus` wants a register row of
   its own. Not restated here — the workshop is public.
@@ -689,7 +714,7 @@ single find-replace would conflate:
 
 | Class | Rule |
 |---|---|
-| the **platform** (options, modules, the CLI, the docs' subject) | → `hausfold` / `haus.*` |
+| the **platform** (options, modules, the CLI, the docs' subject) | → **`haus`** for the layer itself and `haus.*` for the namespace; `hausfold` only for the org, the maker and the seller — **amended 2026-08-10, decision 8**. This row read `→ hausfold / haus.*` and would now sweep layer prose the wrong way. |
 | the **rice** (presets, the desktop, the showcase, the grey) | stays **nebelhaus** |
 | **historical record** (roadmap §5 bodies, PR titles, commit messages, `holt`'s `~/.cache/claude-worktrees/` path) | **leave alone** |
 
@@ -1004,7 +1029,11 @@ Easy to miss and it breaks *your* sessions, not users':
   user-visible cost is that the slash command becomes **`/haus`**, and a
   session running across the rebuild keeps the old skill until it restarts.
 - ⚠️ **The state directories are NOT part of this phase, and that is a
-  decision, not an oversight.** `~/.local/state/nebelhaus/`,
+  decision, not an oversight.** *(And since decision 8 they are misnamed a
+  third way: the dir belongs to the **layer**, which is now called `haus` — so
+  neither "it's the rice's name" nor "it's the org's name" explains it any
+  more. Still held, for the reason below: the reason was never the name.)*
+  `~/.local/state/nebelhaus/`,
   `~/.config/nebelhaus/` and `share/nebelhaus/host-options.nix` all still carry
   the old name. The state dir holds `settings-snapshots` — written by `haus
   capture` and by every rebuild, and read by **`haus revert-settings`**
@@ -1844,8 +1873,10 @@ Two site codebases exist today and they merge into the second:
 - `hausfold/hausfold.co` — a small static site on `hausfold.co` + `www`,
   assets-only Worker: the landing page, `/desktops`, `/perch/privacy`, `404`.
 
-**Everything moves into `hausfold/hausfold.co`: `/`, `/docs`, `/desktops`,
-`/holt`, `/pounce`, `/perch`.** One repo, one domain, one deploy. The landing pages get
+**Everything moves into `hausfold/hausfold.co`: `/`, `/haus`, `/docs`,
+`/desktops`, `/holt`, `/pounce`, `/perch`.** *(`/haus` — the platform page —
+was added 2026-08-10 with decision 8, ahead of the build, the way `/desktops`
+and `/perch` were.)* One repo, one domain, one deploy. The landing pages get
 **redesigned**, not ported — nebelhaus stops being a destination and becomes one
 rice inside `/desktops`, so its landing page has no domain to be the front door of.
 

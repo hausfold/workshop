@@ -3,7 +3,7 @@
 #
 # The family is a chain of flakes, each pinning the one before it:
 #
-#   nebelung (theme) ──> pounce (palette app) ──> hausfold (the platform) ──> ~/.config/nix (your machine)
+#   nebelung (theme) ──> pounce (palette app) ──> hausfold (the haus layer) ──> ~/.config/nix (your machine)
 #                └────────────────────────────────────┘
 #
 # Editing upstream means nothing until the downstream locks catch up. This

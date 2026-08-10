@@ -16,7 +16,8 @@ This refines an earlier brainstorm against what's actually in the repos as of
 already exist, and one it treated as a detail is the actual root blocker.
 
 > **★ Naming banner, 2026-08-08 — read every `nebelhaus.*` below as `haus.*`.**
-> The platform is being renamed **hausfold**, its option namespace **`haus.*`**,
+> The platform is **`haus`** — its own name since 2026-08-10 (decision 8), and
+> also its CLI and its option namespace — shipped by the org **hausfold**,
 > and `nebelhaus` demoted to what this document has always been arguing it
 > should be: **one rice among many**, the developer-focused one. The plan is
 > [`hausfold-rename.md`](./hausfold-rename.md).
