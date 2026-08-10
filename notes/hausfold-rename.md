@@ -2003,15 +2003,149 @@ So the target config is that file's shape with hausfold.co's routes. Concretely,
   `/api/release/<app>`) stay in `worker.js`, and `web/test/*.js`'s four suites
   come across with it and keep passing. That is the whole point of this choice.
 
-⚠️ **The one thing static export genuinely costs, and it needs checking first:
-docs search.** Starlight ships search built in. Fumadocs' default search is a
-**server route**, which `output: 'export'` cannot emit — so a docs site can be
-built, deployed, and look complete while search silently does nothing. Fumadocs
-supports a static/client-side search index for exactly this case. **Prove search
-works on a throwaway export before porting page content**, not after: it is the
-one feature whose absence a reader notices immediately and a build never
-reports. If it can't be made to work statically, that reopens this decision —
-which is much cheaper to discover on a spike than on a finished port.
+#### ✅ Search: spiked and measured 2026-08-09 — it works, and the index is byte-deterministic
+
+The gate this section used to carry ("prove search works on a throwaway export
+**before** porting content, because a docs site can build, deploy and look
+complete while search silently does nothing") **has been run.** Result: static
+search works, and the emitted index is reproducible. Recorded here so the port
+doesn't re-spike it.
+
+**How it's wired** — and the scaffolder does all of it, which is the headline:
+
+```sh
+npx create-fumadocs-app@latest <name> \
+  --template "+next+fuma-docs-mdx+static" --search orama \
+  --pm npm --src --linter eslint --og-image next-og --install
+```
+
+There is a **first-class static template**. It emits `next.config.mjs` with
+`output: 'export'`, `src/app/api/search/route.ts` holding
+`export const { staticGET: GET } = createFromSource(source, { language: 'english' })`
+plus `export const revalidate = false`, and `src/components/search.tsx` using
+`staticClient()` from `fumadocs-core/search/client/orama-static`. Nothing had to
+be hand-wired. ⚠️ **Pass every flag** — it still prompts interactively for any
+you omit, which hangs an unattended run.
+
+**Proof it answers queries**, not just that a file exists (the failure mode is
+an index that loads and returns nothing). Loading `out/api/search` the way
+`staticClient` does — `create({schema:{_:'string'}})` then `load()` — and
+querying it:
+
+| term | hits |
+|---|---|
+| `fumadocs` | 2 — `/docs#what-is-next`, `/docs/test#cards` |
+| `writing` | 1 — `/docs` |
+| `document` | 2 |
+| `zzzznotathing` | **0** (so it isn't matching everything) |
+
+Real URLs with heading anchors, and a negative control.
+
+**Determinism — the actual question, and the answer is yes for the index.**
+Built three times: twice in the same directory, once from a copy at a
+**different absolute path** (a build that embeds its own cwd looks reproducible
+locally and breaks the day CI checks out elsewhere). All three:
+
+```
+0446fb413a3b5f5d5005c3d057f9385cd983c1bf8870b92be45d81844a1ef841  b1/api/search
+0446fb413a3b5f5d5005c3d057f9385cd983c1bf8870b92be45d81844a1ef841  b2/api/search
+0446fb413a3b5f5d5005c3d057f9385cd983c1bf8870b92be45d81844a1ef841  b3/api/search
+```
+
+**Why** it's stable, so the property is understood rather than observed: the
+file is a fully serialized Orama database (`type: "advanced"`) whose document
+ids are **derived from page slugs** — `/docs`, `/docs-0`, `/docs-1`, … — not
+generated. Grepping it for `created|updated|timestamp|date|buildId|generatedAt`
+returns nothing. No clock, no randomness, no absolute paths.
+
+🚨 **But the rest of the export is NOT deterministic by default, and that is a
+separate finding.** Next mints a **random `buildId` per build** and embeds it in
+`_next/static/<buildId>/`, in every RSC `.txt` payload and in `404.html` — so
+two builds of identical source differ in dozens of files, *including two runs in
+the same directory a minute apart*. Measured, then fixed and re-measured:
+
+```js
+// next.config.mjs
+generateBuildId: () => 'hausfold',   // or the release tag / commit sha
+```
+
+With that pinned, `diff -rq` across two builds is **empty — the whole export is
+byte-identical**, and the index hash is unchanged by the pin. **Set it during
+the port**, not after: without it "did this deploy change anything?" is
+unanswerable, and a diffable deploy is most of the value of a static site.
+
+⚠️ **This is a property of these versions, so it needs a check, not a memory.**
+Measured on `fumadocs-core` 16.14.3, `fumadocs-mdx` 15.2.3,
+`fumadocs-ui`(`@fumadocs/base-ui`) 16.14.3, `next` 16.3.0. **Add a CI step that
+builds twice and diffs `out/`** — it costs one extra build and it is the only
+thing that would catch a future Fumadocs or Next release quietly introducing a
+timestamp. Without it, this box's ✅ decays silently into a claim.
+
+✅ **Bonus, and it's on the salvage list:** the same template already ships
+`llms.txt` and `llms-full.txt` as static routes, plus per-page
+`llms.mdx/docs/*/content.md` and OG images. §5.2's table lists
+`web/src/pages/llms.txt.ts` and `llms-full.txt.ts` as must-survive — they don't
+need re-authoring, they come with the template.
+
+##### 🚨 Then measured against the **real** corpus, and the index is big
+
+A 2-page scaffold proves nothing about size. The 29 real pages from
+`web/src/content/docs` (prose only — see the caveat below) were built through
+the same pipeline:
+
+| | |
+|---|---|
+| source prose indexed | 381 KB across 29 pages |
+| indexed sections | **3,004** |
+| `out/api/search` raw | **4,185,685 bytes (4.2 MB)** |
+| gzip -9 | 798 KB |
+| brotli -q 11 | **457 KB** |
+| determinism | ✅ still byte-identical across two builds (`8af65f22…`) |
+
+**An 11× blowup over the prose**, and ~450 KB even brotli'd. Determinism holds
+at real scale, which was the question — but the size is the thing this spike
+found that nobody had asked about, and it is exactly what Fumadocs' own docs
+warn about ("for large docs sites, it can be expensive").
+
+Three things make that liveable, in order of importance:
+
+1. ✅ **It is fetched lazily, on the first query — not on page load.**
+   `staticClient`'s `getDBCached` is called inside `search(query)`
+   (`fumadocs-core/dist/search/client/orama-static.js`), and cached per URL
+   afterwards. So the cost lands only on readers who actually open search, once
+   per session. This is the fact that keeps 4.2 MB from being a page-weight
+   regression.
+2. 🚨 **But verify it's actually compressed, because the filename fights you.**
+   Next writes the file as `out/api/search` — **no extension**. Cloudflare
+   infers content type from the extension and only compresses compressible
+   types, so an extensionless file can be served as
+   `application/octet-stream` and shipped **uncompressed — 4.2 MB, not 457 KB**,
+   with nothing failing or warning. **Check `content-encoding` and
+   `content-type` on the deployed URL** (`curl -sI -H 'Accept-Encoding: br'`),
+   and if it's wrong, set it in `public/_headers` — which this site already
+   ships and already knows how to use.
+3. If it still reads as too much, the lever is *what gets indexed* (trim page
+   content in `createFromSource`, or split per section) — not switching search
+   engines. Don't reach for it before measuring point 2, which is a
+   one-line-of-config difference between 457 KB and 4.2 MB.
+
+⚠️ **Caveat on the measurement, stated so nobody over-trusts it.** The Starlight
+MDX does **not** compile under Fumadocs unmodified, so the corpus was stripped
+to prose (JSX components, imports, `:::` asides and images removed) to get it
+through the build. Real pages will index *somewhat* more (component text) —
+call 4.2 MB a floor, not a ceiling. Two concrete incompatibilities found while
+doing it, both worth knowing before the port:
+
+- **Markdown images become build-time module imports.** `![](/media/ripple.webp)`
+  compiles to `import __img0 from "../../public/media/ripple.webp"`, resolved
+  **relative to the content file**. In Starlight that string is just a public
+  URL that's never resolved. So a missing asset is a **hard build failure**
+  under Fumadocs where it was a broken `<img>` under Starlight — better, but it
+  will bite on day one, and the corpus has exactly one such image
+  (`/media/ripple.webp?v=2`, used in two pages).
+- Every Starlight component (`<Card>`, `<Tabs>`, `:::note`) needs a Fumadocs
+  equivalent or removal; MDX that merely *looks* portable fails at `acorn`
+  parse time, not with a helpful message.
 
 ⚠️ Other `output: 'export'` constraints, so they're not rediscovered one by one:
 no server components doing runtime work, no middleware, no ISR/SSR, and
@@ -2022,6 +2156,10 @@ way that reads as a config error rather than as this decision.
 Still not decided (don't settle it by accident while building): whether the
 landing pages become Next pages too, or stay the hand-written HTML they are
 today, served from the same assets directory beside the exported docs.
+
+**The three things this decision hands the port as concrete work**, all proven
+below rather than guessed: pin `generateBuildId`, verify the search index is
+served compressed, and add a build-twice-and-diff check to CI.
 
 The pages get redesigned. **These are not pages and must survive verbatim:**
 
