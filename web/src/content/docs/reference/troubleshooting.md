@@ -82,12 +82,25 @@ land. A rebuild rewrites the bar's config but the live bar read it once at boot 
 normally auto-reloaded, but you can force it:
 
 ```sh
-sketchybar --reload    # the menu-bar bar
-sill-bottom --reload   # the bottom bar, if haus.sill.bottom.enable is on
+sketchybar  --reload ~/.config/sketchybar/sketchybarrc    # the menu-bar bar
+sill-bottom --reload ~/.config/sketchybar/sill-bottomrc   # the bottom bar, if
+                                                          # haus.sill.bottom.enable is on
 ```
 
-Each bar is its own instance under its own name, so each takes its own reload:
-`sketchybar --reload` leaves the bottom bar exactly as it was.
+Two things to get right there, and they bite independently:
+
+- **Each bar takes its own reload.** They're separate instances under separate
+  names, so a lone `sketchybar --reload` leaves the bottom bar exactly as it was.
+- **Always name the rc.** `--reload` on its own doesn't mean "re-read your
+  config", it means *"re-run the path you resolved at startup"* — and that path
+  is a symlink into `/nix/store`, resolved once. So a bare reload can keep
+  replaying the config from the generation the bar booted on, while exiting 0 and
+  logging `configuration loaded..`. The bottom bar is the one this actually bites
+  (it's the one launched with `--config`); naming the path re-resolves the
+  symlink now.
+
+Easier: run **Reload SketchyBar** from the ⌘Space palette, or the same row in the
+logo pill's dropdown. Both do both bars, both name the rc.
 
 If you'd rather not run a custom bar at all, set `haus.sill.enable = false`
 and the native macOS menu bar comes back.
