@@ -1651,6 +1651,77 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/options.nix).</small>
 
+## haus.animations
+
+How much motion macOS spends on its own Dock and windows: the slide, the launch bounce, minimise, Mission Control, window open/close. Unset by default like the rest of this block — `"fast"` opts in, and going back only stops writing rather than restoring. Deliberately not the Accessibility "Reduce motion" switch, which every browser also reads as `prefers-reduced-motion`.
+
+### `haus.animations`
+
+`one of "fast", "system"` · default `"system"`
+
+How much motion macOS spends on its own Dock and windows — how long
+three animations run, and two it plays at all.
+
+`"system"` (the default) writes NOTHING — not the macOS values, nothing
+at all — so whatever your Dock does today, it keeps doing. Same policy
+as `haus.hotCorners`: the rice doesn't overwrite a setting you didn't
+ask it about.
+
+`"fast"` writes five keys, all `mkDefault`, so any one of them can be
+overridden by name in your host file:
+
+```
+  com.apple.dock  autohide-time-modifier         0.15   Dock slide
+  com.apple.dock  expose-animation-duration      0.1    Mission Control
+  com.apple.dock  launchanim                     false  the bouncing icon
+  com.apple.dock  mineffect                      scale  minimise (not genie)
+  NSGlobalDomain  NSAutomaticWindowAnimationsEnabled  false  window open/close
+```
+
+GOING BACK IS NOT AUTOMATIC, which is the one thing about this group
+that can surprise you and the reason it isn't on by default. Setting
+`"system"` again means STOP WRITING, not RESTORE: a `defaults` write is
+sticky and macOS keeps no memory of what was there before, so once
+you've rebuilt on `"fast"`, the five keys keep the rice's numbers.
+Undoing it means naming the values you want back in your host file
+(they're `mkDefault`, so a plain value wins), or a `defaults delete`.
+Worth knowing before you try `"fast"` on a Dock you tuned by hand.
+
+WHY THIS ISN'T "REDUCE MOTION". macOS's accessibility switch of that
+name (`com.apple.universalaccess reduceMotion`) would cover all of this
+and more — but it is also the single flag every browser maps to the
+`prefers-reduced-motion: reduce` CSS media query, via
+`NSWorkspace.accessibilityDisplayShouldReduceMotion`. Turning it on
+rewrites the web: mostly for the better, except on sites whose
+scroll-reveal animation is what sets the content visible in the first
+place, which then never appears at all. These five keys are in two
+entirely different domains and move no accessibility flag — `hausax`
+reads that exact `NSWorkspace` property, so `hausax | jq .reduceMotion`
+stays `false` with this set to `"fast"` — that's the whole reason this
+group exists as five curated keys instead of one switch. If you DO want the
+accessibility switch, that's `System Settings ▸ Accessibility ▸
+Display`, deliberately not a rice option.
+
+WHEN YOU'LL FEEL IT. The four Dock keys are live the moment activation
+finishes — nix-darwin restarts the Dock whenever anything in its domain
+is written, and the rice always writes `autohide`. The NSGlobalDomain
+one is read by each app AT LAUNCH, so apps you already have open keep
+animating their windows until you relaunch them; `activateSettings`
+can't reach back into a running `NSApplication`.
+
+These are timings, not a state the rice can prove from a plist — unlike
+the `haus.accessibility` keys, there's no oracle for "did the Dock
+slide faster". They're felt, not measured. The one measurable claim
+here is the negative one above.
+
+Example:
+
+```nix
+"fast"
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/den/options.nix).</small>
+
 ## haus.hotCorners
 
 What each corner of the screen does when the pointer reaches it. Every corner is unset by default, so the rice never overwrites one you set yourself.
@@ -2868,7 +2939,7 @@ The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-The now-playing track (scrolls; auto-hides when nothing plays, dims when paused, click to play/pause). It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says which app the sound is coming from. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover (or the source app's icon), a scrubbable position slider, transport rows, and a short recently-played list — macOS keeps no now-playing history at all, so that list is written as tracks change or it could not exist. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
@@ -3077,7 +3148,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 `boolean` · default `true`
 
-The now-playing track (scrolls; auto-hides when nothing plays, dims when paused, click to play/pause). It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says which app the sound is coming from. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover (or the source app's icon), a scrubbable position slider, transport rows, and a short recently-played list — macOS keeps no now-playing history at all, so that list is written as tracks change or it could not exist. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
@@ -3113,6 +3184,84 @@ The Wi-Fi status pill.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
 
+### `haus.sill.media.artworkTint`
+
+`boolean` · default `false`
+
+Colour the media pill's glyph from the current cover art instead of from
+what kind of thing is playing.
+
+The colour is the cover's average, SNAPPED to the nearest member of the
+rice's palette — so the pill picks up the mood of a record without ever
+drawing a colour that isn't in the theme. Off by default because it
+trades a stable meaning (pink is Music, green is Spotify, red is video)
+for a colour that changes every three minutes.
+
+Only sources that publish artwork can drive it, which is fewer than you
+would think: every Firefox-family browser publishes none at all, and the
+pill falls back to the kind colour for those.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.media.collapse`
+
+`boolean` · default `false`
+
+Draw the media pill as its glyph alone, and reveal the title only while
+the pointer is on it.
+
+Worth having on a MacBook: the bar's centre span is under the notch, so
+every character of scrolling track title is rent paid out of the room
+the workspace pills and the front-app name need. The pill still hides
+itself entirely when nothing is playing — this is about the case where
+something is.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.media.icons`
+
+`attribute set of string` · default `{ }`
+
+Override the media pill's glyph, keyed by bundle id
+(`com.spotify.client`) or by KIND — one of `music`, `spotify`,
+`podcast`, `video`, `vlc`, `browser.video`, `browser.music`, `other`.
+A bundle id wins over a kind.
+
+This exists because of one hard limit: **nothing on the machine can tell
+you which site a browser tab is playing.** macOS's now-playing session
+carries no URL, window titles only ever name the FOREGROUND tab (the one
+playing audio is usually behind), Firefox-family browsers publish no
+artwork to shape-check, and the session's pid is the browser's parent
+process rather than the tab's. So the pill draws a neutral video glyph
+for a browser rather than guessing YouTube and being wrong on Netflix.
+
+If you know that on YOUR machine browser video means YouTube, say so:
+
+  haus.sill.media.icons."browser.video" = "󰗃";
+
+Example:
+
+```nix
+{
+  "browser.video" = "󰗃";
+  "com.apple.podcasts" = "󰦔";
+}
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/sill/options.nix).</small>
+
 ### `haus.sill.position`
 
 `one of "top", "bottom", "auto"` · default `"top"`
@@ -3139,6 +3288,98 @@ Example:
 ## haus.pounce
 
 The ⌘Space command palette.
+
+### `haus.pounce.autoQuit.delay`
+
+`integer or floating point number between 0.25 and 3600 (both inclusive)` · default `2`
+
+Seconds to wait after the last window closes before looking again and
+quitting. Load-bearing, not politeness: it is what tells "I'm done with
+this app" apart from "close this window, open another" — which is what
+a browser does when you close its last window and hit ⌘N. Anything open
+at the end of the wait, including panels and dialogs the ⌘Tab switcher
+wouldn't list, calls the quit off.
+
+Two seconds is the responsive end of that trade. It is deliberately not
+enough for a cold IDE reopening a project — that is a case for
+haus.pounce.autoQuit.exclude rather than for a delay you would feel on
+every app.
+
+Read once, when auto-quit arms — changing it bounces the pounce daemon
+on the next rebuild.
+
+Example:
+
+```nix
+5
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
+
+### `haus.pounce.autoQuit.enable`
+
+`boolean` · default `false`
+
+Quit an app when you close its last window, the way Windows does it.
+macOS keeps a windowless app running, so every one of them is a ⌘Q you
+forgot; with this on, pounce notices the last window go away and asks
+the app to quit.
+
+*Asked*, not killed — it is the same Quit event ⌘Q sends, so an app
+with unsaved work puts its sheet up and stays. Nothing here can lose
+work that ⌘Q wouldn't. What it CAN do is stop background work you were
+keeping a window open for: close Docker Desktop's dashboard and Docker
+is asked to quit, which stops your containers. Media players, torrent
+clients and chat apps have the same shape — that class of app is what
+haus.pounce.autoQuit.exclude is for.
+
+Reads the same window snapshot as the ⌘Tab switcher, so it wants the
+same Accessibility grant (set haus.pounce.signingIdentity so it
+survives rebuilds) and shares the observers rather than taking its own.
+Without the grant it stays off and says so in the log rather than
+guessing.
+
+Off by default: this changes when your apps die, which is a thing you
+feel, and the muscle memory it suits is not everyone's.
+
+Unlike the rest of pounce's config, the auto-quit settings are read once
+— when the daemon arms them — rather than per open. So a rebuild that
+touches any of the three restarts the pounce daemon, which the rice does
+for you; nothing here needs a log-out to land.
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
+
+### `haus.pounce.autoQuit.exclude`
+
+`null or (list of string)` · default `pounce's own list — `[ "com.apple.finder" ]``
+
+Bundle ids never auto-quit. `null` leaves pounce's own default in
+place, which is `[ "com.apple.finder" ]` — Finder is the one app macOS
+runs windowless by design, and quitting it blinks the desktop out while
+it relaunches.
+
+A list you write **replaces** that default rather than extending it, so
+put Finder back in it unless you mean to drop it. `[ ]` really does
+mean nothing is excluded.
+
+Read a bundle id off any running app with
+`osascript -e 'id of app "Notes"'`.
+
+Read once, when auto-quit arms — adding an app here bounces the pounce
+daemon on the next rebuild, so the app stops being quit immediately
+rather than at the next log-in.
+
+Example:
+
+```nix
+[
+  "com.apple.finder"
+  "com.docker.docker"
+  "com.spotify.client"
+]
+```
+
+<small>Declared in [`modules/pounce/options.nix`](https://github.com/hausfold/hausfold/blob/main/modules/pounce/options.nix).</small>
 
 ### `haus.pounce.enable`
 

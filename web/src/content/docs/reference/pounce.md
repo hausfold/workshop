@@ -9,7 +9,17 @@ your own commands, see [Writing pounce commands](/guides/pounce-commands/).
 ## Config file
 
 Pounce reads `~/.config/pounce/config.json`. Every key is optional; the file is
-re-read each time the palette opens (no daemon restart needed).
+re-read each time the palette opens (no daemon restart needed). The exceptions
+are the three things the daemon sets **up at startup** — `windows`, `autoQuit`
+and the `items` hotkeys — which are captured when it arms them and need a
+restart to change:
+
+```sh
+launchctl kickstart -k "gui/$(id -u)/com.hausfold.pounce"
+```
+
+Inside nebelhaus a rebuild does that bounce for you when one of those keys
+moves.
 
 ### Start from a config that documents itself
 
@@ -73,6 +83,11 @@ by a newer one.
     "key": "tab",            // hold the modifiers, tap this to walk windows
     "modifiers": ["cmd"]
   },
+  "autoQuit": {
+    "enabled": false,        // quit an app when you close its last window
+    "delay": 2,              // seconds to wait, then look again before quitting
+    "exclude": ["com.apple.finder"]  // never auto-quit these; REPLACES the default
+  },
   "items": {                 // per-item enable / alias / hotkey — see below
     "cmd:emoji": { "alias": "emo", "hotkey": "opt+space e" }
   }
@@ -103,6 +118,9 @@ by a newer one.
 | `windows.enabled` | `true` \| `false` | `false` |
 | `windows.key` | key name | `"tab"` |
 | `windows.modifiers` | array of `cmd`/`shift`/`opt`/`ctrl` | `["cmd"]` |
+| `autoQuit.enabled` | `true` \| `false` | `false` |
+| `autoQuit.delay` | seconds, `0.25`–`3600` (clamped) | `2` |
+| `autoQuit.exclude` | array of bundle ids; **replaces** the default | `["com.apple.finder"]` |
 | `items` | map of item key → `{ enabled, alias, hotkey }` | `{}` |
 
 `themeLight` / `themeDark` are resolved per open (like everything else here), so
@@ -113,6 +131,15 @@ Setting `windows.enabled` turns on the MRU
 [window switcher](/guides/pounce/#a-window-switcher-not-an-app-switcher-opt-in); it needs the
 Accessibility grant to install its event tap, and without the grant stock ⌘Tab
 keeps working.
+
+`autoQuit.enabled` turns on
+[quit-on-last-window-close](/guides/pounce/#quit-an-app-when-its-last-window-closes-opt-in).
+It reads the same window snapshot as `windows`, so it wants the same
+Accessibility grant and shares those observers rather than taking its own —
+turning both on costs one set, not two. The whole `autoQuit` block is one of the
+startup-only exceptions above — the daemon captures `delay` and `exclude` when
+it arms auto-quit and never re-reads them — so **any** edit in here needs the
+restart, not just flipping `enabled`.
 
 `quickAnswers.currency` and `updates.check` are the only two things in Pounce
 that touch the network. The first fetches the ECB daily reference rates from
