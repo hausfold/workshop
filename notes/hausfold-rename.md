@@ -1180,6 +1180,12 @@ Easy to miss and it breaks *your* sessions, not users':
   `~/.config/opencode/AGENTS.md`, and the matching skills dirs). Aliased in a new
   `modules/moved.nix`, which is the file for in-namespace moves — `renamed.nix`
   stays the generated `nebelhaus.*` set with its own deletion condition.
+  ⚠️ Writing a file per client is also a **reach-table** change: `flake.nix`'s
+  `expectedScaleTable` / `expectedFontTable` enumerate every `home.file` entry by
+  literal path, and they only diff at BUILD time — `nix flake check --no-build`
+  passes while the real run goes red naming a font/scale error nobody associates
+  with the agents room. Handled in hausfold/haus#312; the same trap waits for the
+  next option that writes per-client.
 - ✅ The generated skill dir `~/.claude/skills/nebelhaus/` → `.../haus/`, and the
   skill's own `name:` + description — **landed 2026-08-08: nebelhaus#263 (the
   rice), workshop#268 (the docs that point at it), workshop#271 (the

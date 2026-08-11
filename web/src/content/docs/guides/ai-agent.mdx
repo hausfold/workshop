@@ -40,9 +40,10 @@ your revision — and `haus update` regenerates it along with the rice.
 
 <Aside type="tip" title="Check it's there">
 `haus doctor` has an **Agents** section that reports whether the skill is
-installed, whether your config repo has an `AGENTS.md` (and the `CLAUDE.md`
-pointer beside it), and whether the app you're running from can write macOS's
-protected settings.
+installed (it checks every client's directory and names the copy it found),
+whether your config repo has an `AGENTS.md` (and the `CLAUDE.md` pointer beside
+it), and whether the app you're running from can write macOS's protected
+settings.
 </Aside>
 
 ## The loop it follows
@@ -132,9 +133,11 @@ skill. A starter pair ships inside the skill; nothing writes it for you, because
 it's your repo and you should own the files:
 
 ```sh
-# from whichever client's copy you have — they are identical
-install -m 644 ~/.claude/skills/haus/consumer-AGENTS.md ~/.config/nix/AGENTS.md
-install -m 644 ~/.claude/skills/haus/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
+# whichever of these exists on your machine — the copies are identical:
+#   ~/.claude/skills/haus  ·  ~/.codex/skills/haus  ·  ~/.config/opencode/skills/haus
+skill=~/.claude/skills/haus
+install -m 644 "$skill"/consumer-AGENTS.md ~/.config/nix/AGENTS.md
+install -m 644 "$skill"/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
 ```
 
 `install -m 644`, not `cp`: the starter pair are symlinks into the Nix store,
