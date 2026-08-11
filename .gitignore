@@ -9,12 +9,13 @@
 # rice under its pre-migration name and `bench` will not find it.
 /hausfold/
 /hausfold.co/
+/homebrew-tap/
 /holt/
 /nebelung/
 /pounce/
 /perch/
+/ops/
 /org-profile/
-/homebrew-tap/
 /trill/
 # `ops` is private and NOT in bench's FAMILY, DOCS_REPOS or clone list — it is
 # cloned by hand when name-register work needs it, so most machines won't have
