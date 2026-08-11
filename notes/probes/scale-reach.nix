@@ -68,7 +68,7 @@
 # the same day. This file stays the scratch version: it prints the numeric-leaf
 # census and the resolved values, which is what you want the first time.
 {
-  rice ? ../../hausfold,
+  rice ? ../../haus,
   scales ? [
     1.0
     1.4

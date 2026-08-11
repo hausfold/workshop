@@ -299,7 +299,7 @@ detect_worktree() {
   main="$(dirname "$common")"
   [ "$top" = "$main" ] && return 0
   for name in "${FAMILY[@]}"; do
-    if [ "$main" = "$ROOT/$name" ]; then WT_REPO="$name" WT_PATH="$top"; return 0; fi
+    if [ "$main" = "$(repo_dir "$name")" ]; then WT_REPO="$name" WT_PATH="$top"; return 0; fi
   done
 }
 
@@ -308,7 +308,7 @@ local_src() { # local_src <repo> — the checkout to build against (batch- + wor
   # main+PRs checkout we deliberately built for this repo. Otherwise fall through
   # to the active agent worktree (if this repo is it), then the main checkout.
   if [ -n "${BATCH_SRC[$1]:-}" ]; then echo "${BATCH_SRC[$1]}"; return; fi
-  if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else echo "$ROOT/$1"; fi
+  if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else repo_dir "$1"; fi
 }
 
 # ── who is driving? ─────────────────────────────────────────────────────────
@@ -1619,17 +1619,23 @@ cmd_docs_since() {
   [ "$any" = 1 ] || say "nothing new since the last docs sweep."
 
   if [ -n "$mark" ]; then
-    python3 - "$DOCS_STATE" "$ROOT" "$CONSUMER" "${DOCS_REPOS[@]}" <<'EOF'
+    # Pairs, not names: repo_dir is the one place that knows a checkout's
+    # directory (it differs from the name for `workshop`, and carried §10's
+    # migration fallback for `haus`), so resolve here rather than rebuilding
+    # "$root/$name" in python and silently missing the repo.
+    local -a docs_pairs=()
+    for name in "${DOCS_REPOS[@]}"; do docs_pairs+=("$name=$(repo_dir "$name")"); done
+    python3 - "$DOCS_STATE" "${docs_pairs[@]}" <<'EOF'
 import json, subprocess, sys, datetime
-state_path, root, consumer, *repos = sys.argv[1:]
+state_path, *pairs = sys.argv[1:]
+repos = [p.split("=", 1) for p in pairs]
 state = {"repos": {}}
 try:
     state = json.load(open(state_path))
     state.setdefault("repos", {})
 except Exception:
     pass
-for name in repos:
-    d = root if name == "workshop" else f"{root}/{name}"
+for name, d in repos:
     # Mark `main`, never HEAD. A sweep ends sitting on its own docs-sync-* PR
     # branch, and recording that tip would park the watermark on a commit main
     # doesn't contain — every later run then re-reads from a bogus base. main is
@@ -1658,11 +1664,12 @@ cmd_clone() {
   # is ./haus and its repo is `hausfold/haus`, so it falls through gh_repo's
   # default like everyone else.
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
-    if [ -d "$ROOT/$name/.git" ]; then
+    local dir; dir="$(repo_dir "$name")"
+    if [ -d "$dir/.git" ]; then
       say "$name already here"
     else
       say "cloning ${name}…"
-      git clone "https://github.com/$(gh_repo "$name").git" "$ROOT/$name"
+      git clone "https://github.com/$(gh_repo "$name").git" "$dir"
     fi
   done
 
@@ -1689,13 +1696,14 @@ cmd_clone() {
   # pointing this name back at `website`: you'd clone a dead snapshot over the
   # live site.
   for name in trill hausfold.co; do
-    if [ -d "$ROOT/$name/.git" ]; then
+    local dir; dir="$(repo_dir "$name")"
+    if [ -d "$dir/.git" ]; then
       say "$name already here"
     else
       say "cloning ${name}…"
       # Warn rather than die: a missing non-flake checkout shouldn't fail a
       # bootstrap whose real job is the family.
-      git clone "https://github.com/$(gh_repo "$name").git" "$ROOT/$name" \
+      git clone "https://github.com/$(gh_repo "$name").git" "$dir" \
         || warn "$name: clone failed — check your network"
     fi
   done
@@ -1714,26 +1722,47 @@ cmd_relocate_haus() {
   local cache="${XDG_CACHE_HOME:-$HOME/.cache}/claude-worktrees"
   local lanes_old="$cache/hausfold" lanes_new="$cache/haus" reg="$cache/registry.tsv"
 
-  [ -d "$old/.git" ] || die "nothing to move: $old isn't a checkout (already relocated?)"
-  [ -e "$new" ] && die "$new already exists — resolve by hand, this command won't merge two trees"
+  # Every step below is conditional, because this command has to be RESUMABLE.
+  # It does five things to live machine state and any one of them can be
+  # interrupted; a version that dies unless the tree is pristine leaves you
+  # finishing the other four by hand, which is exactly what it exists to avoid.
+  [ -d "$old/.git" ] || [ -d "$new/.git" ] \
+    || die "no layer checkout at $old or $new — bench clone"
+  [ -d "$old/.git" ] && [ -d "$new/.git" ] \
+    && die "checkouts at BOTH $old and $new — resolve by hand, this won't merge two trees"
 
   # Refuse while an agent is standing in a lane of this repo. Moving the dir out
   # from under a running session breaks its cwd mid-edit, and holt is the only
   # thing that knows which lanes are occupied.
-  if command -v holt >/dev/null 2>&1; then
+  if [ "${HOLT_SKIP:-}" != "1" ] && command -v holt >/dev/null 2>&1; then
     local busy
+    # Both spellings: a resumed run finds the checkout already at $new, so its
+    # lanes report THAT as `main` and a guard that only knew $old would wave
+    # them through. `?` on a parse failure so the check fails CLOSED — a holt
+    # schema change must stop the move, not silently permit it.
     busy="$(holt --json 2>/dev/null | python3 -c '
 import json, sys
-try: lanes = json.load(sys.stdin)["lanes"]
-except Exception: sys.exit(0)
-main = sys.argv[1]
-print(" ".join(l["name"] for l in lanes if l.get("main") == main and l.get("occupied")))
-' "$old" 2>/dev/null || true)"
-    [ -n "$busy" ] && die "lanes still occupied: $busy — close those panes first (holt lists them)"
+try:
+    lanes = json.load(sys.stdin)["lanes"]
+except Exception:
+    print("?"); sys.exit(0)
+mains = set(sys.argv[1:])
+print(" ".join(l["name"] for l in lanes
+                if l.get("main") in mains and l.get("occupied")))
+' "$old" "$new" 2>/dev/null || echo '?')"
+    case "$busy" in
+      '') ;;
+      '?') die "couldn't read holt's lane list — refusing to move a tree an agent may be standing in (HOLT_SKIP=1 to override)" ;;
+      *)  die "lanes still occupied: $busy — close those panes first (holt lists them)" ;;
+    esac
   fi
 
-  say "moving the layer checkout: $old → $new"
-  mv "$old" "$new"
+  if [ -d "$old/.git" ]; then
+    say "moving the layer checkout: $old → $new"
+    mv "$old" "$new"
+  else
+    say "layer checkout already at $new — continuing with the rest"
+  fi
 
   # The old remote still resolves through GitHub's redirect, so this is hygiene
   # rather than repair — but a stale URL is what makes the NEXT reader think the
@@ -1750,6 +1779,12 @@ print(" ".join(l["name"] for l in lanes if l.get("main") == main and l.get("occu
   if [ -d "$lanes_old" ] && [ ! -e "$lanes_new" ]; then
     say "moving agent lanes: $lanes_old → $lanes_new"
     mv "$lanes_old" "$lanes_new"
+  elif [ -d "$lanes_old" ]; then
+    # Never silent: the repair pass below walks $lanes_new, so a skipped move
+    # means it repairs a DIFFERENT set of checkouts than the ones still sitting
+    # in $lanes_old, and the registry rewrite retargets rows whose lanes never
+    # moved. Loud is the only safe behaviour here.
+    warn "both $lanes_old and $lanes_new exist — lanes NOT moved; merge them by hand, then re-run"
   fi
 
   # Both ends moved, so repair must be driven from the main worktree WITH the
@@ -1757,8 +1792,10 @@ print(" ".join(l["name"] for l in lanes if l.get("main") == main and l.get("occu
   # `.git/worktrees/<lane>/gitdir` in one pass. Plain `worktree repair` fixes
   # only one direction and would leave every lane unopenable.
   local -a lanes=()
-  [ -d "$lanes_new" ] && while IFS= read -r d; do lanes+=("$d"); done \
-    < <(find "$lanes_new" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+  local lanes_dir="$lanes_new"
+  [ -d "$lanes_dir" ] || lanes_dir="$lanes_old"   # the move above may have been skipped
+  [ -d "$lanes_dir" ] && while IFS= read -r d; do lanes+=("$d"); done \
+    < <(find "$lanes_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
   if [ "${#lanes[@]}" -gt 0 ]; then
     say "repairing ${#lanes[@]} linked worktree(s)…"
     git -C "$new" worktree repair "${lanes[@]}" || warn "worktree repair complained — check \`git -C $new worktree list\`"
@@ -1769,26 +1806,39 @@ print(" ".join(l["name"] for l in lanes if l.get("main") == main and l.get("occu
   # convention, so an unhappy result is one `mv` from being undone.
   if [ -f "$reg" ]; then
     cp "$reg" "$reg.bak.relocate"
-    python3 - "$reg" "$old" "$new" "$lanes_old" "$lanes_new" <<'EOF'
+    local moved
+    moved="$(python3 - "$reg" "$old" "$new" "$lanes_old" "$lanes_new" <<'EOF'
 import sys
 reg, old, new, lanes_old, lanes_new = sys.argv[1:6]
+# holt's registry.tsv is SIX tab-separated fields, and the offsets below are the
+# whole correctness of this function — an off-by-one silently rewrites `branch`
+# and `agent` (which never match, so nothing changes) while reporting success.
+NAME, MAIN, BRANCH, PATH, PARENT, AGENT = range(6)
 def fix(p):
+    # Prefix match, not substring: `…/claude-worktrees/hausfold.co/<lane>` must
+    # NOT be caught by the `…/hausfold` rule. The `+ "/"` is what spares it.
     for a, b in ((old, new), (lanes_old, lanes_new)):
         if p == a or p.startswith(a + "/"):
             return b + p[len(a):]
     return p
-out = []
+out, n = [], 0
 for line in open(reg):
     if not line.strip():
         out.append(line); continue
     f = line.rstrip("\n").split("\t")
-    for i in (2, 4, 5):            # main, checkout path, parent
+    before = list(f)
+    for i in (MAIN, PATH, PARENT):
         if i < len(f):
             f[i] = fix(f[i])
+    if f != before:
+        n += 1
     out.append("\t".join(f) + "\n")
 open(reg, "w").writelines(out)
+print(n)
 EOF
-    say "holt registry retargeted (backup: $reg.bak.relocate)"
+)"
+    say "holt registry: ${moved:-0} lane(s) retargeted (backup: $reg.bak.relocate)"
+    [ "${moved:-0}" = "0" ] && warn "no registry rows changed — if holt lists layer lanes, check $reg by hand"
   fi
 
   say "the layer lives at $new. Check it: bench status · holt"

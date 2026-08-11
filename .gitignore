@@ -26,3 +26,8 @@
 /ops/
 /web/.wrangler/
 .DS_Store
+
+# vitest writes its cache to the REPO ROOT when run from here (web/.gitignore
+# only covers web/node_modules), and a tracked cache file makes this tree
+# permanently dirty — which `bench ship` refuses and `bench status` cries wolf on.
+/node_modules/
