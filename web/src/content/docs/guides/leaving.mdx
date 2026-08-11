@@ -59,6 +59,13 @@ activation. Dock, keyboard, Finder, menu-bar, wallpaper, Spotlight,
 file-association, and similar settings may need to be changed back in System
 Settings, or declared with the values you want in your config.
 
+The **wallpaper** is the sharpest of those. `haus.wallpaper.style` defaults to
+`minimal`, so the desktop is set at every activation, and macOS keeps no record
+of the picture that was there before — rolling back to a generation that predates
+it does not bring yours back. Re-pick it in System Settings **and** set
+`haus.wallpaper.style = "none";`, or the next rebuild stamps the generated one
+over it again.
+
 ## Remove one room
 
 The visible rooms can be disabled independently in your host file:
