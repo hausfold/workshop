@@ -4,14 +4,14 @@ description: The repos that make up nebelhaus, what each one owns, and how they 
 ---
 
 nebelhaus is not one repo — it's a small family, each piece owning one job and
-usable on its own. The rice ([nebelhaus](https://github.com/hausfold/hausfold))
+usable on its own. The rice ([nebelhaus](https://github.com/hausfold/haus))
 ties them together, but pounce, perch, and nebelung stand alone too.
 
 ## The repos
 
 | Repo | Owns | You touch it when… |
 |---|---|---|
-| 🏠 [**nebelhaus**](https://github.com/hausfold/hausfold) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
+| 🏠 [**nebelhaus**](https://github.com/hausfold/haus) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
 | 🐾 [**pounce**](https://github.com/hausfold/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
 | 🐈 [**perch**](https://github.com/hausfold/perch) | the shelf — a native notch file tray that stages dropped files and drags them out as one group | you want to change the file shelf |
 | 🌫 [**nebelung**](https://github.com/hausfold/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |

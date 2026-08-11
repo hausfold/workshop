@@ -3,7 +3,7 @@
 #
 # The family is a chain of flakes, each pinning the one before it:
 #
-#   nebelung (theme) ──> pounce (palette app) ──> hausfold (the haus layer) ──> ~/.config/nix (your machine)
+#   nebelung (theme) ──> pounce (palette app) ──> haus (the nix-darwin layer) ──> ~/.config/nix (your machine)
 #                └────────────────────────────────────┘
 #
 # Editing upstream means nothing until the downstream locks catch up. This
@@ -24,6 +24,9 @@
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull [repo…]  fast-forward every repo, or just the named ones
 #   bench clone     fetch any family repo missing from this directory
+#   bench relocate-haus   ⏳ one-shot: move ./hausfold → ./haus after the
+#                  2026-08-11 repo rename, repairing every agent lane and holt's
+#                  registry. Delete this command once every machine has run it.
 #   bench docs-since   commits in every repo since the docs were last
 #                  reconciled (--mark records new watermarks) — the input
 #                  to the daily /docs-sync sweep
@@ -65,17 +68,20 @@ if [ -n "$_bench_common" ]; then ROOT="$(dirname "$_bench_common")"; else ROOT="
 CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
-# perch sits before hausfold: it's a flake input of the platform (which installs it
+# perch sits before haus: it's a flake input of the platform (which installs it
 # via Nix, not Homebrew), so its lock edge ripples downstream like the others.
-# holt sits there too — the rice takes it as an input and ships it on PATH, so a
-# holt commit is invisible to this machine until hausfold's lock moves, exactly
+# holt sits there too — the layer takes it as an input and ships it on PATH, so a
+# holt commit is invisible to this machine until haus's lock moves, exactly
 # like every other edge here.
 #
 # FAMILY entries ARE directory names (`local_src` → `$ROOT/$1`), so an entry only
 # ever names a repo whose checkout sits at `$ROOT/<entry>` — a repo renamed on
 # GitHub without renaming its checkout would have `bench status` reporting one
-# repo under the other's name.
-FAMILY=(nebelung pounce perch holt hausfold)
+# repo under the other's name. That is exactly why the 2026-08-11 rename of
+# `hausfold/hausfold` → `hausfold/haus` (hausfold-rename.md §10) moves the
+# checkout too; `repo_dir` carries a one-release fallback for machines that
+# haven't run the `mv` yet.
+FAMILY=(nebelung pounce perch holt haus)
 
 # The org every checkout here came from, since the 2026-08-09 transfer. One
 # value is right again only because #283 dropped the archived Messages client
@@ -98,7 +104,7 @@ GH_ORG="hausfold"
 # builds a signed .app in your login session and injects it via the flake's
 # `prebuilt` input (see ensure_perch_dev_app), so it feel-tests at source level
 # like the pure-Nix repos.
-OVERRIDABLE=(nebelung pounce perch holt hausfold)
+OVERRIDABLE=(nebelung pounce perch holt haus)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -142,7 +148,7 @@ hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
 # Every later eval needing that blob dies with the cryptic libgit2 message
 # "object not found - no match for id …" — nothing but clearing the cache fixes
 # it. The tarball-/fetcher-caches are pure and regenerable, so on that exact
-# signature we wipe them and retry once. Mirrors hausfold/modules/den/haus.sh.
+# signature we wipe them and retry once. Mirrors haus/modules/den/haus.sh.
 NIX_CACHE_CORRUPT_SIG='no match for id'
 
 nix_cache_wipe() { # drop the regenerable fetch caches for both the user and root nix stores
@@ -173,6 +179,19 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
   case "$1" in
     consumer) echo "$CONSUMER" ;;   # ~/.config/nix, outside the workshop dir
     workshop) echo "$ROOT" ;;       # the workshop IS ROOT, not ROOT/workshop
+    # ⏳ Migration fallback, 2026-08-11 — DELETE once every machine has moved.
+    # The layer's repo became `hausfold/haus` (hausfold-rename.md §10) and its
+    # checkout moves with it, but a checkout is machine state: a `git pull` of
+    # THIS file lands on a machine whose dir is still `$ROOT/hausfold`, and
+    # without this arm every `bench status`/`try`/`ship` there would report the
+    # layer missing rather than say why. The old dir is only ever consulted when
+    # the new one is absent, so a machine that HAS moved never sees it.
+    haus)
+      if [ ! -d "$ROOT/haus" ] && [ -d "$ROOT/hausfold/.git" ]; then
+        echo "$ROOT/hausfold"
+      else
+        echo "$ROOT/haus"
+      fi ;;
     *)        echo "$ROOT/$1" ;;
   esac
 }
@@ -183,16 +202,17 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 #
 # 🚨 Every arm below exists because a redirect would otherwise paper over the
 # mismatch, and a redirect is the wrong thing to lean on here. `hausfold/nebelhaus`
-# resolves today — GitHub keeps the pre-rename name pointed at `hausfold/hausfold`
+# resolves today — GitHub keeps every pre-rename name pointed at `hausfold/haus`
 # — so a bare "$GH_ORG/$name" appears to work, right up until someone creates a
 # repo actually named `hausfold/nebelhaus`. That is not hypothetical: the rice
 # KEEPS the name nebelhaus (hausfold-rename.md §6), so that name is live and
 # spoken-for in this org. The day it becomes a real repo, every `gh pr list` and
-# `git clone` below silently retargets it, with no error anywhere.
+# `git clone` below silently retargets it, with no error anywhere. The same now
+# goes for the freed slug `hausfold/hausfold` (§10).
 gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
   case "$1" in
-    # (The rice's arm retired in §3.3 step 4: the checkout is ./hausfold now,
-    # so `hausfold` → `hausfold/hausfold` falls out of the default below.)
+    # (The layer needs no arm: since §10 its checkout is ./haus and its repo is
+    # `hausfold/haus`, so it falls out of the default below like everyone else.)
     # GitHub's org front page lives in a repo that must be named `.github`; the
     # checkout can't be, because a dotdir there is invisible and collides with
     # this repo's own ./.github. This arm used to be inline in cmd_clone.
@@ -253,11 +273,11 @@ rev_on_main() {
 # The lock edges of the family graph: "<consumer-repo> <input-name> <source-repo>"
 EDGES=(
   "pounce nebelung nebelung"
-  "hausfold nebelung nebelung"
-  "hausfold pounce pounce"
-  "hausfold perch perch"
-  "hausfold holt holt"
-  "consumer nebelhaus hausfold"
+  "haus nebelung nebelung"
+  "haus pounce pounce"
+  "haus perch perch"
+  "haus holt holt"
+  "consumer nebelhaus haus"
 )
 
 host_name() { # the darwinConfiguration to build in the consumer flake
@@ -322,15 +342,16 @@ overrides() { # every family input redirected at the local checkouts
   # unknown input is not a hard failure. `bench try` would report that it built
   # your branch while building the pinned rice.
   #
-  # The ONE token here that is a directory is `local_src`'s argument, and §3.3's
-  # step 4 moved it — and only it — to `hausfold`, in the same commit that
-  # renamed the checkout. The `nebelhaus/…` input paths stayed exactly as they
-  # were, which is what makes this line the clearest illustration of the rule:
-  # two spellings of the same word on one line, meaning different things.
+  # The ONE token here that is a directory is `local_src`'s argument: §3.3's
+  # step 4 moved it to `hausfold` and §10 moved it again to `haus`, each time in
+  # the commit that renamed the checkout. The `nebelhaus/…` input paths stayed
+  # exactly as they were through both, which is what makes this line the
+  # clearest illustration of the rule — the input name and the directory are
+  # different things and only one of them ever moves.
   local perch_prebuilt=""
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input nebelhaus/perch/prebuilt path:$PERCH_DEV_APP_DIR"
-  echo "--override-input nebelhaus path:$(local_src hausfold) \
+  echo "--override-input nebelhaus path:$(local_src haus) \
         --override-input nebelhaus/nebelung path:$(local_src nebelung) \
         --override-input nebelhaus/pounce path:$(local_src pounce) \
         --override-input nebelhaus/perch path:$(local_src perch)$perch_prebuilt \
@@ -471,6 +492,13 @@ status_running() { # the receipt a `try switch` left — FIRST section, because 
 
 cmd_status() {
   status_running
+  # ⏳ Migration nudge, 2026-08-11 — delete alongside repo_dir's `haus` arm. A
+  # silent fallback is how a temporary shim becomes permanent, so the one place
+  # that reads the whole tree says it out loud, once.
+  if [ ! -d "$ROOT/haus" ] && [ -d "$ROOT/hausfold/.git" ]; then
+    warn "checkout still at \$ROOT/hausfold — the repo is hausfold/haus now (hausfold-rename.md §10)"
+    hint "move it: bench relocate-haus   (moves the dir, repairs every linked worktree, retargets holt)"
+  fi
   say "repos"
   printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
   local any_dirty=0 any_ahead=0 any_behind=0
@@ -577,14 +605,14 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce perch hausfold holt; do
+  for name in pounce perch haus holt; do
     local dir tag behind audience cut
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
       perch)     audience="brew + the rice's flake pin" ;;
-      hausfold)  audience="nebelhaus.com/init.sh (the rice)" ;;
+      haus)      audience="nebelhaus.com/init.sh (the rice)" ;;
       # holt is the only one whose release lands OUTSIDE our own infrastructure:
       # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins holt's
       # main, so this machine sees a holt commit via the lock edge above — but
@@ -646,7 +674,7 @@ cmd_status() {
 # With `overrides` in play that second eval is the expensive one, since it walks
 # the local checkouts too.
 #
-# `haus-activate` (shipped by the rice — hausfold/modules/den) does only the
+# `haus-activate` (shipped by the layer — haus/modules/den) does only the
 # privileged half: set the system profile, then run that build's own
 # `darwin-rebuild activate`. Both routes go through a stable
 # /run/current-system path, never ./result or a store path: collar's
@@ -1056,11 +1084,12 @@ cmd_pull() {
   # deploys happen on push, so stale there is a live-site footgun. Both stay out
   # of FAMILY — neither is a flake input.
   #
-  # It is spelled `hausfold.co`, not `hausfold`, and that matters more than it
-  # looks: `$ROOT/hausfold` is where the rice's checkout lands at §3.3's step 4,
-  # so once FAMILY holds `hausfold` too, the short spelling would put the SAME
-  # name in this array twice — and `bench pull` would fast-forward one checkout
-  # under the other's identity.
+  # It is spelled `hausfold.co`, and it must stay spelled in full. Between
+  # §3.3's step 4 and §10 the layer's checkout was `$ROOT/hausfold`, one dot
+  # away from this one, so shortening the site to `hausfold` would have put the
+  # SAME name in this array twice and had `bench pull` fast-forward one checkout
+  # under the other's identity. §10 moved the layer to `$ROOT/haus` and the two
+  # names no longer share a prefix — which removes the trap, not the rule.
   local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
@@ -1089,7 +1118,7 @@ version_file() { # version_file <repo> — WHERE a releasable repo's version liv
   case "$1" in
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
     perch)     echo "$(repo_dir "$1")/VERSION" ;;
-    hausfold)  echo "$(repo_dir "$1")/VERSION" ;;
+    haus)      echo "$(repo_dir "$1")/VERSION" ;;
     holt)      echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
   esac
@@ -1100,7 +1129,7 @@ read_version() { # read_version <repo> — the version string that repo tags at
   case "$1" in
     pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
     perch)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
-    hausfold)  tr -d '[:space:]' < "$f" 2>/dev/null ;;
+    haus)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
     holt)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
 }
@@ -1114,7 +1143,7 @@ write_version() { # write_version <repo> <version> — stamp the version source 
     # -i suffix arg, so the portable path is redirect + mv.
     pounce)    local t; t="$(mktemp)"; sed -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" >"$t" && mv "$t" "$f" ;;
     perch)     printf '%s\n' "$2" > "$f" ;;
-    hausfold)  printf '%s\n' "$2" > "$f" ;;
+    haus)      printf '%s\n' "$2" > "$f" ;;
     # holt's version lives in FOUR files, not one — VERSION plus three SDK
     # manifests (npm/PyPI/crates each declare their own). bench doesn't learn
     # their shapes; the repo owns that, so the knowledge sits next to the
@@ -1168,7 +1197,7 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # supersede. Blocking, then fast-forwarding, closes that window.
 #
 # There is exactly ONE workflow to watch — each repo's `release`, holding 1–3
-# jobs (hausfold: publish; pounce: publish + bump-tap; perch: those plus
+# jobs (haus: publish; pounce: publish + bump-tap; perch: those plus
 # bump-flake). The tap bump is a plain push into homebrew-tap, which has no
 # workflows of its own, so when this run goes green the release IS live —
 # nothing further to chase.
@@ -1409,13 +1438,13 @@ cmd_release() {
     esac
     shift
   done
-  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, hausfold, holt)"
+  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, haus, holt)"
   [ -n "$name" ] || die "$usage"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   version_file "$name" >/dev/null \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, hausfold, holt)"
+    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, haus, holt)"
 
   local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
   if [ "$scheme" = semver ]; then
@@ -1625,8 +1654,9 @@ EOF
 cmd_clone() {
   # Directory name from the loop, remote from gh_repo — they still differ for
   # org-profile (./org-profile ← hausfold/.github), and gh_repo is the only
-  # place that knows. The rice's arm retired at §3.3 step 4: its checkout is
-  # ./hausfold now, so it falls through gh_repo's default like everyone else.
+  # place that knows. The layer needs no arm of its own: since §10 its checkout
+  # is ./haus and its repo is `hausfold/haus`, so it falls through gh_repo's
+  # default like everyone else.
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
     if [ -d "$ROOT/$name/.git" ]; then
       say "$name already here"
@@ -1642,11 +1672,12 @@ cmd_clone() {
   # sweep reads them (DOCS_REPOS), so clone them here — a repo the sweep can't
   # open is a blind spot it reports as clean.
   #
-  # 🚨 It goes at $ROOT/hausfold.co, NOT $ROOT/hausfold. The directory is named
-  # for its repo, which is the rule §3.1 settled — and $ROOT/hausfold is no
-  # longer merely reserved, it IS the platform checkout as of §3.3's step 4.
-  # Plant the site there instead and `local_src hausfold` resolves the rice to a
-  # folder of HTML: `bench try` builds the wrong tree and reports success.
+  # 🚨 It goes at $ROOT/hausfold.co, and the full spelling is the point. The
+  # directory is named for its repo, which is the rule §3.1 settled. Shorten it
+  # and you land on a name the workshop already uses for something else — until
+  # §10 that was `$ROOT/hausfold`, the platform checkout itself, and planting
+  # the site there made `local_src` resolve the layer to a folder of HTML:
+  # `bench try` builds the wrong tree and reports success.
   # This dir held a stale `hausfold/website` clone until 2026-08-09; it was
   # deleted, and nothing should recreate it.
   #
@@ -1670,6 +1701,100 @@ cmd_clone() {
   done
 }
 
+# ⏳ One-shot migration for the 2026-08-11 rename (hausfold-rename.md §10) —
+# DELETE this whole function, its dispatch arm, its usage line, repo_dir's
+# `haus` arm and cmd_status's nudge once every machine has run it. It exists
+# because the checkout move is not a diff: `git pull` lands the new `bench` on a
+# machine whose layer is still at `$ROOT/hausfold`, with live agent lanes whose
+# `.git` files hold absolute paths into it. Moving the dir by hand and stopping
+# there strands every one of those lanes (`fatal: not a git repository`) and
+# leaves holt listing a `main` that no longer exists.
+cmd_relocate_haus() {
+  local old="$ROOT/hausfold" new="$ROOT/haus"
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/claude-worktrees"
+  local lanes_old="$cache/hausfold" lanes_new="$cache/haus" reg="$cache/registry.tsv"
+
+  [ -d "$old/.git" ] || die "nothing to move: $old isn't a checkout (already relocated?)"
+  [ -e "$new" ] && die "$new already exists — resolve by hand, this command won't merge two trees"
+
+  # Refuse while an agent is standing in a lane of this repo. Moving the dir out
+  # from under a running session breaks its cwd mid-edit, and holt is the only
+  # thing that knows which lanes are occupied.
+  if command -v holt >/dev/null 2>&1; then
+    local busy
+    busy="$(holt --json 2>/dev/null | python3 -c '
+import json, sys
+try: lanes = json.load(sys.stdin)["lanes"]
+except Exception: sys.exit(0)
+main = sys.argv[1]
+print(" ".join(l["name"] for l in lanes if l.get("main") == main and l.get("occupied")))
+' "$old" 2>/dev/null || true)"
+    [ -n "$busy" ] && die "lanes still occupied: $busy — close those panes first (holt lists them)"
+  fi
+
+  say "moving the layer checkout: $old → $new"
+  mv "$old" "$new"
+
+  # The old remote still resolves through GitHub's redirect, so this is hygiene
+  # rather than repair — but a stale URL is what makes the NEXT reader think the
+  # rename didn't happen. Rewrite the path, keep whatever scheme is in use.
+  local url; url="$(git -C "$new" remote get-url origin 2>/dev/null || true)"
+  if [ -n "$url" ]; then
+    local newurl; newurl="$(printf '%s' "$url" | sed -E 's#hausfold/hausfold(\.git)?$#hausfold/haus\1#')"
+    [ "$newurl" != "$url" ] && { git -C "$new" remote set-url origin "$newurl"; say "origin → $newurl"; }
+  fi
+
+  # Lane checkouts live under the repo's own name too, so they move with it —
+  # otherwise new lanes land in .../haus/ while the old ones sit in
+  # .../hausfold/ and `holt` reads as two repos.
+  if [ -d "$lanes_old" ] && [ ! -e "$lanes_new" ]; then
+    say "moving agent lanes: $lanes_old → $lanes_new"
+    mv "$lanes_old" "$lanes_new"
+  fi
+
+  # Both ends moved, so repair must be driven from the main worktree WITH the
+  # lane paths: that rewrites each lane's `.git` file and the matching
+  # `.git/worktrees/<lane>/gitdir` in one pass. Plain `worktree repair` fixes
+  # only one direction and would leave every lane unopenable.
+  local -a lanes=()
+  [ -d "$lanes_new" ] && while IFS= read -r d; do lanes+=("$d"); done \
+    < <(find "$lanes_new" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+  if [ "${#lanes[@]}" -gt 0 ]; then
+    say "repairing ${#lanes[@]} linked worktree(s)…"
+    git -C "$new" worktree repair "${lanes[@]}" || warn "worktree repair complained — check \`git -C $new worktree list\`"
+  fi
+
+  # holt's registry is a plain TSV of absolute paths (main, checkout, parent);
+  # nothing in it self-heals. Backed up beside holt's own .bak.* files, in its
+  # convention, so an unhappy result is one `mv` from being undone.
+  if [ -f "$reg" ]; then
+    cp "$reg" "$reg.bak.relocate"
+    python3 - "$reg" "$old" "$new" "$lanes_old" "$lanes_new" <<'EOF'
+import sys
+reg, old, new, lanes_old, lanes_new = sys.argv[1:6]
+def fix(p):
+    for a, b in ((old, new), (lanes_old, lanes_new)):
+        if p == a or p.startswith(a + "/"):
+            return b + p[len(a):]
+    return p
+out = []
+for line in open(reg):
+    if not line.strip():
+        out.append(line); continue
+    f = line.rstrip("\n").split("\t")
+    for i in (2, 4, 5):            # main, checkout path, parent
+        if i < len(f):
+            f[i] = fix(f[i])
+    out.append("\t".join(f) + "\n")
+open(reg, "w").writelines(out)
+EOF
+    say "holt registry retargeted (backup: $reg.bak.relocate)"
+  fi
+
+  say "the layer lives at $new. Check it: bench status · holt"
+  hint "the workshop's .gitignore now lists /haus/ — a stale /hausfold/ entry is harmless but dead"
+}
+
 # When sourced with HAUS_LIB=1 (the bats test harness), stop here: the caller
 # just wants the functions above, not to dispatch a command.
 if [ "${HAUS_LIB:-}" != "1" ]; then
@@ -1683,6 +1808,7 @@ case "${1:-status}" in
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  relocate-haus) cmd_relocate_haus ;;
+  *)       sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi

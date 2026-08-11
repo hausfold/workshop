@@ -63,7 +63,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > because every clause above needs *two* rices composed and there is one. The
 > blocker is real and it binds the second entry, not the page.
 >
-> What §7's repo routing means now: `nebelhaus` → `hausfold/hausfold`, and `web`
+> What §7's repo routing means now: `nebelhaus` → `hausfold/haus`, and `web`
 > → the consolidated site repo.
 
 

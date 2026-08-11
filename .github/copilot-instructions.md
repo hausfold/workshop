@@ -17,7 +17,7 @@ The short version:
   commit.
 - The repos are a chain of pinned flake inputs
   (`nebelung → pounce → nebelhaus → ~/.config/nix` — those are flake **input**
-  names; the rice's repo and checkout are `hausfold`, but its input keeps the
+  names; the layer's repo and checkout are `haus`, but the rice's input keeps the
   older spelling and renaming it silently builds the pinned rice), so a merged
   commit is
   invisible downstream until `bench ship` bumps each `flake.lock`. Never

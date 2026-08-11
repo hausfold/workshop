@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PAGE = join(here, '../src/content/docs/reference/options.md');
-const REPO = 'https://github.com/hausfold/hausfold/blob/main';
+const REPO = 'https://github.com/hausfold/haus/blob/main';
 
 const args = process.argv.slice(2);
 const check = args.includes('--check');
@@ -60,7 +60,7 @@ function riceFile(name, why) {
         `${why}\n\n` +
         'That directory is generated and committed by the rice (`nix build .#site-data`).\n' +
         'The checkout predates nebelhaus#268 — update it (CI pulls\n' +
-        'hausfold/hausfold main) and re-run.\n',
+        'hausfold/haus main) and re-run.\n',
     );
     process.exit(1);
   }
@@ -176,7 +176,7 @@ tableOfContents:
      To change an option's description, edit its declaration in the rice
      (modules/<room>/options.nix) and regenerate:
 
-         node web/scripts/gen-options.mjs --rice ../hausfold
+         node web/scripts/gen-options.mjs --rice ../haus
 
      CI re-renders this and fails if it differs, so a hand edit here is
      guaranteed to be reverted. -->

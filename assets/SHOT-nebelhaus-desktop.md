@@ -1,7 +1,7 @@
 # The nebelhaus desktop still — shot sheet
 
 One frame, for `hausfold.co/desktops/` and `/desktops/nebelhaus/`. It replaces
-the placeholder in `hausfold/assets/hero.png`, which is dense, dated and shows a
+the placeholder in `haus/assets/hero.png`, which is dense, dated and shows a
 GitHub profile as its second-largest object.
 
 **The message:** *this is not a dotfiles collection; it is an entire Mac that
@@ -412,7 +412,7 @@ Still to do by hand in that repo, because they are judgement calls:
 
 1. the **"Placeholder frames, never a stale screenshot"** bullet in
    `AGENTS.md` — it still points at `nebelhaus/assets/hero.png` (the directory
-   is `hausfold/` since 2026-08-09) and still calls it a placeholder. Amend it
+   is `haus/` since 2026-08-11) and still calls it a placeholder. Amend it
    to say the wide frames hold a real capture and the two narrow ones don't
    yet; the rule itself is unchanged and still correct.
 2. `hausfold.co` has had **no binary asset at all** until now. Its build story

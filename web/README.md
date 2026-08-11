@@ -38,7 +38,7 @@ in `src/styles/nebelung.css` and inline on the landing page.
 
 `worker.js` **proxies** (not redirects) the rice's `bootstrap.sh`, served as
 `text/plain`, so the pretty URL is what `curl` sees. By default it serves the
-**latest GitHub release tag** of `hausfold/hausfold` (cached ~1h), falling back
+**latest GitHub release tag** of `hausfold/haus` (cached ~1h), falling back
 to `main` before the first release exists. Pin an exact one with
 `?ref=v2026.07.18` (releases are date-tagged), or hard-pin for everyone via the
 `REF` var in `wrangler.toml`.

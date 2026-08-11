@@ -56,7 +56,7 @@ Run the same structural check as nebelhaus's built-in presets:
 
 ```sh
 nix eval --impure --expr \
-  '(builtins.getFlake "github:hausfold/hausfold").lib.checkRice ./writer.nix'
+  '(builtins.getFlake "github:hausfold/haus").lib.checkRice ./writer.nix'
 ```
 
 If the file is an app **pack** — only `haus.roster`, the apps on a machine —

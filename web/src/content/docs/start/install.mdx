@@ -31,7 +31,7 @@ stock Nix, the installer will stop and explain — nebelhaus expects Determinate
 ## Reading it first (recommended)
 
 `curl … | bash` runs whatever the URL serves. `nebelhaus.com/init.sh` only
-**proxies** the rice's [`bootstrap.sh`](https://github.com/hausfold/hausfold/blob/main/bootstrap.sh)
+**proxies** the rice's [`bootstrap.sh`](https://github.com/hausfold/haus/blob/main/bootstrap.sh)
 from this org's own repo — it's boring and readable on purpose. To inspect it
 before running:
 
@@ -75,7 +75,7 @@ release it falls back to `main`. Releases are date-tagged, so add
    repeat, Caps-Lock remap if prowl is on, ⌘Space reassignment if pounce is on).
 
 5. **Scaffold.** Creates `~/.config/nix/` with a thin `flake.nix` that imports
-   `github:hausfold/hausfold`, plus a `hosts/<hostname>/default.nix` holding
+   `github:hausfold/haus`, plus a `hosts/<hostname>/default.nix` holding
    your identity and choices. It `git init`s and commits the result.
 
 </Steps>
