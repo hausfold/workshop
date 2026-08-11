@@ -62,7 +62,8 @@ release it falls back to `main`. Releases are date-tagged, so add
 3. **Interview.** A short [gum](https://github.com/charmbracelet/gum) TUI asks
    for your **git name and email**, a **preset** (Full rice / Minimal / Custom —
    which decides the sill, prowl, and pounce rooms), your **accent colour**
-   (default `mauve`), a **wallpaper** (default: keep yours), your **`$EDITOR`**
+   (default `mauve`), a **wallpaper** (default `minimal`, the generated haus
+   desktop — pick `none` to keep the one you have), your **`$EDITOR`**
    (default `hx`) — and whether to **keep your current macOS settings**
    (Dock/keyboard/Finder) and **adopt your existing Homebrew casks** into the
    new config. Every answer has an environment-variable override for
@@ -107,7 +108,7 @@ NEBELHAUS_GIT_NAME="Ada Lovelace" \
 NEBELHAUS_GIT_EMAIL="ada@example.com" \
 NEBELHAUS_ROOMS="sill,prowl,pounce" \
 NEBELHAUS_ACCENT="mauve" \
-NEBELHAUS_WALLPAPER="none" \
+NEBELHAUS_WALLPAPER="minimal" \
 NEBELHAUS_EDITOR="hx" \
 bash -c "$(curl -fsSL https://nebelhaus.com/init.sh)"
 ```
