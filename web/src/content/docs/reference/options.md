@@ -11,7 +11,7 @@ tableOfContents:
      To change an option's description, edit its declaration in the rice
      (modules/<room>/options.nix) and regenerate:
 
-         node web/scripts/gen-options.mjs --rice ../hausfold
+         node web/scripts/gen-options.mjs --rice ../haus
 
      CI re-renders this and fails if it differs, so a hand edit here is
      guaranteed to be reverted. -->
@@ -657,7 +657,7 @@ with `haus.roster.iina.package`.
 
 ## haus.theme
 
-Colour and wallpaper.
+Colour: the palette's flavour and contrast, the accent every themed tool spends, and whether macOS's own Light/Dark follows it.
 
 ### `haus.theme.accent`
 
@@ -676,12 +676,20 @@ pair macOS is showing, so the ember under the notch and a pinned tile
 wear this accent in both polarities from one key. Left at perch's
 default it accents with its own mark green.
 
-Two more things follow it: the `bold` wallpaper (generated from the
-accent hex — see haus.theme.wallpaper), and any roster app whose
+Three more things follow it: the generated desktop (the bloom behind
+the mark in `minimal`, and the whole sweep in `bold` — see
+haus.wallpaper.style), any roster app whose
 Nebelung port ships a per-accent matrix (zed, gh-dash, mpv), placed by
-haus.theme.ports. Those ports name the theme file after the accent,
-so changing the accent renames the file the app's own `theme` key points
-at — re-pick it in the app, or it falls back to stock.
+haus.theme.ports, and the bar's far-left logo pill. Those ports name the
+theme file after the accent, so changing the accent renames the file the
+app's own `theme` key points at — re-pick it in the app, or it falls
+back to stock.
+
+The bar is the newest and the narrowest of the three: `haus.sill.logo`
+is the ONLY pill that follows this option. Every other colour on the bar
+is a fixed palette key, and the palette itself doesn't move — so a
+machine that changes its accent sees exactly one pill change hue, unless
+`haus.sill.logo.color` names one of its own.
 
 Honest scope: this moves the accent on those tools, NOT literally
 everything. Single-file dotfiles that bake the palette at their own
@@ -790,9 +798,11 @@ What does NOT follow it:
     rice does not touch system appearance in either direction, so a
     latte rice on a dark macOS looks half-done and that half is yours —
     except in pounce and perch, which read the appearance themselves.
-  - the desktop wallpaper (haus.theme.wallpaper). The three hand-made
-    looks have the dark palette baked in; only "bold" is generated, and it
-    follows theme.accent rather than the flavor.
+  - three of the six desktops (haus.wallpaper.style). The hand-made
+    "orbits", "constellation" and "flow" have the dark palette baked into
+    their pixels; "bold" is generated but follows theme.accent rather
+    than the flavor. "minimal" DOES follow it, in every part — field,
+    mark, glow and debug band.
 
 Example:
 
@@ -890,29 +900,444 @@ Example:
 
 <small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/haus/blob/main/modules/theme/options.nix).</small>
 
-### `haus.theme.wallpaper`
+## haus.wallpaper
 
-`one of "none", "orbits", "constellation", "flow", "bold"` · default `"none"`
+The desktop behind everything. `minimal` is generated on this machine — a flat field at whatever depth you pick out of the palette, the haus mark ⌂ at its centre, a bloom in your accent, and enough grain that none of it bands. The other looks are the hand-made Nebelung ones.
 
-The desktop wallpaper, set at each home-manager activation (osascript,
-every desktop on the current Space). Four Nebelung looks:
+### `haus.wallpaper.background`
 
-  orbits · constellation · flow  hand-made, the palette baked in
-  bold                           generated from theme.accent, so it
-                                 follows the accent (a bold pink at
-                                 accent = "pink")
+`null or string matching the pattern #[0-9a-fA-F]{6}` · default `null`
 
-Default "none" leaves your current wallpaper alone — changing the
-desktop is visible and personal, so nothing moves unless you ask (the
-bootstrap interview offers the choice on a fresh install).
+The field colour, as a literal hex — an escape hatch out of the palette
+for a desktop that wants a colour the rice doesn't have.
+
+Null (the default) resolves it from haus.wallpaper.depth against the
+flavour's ladder, which is the arrangement that keeps following the
+theme. Setting this pins the field and `depth` stops meaning anything.
 
 Example:
 
 ```nix
-"orbits"
+"#0b0b0e"
 ```
 
-<small>Declared in [`modules/theme/options.nix`](https://github.com/hausfold/haus/blob/main/modules/theme/options.nix).</small>
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.debug.enable`
+
+`boolean` · default `false`
+
+Print this machine's lock edges in the bottom-left corner — which
+revision of each family repo the running system was built from.
+
+It is a detail rather than a readout. It sits at exactly the inset a
+tiled window covers (see `debug.inset`), so it is invisible the moment
+anything is on screen and only ever surfaces on a bare desktop; it is
+set small, dim and wide-tracked; and it names four repos rather than
+everything the flake pins. Off by default.
+
+Example:
+
+```nix
+true
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.debug.inputs`
+
+`list of string` · default `[ "self" "nebelung" "pounce" "perch" "holt" ]`
+
+Which flake inputs the band names, in the order it prints them. `self`
+is the rice itself and prints as `haus`; every other entry is an input
+name out of the rice's own flake, and one that isn't there is skipped
+rather than failing the build.
+
+The default is the family chain, which is the one thing a rev is worth
+knowing on a desktop: it's what `bench status` calls the lock edges, and
+the answer to "is this machine running the branch I just merged".
+
+Example:
+
+```nix
+[
+  "self"
+  "nixpkgs"
+]
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.debug.inset`
+
+`null or (unsigned integer, meaning >=0)` · default `null`
+
+How far in from the bottom-left corner the band sits, in PICTURE
+PIXELS.
+
+Null derives it from the tiling gaps — the widest outer reservation any
+attached display could be using (../lib/gaps.nix, the same numbers prowl
+writes into aerospace.toml), doubled for a Retina display's two pixels
+per point. That lands the band exactly at a tiled window's bottom-left
+corner, which is the whole trick: the text is under the windows, not
+beside them, so a tiled desktop hides it completely and a bare one
+doesn't.
+
+Set a number if your display isn't 2× — or if you'd rather see it.
+
+Example:
+
+```nix
+96
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.debug.size`
+
+`integer or floating point number between 0.002 and 0.1 (both inclusive)` · default `0.011`
+
+The band's type size, as a fraction of the picture's short edge. It is
+set in haus.fonts.mono, so the desktop and the terminal in front of it
+are the same typeface.
+
+Example:
+
+```nix
+0.02
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.depth`
+
+`integer between 0 and 5 (both inclusive)` · default `1`
+
+How far in from the palette's outermost tone the field sits — the
+answer to "I want it blacker" without anyone having to name a colour.
+
+Nebelung's background tones are a ladder of six, ordered here from the
+end nearest the polarity's extreme inwards, so the SAME number means the
+same distance from black in a dark rice and from white in a light one:
+
+  depth  dark (mocha)          light (latte)
+  0      crust    #121212      base     #f1f1f1
+  1      mantle   #191919      mantle   #e9e9e9     ← default
+  2      base     #202020      crust    #e0e0e0
+  3      surface0 #343434      surface0 #d0d0d0
+  4      surface1 #494949      surface1 #c0c0c0
+  5      surface2 #5c5c5c      surface2 #b0b0b0
+
+0 is as far out as the palette goes — our blackest black, our whitest
+white. The default of 1 lands exactly one rung inside that extreme in
+EITHER polarity, which is what keeps the desktop reading as material
+rather than as a hole cut in the screen while still being properly dark
+in a dark rice — a full screen of `base` reads as a big terminal window,
+not as a wall behind one.
+
+The two columns are NOT symmetric, and the asymmetry is the palette's
+rather than a choice: mocha's canvas (`base`) sits at depth 2 because
+two tones are darker than it, while latte's canvas is the LIGHTEST tone
+it has, so it sits at depth 0. So the ONE number moves the two flavours
+in opposite directions relative to their canvas — the default puts a
+dark rice one step BELOW the colour its terminal draws on (#191919) and
+a light one one step below the canvas too (#e9e9e9), which is the
+agreement worth having, since a full screen of near-white is the one
+field size where latte's canvas stops being comfortable. `depth = 0` is
+the way to match the terminal exactly in a light rice; `depth = 2` is
+the way to match it in a dark one.
+
+Which flavour's column applies follows haus.theme.flavor, like every
+other themed surface. haus.wallpaper.background overrides the whole
+thing with a literal hex.
+
+Example:
+
+```nix
+0
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.glow.color`
+
+`null or string matching the pattern #[0-9a-fA-F]{6}` · default `null`
+
+The colour the bloom tends towards at its centre. Null takes
+haus.theme.accent's hex, which is what makes the desktop change
+temperature with the accent without anyone wiring a second colour.
+
+Example:
+
+```nix
+"#8db4f3"
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.glow.enable`
+
+`boolean` · default `true`
+
+A single broad bloom behind the mark, so the field reads as lit rather
+than as a fill. Subtle by construction — see `glow.strength`.
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.glow.spread`
+
+`integer or floating point number between 0.2 and 4.0 (both inclusive)` · default `1.15`
+
+The bloom's diameter, as a multiple of the picture's long edge. Above 1
+its falloff runs off the edges and the field reads as evenly lit from
+the middle; below 1 it closes into a halo around the mark.
+
+Example:
+
+```nix
+0.6
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.glow.strength`
+
+`integer between 0 and 100 (both inclusive)` · default `3`
+
+How much of the bloom is mixed into the field, as a percentage.
+
+Small numbers on purpose: at 3 the accent is a few levels of lift you'd
+struggle to name and would miss if it went. Past ~25 it stops being
+light on a wall and starts being a coloured wallpaper, which is a
+different desktop than this one. (Was 7 until it turned out to read as
+the field simply not being dark enough, rather than as a glow.)
+
+Example:
+
+```nix
+14
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.grain`
+
+`integer or floating point number between 0.0 and 0.1 (both inclusive)` · default `0.01`
+
+Film grain over the whole field, as a fraction of full scale — and the
+reason the glow doesn't band.
+
+This is dither, dressed as texture. A soft glow across two thousand
+pixels spends perhaps ten of the 256 levels an 8-bit PNG has, so it
+quantises into visible contour rings — the "steppy gradient" every
+hand-made wallpaper picks up on the way out of an image editor. Noise of
+a couple of levels, added BEFORE the render is reduced to 8 bits, breaks
+those contours into something the eye integrates back to smooth. 0.004
+is enough to hide them; the default is comfortably past that.
+
+0 turns it off. Do that only with `glow.enable = false` too — a glow on
+an ungrained field is exactly the picture this exists to prevent.
+
+Measured at the shipped defaults (3456x2234), since the effect is easier
+to state in numbers than to argue about — distinct colours, and what the
+PNG costs, noise being the one thing that doesn't compress:
+
+  grain    colours    size
+  0          137      0.1 MB   ← rings, visibly
+  0.004      193      1.1 MB   ← the floor worth using
+  0.010      329      2.5 MB   ← the default
+  0.020      625      4.2 MB
+
+Example:
+
+```nix
+0.0
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.mark.color`
+
+`one of "muted", "ink", "accent", "spectrum"` · default `"spectrum"`
+
+What the mark is drawn in.
+
+  muted      the palette's overlay1 — present, not loud. The mark as it
+             sits on hausfold.co untouched.
+  ink        the palette's text colour, for a mark meant to be read
+             rather than noticed.
+  accent     haus.theme.accent's hex, flat.
+  spectrum   the whole family at once: a conic sweep through the six
+             product accents — nebelung, holt, perch, trill, pounce,
+             nebelhaus — clipped to the stroke. This is the ⌂ as it
+             looks with a pointer on it on hausfold.co, held still.
+
+`spectrum` is the default, and follows the flavour like everything
+else: the six are the Nebelung pastels in a dark rice and their darker
+counterparts in a light one, because a pastel sheen on a white wall is
+invisible. It is the loudest of the four on purpose — one small piece of
+colour is the whole of what this desktop says out loud, and it says the
+family rather than any one product. `muted` is the quiet way back, and
+`mark.opacity` turns the sweep down without leaving it.
+
+Example:
+
+```nix
+"muted"
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.mark.enable`
+
+`boolean` · default `true`
+
+Draw the haus mark ⌂ at the centre. Off leaves the field, the glow and
+the grain — which is a perfectly good desktop, and the fastest way to
+get one flat colour that still isn't flat.
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.mark.opacity`
+
+`integer or floating point number between 0.0 and 1.0 (both inclusive)` · default `1.0`
+
+The mark's opacity over the field. Worth reaching for with `spectrum`
+— the default, and the one colour here loud enough to want turning down.
+
+Example:
+
+```nix
+0.55
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.mark.rise`
+
+`integer or floating point number between -0.5 and 0.5 (both inclusive)` · default `0.0`
+
+How far above centre the mark sits, as a fraction of the picture's
+height. Optical centre is a little above geometric centre, and a bar
+along the top edge moves it further — a small positive number is the
+usual correction.
+
+Example:
+
+```nix
+0.06
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.mark.size`
+
+`integer or floating point number between 0.01 and 0.9 (both inclusive)` · default `0.1`
+
+The mark's height, as a fraction of the picture's SHORT edge — so it
+keeps its proportion whatever `size` and whatever display.
+
+Example:
+
+```nix
+0.3
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.mark.weight`
+
+`integer or floating point number between 0.005 and 0.25 (both inclusive)` · default `0.09`
+
+Stroke width, as a fraction of the mark's own height.
+
+The mark's SHAPE is the real U+2302, traced off the outline hausfold.co
+renders, and the default weight is now the site's too: that glyph's
+stems are a tenth of its height, which is 0.094 here once the miter at
+the apex is counted, and 0.09 is that within a hair. So the desktop and
+the site draw the same mark, which is the agreement worth having when
+the two sit side by side.
+
+It used to default to 0.055 — a little under 60% of the glyph's own
+weight — on the grounds that a stem which reads right in a line of type
+is heavy drawn a foot wide on a wall. That is true of a mark filling the
+screen; it is not true of one at `mark.size`, where the lighter stroke
+reads as a hairline rather than as the ⌂. Go back to it if you want the
+outline to recede.
+
+Example:
+
+```nix
+0.055
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.size`
+
+`string matching the pattern [0-9]+x[0-9]+` · default `"3456x2234"`
+
+The pixel size `minimal` is rendered at, `WIDTHxHEIGHT`.
+
+Set it to your display's NATIVE pixel count and macOS has nothing left
+to do: the picture lands one image pixel per screen pixel, which is the
+only arrangement where the grain that keeps the glow smooth survives at
+the size it was dithered for. Anything else is resampled, and resampling
+is where a gradient that was clean in the file starts to look stepped.
+
+The default is the 16" MacBook Pro panel — the largest built-in Retina
+display, so a smaller one scales DOWN (soft, harmless) rather than up.
+`system_profiler SPDisplaysDataType` prints yours.
+
+Aspect matters as much as size: macOS fills the screen and crops the
+overflow, so a picture narrower than the display loses its top and
+bottom — which is where `debug` draws. On a display of a different
+shape, set this to that display's own numbers.
+
+Example:
+
+```nix
+"3024x1964"
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
+
+### `haus.wallpaper.style`
+
+`one of "none", "minimal", "orbits", "constellation", "flow", "bold"` · default `"minimal"`
+
+Which desktop this machine wears, set at each home-manager activation
+(osascript, every desktop on the current Space).
+
+  minimal        GENERATED here — a flat field in your palette, the
+                 haus mark ⌂ at its centre, and nothing else. The one
+                 haus-themed look, and the one every option below tunes.
+  orbits         hand-made Nebelung PNGs, the palette baked into their
+  constellation  pixels — they do not follow haus.theme.flavor.
+  flow
+  bold           generated from haus.theme.accent alone (a diagonal
+                 accent→crust sweep), which predates `minimal`.
+
+The default is `minimal`, so a machine that says nothing about its
+desktop wears the haus one. That is a change of mind: this defaulted to
+"none" while the generated look was new, on the grounds that the desktop
+is visible and personal. It is — but a rice whose own desktop is opt-in
+ships looking like nothing in particular, and `minimal` is drawn from
+the palette, accent and gaps this machine already chose, so it is the
+one look that can't clash with the rest of the install.
+
+"none" is the way back, and it is a real value rather than an absence:
+set it and nothing here runs, leaving whatever wallpaper you already
+have exactly where it was (the bootstrap interview still offers the
+choice, and writes this line when you take it).
+
+Example:
+
+```nix
+"none"
+```
+
+<small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
 
 ## haus.fonts
 
@@ -2891,7 +3316,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
+The one meeting you have to be at next, and one gesture to join it. It reads "in 12m · Design review" — countdown first, because a label is clipped from the END and the number is the part you must never lose; below `haus.sill.calendar.preciseUnder` hours it carries minutes, above it just "in 14h" or "in 2d", and while an event is running it says "now · …" instead of going blank. For `haus.sill.calendar.imminent` minutes either side of the start the whole pill FILLS with the accent — a shape change rather than a colour change, so it catches the eye you aren't pointing at it. RIGHT-CLICK joins: it opens the event's conferencing link, found in the invite's url, location or notes (Meet, Zoom, Teams, Webex, Jitsi, Whereby and friends out of the box; `haus.sill.calendar.joinHosts` adds your own). LEFT-CLICK opens the day as a timeline — what's DONE in the last `haus.sill.calendar.past` hours, what's on NOW, and what's NEXT — each event carrying its day, clock time, length and who it's with, the next one boxed, and a `Join` affordance on every row that has a link. Your own address is dropped from the "with" line automatically: a CalDAV calendar is named for the account it syncs, so the pill can work out which attendee is you with no configuration (`haus.sill.calendar.me` for the cases where it can't). A name too long for the pill sweeps past only while you HOVER it — nothing here starts a marquee on its own — and `haus.sill.calendar.width` sets how much room it gets before that applies. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -2939,7 +3364,7 @@ The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover (or the source app's icon), a scrubbable position slider, transport rows, and a short recently-played list — macOS keeps no now-playing history at all, so that list is written as tracks change or it could not exist. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — including, for a source with no cover, a small app-icon badge next to the row that brings it forward. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -2972,6 +3397,194 @@ The weather pill and its click-to-open forecast popover.
 `boolean or one of "left", "center", "right"` · default `false`
 
 The Wi-Fi status pill.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.horizon`
+
+`positive integer, meaning >0` · default `24`
+
+How far ahead the `calendar` pill looks, in HOURS. Nothing starting
+later than this makes it say anything but "No events".
+
+It is a limit on the PILL, not on the dropdown: the timeline still lists
+what's coming past the horizon, because a list you opened on purpose is
+allowed to tell you about Thursday.
+
+Example:
+
+```nix
+12
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.imminent`
+
+`positive integer, meaning >0` · default `5`
+
+How many MINUTES either side of an event's start the `calendar` pill
+fills solid — accent background, dark type — for a window of twice this
+in total.
+
+Deliberately tied to the START and not to the whole meeting: five
+minutes before is "go now" and five after is "you're late", and they are
+the same fact. A pill that stayed filled for the event's full hour would
+just be a pill that is a different colour.
+
+Example:
+
+```nix
+2
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.joinHosts`
+
+`list of string` · default `[ ]`
+
+Extra hostnames to treat as conferencing links, on top of the built-in
+set (Google Meet, Zoom, Teams, Webex, Jitsi, Whereby, Chime, BlueJeans,
+GoTo, Around, Discord). Right-clicking the pill — or clicking a dropdown
+row — opens the first link in the invite whose host matches.
+
+Matching is on the HOST, and a bare registrable name also covers its
+subdomains (`zoom.us` catches `us02web.zoom.us`). That is why it isn't a
+substring search: every Google Meet invite also carries a `tel.meet`
+dial-in and a `support.google.com` footer, and looking for "meet"
+anywhere in the notes opens the phone-number page.
+
+Example:
+
+```nix
+[
+  "meet.mycorp.example"
+]
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.me`
+
+`list of string` · default `[ ]`
+
+Addresses (or display names) that are YOU, dropped from the "with …"
+line in the dropdown. An attendee list that includes you is a list that
+tells you nothing — every meeting is "with you and Ana".
+
+Usually unnecessary: a CalDAV account's calendar is named for the
+address it syncs, so the pill takes the calendar names that look like
+email addresses as its answer and re-checks them every six hours. Set
+this when that guess misses — a local calendar, an alias you're invited
+under, or a second address on the same account. It ADDS to what was
+found rather than replacing it.
+
+Example:
+
+```nix
+[
+  "you@work.example"
+]
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.past`
+
+`positive integer, meaning >0` · default `24`
+
+How many HOURS of finished events the dropdown's `Done` band keeps.
+
+The band exists so the timeline has a floor to read up from — "what have
+I already been in today" is the context that makes "next" mean anything.
+The pill itself never looks backwards.
+
+Example:
+
+```nix
+8
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.preciseUnder`
+
+`positive integer, meaning >0` · default `12`
+
+Below how many HOURS the countdown carries minutes.
+
+Under it the pill reads "in 3h20m"; at or above it, "in 14h", "in 2d".
+A number you are reading as "not yet" doesn't need its minutes, and the
+digits it drops are the ones a long meeting name would have eaten.
+
+Example:
+
+```nix
+3
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.refresh`
+
+`positive integer, meaning >0` · default `15`
+
+How often the `calendar` pill re-reads your calendar, in SECONDS.
+
+This was 60, which is the worst possible number for a pill whose whole
+job is a countdown in minutes: the displayed number was up to a minute
+stale, so "in 1m" could mean the meeting started fifty seconds ago, and
+an event you had just accepted took a minute to appear at all. One read
+costs about 50ms of `icalBuddy`, so paying it four times a minute is
+cheaper than being wrong.
+
+Hovering the pill forces a read regardless of this, which is the case
+that actually matters — looking at it is the moment it has to be right.
+
+Example:
+
+```nix
+60
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.upcoming`
+
+`positive integer, meaning >0` · default `5`
+
+How many future events the dropdown's `Next` band lists, at most. The
+first of them is the one the pill is about, and the one drawn in a box.
+
+Example:
+
+```nix
+3
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.calendar.width`
+
+`positive integer, meaning >0` · default `32`
+
+How wide the `calendar` pill's label is allowed to get, in CHARACTERS —
+not pixels. The label reads "in 12m · <event>"; anything longer is
+clipped to this, and sweeps past in full while you hover the pill.
+
+The countdown leads deliberately: the clip eats the END of a label, so
+the number the pill exists for has to sit in front of the part that can
+run long.
+
+It is a MAXIMUM, not a fixed size — a short event name still draws a
+short pill.
+
+Example:
+
+```nix
+16
+```
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3100,7 +3713,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 `boolean` · default `false`
 
-Your next timed event, with a click-popup of the next five. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
+The one meeting you have to be at next, and one gesture to join it. It reads "in 12m · Design review" — countdown first, because a label is clipped from the END and the number is the part you must never lose; below `haus.sill.calendar.preciseUnder` hours it carries minutes, above it just "in 14h" or "in 2d", and while an event is running it says "now · …" instead of going blank. For `haus.sill.calendar.imminent` minutes either side of the start the whole pill FILLS with the accent — a shape change rather than a colour change, so it catches the eye you aren't pointing at it. RIGHT-CLICK joins: it opens the event's conferencing link, found in the invite's url, location or notes (Meet, Zoom, Teams, Webex, Jitsi, Whereby and friends out of the box; `haus.sill.calendar.joinHosts` adds your own). LEFT-CLICK opens the day as a timeline — what's DONE in the last `haus.sill.calendar.past` hours, what's on NOW, and what's NEXT — each event carrying its day, clock time, length and who it's with, the next one boxed, and a `Join` affordance on every row that has a link. Your own address is dropped from the "with" line automatically: a CalDAV calendar is named for the account it syncs, so the pill can work out which attendee is you with no configuration (`haus.sill.calendar.me` for the cases where it can't). A name too long for the pill sweeps past only while you HOVER it — nothing here starts a marquee on its own — and `haus.sill.calendar.width` sets how much room it gets before that applies. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3148,7 +3761,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 `boolean` · default `true`
 
-The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover (or the source app's icon), a scrubbable position slider, transport rows, and a short recently-played list — macOS keeps no now-playing history at all, so that list is written as tracks change or it could not exist. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — including, for a source with no cover, a small app-icon badge next to the row that brings it forward. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3181,6 +3794,179 @@ The weather pill and its click-to-open forecast popover.
 `boolean` · default `true`
 
 The Wi-Fi status pill.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.color`
+
+`null or one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `null`
+
+The logo's resting colour, by Catppuccin name. `null` (the default)
+follows `haus.theme.accent`, which is almost always what you want — the
+pill is the rice's own mark, so it wearing the rice's own accent is the
+point.
+
+This is only the RESTING colour. `haus.sill.logo.status` paints over it
+while something needs attention, and the hover sweep runs from it and
+returns to it.
+
+Example:
+
+```nix
+"teal"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.gestures`
+
+`boolean` · default `true`
+
+What the logo pill does when clicked:
+
+| gesture | what it opens |
+|---|---|
+| left click | the **haus menu** — System Settings, Activity Monitor, Lock Screen, Nix Config, Haus Settings, Rebuild System, Reload SketchyBar |
+| ⌘ left click | `haus rebuild`, straight into a floating terminal |
+| right click | the full pounce palette (⌘Space), which is what a bare click on this pill used to do |
+
+All three are drawn by **pounce**, so all three need
+`haus.pounce.enable` (on by default). With pounce off they are silent
+no-ops and this option is the switch that says so out loud — turn it off
+and the pill stops responding to clicks entirely, rather than looking
+like an affordance that does nothing.
+
+The menu's rows are not reimplemented here: each one runs the palette
+command of the same name, so fixing one fixes both places. That is the
+whole reason the popup dropdown this replaces is gone — it was a second
+copy of five of these rows, and (having never been openable at all) a
+second copy nobody could check.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.icon`
+
+`string` · default `""`
+
+The glyph in the far-left logo pill — the one that was an Apple menu
+until it was the nebelhaus cat-ears mark. Any single character your bar
+font can draw; the default is Nerd Font's `nf-fa-home` (`U+F015`), a
+solid house.
+
+It has to hold up at 28pt with a pill's padding around it, which rules
+out more glyphs than you would expect. In particular **`⌂` (`U+2302`),
+the hausfold mark itself, is drawn hairline-thin in JetBrains Mono and
+does not gain weight at Bold or ExtraBold** — it is in the font, it is
+on the list below, and beside the workspace pills it reads as a much
+lighter object than everything around it. A taste call, not a bug: if
+you want the literal mark, take it and raise `haus.sill.logo.size`.
+
+Six that hold up at bar size, most to least solid:
+
+| glyph | codepoint | what it is |
+|---|---|---|
+| `` | `U+F015` | `nf-fa-home` — solid house (the default) |
+| `` | `U+F46D` | `nf-oct-home` — outlined house at icon weight |
+| `` | `U+EB06` | `nf-cod-home` — the same, slightly rounder |
+| `⌂` | `U+2302` | the hausfold mark, hairline |
+| `` | `U+F302` | `nf-fa-apple` — the logo this pill replaced |
+| `` | `U+F313` | `nf-linux-nixos` — the snowflake |
+
+There is deliberately no way to point this at an image file. SketchyBar
+draws a `background.image` left-anchored, at a scale you have to
+hand-tune per asset, and applies no tint to it — so a picture here can
+follow neither `haus.theme.accent` nor the state colours below, and
+cannot sweep on hover. The rice drew this pill as a PNG for a while and
+every one of those was a real limitation of it.
+
+Example:
+
+```nix
+"⌂"
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.size`
+
+`positive integer, meaning >0` · default `20`
+
+Point size of the logo glyph. Its own knob rather than the bar's
+`FS_ICON`, because the glyphs worth putting here have wildly different
+optical sizes: the default solid house wants 20, `⌂` needs 25 before it
+stops looking like a typo, and a Nerd Font apple wants 17.
+
+Example:
+
+```nix
+25
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.status`
+
+`boolean` · default `true`
+
+Let the logo's colour report the health of the machine, so the pill says
+something without being clicked:
+
+| colour | meaning |
+|---|---|
+| accent | everything the rice runs is up |
+| `yellow` | a newer rice is pinned upstream (needs `haus.sill.logo.updateCheck`) |
+| `red` | something the rice runs is enabled but not running |
+
+Red is the one that matters. It is the same check `haus doctor` opens
+with — `nix-daemon`, plus each of AeroSpace / SketchyBar / pounce whose
+launchd job exists on this machine — and its whole point is that a
+wedged agent is otherwise invisible: the bar keeps drawing the last
+frame it painted, so a dead SketchyBar and a quiet one look identical.
+All of it is local, costs four `pgrep`s on a five-minute tick, and
+makes no network call.
+
+Yellow ranks below red and both outrank the accent, so the pill always
+shows the worst thing true about the machine.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.sweep`
+
+`boolean` · default `true`
+
+Sweep the logo through the six hausfold accents — mauve, teal, green,
+yellow, peach, pink, the order the site runs them (nebelung → holt →
+perch → trill → pounce → nebelhaus) — while the pointer is over it,
+then settle back.
+It is the bar's copy of the mark on hausfold.co, where hovering the `⌂`
+turns a conic gradient of those same six through the glyph. SketchyBar
+cannot put a gradient inside a glyph, so the sweep IS the gradient: one
+colour at a time, animated.
+
+It only runs from the resting accent. A pill sitting at yellow or red
+has something to say, and a rainbow running over that is a pill saying
+two things at once — so hover does nothing until the state clears.
+Leader mode suppresses it for the same reason.
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.logo.updateCheck`
+
+`boolean` · default `false`
+
+Add the yellow "a newer rice is available" state to the logo pill. Off
+by default because it is the one part of the pill that leaves the
+machine: it asks GitHub for the rice's current head (the same
+`git ls-remote` behind `haus status`) once every half hour, and a bar
+that phones home should be something you turned on.
+
+No effect unless `haus.sill.logo.status` is on.
+
+Example:
+
+```nix
+true
+```
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3258,6 +4044,30 @@ Example:
   "browser.video" = "󰗃";
   "com.apple.podcasts" = "󰦔";
 }
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
+### `haus.sill.media.width`
+
+`positive integer, meaning >0` · default `32`
+
+How wide the media pill's title is allowed to get, in CHARACTERS — not
+pixels. Anything longer is clipped to this and swept past instead, so
+this is the knob for how much of the bar the now-playing title may rent.
+
+Narrow it on a MacBook, where the bar's centre span sits under the notch
+and every character of title is paid for out of the room the workspace
+pills and the front-app name need. `haus.sill.media.collapse` is the
+harder version of the same trade: no title at all until you hover.
+
+It is a MAXIMUM, not a fixed size — the pill still shrinks to fit a
+short title, so a wide setting costs nothing until something long plays.
+
+Example:
+
+```nix
+16
 ```
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
