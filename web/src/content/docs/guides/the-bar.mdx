@@ -38,15 +38,16 @@ Caps-Lock leader and the whole bar flips into launcher letter-mode.
 
 ## Dropdowns
 
-Several pills open a dropdown on click — the weather popover, the calendar's next
-five events, the coffee pill's durations, the agents and AI-usage lists. They
-behave like every other menu on the Mac: **click anywhere else and the dropdown
-closes**, clicking the pill again also closes it, and opening one dropdown closes
-whichever was already open.
+Several pills open a dropdown on click — the weather popover, the calendar's
+timeline of the day, the coffee pill's durations, the agents and AI-usage lists.
+They behave like every other menu on the Mac: **click anywhere else and the
+dropdown closes**, clicking the pill again also closes it, and opening one
+dropdown closes whichever was already open.
 
 The media pill is the one exception to the *click* half of that rule: its left
 click is play/pause, so its dropdown is on **right**-click. Everything about
-dismissing it is the same.
+dismissing it is the same. (The calendar pill keeps its dropdown on the left
+click and puts **join the meeting** on the right.)
 
 (SketchyBar itself only ever hears about clicks on its own pills, so the rice
 ships a small helper — `sillpop` — to notice the click outside. It runs only
@@ -228,15 +229,47 @@ A pill set `false` is never created — its update script doesn't even run.
 - **`cpu`** — total CPU load, as a percentage pill.
 - **`memory`** — memory-pressure percentage pill.
 - **`volume`** — output volume / mute state.
-- **`calendar`** — your next timed event, with a click-popup of the next five.
-  It reads `in 12m · Design review`: countdown first, because a label is clipped
-  from the *end* and the number is the part you can never afford to lose. A name
-  too long for the pill sweeps past rather than being cut off with an ellipsis
-  — it scrolls for a few seconds when the next event changes, then settles, and
-  hovering brings the whole name back. `haus.sill.calendar.width` sets how much
-  room it gets, in characters — 25 by default, same as the media pill.
-  Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for
-  Calendar access on first run.
+- **`calendar`** — the one meeting you have to be at next, and one gesture to
+  join it. It reads `in 12m · Design review`: countdown first, because a label
+  is clipped from the *end* and the number is the part you can never afford to
+  lose. Under `haus.sill.calendar.preciseUnder` hours (12 by default) it carries
+  minutes; above that it just says `in 14h` or `in 2d`, because a number you're
+  reading as "not yet" doesn't need them. While an event is running it says
+  `now · …` rather than going blank.
+
+  For `haus.sill.calendar.imminent` minutes either side of the start — five
+  before and five after, by default — the **whole pill fills** with the accent
+  and the type goes dark. That is a shape change rather than a colour change, so
+  it catches the eye you aren't pointing at it, and it is tied to the *start*
+  rather than to the whole meeting: five minutes before is "go now", five after
+  is "you're late", and they are the same fact.
+
+  **Right-click joins.** It opens the event's conferencing link, found in the
+  invite's url, location or notes — Meet, Zoom, Teams, Webex, Jitsi, Whereby,
+  Chime, BlueJeans, GoTo, Around and Discord out of the box, with
+  `haus.sill.calendar.joinHosts` for your own. Matching is on the *host*, and a
+  bare name covers its subdomains (`zoom.us` catches `us02web.zoom.us`): a
+  substring search for "meet" would open the `tel.meet` dial-in page that every
+  Google invite also carries.
+
+  **Left-click opens the day as a timeline** — `Done` (the last
+  `haus.sill.calendar.past` hours), `Now`, and `Next` (up to
+  `haus.sill.calendar.upcoming` events). Each event gets its day and clock time
+  in one column, its title in the next, and a dim line underneath with how long
+  it runs and who it's with; the event the pill is about is drawn in a box, and
+  any event with a conferencing link carries a `Join` you can click. Your own
+  address is left out of the "with" line without you configuring anything — a
+  CalDAV calendar is named for the account it syncs, so the pill works out which
+  attendee is you from the calendar list (`haus.sill.calendar.me` covers the
+  cases where it can't, like a local calendar or an alias you're invited under).
+
+  A name too long for the pill sweeps past rather than being cut off with an
+  ellipsis, but **only while you hover it** — nothing in this pill starts moving
+  on its own. `haus.sill.calendar.width` sets how much room it gets before that
+  applies, in characters (32 by default), and `haus.sill.calendar.refresh` how
+  often it re-reads the calendar (15s; hovering forces a read regardless, which
+  is the case that matters). Pulls in `ical-buddy` automatically and reads
+  Calendar, so macOS prompts for Calendar access on first run.
 - **`caffeinate`** — a coffee pill for preventing idle system sleep. Click it
   to choose 1, 2, 4, or 8 hours, enter a custom number of hours, keep the Mac
   awake until stopped, or allow sleep again; right-click stops immediately.
