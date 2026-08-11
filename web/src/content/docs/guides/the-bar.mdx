@@ -44,10 +44,10 @@ They behave like every other menu on the Mac: **click anywhere else and the
 dropdown closes**, clicking the pill again also closes it, and opening one
 dropdown closes whichever was already open.
 
-The media pill is the one exception to the *click* half of that rule: its left
-click is play/pause, so its dropdown is on **right**-click. Everything about
-dismissing it is the same. (The calendar pill keeps its dropdown on the left
-click and puts **join the meeting** on the right.)
+There are no exceptions to the *click* half of that rule any more: **every**
+dropdown on the bar, the media pill's included, is on the left click. Each of
+these pills then puts its one most-pressed action on the **right** click
+instead — play/pause for media, **join the meeting** for the calendar.
 
 (SketchyBar itself only ever hears about clicks on its own pills, so the rice
 ships a small helper — `sillpop` — to notice the click outside. It runs only
@@ -164,24 +164,35 @@ The gestures:
 
 | | |
 |---|---|
-| left click | play / pause |
-| right click | the dropdown |
+| left click | the dropdown |
+| right click | play / pause |
 | ⌥ click | next track |
 | ⇧ click | previous track |
-| ⌘ click | bring the app the sound is coming from forward |
+| ⌘ click | jump to whatever is making the noise — the tab, not just the app |
 | scroll | seek ±10s |
 | hover | sweep a long title once, start to finish |
 
 That ⌘ click is the one to remember: it's the answer to "something is making
-noise and I can't find the tab".
+noise and I can't find the tab", and it means that literally — it puts the
+**tab** in front, not just the browser. There's no URL in what macOS hands the
+bar (see above), so it matches on the track's title instead, and how it gets
+there depends on the browser: Safari and the Chromium family hand out their tab
+list to AppleScript, so it's a real lookup. Firefox and its forks — Zen
+included — hand out nothing at all, not to AppleScript and not through
+accessibility either, so the route there is the one piece of switch-to-tab
+machinery Firefox itself ships: the address bar's `%` open-tab search, driven
+for you. That last one needs SketchyBar to hold the **Accessibility**
+permission; without it the gesture quietly does what it always did and just
+brings the browser forward.
 
 The dropdown carries the cover art when the source published one, the title,
 artist and album, and a position slider you can **click to scrub**, plus
 transport rows. A title or album long enough to overflow the dropdown sweeps
 once when it opens, the same marquee the pill itself does on hover. Sources
 that publish no cover — most browser tabs among them — get a small app-icon
-badge next to the row that brings that app forward, rather than a cover-sized
-stand-in.
+badge floating in the dropdown's bottom-right corner: enough to say where the
+sound is coming from, without a cover-sized stand-in at the top or a row of its
+own in the middle of the ones you actually click.
 
 Two options tune it, both off by default:
 `haus.sill.media.collapse` draws the pill as its glyph alone until you hover it
