@@ -181,8 +181,9 @@ list to AppleScript, so it's a real lookup. Firefox and its forks — Zen
 included — hand out nothing at all, not to AppleScript and not through
 accessibility either, so the route there is the one piece of switch-to-tab
 machinery Firefox itself ships: the address bar's `%` open-tab search, driven
-for you. That last one needs SketchyBar to hold the **Accessibility**
-permission; without it the gesture quietly does what it always did and just
+for you. Each route asks macOS for something the first time you use it —
+**Automation** for the scriptable browsers, **Accessibility** for the Firefox
+forks — and if you say no, the gesture quietly does what it always did and just
 brings the browser forward.
 
 The dropdown carries the cover art when the source published one, the title,
