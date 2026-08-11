@@ -113,7 +113,7 @@ What this costs, and doesn't:
 
 ### And these three reverse earlier written decisions
 
-`go-to-market.md` §6 (decided 2026-08-04) and `hausfold/PRESENCE.md` currently
+`go-to-market.md` §6 (decided 2026-08-04) and `hausfold/ops`'s `PRESENCE.md` currently
 say the opposite. **They are read by every agent session**, so if they aren't
 rewritten first, a future session will "correct" this work back:
 
@@ -129,7 +129,7 @@ rewritten first, a future session will "correct" this work back:
 > shipped under that name: a parallel session building it put `/market`,
 > `/gallery`, `/rices` and `/desktops` to the user and was told `/desktops` —
 > plainer English, a generic noun rather than a name, and therefore no row
-> needed in `hausfold/PRESENCE.md`. Told the two had collided, the user chose to
+> needed in `hausfold/ops`'s `PRESENCE.md`. Told the two had collided, the user chose to
 > amend the plan rather than rename the live page.
 >
 > Two things the swap is **not**. It isn't a retreat from commerce — nothing
@@ -240,7 +240,11 @@ that contradicts the work in front of it.
 
 - `notes/go-to-market.md` — §1 portfolio table (hausfold row), §5 (the gallery
   question — where it lives), §6 (the whole section), §9 (open decisions 1 and 4).
-- `hausfold/PRESENCE.md` — the "deliberately separate, nothing belongs here" rule.
+- `hausfold/ops`'s `PRESENCE.md` — the "deliberately separate, nothing belongs
+  here" rule. ⚠️ It was `hausfold/PRESENCE.md` when this list was written, and
+  that path now means a file in the **rice** checkout (the dir was renamed
+  2026-08-09). The register never lived there; it moved to its own private repo
+  on 2026-08-08.
 - **`hausfold/AGENTS.md` and `hausfold/README.md`** — both quote that rule, and
   AGENTS.md's pre-PR checklist *instructs future reviewers to enforce it*. A
   repeal hides in the checklist that quotes the rule, not in the paragraph you
@@ -282,19 +286,29 @@ Hence the two filters: what this gate is actually looking for is an assertion
 that is **still standing** — not one struck through (`~~`) or quoted inside a
 reversal blockquote (`> `). Marked-as-dead is the goal state, not a violation.
 
-### 0.2 👤 Name clearance — registries 2026-08-08, register 2026-08-10
+### 0.2 👤 Name clearance — registries 🔒 in `ops`, register 2026-08-10
 
 "hausfold" as an *umbrella* was low exposure. As a **platform with a market and
 paid products**, it's a different check:
 
 | | Status |
 |---|---|
-| npm — `hausfold` as a package name | ✅ **free** (2026-08-08, re-checked 2026-08-10) |
-| PyPI — `hausfold` as a project name | ✅ **free** (2026-08-08, re-checked 2026-08-10). ⚠️ `flick`, `nebelung`, `pounce`, `perch` are all **taken** by unrelated projects — not recoverable, PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked, and only matters if that app ever publishes an SDK — today only holt does.) |
-| crates.io — `hausfold` | ✅ **free** (2026-08-10) |
-| GitHub — any `hausfold*` squatting near you | ✅ nothing found; the org is ours |
+| package registries, handles, namespaces | 🔒 **run 2026-08-08, re-checked 2026-08-10 — results in `hausfold/ops`'s `PRESENCE.md`, not here.** See the 🔒 box below. ⚠️ One line survives because it's about *loss*, not availability: `flick`, `nebelung`, `pounce` and `perch` are all **taken** on PyPI by unrelated projects, not recoverable, and PyPI has no reservation. (`flick` is moot since §3.4; `trill` is unchecked and only matters if that app ever publishes an SDK — today only holt does.) |
 | A web search for an existing company using it | 🚨 **found one** — see below |
 | USPTO + EUIPO, software classes (9/42) | ✅ **run 2026-08-10 — `hausfold` returns ZERO records worldwide.** See the box below for how, and for what it does and doesn't prove. |
+
+🔒 **Why the availability rows moved out of this file — 2026-08-10.** They said
+which registries and handles were **free**, and *free* is the half that makes
+the register private: a list of what nobody has claimed hands it to whoever
+reads it first, and **this repo is public**. The rule is decision 8's
+`PRESENCE.md` bullet at the top of this file, and it now binds `hausfold`'s rows
+as well as `haus`'s — they predated the rule rather than being exempt from it.
+`hausfold/ops` holds both sets.
+
+**The trademark rows stay, and the difference is not a judgement call:** those
+quote *public register records*, so reproducing them discloses nothing
+`tmdn.org` doesn't already serve to anyone who asks. Availability is a gap;
+a registration is a document.
 
 #### ✅ Run 2026-08-10 — the register half, for both `hausfold` and `haus`
 
@@ -2486,7 +2500,7 @@ carries the command, so nothing waits on the gallery).
 ⚠️ **That page prints the old one-liner today** —
 `curl -fsSL https://nebelhaus.com/init.sh | bash`, hand-copied from
 `nebelhaus/README.md`. It is correct now and wrong the moment this decision
-lands. `hausfold/PRESENCE.md`'s Gaps records the duplication; **this is the step
+lands. `hausfold/ops`'s `PRESENCE.md` Gaps records the duplication; **this is the step
 that has to edit it**, and nothing checks the two agree.
 
 That generalizes for free: `hausfold.co/<rice>.sh` is every rice's own
