@@ -186,6 +186,30 @@ for you. Each route asks macOS for something the first time you use it —
 forks — and if you say no, the gesture quietly does what it always did and just
 brings the browser forward.
 
+If you're on Zen, there's a better answer than driving its address bar:
+
+```nix
+haus.zen.tabBridge.enable = true;
+```
+
+That deploys a small extension the rice builds itself, which publishes Zen's
+open tabs to the bar and switches to one on request. ⌘ click then gets an exact
+tab — across windows, Zen workspaces and Spaces — with no synthetic typing and
+no Accessibility permission. It's off by default because force-installing an
+add-on into your browser isn't a thing a rice should do unasked, and it's Zen
+only for a reason that isn't a preference: release Firefox refuses any extension
+Mozilla hasn't signed, and Zen ships `xpinstall.signatures.required = false` as
+a built-in default, so the rice can build the `.xpi` and install it straight
+from the nix store. The extension asks for one permission, `tabs`, and talks to
+exactly one program — a native-messaging host that lives and dies with the
+browser, opens no port, and is named in the manifest as the only thing it will
+speak to.
+
+<Aside type="note">
+Policy files are read once, at startup — so the first rebuild that turns this
+on doesn't do anything visible until you **quit and reopen Zen**.
+</Aside>
+
 The dropdown carries the cover art when the source published one, the title,
 artist and album, and a position slider you can **click to scrub**, plus
 transport rows. A title or album long enough to overflow the dropdown sweeps
