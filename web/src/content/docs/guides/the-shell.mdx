@@ -203,6 +203,13 @@ placed to **cover the terminal window that summoned it exactly** — it reads as
 that window switching into a file browser, not as a popup landing on top of it.
 Quit with `q` / `Esc` and the window closes, leaving your tiled layout untouched.
 
+Every floating terminal the rice summons — peek, the palette's **Rebuild
+System**, the bar's agent peek — wears a thin outline that follows the window's
+own corner curve, so a dark terminal landing on a dark window still has an edge.
+`haus.hearth.floatBorder` picks its colour: `grey` (the default: one step off the
+terminal's background, the same edge the bar's dropdowns wear), `accent` to
+follow `haus.theme.accent`, or `off`.
+
 ## Choosing your editor
 
 helix is the default. `haus.hearth.editor` is the **one** editor the rice
