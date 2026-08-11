@@ -132,6 +132,27 @@ marketing-only.
 - [ ] **A creator one-pager** — paragraph, three shots, video, install command,
       compatibility, license, contact. No press release.
 
+### 4.1 Copy bank — lines that are already good
+
+Keep them here so they survive the sessions that wrote them, and so the
+hausfold.co redesign has sentences to reach for (§5.1 of
+[`hausfold-rename.md`](./hausfold-rename.md) says the port keeps the copy that
+took work — this is that copy).
+
+| line | where it lives | notes |
+|---|---|---|
+| **make a haus a home** | **unplaced, on purpose** (2026-08-11) | ⚠️ **A tagline, never a taxonomy.** It arrived as a proposal to rename `desktop(s)` → `home(s)` — the gallery at `/desktops`, decision 7. That rename is **rejected**: `home` collides with home-manager's live `home.*` namespace sitting right beside `haus.*`, with `home.file`, with `$HOME`/`~`, and with the site's own home page; `hausfold.co/homes` reads as real estate under a brand that already means *house*; and nobody searches for "home" when they mean a rice. The verb is the value — *make it yours* is exactly the `/desktops` pitch — so it survives as a sentence and `desktop` stays the noun. **It went onto nebelhaus.com's landing page and came straight back off**: `web/` is mid-move to hausfold.co (§5.1), so copy landed there now is copy the port has to carry, and this is a *platform* line with no reason to debut on the rice's site. Place it when the destination exists — the `/haus` hero is the obvious slot. |
+| An opinionated macOS, raised in the fog. | nebelhaus.com hero `<h1>` | The rice's line, not the platform's. Doesn't transfer to hausfold.co. |
+| One command. Your Mac, already sorted. | nebelhaus.com hero lede | Survives the port with the install one-liner. |
+| Four rooms, one house. | nebelhaus.com family section | The house metaphor the kicker above hangs off. |
+| The whole machine is the config. | nebelhaus.com closer | The most portable line on the page — it's a *platform* claim wearing a rice's clothes. Strong candidate for `/haus`. |
+
+An unused idea kept on purpose: if `home` ever earns a place in the vocabulary,
+the split that survives the collisions is **a `desktop` is what you install, a
+`home` is what it becomes once you've set your own options** — you install a
+desktop, you make it your home. Cheap to adopt today; expensive after "home"
+is in the guides and has to be disambiguated from home-manager on every page.
+
 ## 5. The gallery / marketplace question — answered
 
 > **★ Half-reversed 2026-08-08.** *Don't build it first* **stands**, and now has
