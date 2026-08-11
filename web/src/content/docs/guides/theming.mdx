@@ -186,23 +186,31 @@ follows your accent rather than the flavor.
 
 ## The desktop
 
-The wallpaper is generated on your machine, not shipped as a picture:
+The wallpaper is generated on your machine, not shipped as a picture, and it is
+what you get without saying anything:
 
 ```nix
-haus.wallpaper.style = "minimal";
+haus.wallpaper.style = "minimal";   # the default — none | minimal | orbits | constellation | flow | bold
 ```
 
 `minimal` is one flat colour out of your palette, the haus mark **⌂** at the
-centre, and a very broad bloom in your accent behind it. That is the whole
-design — there is no photograph to clash with a terminal in front of it, and
-nothing that stops reading as a background once you have windows open.
+centre in the family's six accents, and a very broad bloom in your own accent
+behind it. That is the whole design — there is no photograph to clash with a
+terminal in front of it, and nothing that stops reading as a background once you
+have windows open. It is drawn from the palette, accent and gaps you already
+chose, which is why it can be the default: there is nothing here to clash with
+the rest of your install.
+
+`style = "none"` is the way out, and it is a real answer rather than an absence —
+set it and nothing runs, so whatever wallpaper you have stays exactly where it
+is. The installer asks, and writes that line for you if you take it.
 
 Every part of it is a knob, and the defaults are the look above:
 
 | | |
 |---|---|
 | `haus.wallpaper.depth` | how far in from the palette's outermost tone the field sits, `0`–`5`. `0` is our blackest black in a dark rice and our whitest white in a light one; `1` (the default) sits exactly one rung inside that in either polarity — `#191919` dark, `#e9e9e9` light. That is one step below the colour your terminal draws on in a dark rice, which is what keeps a whole screen of it reading as a wall rather than as a very large terminal window; in a light rice the canvas is already the lightest tone there is, so a step below it is the better end of the trade for a whole screen of near-white. `depth = 2` matches the terminal exactly in dark mode, `depth = 0` in light. `haus.wallpaper.background` overrides it with a literal hex. |
-| `haus.wallpaper.mark.*` | `enable`, `size`, `weight`, `opacity`, `rise` (how far above centre it sits), and `color` — `muted`, `ink`, `accent`, or `spectrum`, which is the six-product conic sweep the ⌂ wears when you hover it on [hausfold.co](https://hausfold.co), held still. The shape is the real **U+2302**, traced off the outline the site renders, so the roof ends on the walls rather than overhanging them — the weight is the one thing that isn't the glyph's, at about half of it, since a stem that reads right in a line of type is heavy drawn a foot wide. |
+| `haus.wallpaper.mark.*` | `enable`, `size`, `weight`, `opacity`, `rise` (how far above centre it sits), and `color` — `spectrum` (the default), `muted`, `ink`, or `accent`. `spectrum` is the six-product conic sweep the ⌂ wears when you hover it on [hausfold.co](https://hausfold.co), held still; `muted` is the quiet way back, and `opacity` turns the sweep down without leaving it. The shape is the real **U+2302**, traced off the outline the site renders, so the roof ends on the walls rather than overhanging them — and since the default `weight` of `0.09` is the glyph's own stem (a tenth of its height, once the miter at the apex is counted), the desktop draws the same mark the site does. |
 | `haus.wallpaper.glow.*` | the bloom: `color` (your accent unless you say otherwise), `strength` as a percentage, and `spread` as a multiple of the long edge. |
 | `haus.wallpaper.grain` | film grain, and the reason the bloom doesn't band — see below. |
 | `haus.wallpaper.size` | the pixel size to render at. |
