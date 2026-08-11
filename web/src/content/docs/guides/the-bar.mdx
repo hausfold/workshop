@@ -39,7 +39,8 @@ Caps-Lock leader and the whole bar flips into launcher letter-mode.
 ## Dropdowns
 
 Several pills open a dropdown on click — the weather popover, the calendar's
-timeline of the day, the coffee pill's durations, the agents and AI-usage lists.
+timeline of the day, the coffee pill's durations, the agents and AI-usage lists,
+and the cpu and memory readouts' breakdown of what's using the machine.
 They behave like every other menu on the Mac: **click anywhere else and the
 dropdown closes**, clicking the pill again also closes it, and opening one
 dropdown closes whichever was already open.
@@ -47,7 +48,8 @@ dropdown closes whichever was already open.
 The media pill is the one exception to the *click* half of that rule: its left
 click is play/pause, so its dropdown is on **right**-click. Everything about
 dismissing it is the same. (The calendar pill keeps its dropdown on the left
-click and puts **join the meeting** on the right.)
+click and puts **join the meeting** on the right; the cpu and memory pills do
+the same with **Activity Monitor**, on the tab each one is about.)
 
 (SketchyBar itself only ever hears about clicks on its own pills, so the rice
 ships a small helper — `sillpop` — to notice the click outside. It runs only
@@ -226,8 +228,39 @@ A pill set `false` is never created — its update script doesn't even run.
 
 **Extra readouts** — harmless anywhere, just off so the default bar stays quiet:
 
-- **`cpu`** — total CPU load, as a percentage pill.
-- **`memory`** — memory-pressure percentage pill.
+- **`cpu`** — total CPU load, drawn as a **graph pill**: the last two minutes of
+  it behind the number. A percentage on its own can't tell you whether 60% is a
+  spike settling or a climb that started five minutes ago, which is the actual
+  question you glance up to ask.
+
+  **Hover** splits the number into user and system with the load average beside
+  them — user-heavy is your build running, system-heavy is the machine
+  thrashing, and the load says whether anything is queued behind either.
+  **Left-click** opens a dropdown naming what's responsible, biggest first and
+  aggregated per app, so a browser's twenty helper processes are one row rather
+  than twenty; clicking a row focuses that app's window. **Right-click** opens
+  Activity Monitor on its CPU tab.
+
+  The rows can only cover processes you own — macOS doesn't hand out another
+  user's CPU times — so anything root runs (`kernel_task`, `WindowServer`) lands
+  in `everything else` rather than going quietly missing from the sum. A large
+  `everything else` is the dropdown telling you, correctly, that the answer is
+  in Activity Monitor and not in this list.
+- **`memory`** — memory in use, drawn as a **graph pill**. It counts what
+  Activity Monitor counts — app memory, wired and compressed — and deliberately
+  *not* the file cache. macOS fills otherwise-idle RAM with cache on purpose and
+  hands it straight back under pressure, so counting it gives a readout that
+  sits near 90% on a machine doing nothing and has no range left to show
+  anything with.
+
+  Its **colour is the kernel's own pressure level** (green normal, amber
+  warning, red critical), not the percentage: 60% of RAM in use is a Mac working
+  correctly, and a pill that goes amber for that is a pill you learn to ignore.
+  **Hover** shows used/total and swap. **Left-click** opens a dropdown with the
+  cache, compressed and swap figures, then the biggest footprints per app —
+  the same `phys_footprint` Activity Monitor's Memory column shows, so the two
+  agree — each row clicking through to that app's window. **Right-click** opens
+  Activity Monitor on its Memory tab.
 - **`volume`** — output volume / mute state.
 - **`calendar`** — the one meeting you have to be at next, and one gesture to
   join it. It reads `in 12m · Design review`: countdown first, because a label
