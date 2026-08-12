@@ -97,7 +97,8 @@ its default, a sentence each, **all commented out**. Uncomment what you want,
 delete what you'll never touch; you find out a knob exists by reading the file you
 already edit. It's rendered from the build you're actually running, so it can't
 advertise an option your machine doesn't have — the rice-side twin of pounce's
-`pounce config init`.
+`pounce config init`. If you've edited your copy, a refresh writes
+`options.nix.new` beside it rather than overwriting your work.
 
 ```sh
 haus options    # refresh it against the current rice (--force overwrites yours)
@@ -154,7 +155,9 @@ haus.git.org = "analytical-engine";        # the GitHub owner your work lives un
 gh-dash reads it: it fills `⌘G`'s PR tabs with that owner's open, green, red and
 just-shipped work, so an org rename is one word here rather than one per tab. On
 its own it does nothing — the overlay is opt-in, so set
-`haus.hearth.ghDash.enable = true` alongside it. See [Your review
+`haus.hearth.ghDash.enable = true` alongside it, and keep the Git pack on
+(`haus.developer.git.enable`), which is what installs `gh`; the two are asserted
+together, so the overlay without the pack fails the build. See [Your review
 queue](/guides/the-shell/#your-review-queue).
 
 ### The look
@@ -191,7 +194,8 @@ More on each in [The shell](/guides/the-shell/).
 haus.roster.slack = { /* one keyed roster entry — see Adding apps */ };
 haus.prowl.enable = true;    # false: no tiling, no Caps-Lock remap
 haus.pounce.enable = true;   # false: no ⌘Space palette
-haus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant across rebuilds
+haus.pounce.signingIdentity =      # sign it and its Accessibility grant survives rebuilds;
+  "Developer ID Application: Ada Lovelace (ABCDE12345)";   # "" (the default) runs it unsigned
 ```
 
 ### The bar
@@ -293,25 +297,27 @@ Every room you can see has a switch:
 | prowl (tiling) | `haus.prowl.enable = false` | No AeroSpace, no leader key |
 | sill (bar) | `haus.sill.enable = false` | The native menu bar stays |
 | pounce (launcher) | `haus.pounce.enable = false` | No ⌘Space palette |
-| perch (notch shelf) | `haus.perch.enable = false` | No shelf, and no `/Applications/Perch.app` |
+| perch (notch shelf) | `haus.perch.enable = false` | No shelf. The `/Applications/Perch.app` an activation copied in stays — delete it by hand |
 | hush (quiet switch) | `haus.hush.enable = false` | No bar pill, palette command or `hush` CLI |
 | collar (Touch ID sudo) | `haus.collar.enable = false` | The stock password prompt everywhere, rebuilds included |
 | apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `haus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
 
-Two of them don't hand the key back on the way out: turning **pounce** off does
-not return `⌘Space` to Spotlight, and turning **hush** off does not restore the
-Do Not Disturb hotkey. Both were disabled by a one-way `defaults write`, so
-re-bind them in System Settings ▸ Keyboard ▸ Keyboard Shortcuts.
+**pounce** doesn't hand its key back on the way out: turning it off does not
+return `⌘Space` to Spotlight, because that shortcut was disabled by a one-way
+`defaults write` and nothing re-enables it. Re-bind it in System Settings ▸
+Keyboard ▸ Keyboard Shortcuts. **hush** is the mirror image — it *binds* a Do
+Not Disturb chord onto a shortcut macOS ships disabled, so switching the room
+off leaves a spare binding rather than removing one.
 
 If what you actually want is the tiler **without** its keyboard claims, don't turn
 the room off — set `haus.keys.leader = "none"` and
 `haus.keys.windowNav = "none"` instead. prowl keeps tiling and Caps-Lock stays
 Caps-Lock. See [rebinding](/guides/window-management/#not-fond-of-these-keys).
 
-**den** (system + Homebrew) and **hearth** (shell) are the only rooms with no
-switch at all — they're the foundation the rest sits on. Everything else above
-comes out independently, and the others keep working; the rice degrades
-gracefully.
+**den** (system + Homebrew) and **hearth** (shell) are the foundation the rest
+sits on and have no switch; of the rooms you can *see*, all six do. Everything
+in the table comes out independently, and the others keep working — the rice
+degrades gracefully.
 
 ## Presets: start from someone else's rice
 
@@ -407,8 +413,8 @@ Anything under [`system.defaults`](https://nix-darwin.github.io/nix-darwin/manua
 is fair game. Your plain value wins over the rice's default.
 
 <Aside type="note" title="Four exceptions">
-Two menu-bar keys track whether the bar (sill) is on, so the rice sets them at
-full priority rather than as `mkDefault`s:
+Two menu-bar keys track whether the bar (sill) is on, so the rice sets them
+plainly rather than as `mkDefault`s:
 
 - **`_HIHideMenuBar`** — the auto-hide, a typed nix-darwin option. Setting it in
   your host file is a **conflicting definition**: the evaluation fails rather

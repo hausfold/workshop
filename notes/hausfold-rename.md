@@ -2518,8 +2518,9 @@ sources**, twenty-four pages. Three clean-context passes returned corrections on
   `mkIf`-gated switch, and the page said Touch-ID-for-sudo couldn't be removed.
   Same undercount hid `perch` and `hush`: the room table said four rooms are
   opt-out where seven are. ⚠️ **The claim was seeded by a stale comment in the
-  rice** — `haus/modules/prowl/options.nix:14-15` still says "den + hearth +
-  collar are always on … These three are the choosable rooms". Fixed there too.
+  rice** — `haus/modules/prowl/options.nix` said "den + hearth + collar are
+  always on … These three are the choosable rooms", which is where the docs got
+  it. Fixed in the same batch ([hausfold/haus#327](https://github.com/hausfold/haus/pull/327)).
 - **The `options.nix` rationale was inverted.** The page said spelling every
   default out would *silently beat* an imported preset; `host-template.jq:10-24`
   says it **fails the build with a conflict per field**, and names
@@ -2529,10 +2530,15 @@ sources**, twenty-four pages. Three clean-context passes returned corrections on
   without `mkDefault`, so setting it yourself is a conflicting definition and a
   failed eval — not the "bar and menu bar fighting for the same pixels" the
   aside predicted. (You only get that by `mkForce`-ing it off with sill on.)
-- **Neither pounce nor hush hands its hotkey back.** Both disable a symbolic
-  hotkey (Spotlight's 64, DND's 175) with a one-way `defaults write` inside
-  their own gated block, so `enable = false` leaves the key dead forever. The
-  leaving guide warned about 64 and not 175; both trees now name both.
+- **pounce doesn't hand ⌘Space back, and hush leaves the opposite trace.**
+  pounce writes symbolic hotkey 64 to `enabled:0` inside its own gated block, so
+  `pounce.enable = false` leaves Spotlight's shortcut dead forever — the leaving
+  guide never said so. hush is the mirror image and the first draft of this
+  batch got it backwards: it **binds** hotkey 175, which macOS ships present and
+  disabled, so switching hush off leaves a live DND chord rather than removing
+  one. `guides/hush` had it right all along, which is the argument for
+  cross-checking a new page against the neighbours it links to — the second
+  assurance pass caught this by reading the page one click away.
 - **`haus capture` / `haus revert-settings` was missing from the exit guide
   entirely** — the purpose-built answer to that page's own central complaint,
   already documented one click away in `reference/haus`.
@@ -2552,6 +2558,19 @@ resetting; the installer's refusal message is "Found a Nix at /nix that isn't
 Determinate", so the old heading was unsearchable; the pre-rename `nebelhaus/tap`
 survives `brew untap hausfold/tap`; and the installer's APFS snapshot is purged
 by macOS within about a day, so the exit guide's standing fallback isn't one.
+Also mirrored, and easy to miss because they read as prose rather than as
+facts: `perch.enable = false` does **not** remove the `/Applications/Perch.app`
+an activation copied in (nothing does); the Caps-Lock remap is `hidutil`, so it
+clears on the next *reboot* rather than the next rebuild, while the menu-bar key
+really is rewritten every activation; `signingIdentity = ""` is the **unsigned**
+default, not the setting that preserves the Accessibility grant, so the example
+had to carry a real identity; `ghDash.enable` is additionally *asserted* against
+`developer.git.enable`, so the pair fails a build rather than doing nothing;
+`haus options` writes `options.nix.new` beside an edited copy rather than
+overwriting it; zellij's `config.kdl.backup` is cleared every rebuild, so the
+`find` for `*.backup` will never show it; `haus doctor` runs three sections
+nobody had documented; and `github.com/hausfold` became
+`github.com/hausfold/haus/issues`, an org page having no issue tracker.
 
 ⚠️ **The trap this batch nearly fell into, worth carrying into batch seven:** the
 sources were read out of `~/code/workshop/web/` — the *main checkout* — which was

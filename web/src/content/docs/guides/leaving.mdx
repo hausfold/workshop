@@ -107,17 +107,22 @@ disables the selected rooms:
 - `prowl` — AeroSpace tiling, Caps-Lock launcher, and window-management bindings
 - `sill` — SketchyBar: the top bar, and the bottom one if you run it
 - `pounce` — the Pounce daemon, palette hotkey, and Accessibility-dependent features
-- `perch` — the notch file shelf (and its hand-copied `/Applications/Perch.app`)
+- `perch` — the notch file shelf. Nothing removes the `/Applications/Perch.app`
+  an earlier activation copied into place; turning the room off only stops it
+  being re-copied, so delete the app by hand if you want it gone.
 - `hush` — the `hush` CLI, its palette command, and the Hush **bar pill** (which
   only exists when `sill` is on in the first place)
 - `collar` — Touch ID for `sudo`, and the passwordless-`sudo` rule for rebuilds
 
-Caps Lock and the native menu bar are re-applied at every activation, so they
-come back on their own. Two things do not: **Spotlight's `⌘Space`** and the
-**Do Not Disturb hotkey** are disabled by one-way `defaults write`s inside the
-pounce and hush rooms, and nothing re-enables them — re-bind both in System
-Settings ▸ Keyboard ▸ Keyboard Shortcuts. Accessibility permissions are worth a
-look too. See [haus.\* options](/reference/options/) for what each toggle
+The native menu bar is rewritten at every activation, so it comes back on its
+own; the Caps-Lock remap is a `hidutil` property that lasts until you reboot, so
+it clears on the next **restart** rather than the next rebuild. Two hotkeys need
+you. **Spotlight's `⌘Space`** was disabled by a one-way `defaults write` inside
+the pounce room and nothing re-enables it. And hush leaves the opposite trace: it
+*binds* symbolic hotkey 175 — a Do Not Disturb chord macOS ships disabled — so
+turning the room off leaves that binding live rather than taking one away. Both
+are in System Settings ▸ Keyboard ▸ Keyboard Shortcuts. Accessibility permissions
+are worth a look too. See [haus.\* options](/reference/options/) for what each toggle
 governs.
 
 ## Take down the system layer
@@ -279,8 +284,8 @@ is for when you did not:
 - Finder extensions, hidden files, path bar, status bar, and view style
 - hot corners
 - native menu-bar visibility and its clock, and Caps Lock behaviour
-- Spotlight's `⌘Space` **and** the Do Not Disturb hotkey — neither is restored
-  by turning its room off
+- Spotlight's `⌘Space`, which turning pounce off does not restore — and the Do
+  Not Disturb chord hush bound, which stays bound
 - wallpaper
 - screenshot location and format, and the screen-lock delay
 - alert volume, UI sounds, and the startup chime (`nvram StartupMute` — firmware,
@@ -317,8 +322,9 @@ narrower grep reports a clean machine while `org.nixos.sill-bottom`,
 
 A matching AeroSpace or SketchyBar process is not automatically residue; both
 are Homebrew installs that nebelhaus only *launches*, so `brew uninstall` is
-what removes them. And a few things nothing in Nix put there, so no uninstaller
-takes them away:
+what removes them. And a few things have no removal path at all — an activation
+step copies the shelf app into place, and state directories are written as the
+machine runs — so no uninstaller takes them away:
 
 ```sh
 ls ~/.local/state/nebelhaus ~/.local/state/pounce ~/.config/perch /Applications/Perch.app
