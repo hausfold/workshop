@@ -161,29 +161,8 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   done
 }
 
-# ── repo_dir's ⏳ migration arm (delete with the arm itself, §10) ─────────────
-#
-# The layer's checkout moved ./hausfold → ./haus when the repo was renamed on
-# 2026-08-11, but a checkout is machine state and `git pull` isn't. These three
-# pin the exact shape of the shim: prefer the new dir, fall back to the old one
-# ONLY when the new one is absent, and never reach for it on a migrated machine.
-
-@test "repo_dir resolves the layer to its post-rename checkout" {
+@test "repo_dir resolves the layer to its checkout" {
   mkdir -p "$ROOT/haus/.git"
-  run repo_dir haus
-  [ "$output" = "$ROOT/haus" ]
-}
-
-@test "repo_dir falls back to the pre-rename checkout on an un-migrated machine" {
-  mkdir -p "$ROOT/hausfold/.git"
-  run repo_dir haus
-  [ "$output" = "$ROOT/hausfold" ]
-}
-
-@test "repo_dir ignores the pre-rename checkout once both exist" {
-  # A machine mid-migration (or one that kept the old dir around) must not have
-  # bench silently building the stale tree — the new dir always wins.
-  mkdir -p "$ROOT/haus/.git" "$ROOT/hausfold/.git"
   run repo_dir haus
   [ "$output" = "$ROOT/haus" ]
 }
