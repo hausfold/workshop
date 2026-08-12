@@ -118,12 +118,26 @@ for when your hand's already on the trackpad. Click again (or `Super ⏎`) to dr
 back into the tiled layout. Only clicks *inside* the pane zoom; a drag on the
 frame still resizes, and the program running in the pane never sees the click.
 
-**Clickable links** work across two modifiers. `⌥`-click a file path (or a
-visible URL / bare domain) in the terminal to open it — a path opens a new tab
-`cd`'d there, a link opens in the browser. `⌘`-click opens any web link,
-including **embedded hyperlinks** whose visible text isn't the URL (e.g. Claude
-Code's `/tui` session and PR links) — those only respond to `⌘`-click, since the
-URL is hidden in the terminal escape sequence rather than shown on screen.
+**Clickable links** need no modifier at all: hover underlines one, a plain
+click opens it. That holds in every pane, including one running an agent TUI
+that has taken the mouse for itself — the terminal reads the destination out of
+the cells rather than the visible text, so a URL the program wrapped across two
+rows and an **embedded hyperlink** whose visible text isn't the URL (Claude
+Code's session and PR links are both) open whole.
+
+In a pane no program is tracking the mouse, a **file path** is clickable too: a
+file opens in your editor at its `:line`, a directory opens a new tab `cd`'d
+there. Where a program *is* tracking the mouse, only real links are taken and
+path-shaped text is left to it — otherwise clicking a filename in `yazi` or
+`lazygit` would stop selecting it. The rule to hold on to is that whatever
+underlines under the pointer is what a click will open.
+
+`⌘` is deliberately not part of this and never could be: the mouse protocol a
+terminal program speaks encodes shift, alt and control and has no bit for
+command, so a `⌘`-click arrives inside the multiplexer indistinguishable from a
+plain one. The escape hatch, for a target we resolve wrongly, is `⌘⇧`-click —
+shift is the one modifier Ghostty keeps for itself, which frees the mouse from
+the program capturing it, and command is what makes Ghostty read a link there.
 
 ## Pounce — ⌘Space
 

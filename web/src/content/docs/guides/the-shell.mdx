@@ -102,10 +102,13 @@ ever reloads. So hearth installs `~/.config/zellij/config.kdl` as a real file wi
 a real timestamp instead — the one dotfile in the rice that is copied rather than
 linked.
 
-<Aside type="tip" title="Option-click a path">
-A custom zellij link handler means <kbd>Option</kbd>-clicking a file path in the
-terminal opens a **new tab already `cd`'d there**. Great for jumping into a path
-a build tool just printed.
+<Aside type="tip" title="Click a path">
+A custom zellij link handler means a plain click on a file path opens it **in
+your editor, at its line number** — `src/main.rs:42` lands on line 42 — and a
+click on a directory opens a **new tab already `cd`'d there**. Great for
+jumping straight into whatever a build tool just printed. Links (URLs, and
+hyperlinks whose visible text is a word) are clickable in every pane; paths in
+any pane no program has taken the mouse in.
 </Aside>
 
 ### Finding things
