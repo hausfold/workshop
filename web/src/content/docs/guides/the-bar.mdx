@@ -233,13 +233,17 @@ A pill set `false` is never created — its update script doesn't even run.
   spike settling or a climb that started five minutes ago, which is the actual
   question you glance up to ask.
 
-  **Hover** splits the number into user and system with the load average beside
-  them — user-heavy is your build running, system-heavy is the machine
-  thrashing, and the load says whether anything is queued behind either.
-  **Left-click** opens a dropdown naming what's responsible, biggest first and
-  aggregated per app, so a browser's twenty helper processes are one row rather
-  than twenty; clicking a row focuses that app's window. **Right-click** opens
-  Activity Monitor on its CPU tab.
+  **Left-click** opens a dropdown: the user/system split with the load average
+  beside it — user-heavy is your build running, system-heavy is the machine
+  thrashing, and the load says whether anything is queued behind either — then
+  what's responsible, biggest first and aggregated per app, so a browser's
+  twenty helper processes are one row rather than twenty; clicking a row focuses
+  that app's window. **Right-click** opens Activity Monitor on its CPU tab.
+
+  Nothing happens on **hover**, deliberately. The breakdown used to swap into
+  the pill's label while the pointer sat on it, and a longer label is a wider
+  pill: every pill to its left jumped sideways on the way in and back on the way
+  out. The dropdown opens *below* the bar and moves nothing.
 
   The rows can only cover processes you own — macOS doesn't hand out another
   user's CPU times — so anything root runs (`kernel_task`, `WindowServer`) lands
@@ -256,11 +260,12 @@ A pill set `false` is never created — its update script doesn't even run.
   Its **colour is the kernel's own pressure level** (green normal, amber
   warning, red critical), not the percentage: 60% of RAM in use is a Mac working
   correctly, and a pill that goes amber for that is a pill you learn to ignore.
-  **Hover** shows used/total and swap. **Left-click** opens a dropdown with the
+  **Left-click** opens a dropdown with used/total, the
   cache, compressed and swap figures, then the biggest footprints per app —
   the same `phys_footprint` Activity Monitor's Memory column shows, so the two
   agree — each row clicking through to that app's window. **Right-click** opens
-  Activity Monitor on its Memory tab.
+  Activity Monitor on its Memory tab. Hover does nothing here either, for the
+  reason the CPU pill gives above.
 - **`volume`** — output volume / mute state.
 - **`calendar`** — the one meeting you have to be at next, and one gesture to
   join it. It reads `in 12m · Design review`: countdown first, because a label
