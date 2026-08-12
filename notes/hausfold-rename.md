@@ -173,7 +173,7 @@ pair, Touch ID and hush with the third
 coding-agents consolidation with the fourth; the update loop and the `haus` CLI
 reference with the fifth ([hausfold.co#21](https://github.com/hausfold/hausfold.co/pull/21));
 and the host-file cookbook plus both exits — troubleshooting and leaving — with
-the sixth ([hausfold.co#22](https://github.com/hausfold/hausfold.co/pull/22)). §5.2's
+the sixth ([hausfold.co#23](https://github.com/hausfold/hausfold.co/pull/23)). §5.2's
 status box carries what each proved, what it changed and what is left — read that
 before assuming any bullet further down this section is still the plan. The
 three headlines: the docs are **two trees behind a sidebar switcher**
@@ -2497,7 +2497,7 @@ consent-gate sentence rather than assert it, but the real fork is 👤's: either
 document the `bash -c` form as the headline, or have `bootstrap.sh` reopen
 `/dev/tty` when one exists so the one-liner already in the wild starts asking.
 
-**Landed, batch six** ([hausfold.co#22](https://github.com/hausfold/hausfold.co/pull/22)):
+**Landed, batch six** ([hausfold.co#23](https://github.com/hausfold/hausfold.co/pull/23)):
 the host-file cookbook plus the two exits — `guides/making-it-yours`,
 `reference/troubleshooting` and `guides/leaving`, all three into the **haus**
 tree. 969 source lines to 739 (**76%**, and see the ratio bullet above: these
