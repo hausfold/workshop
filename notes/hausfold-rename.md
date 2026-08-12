@@ -163,7 +163,10 @@ One thing from §6 that survives and one that doesn't:
 
 **§5.2's first landing is in: `hausfold.co/docs` exists.** The Fumadocs build,
 the theme, the CI and five of the twenty-nine pages
-([hausfold.co#11](https://github.com/hausfold/hausfold.co/pull/11)). §5.2's
+([hausfold.co#11](https://github.com/hausfold/hausfold.co/pull/11)); **four more
+haus guides — tiling, the shell, theming, Touch ID — followed the same day**
+([hausfold.co#16](https://github.com/hausfold/hausfold.co/pull/16)), which puts
+the count at **ten of twenty-nine**. §5.2's
 status box carries what it proved, what it changed and what is left — read that
 before assuming any bullet further down this section is still the plan. The
 three headlines: the docs are **two trees behind a sidebar switcher**
@@ -2308,9 +2311,29 @@ Two things this section decided that the landing **changed**:
   is now a rule in `hausfold.co`'s AGENTS.md, so the remaining pages don't
   quietly get copied.
 
+Two things the **second** landing (#16 — window management, the shell, theming,
+Touch ID) adds to that:
+
+- ⚠️ **A reference-dense page does not halve.** Those four land at **66–80%**
+  of their originals, because most of their length is tables of keys and
+  options — the rows *are* what a reader acts on, and cutting them is cutting
+  the page's job. Half is the right target for a prose guide and the wrong one
+  for a key table; expect `reference/*` to land nearer its original, and don't
+  read the bar as a quota.
+- ✅ **"Verify each fact against the source repo" pays, measurably.** Two live
+  keys are wrong in the Astro tree and right in the Fumadocs one: the zellij
+  layout cycle is `⌥[` / `⌥]`, not `Alt <` / `Alt >`, and the terminal's key
+  table was missing `⌘A`/`⌘⇧A`/`⌃⌥⇧A` (agents), `⌘W` and `⌘L` outright. Both
+  came out of reading `haus/modules/hearth/term-bindings.nix` rather than the
+  page. **So a ported page is the newer source the moment it lands** — read the
+  "fix a fact in both trees or in neither" rule below as *don't leave one
+  stale*, never as *keep them identical*.
+
 **Still open, and each is its own piece of work:**
 
-- the remaining ~24 pages, including `reference/options.md` — the generated
+- the remaining ~19 pages — the whole `reference/` half, the pounce and agent
+  guides, and the "own it" guides (`making-it-yours`, `adding-apps`,
+  `staying-in-sync`, `leaving`) — including `reference/options.md`, the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
   pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
