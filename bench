@@ -342,7 +342,7 @@ detect_lane() { # populate LANE_SRC with every holt-child of THIS pane's worktre
   local self path row_main name
   self="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
   while IFS= read -r path; do
-    [ -n "$path" ] && [ "$path" != "$self" ] || continue   # self is WT_REPO/WT_PATH already
+    if [ -z "$path" ] || [ "$path" = "$self" ]; then continue; fi   # self is WT_REPO/WT_PATH already
     row_main="$(awk -F'\t' -v p="$path" '$4 == p { print $2; exit }' "$WT_REGISTRY" 2>/dev/null)"
     [ -n "$row_main" ] || continue
     for name in "${FAMILY[@]}"; do
