@@ -230,9 +230,15 @@ haus.tour.steps = [
 
 Steps run in order and advance from signals the rice already emits — `launch`,
 `workspace`, `navigate`, `resize`, or `palette` — rather than by logging keys.
-The first four need prowl; `palette` needs Pounce. A left-click skips the current
-step, and the module warns during a rebuild if a step depends on a room you
-disabled. Leave `tour.steps` at its default `null` to keep the built-in tour.
+The first four need prowl; `palette` needs Pounce **and a palette key actually
+bound** (`keys.palette = "none"` warns as loudly as `pounce.enable = false`). A
+left-click skips the current step, and the module warns during a rebuild if a
+step depends on a room you disabled — though all three of those warnings live
+inside sill's own module, so a rice that turns the bar off gets none of them.
+
+Leave `tour.steps` at its default `null` to keep the built-in tour. An **empty
+list** is a type error rather than "no tour" — the off switch is
+`tour.enable = false`.
 
 Write keys as the placeholders `{palette}`, `{leader}` and `{leaderName}` rather
 than a literal chord: they expand to what *that* machine resolved, so a tour you

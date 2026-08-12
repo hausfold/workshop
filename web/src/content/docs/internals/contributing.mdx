@@ -22,8 +22,9 @@ cd workshop
 ./bench clone
 ```
 
-You end up with `nebelung/`, `pounce/`, `haus/`, and friends as independent
-git repos, with the `bench` script sitting above them.
+You end up with nine independent git repos side by side — `nebelung/`,
+`pounce/`, `perch/`, `holt/`, `haus/`, plus `trill/`, `hausfold.co/`,
+`org-profile/` and `homebrew-tap/` — with the `bench` script sitting above them.
 
 ## Where a change goes
 
@@ -35,6 +36,11 @@ Each change belongs to exactly one repo. Start in the right one:
 | the launcher app or a generic command | `pounce` |
 | the notch file shelf (perch) | `perch` |
 | macOS defaults, tiling, bar, shell, Touch ID | `haus` |
+| how agent worktrees are made, parked or reaped | `holt` |
+| the quiet notification banners | `trill` |
+| this site | `web/`, inside the workshop |
+| the Homebrew formula and cask | `homebrew-tap` — almost never; it is CI-owned and a hand-edit is overwritten |
+| `bench` itself, and the cross-repo flow | the workshop |
 | your own machine's apps / identity / secrets | `~/.config/nix` |
 
 ## The dev loop: try without pushing
@@ -58,6 +64,11 @@ hand-walking the [pin chain](/internals/flakes/#why-pins-mean-nothing-changes-un
 ./bench ship
 ```
 
+It refuses a dirty tree on purpose — commit messages are yours, lock bumps are
+its — fast-forwards every checkout from origin *before* computing anything (a
+lock bumped off a stale `main` pins the pre-merge commit and reports success),
+and re-reads each lock afterwards rather than trusting the ripple moved.
+
 `./bench status` opens with **what this Mac is actually running** — the pinned
 build, or the local branches a `try switch` put on it — then every repo's git
 state and every stale lock edge at a glance. A lock can also be **off-main**:
@@ -69,18 +80,25 @@ back to the pinned build.
 
 ## Parallel agents & worktrees
 
-nebelhaus is built to be hacked on by several [Claude Code](https://claude.com/claude-code)
-agents at once. Each agent runs in its own **git worktree** — an isolated checkout
-on a `worktree-<name>` branch, living outside the repo — so agents never yank the
-branch out from under each other. That whole mechanism (spawning with `Super a`,
-never losing work when a pane closes, resuming a parked session, the statusline
-HUD) is [`holt`](/guides/claude-agents/), which the rice ships, and it works for
-any repo.
-Two things matter specifically when the repo is a *family* one:
+nebelhaus is built to be hacked on by several coding agents at once — Claude
+Code, Codex or OpenCode, whichever `haus.agents.default` names. Each runs in its
+own **git worktree**, an isolated checkout on a `worktree-<name>` branch living
+under `~/.cache/claude-worktrees/<repo>/<name>` (the path name is historical, not
+a claim about the client), so agents never yank the branch out from under each
+other. That whole mechanism (spawning with `Super a`, never losing work when a
+pane closes, resuming a parked session, the statusline HUD) is
+[`holt`](/guides/claude-agents/), which the rice ships, and it works for any
+repo.
+Three things matter specifically when the repo is a *family* one:
 
 - **`bench try` is worktree-aware.** Run it from inside a worktree and that repo's
   flake override points at *your branch* instead of the main checkout — so an
-  agent can prove its branch builds before anyone merges it.
+  agent can prove its branch builds before anyone merges it. It substitutes one
+  lane, and only for a repo in `FAMILY`: from a *workshop* worktree it overrides
+  nothing at all, which is the whole reason the `holt child` recipe below exists.
+  When a change spans repos, **`bench try lane`** builds your lane together with
+  every `holt child` lane spawned from the same pane, in one rebuild, no PR
+  needed — same who-not-where activation gate as a plain `try switch`.
 - **`bench try switch` works from a worktree too** — that's how you feel ONE
   unmerged branch, which [try-batch](#feel-testing-the-whole-pr-queue-try-batch)
   can't do (it always combines the whole open-PR queue, and never sees
@@ -128,15 +146,24 @@ those trees, and builds — or activates — the whole queue in **one** rebuild,
 Verify each PR (its body carries the Verify steps), then merge only the ones that
 pass and leave the rest open. This is test-then-merge, not merge-then-test.
 
+<Aside type="caution" title="Read the dropped list under the checklist">
+It needs `gh`, and it **excludes** any PR that conflicts with the batch or whose
+head branch isn't on origin — those are named in a footer beneath the checklist.
+Tick the checklist off without reading that footer and you will believe you felt
+a PR the batch never built. It also takes optional repo arguments
+(`./bench try-batch switch pounce nebelung`).
+</Aside>
+
 ## Feel-testing a zellij edit (zscratch)
 
-One rice change escapes the ripple entirely. A zellij edit — a keybind, a theme
-colour, a freshly-built plugin `.wasm`, or a candidate zellij binary — doesn't
-need `bench try switch` at all:
-that restarts the `main` zellij session and nukes every open tab. The rice ships
-**`zscratch`** for exactly this. It renders your candidate over a copy of your
-live `~/.config/zellij` into a temp config dir and boots a throwaway session in
-its **own Ghostty window**, so your working multiplexer is untouched:
+One class of rice change escapes the ripple entirely. A freshly-built plugin
+`.wasm`, a candidate zellij binary, or a layout change to tabs that already
+exist **cannot hot-reload** — a running server caches plugin wasm in memory for
+its whole lifetime — so seeing one means restarting the zellij server yourself,
+which costs you every open tab. The rice ships **`zscratch`** for exactly this.
+It renders your candidate over a copy of your live `~/.config/zellij` into a temp
+config dir and boots a throwaway session in its **own Ghostty window**, so your
+working multiplexer is untouched:
 
 ```sh
 zscratch --config config.kdl             # try a candidate config.kdl
@@ -150,8 +177,8 @@ zscratch clean                           # kill the scratch session + temp dir
 Feel it there; the real `bench try switch` happens once, at the end, already
 knowing it works — and that activation costs you nothing, because zellij watches
 its config and applies a new `config.kdl` to the *running* server in about a
-second. Tabs, panes and live Claude Code conversations stay exactly where they
-are; there is nothing to press afterwards.
+second. Tabs, panes and live agent sessions stay exactly where they are; there is
+nothing to press afterwards.
 
 That only works because hearth installs `~/.config/zellij/config.kdl` as a real
 file with a current mtime (`home.activation.zellijLiveConfig`) rather than as a
@@ -159,6 +186,9 @@ home-manager symlink. zellij decides "changed" from the file's mtime, and every
 `/nix/store` file carries mtime = epoch 1 — so a symlinked config makes each
 rebuild look *older* than what zellij already parsed, and nothing reloads at all.
 That single stat is why a rebuild used to mean tearing the whole session down.
+Note the treatment stops at that one file: `themes/nebelung.kdl` is still an
+ordinary store symlink, so a theme edit carries the epoch-1 mtime and does *not*
+hot-reload — which is what `zscratch --theme` is for.
 
 Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that already
 exist still cannot hot-reload — a running server caches plugin wasm in memory for
@@ -168,7 +198,7 @@ tool above and not an afterthought.
 ## The whole life of a change
 
 ```
-hack ──► test ──► assure ──► PR ──► batch-test ──► merge ──► ship ──► release
+hack ──► test ──► assure ──► PR ──► batch-test ──► merge ──► try switch ──► ship ──► release
 ```
 
 1. **hack** — edit in place, or let `Super a` agents draft on `worktree-*`
@@ -189,23 +219,27 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
    rebuild, `main` untouched — so you verify *before* landing anything.
 6. **merge** — merge the PRs that passed (on GitHub, or `gh pr merge`); leave the
    rest open.
-7. **ship** — `./bench ship` pushes upstream→downstream, rippling every
+7. **try switch** — on `main`, now that it holds the work.
+8. **ship** — `./bench ship` pushes upstream→downstream, rippling every
    `flake.lock` in dependency order.
-8. **release** — `./bench release <repo>`; CI does the rest, and the command
+9. **release** — `./bench release <repo>`; CI does the rest, and the command
    waits with you while it happens. Four repos are releasable: **pounce**
-   (GitHub release + Homebrew formula bump), **perch** (Homebrew cask bump + the
-   rice's flake pin), **haus** (the tag becomes what
-   `nebelhaus.com/init.sh` serves to new installs), and **holt** (five SDKs, to
-   npm, PyPI, crates.io, SwiftPM and the Go proxy).
+   (GitHub release + Homebrew *formula* bump), **perch** (Homebrew *cask* bump,
+   plus a commit of perch's own `nix/release.nix` back to the perch repo — the
+   rice's flake pin only moves on the next `bench ship`), **haus** (the tag
+   becomes what `nebelhaus.com/init.sh` serves to new installs), and **holt**
+   (five SDKs, to npm, PyPI, crates.io, SwiftPM and the Go proxy).
 
 <Aside type="note" title="Releases ride tags">
 Versions are date-based (CalVer). `bench release <repo>` stamps today's date —
 `YYYY.MM.DD`, or `YYYY.MM.DD-N` on a same-day repeat — into the repo's version
-source, commits it, and tags `v<date>`. CI does the rest — the GitHub release
-and the `homebrew-tap` bump. No number is typed by hand, and you never hand-edit
-the formula's url/sha. And because the installer serves the latest **rice**
-release, user-visible rice changes aren't
-really "out" until nebelhaus gets a new tag.
+source, commits it, and tags `v<date>`; passing a version to a CalVer repo is
+*refused*. CI then publishes the GitHub release, and for the two app repos bumps
+the formula and the cask — haus's run has no tap job at all, and holt's publishes
+SDKs. No number is typed by hand, and you never hand-edit the formula's url/sha.
+It also wants a clean tree and no unpushed commits before it starts. And because
+the installer serves the latest **rice** release, user-visible rice changes
+aren't really "out" until `bench release haus` tags one.
 
 **holt is the exception**, and it's forced: `bench release holt 0.2.0` takes a
 **semver** argument and refuses to run without one. Its five SDKs publish to
@@ -213,8 +247,9 @@ registries where a number, once published, can never be withdrawn — so the
 version is a compatibility contract, not a date, and all five share it.
 </Aside>
 
-There's exactly **one** workflow to watch — each repo's `release`, holding one to
-three jobs — and `bench release` draws them live rather than handing you a URL:
+There's exactly **one** workflow to watch — each repo's `release`, one to three
+jobs for the app repos and eight for holt, whose SDKs publish separately — and
+`bench release` draws them live rather than handing you a URL:
 
 ```
    ✓  build + publish release           2m 41s
@@ -232,7 +267,14 @@ you get the nudge and decide yourself, since `ship` touches the whole family.
 Each repo carries its own `AGENTS.md` with the deep rules for that boundary —
 start there when working inside one. It's the one instruction body every client
 reads (Codex, OpenCode, Cursor, Zed, Copilot and anything else that speaks
-[agents.md](https://agents.md)); the `CLAUDE.md` beside it is a one-line
-`@AGENTS.md` import, because Claude Code reads only that filename. Rules go in
-`AGENTS.md`, never in a client's own file — the repo's `.agents/README.md` maps
-which tool reads what.
+[agents.md](https://agents.md)); the `CLAUDE.md` beside it imports that file with
+`@AGENTS.md` and adds nothing but Claude-specific wiring, because Claude Code
+reads only its own filename. Rules go in `AGENTS.md`, never in a client's own
+file — the repo's `.agents/README.md` maps which tool reads what.
+
+## Licences
+
+The rice, nebelung and pounce are MIT. Two repos aren't: **holt** is Apache-2.0,
+and **perch** is *fair source* — [FSL-1.1-ALv2](https://fsl.software), which
+turns into Apache-2.0 two years after each release ships. You can read it, build
+it and change it for yourself; you can't sell it as a competing product.

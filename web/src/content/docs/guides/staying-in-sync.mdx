@@ -54,8 +54,12 @@ haus doctor        # health check: Nix, Xcode CLT, GUI agents, cask drift
 ```
 
 Every `switch` creates a new generation; `rollback` steps back to the last one
-instantly. For macOS *settings* (not packages), the APFS snapshot the installer
-took is your coarser rewind.
+instantly. It restores everything Nix wrote, and nothing macOS keeps for itself:
+the Dock, Finder, the keyboard, the menu bar. Those have their own pair —
+`haus capture` snapshots the live settings before a risky change, and
+`haus revert-settings` puts the last snapshot back. The APFS snapshot the
+installer took is a one-shot at install time, and macOS purges local snapshots
+within about a day, so treat it as luck rather than as a plan.
 
 ## The commands you'll reach for
 

@@ -81,8 +81,9 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # GitHub without renaming its checkout would have `bench status` reporting one
 # repo under the other's name. That is exactly why the 2026-08-11 rename of
 # `hausfold/hausfold` → `hausfold/haus` (hausfold-rename.md §10) moves the
-# checkout too; `repo_dir` carries a one-release fallback for machines that
-# haven't run the `mv` yet.
+# checkout too. There is no fallback for a machine that hasn't run the `mv`:
+# `repo_dir` is a plain `$ROOT/$1`, so such a machine gets a missing checkout
+# and `bench clone` puts it right.
 FAMILY=(nebelung pounce perch holt haus)
 
 # The org every checkout here came from, since the 2026-08-09 transfer. One
