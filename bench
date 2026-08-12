@@ -24,9 +24,6 @@
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull [repo…]  fast-forward every repo, or just the named ones
 #   bench clone     fetch any family repo missing from this directory
-#   bench relocate-haus   ⏳ one-shot: move ./hausfold → ./haus after the
-#                  2026-08-11 repo rename, repairing every agent lane and holt's
-#                  registry. Delete this command once every machine has run it.
 #   bench docs-since   commits in every repo since the docs were last
 #                  reconciled (--mark records new watermarks) — the input
 #                  to the daily /docs-sync sweep
@@ -179,19 +176,6 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
   case "$1" in
     consumer) echo "$CONSUMER" ;;   # ~/.config/nix, outside the workshop dir
     workshop) echo "$ROOT" ;;       # the workshop IS ROOT, not ROOT/workshop
-    # ⏳ Migration fallback, 2026-08-11 — DELETE once every machine has moved.
-    # The layer's repo became `hausfold/haus` (hausfold-rename.md §10) and its
-    # checkout moves with it, but a checkout is machine state: a `git pull` of
-    # THIS file lands on a machine whose dir is still `$ROOT/hausfold`, and
-    # without this arm every `bench status`/`try`/`ship` there would report the
-    # layer missing rather than say why. The old dir is only ever consulted when
-    # the new one is absent, so a machine that HAS moved never sees it.
-    haus)
-      if [ ! -d "$ROOT/haus" ] && [ -d "$ROOT/hausfold/.git" ]; then
-        echo "$ROOT/hausfold"
-      else
-        echo "$ROOT/haus"
-      fi ;;
     *)        echo "$ROOT/$1" ;;
   esac
 }
@@ -492,13 +476,6 @@ status_running() { # the receipt a `try switch` left — FIRST section, because 
 
 cmd_status() {
   status_running
-  # ⏳ Migration nudge, 2026-08-11 — delete alongside repo_dir's `haus` arm. A
-  # silent fallback is how a temporary shim becomes permanent, so the one place
-  # that reads the whole tree says it out loud, once.
-  if [ ! -d "$ROOT/haus" ] && [ -d "$ROOT/hausfold/.git" ]; then
-    warn "checkout still at \$ROOT/hausfold — the repo is hausfold/haus now (hausfold-rename.md §10)"
-    hint "move it: bench relocate-haus   (moves the dir, repairs every linked worktree, retargets holt)"
-  fi
   say "repos"
   printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
   local any_dirty=0 any_ahead=0 any_behind=0
@@ -1709,142 +1686,6 @@ cmd_clone() {
   done
 }
 
-# ⏳ One-shot migration for the 2026-08-11 rename (hausfold-rename.md §10) —
-# DELETE this whole function, its dispatch arm, its usage line, repo_dir's
-# `haus` arm and cmd_status's nudge once every machine has run it. It exists
-# because the checkout move is not a diff: `git pull` lands the new `bench` on a
-# machine whose layer is still at `$ROOT/hausfold`, with live agent lanes whose
-# `.git` files hold absolute paths into it. Moving the dir by hand and stopping
-# there strands every one of those lanes (`fatal: not a git repository`) and
-# leaves holt listing a `main` that no longer exists.
-cmd_relocate_haus() {
-  local old="$ROOT/hausfold" new="$ROOT/haus"
-  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/claude-worktrees"
-  local lanes_old="$cache/hausfold" lanes_new="$cache/haus" reg="$cache/registry.tsv"
-
-  # Every step below is conditional, because this command has to be RESUMABLE.
-  # It does five things to live machine state and any one of them can be
-  # interrupted; a version that dies unless the tree is pristine leaves you
-  # finishing the other four by hand, which is exactly what it exists to avoid.
-  [ -d "$old/.git" ] || [ -d "$new/.git" ] \
-    || die "no layer checkout at $old or $new — bench clone"
-  [ -d "$old/.git" ] && [ -d "$new/.git" ] \
-    && die "checkouts at BOTH $old and $new — resolve by hand, this won't merge two trees"
-
-  # Refuse while an agent is standing in a lane of this repo. Moving the dir out
-  # from under a running session breaks its cwd mid-edit, and holt is the only
-  # thing that knows which lanes are occupied.
-  if [ "${HOLT_SKIP:-}" != "1" ] && command -v holt >/dev/null 2>&1; then
-    local busy
-    # Both spellings: a resumed run finds the checkout already at $new, so its
-    # lanes report THAT as `main` and a guard that only knew $old would wave
-    # them through. `?` on a parse failure so the check fails CLOSED — a holt
-    # schema change must stop the move, not silently permit it.
-    busy="$(holt --json 2>/dev/null | python3 -c '
-import json, sys
-try:
-    lanes = json.load(sys.stdin)["lanes"]
-except Exception:
-    print("?"); sys.exit(0)
-mains = set(sys.argv[1:])
-print(" ".join(l["name"] for l in lanes
-                if l.get("main") in mains and l.get("occupied")))
-' "$old" "$new" 2>/dev/null || echo '?')"
-    case "$busy" in
-      '') ;;
-      '?') die "couldn't read holt's lane list — refusing to move a tree an agent may be standing in (HOLT_SKIP=1 to override)" ;;
-      *)  die "lanes still occupied: $busy — close those panes first (holt lists them)" ;;
-    esac
-  fi
-
-  if [ -d "$old/.git" ]; then
-    say "moving the layer checkout: $old → $new"
-    mv "$old" "$new"
-  else
-    say "layer checkout already at $new — continuing with the rest"
-  fi
-
-  # The old remote still resolves through GitHub's redirect, so this is hygiene
-  # rather than repair — but a stale URL is what makes the NEXT reader think the
-  # rename didn't happen. Rewrite the path, keep whatever scheme is in use.
-  local url; url="$(git -C "$new" remote get-url origin 2>/dev/null || true)"
-  if [ -n "$url" ]; then
-    local newurl; newurl="$(printf '%s' "$url" | sed -E 's#hausfold/hausfold(\.git)?$#hausfold/haus\1#')"
-    [ "$newurl" != "$url" ] && { git -C "$new" remote set-url origin "$newurl"; say "origin → $newurl"; }
-  fi
-
-  # Lane checkouts live under the repo's own name too, so they move with it —
-  # otherwise new lanes land in .../haus/ while the old ones sit in
-  # .../hausfold/ and `holt` reads as two repos.
-  if [ -d "$lanes_old" ] && [ ! -e "$lanes_new" ]; then
-    say "moving agent lanes: $lanes_old → $lanes_new"
-    mv "$lanes_old" "$lanes_new"
-  elif [ -d "$lanes_old" ]; then
-    # Never silent: the repair pass below walks $lanes_new, so a skipped move
-    # means it repairs a DIFFERENT set of checkouts than the ones still sitting
-    # in $lanes_old, and the registry rewrite retargets rows whose lanes never
-    # moved. Loud is the only safe behaviour here.
-    warn "both $lanes_old and $lanes_new exist — lanes NOT moved; merge them by hand, then re-run"
-  fi
-
-  # Both ends moved, so repair must be driven from the main worktree WITH the
-  # lane paths: that rewrites each lane's `.git` file and the matching
-  # `.git/worktrees/<lane>/gitdir` in one pass. Plain `worktree repair` fixes
-  # only one direction and would leave every lane unopenable.
-  local -a lanes=()
-  local lanes_dir="$lanes_new"
-  [ -d "$lanes_dir" ] || lanes_dir="$lanes_old"   # the move above may have been skipped
-  [ -d "$lanes_dir" ] && while IFS= read -r d; do lanes+=("$d"); done \
-    < <(find "$lanes_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-  if [ "${#lanes[@]}" -gt 0 ]; then
-    say "repairing ${#lanes[@]} linked worktree(s)…"
-    git -C "$new" worktree repair "${lanes[@]}" || warn "worktree repair complained — check \`git -C $new worktree list\`"
-  fi
-
-  # holt's registry is a plain TSV of absolute paths (main, checkout, parent);
-  # nothing in it self-heals. Backed up beside holt's own .bak.* files, in its
-  # convention, so an unhappy result is one `mv` from being undone.
-  if [ -f "$reg" ]; then
-    cp "$reg" "$reg.bak.relocate"
-    local moved
-    moved="$(python3 - "$reg" "$old" "$new" "$lanes_old" "$lanes_new" <<'EOF'
-import sys
-reg, old, new, lanes_old, lanes_new = sys.argv[1:6]
-# holt's registry.tsv is SIX tab-separated fields, and the offsets below are the
-# whole correctness of this function — an off-by-one silently rewrites `branch`
-# and `agent` (which never match, so nothing changes) while reporting success.
-NAME, MAIN, BRANCH, PATH, PARENT, AGENT = range(6)
-def fix(p):
-    # Prefix match, not substring: `…/claude-worktrees/hausfold.co/<lane>` must
-    # NOT be caught by the `…/hausfold` rule. The `+ "/"` is what spares it.
-    for a, b in ((old, new), (lanes_old, lanes_new)):
-        if p == a or p.startswith(a + "/"):
-            return b + p[len(a):]
-    return p
-out, n = [], 0
-for line in open(reg):
-    if not line.strip():
-        out.append(line); continue
-    f = line.rstrip("\n").split("\t")
-    before = list(f)
-    for i in (MAIN, PATH, PARENT):
-        if i < len(f):
-            f[i] = fix(f[i])
-    if f != before:
-        n += 1
-    out.append("\t".join(f) + "\n")
-open(reg, "w").writelines(out)
-print(n)
-EOF
-)"
-    say "holt registry: ${moved:-0} lane(s) retargeted (backup: $reg.bak.relocate)"
-    [ "${moved:-0}" = "0" ] && warn "no registry rows changed — if holt lists layer lanes, check $reg by hand"
-  fi
-
-  say "the layer lives at $new. Check it: bench status · holt"
-  hint "the workshop's .gitignore now lists /haus/ — a stale /hausfold/ entry is harmless but dead"
-}
-
 # When sourced with HAUS_LIB=1 (the bats test harness), stop here: the caller
 # just wants the functions above, not to dispatch a command.
 if [ "${HAUS_LIB:-}" != "1" ]; then
@@ -1858,7 +1699,6 @@ case "${1:-status}" in
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
   release) shift; cmd_release "$@" ;;
-  relocate-haus) cmd_relocate_haus ;;
   *)       sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi
