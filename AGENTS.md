@@ -102,6 +102,11 @@ Never hand-walk that ripple; the tooling does it:
   at those trees, and builds/activates the whole queue in ONE rebuild — main
   untouched. Ends with a tick-off checklist; you merge only the PRs that pass.
   Test-then-merge, not merge-then-test.
+- `./bench try lane [switch]` — like `bench try`, but ALSO overrides every
+  repo a `holt child` spawned from this same pane, walking holt's registry
+  transitively — so a cross-repo lane (a parent worktree plus its children in
+  other repos) builds and activates together in ONE rebuild, no PR needed.
+  Same who-not-where activation gate as plain `try switch`.
 - `./bench ship` — after commits exist: fast-forwards every checkout to origin
   first (a merged PR leaves the local main behind, and a lock bump computed from
   a stale HEAD pins the pre-merge rev while reporting success), then pushes
