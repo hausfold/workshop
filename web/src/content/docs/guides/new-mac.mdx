@@ -20,9 +20,11 @@ If your `~/.config/nix` is pushed to git somewhere, restoring is two moves:
 <Steps>
 
 1. **Point the installer at your config.** The same one-liner that scaffolds a
-   fresh setup also *restores* an existing one — it installs the Xcode CLT and
-   Determinate Nix if they're missing, then clones your repo into place and
-   skips the interview entirely:
+   fresh setup also *restores* an existing one — it installs Determinate Nix if
+   it's missing, then clones your repo into place and skips the interview
+   entirely. On a brand-new Mac the Xcode Command Line Tools are missing too,
+   and that costs one re-run: the installer opens Apple's dialog and stops, so
+   approve it and run the line again.
 
    ```sh
    curl -fsSL https://nebelhaus.com/init.sh | bash -s -- --from <your-config-remote>
@@ -55,15 +57,21 @@ into `flake.nix`. The identity and app choices come along for free.
 
 Once that switch finishes, the rebuild has already restored:
 
-- **Every declared GUI app** — anything in `haus.roster` with a `cask`,
-  `brew` or `package` reinstalls itself.
+- **Every declared GUI app** that names a `cask`, a `brew` formula or a nixpkgs
+  `package` / `packageName` reinstalls itself. An `appStoreId` doesn't:
+  installing from one is opt-in (`haus.appStore.install`), and even then `mas`
+  can only fetch what your Apple account already owns — a paid app is a
+  one-time purchase you make yourself.
 - **Your whole shell** — Ghostty, zellij, zsh, starship, yazi, helix, and the
   CLI toolbelt, themed and configured.
 - **All your CLI tools** — the roster's `package` / `brew` entries.
 - **The macOS defaults** the rice manages (Dock, Finder, trackpad, key repeat,
   the Caps-Lock remap, ⌘Space).
 - **The background agents** — tiling, the bar, and the launcher, launched via
-  launchd so they survive the next cold boot.
+  launchd so they survive the next cold boot. On macOS 26 Tahoe and later,
+  Background Task Management can refuse to start them on a fresh machine; run
+  [`haus btm`](/reference/haus/) if they're missing, and `haus doctor` for
+  everything else.
 
 ## The manual bits Nix doesn't carry
 
@@ -72,9 +80,19 @@ on a fresh machine:
 
 <Steps>
 
-1. **Secrets.** Copy your `~/.secrets/*` files over securely (AirDrop, a
-   password manager, an encrypted drive). They're git-ignored on purpose, so
-   they don't ride along in the clone.
+1. **Secrets.** Your config declares which secrets exist, never their values, so
+   a fresh machine has the names and nothing else:
+
+   ```sh
+   cd ~/.config/nix
+   secretspec check          # what's still missing
+   secretspec set <NAME>     # fill one in
+   ```
+
+   With the default provider the values live in this Mac's login keychain, which
+   is why they don't ride along in the clone. Point `haus.secrets.provider` at a
+   cloud vault instead and they follow you, at the cost of one login to
+   bootstrap it. (`haus doctor` runs the same check.)
 
 2. **Commit signing keys.** If you sign commits, import your GPG/SSH key material
    and set up `gpg-agent` + `pinentry-mac` (or your YubiKey). The key *id* is in
@@ -87,10 +105,12 @@ on a fresh machine:
    pounce --request-accessibility
    ```
 
-   If you use `haus.pounce.signingIdentity`, make sure that signing
-   certificate is in the new machine's keychain (import it, or create a fresh
-   Apple Development cert and update the SHA-1 in your host file) so the grant
-   survives future rebuilds. See [Pounce config](/reference/pounce/).
+   If you use `haus.pounce.signingIdentity`, import that signing certificate
+   into the new machine's keychain so the grant survives future rebuilds. Name
+   the identity by its full common name (`Developer ID Application: …`) rather
+   than a SHA-1: the name re-resolves after a cert renewal, a hash doesn't, and
+   a missing identity doesn't fail the rebuild — Pounce just runs unsigned and
+   quietly loses the grant. See [Pounce config](/reference/pounce/).
 
 4. **Apps outside the config.** Anything you installed by hand won't reappear —
    reinstall those, and consider moving the ones you care about into your config
@@ -98,7 +118,8 @@ on a fresh machine:
    they do.
 
 5. **App logins & licences.** Nix restores the app; it can't restore your
-   session. Sign back into the handful of apps that need it.
+   session. Sign back into the handful of apps that need it — including the App
+   Store itself, if any roster entry carries an `appStoreId`.
 
 </Steps>
 
@@ -119,9 +140,11 @@ Not restoring — adopting nebelhaus on a Mac you've already set up by hand? The
   `.backup` copy first.
 - **Your current macOS settings can be captured** into your new host file, so the
   switch doesn't fight preferences you already like.
-- **The interview** collects your name, email, accent, editor, and which rooms
-  you want — then scaffolds `~/.config/nix` and commits it. Nothing activates
-  until you run the build command it prints.
+- **The interview** collects your name, email, a preset, an accent, a wallpaper,
+  your editor — and, if you pick the custom preset, which rooms you want — then
+  scaffolds `~/.config/nix` and commits it. Nothing activates until you say so —
+  run interactively, it *offers* to build and switch at the end; piped, it
+  simply prints the command.
 
 Then it's the normal [first run](/start/first-run/), and from there everything
 on [Making it yours](/guides/making-it-yours/) applies.

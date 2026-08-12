@@ -2285,7 +2285,7 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
-#### 🟡 Status 2026-08-12 — the shell is up, and eighteen of twenty-nine pages
+#### 🟡 Status 2026-08-12 — the shell is up, and twenty-one of twenty-nine pages
 
 **Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
 #15 followed with the colour pass):
@@ -2405,14 +2405,98 @@ Two things this section decided that the landing **changed**:
 - **Porting is a rewrite, not a move.** 👤's instruction, 2026-08-12: verify,
   consolidate, simplify, consumerize — *"probably half the amount"*. Maintainer
   reasoning, one-person detail and anything a click away come out; the facts
-  and the warnings stay. Four batches in, the ported pages run 55 / 58 / 64% of
+  and the warnings stay. Four batches in, the ported pages ran 55 / 58 / 64% of
   their originals — the consolidations sit highest, because three pages merged
   into one still owe every fact. That is now a rule in `hausfold.co`'s
-  AGENTS.md, so the remaining pages don't quietly get copied.
+  AGENTS.md, so the remaining pages don't quietly get copied. ⚠️ **Batch five
+  broke the band at 73%** (guide 76%, reference 70%), and the reason is worth
+  keeping: its two sources were the most factually rotten yet — the whole
+  `~/.secrets` step had been replaced by secretspec, and the installer had
+  grown a build-and-switch consent gate — so verification *added* lines. When
+  a source is that stale the ratio measures the drift, not the discipline; the
+  page to compress is the one that still reads like a commit message.
+
+**Landed, batch five** ([hausfold.co#21](https://github.com/hausfold/hausfold.co/pull/21)): the recommended pair —
+`guides/staying-in-sync` + `guides/new-mac` → `haus/guides/keeping-it-current`
+(the loop and the restore are one arc: same machine over time, then the same
+machine on new hardware) — plus `reference/haus` → `haus/reference/haus`. 489
+source lines to 358 (**73%**; see the ratio bullet above for why this one is
+allowed to be high). **Twenty-one of twenty-nine sources**, twenty-one pages.
+Two clean-context passes returned corrections on **fourteen** of forty-seven
+checked claims, and three of them were not drift but *reversal*:
+
+- **`~/.secrets` no longer exists.** The secrets room is
+  [secretspec](https://secretspec.dev) now: a committable `secretspec.toml`
+  declares names, `haus.secrets.provider` (default `keyring` = the login
+  keychain) decides where values live, and the new-Mac step is
+  `secretspec check` → `secretspec set`, not "AirDrop your dotfiles". The
+  module header says in so many words that it "replaces the old hand-carried
+  `~/.secrets` directory on the new-Mac checklist" — the docs never got the
+  memo. ⚠️ **`haus/modules/hearth/default.nix:7` still points at `~/.secrets`
+  too**, so the rice's own comment is stale in the same way.
+- **The installer activates now, if you let it.** `bootstrap.sh:606-617` ends
+  with a `gum confirm "Raise the house now?"` that builds, switches and runs
+  `haus doctor` — **interactive runs only**, which turned out to be the whole
+  story (see the 🚨 below). Every "it does not change your Mac / nothing
+  activates until you run the printed command" sentence is now qualified rather
+  than absolute, on **three** pages across both trees, including batch one's
+  `install`.
+- **The agent-rebuild guard is Claude-Code-only.** `under_agent()` tests
+  `CLAUDECODE` and nothing else, so the "AI agent session without Full Disk
+  Access" the reference described is really *one* client — a Codex or OpenCode
+  pane is never refused and will half-activate, which is the exact failure the
+  guard exists to prevent. (`agent-rebuilds` already said this correctly; the
+  reference did not. Both trees now name `HAUS_AGENT_REBUILD=1` as the
+  override.)
+
+Smaller, all fixed in both trees: `haus diff` compares the config this machine
+is **running**, not the one declared in your tree (that's `haus plan`); `haus
+update` also upgrades the family's tap casks *and formulae* — pounce is a
+formula, so the casks-only wording excluded the flagship — and prints a
+best-effort changelog;
+`haus options` reads the *active build*, not the lock's pin; `haus doctor` runs
+three sections nobody documented (Pounce's Accessibility grant, nebelung's theme
+ports, secretspec); the launcher command is **Rebuild System** and ships from
+the rice, not from pounce, which deleted both commands in July; `roster` has
+five install sources, not three; `signingIdentity` wants the full common name,
+because a SHA-1 doesn't survive a cert renewal.
+
+Three things the pre-PR pass caught that are worth carrying into batch six.
+**A consolidation can import an error the sources were careful about**: both
+originals listed only `cask`/`brew`/`package` as what returns on a new Mac, and
+the port "improved" that into `appStoreId` as well — which is wrong, because
+`haus.appStore.install` defaults to `false` and `mas` cannot buy. **Anything
+gated by `haus.developer.agents.enable` must say so** — `holt` and `zscratch`
+both live behind it, and the ported `coding-agents` already says so, so a
+reference that calls them "ships beside `haus`" contradicts a page one click
+away. And **check the doors point inwards, not just outwards**: the two new
+pages had a `<Cards>` foot each and almost nothing in the tree linked *to*
+them, which the fix adds from `install` and `nebelhaus/first-run`.
+
+🔧 **Three fixes this batch found in `haus`, and made there**
+([hausfold/haus#326](https://github.com/hausfold/haus/pull/326)):
+`cmd_options` counted its rows with `grep -c '^  # nebelhaus\.'` while
+`host-template.jq` emits `  # haus.…`, so the fresh-write branch of `haus
+options` printed "**0 options, all commented out**" on success — a string the
+namespace rename missed. `docs/modules.md:53` recommended the SHA-1 form of
+`haus.pounce.signingIdentity` that `options.nix` spends fifteen lines arguing
+against. And `modules/hearth/default.nix:7` still told you to load secrets
+"from `~/.secrets` or similar", the directory its own secrets room replaced.
+
+🚨 **And one that is neither a docs fix nor a one-liner: the documented install
+command never reaches the interview.** `bootstrap.sh:65-66` clears
+`INTERACTIVE` when stdin isn't a TTY — deliberately, so a piped run can't hang
+— and under `curl … | bash` stdin *is* the script. So the headline one-liner on
+every page takes the defaults silently: no gum, no questions, no consent gate.
+The form that *is* interactive is `bash -c "$(curl …)"`, which the install page
+currently presents as the **unattended** example. Both trees now qualify the
+consent-gate sentence rather than assert it, but the real fork is 👤's: either
+document the `bash -c` form as the headline, or have `bootstrap.sh` reopen
+`/dev/tty` when one exists so the one-liner already in the wild starts asking.
 
 **Still open, and each is its own piece of work:**
 
-- the remaining **11 source pages**, including `reference/options.md` — the generated
+- the remaining **8 source pages**, including `reference/options.md` — the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
   pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
@@ -2426,7 +2510,7 @@ Two things this section decided that the landing **changed**:
   nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
   and not the other will disagree; fix it in both or in neither.
 
-##### The eleven left, with the tree each lands in
+##### The eight left, with the tree each lands in
 
 Derived after batch two and struck through as batches land, so the next session
 doesn't re-derive it. `→` means consolidate into one page. Source paths are under
@@ -2437,17 +2521,15 @@ reconcile to twenty-nine without them: batch one's four (`start/install`,
 the table, and three of batch two's (`guides/adding-apps`, `guides/the-shell`,
 `nebelhaus/keybindings`), which landed as it was being written. The ✅ rows are
 batch two's other three plus everything struck since, kept so a later session
-can see what the consolidations actually became. So: 10 rows = 11 pending
-sources, plus 11 in ✅ rows, plus the 7 rowless = 29.
+can see what the consolidations actually became. So: 8 rows = 8 pending
+sources, plus 14 in ✅ rows, plus the 7 rowless = 29.
 
 | Source | Lines | Tree | Note |
 |---|---|---|---|
 | `guides/making-it-yours` | 472 | haus | the host-file cookbook. Check for overlap with the now-ported `adding-apps` before starting. |
-| `reference/haus` | 253 | haus | the CLI. Reference-shaped; expect it to compress least. |
 | `reference/troubleshooting` | 193 | haus | |
 | `guides/leaving` | 304 | haus | uninstall. |
 | `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. |
-| `guides/staying-in-sync` + `guides/new-mac` | 92+144 | haus | → one "keeping it current" page; both are `haus update` from different ends. |
 | `internals/flakes` | 100 | haus | |
 | `internals/contributing` | 238 | haus | contributing to the **layer**, so it names `hausfold/haus` now. |
 | `start/the-family` | 91 | — | probably dies: `/docs`'s index and hausfold.co's own front page already do this job. Decide before porting. |
@@ -2459,8 +2541,10 @@ sources, plus 11 in ✅ rows, plus the 7 rowless = 29.
 | `guides/touch-id` | — | — | ✅ done (batch three) |
 | `guides/hush` | — | — | ✅ done (batch three) |
 | `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | — | — | ✅ → `guides/coding-agents` + `guides/agent-rebuilds` (batch four; drafted as one page, split on review) |
+| `guides/staying-in-sync` + `guides/new-mac` | — | — | ✅ → `guides/keeping-it-current` (batch five) |
+| `reference/haus` | — | — | ✅ done (batch five), as `reference/haus` |
 
-The desktop tree stays deliberately thin: three pages, and none of the eleven
+The desktop tree stays deliberately thin: three pages, and none of the eight
 adds to it — because a desktop's docs are its opinions and its muscle memory,
 not the machinery underneath. If a page seems to want both trees, AGENTS.md's
 rule applies: it is two pages.

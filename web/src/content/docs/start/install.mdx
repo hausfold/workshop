@@ -15,6 +15,10 @@ That scaffolds your config and installs Nix if you don't have it. It does **not*
 change your system on its own — it writes files and then tells you the one
 command that activates them. Nothing is switched until you run that command.
 
+(Run interactively rather than through a pipe —
+`bash -c "$(curl -fsSL https://nebelhaus.com/init.sh)"` — and it offers to run
+that command for you at the end, after asking.)
+
 ## What you need first
 
 - A **Mac** running a recent macOS (Apple Silicon only — Intel Macs aren't supported).
@@ -60,8 +64,9 @@ release it falls back to `main`. Releases are date-tagged, so add
    non-Determinate Nix install rather than risk breaking it.
 
 3. **Interview.** A short [gum](https://github.com/charmbracelet/gum) TUI asks
-   for your **git name and email**, a **preset** (Full rice / Minimal / Custom —
-   which decides the sill, prowl, and pounce rooms), your **accent colour**
+   for your **git name and email**, a **preset** (Full rice / Everyday /
+   Minimal / Custom — which decides the sill, prowl, and pounce rooms), your
+   **accent colour**
    (default `mauve`), a **wallpaper** (default `minimal`, the generated haus
    desktop — pick `none` to keep the one you have), your **`$EDITOR`**
    (default `hx`) — and whether to **keep your current macOS settings**
@@ -80,7 +85,9 @@ release it falls back to `main`. Releases are date-tagged, so add
 
 </Steps>
 
-Nothing is activated yet. The bootstrap ends by printing the build command.
+Nothing is activated yet. The bootstrap prints the build command — and, when
+it's running interactively, offers to run it for you (build, switch, then `haus
+doctor`).
 
 ## Build and switch
 

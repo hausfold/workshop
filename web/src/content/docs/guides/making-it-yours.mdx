@@ -421,21 +421,23 @@ throws the output away, so nothing says so. Use
 ## Secrets & private things
 
 Anything sensitive — API keys, tokens, your app list if you'd rather it stay
-private — belongs in your host file (which is *your* repo), and secrets
-themselves belong in files the Nix store never sees:
+private — belongs in your host file (which is *your* repo). The secret **values**
+belong nowhere on disk at all, and the rice ships
+[secretspec](https://secretspec.dev) to keep them there:
 
-```nix
-home-manager.users.${username} = {
-  # Read secrets at shell startup, not from the (world-readable) Nix store:
-  programs.zsh.initContent = lib.mkAfter ''
-    export SOME_API_KEY="$(cat ~/.secrets/some-key 2>/dev/null)"
-  '';
-  home.packages = with pkgs; [ /* your private tools */ ];
-};
+```sh
+secretspec set SOME_API_KEY    # once — into your macOS login keychain
+secretspec run -- some-tool    # injected as an env var, for that process only
 ```
 
-Keep `~/.secrets/*` out of git. Your host repo can be private; the rice never
-needs to know who you are.
+A committable `secretspec.toml` declares *which* secrets a project needs — names
+and descriptions, never values — and `haus.secrets.provider` (default `keyring`,
+the login keychain) decides where the values live. Point it at a cloud vault
+instead and they follow you between machines. On a fresh Mac, `secretspec check`
+lists exactly what still needs entering, and `haus doctor` runs the same check.
+
+Nothing lands in the world-readable Nix store, and there is no plaintext dotfile
+to remember to keep out of git.
 
 <Aside type="tip" title="Publishing it instead? Put gitleaks in front">
 If you'd rather share your host repo than keep it private, add a
