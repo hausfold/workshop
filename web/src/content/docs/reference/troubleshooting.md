@@ -7,7 +7,8 @@ Most nebelhaus trouble is one of a few known macOS quirks with a known fix. Work
 top-down; `haus doctor` is a good first stop for any of them.
 
 ```sh
-haus doctor    # Nix, the Xcode CLT, the GUI agents, and cask drift, in one shot
+haus doctor    # Nix, the Xcode CLT, the GUI agents, cask drift, Pounce's
+               # Accessibility grant, nebelung's theme ports and secretspec
 ```
 
 ## ⌘Space / Pounce does nothing
@@ -18,9 +19,8 @@ The launcher is a launchd **user agent**. If it isn't answering:
 # Is it running?
 launchctl list | grep pounce
 
-# Bounce it (the clean recover for any wedged user agent):
-launchctl bootout gui/$(id -u)/org.nixos.pounce 2>/dev/null
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.pounce.plist
+# Kick it (the clean recover for any wedged user agent — no plist path to get wrong):
+launchctl kickstart -k gui/$(id -u)/com.hausfold.pounce
 ```
 
 If it opens but **clipboard/emoji paste** don't work, it's missing the
@@ -56,8 +56,7 @@ desktop session was ready parked itself (exit 78) instead of starting. The rice
 guards against it, but if you land in this state, bounce the agent:
 
 ```sh
-launchctl bootout gui/$(id -u)/org.nixos.aerospace 2>/dev/null
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.aerospace.plist
+launchctl kickstart -k gui/$(id -u)/org.nixos.aerospace
 ```
 
 Other quick fixes:
@@ -73,8 +72,8 @@ Other quick fixes:
 ## The bar (SketchyBar) is blank or missing
 
 ```sh
-launchctl bootout gui/$(id -u)/org.nixos.sketchybar 2>/dev/null
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.sketchybar.plist
+launchctl kickstart -k gui/$(id -u)/org.nixos.sketchybar
+launchctl kickstart -k gui/$(id -u)/org.nixos.sill-bottom   # the bottom bar, if enabled
 ```
 
 **Running, but stale?** A pill you added isn't there, or a colour change didn't
@@ -99,8 +98,10 @@ Two things to get right there, and they bite independently:
   (it's the one launched with `--config`); naming the path re-resolves the
   symlink now.
 
-Easier: run **Reload SketchyBar** from the ⌘Space palette, or the same row in the
-logo pill's dropdown. Both do both bars, both name the rc.
+Easier: run **Reload SketchyBar** from the ⌘Space palette, or the same row in
+the **haus menu** — a left-click on the logo pill. (The popup dropdown that pill
+used to carry is gone; the menu pounce draws replaced it.) Both do both bars,
+both name the rc.
 
 If you'd rather not run a custom bar at all, set `haus.sill.enable = false`
 and the native macOS menu bar comes back.
@@ -112,7 +113,8 @@ If the bar, tiling, and ⌘Space all come up dead at once right after upgrading 
 (BTM)**. Tahoe gates login items whose executable isn't Apple-signed, and every
 nix agent launches through `/bin/sh -c "…"` — which BTM files under "unidentified
 developer" and can silently refuse to start. The agents register fine; they just
-never run. `haus doctor` flags this on Tahoe+; confirm and get the fix with:
+never run. `haus doctor` points at BTM whenever it finds a registered-but-not-
+running agent on Tahoe+; confirm and get the fix with:
 
 ```sh
 haus btm     # no-op before Tahoe; on Tahoe+ it reads the BTM store and instructs
@@ -171,12 +173,14 @@ haus generations    # see what you can roll back to
 
 `haus rebuild` always builds *before* switching, so a config with an error can't
 activate — you just see the build fail. For macOS **settings** (not packages),
-the APFS/Time-Machine snapshot the installer took is the coarser rewind.
+`haus revert-settings` puts back the snapshot `haus capture` took, byte for
+byte; the APFS/Time-Machine snapshot the installer took is the coarser rewind,
+and macOS purges local snapshots within about a day, so don't count on it.
 
 Want to go further than one generation — disable a room, or remove nebelhaus
 entirely? [Leaving nebelhaus](/guides/leaving/) walks each exit, smallest first.
 
-## The installer refuses to run — "expects Determinate Nix"
+## "Found a Nix at /nix that isn't Determinate"
 
 nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/) and
 won't install on top of a stock/single-user Nix rather than risk breaking it. If

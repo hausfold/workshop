@@ -161,16 +161,19 @@ One thing from §6 that survives and one that doesn't:
 
 ### Current handoff — 2026-08-12
 
-**§5.2's first landing is in: `hausfold.co/docs` exists**, and four merged
-batches take it to **eighteen of the twenty-nine pages**. The
+**§5.2's first landing is in: `hausfold.co/docs` exists**, and six merged
+batches take it to **twenty-four of the twenty-nine pages**. The
 Fumadocs build, the theme and the CI came with the first
 ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12), with #15
 following as the colour pass); the daily-driver
 guides — windows, apps, the terminal, theming, keybindings — came with the second
 ([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)); the launcher
 pair, Touch ID and hush with the third
-([hausfold.co#18](https://github.com/hausfold/hausfold.co/pull/18)); and the
-coding-agents consolidation with the fourth. §5.2's
+([hausfold.co#18](https://github.com/hausfold/hausfold.co/pull/18)); the
+coding-agents consolidation with the fourth; the update loop and the `haus` CLI
+reference with the fifth ([hausfold.co#21](https://github.com/hausfold/hausfold.co/pull/21));
+and the host-file cookbook plus both exits — troubleshooting and leaving — with
+the sixth ([hausfold.co#23](https://github.com/hausfold/hausfold.co/pull/23)). §5.2's
 status box carries what each proved, what it changed and what is left — read that
 before assuming any bullet further down this section is still the plan. The
 three headlines: the docs are **two trees behind a sidebar switcher**
@@ -2285,7 +2288,7 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
-#### 🟡 Status 2026-08-12 — the shell is up, and twenty-one of twenty-nine pages
+#### 🟡 Status 2026-08-12 — the shell is up, and twenty-four of twenty-nine pages
 
 **Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
 #15 followed with the colour pass):
@@ -2494,9 +2497,94 @@ consent-gate sentence rather than assert it, but the real fork is 👤's: either
 document the `bash -c` form as the headline, or have `bootstrap.sh` reopen
 `/dev/tty` when one exists so the one-liner already in the wild starts asking.
 
+**Landed, batch six** ([hausfold.co#23](https://github.com/hausfold/hausfold.co/pull/23)):
+the host-file cookbook plus the two exits — `guides/making-it-yours`,
+`reference/troubleshooting` and `guides/leaving`, all three into the **haus**
+tree. 969 source lines to 739 (**76%**, and see the ratio bullet above: these
+sources were rotten in the same way batch five's were, so verification added
+lines the compression had already taken out). **Twenty-four of twenty-nine
+sources**, twenty-four pages. Three clean-context passes returned corrections on
+**19 of 74** checked claims. The ones with teeth:
+
+- **The launcher's launchd label is `com.hausfold.pounce`, not
+  `org.nixos.pounce`.** Every restart recipe in `troubleshooting` failed today —
+  `bootout` on a service that isn't there, `bootstrap` on a plist path that
+  doesn't exist (nix-darwin names the file after the Label, and the old one
+  survives in-tree only as the legacy label activation boots out once). Both
+  trees now use `launchctl kickstart -k gui/$(id -u)/<label>`, which is what
+  `haus doctor` itself prints and which has **no path to get wrong** — that is
+  the real fix, the label being only this month's instance of it.
+- **`collar` is not "always on".** `haus.collar.enable` is a real, documented,
+  `mkIf`-gated switch, and the page said Touch-ID-for-sudo couldn't be removed.
+  Same undercount hid `perch` and `hush`: the room table said four rooms are
+  opt-out where seven are. ⚠️ **The claim was seeded by a stale comment in the
+  rice** — `haus/modules/prowl/options.nix` said "den + hearth + collar are
+  always on … These three are the choosable rooms", which is where the docs got
+  it. Fixed in the same batch ([hausfold/haus#327](https://github.com/hausfold/haus/pull/327)).
+- **The `options.nix` rationale was inverted.** The page said spelling every
+  default out would *silently beat* an imported preset; `host-template.jq:10-24`
+  says it **fails the build with a conflict per field**, and names
+  `presets.large-print` + `ui.scale` as the exact case. The silent-beat problem
+  is the *other* one — against the rice's own `mkDefault`s. Both now stated.
+- **Same shape again in "Overriding macOS defaults":** `_HIHideMenuBar` is set
+  without `mkDefault`, so setting it yourself is a conflicting definition and a
+  failed eval — not the "bar and menu bar fighting for the same pixels" the
+  aside predicted. (You only get that by `mkForce`-ing it off with sill on.)
+- **pounce doesn't hand ⌘Space back, and hush leaves the opposite trace.**
+  pounce writes symbolic hotkey 64 to `enabled:0` inside its own gated block, so
+  `pounce.enable = false` leaves Spotlight's shortcut dead forever — the leaving
+  guide never said so. hush is the mirror image and the first draft of this
+  batch got it backwards: it **binds** hotkey 175, which macOS ships present and
+  disabled, so switching hush off leaves a live DND chord rather than removing
+  one. `guides/hush` had it right all along, which is the argument for
+  cross-checking a new page against the neighbours it links to — the second
+  assurance pass caught this by reading the page one click away.
+- **`haus capture` / `haus revert-settings` was missing from the exit guide
+  entirely** — the purpose-built answer to that page's own central complaint,
+  already documented one click away in `reference/haus`.
+- **The "is it really gone" grep missed three agents.** The rice runs under
+  three label prefixes and `'nebelhaus|pounce|aerospace|sketchybar'` reports a
+  clean machine while `sill-bottom`, `hush-watcher` and `sleepwatcher` are still
+  loaded. Widened, and the residue nothing uninstalls
+  (`~/.local/state/nebelhaus`, `~/.local/state/pounce/Pounce.app`,
+  `/Applications/Perch.app`, `~/.config/perch`) is now named.
+
+Smaller, fixed in both trees: the logo pill's **popup dropdown no longer
+exists** — it is the haus menu on a left click; `haus.git.org` alone does
+nothing without `haus.hearth.ghDash.enable`, which defaults to false; `float`
+needs the entry's `appId` or it is silently inert; `haus set <whole-attrset>` is
+*refused* when a key inside it is already in the overlay, rather than silently
+resetting; the installer's refusal message is "Found a Nix at /nix that isn't
+Determinate", so the old heading was unsearchable; the pre-rename `nebelhaus/tap`
+survives `brew untap hausfold/tap`; and the installer's APFS snapshot is purged
+by macOS within about a day, so the exit guide's standing fallback isn't one.
+Also mirrored, and easy to miss because they read as prose rather than as
+facts: `perch.enable = false` does **not** remove the `/Applications/Perch.app`
+an activation copied in (nothing does); the Caps-Lock remap is `hidutil`, so it
+clears on the next *reboot* rather than the next rebuild, while the menu-bar key
+really is rewritten every activation; `signingIdentity = ""` is the **unsigned**
+default, not the setting that preserves the Accessibility grant, so the example
+had to carry a real identity; `ghDash.enable` is additionally *asserted* against
+`developer.git.enable`, so the pair fails a build rather than doing nothing;
+`haus options` writes `options.nix.new` beside an edited copy rather than
+overwriting it; zellij's `config.kdl.backup` is cleared every rebuild, so the
+`find` for `*.backup` will never show it; `haus doctor` runs three sections
+nobody had documented; and `github.com/hausfold` became
+`github.com/hausfold/haus/issues`, an org page having no issue tracker.
+
+⚠️ **The trap this batch nearly fell into, worth carrying into batch seven:** the
+sources were read out of `~/code/workshop/web/` — the *main checkout* — which was
+two commits behind `origin/main` because batch five's own twin PR had just
+merged. Both the port and all three fact-checkers therefore read a pre-correction
+copy of `making-it-yours`. It cost nothing this time (the one stale section was
+the `~/.secrets`→secretspec rewrite, which the port had already got right from
+`keeping-it-current`), but the next batch is one merge away from re-fixing what
+the last one fixed. **`git -C ~/code/workshop pull --ff-only` before reading a
+source, or read it out of a lane branched from `origin/main`.**
+
 **Still open, and each is its own piece of work:**
 
-- the remaining **8 source pages**, including `reference/options.md` — the generated
+- the remaining **5 source pages**, including `reference/options.md` — the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
   pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
@@ -2510,7 +2598,7 @@ document the `bash -c` form as the headline, or have `bootstrap.sh` reopen
   nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
   and not the other will disagree; fix it in both or in neither.
 
-##### The eight left, with the tree each lands in
+##### The five left, with the tree each lands in
 
 Derived after batch two and struck through as batches land, so the next session
 doesn't re-derive it. `→` means consolidate into one page. Source paths are under
@@ -2521,15 +2609,12 @@ reconcile to twenty-nine without them: batch one's four (`start/install`,
 the table, and three of batch two's (`guides/adding-apps`, `guides/the-shell`,
 `nebelhaus/keybindings`), which landed as it was being written. The ✅ rows are
 batch two's other three plus everything struck since, kept so a later session
-can see what the consolidations actually became. So: 8 rows = 8 pending
-sources, plus 14 in ✅ rows, plus the 7 rowless = 29.
+can see what the consolidations actually became. So: 5 rows = 5 pending
+sources, plus 17 in ✅ rows, plus the 7 rowless = 29.
 
 | Source | Lines | Tree | Note |
 |---|---|---|---|
-| `guides/making-it-yours` | 472 | haus | the host-file cookbook. Check for overlap with the now-ported `adding-apps` before starting. |
-| `reference/troubleshooting` | 193 | haus | |
-| `guides/leaving` | 304 | haus | uninstall. |
-| `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. |
+| `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. The **tour** (`haus.tour.steps`) belongs here: batch six cut it from `making-it-yours` deliberately, because authoring a tour is a rice-author's job, not a consumer's. |
 | `internals/flakes` | 100 | haus | |
 | `internals/contributing` | 238 | haus | contributing to the **layer**, so it names `hausfold/haus` now. |
 | `start/the-family` | 91 | — | probably dies: `/docs`'s index and hausfold.co's own front page already do this job. Decide before porting. |
@@ -2543,8 +2628,11 @@ sources, plus 14 in ✅ rows, plus the 7 rowless = 29.
 | `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | — | — | ✅ → `guides/coding-agents` + `guides/agent-rebuilds` (batch four; drafted as one page, split on review) |
 | `guides/staying-in-sync` + `guides/new-mac` | — | — | ✅ → `guides/keeping-it-current` (batch five) |
 | `reference/haus` | — | — | ✅ done (batch five), as `reference/haus` |
+| `guides/making-it-yours` | — | — | ✅ done (batch six) |
+| `reference/troubleshooting` | — | — | ✅ done (batch six) |
+| `guides/leaving` | — | — | ✅ done (batch six), as `guides/leaving` |
 
-The desktop tree stays deliberately thin: three pages, and none of the eight
+The desktop tree stays deliberately thin: three pages, and none of the five
 adds to it — because a desktop's docs are its opinions and its muscle memory,
 not the machinery underneath. If a page seems to want both trees, AGENTS.md's
 rule applies: it is two pages.
