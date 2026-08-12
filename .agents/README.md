@@ -138,10 +138,12 @@ differences worth knowing — including the two repos that are still gaps:
   single piece of the layer deliberately deferred, and it landed 2026-08-09 with
   the eject. Everything else was already whole, which is what made the eject a
   move rather than a rebuild.
-- **The rice ships this shape to users, too.** `haus.claude.skill` now
-  installs a `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather
-  than a lone `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one
-  layer out.
+- **The rice ships this shape to users, too.** `haus.agents.skill` installs a
+  `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather than a lone
+  `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one layer out.
+  Since 2026-08-11 it goes further and obeys the rule itself: the skill and
+  `haus.agents.instructions` are written once per client the machine installs,
+  each at the path that client reads. Both were `haus.claude.*` before that.
 
 Adding a new repo to the family? Copy the *pattern* from any of them, never the
 text: `git mv CLAUDE.md AGENTS.md`, leave a `CLAUDE.md` holding `@AGENTS.md` plus

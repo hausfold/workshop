@@ -19,7 +19,10 @@ The missing half was knowledge. So the rice ships it.
 
 ## What's installed
 
-Every rebuild writes a Claude Code **skill** to `~/.claude/skills/haus`:
+Every rebuild writes a **skill** called `haus` into the skills directory of
+every client in `haus.agents.clients` — `~/.claude/skills/haus` for Claude Code,
+`~/.codex/skills/haus` for Codex, `~/.config/opencode/skills/haus` for OpenCode.
+One body, one copy per client:
 
 | File | What it is |
 |---|---|
@@ -37,9 +40,10 @@ your revision — and `haus update` regenerates it along with the rice.
 
 <Aside type="tip" title="Check it's there">
 `haus doctor` has an **Agents** section that reports whether the skill is
-installed, whether your config repo has an `AGENTS.md` (and the `CLAUDE.md`
-pointer beside it), and whether the app you're running from can write macOS's
-protected settings.
+installed (it checks every client's directory and names the copy it found),
+whether your config repo has an `AGENTS.md` (and the `CLAUDE.md` pointer beside
+it), and whether the app you're running from can write macOS's protected
+settings.
 </Aside>
 
 ## The loop it follows
@@ -129,8 +133,11 @@ skill. A starter pair ships inside the skill; nothing writes it for you, because
 it's your repo and you should own the files:
 
 ```sh
-install -m 644 ~/.claude/skills/haus/consumer-AGENTS.md ~/.config/nix/AGENTS.md
-install -m 644 ~/.claude/skills/haus/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
+# whichever of these exists on your machine — the copies are identical:
+#   ~/.claude/skills/haus  ·  ~/.codex/skills/haus  ·  ~/.config/opencode/skills/haus
+skill=~/.claude/skills/haus
+install -m 644 "$skill"/consumer-AGENTS.md ~/.config/nix/AGENTS.md
+install -m 644 "$skill"/consumer-CLAUDE.md ~/.config/nix/CLAUDE.md
 ```
 
 `install -m 644`, not `cp`: the starter pair are symlinks into the Nix store,
@@ -147,10 +154,10 @@ tools and not others.
 
 ## Other tools, and before you've installed
 
-The skill is Claude Code's format, and it only exists on a machine that has
-already switched in at least once. For everything else — a different AI tool, or
-someone asking about nebelhaus before they own it — this site publishes itself in
-machine-readable form:
+The skill only exists on a machine that has already switched in at least once,
+and only for the clients you've named in `haus.agents.clients`. For everything
+else — a different AI tool, or someone asking about nebelhaus before they own
+it — this site publishes itself in machine-readable form:
 
 - **[nebelhaus.com/llms.txt](https://nebelhaus.com/llms.txt)** — a table of
   contents with one-line descriptions, for a tool that fetches selectively.
@@ -164,12 +171,40 @@ place, see [Installing with an agent](/start/install/#installing-with-an-agent).
 ## Turning it off
 
 ```nix
-haus.claude.skill = false;
+haus.agents.skill = false;
 ```
 
-A machine that never runs an agent otherwise just carries an unread markdown
-file — the option exists so `~/.claude/skills` stays yours if you'd rather manage
-it by hand.
+The option exists so each client's skills directory stays yours if you'd rather
+manage it by hand. (A machine with no clients in `haus.agents.clients` writes
+nothing either way.)
+
+## Your own instructions, for every client
+
+`haus.agents.instructions` is the other half of what the rice ships into an
+agent's home: your own always-on operating context, written once per installed
+client at the path that client reads — `~/.claude/CLAUDE.md`,
+`~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md` — with a short rice-owned
+preamble on top (a note that the file is generated and where to actually edit
+it, plus the `holt` worktree etiquette).
+
+```nix
+haus.agents.instructions = ''
+  # Global instructions
+
+  Ship small, verified changes. Ask before anything hard to reverse…
+'';
+```
+
+Write it **client-neutrally**: the same text reaches whichever agent your ⌘A
+pane spawned, so a line about one client's file paths or flags is noise in the
+other two. Leaving it empty (the default) writes nothing at all, so a
+hand-managed instructions file is never touched.
+
+<Aside type="note" title="Renamed in August 2026">
+Both options were `haus.claude.globalMd` and `haus.claude.skill` until
+2026-08-11, when they stopped writing Claude Code's copy alone. The old names
+still evaluate, with a warning naming the new one.
+</Aside>
 
 <Aside type="caution" title="It's still your machine">
 An agent that can rebuild your Mac can change how your Mac behaves. The safety
