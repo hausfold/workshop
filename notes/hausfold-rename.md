@@ -159,6 +159,22 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
+### Current handoff — 2026-08-12
+
+**§5.2's first landing is in: `hausfold.co/docs` exists.** The Fumadocs build,
+the theme, the CI and five of the twenty-nine pages
+([hausfold.co#11](https://github.com/hausfold/hausfold.co/pull/11)). §5.2's
+status box carries what it proved, what it changed and what is left — read that
+before assuming any bullet further down this section is still the plan. The
+three headlines: the docs are **two trees behind a sidebar switcher**
+(`/docs/haus/*`, `/docs/nebelhaus/*`), which spends "preserve slugs"; porting a
+page is a **rewrite to about half its length**, not a move; and the landing
+pages **will** become Next routes (👤, 2026-08-12), which settles the one fork
+§5.2 had left open.
+
+§5.2 is still the whole of the 🤖 work left on the rename proper — it is just no
+longer untouched.
+
 ### Current handoff — 2026-08-11
 
 **Decision 9 landed the layer's repo rename: `hausfold/hausfold` →
@@ -2247,6 +2263,67 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
+#### 🟡 Status 2026-08-12 — the shell is up, the content is not
+
+**Landed** ([hausfold.co#11](https://github.com/hausfold/hausfold.co/pull/11)):
+the Fumadocs build, the hausfold-styled theme, the CI, and **five** of the
+twenty-nine pages. `hausfold.co` gained a build step and kept its shape — no
+`main`, still assets-only, `public/` copied into `out/` verbatim so every
+hand-written page is served from exactly the file you edit.
+
+Three of this section's own predictions were tested by doing it:
+
+- ✅ **Static export + `worker.js` unchanged** holds. `[assets] directory`
+  moved `./public` → `./out`; `custom_domain`, `not_found_handling` and
+  `html_handling` are untouched, and `trailingSlash: true` is pinned so the
+  export keeps the directory-with-`index.html` shape those depend on.
+- ✅ **`generateBuildId` pinned**, and the build-twice-and-diff check this
+  section asked for is `.github/workflows/docs.yml`. Six consecutive cold
+  builds measured byte-identical. ⚠️ Turbopack's CSS chunk id is
+  content-derived, so a stylesheet edit renames it *and* every page that links
+  it — a diff of "one css file plus every html file" is almost always source
+  drift, not nondeterminism. That cost an hour; it is written into the
+  workflow.
+- 🚨 **`public/404.html` could not survive.** Next's export always writes its
+  own `out/404.html` and overwrites a same-named file copied out of `public/`,
+  so the page had to become `src/app/not-found.tsx`. It is therefore no longer
+  one of the files `sync-nebelung.mjs --check` walks for a dark `theme-color`.
+  Nothing on the salvage list predicted this, and it generalizes: **any
+  hand-written page whose path collides with a Next route loses.**
+
+Two things this section decided that the landing **changed**:
+
+- **The docs are two trees behind a switcher**, `/docs/haus/*` and
+  `/docs/nebelhaus/*` — Fumadocs root folders, rendered as the dropdown at the
+  head of the sidebar. 👤's call, 2026-08-12. It makes decision 8 navigable
+  rather than merely stated: the layer and the desktop are different reading
+  paths, not two sections of one. ⚠️ **The cost is slugs**: no docs URL keeps
+  its old shape, so "preserve slugs" is spent and the 301 map must be derived
+  from the old build's output in full. This section already required deriving
+  it (cross-framework), so the change is in degree, not in kind.
+- **Porting is a rewrite, not a move.** 👤's instruction, 2026-08-12: verify,
+  consolidate, simplify, consumerize — *"probably half the amount"*. Maintainer
+  reasoning, one-person detail and anything a click away come out; the facts
+  and the warnings stay. The ported five run ~45–55% of their originals. That
+  is now a rule in `hausfold.co`'s AGENTS.md, so the remaining pages don't
+  quietly get copied.
+
+**Still open, and each is its own piece of work:**
+
+- the remaining ~24 pages, including `reference/options.md` — the generated
+  one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
+  pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
+  that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
+  among them, so "every option including the dev ones" needs no change to the
+  generator — it filters on the namespace and nothing else.
+- the landing pages becoming Next routes. 👤 decided **yes** on 2026-08-12,
+  which settles the "still not decided" line below; not done.
+- `worker.js`, the `hausfold.co/<rice>.sh` installer route, and the
+  `nebelhaus.com/*` 301s. **Until those land the docs print
+  `nebelhaus.com/init.sh`**, deliberately — it is the URL that resolves — and
+  nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
+  and not the other will disagree; fix it in both or in neither.
+
 #### 🚨 Decided 2026-08-09 — the docs are rebuilt on **Fumadocs**, not ported from Starlight
 
 👤's call, and it changes what §5.2 *is*. Everything below this box was written
@@ -2497,9 +2574,13 @@ no server components doing runtime work, no middleware, no ISR/SSR, and
 site is a docs tree and some landing pages — but each fails at build time in a
 way that reads as a config error rather than as this decision.
 
-Still not decided (don't settle it by accident while building): whether the
+~~Still not decided (don't settle it by accident while building): whether the
 landing pages become Next pages too, or stay the hand-written HTML they are
-today, served from the same assets directory beside the exported docs.
+today, served from the same assets directory beside the exported docs.~~
+✅ **Decided 2026-08-12 — they become Next pages**, 👤's call, asked rather than
+settled by accident. Not done: the first landing left them as hand-written HTML
+beside the export, which is the shape this paragraph described as the
+alternative. Read it as a staging order, not as the answer.
 
 **The three things this decision hands the port as concrete work**, all proven
 below rather than guessed: pin `generateBuildId`, verify the search index is
