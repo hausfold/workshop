@@ -108,7 +108,9 @@ including every background service the rice installs. Your bar, tiling and
 palette come back dead, with the symptom nowhere near the cause.
 
 Refusing is the kinder failure. Nothing is changed, and your edit is still on
-disk.
+disk. `HAUS_AGENT_REBUILD=1` overrides it when you know the grant is there — and
+note that the guard recognises a **Claude Code** session by its environment, so a
+Codex or OpenCode pane isn't caught by it at all.
 
 <Aside type="note" title="Reaching those settings safely">
 [`haus.accessibility.*`](/reference/options/#hausaccessibility) reaches
@@ -155,7 +157,8 @@ tools and not others.
 ## Other tools, and before you've installed
 
 The skill only exists on a machine that has already switched in at least once,
-and only for the clients you've named in `haus.agents.clients`. For everything
+and for the clients you've named in `haus.agents.clients` (or all three, if you
+named none). For everything
 else — a different AI tool, or someone asking about nebelhaus before they own
 it — this site publishes itself in machine-readable form:
 
@@ -175,8 +178,9 @@ haus.agents.skill = false;
 ```
 
 The option exists so each client's skills directory stays yours if you'd rather
-manage it by hand. (A machine with no clients in `haus.agents.clients` writes
-nothing either way.)
+manage it by hand. (Naming no clients at all is *not* the same switch: with
+`haus.agents.clients` empty, all three clients get a copy of the skill, so it is
+never the missing piece.)
 
 ## Your own instructions, for every client
 
