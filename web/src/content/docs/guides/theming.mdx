@@ -62,10 +62,18 @@ Declare the extension and the rice closes that loop:
 haus.zen.extensions.stylus = { };
 ```
 
-It deploys Stylus (via Firefox's enterprise-policy file — `haus.roster`
-can't install add-ons) and stamps nebelung's userstyle bundle from **your**
-theme: the accent, the flavor, and the contrast it's rendered for. All three
-axes on this page reach the web.
+It deploys Stylus (via a macOS managed preference,
+`/Library/Preferences/app.zen-browser.zen.plist` — `haus.roster` can't install
+add-ons) and stamps nebelung's userstyle bundle from **your** theme: the accent,
+the flavor, and the contrast it's rendered for. All three axes on this page reach
+the web.
+
+That file is root-owned, so it's written during system activation and a `haus
+rebuild` that can't reach it warns instead of installing anything. And because
+enterprise policies are on, Zen will tell you it's **managed by your
+organization** — that organization is this rice — while Stylus itself is
+force-installed, so `about:addons` gives it no Remove button. Set
+`haus.zen.extensions.stylus.mode = "normal_installed"` to keep it removable.
 
 The import itself stays a click — Stylus has no file interface — so whenever you
 change one of them, activation prints a one-time nudge and you do:
