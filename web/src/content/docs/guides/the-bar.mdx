@@ -45,11 +45,12 @@ They behave like every other menu on the Mac: **click anywhere else and the
 dropdown closes**, clicking the pill again also closes it, and opening one
 dropdown closes whichever was already open.
 
-The media pill is the one exception to the *click* half of that rule: its left
-click is play/pause, so its dropdown is on **right**-click. Everything about
-dismissing it is the same. (The calendar pill keeps its dropdown on the left
-click and puts **join the meeting** on the right; the cpu and memory pills do
-the same with **Activity Monitor**, on the tab each one is about.)
+There are no exceptions to the *click* half of that rule any more: **every**
+dropdown on the bar, the media pill's included, is on the left click. Each of
+these pills then puts its one most-pressed action on the **right** click
+instead — play/pause for media, **join the meeting** for the calendar, and
+**Activity Monitor** for the cpu and memory pills, on the tab each one is
+about.
 
 (SketchyBar itself only ever hears about clicks on its own pills, so the rice
 ships a small helper — `sillpop` — to notice the click outside. It runs only
@@ -166,24 +167,60 @@ The gestures:
 
 | | |
 |---|---|
-| left click | play / pause |
-| right click | the dropdown |
+| left click | the dropdown |
+| right click | play / pause |
 | ⌥ click | next track |
 | ⇧ click | previous track |
-| ⌘ click | bring the app the sound is coming from forward |
+| ⌘ click | jump to whatever is making the noise — the tab, not just the app |
 | scroll | seek ±10s |
 | hover | sweep a long title once, start to finish |
 
 That ⌘ click is the one to remember: it's the answer to "something is making
-noise and I can't find the tab".
+noise and I can't find the tab", and it means that literally — it puts the
+**tab** in front, not just the browser. There's no URL in what macOS hands the
+bar (see above), so it matches on the track's title instead, and how it gets
+there depends on the browser: Safari and the Chromium family hand out their tab
+list to AppleScript, so it's a real lookup. Firefox and its forks — Zen
+included — hand out nothing at all, not to AppleScript and not through
+accessibility either, so the route there is the one piece of switch-to-tab
+machinery Firefox itself ships: the address bar's `%` open-tab search, driven
+for you. Each route asks macOS for something the first time you use it —
+**Automation** for the scriptable browsers, **Accessibility** for the Firefox
+forks — and if you say no, the gesture quietly does what it always did and just
+brings the browser forward.
+
+If you're on Zen, there's a better answer than driving its address bar:
+
+```nix
+haus.zen.tabBridge.enable = true;
+```
+
+That deploys a small extension the rice builds itself, which publishes Zen's
+open tabs to the bar and switches to one on request. ⌘ click then gets an exact
+tab — across windows, Zen workspaces and Spaces — with no synthetic typing and
+no Accessibility permission. It's off by default because force-installing an
+add-on into your browser isn't a thing a rice should do unasked, and it's Zen
+only for a reason that isn't a preference: release Firefox refuses any extension
+Mozilla hasn't signed, and Zen ships `xpinstall.signatures.required = false` as
+a built-in default, so the rice can build the `.xpi` and install it straight
+from the nix store. The extension asks for one permission, `tabs`, and talks to
+exactly one program — a native-messaging host that lives and dies with the
+browser, opens no port, and is named in the manifest as the only thing it will
+speak to.
+
+<Aside type="note">
+Policy files are read once, at startup — so the first rebuild that turns this
+on doesn't do anything visible until you **quit and reopen Zen**.
+</Aside>
 
 The dropdown carries the cover art when the source published one, the title,
 artist and album, and a position slider you can **click to scrub**, plus
 transport rows. A title or album long enough to overflow the dropdown sweeps
 once when it opens, the same marquee the pill itself does on hover. Sources
 that publish no cover — most browser tabs among them — get a small app-icon
-badge next to the row that brings that app forward, rather than a cover-sized
-stand-in.
+badge floating in the dropdown's bottom-right corner: enough to say where the
+sound is coming from, without a cover-sized stand-in at the top or a row of its
+own in the middle of the ones you actually click.
 
 Two options tune it, both off by default:
 `haus.sill.media.collapse` draws the pill as its glyph alone until you hover it
