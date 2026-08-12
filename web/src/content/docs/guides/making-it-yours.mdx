@@ -73,7 +73,8 @@ internalizing:
   manager or a calculator.
 - **Floating apps exist too.** `float = true` on a roster entry keeps that app's
   windows out of the tiling entirely, for a picker or status window that would
-  otherwise reflow the whole workspace every time it opens.
+  otherwise reflow the whole workspace every time it opens. It needs the entry's
+  `appId` — without one it is silently inert and only warns during a rebuild.
 
 Adding your own is a one-liner — see [Adding apps & tools](/guides/adding-apps/)
 for the recipe and [Window management](/guides/window-management/) for the full
@@ -94,9 +95,9 @@ Or read the surface straight out of your own config. A fresh install drops a
 `hosts/<host>/options.nix` beside your host file — every `haus.*` option at
 its default, a sentence each, **all commented out**. Uncomment what you want,
 delete what you'll never touch; you find out a knob exists by reading the file you
-already edit. It's rendered from the rice you're pinned to, so it can't advertise
-an option your machine doesn't have — the rice-side twin of pounce's `pounce
-config init`.
+already edit. It's rendered from the build you're actually running, so it can't
+advertise an option your machine doesn't have — the rice-side twin of pounce's
+`pounce config init`.
 
 ```sh
 haus options    # refresh it against the current rice (--force overwrites yours)
@@ -105,9 +106,12 @@ haus options    # refresh it against the current rice (--force overwrites yours)
 <Aside type="note" title="Scaffolded, not active">
 Nothing in that file does anything until you uncomment a line *and* `import` it —
 `haus options` prints the `imports = [ ./options.nix ];` line to add if your host
-file is missing it. Commented-out is deliberate: the rice's defaults are
-`mkDefault`s, so a file spelling every default out would silently beat any preset
-it imports.
+file is missing it. Commented-out is deliberate, for two separate reasons. A
+spelled-out default **collides** with a preset rather than beating it — import
+order carries no priority, so `extraModules = [ nebelhaus.presets.large-print ]`
+would fail on `haus.ui.scale` with a conflict, not pick a winner. And against
+the rice's own `mkDefault`s a plain restatement *does* win, permanently, freezing
+that value against any future retuning upstream.
 </Aside>
 
 For a one-off change, you can skip the editor entirely. `haus set` writes and
@@ -126,7 +130,9 @@ A path may go *inside* an option — `haus set sill.items.aiUsage true` switches
 one pill, `haus set displays.internal.uiScale larger-text` scales one screen.
 Prefer that to naming the whole attribute set: the overlay is `mkForce`, so
 `haus set sill.items '{"aiUsage":true}'` would send every pill you didn't name
-back to its default.
+back to its default. (If a key *inside* it is already in the overlay, the
+whole-set form is refused outright instead — the silent reset only happens from
+a clean overlay.)
 
 Only `haus.*` options cross this writable boundary (the prefix is optional
 on the command line). `haus unset <path> […]` explicitly writes `null` for
@@ -146,8 +152,10 @@ haus.git.org = "analytical-engine";        # the GitHub owner your work lives un
 
 `org` is the odd one out — not who you are, but where you work. Today only
 gh-dash reads it: it fills `⌘G`'s PR tabs with that owner's open, green, red and
-just-shipped work, so an org rename is one word here rather than one per tab.
-See [Your review queue](/guides/the-shell/#your-review-queue).
+just-shipped work, so an org rename is one word here rather than one per tab. On
+its own it does nothing — the overlay is opt-in, so set
+`haus.hearth.ghDash.enable = true` alongside it. See [Your review
+queue](/guides/the-shell/#your-review-queue).
 
 ### The look
 
@@ -278,23 +286,32 @@ so the rest of the family keeps deterministic rebuilds.
 
 ## Turning rooms off
 
-Four rooms are opt-*out*; the rest are load-bearing:
+Every room you can see has a switch:
 
 | Room | Option | Off means |
 |---|---|---|
 | prowl (tiling) | `haus.prowl.enable = false` | No AeroSpace, no leader key |
 | sill (bar) | `haus.sill.enable = false` | The native menu bar stays |
-| pounce (launcher) | `haus.pounce.enable = false` | ⌘Space stays Spotlight |
+| pounce (launcher) | `haus.pounce.enable = false` | No ⌘Space palette |
+| perch (notch shelf) | `haus.perch.enable = false` | No shelf, and no `/Applications/Perch.app` |
+| hush (quiet switch) | `haus.hush.enable = false` | No bar pill, palette command or `hush` CLI |
+| collar (Touch ID sudo) | `haus.collar.enable = false` | The stock password prompt everywhere, rebuilds included |
 | apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `haus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
+
+Two of them don't hand the key back on the way out: turning **pounce** off does
+not return `⌘Space` to Spotlight, and turning **hush** off does not restore the
+Do Not Disturb hotkey. Both were disabled by a one-way `defaults write`, so
+re-bind them in System Settings ▸ Keyboard ▸ Keyboard Shortcuts.
 
 If what you actually want is the tiler **without** its keyboard claims, don't turn
 the room off — set `haus.keys.leader = "none"` and
 `haus.keys.windowNav = "none"` instead. prowl keeps tiling and Caps-Lock stays
 Caps-Lock. See [rebinding](/guides/window-management/#not-fond-of-these-keys).
 
-**den** (system + Homebrew), **hearth** (shell), and **collar** (Touch ID sudo)
-are always on — they're the foundation the rest sits on. Turn any of the three
-optional rooms off and the others keep working; the rice degrades gracefully.
+**den** (system + Homebrew) and **hearth** (shell) are the only rooms with no
+switch at all — they're the foundation the rest sits on. Everything else above
+comes out independently, and the others keep working; the rice degrades
+gracefully.
 
 ## Presets: start from someone else's rice
 
@@ -390,16 +407,19 @@ Anything under [`system.defaults`](https://nix-darwin.github.io/nix-darwin/manua
 is fair game. Your plain value wins over the rice's default.
 
 <Aside type="note" title="Four exceptions">
-Two menu-bar keys track whether the bar (sill) is on, and both override your
-value rather than yielding to it:
+Two menu-bar keys track whether the bar (sill) is on, so the rice sets them at
+full priority rather than as `mkDefault`s:
 
-- **`_HIHideMenuBar`** — the auto-hide. Set it by hand and you'll get a bar and a
-  menu bar fighting for the same strip of pixels.
+- **`_HIHideMenuBar`** — the auto-hide, a typed nix-darwin option. Setting it in
+  your host file is a **conflicting definition**: the evaluation fails rather
+  than one value winning. That's the good outcome — `mkForce`-ing it off while
+  sill is on gets you a bar and a menu bar fighting for the same strip of pixels.
 - **`NSGlobalDomain.SLSMenuBarUseBlurredAppearance`** — System Settings ▸ Menu
   Bar ▸ "Show menu bar background". Tahoe's Liquid Glass made the hidden menu
   bar's hover-reveal translucent, so Sill showed straight through it; the rice
-  forces it opaque again. Flip it in System Settings and the next rebuild flips
-  it back.
+  forces it opaque again. It goes through `CustomUserPreferences`, so it is
+  rewritten on every activation rather than merged: flip it in System Settings
+  and the next rebuild flips it back.
 
 And one macOS ignores outright: **`NSGlobalDomain.AppleInterfaceStyle`** (Light/
 Dark). It is a typed nix-darwin option, and on macOS 26 writing it does nothing

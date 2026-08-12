@@ -22,7 +22,8 @@ cp -R ~/.config/nix ~/.config/nix.nebelhaus-archive
 A git remote is better if the config contains no secrets. Either way, inspect
 it before sharing or backing it up somewhere public — [Making it
 yours](/guides/making-it-yours/#secrets--private-things) covers keeping secrets
-out of the repo, and the gitleaks hook that catches the ones you miss.
+out of the repo, and shows you how to add a gitleaks pre-commit hook that
+catches the ones you miss.
 </Aside>
 
 ## Choose your exit
@@ -30,6 +31,7 @@ out of the repo, and the gitleaks hook that catches the ones you miss.
 | What you want | Use this path |
 |---|---|
 | Undo the most recent rebuild | [Roll back one generation](#roll-back-one-generation) |
+| Undo the macOS settings a rebuild moved | `haus revert-settings` — [below](#roll-back-one-generation) |
 | Stop using tiling, the bar, Pounce, or Hush | [Remove one room](#remove-one-room) |
 | Remove the nix-darwin-managed system but keep Nix | [Take down the system layer](#take-down-the-system-layer) |
 | Remove Nix itself | [Remove Determinate Nix](#remove-determinate-nix) |
@@ -54,10 +56,18 @@ Rollback restores Nix-managed packages, agents, shell configuration, and paths
 from that generation. See [the haus CLI](/reference/haus/) for the full command
 set.
 
-It does **not** reliably restore every macOS preference changed by a prior
-activation. Dock, keyboard, Finder, menu-bar, wallpaper, Spotlight,
-file-association, and similar settings may need to be changed back in System
-Settings, or declared with the values you want in your config.
+It does **not** touch macOS preferences changed by a prior activation — Dock,
+keyboard, Finder, menu bar, wallpaper, Spotlight, file associations. Those have
+their own pair of commands:
+
+```sh
+haus capture              # snapshot the live settings before a risky change
+haus revert-settings      # restore the last snapshot, byte for byte
+haus revert-settings list # every snapshot you have
+```
+
+If you never captured one, change them back in System Settings or declare the
+values you want in your config.
 
 The **wallpaper** is the sharpest of those. `haus.wallpaper.style` defaults to
 `minimal`, so the desktop is set at every activation, and macOS keeps no record
@@ -79,7 +89,9 @@ haus edit
   haus.prowl.enable = false;
   haus.sill.enable = false;
   haus.pounce.enable = false;
+  haus.perch.enable = false;
   haus.hush.enable = false;
+  haus.collar.enable = false;
 }
 ```
 
@@ -93,14 +105,20 @@ This keeps the base nebelhaus system and your Nix configuration. It only
 disables the selected rooms:
 
 - `prowl` — AeroSpace tiling, Caps-Lock launcher, and window-management bindings
-- `sill` — SketchyBar and the custom top bar
+- `sill` — SketchyBar: the top bar, and the bottom one if you run it
 - `pounce` — the Pounce daemon, palette hotkey, and Accessibility-dependent features
-- `hush` — the Hush CLI, palette command, and status item
+- `perch` — the notch file shelf (and its hand-copied `/Applications/Perch.app`)
+- `hush` — the `hush` CLI, its palette command, and the Hush **bar pill** (which
+  only exists when `sill` is on in the first place)
+- `collar` — Touch ID for `sudo`, and the passwordless-`sudo` rule for rebuilds
 
-After rebuilding, verify the macOS controls those rooms used — especially Caps
-Lock, the native menu bar, Spotlight's shortcut, and Accessibility permissions —
-are set the way you want. See [haus.\* options](/reference/options/) for
-what each toggle governs.
+Caps Lock and the native menu bar are re-applied at every activation, so they
+come back on their own. Two things do not: **Spotlight's `⌘Space`** and the
+**Do Not Disturb hotkey** are disabled by one-way `defaults write`s inside the
+pounce and hush rooms, and nothing re-enables them — re-bind both in System
+Settings ▸ Keyboard ▸ Keyboard Shortcuts. Accessibility permissions are worth a
+look too. See [haus.\* options](/reference/options/) for what each toggle
+governs.
 
 ## Take down the system layer
 
@@ -159,7 +177,8 @@ find "$HOME" -maxdepth 5 -name '*.backup' -print
 ```
 
 Inspect each backup, confirm the Nix-managed target is gone, then move it back
-manually. For example:
+manually. One exception not worth hunting for: zellij's `config.kdl.backup` is
+cleared on every rebuild by design, so it will not be there. For example:
 
 ```sh
 ls -l ~/.zshrc ~/.zshrc.backup
@@ -213,7 +232,11 @@ else from it:
 brew services stop pounce
 brew uninstall pounce
 brew untap hausfold/tap
+brew untap nebelhaus/tap   # only if you installed before the org was renamed
 ```
+
+Homebrew keys a tap by its directory, so an install predating the rename leaves
+the old tap behind unless you untap it by its old name.
 
 Your personal commands and configuration live under `~/.config/pounce`. Keep
 them, archive them, or remove them separately after inspection:
@@ -248,21 +271,33 @@ troubleshooting guide rather than manually deleting random pieces of `/nix`.
 Nix generations and uninstallers cannot promise to reconstruct every preference
 that existed before installation. Check these after leaving:
 
-- Dock autohide and orientation
-- key repeat and press-and-hold behaviour
+`haus revert-settings` is the real answer if you captured a snapshot. This list
+is for when you did not:
+
+- Dock autohide, orientation, tile size and animations
+- key repeat, press-and-hold, and the trackpad's tap-to-click and three-finger drag
 - Finder extensions, hidden files, path bar, status bar, and view style
-- native menu-bar visibility
-- Caps Lock behaviour
-- Spotlight's `⌘Space` shortcut
+- hot corners
+- native menu-bar visibility and its clock, and Caps Lock behaviour
+- Spotlight's `⌘Space` **and** the Do Not Disturb hotkey — neither is restored
+  by turning its room off
 - wallpaper
+- screenshot location and format, and the screen-lock delay
+- alert volume, UI sounds, and the startup chime (`nvram StartupMute` — firmware,
+  so it survives an OS reinstall)
+- keyboard input sources: `haus.locale.inputSources` is exhaustive, so layouts
+  you never declared were switched off
+- the application firewall
 - file associations, if `haus.hearth.hijackFileAssociations` was enabled
 - Pounce Accessibility access
-- Touch ID for `sudo`
+- Touch ID for `sudo`, including the passwordless-`sudo` rule for rebuilds
 
-The bootstrap attempts to create a local APFS snapshot before installation.
-Treat restoring that snapshot as a coarse recovery operation: it may also revert
-unrelated changes made after the snapshot. Prefer targeted restoration unless
-the machine genuinely needs the wider rewind.
+The bootstrap attempts to create a local APFS snapshot before installation, but
+macOS purges local snapshots within about a day — by the time you read this it
+has almost certainly gone, so treat it as luck rather than a plan. If it *is*
+there, restoring it is a coarse operation that also reverts unrelated changes
+made since; prefer targeted restoration unless the machine needs the wider
+rewind.
 
 ## Verify the house is down
 
@@ -272,12 +307,22 @@ After restarting, check the pieces relevant to the path you chose:
 command -v haus || echo "haus is no longer on PATH"
 command -v darwin-rebuild || echo "darwin-rebuild is no longer on PATH"
 brew services list | grep -i pounce || true
-launchctl list | grep -Ei 'nebelhaus|pounce|aerospace|sketchybar' || true
+launchctl list | grep -Ei 'hausfold|nebelhaus|pounce|aerospace|sketchybar|sill|hush|sleepwatcher' || true
 ```
 
-A matching AeroSpace or SketchyBar process is not automatically residue; you may
-have installed it independently. The question is whether nebelhaus still manages
-it.
+That pattern is wider than it looks because it has to be: the agents run under
+three label prefixes (`com.hausfold.*`, `org.nebelhaus.*`, `org.nixos.*`), and a
+narrower grep reports a clean machine while `org.nixos.sill-bottom`,
+`org.nixos.hush-watcher` and `org.nixos.sleepwatcher` are still loaded.
+
+A matching AeroSpace or SketchyBar process is not automatically residue; both
+are Homebrew installs that nebelhaus only *launches*, so `brew uninstall` is
+what removes them. And a few things nothing in Nix put there, so no uninstaller
+takes them away:
+
+```sh
+ls ~/.local/state/nebelhaus ~/.local/state/pounce ~/.config/perch /Applications/Perch.app
+```
 
 If you removed Nix entirely:
 
@@ -289,7 +334,7 @@ test ! -e /nix && echo "/nix is gone"
 ## Report an incomplete departure
 
 A departure bug is a launch blocker. Open an issue on
-[github.com/hausfold](https://github.com/hausfold) with:
+[github.com/hausfold/haus](https://github.com/hausfold/haus/issues) with:
 
 - Mac model and macOS version
 - whether Nix existed before nebelhaus
