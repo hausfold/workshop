@@ -101,8 +101,8 @@ haus.agents.default = "codex"; # or "claude" (default), or "opencode"
 ```
 
 `holt` records that client with the worktree. Changing the option therefore only
-changes **new** spawns: a parked Codex task still reopens through `codex resume`,
-and an OpenCode task through `opencode --continue`.
+changes **new** spawns: a parked Codex task still reopens through
+`codex resume --last`, and an OpenCode task through `opencode --continue`.
 
 The option drives the ⌘A keybinds and the `c` shell alias too. Only Claude Code
 can make its own worktree (its native `--worktree` flag, which fires
@@ -114,8 +114,12 @@ be a child of — same worktree, named after your prompt.
 A separate option says which clients are **installed**:
 
 ```nix
-haus.agents.clients = [ "claude" "opencode" ];   # the default
+haus.agents.clients = [ "claude" "opencode" ];
 ```
+
+That pair is the default **only while `haus.developer.agents.enable` is on** (it
+follows `haus.developer.enable`). With the developer room off the list is empty,
+and setting it anyway is a build error rather than a half-wired machine.
 
 `agents.default` must be one of them, and the rebuild says so by name if it
 isn't — which is the point: naming a client you didn't have used to fail at
@@ -249,22 +253,20 @@ you push.
 
 Run agents in eight tabs and the question is always the same one: which of them
 is sitting on a permission prompt? The rice answers it in the tab bar itself — a
-filled badge beside the name of any tab holding agent panes. The badge carries a
-count — how many agents live in that tab — on a background coloured by what the
-most urgent one is doing:
+coloured state dot in front of the name of any tab holding agent panes:
 
-| Badge | Means |
+| Mark | Means |
 |---|---|
-| **peach** | an agent is blocked on you — a permission prompt, or it's asking a question |
-| **sky** | an agent is mid-turn, working |
-| **green** | the agent finished its turn; nothing is waiting |
-| *(no badge)* | no agent panes in that tab |
+| **`●` peach**, and the tab washed peach | an agent is blocked on you — a permission prompt, or it's asking a question |
+| **`◐` sky** | an agent is mid-turn, working |
+| **`○` green** | the agent finished its turn; nothing is waiting |
+| *(nothing)* | no agent panes in that tab |
 
-The number is the exact count of agent panes in the tab; the colour is the most
-urgent state among them, so peach always wins: the tab that needs you never hides
-behind a tab that's merely busy. And it's *status*, not a notification — a green
-badge stays green until that agent starts another turn or its pane goes away.
-Looking at it doesn't dismiss it.
+A tab holding **more than one** agent also gets a small trailing chip with the
+count; a single agent shows the dot and no number. The dot carries the most
+urgent state among the panes, so peach always wins: the tab that needs you never
+hides behind a tab that's merely busy. The peach wash is suppressed on the active
+tab, where it would only be telling you where you already are.
 
 This is the same signal as the [`agents` bar pill](/guides/the-bar/), reported by
 the client's own lifecycle hooks (which is why it's exact rather than guessed —
@@ -304,8 +306,8 @@ Claude agent you killed, or one that crashed.
 
 The rice points Claude Code's status bar at a small HUD driven off the worktree
 registry, so you can see where every agent stands without leaving the pane.
-**Row one is this session's own worktree** — its name, a status token, and its
-GitHub PR pill. The **rows below are the worktrees this session spawned** (across
+**Row one is this session's own worktree** — a status token, its GitHub PR pill,
+then its name. The **rows below are the worktrees this session spawned** (across
 whatever repos they live in), each led by its status token as the row's bullet,
 then its repo, PR state, and name. Rows that still need attention stay above the
 landed `⏏` rows, so Claude Code clipping the bottom of a long HUD can only hide
@@ -324,7 +326,7 @@ The token is one mutually-exclusive slot:
 | `N^` | `N` commits on the branch, not merged yet |
 | `N^` *(orange)* | the PR merged and `N` commits landed **since** — no PR covers them, nothing is pushed. [`holt reship`](#when-a-session-outran-its-pr-holt-reship) |
 | `+A -D` | uncommitted line changes, when nothing's committed yet |
-| *(nothing)* | identical to `main` — no news is good news |
+| `●` *(muted)* | nothing to report — clean tree, nothing ahead. No news is good news |
 
 ### The right-edge chips
 
@@ -413,6 +415,8 @@ Claude Code falls back to its visible scrollback.
 | `holt <name>` | Resume one: rebuild its checkout and reopen its recorded agent chat |
 | `holt resume <name>` | The same thing, spelled out |
 | `holt reap` | Sweep every landed worktree now (keeps dirty/unmerged/any open pane) |
+| `holt reaped` | The reap ledger — what was swept, why, and the `git branch` line that brings it back |
+| `holt drop <name>` | Retire a worktree that will never land (PR closed unmerged, repo archived) |
 | `holt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
 | `holt park [label]` | Set the dirty tree aside as a `wip:` commit on this branch (use instead of `git stash`) |
 | `holt unpark` | Undo the last `wip:` commit — changes back in the working tree, uncommitted |

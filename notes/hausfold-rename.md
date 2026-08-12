@@ -161,13 +161,16 @@ One thing from §6 that survives and one that doesn't:
 
 ### Current handoff — 2026-08-12
 
-**§5.2's first landing is in: `hausfold.co/docs` exists**, and batch two —
-**in review, not merged** — takes it to **ten of the twenty-nine pages**. The
+**§5.2's first landing is in: `hausfold.co/docs` exists**, and four merged
+batches take it to **eighteen of the twenty-nine pages**. The
 Fumadocs build, the theme and the CI came with the first
 ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12), with #15
 following as the colour pass); the daily-driver
-guides — windows, apps, the terminal, theming, keybindings — come with the second
-([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)). §5.2's
+guides — windows, apps, the terminal, theming, keybindings — came with the second
+([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)); the launcher
+pair, Touch ID and hush with the third
+([hausfold.co#18](https://github.com/hausfold/hausfold.co/pull/18)); and the
+coding-agents consolidation with the fourth. §5.2's
 status box carries what each proved, what it changed and what is left — read that
 before assuming any bullet further down this section is still the plan. The
 three headlines: the docs are **two trees behind a sidebar switcher**
@@ -2282,7 +2285,7 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
-#### 🟡 Status 2026-08-12 — the shell is up, a third of the content is
+#### 🟡 Status 2026-08-12 — the shell is up, and eighteen of twenty-nine pages
 
 **Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
 #15 followed with the colour pass):
@@ -2291,9 +2294,8 @@ twenty-nine pages. `hausfold.co` gained a build step and kept its shape — no
 `main`, still assets-only, `public/` copied into `out/` verbatim so every
 hand-written page is served from exactly the file you edit.
 
-**In review, batch two** ([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)
-— open at the time of writing; this note is the plan of record, not a merge
-receipt): the daily-driver spine — `haus/guides/window-management`, `adding-apps`,
+**Landed, batch two** ([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)):
+the daily-driver spine — `haus/guides/window-management`, `adding-apps`,
 `the-shell`, `theming`, and `nebelhaus/keybindings`. **Ten pages of twenty-nine**,
 1,675 source lines rewritten to 979 — **58%**, or 63% if you exclude the
 `reference/palette` that folded into `theming`. Both are above batch one's 55%,
@@ -2333,6 +2335,43 @@ in `haus/modules/options.nix` (where `leaderExtras.*.key` already lists them)
 and a regenerate. It is the familiar shape: a generated page looks documented
 precisely because it regenerates, and nobody re-reads what it actually says.
 
+**Landed, batch three** ([hausfold.co#18](https://github.com/hausfold/hausfold.co/pull/18)):
+the launcher — `guides/pounce` + `reference/pounce` + `guides/pounce-commands`
+consolidated into **two** pages (a guide and a reference, because a config-key
+table is reference-shaped and compresses least), plus `guides/touch-id` and
+`guides/hush`. **Fifteen of twenty-nine.** The clean-context pass caught three
+drifted claims — a wrong default, a self-contradicting network-request claim,
+two command-name typos — which is the third batch running to say the same thing:
+budget the verification pass, it always finds something.
+
+**Landed, batch four** ([hausfold.co#19](https://github.com/hausfold/hausfold.co/pull/19)):
+the other flagged consolidation — `guides/ai-agent` + `guides/claude-agents` +
+`writing/park-not-stash` → `haus/guides/coding-agents`, 761 source lines to 487
+(**64%**). 👤 then split it in two ([hausfold.co#20](https://github.com/hausfold/hausfold.co/pull/20)):
+`coding-agents` keeps holt (293 lines), `agent-rebuilds` takes the skill and the
+rebuild loop (202) — **the one case where the work-list's "→ one page" was wrong,
+and the tell was in the draft**: the page had to open by telling the reader it
+was two halves. Length was the symptom; different prerequisites and no shared
+vocabulary were the cause. **Eighteen of twenty-nine sources**, nineteen pages.
+Three more things it turned up:
+
+- **The consolidation was the easy half; the drift was the story.** Two
+  clean-context passes (one against the rice, one against holt) returned
+  corrections on **eleven** of twenty-three checked claims, including two the
+  old pages got flatly wrong: the tab-bar signal is a leading state *dot*
+  (`○`/`◐`/`●`) with a count chip only above one agent, not "a filled badge
+  carrying a count"; and `haus.agents.clients` does **not** default to
+  `[ "claude" "opencode" ]` — it defaults to that *only* under
+  `haus.developer.agents.enable`, and to `[ ]` otherwise. A reader following
+  the old page would have been told their machine was wired when it wasn't.
+- **holt's own vocabulary moved and the docs hadn't.** The noun is a **lane**
+  now — one agent's branch, checkout and pane — and it is what `holt`'s output
+  says. The ported page introduces it once and then uses it; `web/`'s copy
+  still says "agent worktree" throughout.
+- **Two subcommands existed with no page anywhere**: `holt reaped` (the reap
+  ledger, and the `git branch` line that undoes a sweep) and `holt drop` (retire
+  a lane that will never land). Both are in the new page's command table.
+
 Three of this section's own predictions were tested by doing it:
 
 - ✅ **Static export + `worker.js` unchanged** holds. `[assets] directory`
@@ -2366,13 +2405,14 @@ Two things this section decided that the landing **changed**:
 - **Porting is a rewrite, not a move.** 👤's instruction, 2026-08-12: verify,
   consolidate, simplify, consumerize — *"probably half the amount"*. Maintainer
   reasoning, one-person detail and anything a click away come out; the facts
-  and the warnings stay. The ported five run ~45–55% of their originals. That
-  is now a rule in `hausfold.co`'s AGENTS.md, so the remaining pages don't
-  quietly get copied.
+  and the warnings stay. Four batches in, the ported pages run 55 / 58 / 64% of
+  their originals — the consolidations sit highest, because three pages merged
+  into one still owe every fact. That is now a rule in `hausfold.co`'s
+  AGENTS.md, so the remaining pages don't quietly get copied.
 
 **Still open, and each is its own piece of work:**
 
-- the remaining **19 source pages**, including `reference/options.md` — the generated
+- the remaining **11 source pages**, including `reference/options.md` — the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
   pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
@@ -2386,37 +2426,41 @@ Two things this section decided that the landing **changed**:
   nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
   and not the other will disagree; fix it in both or in neither.
 
-##### The nineteen left, with the tree each lands in
+##### The eleven left, with the tree each lands in
 
-Derived after batch two, so the next session doesn't re-derive it. `→` means
-consolidate into one page. Source paths are under `web/src/content/docs/`, and
-`haus` names the layer tree — no row wants the desktop tree, which is the
-finding, not an omission. **Batch one's four sources are deliberately absent**
-(`start/install`, `start/first-run`, `start/what-is-nebelhaus`,
-`guides/the-bar`); batch two's carry a ✅ row only because they were in this
-table when it was written.
+Derived after batch two and struck through as batches land, so the next session
+doesn't re-derive it. `→` means consolidate into one page. Source paths are under
+`web/src/content/docs/`, and `haus` names the layer tree — no row wants the
+desktop tree, which is the finding, not an omission. **Seven ported sources have no row at all** and the table does not
+reconcile to twenty-nine without them: batch one's four (`start/install`,
+`start/first-run`, `start/what-is-nebelhaus`, `guides/the-bar`), which predate
+the table, and three of batch two's (`guides/adding-apps`, `guides/the-shell`,
+`nebelhaus/keybindings`), which landed as it was being written. The ✅ rows are
+batch two's other three plus everything struck since, kept so a later session
+can see what the consolidations actually became. So: 10 rows = 11 pending
+sources, plus 11 in ✅ rows, plus the 7 rowless = 29.
 
 | Source | Lines | Tree | Note |
 |---|---|---|---|
-| `guides/pounce` + `reference/pounce` + `guides/pounce-commands` | 315+370+173 | haus | → two at most: the launcher, and writing a command. The biggest consolidation left. |
-| `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | 215+436+110 | haus | → one "coding agents" page. `park-not-stash` is an essay about `holt park`; keep the rule, drop the argument. |
 | `guides/making-it-yours` | 472 | haus | the host-file cookbook. Check for overlap with the now-ported `adding-apps` before starting. |
-| `guides/theming` residue | — | — | ✅ done (batch two) |
 | `reference/haus` | 253 | haus | the CLI. Reference-shaped; expect it to compress least. |
 | `reference/troubleshooting` | 193 | haus | |
-| `guides/window-management` | — | — | ✅ done (batch two) |
 | `guides/leaving` | 304 | haus | uninstall. |
 | `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. |
 | `guides/staying-in-sync` + `guides/new-mac` | 92+144 | haus | → one "keeping it current" page; both are `haus update` from different ends. |
-| `guides/hush` | 138 | haus | |
-| `guides/touch-id` | 102 | haus | |
 | `internals/flakes` | 100 | haus | |
 | `internals/contributing` | 238 | haus | contributing to the **layer**, so it names `hausfold/haus` now. |
 | `start/the-family` | 91 | — | probably dies: `/docs`'s index and hausfold.co's own front page already do this job. Decide before porting. |
-| `reference/palette` | — | — | ✅ folded into `theming` (batch two) |
 | `reference/options` | 5231 | haus | generated — the `gen-options.mjs` bullet above, not a writing job. |
+| `guides/theming` residue | — | — | ✅ done (batch two) |
+| `guides/window-management` | — | — | ✅ done (batch two) |
+| `reference/palette` | — | — | ✅ folded into `theming` (batch two) |
+| `guides/pounce` + `reference/pounce` + `guides/pounce-commands` | — | — | ✅ → `guides/pounce` + `reference/pounce` (batch three) |
+| `guides/touch-id` | — | — | ✅ done (batch three) |
+| `guides/hush` | — | — | ✅ done (batch three) |
+| `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | — | — | ✅ → `guides/coding-agents` + `guides/agent-rebuilds` (batch four; drafted as one page, split on review) |
 
-The desktop tree stays deliberately thin: three pages, and none of the nineteen
+The desktop tree stays deliberately thin: three pages, and none of the eleven
 adds to it — because a desktop's docs are its opinions and its muscle memory,
 not the machinery underneath. If a page seems to want both trees, AGENTS.md's
 rule applies: it is two pages.
