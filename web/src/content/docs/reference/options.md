@@ -1622,6 +1622,46 @@ Example:
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
 
+### `haus.hearth.floatBorder`
+
+`one of "accent", "grey", "off", "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"accent"`
+
+The outline drawn around every floating terminal `float-term.sh` spawns:
+the Super-y yazi peek panel, the bar's agent peek, and the palette's
+Rebuild System / Install App / Settings and `zscratch` windows. They all
+land on top of a tiled desktop, where a dark terminal over a dark window
+behind it has no edge at all.
+
+- `accent` (the default) — `haus.theme.accent`, so a summoned window
+  announces itself and the whole desktop keeps one accent.
+- `grey` — Nebelung's `surface0`, one step off the terminal's own
+  background: the same relationship the bar's dropdowns wear
+  (`popup.background.border_color` in modules/sill), for an edge that
+  defines the window without drawing the eye.
+- `off` — no outline; the look before this option existed. It also keeps
+  floatring out of the closure entirely, so nothing is compiled for it.
+- any Nebelung accent name (`lavender`, `sapphire`, …) — one colour for
+  these popups that ISN'T `haus.theme.accent`, the same escape hatch
+  `haus.sill.logo.color` offers.
+
+2pt, following the window's own corner curve. Drawn by a tiny overlay
+window (modules/hearth/floatring.swift) that lives and dies with the
+popup, because Ghostty has no border setting of its own and aerospace
+draws none — that file's header has the rest, including why it isn't
+JankyBorders. Switch it with
+`haus set hearth.floatBorder grey && haus rebuild`; to compare colours
+first, without a rebuild, outline any window by hand (the process name is
+lower-case — `pgrep -x Ghostty` matches nothing and rings nothing):
+`~/.config/zellij/float-term.sh ring "$(pgrep -x ghostty | head -1)" '#cba6f7'`
+
+Example:
+
+```nix
+"grey"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
 ### `haus.hearth.ghDash.enable`
 
 `boolean` · default `false`
@@ -1708,7 +1748,7 @@ mode (zellij's own default).
 
 ## haus.agents
 
-Which coding-agent clients this machine installs, and which one the agent keybinding spawns.
+Which coding-agent clients this machine installs, which one the agent keybinding spawns, and the two files the rice ships into every one of their homes — your instructions, and the `haus` skill.
 
 ### `haus.agents.clients`
 
@@ -1776,42 +1816,61 @@ Example:
 
 <small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
 
-## haus.claude
-
-Claude Code integration.
-
-### `haus.claude.globalMd`
+### `haus.agents.instructions`
 
 `strings concatenated with "\n"` · default `""`
 
-Contents of Claude Code's global memory file, written to
-~/.claude/CLAUDE.md (hearth wires it into home-manager). This is your
-personal, cross-project operating context. When set, the rice prepends
-two short sections of its own — a note that the file is generated and
-where to actually edit it, and the `holt` worktree etiquette, since the
+Your always-on, cross-project operating context — the "instructions"
+slot every client has under a different name. Written once per client
+in `agents.clients`, to the path that client actually reads:
+`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`,
+`~/.config/opencode/AGENTS.md`.
+
+Write it client-neutrally: the same text reaches whichever agent the ⌘A
+pane spawns, so a line about a Claude-only skill or file path is noise
+to the other two. When set, the rice prepends two short sections of its
+own — a note that the file is generated and where to actually edit it
+(with THAT client's path), and the `holt` worktree etiquette, since the
 rice ships `holt` and that rule is what keeps it working — then your
-text. Leave it empty to manage ~/.claude/CLAUDE.md fully by hand
-(nothing is written, so the rice never clobbers a by-hand file).
+text.
+
+Empty (the default) writes nothing at all, for any client, so a
+hand-managed instructions file is never clobbered just to inject the
+rice's note. If you set it and one of those paths already holds a file
+you wrote by hand, home-manager moves yours aside as `<file>.backup`
+rather than refusing — quiet, so check for one before the first rebuild
+after setting this.
+
+With `agents.clients` empty (a machine the rice installs no client on)
+every known client's path is written instead of none: the list being
+empty means the rice installs none, not that no agent runs here.
 
 Example:
 
 ```nix
 ''
-  # CLAUDE.md — global
-  How I like to work across every repo…
+  # How I work
+  Ship small, verified changes; ask before anything hard to reverse…
 ''
 ```
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
 
-### `haus.claude.skill`
+### `haus.agents.skill`
 
 `boolean` · default `true`
 
-Install the `haus` Claude Code skill into
-~/.claude/skills/haus, so an agent asked to "install Slack" or
-"make everything bigger" edits your host file and runs `haus rebuild`
-instead of guessing at dotfiles and `brew install`.
+Install the `haus` skill for every client in `agents.clients`, so an
+agent asked to "install Slack" or "make everything bigger" edits your
+host file and runs `haus rebuild` instead of guessing at dotfiles and
+`brew install`.
+
+One copy per client, in the directory that client scans:
+`~/.claude/skills/haus`, `~/.codex/skills/haus`,
+`~/.config/opencode/skills/haus`. OpenCode also scans `~/.claude/skills`
+for Claude Code compatibility, and prefers its own copy when both
+exist — so a machine running both clients sees the skill once, not
+twice.
 
 The skill's option reference is GENERATED from the rice revision this
 machine is pinned to, so it can only ever describe options that
@@ -1821,12 +1880,14 @@ file is) and a starter AGENTS.md + CLAUDE.md pair for your config repo —
 the rules in the first, a one-line import in the second, so a session
 opened there is oriented whichever client it runs.
 
-Unrelated to Claude Code's own settings, which follow
-haus.developer.agents.enable. This is a plain file drop: a machine
-that never runs an agent just carries an unread markdown file. Set
-false to leave ~/.claude/skills alone entirely.
+Unrelated to the clients' own settings, which follow
+`haus.developer.agents.enable`. This is a plain file drop: with
+`agents.clients` empty — a machine the rice installs no client on, which
+can still have one from npm or Homebrew — every known client's directory
+gets a copy rather than none. Set false to leave every client's skills
+directory alone.
 
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
 
 ## haus.accessibility
 
@@ -3332,7 +3393,7 @@ The clock pill, pinned to the far right.
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-Total CPU load, as a percentage pill.
+Total CPU load, drawn as a graph pill: the last two minutes of it behind the number, because a percentage on its own can't tell a spike settling from a climb that started five minutes ago. The reading is a DELTA between samples — the `ps` sum this used to print is each process's average over its whole lifetime, which on a machine that has been up a week barely moves while every core is pinned. LEFT-CLICK opens a dropdown: the user/system split, the load average, then what's responsible, biggest first and aggregated per app so a browser's twenty helpers are one row; clicking a row focuses that app's window. RIGHT-CLICK opens Activity Monitor on its CPU tab. The rows can only cover processes you own, so anything root runs — `kernel_task`, `WindowServer` — lands in `everything else` rather than going quietly missing from the sum.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3364,7 +3425,7 @@ The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — including, for a source with no cover, a small app-icon badge next to the row that brings it forward. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click the dropdown, RIGHT click play/pause, ⌥ next, ⇧ previous, ⌘ jump to whatever is making the noise, scroll to seek ±10s. That ⌘ click reaches the browser TAB, not just the browser: the track's title is matched against the open tabs through Safari's and Chromium's AppleScript tab APIs, and on a Firefox fork (Zen among them) — which expose no tab list at all, neither to AppleScript nor to accessibility — through Firefox's own open-tab search in the address bar. Both routes ask for a permission the first time they run, Automation for the scriptable browsers and Accessibility for the Firefox forks, and both quietly fall back to just fronting the app if you say no. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — plus, for a source with no cover, a small app-icon badge floating in its bottom-right corner. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3372,7 +3433,7 @@ The now-playing track — auto-hides when nothing plays, dims when paused, and c
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-Memory-pressure percentage pill.
+Memory in use, drawn as a graph pill. It counts what Activity Monitor counts — app memory + wired + compressed — and deliberately NOT the file cache: macOS fills idle RAM with cache on purpose, and the old reading counted that as used, which is why it sat near 90% on a machine doing nothing. The pill's COLOUR is the kernel's own pressure level (green normal, amber warning, red critical) rather than the percentage, because 60% of RAM in use is a Mac working correctly and a pill that goes amber for it is a pill you learn to ignore. LEFT-CLICK opens a dropdown with used/total, the cache, compressed and swap figures and then the biggest footprints per app, each row clicking through to that app's window. RIGHT-CLICK opens Activity Monitor on its Memory tab.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3737,7 +3798,7 @@ The clock pill, pinned to the far right.
 
 `boolean` · default `false`
 
-Total CPU load, as a percentage pill.
+Total CPU load, drawn as a graph pill: the last two minutes of it behind the number, because a percentage on its own can't tell a spike settling from a climb that started five minutes ago. The reading is a DELTA between samples — the `ps` sum this used to print is each process's average over its whole lifetime, which on a machine that has been up a week barely moves while every core is pinned. LEFT-CLICK opens a dropdown: the user/system split, the load average, then what's responsible, biggest first and aggregated per app so a browser's twenty helpers are one row; clicking a row focuses that app's window. RIGHT-CLICK opens Activity Monitor on its CPU tab. The rows can only cover processes you own, so anything root runs — `kernel_task`, `WindowServer` — lands in `everything else` rather than going quietly missing from the sum.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3761,7 +3822,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 `boolean` · default `true`
 
-The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click play/pause, RIGHT click the dropdown, ⌥ next, ⇧ previous, ⌘ focus whatever app the sound is coming from, scroll to seek ±10s. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — including, for a source with no cover, a small app-icon badge next to the row that brings it forward. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
+The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click the dropdown, RIGHT click play/pause, ⌥ next, ⇧ previous, ⌘ jump to whatever is making the noise, scroll to seek ±10s. That ⌘ click reaches the browser TAB, not just the browser: the track's title is matched against the open tabs through Safari's and Chromium's AppleScript tab APIs, and on a Firefox fork (Zen among them) — which expose no tab list at all, neither to AppleScript nor to accessibility — through Firefox's own open-tab search in the address bar. Both routes ask for a permission the first time they run, Automation for the scriptable browsers and Accessibility for the Firefox forks, and both quietly fall back to just fronting the app if you say no. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — plus, for a source with no cover, a small app-icon badge floating in its bottom-right corner. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3769,7 +3830,7 @@ The now-playing track — auto-hides when nothing plays, dims when paused, and c
 
 `boolean` · default `false`
 
-Memory-pressure percentage pill.
+Memory in use, drawn as a graph pill. It counts what Activity Monitor counts — app memory + wired + compressed — and deliberately NOT the file cache: macOS fills idle RAM with cache on purpose, and the old reading counted that as used, which is why it sat near 90% on a machine doing nothing. The pill's COLOUR is the kernel's own pressure level (green normal, amber warning, red critical) rather than the percentage, because 60% of RAM in use is a Mac working correctly and a pill that goes amber for it is a pill you learn to ignore. LEFT-CLICK opens a dropdown with used/total, the cache, compressed and swap figures and then the biggest footprints per app, each row clicking through to that app's window. RIGHT-CLICK opens Activity Monitor on its Memory tab.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -4964,12 +5025,23 @@ for the same reproducibility reason as autoUpdate.
 
 Browser extensions to deploy into Zen, by a stable id of your choosing.
 
-The mechanism is Firefox's enterprise-policy file — the rice renders
-`Zen/distribution/policies.json` with an `ExtensionSettings` block — so
-it reaches Zen the way an IT department reaches Firefox, without a
-profile to hand-edit. `haus.roster` deliberately cannot do this: a
-roster entry installs from a cask, a brew, a nixpkgs package or the App
-Store, and a browser add-on is none of those.
+The mechanism is Firefox's enterprise policies — the rice renders an
+`ExtensionSettings` block — so it reaches Zen the way an IT department
+reaches Firefox, without a profile to hand-edit. `haus.roster`
+deliberately cannot do this: a roster entry installs from a cask, a
+brew, a nixpkgs package or the App Store, and a browser add-on is none
+of those.
+
+Two consequences of HOW the policies are delivered, both visible.
+Firefox only ever looks for a `policies.json` inside the app bundle,
+which a rice has no business writing into (it breaks the code signature
+and a cask upgrade wipes it), so the rice uses the other route macOS
+offers: a managed preference at
+`/Library/Preferences/app.zen-browser.zen.plist`. That file is
+root-owned, so it's written during system activation and a `haus
+rebuild` that can't reach it warns instead of installing anything. And
+because enterprise policies are on, Zen will tell you it is "managed by
+your organization" — that organization is this rice.
 
 The rice knows the id and slug of the extensions it themes
 (stylus),
@@ -5064,22 +5136,96 @@ Where the .xpi comes from. Defaults to AMO's "latest" endpoint
 for `slug`, so the add-on updates itself; point it at a pinned
 version or a self-hosted file to freeze it.
 
+A `file://` url has a second effect, and it is not local to
+this extension: a file on disk cannot have been signed by
+Mozilla, and Zen refuses an unsigned add-on
+(`ERROR_SIGNEDSTATE_REQUIRED`) unless
+`xpinstall.signatures.required` is off. So naming one makes
+the rice lock that pref off **for the whole browser** — the
+same switch `haus.zen.tabBridge.enable` documents, since the
+bridge is the rice's own `file://` install. An `https://` AMO
+url never turns it on.
+
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
 
 ### `haus.zen.extraPolicies`
 
 `attribute set` · default `{ }`
 
-Anything else to put in Zen's policy file, merged beside the
-`ExtensionSettings` block `haus.zen.extensions` renders. The rice
-OWNS that file, so this is the escape hatch for the rest of the policy
+Anything else to put in Zen's policy set, merged beside the
+`ExtensionSettings` block `haus.zen.extensions` renders. The rice OWNS
+the file these land in — `/Library/Preferences/app.zen-browser.zen.plist`,
+written as root — so this is the escape hatch for the rest of the policy
 surface rather than a reason to take the file back by hand. Keys here
 win over the rice's on a collision.
+
+Write the policy names as Firefox documents them, nested: this becomes
+the top level of a plist beside `EnterprisePoliciesEnabled`, so
+`{ Extensions.Install = [ "…" ]; }` is an `Extensions` dict with an
+`Install` array in it, not a key called `Extensions.Install`. Setting
+every policy back to `{ }` (and naming no extensions) takes the file
+down again on the next rebuild.
+
+The merge is one level deep, so naming a policy takes that policy over
+WHOLE. Two of them the rice writes itself: `ExtensionSettings` (from
+`haus.zen.extensions`) and `Preferences` (which is where the signature
+switch a `file://` install needs ends up). Restate what you still want
+if you set either — dropping the signature switch this way is invisible
+until you notice the add-on isn't there.
+
+Values are passed to a plist writer, so `null` is not a value: it
+renders as a key with nothing under it, which makes the whole file
+invalid and drops **every** policy, not just that one. Omit the key
+instead.
 
 Example:
 
 ```nix
 { DisableTelemetry = true; }
 ```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.tabBridge.enable`
+
+`boolean` · default `false`
+
+Deploy the rice's own tiny extension into Zen, so the bar can find and
+switch to the tab that is making noise.
+
+This is what makes the media pill's ⌘ click land on the **tab** rather
+than just bringing Zen forward. Safari and the Chromium browsers need
+nothing here — they hand their tab list to AppleScript and the pill uses
+that. Firefox and its forks hand out nothing at all, to AppleScript or
+to accessibility, so without this the pill falls back to driving
+Firefox's own address-bar tab search with synthetic keystrokes, which
+needs the Accessibility permission and is exactly as pleasant as it
+sounds.
+
+Off by default because it force-installs an add-on into your browser,
+which is not a thing a rice should do to you unasked. Turning it on
+costs one derivation, a native-messaging manifest, and two keys in the
+rice's root-owned policy plist — one of which is the signature switch
+below. Turning it back off stops the rice deploying it — what Zen then
+does with the add-on already installed is Firefox's policy engine's
+business, not the rice's, so check `about:addons` and remove it there if
+it outstays the option.
+
+**Zen only, and that's a signing constraint rather than a choice.**
+Release Firefox refuses an extension Mozilla hasn't signed, and it is
+built so that no pref and no policy can say otherwise. Zen is built the
+other way (`MOZ_REQUIRE_SIGNING = false`), which is the whole reason the
+rice can build the `.xpi` itself and install it out of the nix store.
+
+It still costs a switch. Zen carries Firefox's own preference defaults,
+which turn signature enforcement back on, so turning this option on also
+makes the rice lock `xpinstall.signatures.required = false` — for the
+browser, not just for its own add-on. Without it Zen refuses the bridge
+with `ERROR_SIGNEDSTATE_REQUIRED` and the option quietly does nothing;
+with it, an unsigned add-on from anywhere would also install if
+something asked. That is the second reason this is off by default.
+
+Firefox support would mean an AMO account and unlisted self-distribution
+signing — packaging, not a code change — and would drop the pref.
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
