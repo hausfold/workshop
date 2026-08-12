@@ -206,9 +206,23 @@ Quit with `q` / `Esc` and the window closes, leaving your tiled layout untouched
 Every floating terminal the rice summons — peek, the palette's **Rebuild
 System**, the bar's agent peek — wears a thin outline that follows the window's
 own corner curve, so a dark terminal landing on a dark window still has an edge.
-`haus.hearth.floatBorder` picks its colour: `grey` (the default: one step off the
-terminal's background, the same edge the bar's dropdowns wear), `accent` to
-follow `haus.theme.accent`, or `off`.
+It carries your accent by default; `haus.hearth.floatBorder` is the knob:
+
+```nix
+haus.hearth.floatBorder = "accent";   # the default — follows haus.theme.accent
+# "grey"      one step off the terminal's background, the edge the bar's dropdowns wear
+# "lavender"  …or any Nebelung accent name, for a colour that isn't haus.theme.accent
+# "off"       no outline at all
+```
+
+`haus set hearth.floatBorder grey && haus rebuild` switches it in place. To
+compare colours before committing to one, outline any window by hand — no
+rebuild:
+
+```sh
+~/.config/zellij/float-term.sh ring "$(pgrep -x ghostty | head -1)" '#343434'
+pkill floatring
+```
 
 ## Choosing your editor
 
