@@ -19,8 +19,8 @@ The launcher is a launchd **user agent**. If it isn't answering:
 launchctl list | grep pounce
 
 # Bounce it (the clean recover for any wedged user agent):
-launchctl bootout gui/$(id -u)/org.nixos.pounce 2>/dev/null
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.pounce.plist
+launchctl bootout gui/$(id -u)/com.hausfold.pounce 2>/dev/null
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.hausfold.pounce.plist
 ```
 
 If it opens but **clipboard/emoji paste** don't work, it's missing the
@@ -112,7 +112,9 @@ If the bar, tiling, and ⌘Space all come up dead at once right after upgrading 
 (BTM)**. Tahoe gates login items whose executable isn't Apple-signed, and every
 nix agent launches through `/bin/sh -c "…"` — which BTM files under "unidentified
 developer" and can silently refuse to start. The agents register fine; they just
-never run. `haus doctor` flags this on Tahoe+; confirm and get the fix with:
+never run. On Tahoe+ `haus doctor` adds "this is often BTM" to any agent it
+finds registered-but-stopped — but an agent BTM stopped from registering at all
+gets no line, so confirm with:
 
 ```sh
 haus btm     # no-op before Tahoe; on Tahoe+ it reads the BTM store and instructs
@@ -130,8 +132,11 @@ no CLI to set it (`sfltool` can only dump it). So it's a one-time manual step:
 Inspect the store by hand any time with:
 
 ```sh
-sudo sfltool dumpbtm | grep -B2 -A8 -iE "nixos|darwin-store"   # look for "disallowed"
+sudo sfltool dumpbtm | grep -B2 -A8 -iE "nixos|hausfold|darwin-store"
 ```
+
+Look for `disallowed`, and search all three names: the launcher registers under
+`com.hausfold.pounce` while tiling and the bar are still `org.nixos.*`.
 
 ## Touch ID for sudo beachballs (inside tmux/zellij)
 
@@ -178,8 +183,10 @@ entirely? [Leaving nebelhaus](/guides/leaving/) walks each exit, smallest first.
 
 ## The installer refuses to run — "expects Determinate Nix"
 
-nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/) and
-won't install on top of a stock/single-user Nix rather than risk breaking it. If
+nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/), and
+the installer stops when it finds a `/nix` that Determinate didn't create —
+single-user or multi-user, it's the *flavour* it checks — rather than risk
+breaking the Nix you already have. If
 you have an existing Nix you don't need, uninstall it and re-run the one-liner;
 if you want to keep it, migrating to Determinate is the supported path. Fresh
 Macs need none of this — the bootstrap installs Determinate for you.

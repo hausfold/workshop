@@ -2496,7 +2496,7 @@ document the `bash -c` form as the headline, or have `bootstrap.sh` reopen
 
 **Still open, and each is its own piece of work:**
 
-- the remaining **8 source pages**, including `reference/options.md` — the generated
+- the remaining **6 source pages**, including `reference/options.md` — the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
   pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
@@ -2510,7 +2510,7 @@ document the `bash -c` form as the headline, or have `bootstrap.sh` reopen
   nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
   and not the other will disagree; fix it in both or in neither.
 
-##### The eight left, with the tree each lands in
+##### The six left, with the tree each lands in
 
 Derived after batch two and struck through as batches land, so the next session
 doesn't re-derive it. `→` means consolidate into one page. Source paths are under
@@ -2521,15 +2521,13 @@ reconcile to twenty-nine without them: batch one's four (`start/install`,
 the table, and three of batch two's (`guides/adding-apps`, `guides/the-shell`,
 `nebelhaus/keybindings`), which landed as it was being written. The ✅ rows are
 batch two's other three plus everything struck since, kept so a later session
-can see what the consolidations actually became. So: 8 rows = 8 pending
-sources, plus 14 in ✅ rows, plus the 7 rowless = 29.
+can see what the consolidations actually became. So: 6 rows = 6 pending
+sources, plus 16 in ✅ rows, plus the 7 rowless = 29.
 
 | Source | Lines | Tree | Note |
 |---|---|---|---|
-| `guides/making-it-yours` | 472 | haus | the host-file cookbook. Check for overlap with the now-ported `adding-apps` before starting. |
-| `reference/troubleshooting` | 193 | haus | |
 | `guides/leaving` | 304 | haus | uninstall. |
-| `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. |
+| `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. **Batch six parked two things here on purpose:** `haus.tour.steps` (dropped from the ported `making-it-yours` — it is a rice-author knob, and `sharing-a-rice` already links at it), and **packs** (`nebelhaus.packs.<name>`, wrapped by `lib.pack` so they lower to `mkDefault` and a host beats them *plainly* — the opposite of a preset's conflict rule, and nowhere on the site today). |
 | `internals/flakes` | 100 | haus | |
 | `internals/contributing` | 238 | haus | contributing to the **layer**, so it names `hausfold/haus` now. |
 | `start/the-family` | 91 | — | probably dies: `/docs`'s index and hausfold.co's own front page already do this job. Decide before porting. |
@@ -2543,8 +2541,10 @@ sources, plus 14 in ✅ rows, plus the 7 rowless = 29.
 | `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | — | — | ✅ → `guides/coding-agents` + `guides/agent-rebuilds` (batch four; drafted as one page, split on review) |
 | `guides/staying-in-sync` + `guides/new-mac` | — | — | ✅ → `guides/keeping-it-current` (batch five) |
 | `reference/haus` | — | — | ✅ done (batch five), as `reference/haus` |
+| `guides/making-it-yours` | — | — | ✅ done (batch six). `tour.steps` deliberately held for `sharing-a-rice`; the workspace/roster half deferred to the already-ported `adding-apps` + `window-management`. |
+| `reference/troubleshooting` | — | — | ✅ done (batch six), as `reference/troubleshooting` |
 
-The desktop tree stays deliberately thin: three pages, and none of the eight
+The desktop tree stays deliberately thin: three pages, and none of the six
 adds to it — because a desktop's docs are its opinions and its muscle memory,
 not the machinery underneath. If a page seems to want both trees, AGENTS.md's
 rule applies: it is two pages.
