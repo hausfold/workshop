@@ -36,7 +36,7 @@ The important one. You never need to push to "see" a change; `try` builds your
 real machine config against the **local checkouts**, uncommitted edits and all:
 
 ```sh
-# edit anything in nebelung/, pounce/, hausfold/…
+# edit anything in nebelung/, pounce/, haus/…
 ./bench try            # does it build?  (nothing pushed, nothing activated)
 ./bench try switch     # run it on this Mac  (still nothing pushed)
 # happy? commit in the repo(s) you touched, then:
@@ -156,7 +156,7 @@ On another machine, or after shipping from elsewhere:
 
 ## Releasing
 
-Four repos are releasable — pounce, perch, hausfold (the rice) and holt — each
+Four repos are releasable — pounce, perch, haus (the layer) and holt — each
 with a real audience. Three are CalVer; **holt alone is semver**, and that split
 is the only thing about releasing you have to hold in your head.
 
@@ -172,7 +172,7 @@ argument for these three, to make that unarguable.
                             # CI publishes the release + bumps the homebrew formula
 ./bench release perch       # date-stamps VERSION + tags v<date> — CI bumps the
                             # homebrew cask AND the rice's flake pin (nix/release.nix)
-./bench release hausfold    # date-stamps VERSION + tags v<date> — this is what
+./bench release haus        # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
 ./bench release holt 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
                             # crates.io, SwiftPM, the Go proxy) share one number
@@ -286,5 +286,5 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
    every `flake.lock`.
 8. **release** — `./bench release <repo>` stamps the version (today's date, or
    holt's hand-picked semver) and tags it; CI does the rest (pounce: GitHub
-   release + Homebrew formula; hausfold: the tag `init.sh` serves to new
+   release + Homebrew formula; haus: the tag `init.sh` serves to new
    installs; holt: five SDK registries). Always the user's call.

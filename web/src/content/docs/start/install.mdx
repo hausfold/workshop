@@ -31,7 +31,7 @@ stock Nix, the installer will stop and explain — nebelhaus expects Determinate
 ## Reading it first (recommended)
 
 `curl … | bash` runs whatever the URL serves. `nebelhaus.com/init.sh` only
-**proxies** the rice's [`bootstrap.sh`](https://github.com/hausfold/hausfold/blob/main/bootstrap.sh)
+**proxies** the rice's [`bootstrap.sh`](https://github.com/hausfold/haus/blob/main/bootstrap.sh)
 from this org's own repo — it's boring and readable on purpose. To inspect it
 before running:
 
@@ -62,7 +62,8 @@ release it falls back to `main`. Releases are date-tagged, so add
 3. **Interview.** A short [gum](https://github.com/charmbracelet/gum) TUI asks
    for your **git name and email**, a **preset** (Full rice / Minimal / Custom —
    which decides the sill, prowl, and pounce rooms), your **accent colour**
-   (default `mauve`), a **wallpaper** (default: keep yours), your **`$EDITOR`**
+   (default `mauve`), a **wallpaper** (default `minimal`, the generated haus
+   desktop — pick `none` to keep the one you have), your **`$EDITOR`**
    (default `hx`) — and whether to **keep your current macOS settings**
    (Dock/keyboard/Finder) and **adopt your existing Homebrew casks** into the
    new config. Every answer has an environment-variable override for
@@ -74,7 +75,7 @@ release it falls back to `main`. Releases are date-tagged, so add
    repeat, Caps-Lock remap if prowl is on, ⌘Space reassignment if pounce is on).
 
 5. **Scaffold.** Creates `~/.config/nix/` with a thin `flake.nix` that imports
-   `github:hausfold/hausfold`, plus a `hosts/<hostname>/default.nix` holding
+   `github:hausfold/haus`, plus a `hosts/<hostname>/default.nix` holding
    your identity and choices. It `git init`s and commits the result.
 
 </Steps>
@@ -107,7 +108,7 @@ NEBELHAUS_GIT_NAME="Ada Lovelace" \
 NEBELHAUS_GIT_EMAIL="ada@example.com" \
 NEBELHAUS_ROOMS="sill,prowl,pounce" \
 NEBELHAUS_ACCENT="mauve" \
-NEBELHAUS_WALLPAPER="none" \
+NEBELHAUS_WALLPAPER="minimal" \
 NEBELHAUS_EDITOR="hx" \
 bash -c "$(curl -fsSL https://nebelhaus.com/init.sh)"
 ```
@@ -164,10 +165,11 @@ they want an interactive password prompt an agent pane can't answer. Everything
 up to "the build succeeded" is fair game, and a failed build activates nothing.
 
 <Aside type="tip" title="After the first switch it gets easier">
-Once the house stands, the rice installs a Claude Code skill whose option
-reference is generated from the exact revision you're pinned to — so "install
-Slack" or "make everything bigger" becomes an edit plus `haus rebuild`, with no
-docs to fetch. See [Changing your Mac with an agent](/guides/ai-agent/).
+Once the house stands, the rice installs a `haus` skill — one copy for each
+coding agent you have it install — whose option reference is generated from the
+exact revision you're pinned to. So "install Slack" or "make everything bigger"
+becomes an edit plus `haus rebuild`, with no docs to fetch. See [Changing your
+Mac with an agent](/guides/ai-agent/).
 </Aside>
 
 Prefer the non-interactive variables above when an agent drives the bootstrap:

@@ -12,18 +12,21 @@ nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
 >
 > | spelling | what it is | this rename |
 > |---|---|---|
-> | `haus.<option>` | the option namespace | ✅ **already renamed** (nebelhaus#261). `nebelhaus.*` still evaluates via `modules/renamed.nix`, with a warning — never write it. |
+> | `haus.<option>` | the option namespace | ✅ **already renamed** (nebelhaus#261). `nebelhaus.*` still evaluates via `modules/renamed.nix`, with a warning — never write it. Options that later moved *within* `haus.*` (the `claude` room → `agents`, 2026-08-11) are aliased in `modules/moved.nix` instead; same warning, different file, and that one has no deletion condition. |
 > | **nebelhaus** bare | the **rice** — one desktop built on `haus` | **stays**, forever (§6) |
 > | `github.com/nebelhaus/*`, `GH_ORG` | the org and its repos | ✅ **already renamed** — every *family* repo is `github.com/hausfold/*` (§3, 2026-08-09). The archived Messages client stayed behind (§3.4), and the dead org is kept alive forever regardless: shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` for their update check and only a live org redirects them. |
 > | `--override-input nebelhaus/…` in `bench`, `nebelhaus.url` | the consumer's flake **input name** | **not renamed** — it names the rice, not the org (§3.3's flake-input-paths box). Nix doesn't hard-fail an override for an unknown input, so renaming these makes `bench try` build the pinned rice while reporting your branch. Whether the consumer's own input gets renamed is a still-open 👤 call on a 👤 file. |
 > | `nebelhaus.com` | the domain | **§5**, with the 301s |
 >
-> **And since 2026-08-10, `haus` carries four senses of its own** (decision 8):
-> the option namespace `haus.*`, the CLI verb, **the layer itself** — that one
-> is the new sense — and the page `hausfold.co/haus`. The counterpart rule is
-> the one to hold on to: **`hausfold` is the org, the maker and the seller, and
-> never the layer**, even though the repo `hausfold/hausfold` is where the
-> layer lives. Same discipline as below: read the hit.
+> **And since 2026-08-10, `haus` carries five senses of its own** (decision 8):
+> the option namespace `haus.*`, the CLI verb, **the layer itself**, the page
+> `hausfold.co/haus`, and — since 2026-08-11 (**§10**) — **the repo and its
+> checkout**, `hausfold/haus` at `./haus`. The counterpart rule is the one to
+> hold on to: **`hausfold` is the org, the maker and the seller, and never the
+> layer** — which is exactly why the layer's repo stopped being spelled
+> `hausfold/hausfold`. Same discipline as below: read the hit. A bare
+> `hausfold` hit is now the **org, the brand, or a bundle id** and nothing
+> else; `GH_ORG="hausfold"`, `com.hausfold.*` and `hausfold.co` all stand.
 >
 > Plus `com.nebelhaus.*` / `org.nixos.pounce` bundle ids (**§4**), the state
 > dirs (`~/.local/state/nebelhaus`, deliberately held — §2.2), and
@@ -50,14 +53,14 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | colors / palette / how a tool is themed | `./nebelung` |
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
-| the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./hausfold` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/hausfold`; the repo is named for the org, the layer inside it is `haus` — decision 8). **The directory was `./nebelhaus` until 2026-08-09**; the repo moved and was renamed in the org migration, and the checkout followed. The *rice* is still called nebelhaus (§6) — the directory is named for its repo, not for the rice. |
+| the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./haus` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/haus`; the repo is named for the layer, the org is what's in front of the slash — decision 8, applied to the slug by §10). **The directory was `./nebelhaus` until 2026-08-09 and `./hausfold` until 2026-08-11**; each time the repo moved, the checkout followed. The *rice* is still called nebelhaus (§6) — the directory is named for its repo, not for the rice. |
 | the org's GitHub front page | `./org-profile` — the checkout of the `hausfold/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` — its own repo now ([hausfold/trill](https://github.com/hausfold/trill)), ejected from the incubator 2026-08-09. Called **flick** until 2026-08-08. **Deliberately not a family repo**: it is not in `bench`'s `FAMILY` and carries no lock edge (§9 of `notes/hausfold-rename.md` — that name must never appear there), so `bench status`/`ship` don't see it. It IS in `DOCS_REPOS`, `bench clone` and `bench pull` (like `hausfold.co`): docs coverage and lock coverage are different lists, and a repo the daily sweep can't open is one it reports clean forever. The rice will consume it as a leaf overlay, which is not the same thing as joining the ripple chain. |
 | holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/hausfold/hausfold/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/hausfold/hausfold/pull/245)) — there is no fallback to roll back to. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
-| the hausfold.co site | `./hausfold.co` — **its own repo**, [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Note the `.co`.** Plain `./hausfold` is the **rice** (row above) since 2026-08-09; the site kept the longer name because each dir is named for its repo. Sending site work to the short name edits the desktop instead, and nothing errors. Split out of here 2026-08-06 as the private `hausfold/website`, then recreated public on 2026-08-08 because that repo's history couldn't be made safe ([§5.1](notes/hausfold-rename.md#51--decided-2026-08-08--one-site-repo-hausfoldhausfoldco)); `hausfold/website` is archived and stays private. Hand-written HTML on a Cloudflare Worker, deployed by CI on push to its `main`. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY`. |
+| the hausfold.co site | `./hausfold.co` — **its own repo**, [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Note the `.co`, and keep the name spelled in full.** Between 2026-08-09 and 2026-08-11 the layer sat at `./hausfold`, one dot away, and site work sent to the short name silently edited the desktop instead. §10 moved the layer to `./haus`, so the two no longer collide — the rule survives its trap. Split out of here 2026-08-06 as the private `hausfold/website`, then recreated public on 2026-08-08 because that repo's history couldn't be made safe ([§5.1](notes/hausfold-rename.md#51--decided-2026-08-08--one-site-repo-hausfoldhausfoldco)); `hausfold/website` is archived and stays private. Hand-written HTML on a Cloudflare Worker, deployed by CI on push to its `main`. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY`. |
 | the hausfold **name register** — a handle, an account, a claimed namespace | [hausfold/ops](https://github.com/hausfold/ops), **private**, `PRESENCE.md`. Moved out of the site repo 2026-08-08 so the site repo could go public. ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**, because a list of what nobody has claimed hands it to whoever reads it first. That cuts both ways: *trademark* findings are public register records and are fine here (`notes/hausfold-rename.md` §0.2); *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand when you need it; the dir is `.gitignore`d so the clone doesn't dirty this tree. |
 | pounce's Homebrew formula / perch's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
 | holt's Swift SDK | `./holt`'s `sdk/swift` — same as any other holt change. [`hausfold/holt-swift`](https://github.com/hausfold/holt-swift) is a **generated mirror** (`git subtree split --prefix=sdk/swift`) that exists only because Swift Package Manager needs `Package.swift` at a repo's root for a remote git dependency — holt's own root is Go+Nix. Synced by hand today via `holt/sdk/swift/sync-mirror.sh`, then tagged separately — no CI trigger yet, so don't assume a `sdk/swift` merge alone moves the mirror. It is not cloned into this workshop and not part of `FAMILY`; never hand-edit it, changes there get overwritten on the next sync. |
@@ -65,7 +68,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 ## The one gotcha that explains everything
 
 The repos form a chain of pinned flake inputs:
-`nebelung → pounce → hausfold → ~/.config/nix`. A commit — even a pushed one —
+`nebelung → pounce → haus → ~/.config/nix`. A commit — even a pushed one —
 is **invisible downstream** until each downstream `flake.lock` is updated.
 Never hand-walk that ripple; the tooling does it:
 
@@ -121,7 +124,7 @@ Never hand-walk that ripple; the tooling does it:
 - **Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that
   already exist do NOT hot-reload** — a running server caches plugin wasm in
   memory for its whole lifetime, so these need a fresh server. Use **`zscratch`**
-  — a rice dev CLI (`hausfold/modules/den`, next to `holt`, on PATH) that renders
+  — a rice dev CLI (`haus/modules/den`, next to `holt`, on PATH) that renders
   your candidate over a copy of the live `~/.config/zellij` into a temp
   `--config-dir` and boots a throwaway session in its own Ghostty window, so the
   working multiplexer is untouched (`zscratch --config`/`--layout`/`--theme
@@ -129,7 +132,7 @@ Never hand-walk that ripple; the tooling does it:
   it). Feel it there; the real `bench try switch` happens once, at the end. It's
   not a `bench` command — the full flag set + the permission-cache gotchas live
   in the [rice's
-  AGENTS.md](https://github.com/hausfold/hausfold/blob/main/AGENTS.md) and the
+  AGENTS.md](https://github.com/hausfold/haus/blob/main/AGENTS.md) and the
   `zscratch.sh` header ([nebelhaus#69](https://github.com/hausfold/hausfold/pull/69)).
 
 ## Agent worktrees (parallel agent sessions)
@@ -150,7 +153,7 @@ the workshop. Worktrees live OUTSIDE the repos so trees stay clean and `bench
 try`'s `path:` overrides never swallow them. (`Ctrl Alt Shift a` is the in-place
 variant: the one agent per tab allowed to edit the real checkout.)
 
-Its bash predecessor `wt.sh` (`hausfold/modules/den/wt.sh`) has been retired
+Its bash predecessor `wt.sh` (`haus/modules/den/wt.sh`) has been retired
 entirely — `holt` is the only worktree-lifecycle tool the family ships, and
 every caller (Claude Code's hooks, pounce's Spawn Agent, `bench status`) is
 already on it.
@@ -260,7 +263,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `assets`, `web/`). The family
-sub-repos — the `haus` layer (`hausfold/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
+sub-repos — the `haus` layer (`haus/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
 `trill/`, `hausfold.co/`, `org-profile/`, `homebrew-tap/` — are **not here at all.** This is
 **NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
@@ -296,7 +299,7 @@ preferred.)
 
 Not a worktree, not a cloud session — this is where most work happens, and the
 worktree/cloud restrictions above do **not** apply here. The child repos
-(`hausfold`, `nebelung`, `pounce`, `perch`, `holt`, `trill`, `org-profile`,
+(`haus`, `nebelung`, `pounce`, `perch`, `holt`, `trill`, `org-profile`,
 `homebrew-tap`, `hausfold.co`) are
 `.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
 full, independent repo I own solo, and from the main checkout you drive it

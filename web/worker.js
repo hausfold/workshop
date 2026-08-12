@@ -13,11 +13,11 @@
 //
 // We PROXY (fetch), not redirect, so the pretty URL is what curl sees and there's
 // no hop to a raw.githubusercontent.com link. By default /init.sh serves the
-// latest GitHub *release* tag of hausfold/hausfold (cached ~1h to stay well
+// latest GitHub *release* tag of hausfold/haus (cached ~1h to stay well
 // under GitHub's unauthenticated API limit), falling back to `main` before the
 // first release. `?ref=v2026.07.18` pins an exact ref; a REF wrangler var hard-pins one.
 
-const REPO = "hausfold/hausfold";
+const REPO = "hausfold/haus";
 const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path traversal
 
 // The apps with signed + notarized release artifacts on GitHub. Keys are the
@@ -155,6 +155,6 @@ export default {
     // matching assets are served automatically before the Worker even runs;
     // this fallback covers requests that reach the Worker anyway.
     if (env.ASSETS) return env.ASSETS.fetch(request);
-    return text("nebelhaus — https://github.com/hausfold/hausfold\n", 404);
+    return text("nebelhaus — https://github.com/hausfold/haus\n", 404);
   },
 };

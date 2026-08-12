@@ -40,7 +40,7 @@ export const sidebar = [
   {
     label: 'Reference',
     items: [
-      { label: 'nebelhaus.* options', slug: 'reference/options' },
+      { label: 'haus.* options', slug: 'reference/options' },
       { label: 'Keybindings cheatsheet', slug: 'reference/keybindings' },
       { label: 'Pounce config & CLI', slug: 'reference/pounce' },
       { label: 'The nebelung palette', slug: 'reference/palette' },

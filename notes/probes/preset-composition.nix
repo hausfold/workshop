@@ -80,7 +80,7 @@
 #      no warning at all. Composition has two failure modes, and the roadmap
 #      only ever described the loud one.
 {
-  rice ? ../../hausfold,
+  rice ? ../../haus,
 }:
 let
   # The rice's pinned nixpkgs, so the module-system semantics under test are the

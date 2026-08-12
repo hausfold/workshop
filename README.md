@@ -24,7 +24,7 @@ what's out of sync and `./bench ship` makes it right.**
 
 ## the family
 
-- 🏠 [**nebelhaus**](https://github.com/hausfold/hausfold) — the house. the whole rice, one Nix flake. start here. *(the repo is `hausfold/hausfold` and the checkout `./hausfold`; the rice itself keeps the name)*
+- 🏠 [**haus**](https://github.com/hausfold/haus) — the house. the nix-darwin layer and the nebelhaus rice, one Nix flake. start here. *(the repo is `hausfold/haus` and the checkout `./haus`; the rice built on it keeps the name nebelhaus)*
 - 🐾 [**pounce**](https://github.com/hausfold/pounce) — the palette. keyboard-first launcher; every command a file.
 - 🪺 [**perch**](https://github.com/hausfold/perch) — the shelf. files, caught in the notch.
 - 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the theme. the silver-mist palette.
@@ -45,8 +45,9 @@ clone`/`pull` plant it and the docs sweep reads it), and ⌂
 **haus**, the nix-darwin layer all of this is becoming, sold and shipped under
 the name hausfold (decided 2026-08-08, named 2026-08-10; see
 [`notes/hausfold-rename.md`](notes/hausfold-rename.md)). Its checkout is
-`hausfold.co/`, **with the `.co`** — plain `hausfold/` is the rice, so site work
-sent to the short name edits the desktop and nothing errors. hausfold.co used to
+`hausfold.co/`, **with the `.co`** — spell it in full. It sat one dot from the
+layer's own checkout until 2026-08-11, and site work sent to the short name
+edited the desktop with nothing to show for it. hausfold.co used to
 be the only private checkout here; it's public as of 2026-08-08. Your
 `~/.config/nix` lives outside this dir entirely.
 
@@ -59,7 +60,7 @@ nebelung ──► pounce ──► nebelhaus ──► ~/.config/nix ──► 
 ```
 
 (Those are flake **input** names, not directories — the rice's input is still
-spelled `nebelhaus` while its checkout is `./hausfold`.)
+spelled `nebelhaus` while its checkout is `./haus`.)
 
 A flake input is **not** "whatever is on GitHub right now" — it's an exact commit
 hash, frozen in `flake.lock`. That's what makes a rebuild reproducible. The flip
@@ -95,7 +96,7 @@ works.
 | `./bench rebuild` | plain pinned rebuild of `~/.config/nix` |
 | `./bench pull` | fast-forward every repo |
 | `./bench clone` | fetch any repo missing from this directory — the family, plus `trill` and `hausfold.co`, which carry docs but no lock edge |
-| `./bench release <repo> [version] [--ship]` | stamp the version + tag it, then **watch the CI run to the end** — release + brew tap bump. CalVer for pounce/perch/hausfold (`v<YYYY.MM.DD>`, `-N` on a same-day repeat, and a version argument is refused); **holt takes a semver argument and requires one** — five SDK registries share that number. `--ship` ripples the new lock edge after |
+| `./bench release <repo> [version] [--ship]` | stamp the version + tag it, then **watch the CI run to the end** — release + brew tap bump. CalVer for pounce/perch/haus (`v<YYYY.MM.DD>`, `-N` on a same-day repeat, and a version argument is refused); **holt takes a semver argument and requires one** — five SDK registries share that number. `--ship` ripples the new lock edge after |
 | `./bench docs-since [--mark]` | every commit since the docs were last reconciled, per repo — the input to the daily `/docs-sync` sweep |
 
 The rice ships a `bench` shell alias, so these work from anywhere.
@@ -128,7 +129,7 @@ cd workshop
 
 Every repo's agent instructions open with the same routing table, so a session
 started anywhere knows whether it's in the right place. The short version:
-**colors → nebelung · the palette app → pounce · system behavior → `./hausfold`
+**colors → nebelung · the palette app → pounce · system behavior → `./haus`
 (the rice) · personal anything → `~/.config/nix`**. When in doubt, start here and read
 [`AGENTS.md`](./AGENTS.md).
 

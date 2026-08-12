@@ -189,5 +189,5 @@ Macs need none of this — the bootstrap installs Determinate for you.
 - [Keybindings cheatsheet](/reference/keybindings/) — or tap `⇪` then `/` for the
   live, roster-aware version.
 - [haus.* options](/reference/options/) — every knob and its default.
-- [Open an issue](https://github.com/hausfold/hausfold/issues) with the output
+- [Open an issue](https://github.com/hausfold/haus/issues) with the output
   of `haus doctor`.

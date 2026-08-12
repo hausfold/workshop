@@ -126,21 +126,21 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 }
 
 # (hook_field + the worktree lifecycle moved to the standalone `wt` tool in
-# the rice (hausfold/modules/den) — bench no longer parses hook payloads.)
+# the rice (haus/modules/den) — bench no longer parses hook payloads.)
 
 # ── gh_repo: a checkout's directory name is not always its owner/repo ─────────
 #
 # The local side is `repo_dir` ($ROOT/<name>); this is the remote side. They
 # agree for most of the family and deliberately don't for org-profile. The
-# `nebelhaus` arm that used to sit here retired with §3.3's step 4, when the
-# rice's checkout was renamed to ./hausfold — these tests are what stops it
-# coming back, in either direction.
+# `nebelhaus` arm that used to sit here retired with §3.3's step 4, and §10
+# renamed the layer's checkout again (./hausfold → ./haus) — these tests are
+# what stops either spelling coming back, in either direction.
 
 @test "gh_repo resolves a family checkout to owner/repo" {
   run gh_repo nebelung
   [ "$output" = "$GH_ORG/nebelung" ]
-  run gh_repo hausfold
-  [ "$output" = "$GH_ORG/hausfold" ]
+  run gh_repo haus
+  [ "$output" = "$GH_ORG/haus" ]
 }
 
 @test "gh_repo maps org-profile to the repo GitHub insists is named .github" {
@@ -159,6 +159,12 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
     run gh_repo "$name"
     [ "$output" != "$GH_ORG/nebelhaus" ]
   done
+}
+
+@test "repo_dir resolves the layer to its checkout" {
+  mkdir -p "$ROOT/haus/.git"
+  run repo_dir haus
+  [ "$output" = "$ROOT/haus" ]
 }
 
 # ── local_src / overrides: worktree-aware checkout substitution ────────────────
@@ -181,7 +187,7 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 @test "overrides redirects every family input, honouring the active worktree" {
   WT_REPO="pounce" WT_PATH="/tmp/wt/pounce"
   run overrides
-  [[ "$output" == *"--override-input nebelhaus path:$ROOT/hausfold"* ]]
+  [[ "$output" == *"--override-input nebelhaus path:$ROOT/haus"* ]]
   [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
   [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/wt/pounce"* ]]
 }
@@ -204,7 +210,7 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   run overrides
   [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/batch/pounce"* ]]
   [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
-  [[ "$output" == *"--override-input nebelhaus path:$ROOT/hausfold"* ]]
+  [[ "$output" == *"--override-input nebelhaus path:$ROOT/haus"* ]]
 }
 
 # ── version_file / read_version: the release tag source (regression: $verfile) ─
@@ -232,10 +238,10 @@ NIX
   [ "$output" = "1.4.2" ]
 }
 
-@test "read_version reads and trims hausfold's VERSION file" {
-  mkdir -p "$ROOT/hausfold"
-  printf '  0.3.0\n' >"$ROOT/hausfold/VERSION"
-  run read_version hausfold
+@test "read_version reads and trims haus's VERSION file" {
+  mkdir -p "$ROOT/haus"
+  printf '  0.3.0\n' >"$ROOT/haus/VERSION"
+  run read_version haus
   [ "$output" = "0.3.0" ]
 }
 
@@ -260,18 +266,18 @@ NIX
   grep -q 'POUNCE_VERSION="\$version"' "$ROOT/pounce/pkgs/pounce/default.nix"
 }
 
-@test "write_version round-trips a same-day -N version through hausfold's VERSION" {
-  mkdir -p "$ROOT/hausfold"
-  printf '0.5.8\n' >"$ROOT/hausfold/VERSION"
-  write_version hausfold 2026.07.18-1
-  run read_version hausfold
+@test "write_version round-trips a same-day -N version through haus's VERSION" {
+  mkdir -p "$ROOT/haus"
+  printf '0.5.8\n' >"$ROOT/haus/VERSION"
+  write_version haus 2026.07.18-1
+  run read_version haus
   [ "$output" = "2026.07.18-1" ]
 }
 
 # ── version_scheme: holt is the one repo whose number is a judgement ───────────
 
 @test "version_scheme is calver for the tag-and-forget repos" {
-  for repo in pounce perch hausfold; do
+  for repo in pounce perch haus; do
     run version_scheme "$repo"
     [ "$output" = calver ]
   done
@@ -452,24 +458,24 @@ make_repo() { # make_repo <name> — a fixture git repo with one commit
 }
 
 @test "commits_since counts commits on HEAD past the tag" {
-  make_repo hausfold
-  git -C "$ROOT/hausfold" tag v0.2.0
-  git -C "$ROOT/hausfold" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two
-  git -C "$ROOT/hausfold" -c user.name=t -c user.email=t@t commit -q --allow-empty -m three
-  run commits_since hausfold v0.2.0
+  make_repo haus
+  git -C "$ROOT/haus" tag v0.2.0
+  git -C "$ROOT/haus" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two
+  git -C "$ROOT/haus" -c user.name=t -c user.email=t@t commit -q --allow-empty -m three
+  run commits_since haus v0.2.0
   [ "$output" = "2" ]
 }
 
 @test "commits_since is 0 when the tag is at HEAD" {
-  make_repo hausfold
-  git -C "$ROOT/hausfold" tag v0.2.0
-  run commits_since hausfold v0.2.0
+  make_repo haus
+  git -C "$ROOT/haus" tag v0.2.0
+  run commits_since haus v0.2.0
   [ "$output" = "0" ]
 }
 
 @test "commits_since degrades to ? on a bogus ref" {
-  make_repo hausfold
-  run commits_since hausfold v9.9.9
+  make_repo haus
+  run commits_since haus v9.9.9
   [ "$output" = "?" ]
 }
 
@@ -614,11 +620,11 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
 
 @test "record_activation names the worktree branch it just activated" {
   setup_receipt
-  git -C "$ROOT/hausfold" worktree add -q -b worktree-blue "$TMP/wt-blue"
-  WT_REPO="hausfold" WT_PATH="$TMP/wt-blue"
+  git -C "$ROOT/haus" worktree add -q -b worktree-blue "$TMP/wt-blue"
+  WT_REPO="haus" WT_PATH="$TMP/wt-blue"
   record_activation mbp
   run cat "$ACTIVE_FILE"
-  [[ "$output" == *"hausfold"* ]]
+  [[ "$output" == *"haus"* ]]
   [[ "$output" == *"worktree-blue"* ]]
   [[ "$output" == *"$TMP/wt-blue"* ]]
   # the untouched repos stay out of it — the receipt lists only what drifted
@@ -627,9 +633,9 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
 
 @test "record_activation flags a dirty source tree" {
   setup_receipt
-  git -C "$ROOT/hausfold" worktree add -q -b worktree-blue "$TMP/wt-blue"
+  git -C "$ROOT/haus" worktree add -q -b worktree-blue "$TMP/wt-blue"
   echo scratch >"$TMP/wt-blue/uncommitted"
-  WT_REPO="hausfold" WT_PATH="$TMP/wt-blue"
+  WT_REPO="haus" WT_PATH="$TMP/wt-blue"
   record_activation mbp
   run cat "$ACTIVE_FILE"
   [[ "$output" == *"dirty"* ]]
@@ -648,7 +654,7 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/aaa-system; }
-  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhausfold\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhaus\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
   run read_activation
   [ "$status" -eq 0 ]
   [[ "$output" == *"worktree-blue"* ]]
@@ -661,7 +667,7 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/bbb-system; }
-  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhausfold\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhaus\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
   run read_activation
   [ "$status" -ne 0 ]
   run cat "$ACTIVE_FILE"
@@ -672,7 +678,7 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/bbb-system; }
-  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t\nhausfold\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t\nhaus\t/wt/blue\tworktree-blue\tclean\n' >"$ACTIVE_FILE"
   run read_activation
   [ "$status" -eq 0 ]
   [[ "$output" == *"worktree-blue"* ]]
@@ -689,7 +695,7 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/aaa-system; }
-  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhausfold\t%s/gone-wt\tworktree-blue\tclean\n' "$TMP" >"$ACTIVE_FILE"
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhaus\t%s/gone-wt\tworktree-blue\tclean\n' "$TMP" >"$ACTIVE_FILE"
   run status_running
   [[ "$output" == *"running LOCAL code"* ]]
   [[ "$output" == *"worktree-blue"* ]]
@@ -703,7 +709,7 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/aaa-system; }
-  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhausfold\t%s\tworktree-blue\tclean\n' "$ROOT/hausfold" >"$ACTIVE_FILE"
+  printf 'when\t2026-08-03 10:00\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhaus\t%s\tworktree-blue\tclean\n' "$ROOT/haus" >"$ACTIVE_FILE"
   run status_running
   [[ "$output" == *"2026-08-03 10:00"* ]]
   [[ "$output" != *"unknown time"* ]]
@@ -713,8 +719,8 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/aaa-system; }
-  printf 'when\tnow\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhausfold\t%s\tworktree-an-absurdly-long-agent-branch-name\tclean\n' \
-    "$ROOT/hausfold" >"$ACTIVE_FILE"
+  printf 'when\tnow\nhost\tmbp\nsystem\t/nix/store/aaa-system\nhaus\t%s\tworktree-an-absurdly-long-agent-branch-name\tclean\n' \
+    "$ROOT/haus" >"$ACTIVE_FILE"
   run status_running
   [[ "$output" == *"…"* ]]
   [[ "$output" != *"worktree-an-absurdly-long-agent-branch-name"* ]]

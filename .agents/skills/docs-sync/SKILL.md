@@ -31,7 +31,7 @@ each touched. It is watermark-based, not "since yesterday" — a sweep that didn
 four days still picks up all four.
 
 `docs-since` walks **`DOCS_REPOS`** (`bench:1522`): the workshop, `FAMILY` (nebelung,
-pounce, perch, holt, hausfold), `org-profile`, `homebrew-tap`, and the two repos that
+pounce, perch, holt, haus), `org-profile`, `homebrew-tap`, and the two repos that
 carry docs without carrying a lock edge — **`trill`** and **`hausfold.co`**. That last
 pair is why this list is not `FAMILY` plus trimmings: docs coverage and lock coverage
 are different questions: from trill's eject (2026-08-09) until workshop#296 the
@@ -76,7 +76,7 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 | `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free |
 | `holt/` — the worktree substrate + its five SDKs | `holt/README.md`, `holt/SPEC.md`, `holt/docs/*`, `holt/sdk/*/README`, and `web/.../guides/claude-agents.mdx` (the user-facing worktree story). ⚠️ An SDK surface change is also a **release** question — see `/release`. ⚠️ holt's `AGENTS.md` arrived only in [holt#31](https://github.com/hausfold/holt/pull/31), so anything older than that was written with no boundary doc in the repo |
 | `hausfold.co/` — the public company site | `hausfold.co`'s own `README.md`/`AGENTS.md`. ⚠️ It is **not** nebelhaus.com: product docs stay on the site in `web/`, and the two must not grow copies of each other. Never move anything from `hausfold/ops`' name register into it — that repo is private for a reason |
-| `hausfold/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
+| `haus/modules/*` (the layer + rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
 | a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
 | a new/changed keybind | `reference/keybindings.md` — **always** |
 | `bench`, workshop `README.md` | `internals/contributing.mdx`, `internals/flakes.mdx`, workshop `README.md`/`AGENTS.md` |
