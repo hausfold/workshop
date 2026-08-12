@@ -44,7 +44,7 @@
 # takes arguments, and mkDefault is lib.mkDefault. Whatever ships has to be
 # applied at the import seam.
 {
-  rice ? ../../hausfold,
+  rice ? ../../haus,
 }:
 let
   # The rice's pinned nixpkgs, so the module-system semantics under test are the

@@ -75,7 +75,7 @@ describe('/init.sh ref validation (path-traversal guard)', () => {
 
   it('accepts a well-formed tag and proxies bootstrap.sh', async () => {
     globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/v1.2.3/bootstrap.sh', body: '#!/bin/bash\n' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/v1.2.3/bootstrap.sh', body: '#!/bin/bash\n' },
     ]);
     const res = await worker.fetch(req('/init.sh?ref=v1.2.3'), {});
     expect(res.status).toBe(200);
@@ -87,7 +87,7 @@ describe('/init.sh ref validation (path-traversal guard)', () => {
 describe('latestRef() fallback chain', () => {
   it('env.REF hard-pin wins without any fetch or cache read', async () => {
     globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/v9.9.9/bootstrap.sh', body: 'PINNED' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/v9.9.9/bootstrap.sh', body: 'PINNED' },
     ]);
     const res = await worker.fetch(req('/init.sh'), { REF: 'v9.9.9' });
     expect(res.headers.get('x-nebelhaus-ref')).toBe('v9.9.9');
@@ -98,7 +98,7 @@ describe('latestRef() fallback chain', () => {
   it('resolves and caches the latest release tag from the GitHub API', async () => {
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', json: { tag_name: 'v2.0.0' } },
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/v2.0.0/bootstrap.sh', body: 'LATEST' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/v2.0.0/bootstrap.sh', body: 'LATEST' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('v2.0.0');
@@ -108,7 +108,7 @@ describe('latestRef() fallback chain', () => {
   it('serves a cached ref without hitting the API', async () => {
     globalThis.caches._store.set(RELEASE_KEY, 'v1.5.0');
     globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/v1.5.0/bootstrap.sh', body: 'CACHED' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/v1.5.0/bootstrap.sh', body: 'CACHED' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('v1.5.0');
@@ -118,7 +118,7 @@ describe('latestRef() fallback chain', () => {
   it('falls back to main when the API returns a non-2xx', async () => {
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', status: 403, body: 'rate limited' },
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/main/bootstrap.sh', body: 'MAIN' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/main/bootstrap.sh', body: 'MAIN' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
@@ -127,7 +127,7 @@ describe('latestRef() fallback chain', () => {
   it('falls back to main when the API throws (network hiccup)', async () => {
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', throws: true },
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/main/bootstrap.sh', body: 'MAIN' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/main/bootstrap.sh', body: 'MAIN' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
@@ -137,7 +137,7 @@ describe('latestRef() fallback chain', () => {
     // A compromised/garbage release tag must not become a fetch path.
     globalThis.fetch = makeFetch([
       { match: 'api.github.com', json: { tag_name: '../../evil' } },
-      { match: 'raw.githubusercontent.com/hausfold/hausfold/main/bootstrap.sh', body: 'MAIN' },
+      { match: 'raw.githubusercontent.com/hausfold/haus/main/bootstrap.sh', body: 'MAIN' },
     ]);
     const res = await worker.fetch(req('/init.sh'), {});
     expect(res.headers.get('x-nebelhaus-ref')).toBe('main');

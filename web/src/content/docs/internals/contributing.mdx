@@ -22,7 +22,7 @@ cd workshop
 ./bench clone
 ```
 
-You end up with `nebelung/`, `pounce/`, `hausfold/`, and friends as independent
+You end up with `nebelung/`, `pounce/`, `haus/`, and friends as independent
 git repos, with the `bench` script sitting above them.
 
 ## Where a change goes
@@ -34,7 +34,7 @@ Each change belongs to exactly one repo. Start in the right one:
 | colours / palette / how a tool is themed | `nebelung` |
 | the launcher app or a generic command | `pounce` |
 | the notch file shelf (perch) | `perch` |
-| macOS defaults, tiling, bar, shell, Touch ID | `hausfold` |
+| macOS defaults, tiling, bar, shell, Touch ID | `haus` |
 | your own machine's apps / identity / secrets | `~/.config/nix` |
 
 ## The dev loop: try without pushing
@@ -44,7 +44,7 @@ workshop `bench try` builds your real machine config against the **local
 checkouts** — uncommitted edits and all — using Nix `--override-input`:
 
 ```sh
-# edit anything in nebelung/, pounce/, hausfold/…
+# edit anything in nebelung/, pounce/, haus/…
 ./bench try            # does it build? (nothing pushed, nothing activated)
 ./bench try switch     # run it on this Mac (still nothing pushed)
 ```
@@ -194,7 +194,7 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
 8. **release** — `./bench release <repo>`; CI does the rest, and the command
    waits with you while it happens. Four repos are releasable: **pounce**
    (GitHub release + Homebrew formula bump), **perch** (Homebrew cask bump + the
-   rice's flake pin), **hausfold** (the tag becomes what
+   rice's flake pin), **haus** (the tag becomes what
    `nebelhaus.com/init.sh` serves to new installs), and **holt** (five SDKs, to
    npm, PyPI, crates.io, SwiftPM and the Go proxy).
 

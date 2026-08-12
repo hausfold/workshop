@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          repository: hausfold/hausfold
+          repository: hausfold/haus
           path: .rice
       # No Nix step: the option metadata is read out of the rice's committed
       # docs/site-data/, generated there and pinned by its own
@@ -120,7 +120,7 @@ jobs:
           cat > /tmp/pr-body.md <<BODY
           \`reference/options.md\` had drifted from the rice's module system. This PR is
           the regenerated page — opened by \`options-drift.yml\`'s weekly run, against
-          rice [\`${rice_sha}\`](https://github.com/hausfold/hausfold/commit/${rice_sha}).
+          rice [\`${rice_sha}\`](https://github.com/hausfold/haus/commit/${rice_sha}).
 
           Nothing here was written by hand: \`web/scripts/gen-options.mjs\` renders the
           whole page from the rice's own options, so the diff is whatever option docs

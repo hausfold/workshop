@@ -31,6 +31,7 @@ them:
 | 6 | **All 8 repos transfer to the `hausfold` org** | plus the `holt-swift` mirror. ⚠️ **Amended 2026-08-08 — the archived `trill` does NOT transfer.** It is renamed in place and stays in `nebelhaus`, because the notification compositor claims `hausfold/trill`. See §3.4. |
 | 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/haus`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch` (`/haus` added 2026-08-10 with decision 8). `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
 | 8 | **The layer's public name is `haus`; `hausfold` is the org, the maker and the seller** | added 2026-08-10, in conversation, after looking at the page. **This refines decision 1, it does not reverse it** — see the box below. |
+| 9 | **The layer's repo is `hausfold/haus`, its checkout `./haus`** | added 2026-08-11, in conversation. Decision 8 said hausfold is never the layer; `hausfold/hausfold` said it was. **§10** is the walkthrough. |
 
 #### Decision 8, spelled out — because it looks like a third flip and isn't
 
@@ -58,19 +59,33 @@ What this costs, and doesn't:
 
 - **Nothing in code.** The namespace was already `haus.*` (§1.1a, landed), the
   org already `hausfold` (§3.2, transferred), the domain already `hausfold.co`.
-  This is a **copy** decision. It renames no repo, no option, no bundle id.
+  This is a **copy** decision. It renames no option and no bundle id.
+  ⚠️ **Amended 2026-08-11 — it did, in the end, rename one repo.** Decision 9
+  took the sentence "hausfold is never the layer" literally and applied it to
+  the one identifier decision 8 had left standing: `hausfold/hausfold` became
+  **`hausfold/haus`**, checkout `./haus`. That is a slug and a directory, not a
+  namespace or an id; **§10** is the walkthrough and the blast radius. The rest
+  of this box stands exactly as written.
 - **§3 and §4 are untouched.** Don't re-open the org migration or the bundle
   ids over this. **§5 gains exactly one thing**: the route `/haus`, added to
   decision 7's list and §5.1's, and nothing else about the domain moves.
 - 🚨 **Do NOT sweep `hausfold` → `haus`, and do not let §2 sweep the other
-  way either.** Every existing spelling still names the thing it always named,
-  and `hausfold` is a live *identifier* — `bench`'s `FAMILY`, `GH_ORG`,
-  `OVERRIDABLE`, `$ROOT/hausfold` and the release arms, plus
-  `test/bench.bats`'s fixtures and `keybindings-drift.yml`'s `repository:` —
-  so a sweep breaks the build, not just the copy. The word changes only where
-  **prose** meant the layer. §2's class table (in §2, not at the top of this
-  file) has been amended to match; the `nebelhaus` reading table at the top of
-  `AGENTS.md` is the rule for reading a `nebelhaus` hit, and is unaffected.
+  way either.** Every remaining spelling still names the thing it always named,
+  and `hausfold` is a live *identifier* — `bench`'s `GH_ORG`, the whole
+  `com.hausfold.*` bundle-id family, `hausfold.co`, the `hausfold/tap` Homebrew
+  taps and every `github.com/hausfold/<repo>` URL — so a sweep breaks the build,
+  not just the copy. The word changes only where **prose** meant the layer.
+  §2's class table (in §2, not at the top of this file) has been amended to
+  match; the `nebelhaus` reading table at the top of `AGENTS.md` is the rule for
+  reading a `nebelhaus` hit, and is unaffected.
+  ⚠️ **Amended 2026-08-11 — the identifier list above USED to name `FAMILY`,
+  `OVERRIDABLE`, `$ROOT/hausfold`, the release arms, `test/bench.bats`'s
+  fixtures and `keybindings-drift.yml`'s `repository:`. §10 renamed exactly
+  those, deliberately and together, because every one of them names the layer's
+  *repo* rather than the org.** That is a decided, one-shot move with tests
+  behind it — it is **not** licence to reopen the sweep. A `hausfold` hit today
+  is the org, the brand, a bundle id, or the site; if you think you've found a
+  repo-sense one that §10 missed, it's a bug, and it is still not a find-replace.
 - ✅ **The prose surfaces that say "hausfold" and mean the layer — swept
   2026-08-10, workshop#313.** §0.1's precedent applied here, because a decision
   left unwritten gets "corrected" back by the next session. Landed in one PR:
@@ -144,7 +159,21 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-10 (morning)
+### Current handoff — 2026-08-11
+
+**Decision 9 landed the layer's repo rename: `hausfold/hausfold` →
+`hausfold/haus`, checkout `./hausfold` → `./haus`.** The slug moved on GitHub
+first (redirects keep every old URL, clone, `raw.githubusercontent` fetch and
+API call resolving), then one PR per repo rewrote the edges. **§10** is the
+walkthrough, the blast radius and the one 👤 step: the *local checkout* is
+machine state, not a diff, so it moves with `bench relocate-haus` when no agent
+lane is standing in it.
+
+Everything in the 2026-08-10 handoff below still holds — §5.2 is still the whole
+of the 🤖 work left on the rename proper. §10 is a decision that arrived after
+the plan was written, not a phase of it.
+
+### Handoff — 2026-08-10 (morning)
 
 **The rename is green through §4, and §5.2 is now the *whole* of the 🤖 work
 left.** The option namespace, in-repo brand surface, GitHub transfers, checkout
@@ -1602,7 +1631,8 @@ isn't.
 >
 > ⚠️ **One Tier D row below has expired and is NOT a hold any more.** "`nebelhaus/modules/…`
 > source paths in docs" was written when the rice's checkout was `./nebelhaus`.
-> It is `./hausfold` now, so `hausfold/modules/…` is what those paths mean, and
+> It is `./haus` now (`./hausfold` between 2026-08-09 and §10), so
+> `haus/modules/…` is what those paths mean, and
 > `bench` and this repo's `.agents/` already write it that way. The stragglers
 > are cross-repo *comments* in pounce and perch — not owner references, so out
 > of this sweep, but a real cleanup and not something to defend.
@@ -1610,6 +1640,8 @@ isn't.
 > ✅ **npm's trusted publisher was flipped 2026-08-09.** The private consumer's
 > `flake.nix:7` now points at `github:hausfold/hausfold`; only the flake input
 > *name* remains `nebelhaus`, deliberately (§6 / the input-name box above).
+> ⚠️ That URL is one rename behind since §10 — it resolves through the redirect,
+> and retargeting it at `github:hausfold/haus` is §10.4's one 👤 line.
 
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
 that's a landmine.
@@ -1717,7 +1749,12 @@ still flips **all six** call sites in one edit — fine while the family is one
 org, and the thing to re-check the day any family repo *doesn't* transfer.
 
 **2. The `$ROOT/hausfold` directory collision that §3.1 marked resolved is still
-live in code, and pointing the wrong way.** §3.1 resolved it as (b): "the
+live in code, and pointing the wrong way.** ✅ **Closed twice over: §3.3's step 4
+fixed the code, and §10 removed the collision itself** — the layer's checkout is
+`$ROOT/haus` now, which shares no prefix with `$ROOT/hausfold.co`, so the
+"one dot apart" failure this finding describes can no longer be typed. Kept as
+written because the *shape* is the reusable part: two checkouts one character
+apart, one of them silently building the wrong tree. §3.1 resolved it as (b): "the
 checkouts become `workshop/hausfold/` (the **platform**) and `workshop/hausfold.co/`
 (the site) — each named for its repo." `bench` implements the opposite —
 `bench:1560-1568` plants **the site** at `$ROOT/hausfold`
@@ -2152,7 +2189,7 @@ Use the family's own rule instead (`options-roadmap.md` §7): *"mirror only what
 fits in one expression and can be pinned by a golden test; anything table-shaped
 becomes an output of the repo that owns it."* Same lesson as `ports.meta.json`.
 
-So: **`hausfold/hausfold` commits `options.json` as a generated, drift-checked
+So: **`hausfold/haus` commits `options.json` as a generated, drift-checked
 artifact** (its CI already has Nix), and the site reads that file. No Nix in the
 site repo, and the drift check stays where the derivation is.
 
@@ -2480,7 +2517,7 @@ Then:
   independent-of-the-gallery route this was asking for, one level deeper than
   proposed. No top-level `/nebelhaus` is needed; **preserve
   `/desktops/nebelhaus` through the Astro port** rather than re-deriving it.
-- `worker.js`: `REPO` → `hausfold/hausfold`, `DOWNLOADABLE` app URLs →
+- `worker.js`: `REPO` → `hausfold/haus`, `DOWNLOADABLE` app URLs →
   `github.com/hausfold/<app>`, and drop `trill`.
 - `wrangler.toml`: this repo stops being assets-only — it gains a `main` and a
   build step. ⚠️ **Keep `custom_domain = true`** on the hausfold.co routes; its
@@ -2772,3 +2809,134 @@ production change on a live zone, and the section is tagged 👤 for that reason
   that modules/default.nix imports this file"). The suggested ordering — do it
   *before* §1 — is moot; it landed during the sweep instead, and the sweep
   survived it.
+
+---
+
+## §10 — The layer's repo becomes `hausfold/haus`
+
+**Decided 2026-08-11, in conversation. Ran the same day.** Decision 8 (2026-08-10)
+settled the words: *haus* is the nix-darwin layer, *hausfold* is the org, the
+maker and the seller, and **hausfold is never the layer**. It then explicitly
+declined to move anything in code, because the point at issue was copy. The
+question this section answers is the one that leaves open: **the layer's repo
+slug was `hausfold/hausfold`, which says in the one place nobody can misread
+that the layer is called hausfold.**
+
+### 10.0 Why this isn't decision 8 being re-litigated
+
+Decision 8's box says "it renames no repo" and 🚨-flags a `hausfold` → `haus`
+sweep. Both stand, and this is neither:
+
+- **Not a sweep.** A sweep asks "which occurrences of this word mean the layer?"
+  and gets it wrong ~90 times out of 100 in this family. This renames **one
+  identifier** — a GitHub slug and the directory named for it — and every edge
+  that quotes it. The org, the bundle ids, `hausfold.co`, the Homebrew taps and
+  every other repo's URL are untouched.
+- **It is decision 8 finished, not reversed.** `hausfold/hausfold` was the last
+  place the layer was spelled with the org's name. The ergonomics were the tell:
+  `bench ship hausfold`, `bench release hausfold`, `./hausfold/modules/sill`,
+  `~/.cache/claude-worktrees/hausfold/<lane>` — every one of them a daily
+  sentence that said the word decision 8 had just ruled out.
+- **It matches the ecosystem shape.** `nix-community/home-manager`,
+  `LnL7/nix-darwin`: the repo is named for the layer, the owner for who ships
+  it. `hausfold/haus` reads as "haus, by hausfold", which is the sentence.
+
+**One thing it does NOT do: rename the flake input.** The consumer still writes
+`inputs.nebelhaus.url = "github:hausfold/haus"` and `bench` still passes
+`--override-input nebelhaus/…`. The input name is the **rice's**, it is a 👤 call
+on a 👤 file (§3.3's flake-input-paths box), and it stays exactly where §6 left
+it. Renaming it here would silently stop every override applying — the same trap
+that box was written for.
+
+### 10.1 ✅ The slug — done first, on purpose
+
+`gh repo rename haus -R hausfold/hausfold`. Ordering matters and only in this
+direction: GitHub redirects the **old** name to the new one forever, so
+everything keeps working the moment the rename lands and the edge PRs can follow
+at leisure. Write `hausfold/haus` into a flake *before* the rename and the input
+doesn't resolve at all.
+
+**Measured on the 2026-08-09 rename, before relying on it here** — every one of
+these already resolves `nebelhaus/nebelhaus` today:
+
+| surface | after a rename |
+|---|---|
+| `git clone` / `fetch` / `push` | ✅ redirects (git warns on push, then works) |
+| `raw.githubusercontent.com/<old>/…` | ✅ **200, not a 404** — measured. This is the one that matters: it is how `init.sh` fetches `bootstrap.sh` |
+| `api.github.com/repos/<old>` | ✅ 301, and every client that follows redirects (Workers' `fetch`, `gh`) lands right |
+| `gh pr list -R <old>` | ✅ resolves |
+| open PRs, issues, branches, stars | ✅ all carried, ids unchanged |
+
+So nothing in this rename is a flag day, and the freed slug `hausfold/hausfold`
+now behaves exactly like `hausfold/nebelhaus`: it resolves *by redirect*, which
+is precisely why `bench`'s `gh_repo` refuses to lean on redirects
+(`test/bench.bats` asserts it).
+
+### 10.2 ✅ The edges — one PR per repo
+
+| repo | what moved |
+|---|---|
+| **workshop** | `bench` (`FAMILY`, `OVERRIDABLE`, `EDGES`, `local_src`, the release + version arms, `repo_dir`, usage), `test/bench.bats`, `.gitignore`, `AGENTS.md`, `README.md`, `docs/workflows.md`, `.agents/**`, `.github/copilot-instructions.md`, **both drift workflows' `repository:`**, `web/worker.js` + its tests, `web/scripts/*.mjs`, the docs tree and the generated `reference/options.md` link base |
+| **haus** (the layer) | `bootstrap.sh`'s three URLs, `flake.nix`'s two `nix run` comments, `README.md`, `AGENTS.md`, `docs/modules.md`, the `report-issue-nebelhaus` pounce command's `repo=` |
+| **nebelung · pounce · perch · holt** | the "🏠 the house" README link and a handful of prose refs — no code |
+| **hausfold.co** | `public/haus/index.html`, `public/desktops/nebelhaus/index.html`, `README.md`, `AGENTS.md` |
+| trill · org-profile · homebrew-tap | **nothing** — zero hits, measured, not assumed |
+
+🚨 **The one trap in the mechanical half: `hausfold/hausfold.co`.** A naive
+`hausfold/hausfold` → `hausfold/haus` replace turns the *site* repo into
+`hausfold/haus.co`, which does not exist. Every sweep here used a negative
+lookahead (`hausfold/hausfold(?!\.co)`) and the result was grepped for
+`haus\.co` afterwards. It caught one (`web/README.md:86`).
+
+**Deliberately left alone:** historical PR citations (`hausfold#305`,
+`.../hausfold/hausfold/pull/200`) — they redirect, and the display shorthand
+records the name the repo had at the time, which is the convention this family
+already kept through the org migration.
+
+### 10.3 👤 The checkout — `bench relocate-haus`
+
+The directory is the only part that a `git pull` cannot deliver: it is machine
+state, and on this machine it had **four live agent lanes** whose `.git` files
+hold absolute paths into `~/code/workshop/hausfold/.git/worktrees/<lane>`.
+Moving the dir by hand and stopping there strands every one of them.
+
+So `bench` carries a one-shot `relocate-haus` that does the whole thing in
+order, and refuses if a lane is occupied:
+
+1. `mv $ROOT/hausfold $ROOT/haus`
+2. `git remote set-url origin` → the new slug (hygiene: the old one redirects)
+3. `mv ~/.cache/claude-worktrees/hausfold → …/haus` — lane checkouts are named
+   for the repo too
+4. `git -C $ROOT/haus worktree repair <every lane path>` — **with** the paths,
+   because both ends moved and plain `repair` only fixes one direction
+5. rewrite the absolute paths in holt's `registry.tsv` (backed up to
+   `registry.tsv.bak.relocate`, in holt's own `.bak.*` convention)
+
+Until it runs, `repo_dir haus` falls back to `$ROOT/hausfold` when `$ROOT/haus`
+is absent, so a machine that pulled the new `bench` but hasn't moved the dir
+still works — and `bench status` says so out loud, once, because a silent
+fallback is how a shim becomes permanent. **Three bats cases pin that arm's
+exact shape.** Delete the arm, the nudge, the command and its tests when every
+machine has run it.
+
+### 10.4 👤 Left for you, and why each is small
+
+- **`~/.config/nix/flake.nix:7`** — `inputs.nebelhaus.url = "github:hausfold/hausfold"`.
+  A 👤 file outside the family. It resolves through the redirect, so this is
+  hygiene; fix it at the next `haus rebuild` and the input *name* still stays
+  `nebelhaus`.
+- **`flake.lock`'s `original` field** across the family — same story as §3.3:
+  the recorded owner/repo is the old one until a `nix flake update --refresh`
+  rewrites it. Nothing breaks meanwhile (the rev is what's fetched), and
+  `bench ship` corrects it on the next real ripple.
+- **The org repo descriptions** — `workshop`'s and `homebrew-tap`'s still say
+  "nebelhaus family" / `brew tap nebelhaus/tap`. Unrelated to §10, found while
+  looking; a two-minute `gh repo edit`.
+
+### §10's gate
+
+`bats test/bench.bats` green (71 cases, 3 of them new), `web`'s vitest green
+(43), `shellcheck bench` clean, and `rg 'hausfold/hausfold(?!\.co)'` returning
+nothing outside historical PR links. Then, on the machine: `bench relocate-haus`
+followed by `bench status` reporting the layer at `./haus` with every lane
+still resumable in `holt`.

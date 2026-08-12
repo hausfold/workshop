@@ -7,7 +7,7 @@ description: >-
   open a PR and merge it, clean up every worktree the session spun up,
   ripple the flake locks with `bench ship`, then activate on the main checkout with
   `bench try switch`. Use when I say /ship, "ship it", "land this", or want to wrap up a
-  change across the nebelung → pounce → hausfold → config chain. Worktree-aware: invoking
+  change across the nebelung → pounce → haus → config chain. Worktree-aware: invoking
   /ship is the go-ahead to merge the PR and activate on main (by `cd`-ing there); `bench
   release` stays gated. Never opens or closes a zellij pane.
 ---
@@ -15,9 +15,9 @@ description: >-
 # Ship (hausfold workshop): verify → PR → merge → clean up → ripple → activate
 
 The family's repos form a chain of pinned flake inputs
-(`nebelung → pounce → hausfold → ~/.config/nix`). A commit is invisible downstream until
+(`nebelung → pounce → haus → ~/.config/nix`). A commit is invisible downstream until
 each downstream `flake.lock` is bumped — `bench ship` does that ripple. Never hand-walk it.
-Those are **repo** names: the rice's checkout and repo are `hausfold` since 2026-08-09,
+Those are **repo** names: the layer's checkout and repo are `haus` since 2026-08-11,
 while the flake **input** it's pinned under is still spelled `nebelhaus` — renaming that
 input makes an override silently build the pinned rice while reporting your branch.
 `bench` lives at the workshop root and is available as `bench`; run it from anywhere.
@@ -219,7 +219,7 @@ merging, so confirm it's approved before you ripple.
   Only flag an activation when it's genuinely *risky* — something a user could feel break, or
   a change that's hard to roll back.
 - **Release** (`bench release <repo>`: stamps today's CalVer date → tag → CI publishes →
-  bumps `homebrew-tap`; releasable repos are pounce, perch, holt, hausfold) is **always gated.**
+  bumps `homebrew-tap`; releasable repos are pounce, perch, holt, haus) is **always gated.**
   Never run it unprompted — but if this ship touched user-facing behavior in a tagged repo,
   **propose one** (nudging is expected, tagging is my call). Ship first, then release.
 

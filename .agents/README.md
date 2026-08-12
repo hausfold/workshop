@@ -95,7 +95,7 @@ allows, and add a row.
 
 ## The rest of the family
 
-Nearly every repo carries this layer, one PR each: the rice (`hausfold`),
+Nearly every repo carries this layer, one PR each: the layer (`haus`),
 `nebelung`, `pounce`, `perch`, `org-profile` (the `hausfold/.github` repo),
 `homebrew-tap`, `trill` (the notification compositor), and the consumer config
 (`~/.config/nix`). Each keeps its **own** rules — only the shape is shared. The
