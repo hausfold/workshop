@@ -807,30 +807,48 @@ cmd_try() {
   local do_lane=""; [ "${1:-}" = "lane" ] && { do_lane=1; shift; }
   local do_switch=""; [ "${1:-}" = "switch" ] && do_switch=1
   detect_worktree
-  if [ -n "$do_lane" ]; then
-    [ -n "$WT_REPO" ] || die "bench try lane must be run from inside an agent worktree — it's the lane's parent, so there's nothing to walk from the main checkout."
-    detect_lane
-    if [ "${#LANE_SRC[@]}" -eq 0 ]; then
-      say "no holt children found for this lane — building $WT_REPO alone (same as plain 'bench try')."
-    else
-      local lane_list=""
-      for name in "${!LANE_SRC[@]}"; do lane_list+="$name "; done
-      say "lane: overriding $WT_REPO ($WT_PATH) plus ${#LANE_SRC[@]} holt child(ren): $lane_list"
-    fi
+  [ -n "$do_lane" ] && detect_lane
+
+  # have_override: are we building against ANY local, non-pinned source at
+  # all? Not just "is THIS pane's own repo a family worktree" (WT_REPO) — a
+  # lane's PARENT is very often a workshop worktree, which isn't itself a
+  # flake-overridable repo (there's no `nebelhaus/workshop` input), but its
+  # `holt child` worktrees in family repos absolutely are. So a lane with
+  # zero WT_REPO and N children is still real local work to gate/build.
+  local have_override=""
+  { [ -n "$WT_REPO" ] || [ "${#LANE_SRC[@]}" -gt 0 ]; } && have_override=1
+
+  if [ -n "$do_lane" ] && [ -z "$have_override" ]; then
+    die "bench try lane found nothing to override — run it from a pane that's an agent worktree of a family repo, has spawned at least one 'holt child' worktree, or both."
   fi
-  if [ -n "$WT_REPO" ]; then
-    # Activating a worktree branch is fine and often exactly what you want —
-    # it's the ONLY way to feel-test one unmerged branch on its own (try-batch
-    # feels the whole open-PR queue combined, and needs a PR to exist at all;
-    # neither can feel uncommitted work). What isn't fine is an AGENT doing it
-    # unasked: activation is serial and machine-wide, so the fifth parallel
-    # pane's switch silently replaces the fourth's. See agent_driving().
-    # Checked before anything slow, so the refusal costs nothing.
+
+  if [ -n "$have_override" ]; then
+    # Activating local/unmerged source is fine and often exactly what you
+    # want — it's the ONLY way to feel-test unmerged work on its own
+    # (try-batch feels the whole open-PR queue combined, and needs a PR to
+    # exist at all; neither can feel uncommitted work). What isn't fine is an
+    # AGENT doing it unasked: activation is serial and machine-wide, so the
+    # fifth parallel pane's switch silently replaces the fourth's. See
+    # agent_driving(). Checked before anything slow, so the refusal costs
+    # nothing. Gated on have_override, not WT_REPO alone — a lane with no
+    # WT_REPO of its own but real LANE_SRC children is exactly as much "local
+    # unmerged source" as a plain worktree, and must be gated the same way.
     if [ -n "$do_switch" ] && agent_driving && [ -z "${BENCH_AGENT_SWITCH:-}" ]; then
       local switch_cmd="bench try switch"; [ -n "$do_lane" ] && switch_cmd="bench try lane switch"
-      die "activation from a worktree is the human's call — hand it over: '$switch_cmd' from a pane in $WT_PATH. (Plain 'bench try${do_lane:+ lane}' is yours to run freely. If they already asked you to activate: BENCH_AGENT_SWITCH=1 $switch_cmd.)"
+      die "activation from a worktree is the human's call — hand it over: '$switch_cmd' from a pane in ${WT_PATH:-this lane}. (Plain 'bench try${do_lane:+ lane}' is yours to run freely. If they already asked you to activate: BENCH_AGENT_SWITCH=1 $switch_cmd.)"
     fi
-    say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
+    if [ -n "$WT_REPO" ]; then
+      say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
+    fi
+    if [ -n "$do_lane" ]; then
+      if [ "${#LANE_SRC[@]}" -eq 0 ]; then
+        say "no holt children found for this lane — building $WT_REPO alone (same as plain 'bench try')."
+      else
+        local lane_list=""
+        for name in "${!LANE_SRC[@]}"; do lane_list+="$name "; done
+        say "lane: also overriding ${#LANE_SRC[@]} holt child(ren): $lane_list"
+      fi
+    fi
   fi
   local host; host="$(host_name)"
   ensure_perch_dev_app   # if perch is the local source, build + inject its dev app
