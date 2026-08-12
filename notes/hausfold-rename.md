@@ -161,16 +161,27 @@ One thing from §6 that survives and one that doesn't:
 
 ### Current handoff — 2026-08-12
 
-**§5.2's first landing is in: `hausfold.co/docs` exists.** The Fumadocs build,
-the theme, the CI and five of the twenty-nine pages
-([hausfold.co#11](https://github.com/hausfold/hausfold.co/pull/11)). §5.2's
-status box carries what it proved, what it changed and what is left — read that
+**§5.2's first landing is in: `hausfold.co/docs` exists**, and batch two —
+**in review, not merged** — takes it to **ten of the twenty-nine pages**. The
+Fumadocs build, the theme and the CI came with the first
+([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12), with #15
+following as the colour pass); the daily-driver
+guides — windows, apps, the terminal, theming, keybindings — come with the second
+([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)). §5.2's
+status box carries what each proved, what it changed and what is left — read that
 before assuming any bullet further down this section is still the plan. The
 three headlines: the docs are **two trees behind a sidebar switcher**
 (`/docs/haus/*`, `/docs/nebelhaus/*`), which spends "preserve slugs"; porting a
 page is a **rewrite to about half its length**, not a move; and the landing
 pages **will** become Next routes (👤, 2026-08-12), which settles the one fork
 §5.2 had left open.
+
+⚠️ **The rewrite is finding real bugs in the old pages, which is an argument for
+doing it rather than a cost of it.** Batch two's fact-check against the rice
+turned up a roster example whose launcher key an assertion refuses outright
+(`key = "e"` collides with launch mode's emoji key), and a palette binding that
+does not exist. Both were fixed in `web/` too, in the same change as this note —
+29 pages written against a moving target are 29 pages nobody has re-read since.
 
 §5.2 is still the whole of the 🤖 work left on the rename proper — it is just no
 longer untouched.
@@ -304,17 +315,25 @@ that contradicts the work in front of it.
   historical record and §5.14 is explicit about that. One banner at the top.
 - `notes/perch-monetization.md` — the support-address line.
 
-**Gate: ✅ returns nothing, verified 2026-08-08** (run from the workshop's *main*
-checkout — a workshop worktree has no `hausfold/` in it at all, so a green run
+**Gate: ✅ returns nothing, verified 2026-08-08, re-run green 2026-08-12** (run
+from the workshop's *main*
+checkout — a workshop worktree has no rice checkout in it at all, so a green run
 there proves nothing). It used to hit `go-to-market.md:117,171` and
 `hausfold/PRESENCE.md:52` — the `--exclude` is load-bearing, or this doc
 matches itself forever:
 
 ```sh
 grep -rniE "nothing in th(e|at) (nebelhaus )?family (migrates|belongs|may move)|commercial umbrella|don't put it on hausfold\.co|nebelhaus\.com/rices" \
-  notes/ hausfold/ README.md AGENTS.md --exclude=hausfold-rename.md \
+  notes/ haus/ README.md AGENTS.md --exclude=hausfold-rename.md \
   | grep -v '~~' | grep -vE ':[0-9]+:> '
 ```
+
+⚠️ **The rice's directory in that command was `hausfold/` until 2026-08-12.**
+§10 renamed the checkout to `haus/` and this gate was not updated with it, so
+for two days it emitted a `No such file or directory` warning, skipped the rice
+entirely, and greped the rest anyway — a gate that half-runs and still prints
+nothing is indistinguishable from a gate that passed. Green either way, checked
+both spellings.
 
 ⚠️ **This gate went through three wrong versions, and the third mistake is the
 instructive one.** v1 pointed at `../hausfold/` (a path that doesn't exist) with
@@ -2263,13 +2282,56 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
-#### 🟡 Status 2026-08-12 — the shell is up, the content is not
+#### 🟡 Status 2026-08-12 — the shell is up, a third of the content is
 
-**Landed** ([hausfold.co#11](https://github.com/hausfold/hausfold.co/pull/11)):
+**Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
+#15 followed with the colour pass):
 the Fumadocs build, the hausfold-styled theme, the CI, and **five** of the
 twenty-nine pages. `hausfold.co` gained a build step and kept its shape — no
 `main`, still assets-only, `public/` copied into `out/` verbatim so every
 hand-written page is served from exactly the file you edit.
+
+**In review, batch two** ([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)
+— open at the time of writing; this note is the plan of record, not a merge
+receipt): the daily-driver spine — `haus/guides/window-management`, `adding-apps`,
+`the-shell`, `theming`, and `nebelhaus/keybindings`. **Ten pages of twenty-nine**,
+1,675 source lines rewritten to 979 — **58%**, or 63% if you exclude the
+`reference/palette` that folded into `theming`. Both are above batch one's 55%,
+and the reason is what the batch contained: a cheatsheet and a field table are
+already at their floor. Four things it settled:
+
+- **Consolidation is where the real cut is, not compression.**
+  `reference/palette` folded into `theming` (its live swatch component had no
+  Fumadocs equivalent, and nebelung's own preview is one click away), and the
+  roster's field-by-field breakdown moved out of `window-management` into
+  `adding-apps` so it is stated once. Two source pages that duplicated each
+  other became one page each doing one job. Expect the same for
+  `pounce` + `reference/pounce` + `pounce-commands`, and for `ai-agent` +
+  `claude-agents`.
+- **The cheatsheet is nebelhaus's, not haus's.** `reference/keybindings` went in
+  the desktop tree — it is muscle memory, which AGENTS.md's tree rule names
+  explicitly — and it is what gives that tree a third page. The bindings are
+  still `haus.keys.*` options underneath, and the page says so.
+- 🚨 **Fact-checking each page against the rice is not optional, and it pays.**
+  Two live bugs in the old pages: `key = "e"` in two roster examples, which
+  `rosterBuiltinCollisions` asserts on (`e` is launch mode's emoji key), so a
+  reader who copied it got a failed rebuild; and a palette `Tab` binding that
+  does not exist in pounce at all. Both fixed in `web/` too, in the same change as this note.
+  Budget a clean-context verification pass per batch.
+- **A page owes an icon, and the vocabulary grows with the tree.** Five added
+  (`tiling`, `shell`, `palette`, `apps`, `keys`) — `adding-apps` can't reuse
+  `install`, because a page's icon is a claim about what the page *is* and
+  adding Slack is not installing haus. `first-run` and `the-bar` also gained the
+  doorway cards AGENTS.md requires and batch one had left off them.
+
+📌 **One follow-up this batch found and deliberately did not take, because it
+belongs in the rice**: `haus.roster.<name>.key`'s option *description* says only
+"must be unique across the roster", so the generated `reference/options.md`
+never mentions the reserved launch-mode letters either. Both prose trees now
+name them; the generated page can't be hand-edited, so the fix is one sentence
+in `haus/modules/options.nix` (where `leaderExtras.*.key` already lists them)
+and a regenerate. It is the familiar shape: a generated page looks documented
+precisely because it regenerates, and nobody re-reads what it actually says.
 
 Three of this section's own predictions were tested by doing it:
 
@@ -2310,7 +2372,7 @@ Two things this section decided that the landing **changed**:
 
 **Still open, and each is its own piece of work:**
 
-- the remaining ~24 pages, including `reference/options.md` — the generated
+- the remaining **19 source pages**, including `reference/options.md` — the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
   pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
@@ -2323,6 +2385,41 @@ Two things this section decided that the landing **changed**:
   `nebelhaus.com/init.sh`**, deliberately — it is the URL that resolves — and
   nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
   and not the other will disagree; fix it in both or in neither.
+
+##### The nineteen left, with the tree each lands in
+
+Derived after batch two, so the next session doesn't re-derive it. `→` means
+consolidate into one page. Source paths are under `web/src/content/docs/`, and
+`haus` names the layer tree — no row wants the desktop tree, which is the
+finding, not an omission. **Batch one's four sources are deliberately absent**
+(`start/install`, `start/first-run`, `start/what-is-nebelhaus`,
+`guides/the-bar`); batch two's carry a ✅ row only because they were in this
+table when it was written.
+
+| Source | Lines | Tree | Note |
+|---|---|---|---|
+| `guides/pounce` + `reference/pounce` + `guides/pounce-commands` | 315+370+173 | haus | → two at most: the launcher, and writing a command. The biggest consolidation left. |
+| `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | 215+436+110 | haus | → one "coding agents" page. `park-not-stash` is an essay about `holt park`; keep the rule, drop the argument. |
+| `guides/making-it-yours` | 472 | haus | the host-file cookbook. Check for overlap with the now-ported `adding-apps` before starting. |
+| `guides/theming` residue | — | — | ✅ done (batch two) |
+| `reference/haus` | 253 | haus | the CLI. Reference-shaped; expect it to compress least. |
+| `reference/troubleshooting` | 193 | haus | |
+| `guides/window-management` | — | — | ✅ done (batch two) |
+| `guides/leaving` | 304 | haus | uninstall. |
+| `guides/sharing-a-rice` | 211 | haus | how a *rice* is made — arguably the most decision-8-relevant page on the site. |
+| `guides/staying-in-sync` + `guides/new-mac` | 92+144 | haus | → one "keeping it current" page; both are `haus update` from different ends. |
+| `guides/hush` | 138 | haus | |
+| `guides/touch-id` | 102 | haus | |
+| `internals/flakes` | 100 | haus | |
+| `internals/contributing` | 238 | haus | contributing to the **layer**, so it names `hausfold/haus` now. |
+| `start/the-family` | 91 | — | probably dies: `/docs`'s index and hausfold.co's own front page already do this job. Decide before porting. |
+| `reference/palette` | — | — | ✅ folded into `theming` (batch two) |
+| `reference/options` | 5231 | haus | generated — the `gen-options.mjs` bullet above, not a writing job. |
+
+The desktop tree stays deliberately thin: three pages, and none of the nineteen
+adds to it — because a desktop's docs are its opinions and its muscle memory,
+not the machinery underneath. If a page seems to want both trees, AGENTS.md's
+rule applies: it is two pages.
 
 #### 🚨 Decided 2026-08-09 — the docs are rebuilt on **Fumadocs**, not ported from Starlight
 
