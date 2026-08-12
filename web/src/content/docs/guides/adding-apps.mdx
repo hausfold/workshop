@@ -416,18 +416,17 @@ If you find yourself reaching for it twice, *then* give it a roster entry.
 
 ## Tools that need a secret or an env var
 
-Some CLIs want an API key. Keep the secret **out of your Nix config** (it'd land
-in the world-readable Nix store) — read it from a file at shell startup instead:
+Some CLIs want an API key. Keep the secret **out of your Nix config** — it would
+land in the world-readable Nix store — and out of a dotfile too. The rice ships
+[secretspec](https://secretspec.dev) for exactly this:
 
-```nix
-home-manager.users.${username} = {
-  programs.zsh.initContent = lib.mkAfter ''
-    export OPENAI_API_KEY="$(cat ~/.secrets/openai 2>/dev/null)"
-  '';
-};
+```sh
+secretspec set OPENAI_API_KEY   # once — into your macOS login keychain
+secretspec run -- your-tool     # injected as an env var, for that process only
 ```
 
-The `~/.secrets/*` files stay on the machine, ungit-tracked. See
+The value never touches disk; only the *name* is declared, in a
+`secretspec.toml` you can commit. See
 [Making it yours](/guides/making-it-yours/#secrets--private-things) for the
 pattern.
 

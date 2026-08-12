@@ -39,9 +39,11 @@ The rice lives upstream. To pull new versions:
 haus update     # bump the nebelhaus pin, then rebuild
 ```
 
-This updates the `flake.lock` in `~/.config/nix` to the latest nebelhaus and
-rebuilds in one step. Because inputs are pinned, nothing changes until you run
-this — your machine stays exactly as it was until you choose to move it.
+This moves the `nebelhaus` pin in `~/.config/nix/flake.lock` — that one input,
+not the whole lock — upgrades the family's Homebrew casks and formulae alongside
+it, prints what moved upstream when it can reach GitHub, and rebuilds. Because inputs are pinned, nothing
+changes until you run this: your machine stays exactly as it was until you
+choose to move it.
 
 ## When something goes wrong
 
@@ -55,7 +57,10 @@ Every `switch` creates a new generation; `rollback` steps back to the last one
 instantly. For macOS *settings* (not packages), the APFS snapshot the installer
 took is your coarser rewind.
 
-## The full command set
+## The commands you'll reach for
+
+These are the everyday ones; [the `haus` reference](/reference/haus/) has all of
+them, including `set`, `plan`, `diff`, `capture` and `revert-settings`.
 
 | Command | What it does |
 |---|---|
@@ -69,10 +74,10 @@ took is your coarser rewind.
 | `haus btm` | On macOS Tahoe+, diagnose Background Task Management blocks on nix login items |
 
 <Aside type="tip" title="From the palette, too">
-[Pounce](/guides/pounce/) ships a **Rebuild** command — ⌘Space, type "rebuild" —
-that runs `haus rebuild` in a floating terminal, plus a "Nix Config" command
-that opens `~/.config/nix` in your editor. Handy when your hands are already on
-the launcher.
+The rice ships a **Rebuild System** command into
+[Pounce](/guides/pounce/) — ⌘Space, type "rebuild" — that runs `haus rebuild` in
+a floating terminal, plus a **Nix Config** command that opens your host file in
+your editor. Handy when your hands are already on the launcher.
 </Aside>
 
 ## Catching up on another machine
