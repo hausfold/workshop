@@ -2346,8 +2346,14 @@ budget the verification pass, it always finds something.
 
 **Landed, batch four** ([hausfold.co#19](https://github.com/hausfold/hausfold.co/pull/19)):
 the other flagged consolidation — `guides/ai-agent` + `guides/claude-agents` +
-`writing/park-not-stash` → one `haus/guides/coding-agents`, 761 source lines to
-487 (**64%**). **Eighteen of twenty-nine.** Three things it turned up:
+`writing/park-not-stash` → `haus/guides/coding-agents`, 761 source lines to 487
+(**64%**). 👤 then split it in two ([hausfold.co#20](https://github.com/hausfold/hausfold.co/pull/20)):
+`coding-agents` keeps holt (293 lines), `agent-rebuilds` takes the skill and the
+rebuild loop (202) — **the one case where the work-list's "→ one page" was wrong,
+and the tell was in the draft**: the page had to open by telling the reader it
+was two halves. Length was the symptom; different prerequisites and no shared
+vocabulary were the cause. **Eighteen of twenty-nine sources**, nineteen pages.
+Three more things it turned up:
 
 - **The consolidation was the easy half; the drift was the story.** Two
   clean-context passes (one against the rice, one against holt) returned
@@ -2452,7 +2458,7 @@ sources, plus 11 in ✅ rows, plus the 7 rowless = 29.
 | `guides/pounce` + `reference/pounce` + `guides/pounce-commands` | — | — | ✅ → `guides/pounce` + `reference/pounce` (batch three) |
 | `guides/touch-id` | — | — | ✅ done (batch three) |
 | `guides/hush` | — | — | ✅ done (batch three) |
-| `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | — | — | ✅ → one `guides/coding-agents` (batch four) |
+| `guides/ai-agent` + `guides/claude-agents` + `writing/park-not-stash` | — | — | ✅ → `guides/coding-agents` + `guides/agent-rebuilds` (batch four; drafted as one page, split on review) |
 
 The desktop tree stays deliberately thin: three pages, and none of the eleven
 adds to it — because a desktop's docs are its opinions and its muscle memory,
