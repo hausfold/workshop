@@ -132,8 +132,13 @@ no CLI to set it (`sfltool` can only dump it). So it's a one-time manual step:
 Inspect the store by hand any time with:
 
 ```sh
-sudo sfltool dumpbtm | grep -B2 -A8 -iE "nixos|darwin-store"   # look for "disallowed"
+sudo sfltool dumpbtm | grep -B2 -A8 -iE "nixos|hausfold|darwin-store"
 ```
+
+Look for `disallowed`, and search all three names — the launcher registers under
+`com.hausfold.pounce` while tiling and the bar are still `org.nixos.*`, so a
+grep for `nixos` alone reports a clean store while the launcher is the thing
+that's blocked.
 
 ## Touch ID for sudo beachballs (inside tmux/zellij)
 
@@ -182,8 +187,10 @@ entirely? [Leaving nebelhaus](/guides/leaving/) walks each exit, smallest first.
 
 ## "Found a Nix at /nix that isn't Determinate"
 
-nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/) and
-won't install on top of a stock/single-user Nix rather than risk breaking it. If
+nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/), and
+the installer stops on any `/nix` that Determinate didn't create — single-user
+or multi-user daemon install alike, it's the *flavour* it checks — rather than
+risk breaking the Nix you already have. If
 you have an existing Nix you don't need, uninstall it and re-run the one-liner;
 if you want to keep it, migrating to Determinate is the supported path. Fresh
 Macs need none of this — the bootstrap installs Determinate for you.

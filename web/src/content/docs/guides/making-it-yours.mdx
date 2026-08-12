@@ -300,6 +300,7 @@ Every room you can see has a switch:
 | perch (notch shelf) | `haus.perch.enable = false` | No shelf. The `/Applications/Perch.app` an activation copied in stays — delete it by hand |
 | hush (quiet switch) | `haus.hush.enable = false` | No bar pill, palette command or `hush` CLI |
 | collar (Touch ID sudo) | `haus.collar.enable = false` | The stock password prompt everywhere, rebuilds included |
+| the developer pack | `haus.developer.enable = false` | No language toolchains, git tooling or agent CLIs. `.git`, `.toolbelt`, `.agents` and `.languages` take one piece out at a time |
 | apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `haus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
 
 **pounce** doesn't hand its key back on the way out: turning it off does not
@@ -353,7 +354,7 @@ definitions merge, so restating a preset's own choice costs you nothing.)
 |---|---|
 | `full` | the whole rice: bar, tiling, palette, developer pack. The default. |
 | `minimal` | just the themed shell — no bar, no tiling, no palette. Still a developer machine. |
-| `everyday` | the inverse: a Mac for someone who doesn't write code. No developer pack, no Caps-Lock remap. |
+| `everyday` | the inverse: a Mac for someone who doesn't write code. No developer pack, and `prowl.enable = false` — so no tiling either, not just no Caps-Lock remap. |
 | `large-print` | bigger and sharper — the rice UI and whole display, plus the high-contrast palette and macOS's own contrast lift. |
 
 The first three are whole rices; pick one. **`large-print` is a layer** — it
