@@ -150,7 +150,6 @@ the program capturing it, and command is what makes Ghostty read a link there.
 | `⌘Return` | Modifier action (e.g. Reveal in Finder) |
 | `⌥Return` / `⌃Return` | Alternate actions (when shown) |
 | `⌥Return` *(Find Files)* | Copy the path |
-| `Tab` | Cycle sections / emoji categories |
 | `Esc` | Dismiss |
 
 ## Ghostty note
