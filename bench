@@ -16,6 +16,11 @@
 #   bench try switch    …and activate it (still no pushes; prod untouched).
 #                  Works from an agent worktree too — that's how you feel-test
 #                  one unmerged branch. `bench rebuild` puts the pinned build back.
+#   bench try lane [switch]   like `bench try`, but ALSO overrides every repo
+#                  a `holt child` spawned from this same pane — the parent
+#                  worktree plus its cross-repo lane, built (and optionally
+#                  activated) together in one rebuild. Run it from the lane's
+#                  parent worktree; no PR needed, unlike try-batch.
 #   bench try-batch [switch] [repo…]   build (or activate) EVERY open PR's
 #                  branch together on ONE throwaway integration tree per repo —
 #                  feel-test the whole review queue in a single rebuild, main
@@ -111,6 +116,9 @@ OVERRIDABLE=(nebelung pounce perch holt haus)
 # global vanishes and local_src's ${BATCH_SRC[…]:-} tries to read an unbound var.
 declare -gA BATCH_SRC=()  # repo → integration-worktree checkout it should build against
 BATCH_SCRATCH=""          # the mktemp dir holding those worktrees
+
+# bench try lane's scratch state. Same -g rationale as BATCH_SRC above.
+declare -gA LANE_SRC=()   # repo → holt-child checkout it should build against
 
 # ── Palette ──────────────────────────────────────────────────────────────────
 # Colour is a courtesy, never load-bearing. Every escape is gated: emitted only
@@ -287,12 +295,60 @@ detect_worktree() {
   done
 }
 
-local_src() { # local_src <repo> — the checkout to build against (batch- + worktree-aware)
+local_src() { # local_src <repo> — the checkout to build against (batch- + lane- + worktree-aware)
   # A try-batch integration tree wins over everything: it's the combined
-  # main+PRs checkout we deliberately built for this repo. Otherwise fall through
-  # to the active agent worktree (if this repo is it), then the main checkout.
+  # main+PRs checkout we deliberately built for this repo. Next, a lane child
+  # (bench try lane populated LANE_SRC for every holt-child repo). Otherwise
+  # fall through to the active agent worktree (if this repo is it), then the
+  # main checkout.
   if [ -n "${BATCH_SRC[$1]:-}" ]; then echo "${BATCH_SRC[$1]}"; return; fi
+  if [ -n "${LANE_SRC[$1]:-}" ]; then echo "${LANE_SRC[$1]}"; return; fi
   if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else repo_dir "$1"; fi
+}
+
+# bench try lane: build+activate a whole holt lane together — this pane's own
+# worktree (already handled by WT_REPO/WT_PATH above) PLUS every `holt child`
+# worktree spawned from it, however many repos it touches. holt's registry
+# only records a one-hop parent pointer per row (the spawning pane's own
+# checkout path) — never a children list, deliberately (that's holt's own
+# scope boundary). So the walk lives here: read every row, and starting from
+# THIS pane's checkout, transitively pull in any row whose `parent` matches a
+# path already found — a child's child included, not just direct children.
+#
+# lane_paths prints one checkout path per line: self, then every descendant,
+# BFS order. A `seen` set makes it cycle-safe even though holt shouldn't ever
+# produce one (a child's parent is strictly an earlier pane).
+lane_paths() { # lane_paths <self-checkout-path>
+  local self="$1"
+  [ -f "$WT_REGISTRY" ] || { echo "$self"; return; }
+  awk -F'\t' -v self="$self" '
+    { main[$4] = $2; parent[$4] = $5 }
+    END {
+      queue[1] = self; n = 1; seen[self] = 1
+      for (i = 1; i <= n; i++) {
+        cur = queue[i]
+        for (path in parent) {
+          if (parent[path] == cur && !(path in seen)) {
+            seen[path] = 1; n++; queue[n] = path
+          }
+        }
+      }
+      for (i = 1; i <= n; i++) print queue[i]
+    }
+  ' "$WT_REGISTRY"
+}
+
+detect_lane() { # populate LANE_SRC with every holt-child of THIS pane's worktree
+  local self path row_main name
+  self="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
+  while IFS= read -r path; do
+    [ -n "$path" ] && [ "$path" != "$self" ] || continue   # self is WT_REPO/WT_PATH already
+    row_main="$(awk -F'\t' -v p="$path" '$4 == p { print $2; exit }' "$WT_REGISTRY" 2>/dev/null)"
+    [ -n "$row_main" ] || continue
+    for name in "${FAMILY[@]}"; do
+      [ "$row_main" = "$(repo_dir "$name")" ] && { LANE_SRC["$name"]="$path"; break; }
+    done
+  done < <(lane_paths "$self")
 }
 
 # ── who is driving? ─────────────────────────────────────────────────────────
@@ -748,8 +804,20 @@ active_banner() { # the loud "you are running unpushed code" block, post-switch
 }
 
 cmd_try() {
+  local do_lane=""; [ "${1:-}" = "lane" ] && { do_lane=1; shift; }
   local do_switch=""; [ "${1:-}" = "switch" ] && do_switch=1
   detect_worktree
+  if [ -n "$do_lane" ]; then
+    [ -n "$WT_REPO" ] || die "bench try lane must be run from inside an agent worktree — it's the lane's parent, so there's nothing to walk from the main checkout."
+    detect_lane
+    if [ "${#LANE_SRC[@]}" -eq 0 ]; then
+      say "no holt children found for this lane — building $WT_REPO alone (same as plain 'bench try')."
+    else
+      local lane_list=""
+      for name in "${!LANE_SRC[@]}"; do lane_list+="$name "; done
+      say "lane: overriding $WT_REPO ($WT_PATH) plus ${#LANE_SRC[@]} holt child(ren): $lane_list"
+    fi
+  fi
   if [ -n "$WT_REPO" ]; then
     # Activating a worktree branch is fine and often exactly what you want —
     # it's the ONLY way to feel-test one unmerged branch on its own (try-batch
@@ -759,7 +827,8 @@ cmd_try() {
     # pane's switch silently replaces the fourth's. See agent_driving().
     # Checked before anything slow, so the refusal costs nothing.
     if [ -n "$do_switch" ] && agent_driving && [ -z "${BENCH_AGENT_SWITCH:-}" ]; then
-      die "activation from a worktree is the human's call — hand it over: 'bench try switch' from a pane in $WT_PATH. (Plain 'bench try' is yours to run freely. If they already asked you to activate: BENCH_AGENT_SWITCH=1 bench try switch.)"
+      local switch_cmd="bench try switch"; [ -n "$do_lane" ] && switch_cmd="bench try lane switch"
+      die "activation from a worktree is the human's call — hand it over: '$switch_cmd' from a pane in $WT_PATH. (Plain 'bench try${do_lane:+ lane}' is yours to run freely. If they already asked you to activate: BENCH_AGENT_SWITCH=1 $switch_cmd.)"
     fi
     say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
   fi
@@ -777,7 +846,7 @@ cmd_try() {
     warn "when happy: commit, land the branch via its PR, then bench ship —"
     warn "so a plain rebuild reproduces what you're running."
   else
-    say "to activate it too: bench try switch"
+    say "to activate it too: bench try${do_lane:+ lane} switch"
   fi
 }
 
@@ -1691,7 +1760,7 @@ cmd_clone() {
 if [ "${HAUS_LIB:-}" != "1" ]; then
 case "${1:-status}" in
   status)  cmd_status ;;
-  try)     cmd_try "${2:-}" ;;
+  try)     shift; cmd_try "$@" ;;
   try-batch) shift; cmd_try_batch "$@" ;;
   ship)    cmd_ship ;;
   rebuild) cmd_rebuild ;;

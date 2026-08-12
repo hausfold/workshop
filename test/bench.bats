@@ -213,6 +213,86 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [[ "$output" == *"--override-input nebelhaus path:$ROOT/haus"* ]]
 }
 
+# ── bench try lane: build a pane's worktree + every holt-child alongside it ────
+#
+# holt's registry only ever records a ONE-HOP parent pointer per row (the
+# spawning pane's own checkout path) — never a children list, deliberately.
+# lane_paths/detect_lane do the walk bench-side: start at a checkout, pull in
+# any row whose `parent` matches something already found, transitively.
+
+@test "local_src prefers a lane child checkout over its main checkout" {
+  LANE_SRC[holt]="/tmp/lane/holt"
+  WT_REPO="pounce" WT_PATH="/tmp/wt/pounce"
+  run local_src holt
+  [ "$output" = "/tmp/lane/holt" ]
+  # the active worktree's own repo is untouched by LANE_SRC…
+  run local_src pounce
+  [ "$output" = "/tmp/wt/pounce" ]
+  # …and an uninvolved repo still falls back to its main checkout.
+  run local_src perch
+  [ "$output" = "$ROOT/perch" ]
+}
+
+@test "local_src prefers a batch integration checkout over a lane child" {
+  BATCH_SRC[holt]="/tmp/batch/holt"
+  LANE_SRC[holt]="/tmp/lane/holt"
+  run local_src holt
+  [ "$output" = "/tmp/batch/holt" ]
+}
+
+@test "overrides points a lane child at its checkout, honouring the active worktree too" {
+  WT_REPO="pounce" WT_PATH="/tmp/wt/pounce"
+  LANE_SRC[haus]="/tmp/lane/haus"
+  run overrides
+  [[ "$output" == *"--override-input nebelhaus path:/tmp/lane/haus"* ]]
+  [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/wt/pounce"* ]]
+  [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
+}
+
+mkregistry() { # mkregistry <file> <row>... — one "name main branch path parent agent" per row
+  local file="$1"; shift
+  : >"$file"
+  local row
+  for row in "$@"; do printf '%s\n' "$row" | tr ' ' '\t' >>"$file"; done
+}
+
+@test "lane_paths returns just self when there's no registry" {
+  WT_REGISTRY="$TMP/no-such-registry.tsv"
+  run lane_paths /tmp/wt/pounce
+  [ "$output" = "/tmp/wt/pounce" ]
+}
+
+@test "lane_paths walks holt-child rows transitively, ignoring unrelated ones" {
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "child1 $ROOT/haus worktree-child1 /tmp/wt/haus /tmp/wt/pounce claude" \
+    "grandchild $ROOT/nebelung worktree-grandchild /tmp/wt/nebelung /tmp/wt/haus claude" \
+    "other $ROOT/perch worktree-other /tmp/wt/perch /tmp/some-other-pane claude"
+  run lane_paths /tmp/wt/pounce
+  [[ "$output" == *"/tmp/wt/pounce"* ]]
+  [[ "$output" == *"/tmp/wt/haus"* ]]
+  [[ "$output" == *"/tmp/wt/nebelung"* ]]
+  [[ "$output" != *"/tmp/wt/perch"* ]]
+}
+
+@test "detect_lane populates LANE_SRC for every holt child, mapped to its family repo" {
+  mkmain pounce
+  # detect_lane's self-lookup is `git rev-parse --show-toplevel` (no -C), which
+  # resolves symlinks (/tmp → /private/tmp on macOS) — match that here, exactly
+  # like BATCH_SCRATCH's `pwd -P` does elsewhere in bench, or self never matches
+  # the registry row bats' own $TMP wrote with the unresolved path.
+  local self; self="$(cd "$ROOT/pounce" && git rev-parse --show-toplevel)"
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "child1 $ROOT/haus worktree-child1 $ROOT/haus-child $self claude" \
+    "grandchild $ROOT/nebelung worktree-grandchild $ROOT/nebelung-child $ROOT/haus-child claude" \
+    "other $ROOT/perch worktree-other $ROOT/perch-other /some/other/pane claude"
+  cd "$ROOT/pounce" && detect_lane
+  [ "${LANE_SRC[haus]}" = "$ROOT/haus-child" ]
+  [ "${LANE_SRC[nebelung]}" = "$ROOT/nebelung-child" ]
+  [ -z "${LANE_SRC[perch]:-}" ]
+}
+
 # ── version_file / read_version: the release tag source (regression: $verfile) ─
 
 @test "version_file locates pounce's version source" {
