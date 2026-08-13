@@ -20,7 +20,7 @@ The missing half was knowledge. So the rice ships it.
 ## What's installed
 
 Every rebuild writes a **skill** called `haus` into the skills directory of
-every client in `haus.agents.clients` — `~/.claude/skills/haus` for Claude Code,
+every client in `haus.ai.clients` — `~/.claude/skills/haus` for Claude Code,
 `~/.codex/skills/haus` for Codex, `~/.config/opencode/skills/haus` for OpenCode.
 One body, one copy per client:
 
@@ -157,7 +157,7 @@ tools and not others.
 ## Other tools, and before you've installed
 
 The skill only exists on a machine that has already switched in at least once,
-and for the clients you've named in `haus.agents.clients` (or all three, if you
+and for the clients you've named in `haus.ai.clients` (or all three, if you
 named none). For everything
 else — a different AI tool, or someone asking about nebelhaus before they own
 it — this site publishes itself in machine-readable form:
@@ -174,17 +174,17 @@ place, see [Installing with an agent](/start/install/#installing-with-an-agent).
 ## Turning it off
 
 ```nix
-haus.agents.skill = false;
+haus.ai.skill = false;
 ```
 
 The option exists so each client's skills directory stays yours if you'd rather
 manage it by hand. (Naming no clients at all is *not* the same switch: with
-`haus.agents.clients` empty, all three clients get a copy of the skill, so it is
+`haus.ai.clients` empty, all three clients get a copy of the skill, so it is
 never the missing piece.)
 
 ## Your own instructions, for every client
 
-`haus.agents.instructions` is the other half of what the rice ships into an
+`haus.ai.instructions` is the other half of what the rice ships into an
 agent's home: your own always-on operating context, written once per installed
 client at the path that client reads — `~/.claude/CLAUDE.md`,
 `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md` — with a short rice-owned
@@ -192,7 +192,7 @@ preamble on top (a note that the file is generated and where to actually edit
 it, plus the `holt` worktree etiquette).
 
 ```nix
-haus.agents.instructions = ''
+haus.ai.instructions = ''
   # Global instructions
 
   Ship small, verified changes. Ask before anything hard to reverse…

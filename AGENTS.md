@@ -149,7 +149,7 @@ Never hand-walk that ripple; the tooling does it:
 ## Agent worktrees (parallel agent sessions)
 
 Agent panes spawned with `Super a` (⌘A) run whichever client
-`haus.agents.default` names — `claude`, `codex` or `opencode`. Claude Code
+`haus.ai.default` names — `claude`, `codex` or `opencode`. Claude Code
 is the only one that can make its own worktree (`claude --worktree`, its native
 flag, which fires the `WorktreeCreate` hook → **`holt hook create`**); for Codex
 and OpenCode the keybind runs **`holt new`** instead, producing the identical
