@@ -97,7 +97,7 @@ repo's zellij tab.
 Set the client declaratively:
 
 ```nix
-haus.agents.default = "codex"; # or "claude" (default), or "opencode"
+haus.ai.default = "codex"; # or "claude" (default), or "opencode"
 ```
 
 `holt` records that client with the worktree. Changing the option therefore only
@@ -114,10 +114,10 @@ be a child of — same worktree, named after your prompt.
 A separate option says which clients are **installed**:
 
 ```nix
-haus.agents.clients = [ "claude" "opencode" ];
+haus.ai.clients = [ "claude" "opencode" ];
 ```
 
-That pair is the default **only while `haus.agents.enable` is on** (it still
+That pair is the default **only while `haus.ai.enable` is on** (it still
 follows `haus.developer.enable`, so turning the developer pack off takes the AI
 room with it). With the AI room off the list is empty, and setting it anyway is
 a build error rather than a half-wired machine.

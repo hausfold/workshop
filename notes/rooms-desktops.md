@@ -271,7 +271,7 @@ together even if preparatory refactors land earlier.
 Reported rather than folded into that step's scope, because each one changes
 what a LATER step has to do.
 
-- **[3] The AI room defaults to another room's switch.** `haus.agents.enable`
+- **[3] The AI room defaults to another room's switch.** `haus.ai.enable`
   keeps `developer.enable` as its default, which is the exact "rooms do not
   silently enable each other" violation the model forbids. Step 2 could not fix
   it: a neutral default there is a behaviour change, and the value that replaces
@@ -288,7 +288,7 @@ what a LATER step has to do.
   ownership, the assertions and the contributions moved. `holt`, `agent-state`
   and the statusline are still system packages written by `den`; the clients,
   the instructions/skill files and the per-client hook wiring are still home
-  ones written by `hearth`. Both are now gated on `haus.agents.enable`. Moving a
+  ones written by `hearth`. Both are now gated on `haus.ai.enable`. Moving a
   package between a system and a home profile is an install change rather than a
   refactor, so it waits for step 4's projection comparator to prove it moved for
   free.
@@ -305,6 +305,13 @@ what a LATER step has to do.
   `developer.agents.enable` only because that is where the switch lived; nothing
   about a throwaway zellij session is about coding agents. It follows
   `developer.enable` now, beside `nixfmt`.
+- **[2] The room took the whole namespace, with no aliases.** `haus.agents.*`
+  became `haus.ai.*` and `haus.developer.agents.enable` became `haus.ai.enable`;
+  neither old spelling is aliased. The rice has one consumer and its host moved
+  in the same change, so an alias set for a five-day-old spelling would be
+  permanent furniture bought to protect nobody. The `nebelhaus.*` aliases still
+  resolve — they were repointed at `haus.ai.*`, since an alias follows its option
+  rather than being re-created at every address it passes through.
 
 ### Agent status report
 

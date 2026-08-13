@@ -31,14 +31,14 @@ nebelhaus, you only ever need the first one:
 | Command | You reach for it to… | Works on | Ships in |
 |---|---|---|---|
 | **`haus`** | drive your own machine — [rebuild, update, roll back, diagnose](/reference/haus/) | your Mac (`~/.config/nix`) | the desktop — every install has it |
-| **`holt`** | manage [agent worktrees](/guides/claude-agents/) — safe parallel agents, resumable panes | any git repo | the desktop — with `haus.agents.enable` |
+| **`holt`** | manage [agent worktrees](/guides/claude-agents/) — safe parallel agents, resumable panes | any git repo | the desktop — with `haus.ai.enable` |
 | **`bench`** | [move a change across the family repos](/internals/contributing/) — try, ship, release | the workshop checkouts | the workshop — contributors only |
 | **`zscratch`** | [feel-test a zellij edit](/internals/contributing/#feel-testing-a-zellij-edit-zscratch) with no rebuild | the desktop's zellij config | the desktop — with `haus.developer.enable` |
 
 `haus` and `bench` never overlap — they're named differently on purpose so they
 can't shadow each other. `haus` knows only *your machine*; `bench` knows only
 *the family repos*. Both of the others are dev tools the desktop puts on your
-`PATH`: `holt` with the AI room (`haus.agents.enable`), `zscratch` with the
+`PATH`: `holt` with the AI room (`haus.ai.enable`), `zscratch` with the
 developer pack (`haus.developer.enable`). `holt` especially is worth
 knowing for **anyone** who runs a coding agent. It's the one
 that isn't really nebelhaus's at all: [its own

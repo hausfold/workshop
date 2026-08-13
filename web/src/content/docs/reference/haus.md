@@ -97,7 +97,7 @@ silence the warnings. Those prefix aliases go away once the last configuration
 has moved, so treat them as a grace period rather than a second spelling.
 
 Options that moved *within* `haus.*` — `haus.claude.globalMd` →
-`haus.agents.instructions`, `haus.claude.skill` → `haus.agents.skill`
+`haus.ai.instructions`, `haus.claude.skill` → `haus.ai.skill`
 (2026-08-11) — are aliased separately and carry **no** removal date.
 :::
 
@@ -251,7 +251,7 @@ more, each for a different job — see [the CLIs at a glance](/start/the-family/
 for the full map:
 
 - **[`holt`](/guides/claude-agents/)** — agent worktrees (Claude Code, Codex, OpenCode) for any repo.
-  On your `PATH` once `haus.agents.enable` is on, and useful to anyone who runs
+  On your `PATH` once `haus.ai.enable` is on, and useful to anyone who runs
   a coding agent, contributor or not.
 - **[`bench`](/internals/contributing/)** — the contributor CLI in the workshop
   checkout: `try`, `ship`, `release` for moving changes between the family's repos.
