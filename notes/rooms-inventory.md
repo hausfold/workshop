@@ -16,7 +16,7 @@ The bounded surface contains:
 - 34 generated group records — `zen` is the one namespace with no record;
 - 25 public paths ending in `.enable`;
 - 142 lexical `config.haus.<namespace>` matches in implementation Nix files;
-- 193 desktop-safe entries, 40 host-only entries and 4 recursively classified
+- 189 desktop-safe entries, 40 host-only entries and 8 recursively classified
   containers/dynamic entries under the baseline rules below;
 - 54 defaults that encode a nebelhaus opinion and 183 generic mechanism or
   conservative defaults.
@@ -210,11 +210,11 @@ counts partition the generated entries in that row.
 | `apps` | 2 | room | Apps | 2 / 0 / 0 | 2 |
 | `collar` | 2 | room | Security | 2 / 0 / 0 | 2 |
 | `developer` | 5 | room | Development | 5 / 0 / 0 | 3 |
-| `displays` | 2 | room | Displays | 0 / 0 / 2 | 0 |
+| `displays` | 2 | room | Displays | 1 / 0 / 1 | 0 |
 | `fonts` | 4 | room | Appearance | 3 / 1 / 0 | 2 |
 | `git` | 5 | host | host identity/work scope | 0 / 5 / 0 | 0 |
 | `hearth` | 7 | room | Development | 5 / 2 / 0 | 4 |
-| `homebrew` | 3 | shared | package/install policy | 3 / 0 / 0 | 0 |
+| `homebrew` | 3 | room | Apps | 3 / 0 / 0 | 0 |
 | `hotCorners` | 4 | room | Windows | 4 / 0 / 0 | 0 |
 | `hush` | 7 | room | Focus | 5 / 2 / 0 | 1 |
 | `keys` | 7 | shared | keyboard extension surface | 5 / 1 / 1 | 3 |
@@ -222,23 +222,23 @@ counts partition the generated entries in that row.
 | `lock` | 2 | room | Security | 2 / 0 / 0 | 0 |
 | `menuBar` | 12 | room | Bar | 12 / 0 / 0 | 0 |
 | `perch` | 2 | room | Shelf | 2 / 0 / 0 | 1 |
-| `pounce` | 14 | room | Launcher | 13 / 1 / 0 | 2 |
+| `pounce` | 14 | room | Launcher | 12 / 1 / 1 | 2 |
 | `power` | 8 | host | host power policy | 0 / 8 / 0 | 0 |
 | `prowl` | 1 | room | Windows | 1 / 0 / 0 | 1 |
 | `roster` | 16 | shared | app/package roster | 13 / 2 / 1 | 0 |
 | `screenshots` | 5 | room | Appearance | 4 / 1 / 0 | 0 |
 | `secrets` | 1 | room | Security | 0 / 1 / 0 | 0 |
 | `security` | 5 | room | Security | 5 / 0 / 0 | 0 |
-| `sill` | 59 | room | Bar | 57 / 2 / 0 | 13 |
-| `snippets` | 4 | room | Text expansion | 4 / 0 / 0 | 0 |
+| `sill` | 59 | room | Bar | 56 / 2 / 1 | 13 |
+| `snippets` | 4 | room | Text expansion | 3 / 0 / 1 | 0 |
 | `sound` | 5 | room | Appearance | 5 / 0 / 0 | 0 |
 | `theme` | 5 | room | Appearance | 5 / 0 / 0 | 4 |
-| `tour` | 4 | shared | first-run extension surface | 4 / 0 / 0 | 1 |
+| `tour` | 4 | shared | first-run extension surface | 3 / 0 / 1 | 1 |
 | `ui` | 1 | shared | semantic interface scale | 1 / 0 / 0 | 0 |
 | `wallpaper` | 19 | room | Appearance | 19 / 0 / 0 | 13 |
-| `workspaces` | 4 | shared | window/app/bar workspace model | 4 / 0 / 0 | 0 |
+| `workspaces` | 4 | shared | window/app/bar workspace model | 3 / 0 / 1 | 0 |
 | `zen` | 8 | room | Development | 1 / 7 / 0 | 0 |
-| **Total** | **237** | 27 room / 5 shared / 3 host | 12 rooms plus host/shared surfaces | **193 / 40 / 4** | **54** |
+| **Total** | **237** | 27 room / 5 shared / 3 host | 12 rooms plus host/shared surfaces | **189 / 40 / 8** | **54** |
 
 The current `groups.json` has one row for every namespace above except `zen`.
 That is permitted by today's renderer fallback, but Step 1 must make it an
@@ -270,16 +270,20 @@ namespace label.
 | `haus.zen.extensions` plus its five reachable child entries | 6 | downloads executable browser code; the container is transitively unsafe |
 | `haus.zen.extraPolicies` | 1 | unconstrained freeform attrset |
 
-### Recursive/dynamic entries (4)
+### Recursive/dynamic entries (8)
 
 | Path | Rule |
 |---|---|
-| `haus.displays` | recursively validate selectors and sub-options |
-| `haus.displays.<name>.uiScale` | `internal` and `main` are desktop-safe semantic selectors; a UUID is host-only |
+| `haus.displays` | validate selector keys recursively; `internal` and `main` are desktop-safe while a UUID is host-only |
 | `haus.keys.leaderExtras` | empty is safe; any valid entry reaches the host-only required `command` leaf |
+| `haus.pounce.items` | validate each launcher item against its closed submodule schema |
 | `haus.roster` | arbitrary entry names are allowed, but every child is checked; `package` and `installedBy` remain host-only |
+| `haus.sill.media.icons` | validate arbitrary icon keys with string-only values |
+| `haus.snippets.matches` | validate each match against its closed submodule schema |
+| `haus.tour.steps` | validate each tour step against its closed submodule schema |
+| `haus.workspaces` | validate arbitrary workspace names against their closed entry schema |
 
-Every other generated entry is desktop-safe (193). In particular, constrained
+Every other generated entry is desktop-safe (189). In particular, constrained
 roster source names (`cask`, `brew`, `packageName`, `appStoreId`), finite enums,
 plain presentation strings, built-in room switches and recursively closed
 submodules remain expressible by a desktop.
@@ -310,9 +314,13 @@ jq '
     or (.key == "haus.zen.extraPolicies");
   def recursive:
     (.key == "haus.displays")
-    or (.key == "haus.displays.<name>.uiScale")
     or (.key == "haus.keys.leaderExtras")
-    or (.key == "haus.roster");
+    or (.key == "haus.pounce.items")
+    or (.key == "haus.roster")
+    or (.key == "haus.sill.media.icons")
+    or (.key == "haus.snippets.matches")
+    or (.key == "haus.tour.steps")
+    or (.key == "haus.workspaces");
   to_entries | {
     host_only: ([.[] | select(host_only)] | length),
     recursive: ([.[] | select(recursive)] | length),

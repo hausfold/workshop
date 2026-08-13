@@ -29,7 +29,7 @@ Your commit identity, plus the GitHub owner this machine's work lives under — 
 
 ### `haus.git.email`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 Git user.email for commits.
 
@@ -43,7 +43,7 @@ Example:
 
 ### `haus.git.name`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 Git user.name for commits (hearth wires it into home-manager).
 
@@ -57,7 +57,7 @@ Example:
 
 ### `haus.git.org`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 The GitHub owner whose repos this machine works on. An organisation,
 or your own account: GitHub's issue search treats `org:<user>` the
@@ -96,7 +96,7 @@ Example:
 
 ### `haus.git.shellAliases`
 
-`attribute set of (null or string)` · default `{ }`
+`attribute set of (null or string)` · default `{ }` · host-only
 
 Per-host additions and overrides for Hearth's built-in Git shell
 aliases. Values are shell command strings; null removes a built-in.
@@ -118,7 +118,7 @@ Example:
 
 ### `haus.git.signingKey`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 GPG key id for signing commits/tags. Empty disables commit signing.
 Key material + any YubiKey/smartcard setup live outside Nix
@@ -138,7 +138,7 @@ One list of everything this machine has — apps, fonts, command-line tools. Eac
 
 ### `haus.roster`
 
-`attribute set of (submodule)` · default `{ }`
+`attribute set of (submodule)` · default `{ }` · desktop-safe after `roster-entries` validation
 
 The one list of things this machine has, keyed by a stable id. It is
 the canonical, composable source for AeroSpace launcher keys, the
@@ -191,7 +191,7 @@ Example:
 
 ### `haus.roster.<name>.appId`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 Bundle id, used for the AeroSpace `on-window-detected` auto-assign
 rule (when this app is a member of a `haus.workspaces` entry),
@@ -209,7 +209,7 @@ Example:
 
 ### `haus.roster.<name>.appStoreId`
 
-`null or signed integer` · default `null`
+`null or signed integer` · default `null` · desktop-safe
 
 Mac App Store numeric app id (the digits in its store URL), so an
 App Store app is declared in the same roster as everything else
@@ -232,7 +232,7 @@ Example:
 
 ### `haus.roster.<name>.brew`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 Homebrew FORMULA that installs this entry, appended to
 homebrew.brews. For the command-line half of the roster — a tool
@@ -249,7 +249,7 @@ Example:
 
 ### `haus.roster.<name>.cask`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 Homebrew cask that installs this app. When set, it's appended to
 homebrew.casks so declaring the app also installs it. null means
@@ -265,7 +265,7 @@ Example:
 
 ### `haus.roster.<name>.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Whether this app participates in the shared launcher roster.
 
@@ -273,7 +273,7 @@ Whether this app participates in the shared launcher roster.
 
 ### `haus.roster.<name>.float`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Always float this app's windows instead of tiling them — an
 AeroSpace `on-window-detected` rule generated from `appId`
@@ -286,7 +286,7 @@ work inside. Requires `appId`; ignored (with a warning) without it.
 
 ### `haus.roster.<name>.installedBy`
 
-`null or string` · default `null`
+`null or string` · default `null` · host-only
 
 The nebelhaus module that puts this app on disk, when none of the
 four sources above describes it: pounce and perch copy a
@@ -309,7 +309,7 @@ Example:
 
 ### `haus.roster.<name>.key`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 The leader letter for this app: tap Caps Lock then this key to
 launch/focus it. Must be unique across the roster, and not one of
@@ -332,7 +332,7 @@ Example:
 
 ### `haus.roster.<name>.label`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 Cheatsheet caption for the leader key. null uses name.
 
@@ -346,7 +346,7 @@ Example:
 
 ### `haus.roster.<name>.name`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 macOS application name, as passed to `open -a`. Required when
 `key` is set (the launcher has nothing to open otherwise);
@@ -363,7 +363,7 @@ Example:
 
 ### `haus.roster.<name>.order`
 
-`signed integer` · default `1000`
+`signed integer` · default `1000` · desktop-safe
 
 Roster order; lower values appear first. Ties are sorted by app id.
 
@@ -371,7 +371,7 @@ Roster order; lower values appear first. Ties are sorted by app id.
 
 ### `haus.roster.<name>.package`
 
-`null or package` · default `null`
+`null or package` · default `null` · host-only
 
 Nixpkgs package that installs this entry. Where it lands is
 `scope`'s call.
@@ -389,7 +389,7 @@ pkgs.orbstack
 
 ### `haus.roster.<name>.packageName`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 The same source as `package`, NAMED rather than evaluated: an
 attribute path into nixpkgs, so "orbstack" means `pkgs.orbstack` and
@@ -415,7 +415,7 @@ Example:
 
 ### `haus.roster.<name>.scope`
 
-`one of "user", "system"` · default `"user"`
+`one of "user", "system"` · default `"user"` · desktop-safe
 
 Which profile `package` installs into.
 
@@ -435,7 +435,7 @@ Ignored when `package` is null — Homebrew has no such split.
 
 ### `haus.roster.<name>.titleRegex`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 Scope `float` to windows of this app whose title matches this
 regex (AeroSpace's `window-title-regex-substring`), instead of
@@ -462,7 +462,7 @@ The named AeroSpace workspaces this machine declares, and which roster apps live
 
 ### `haus.workspaces`
 
-`attribute set of (submodule)` · default `{ }`
+`attribute set of (submodule)` · default `{ }` · desktop-safe after `workspace-entries` validation
 
 AeroSpace workspaces this machine names on purpose, keyed by the
 workspace id AeroSpace itself will use (any string it accepts as a
@@ -503,7 +503,7 @@ Example:
 
 ### `haus.workspaces.<name>.apps`
 
-`list of string` · default `[ ]`
+`list of string` · default `[ ]` · desktop-safe
 
 `haus.roster` app ids that live on this workspace: each
 one's window auto-moves here (via its `appId`), opening any of
@@ -535,7 +535,7 @@ Example:
 
 ### `haus.workspaces.<name>.icon`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 The SketchyBar workspace-pill glyph. A sketchybar-app-font
 ligature like ":slack:" renders a logo; any other string is
@@ -552,7 +552,7 @@ Example:
 
 ### `haus.workspaces.<name>.key`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 Leader then ⇧<key> throws the focused window to this workspace
 and follows it there (AeroSpace's `move-node-to-workspace
@@ -579,7 +579,7 @@ Whether a rebuild may install the roster's `appStoreId` entries. Off by default:
 
 ### `haus.appStore.install`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Install roster entries that set `appStoreId` from the Mac App
 Store during activation, skipping any already installed.
@@ -606,7 +606,7 @@ The apps the rice picks for you, and the file types they claim — the ones a fi
 
 ### `haus.apps.videoPlayer.claimFileTypes`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Make IINA the default handler for the everyday video extensions —
 mp4, m4v, mov, mpg, mpeg, mkv, webm, avi, wmv, flv, 3gp, ogv, vob —
@@ -638,7 +638,7 @@ install the app and leave every association alone.
 
 ### `haus.apps.videoPlayer.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Install IINA — the rice's video player — as the roster entry `iina`.
 A nixpkgs build, so it lands in ~/Applications/Home Manager Apps
@@ -663,7 +663,7 @@ Colour: the palette's flavour and contrast, the accent every themed tool spends,
 
 ### `haus.theme.accent`
 
-`one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"mauve"`
+`one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"mauve"` · desktop-safe
 
 The accent colour, by Catppuccin name (the Nebelung palette is a
 grey-tinted Catppuccin, so the fourteen names are the same in both
@@ -724,7 +724,7 @@ Example:
 
 ### `haus.theme.contrast`
 
-`one of "normal", "high"` · default `"normal"`
+`one of "normal", "high"` · default `"normal"` · desktop-safe
 
 How far the interface separates from its background.
 
@@ -761,7 +761,7 @@ Example:
 
 ### `haus.theme.flavor`
 
-`one of "mocha", "latte"` · default `"mocha"`
+`one of "mocha", "latte"` · default `"mocha"` · desktop-safe
 
 Light or dark. "mocha" (the default) is the rice as it has always been;
 "latte" is light mode.
@@ -816,7 +816,7 @@ Example:
 
 ### `haus.theme.ports.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Theme the apps in your roster (`haus.roster`) that Nebelung ships a
 port for, without wiring each one by hand.
@@ -846,7 +846,7 @@ half-applying someone's config is worse than saying so.
 
 ### `haus.theme.systemAppearance`
 
-`one of "unmanaged", "flavor", "light", "dark"` · default `"unmanaged"`
+`one of "unmanaged", "flavor", "light", "dark"` · default `"unmanaged"` · desktop-safe
 
 Whether the rice also sets macOS's OWN Light/Dark appearance — the one
 in System Settings ▸ Appearance, which paints Finder, the menu bar and
@@ -908,7 +908,7 @@ The desktop behind everything. `minimal` is generated on this machine — a flat
 
 ### `haus.wallpaper.background`
 
-`null or string matching the pattern #[0-9a-fA-F]{6}` · default `null`
+`null or string matching the pattern #[0-9a-fA-F]{6}` · default `null` · desktop-safe
 
 The field colour, as a literal hex — an escape hatch out of the palette
 for a desktop that wants a colour the rice doesn't have.
@@ -927,7 +927,7 @@ Example:
 
 ### `haus.wallpaper.debug.enable`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Print this machine's lock edges in the bottom-left corner — which
 revision of each family repo the running system was built from.
@@ -948,7 +948,7 @@ true
 
 ### `haus.wallpaper.debug.inputs`
 
-`list of string` · default `[ "self" "nebelung" "pounce" "perch" "holt" ]`
+`list of string` · default `[ "self" "nebelung" "pounce" "perch" "holt" ]` · desktop-safe
 
 Which flake inputs the band names, in the order it prints them. `self`
 is the rice itself and prints as `haus`; every other entry is an input
@@ -972,7 +972,7 @@ Example:
 
 ### `haus.wallpaper.debug.inset`
 
-`null or (unsigned integer, meaning >=0)` · default `null`
+`null or (unsigned integer, meaning >=0)` · default `null` · desktop-safe
 
 How far in from the bottom-left corner the band sits, in PICTURE
 PIXELS.
@@ -997,7 +997,7 @@ Example:
 
 ### `haus.wallpaper.debug.size`
 
-`integer or floating point number between 0.002 and 0.1 (both inclusive)` · default `0.011`
+`integer or floating point number between 0.002 and 0.1 (both inclusive)` · default `0.011` · desktop-safe
 
 The band's type size, as a fraction of the picture's short edge. It is
 set in haus.fonts.mono, so the desktop and the terminal in front of it
@@ -1013,7 +1013,7 @@ Example:
 
 ### `haus.wallpaper.depth`
 
-`integer between 0 and 5 (both inclusive)` · default `1`
+`integer between 0 and 5 (both inclusive)` · default `1` · desktop-safe
 
 How far in from the palette's outermost tone the field sits — the
 answer to "I want it blacker" without anyone having to name a colour.
@@ -1063,7 +1063,7 @@ Example:
 
 ### `haus.wallpaper.glow.color`
 
-`null or string matching the pattern #[0-9a-fA-F]{6}` · default `null`
+`null or string matching the pattern #[0-9a-fA-F]{6}` · default `null` · desktop-safe
 
 The colour the bloom tends towards at its centre. Null takes
 haus.theme.accent's hex, which is what makes the desktop change
@@ -1079,7 +1079,7 @@ Example:
 
 ### `haus.wallpaper.glow.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 A single broad bloom behind the mark, so the field reads as lit rather
 than as a fill. Subtle by construction — see `glow.strength`.
@@ -1088,7 +1088,7 @@ than as a fill. Subtle by construction — see `glow.strength`.
 
 ### `haus.wallpaper.glow.spread`
 
-`integer or floating point number between 0.2 and 4.0 (both inclusive)` · default `1.15`
+`integer or floating point number between 0.2 and 4.0 (both inclusive)` · default `1.15` · desktop-safe
 
 The bloom's diameter, as a multiple of the picture's long edge. Above 1
 its falloff runs off the edges and the field reads as evenly lit from
@@ -1104,7 +1104,7 @@ Example:
 
 ### `haus.wallpaper.glow.strength`
 
-`integer between 0 and 100 (both inclusive)` · default `3`
+`integer between 0 and 100 (both inclusive)` · default `3` · desktop-safe
 
 How much of the bloom is mixed into the field, as a percentage.
 
@@ -1124,7 +1124,7 @@ Example:
 
 ### `haus.wallpaper.grain`
 
-`integer or floating point number between 0.0 and 0.1 (both inclusive)` · default `0.01`
+`integer or floating point number between 0.0 and 0.1 (both inclusive)` · default `0.01` · desktop-safe
 
 Film grain over the whole field, as a fraction of full scale — and the
 reason the glow doesn't band.
@@ -1160,7 +1160,7 @@ Example:
 
 ### `haus.wallpaper.mark.color`
 
-`one of "muted", "ink", "accent", "spectrum"` · default `"spectrum"`
+`one of "muted", "ink", "accent", "spectrum"` · default `"spectrum"` · desktop-safe
 
 What the mark is drawn in.
 
@@ -1192,7 +1192,7 @@ Example:
 
 ### `haus.wallpaper.mark.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Draw the haus mark ⌂ at the centre. Off leaves the field, the glow and
 the grain — which is a perfectly good desktop, and the fastest way to
@@ -1202,7 +1202,7 @@ get one flat colour that still isn't flat.
 
 ### `haus.wallpaper.mark.opacity`
 
-`integer or floating point number between 0.0 and 1.0 (both inclusive)` · default `1.0`
+`integer or floating point number between 0.0 and 1.0 (both inclusive)` · default `1.0` · desktop-safe
 
 The mark's opacity over the field. Worth reaching for with `spectrum`
 — the default, and the one colour here loud enough to want turning down.
@@ -1217,7 +1217,7 @@ Example:
 
 ### `haus.wallpaper.mark.rise`
 
-`integer or floating point number between -0.5 and 0.5 (both inclusive)` · default `0.0`
+`integer or floating point number between -0.5 and 0.5 (both inclusive)` · default `0.0` · desktop-safe
 
 How far above centre the mark sits, as a fraction of the picture's
 height. Optical centre is a little above geometric centre, and a bar
@@ -1234,7 +1234,7 @@ Example:
 
 ### `haus.wallpaper.mark.size`
 
-`integer or floating point number between 0.01 and 0.9 (both inclusive)` · default `0.1`
+`integer or floating point number between 0.01 and 0.9 (both inclusive)` · default `0.1` · desktop-safe
 
 The mark's height, as a fraction of the picture's SHORT edge — so it
 keeps its proportion whatever `size` and whatever display.
@@ -1249,7 +1249,7 @@ Example:
 
 ### `haus.wallpaper.mark.weight`
 
-`integer or floating point number between 0.005 and 0.25 (both inclusive)` · default `0.09`
+`integer or floating point number between 0.005 and 0.25 (both inclusive)` · default `0.09` · desktop-safe
 
 Stroke width, as a fraction of the mark's own height.
 
@@ -1277,7 +1277,7 @@ Example:
 
 ### `haus.wallpaper.size`
 
-`string matching the pattern [0-9]+x[0-9]+` · default `"3456x2234"`
+`string matching the pattern [0-9]+x[0-9]+` · default `"3456x2234"` · desktop-safe
 
 The pixel size `minimal` is rendered at, `WIDTHxHEIGHT`.
 
@@ -1306,7 +1306,7 @@ Example:
 
 ### `haus.wallpaper.style`
 
-`one of "none", "minimal", "orbits", "constellation", "flow", "bold"` · default `"minimal"`
+`one of "none", "minimal", "orbits", "constellation", "flow", "bold"` · default `"minimal"` · desktop-safe
 
 Which desktop this machine wears, set at each home-manager activation
 (osascript, every desktop on the current Space).
@@ -1347,7 +1347,7 @@ The terminal font. The bar keeps its own font at its own tuned sizes.
 
 ### `haus.fonts.mono.name`
 
-`string` · default `"JetBrainsMono Nerd Font Mono"`
+`string` · default `"JetBrainsMono Nerd Font Mono"` · desktop-safe
 
 The rice's type family, as Ghostty's `font-family` names it.
 
@@ -1376,7 +1376,7 @@ Example:
 
 ### `haus.fonts.mono.package`
 
-`null or package` · default `null`
+`null or package` · default `null` · host-only
 
 The package providing `name`. null (the default) installs the rice's
 own JetBrains Mono Nerd Font, which is what `name` defaults to.
@@ -1398,7 +1398,7 @@ pkgs.nerd-fonts.fira-code
 
 ### `haus.fonts.mono.packageName`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 The same thing as `package`, NAMED rather than evaluated: an
 attribute path into nixpkgs, so "nerd-fonts.fira-code" means
@@ -1423,7 +1423,7 @@ Example:
 
 ### `haus.fonts.mono.size`
 
-`positive integer, meaning >0` · default `19, scaled by haus.ui.scale`
+`positive integer, meaning >0` · default `19, scaled by haus.ui.scale` · desktop-safe
 
 Terminal font size in points. The single most useful knob for a
 larger-text machine, since it moves everything the rice actually
@@ -1450,7 +1450,7 @@ One number for "make the interface bigger", applied across the rice's own surfac
 
 ### `haus.ui.scale`
 
-`integer or floating point number between 0.5 and 3.0 (both inclusive)` · default `1.0`
+`integer or floating point number between 0.5 and 3.0 (both inclusive)` · default `1.0` · desktop-safe
 
 One number for "make the interface bigger". 1.0 is the rice as tuned;
 1.35 is a comfortable large-print setting; below 1.0 tightens things up.
@@ -1520,7 +1520,7 @@ Per-display overrides, keyed by which screen you mean.
 
 ### `haus.displays`
 
-`attribute set of (submodule)` · default `{ }`
+`attribute set of (submodule)` · default `{ }` · desktop-safe after `display-selectors` validation
 
 Per-display settings, keyed by which screen you mean:
 
@@ -1560,7 +1560,7 @@ Example:
 
 ### `haus.displays.<name>.uiScale`
 
-`null or one of "more-space", "default", "larger-text", "largest-text"` · default `null`
+`null or one of "more-space", "default", "larger-text", "largest-text"` · default `null` · desktop-safe
 
 The scaled resolution, as an intent rather than a pixel count — the
 same four positions System Settings ▸ Displays offers, named:
@@ -1606,7 +1606,7 @@ The shell and terminal experience.
 
 ### `haus.hearth.editor`
 
-`string` · default `"hx"`
+`string` · default `"hx"` · host-only
 
 The ONE editor the rice uses everywhere. It's the shell command for
 $EDITOR / $VISUAL (git, etc.) AND what every "open in an editor" action
@@ -1626,7 +1626,7 @@ Example:
 
 ### `haus.hearth.floatBorder`
 
-`one of "accent", "grey", "off", "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"accent"`
+`one of "accent", "grey", "off", "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `"accent"` · desktop-safe
 
 The outline drawn around every floating terminal `float-term.sh` spawns:
 the Super-y yazi peek panel, the bar's agent peek, and the palette's
@@ -1666,7 +1666,7 @@ Example:
 
 ### `haus.hearth.ghDash.enable`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Whether to enable the themed gh-dash GitHub dashboard and its Cmd-G
 fullscreen Zellij overlay.
@@ -1692,7 +1692,7 @@ true
 
 ### `haus.hearth.hijackFileAssociations`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 When true, build a small opener app and make it the default handler
 for ~80 text/code extensions (json, md, ts, nix, rs, go, kdl, …), so
@@ -1709,7 +1709,7 @@ handler behind an interactive dialog; set it by hand once if wanted:
 
 ### `haus.hearth.obsidianVaults`
 
-`list of string` · default `[ ]`
+`list of string` · default `[ ]` · host-only
 
 Home-relative paths to existing Obsidian vaults that should use the
 Nebelung theme. On each activation, Hearth copies the rendered
@@ -1733,7 +1733,7 @@ Example:
 
 ### `haus.hearth.rightClickFullscreen`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 When true (the default), a bare right-click on any pane zooms it
 fullscreen — the same MouseAction::ToggleFullscreen Ctrl+Click already
@@ -1751,7 +1751,7 @@ Super Enter.
 
 ### `haus.hearth.zellijStartLocked`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 When true (the default), zellij boots into Locked input mode instead of
 Normal — its single-key submode leaders (pane, tab, resize, …) stay
@@ -1766,13 +1766,228 @@ mode (zellij's own default).
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
 
+## haus.zen
+
+Zen browser policy, extensions and the optional native tab bridge.
+
+### `haus.zen.extensions`
+
+`attribute set of (submodule)` · default `{ }` · host-only
+
+Browser extensions to deploy into Zen, by a stable id of your choosing.
+
+The mechanism is Firefox's enterprise policies — the rice renders an
+`ExtensionSettings` block — so it reaches Zen the way an IT department
+reaches Firefox, without a profile to hand-edit. `haus.roster`
+deliberately cannot do this: a roster entry installs from a cask, a
+brew, a nixpkgs package or the App Store, and a browser add-on is none
+of those.
+
+Two consequences of HOW the policies are delivered, both visible.
+Firefox only ever looks for a `policies.json` inside the app bundle,
+which a rice has no business writing into (it breaks the code signature
+and a cask upgrade wipes it), so the rice uses the other route macOS
+offers: a managed preference at
+`/Library/Preferences/app.zen-browser.zen.plist`. That file is
+root-owned, so it's written during system activation and a `haus
+rebuild` that can't reach it warns instead of installing anything. And
+because enterprise policies are on, Zen will tell you it is "managed by
+your organization" — that organization is this rice.
+
+The rice knows the id and slug of the extensions it themes
+(stylus),
+so those need only be named. Everything else needs `id` — see that
+option for where to find it.
+
+Naming `stylus` here also turns on the stamped userstyle bundle (see
+haus.theme.accent): the Catppuccin-derived styles Stylus imports
+carry their own accent and flavor variables, which no palette file can
+reach, so the rice stamps the bundle from your theme — accent, flavor,
+and the contrast it's rendered for — and tells you when there's a new
+one to import.
+
+Example:
+
+```nix
+{
+  # Known to the rice — id and slug are filled in.
+  stylus = { };
+  # Anything else: bring the id.
+  ublock-origin = {
+    id = "uBlock0@raymondhill.net";
+    slug = "ublock-origin";
+  };
+}
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.extensions.<name>.enable`
+
+`boolean` · default `true` · host-only
+
+Whether to deploy this extension. Set false to remove one an imported rice added.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.extensions.<name>.id`
+
+`null or string` · default `null` · host-only
+
+The extension's own id — the key Firefox's policy engine
+matches on, NOT its AMO slug. Usually a brace-wrapped UUID,
+sometimes an email-shaped string (`addon@example.org`).
+
+Find it by installing the add-on once and reading `Extension
+ID` under about:debugging ▸ This Firefox, or from the
+`browser_specific_settings` block of its source. Wrong id and
+the policy silently installs nothing — which is why this has
+no guessable default.
+
+Example:
+
+```nix
+"{7a7a4a92-a2a0-41d1-9fd7-1e92480d612d}"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.extensions.<name>.mode`
+
+`one of "force_installed", "normal_installed", "allowed", "blocked"` · default `"force_installed"` · host-only
+
+Firefox's `installation_mode`. `force_installed` installs it
+and stops the user removing it (the point, for a rice that
+wants an extension present); `normal_installed` installs it
+but leaves it removable.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.extensions.<name>.slug`
+
+`null or string` · default `null` · host-only
+
+The add-on's AMO slug — the last path segment of its
+addons.mozilla.org URL. Only used to build the default
+`url`; set `url` directly and this is ignored.
+
+Example:
+
+```nix
+"styl-us"
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.extensions.<name>.url`
+
+`string` · default `""` · host-only
+
+Where the .xpi comes from. Defaults to AMO's "latest" endpoint
+for `slug`, so the add-on updates itself; point it at a pinned
+version or a self-hosted file to freeze it.
+
+A `file://` url has a second effect, and it is not local to
+this extension: a file on disk cannot have been signed by
+Mozilla, and Zen refuses an unsigned add-on
+(`ERROR_SIGNEDSTATE_REQUIRED`) unless
+`xpinstall.signatures.required` is off. So naming one makes
+the rice lock that pref off **for the whole browser** — the
+same switch `haus.zen.tabBridge.enable` documents, since the
+bridge is the rice's own `file://` install. An `https://` AMO
+url never turns it on.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.extraPolicies`
+
+`attribute set` · default `{ }` · host-only
+
+Anything else to put in Zen's policy set, merged beside the
+`ExtensionSettings` block `haus.zen.extensions` renders. The rice OWNS
+the file these land in — `/Library/Preferences/app.zen-browser.zen.plist`,
+written as root — so this is the escape hatch for the rest of the policy
+surface rather than a reason to take the file back by hand. Keys here
+win over the rice's on a collision.
+
+Write the policy names as Firefox documents them, nested: this becomes
+the top level of a plist beside `EnterprisePoliciesEnabled`, so
+`{ Extensions.Install = [ "…" ]; }` is an `Extensions` dict with an
+`Install` array in it, not a key called `Extensions.Install`. Setting
+every policy back to `{ }` (and naming no extensions) takes the file
+down again on the next rebuild.
+
+The merge is one level deep, so naming a policy takes that policy over
+WHOLE. Two of them the rice writes itself: `ExtensionSettings` (from
+`haus.zen.extensions`) and `Preferences` (which is where the signature
+switch a `file://` install needs ends up). Restate what you still want
+if you set either — dropping the signature switch this way is invisible
+until you notice the add-on isn't there.
+
+Values are passed to a plist writer, so `null` is not a value: it
+renders as a key with nothing under it, which makes the whole file
+invalid and drops **every** policy, not just that one. Omit the key
+instead.
+
+Example:
+
+```nix
+{ DisableTelemetry = true; }
+```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.zen.tabBridge.enable`
+
+`boolean` · default `false` · desktop-safe
+
+Deploy the rice's own tiny extension into Zen, so the bar can find and
+switch to the tab that is making noise.
+
+This is what makes the media pill's ⌘ click land on the **tab** rather
+than just bringing Zen forward. Safari and the Chromium browsers need
+nothing here — they hand their tab list to AppleScript and the pill uses
+that. Firefox and its forks hand out nothing at all, to AppleScript or
+to accessibility, so without this the pill falls back to driving
+Firefox's own address-bar tab search with synthetic keystrokes, which
+needs the Accessibility permission and is exactly as pleasant as it
+sounds.
+
+Off by default because it force-installs an add-on into your browser,
+which is not a thing a rice should do to you unasked. Turning it on
+costs one derivation, a native-messaging manifest, and two keys in the
+rice's root-owned policy plist — one of which is the signature switch
+below. Turning it back off stops the rice deploying it — what Zen then
+does with the add-on already installed is Firefox's policy engine's
+business, not the rice's, so check `about:addons` and remove it there if
+it outstays the option.
+
+**Zen only, and that's a signing constraint rather than a choice.**
+Release Firefox refuses an extension Mozilla hasn't signed, and it is
+built so that no pref and no policy can say otherwise. Zen is built the
+other way (`MOZ_REQUIRE_SIGNING = false`), which is the whole reason the
+rice can build the `.xpi` itself and install it out of the nix store.
+
+It still costs a switch. Zen carries Firefox's own preference defaults,
+which turn signature enforcement back on, so turning this option on also
+makes the rice lock `xpinstall.signatures.required = false` — for the
+browser, not just for its own add-on. Without it Zen refuses the bridge
+with `ERROR_SIGNEDSTATE_REQUIRED` and the option quietly does nothing;
+with it, an unsigned add-on from anywhere would also install if
+something asked. That is the second reason this is off by default.
+
+Firefox support would mean an AMO account and unlisted self-distribution
+signing — packaging, not a code change — and would drop the pref.
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
 ## haus.agents
 
 Which coding-agent clients this machine installs, which one the agent keybinding spawns, and the two files the rice ships into every one of their homes — your instructions, and the `haus` skill.
 
 ### `haus.agents.clients`
 
-`list of (one of "claude", "codex", "opencode")` · see below
+`list of (one of "claude", "codex", "opencode")` · see below · desktop-safe
 
 Which coding-agent clients to install. `claude` is Claude Code, `codex`
 is OpenAI Codex, `opencode` is OpenCode. The ⌘A terminal binding starts
@@ -1807,7 +2022,7 @@ Example:
 
 ### `haus.agents.default`
 
-`one of "claude", "codex", "opencode"` · default `"claude"`
+`one of "claude", "codex", "opencode"` · default `"claude"` · desktop-safe
 
 The coding agent started by Pounce's **Spawn Agent** command, by the
 ⌘A / Super-a zellij binds and the `c` shell alias, and used to reopen
@@ -1838,7 +2053,7 @@ Example:
 
 ### `haus.agents.instructions`
 
-`strings concatenated with "\n"` · default `""`
+`strings concatenated with "\n"` · default `""` · host-only
 
 Your always-on, cross-project operating context — the "instructions"
 slot every client has under a different name. Written once per client
@@ -1878,7 +2093,7 @@ Example:
 
 ### `haus.agents.skill`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Install the `haus` skill for every client in `agents.clients`, so an
 agent asked to "install Slack" or "make everything bigger" edits your
@@ -1915,7 +2130,7 @@ macOS accessibility keys the rice can actually apply. These write to a TCC-prote
 
 ### `haus.accessibility.differentiateWithoutColor`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 macOS's "Differentiate without colour" — native UI adds shapes and
 text where it would otherwise rely on hue alone. The setting to pair
@@ -1944,7 +2159,7 @@ true
 
 ### `haus.accessibility.increaseContrast`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 macOS's "Increase contrast" — stronger borders and reduced use of
 colour alone to convey state, across native apps. This is the
@@ -1978,7 +2193,7 @@ The keys the rice owns — the leader, the palette, the window-chord modifier �
 
 ### `haus.keys.leader`
 
-`one of "caps", "alt-space", "none"` · default `"caps"`
+`one of "caps", "alt-space", "none"` · default `"caps"` · desktop-safe
 
 What enters the launcher/leader mode — tap it, then a letter opens an
 app, a digit focuses a workspace, ⇧+either throws the focused window
@@ -2011,7 +2226,7 @@ Example:
 
 ### `haus.keys.leaderExtras`
 
-`list of (submodule)` · default `[ ]`
+`list of (submodule)` · default `[ ]` · desktop-safe after `submodule-list` validation
 
 Extra launch-mode (leader) bindings beyond the app roster: tap the leader,
 then `key`, to run `command`. Use it for leader actions that aren't
@@ -2036,7 +2251,7 @@ Example:
 
 ### `haus.keys.leaderExtras.*.caption`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 The Launch Mode cheatsheet caption for this action. null falls back
 to the raw command, which is rarely what you want — set it.
@@ -2051,7 +2266,7 @@ Example:
 
 ### `haus.keys.leaderExtras.*.command`
 
-`string` · no default
+`string` · no default · host-only
 
 The shell command run when the leader is followed by `key`; launch
 mode exits afterward. It's written verbatim into a small `/bin/sh`
@@ -2069,7 +2284,7 @@ Example:
 
 ### `haus.keys.leaderExtras.*.key`
 
-`string` · no default
+`string` · no default · desktop-safe
 
 The AeroSpace key name pressed after the leader (e.g. "enter",
 "space", "period", or a letter). Must not collide with a roster
@@ -2090,7 +2305,7 @@ Example:
 
 ### `haus.keys.palette`
 
-`one of "cmd-space", "alt-space", "ctrl-space", "none"` · default `"cmd-space"`
+`one of "cmd-space", "alt-space", "ctrl-space", "none"` · default `"cmd-space"` · desktop-safe
 
 What opens the pounce command palette. Registered in-process by the
 daemon, so it's near-instant and doesn't go through AeroSpace.
@@ -2114,7 +2329,7 @@ Example:
 
 ### `haus.keys.windowNav`
 
-`one of "alt", "ctrl-alt", "cmd-alt", "none"` · default `"alt"`
+`one of "alt", "ctrl-alt", "cmd-alt", "none"` · default `"alt"` · desktop-safe
 
 The modifier vocabulary for prowl's window chords — one setting rather
 than a bind-per-action, because what people need to move is the
@@ -2163,7 +2378,7 @@ How much motion macOS spends on its own Dock and windows: the slide, the launch 
 
 ### `haus.animations`
 
-`one of "fast", "system"` · default `"system"`
+`one of "fast", "system"` · default `"system"` · desktop-safe
 
 How much motion macOS spends on its own Dock and windows — how long
 three animations run, and two it plays at all.
@@ -2234,7 +2449,7 @@ What each corner of the screen does when the pointer reaches it. Every corner is
 
 ### `haus.hotCorners.bottomLeft`
 
-`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null` · desktop-safe
 
 What happens when the pointer reaches the bottom-left corner of the main
 display.
@@ -2278,7 +2493,7 @@ Example:
 
 ### `haus.hotCorners.bottomRight`
 
-`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null` · desktop-safe
 
 What happens when the pointer reaches the bottom-right corner of the main
 display.
@@ -2322,7 +2537,7 @@ Example:
 
 ### `haus.hotCorners.topLeft`
 
-`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null` · desktop-safe
 
 What happens when the pointer reaches the top-left corner of the main
 display.
@@ -2366,7 +2581,7 @@ Example:
 
 ### `haus.hotCorners.topRight`
 
-`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null`
+`null or one of "disabled", "mission-control", "application-windows", "desktop", "launchpad", "notification-center", "quick-note", "screen-saver", "prevent-screen-saver", "sleep-display", "lock-screen"` · default `null` · desktop-safe
 
 What happens when the pointer reaches the top-right corner of the main
 display.
@@ -2414,7 +2629,7 @@ Where ⇧⌘4 puts its files, in what format, and whether it draws a window shad
 
 ### `haus.screenshots.format`
 
-`null or one of "png", "jpg", "pdf", "tiff", "heic", "gif"` · default `null`
+`null or one of "png", "jpg", "pdf", "tiff", "heic", "gif"` · default `null` · desktop-safe
 
 The image format new screenshots are saved in. null (the default)
 leaves macOS's own choice alone, which is png.
@@ -2434,7 +2649,7 @@ Example:
 
 ### `haus.screenshots.includeDate`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether filenames carry the date and time ("Screenshot 2026-08-03 at
 13.37.20.png") or just a counter ("Screenshot 1.png"). null (the
@@ -2450,7 +2665,7 @@ true
 
 ### `haus.screenshots.location`
 
-`null or string` · default `null`
+`null or string` · default `null` · host-only
 
 Where ⇧⌘3 / ⇧⌘4 / ⇧⌘5 write their files. null (the default) leaves
 macOS's own choice alone, which is the Desktop.
@@ -2472,7 +2687,7 @@ Example:
 
 ### `haus.screenshots.shadow`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether a window capture (⇧⌘4 then Space) keeps macOS's big soft drop
 shadow. null (the default) leaves macOS's own choice alone, which is
@@ -2493,7 +2708,7 @@ false
 
 ### `haus.screenshots.thumbnail`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the floating preview thumbnail appears in the bottom-right
 corner after a capture. null (the default) leaves macOS's own choice
@@ -2518,7 +2733,7 @@ Whether waking this Mac needs a password, and how long the grace period is. Wort
 
 ### `haus.lock.requirePassword`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Require a password to wake this Mac from sleep or the screen saver.
 null (the default) leaves macOS's own choice alone.
@@ -2536,7 +2751,7 @@ true
 
 ### `haus.lock.requirePasswordDelay`
 
-`null or (unsigned integer, meaning >=0)` · default `null`
+`null or (unsigned integer, meaning >=0)` · default `null` · desktop-safe
 
 Seconds to wait after sleep/screen-saver starts before
 `requirePassword` actually locks the screen — macOS's "grace period".
@@ -2559,7 +2774,7 @@ The stock menu bar: what the clock shows, and which Control Center glyphs sit be
 
 ### `haus.menuBar.clock.analog`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Draw an analog clock face instead of a digital readout. null (the
 default) leaves macOS's own choice alone (digital).
@@ -2574,7 +2789,7 @@ false
 
 ### `haus.menuBar.clock.format`
 
-`null or one of "12h", "24h"` · default `null`
+`null or one of "12h", "24h"` · default `null` · desktop-safe
 
 12-hour or 24-hour menu bar clock. null (the default) leaves
 macOS's own choice alone (region-dependent, usually 12h in the US).
@@ -2589,7 +2804,7 @@ Example:
 
 ### `haus.menuBar.clock.showDate`
 
-`null or one of "when-space-allows", "always", "never"` · default `null`
+`null or one of "when-space-allows", "always", "never"` · default `null` · desktop-safe
 
 Whether the full date appears next to the time. null (the default)
 leaves macOS's own choice alone ("when-space-allows").
@@ -2604,7 +2819,7 @@ Example:
 
 ### `haus.menuBar.clock.showDayOfWeek`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Show the day of the week next to the clock. null (the default)
 leaves macOS's own choice alone.
@@ -2619,7 +2834,7 @@ true
 
 ### `haus.menuBar.clock.showSeconds`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Show the clock to second precision instead of minutes. null (the
 default) leaves macOS's own choice alone.
@@ -2634,7 +2849,7 @@ false
 
 ### `haus.menuBar.controlCenter.airdrop`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the AirDrop control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
 
@@ -2648,7 +2863,7 @@ false
 
 ### `haus.menuBar.controlCenter.batteryPercentage`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Show the battery percentage next to its menu bar icon. null (the
 default) leaves macOS's own choice alone.
@@ -2663,7 +2878,7 @@ true
 
 ### `haus.menuBar.controlCenter.bluetooth`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the Bluetooth control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
 
@@ -2677,7 +2892,7 @@ true
 
 ### `haus.menuBar.controlCenter.displayBrightness`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the Screen Brightness control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
 
@@ -2691,7 +2906,7 @@ true
 
 ### `haus.menuBar.controlCenter.focus`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the Focus control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
 
@@ -2705,7 +2920,7 @@ true
 
 ### `haus.menuBar.controlCenter.nowPlaying`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the Now Playing control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
 
@@ -2719,7 +2934,7 @@ false
 
 ### `haus.menuBar.controlCenter.sound`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Whether the Sound control has a menu bar icon of its own. null (the default) leaves macOS's own choice alone.
 
@@ -2737,7 +2952,7 @@ Security posture: the built-in application firewall and how strict it is. Off on
 
 ### `haus.security.firewall.allowSigned`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Let built-in, Apple-signed software receive incoming connections
 without asking. null (the default) leaves macOS's own choice alone.
@@ -2753,7 +2968,7 @@ true
 
 ### `haus.security.firewall.allowSignedApp`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Let downloaded, signed third-party software receive incoming
 connections without asking. null (the default) leaves macOS's own
@@ -2769,7 +2984,7 @@ true
 
 ### `haus.security.firewall.blockAllIncoming`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Block ALL incoming connections, including ones apps ask for (AirDrop,
 screen sharing, a dev server on your LAN). null (the default) leaves
@@ -2786,7 +3001,7 @@ false
 
 ### `haus.security.firewall.enable`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 The built-in application firewall. null (the default) leaves
 macOS's own choice alone (off, on a fresh install).
@@ -2804,7 +3019,7 @@ true
 
 ### `haus.security.firewall.stealthMode`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Don't respond to network probes (ping, closed-port connection
 attempts) at all, instead of replying "connection refused". null
@@ -2825,7 +3040,7 @@ Alert volume and sound, interface sound effects, and the boot chime. Volume is 0
 
 ### `haus.sound.alertSound`
 
-`null or one of "Basso", "Blow", "Bottle", "Frog", "Funk", "Glass", "Hero", "Morse", "Ping", "Pop", "Purr", "Sosumi", "Submarine", "Tink"` · default `null`
+`null or one of "Basso", "Blow", "Bottle", "Frog", "Funk", "Glass", "Hero", "Morse", "Ping", "Pop", "Purr", "Sosumi", "Submarine", "Tink"` · default `null` · desktop-safe
 
 Which sound the alert beep plays, by name:
 
@@ -2853,7 +3068,7 @@ Example:
 
 ### `haus.sound.alertVolume`
 
-`null or integer between 0 and 100 (both inclusive)` · default `null`
+`null or integer between 0 and 100 (both inclusive)` · default `null` · desktop-safe
 
 How loud the alert beep is, 0–100, exactly as the slider in System
 Settings ▸ Sound reads. null (the default) leaves macOS's own choice
@@ -2878,7 +3093,7 @@ Example:
 
 ### `haus.sound.startupChime`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 The chime a Mac plays at boot. null (the default) leaves it alone.
 
@@ -2897,7 +3112,7 @@ false
 
 ### `haus.sound.uiSounds`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Play user-interface sound effects — the Trash whoosh, the screenshot
 shutter, the Mail whoosh. null (the default) leaves macOS's own
@@ -2913,7 +3128,7 @@ false
 
 ### `haus.sound.volumeFeedback`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · desktop-safe
 
 Play a sound when the volume keys change the volume. null (the
 default) leaves macOS's own choice alone.
@@ -2932,7 +3147,7 @@ Language, region, units and keyboard layouts. What a rice in any language other 
 
 ### `haus.locale.hourFormat`
 
-`null or one of "12h", "24h"` · default `null`
+`null or one of "12h", "24h"` · default `null` · host-only
 
 Force 12- or 24-hour time everywhere, overriding whatever `region`
 implies. null (the default) follows the region.
@@ -2952,7 +3167,7 @@ Example:
 
 ### `haus.locale.inputSources`
 
-`null or (list of string)` · default `null`
+`null or (list of string)` · default `null` · host-only
 
 The keyboard layouts available in the input menu, by input-source id
 (`com.apple.keylayout.*`). null (the default) leaves your layouts
@@ -2988,7 +3203,7 @@ Example:
 
 ### `haus.locale.language`
 
-`null or (list of string)` · default `null`
+`null or (list of string)` · default `null` · host-only
 
 Preferred languages, best first — the order System Settings ▸ General
 ▸ Language & Region shows. null (the default) leaves macOS's own list
@@ -3015,7 +3230,7 @@ Example:
 
 ### `haus.locale.metric`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · host-only
 
 Use the metric system, overriding whatever `region` implies. null
 (the default) follows the region.
@@ -3036,7 +3251,7 @@ true
 
 ### `haus.locale.region`
 
-`null or string` · default `null`
+`null or string` · default `null` · host-only
 
 The region whose formats macOS uses — dates, number separators, paper
 size, the first day of the week. An ICU locale identifier
@@ -3061,7 +3276,7 @@ Example:
 
 ### `haus.locale.temperature`
 
-`null or one of "celsius", "fahrenheit"` · default `null`
+`null or one of "celsius", "fahrenheit"` · default `null` · host-only
 
 Temperature unit, overriding whatever `region` implies. null (the
 default) follows the region. Separate from `metric` because macOS
@@ -3082,7 +3297,7 @@ Sleep timers and Low Power Mode, said separately for battery and charger — whi
 
 ### `haus.power.computerSleep.battery`
 
-`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null`
+`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null` · host-only
 
 Minutes of idleness before the Mac sleeps while on battery, or
 `"never"`. null (the default) leaves macOS's own choice alone.
@@ -3100,7 +3315,7 @@ Example:
 
 ### `haus.power.computerSleep.charger`
 
-`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null`
+`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null` · host-only
 
 Minutes of idleness before the Mac sleeps while on the charger, or
 `"never"`. null (the default) leaves macOS's own choice alone.
@@ -3118,7 +3333,7 @@ Example:
 
 ### `haus.power.diskSleep.battery`
 
-`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null`
+`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null` · host-only
 
 Minutes of idleness before the disk spins down while on battery, or
 `"never"`. null (the default) leaves macOS's own choice alone.
@@ -3136,7 +3351,7 @@ Example:
 
 ### `haus.power.diskSleep.charger`
 
-`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null`
+`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null` · host-only
 
 Minutes of idleness before the disk spins down while on the charger, or
 `"never"`. null (the default) leaves macOS's own choice alone.
@@ -3154,7 +3369,7 @@ Example:
 
 ### `haus.power.displaySleep.battery`
 
-`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null`
+`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null` · host-only
 
 Minutes of idleness before the display sleeps while on battery, or
 `"never"`. null (the default) leaves macOS's own choice alone.
@@ -3172,7 +3387,7 @@ Example:
 
 ### `haus.power.displaySleep.charger`
 
-`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null`
+`null or positive integer, meaning >0, or value "never" (singular enum)` · default `null` · host-only
 
 Minutes of idleness before the display sleeps while on the charger, or
 `"never"`. null (the default) leaves macOS's own choice alone.
@@ -3190,7 +3405,7 @@ Example:
 
 ### `haus.power.lowPowerMode.battery`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · host-only
 
 Low Power Mode while on battery. null (the default) leaves
 macOS's own choice alone.
@@ -3209,7 +3424,7 @@ true
 
 ### `haus.power.lowPowerMode.charger`
 
-`null or boolean` · default `null`
+`null or boolean` · default `null` · host-only
 
 Low Power Mode while plugged in. null (the default) leaves
 macOS's own choice alone.
@@ -3228,7 +3443,7 @@ Tiling window management and the Caps-Lock leader launcher.
 
 ### `haus.prowl.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 AeroSpace tiling window management + the leader-key launcher.
 
@@ -3245,7 +3460,7 @@ The menu bar, and which pills it draws.
 
 ### `haus.sill.aiUsage.provider`
 
-`one of "latest", "claude", "codex", "opencode"` · default `"latest"`
+`one of "latest", "claude", "codex", "opencode"` · default `"latest"` · desktop-safe
 
 Which AI provider to display in the main pill: `latest` (default, automatically
 shows whichever provider reported most recently), or one of
@@ -3267,7 +3482,7 @@ Example:
 
 ### `haus.sill.battery.hideOver`
 
-`null or signed integer` · default `null`
+`null or signed integer` · default `null` · desktop-safe
 
 Hide the battery pill when charge percentage is above this threshold
 (e.g., set to 80 to show the battery pill only when charge is at or below 80%).
@@ -3282,7 +3497,7 @@ Example:
 
 ### `haus.sill.bottom.enable`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Draw a SECOND bar along the bottom of the screen, at the same time as
 the menu bar one. `haus.sill.bottom.items` picks what goes on it and
@@ -3314,7 +3529,7 @@ true
 
 ### `haus.sill.bottom.items`
 
-`submodule` · default `{ }`
+`submodule` · default `{ }` · desktop-safe
 
 Which pills the bottom bar draws, and WHERE along it — one value each,
 all default false. A pill named here MOVES: it is drawn on the bottom
@@ -3363,7 +3578,7 @@ Example:
 
 ### `haus.sill.bottom.items.agents`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 A paw pill tracking your agent-worktree panes. The label always names the state worth interrupting you for — "2 ready" outranks "5 working", which outranks "1 done" — never a bare count you'd have to click to decode. Click for the per-agent breakdown, sorted the same way (waiting first, then working, then idle, longest-elapsed first within each), each block showing the client, how long it's sat in that state, and — when the pane's checkout is a `holt` lane — its repo and PR status: merged, `+N unshipped` (exactly what `holt reship` fixes), not yet landed, or a dirty-tree footnote. A summary header totals the counts once more than one agent is running. Left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
@@ -3371,7 +3586,7 @@ A paw pill tracking your agent-worktree panes. The label always names the state 
 
 ### `haus.sill.bottom.items.aiUsage`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
 
@@ -3379,7 +3594,7 @@ A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, 
 
 ### `haus.sill.bottom.items.battery`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The battery pill.
 
@@ -3387,7 +3602,7 @@ The battery pill.
 
 ### `haus.sill.bottom.items.caffeinate`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-hour duration, or indefinitely. The display may still turn off; closing a MacBook lid still sleeps it. Uses macOS's built-in `caffeinate`, so there is no extra package.
 
@@ -3395,7 +3610,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 ### `haus.sill.bottom.items.calendar`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The one meeting you have to be at next, and one gesture to join it. It reads "in 12m · Design review" — countdown first, because a label is clipped from the END and the number is the part you must never lose; below `haus.sill.calendar.preciseUnder` hours it carries minutes, above it just "in 14h" or "in 2d", and while an event is running it says "now · …" instead of going blank. For `haus.sill.calendar.imminent` minutes either side of the start the whole pill FILLS with the accent — a shape change rather than a colour change, so it catches the eye you aren't pointing at it. RIGHT-CLICK joins: it opens the event's conferencing link, found in the invite's url, location or notes (Meet, Zoom, Teams, Webex, Jitsi, Whereby and friends out of the box; `haus.sill.calendar.joinHosts` adds your own). LEFT-CLICK opens the day as a timeline — what's DONE in the last `haus.sill.calendar.past` hours, what's on NOW, and what's NEXT — each event carrying its day, clock time, length and who it's with, the next one boxed, and a `Join` affordance on every row that has a link. Your own address is dropped from the "with" line automatically: a CalDAV calendar is named for the account it syncs, so the pill can work out which attendee is you with no configuration (`haus.sill.calendar.me` for the cases where it can't). A name too long for the pill sweeps past only while you HOVER it — nothing here starts a marquee on its own — and `haus.sill.calendar.width` sets how much room it gets before that applies. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
 
@@ -3403,7 +3618,7 @@ The one meeting you have to be at next, and one gesture to join it. It reads "in
 
 ### `haus.sill.bottom.items.clock`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The clock pill, pinned to the far right.
 
@@ -3411,7 +3626,7 @@ The clock pill, pinned to the far right.
 
 ### `haus.sill.bottom.items.cpu`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 Total CPU load, drawn as a graph pill: the last two minutes of it behind the number, because a percentage on its own can't tell a spike settling from a climb that started five minutes ago. The reading is a DELTA between samples — the `ps` sum this used to print is each process's average over its whole lifetime, which on a machine that has been up a week barely moves while every core is pinned. LEFT-CLICK opens a dropdown: the user/system split, the load average, then what's responsible, biggest first and aggregated per app so a browser's twenty helpers are one row; clicking a row focuses that app's window. RIGHT-CLICK opens Activity Monitor on its CPU tab. The rows can only cover processes you own, so anything root runs — `kernel_task`, `WindowServer` — lands in `everything else` rather than going quietly missing from the sum.
 
@@ -3419,7 +3634,7 @@ Total CPU load, drawn as a graph pill: the last two minutes of it behind the num
 
 ### `haus.sill.bottom.items.elgato`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `haus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
 
@@ -3427,7 +3642,7 @@ Toggles an Elgato Key Light on the local network. The light is found over mDNS (
 
 ### `haus.sill.bottom.items.harvest`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh you provide.
 
@@ -3435,7 +3650,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 ### `haus.sill.bottom.items.hush`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the pill but does not enable the Hush room by itself.
 
@@ -3443,7 +3658,7 @@ The Hush (Do-Not-Disturb) pill. Needs `haus.hush.enable`; setting this moves the
 
 ### `haus.sill.bottom.items.media`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click the dropdown, RIGHT click play/pause, ⌥ next, ⇧ previous, ⌘ jump to whatever is making the noise, scroll to seek ±10s. That ⌘ click reaches the browser TAB, not just the browser: the track's title is matched against the open tabs through Safari's and Chromium's AppleScript tab APIs, and on a Firefox fork (Zen among them) — which expose no tab list at all, neither to AppleScript nor to accessibility — through Firefox's own open-tab search in the address bar. Both routes ask for a permission the first time they run, Automation for the scriptable browsers and Accessibility for the Firefox forks, and both quietly fall back to just fronting the app if you say no. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — plus, for a source with no cover, a small app-icon badge floating in its bottom-right corner. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
@@ -3451,7 +3666,7 @@ The now-playing track — auto-hides when nothing plays, dims when paused, and c
 
 ### `haus.sill.bottom.items.memory`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 Memory in use, drawn as a graph pill. It counts what Activity Monitor counts — app memory + wired + compressed — and deliberately NOT the file cache: macOS fills idle RAM with cache on purpose, and the old reading counted that as used, which is why it sat near 90% on a machine doing nothing. The pill's COLOUR is the kernel's own pressure level (green normal, amber warning, red critical) rather than the percentage, because 60% of RAM in use is a Mac working correctly and a pill that goes amber for it is a pill you learn to ignore. LEFT-CLICK opens a dropdown with used/total, the cache, compressed and swap figures and then the biggest footprints per app, each row clicking through to that app's window. RIGHT-CLICK opens Activity Monitor on its Memory tab.
 
@@ -3459,7 +3674,7 @@ Memory in use, drawn as a graph pill. It counts what Activity Monitor counts —
 
 ### `haus.sill.bottom.items.volume`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 Output volume / mute state.
 
@@ -3467,7 +3682,7 @@ Output volume / mute state.
 
 ### `haus.sill.bottom.items.weather`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The weather pill and its click-to-open forecast popover.
 
@@ -3475,7 +3690,7 @@ The weather pill and its click-to-open forecast popover.
 
 ### `haus.sill.bottom.items.wifi`
 
-`boolean or one of "left", "center", "right"` · default `false`
+`boolean or one of "left", "center", "right"` · default `false` · desktop-safe
 
 The Wi-Fi status pill.
 
@@ -3483,7 +3698,7 @@ The Wi-Fi status pill.
 
 ### `haus.sill.calendar.horizon`
 
-`positive integer, meaning >0` · default `24`
+`positive integer, meaning >0` · default `24` · desktop-safe
 
 How far ahead the `calendar` pill looks, in HOURS. Nothing starting
 later than this makes it say anything but "No events".
@@ -3502,7 +3717,7 @@ Example:
 
 ### `haus.sill.calendar.imminent`
 
-`positive integer, meaning >0` · default `5`
+`positive integer, meaning >0` · default `5` · desktop-safe
 
 How many MINUTES either side of an event's start the `calendar` pill
 fills solid — accent background, dark type — for a window of twice this
@@ -3523,7 +3738,7 @@ Example:
 
 ### `haus.sill.calendar.joinHosts`
 
-`list of string` · default `[ ]`
+`list of string` · default `[ ]` · desktop-safe
 
 Extra hostnames to treat as conferencing links, on top of the built-in
 set (Google Meet, Zoom, Teams, Webex, Jitsi, Whereby, Chime, BlueJeans,
@@ -3548,7 +3763,7 @@ Example:
 
 ### `haus.sill.calendar.me`
 
-`list of string` · default `[ ]`
+`list of string` · default `[ ]` · host-only
 
 Addresses (or display names) that are YOU, dropped from the "with …"
 line in the dropdown. An attendee list that includes you is a list that
@@ -3573,7 +3788,7 @@ Example:
 
 ### `haus.sill.calendar.past`
 
-`positive integer, meaning >0` · default `24`
+`positive integer, meaning >0` · default `24` · desktop-safe
 
 How many HOURS of finished events the dropdown's `Done` band keeps.
 
@@ -3591,7 +3806,7 @@ Example:
 
 ### `haus.sill.calendar.preciseUnder`
 
-`positive integer, meaning >0` · default `12`
+`positive integer, meaning >0` · default `12` · desktop-safe
 
 Below how many HOURS the countdown carries minutes.
 
@@ -3609,7 +3824,7 @@ Example:
 
 ### `haus.sill.calendar.refresh`
 
-`positive integer, meaning >0` · default `15`
+`positive integer, meaning >0` · default `15` · desktop-safe
 
 How often the `calendar` pill re-reads your calendar, in SECONDS.
 
@@ -3633,7 +3848,7 @@ Example:
 
 ### `haus.sill.calendar.upcoming`
 
-`positive integer, meaning >0` · default `5`
+`positive integer, meaning >0` · default `5` · desktop-safe
 
 How many future events the dropdown's `Next` band lists, at most. The
 first of them is the one the pill is about, and the one drawn in a box.
@@ -3648,7 +3863,7 @@ Example:
 
 ### `haus.sill.calendar.width`
 
-`positive integer, meaning >0` · default `32`
+`positive integer, meaning >0` · default `32` · desktop-safe
 
 How wide the `calendar` pill's label is allowed to get, in CHARACTERS —
 not pixels. The label reads "in 12m · <event>"; anything longer is
@@ -3671,7 +3886,7 @@ Example:
 
 ### `haus.sill.clock.mode`
 
-`one of "full", "compact"` · default `"full"`
+`one of "full", "compact"` · default `"full"` · desktop-safe
 
 The display mode for the clock pill: `full` (default, e.g. "Fri Jul 31  09:41 AM" with calendar icon)
 or `compact` (e.g. "Fri 31/7 9:41" without icon and trimmed spacing).
@@ -3684,26 +3899,9 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
-### `haus.sill.clock.monoFont`
-
-`boolean` · default `true`
-
-Whether the clock pill's date and time use `haus.fonts.mono.name`, like
-the rest of Sill. Disable this to use macOS's system UI font, whose zero
-has no dot and is easier to distinguish from an 8 at a glance. The
-calendar icon remains in the Nerd Font either way.
-
-Example:
-
-```nix
-false
-```
-
-<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
-
 ### `haus.sill.elgato.host`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 Which Elgato Key Light the `elgato` pill toggles — a hostname or IP,
 optionally with a `:port` (the light's HTTP API is on 9123).
@@ -3726,7 +3924,7 @@ Example:
 
 ### `haus.sill.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The SketchyBar menu bar. When off, the native macOS menu bar is kept
 (nebelhaus stops hiding it) and no bar is drawn.
@@ -3735,7 +3933,7 @@ The SketchyBar menu bar. When off, the native macOS menu bar is kept
 
 ### `haus.sill.items`
 
-`submodule` · default `{ }`
+`submodule` · default `{ }` · desktop-safe
 
 Which SketchyBar pills to draw, one bool each. The core pills —
 `clock`, `weather`, `media`, `battery`, `wifi` — default true; the extras
@@ -3777,7 +3975,7 @@ Example:
 
 ### `haus.sill.items.agents`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 A paw pill tracking your agent-worktree panes. The label always names the state worth interrupting you for — "2 ready" outranks "5 working", which outranks "1 done" — never a bare count you'd have to click to decode. Click for the per-agent breakdown, sorted the same way (waiting first, then working, then idle, longest-elapsed first within each), each block showing the client, how long it's sat in that state, and — when the pane's checkout is a `holt` lane — its repo and PR status: merged, `+N unshipped` (exactly what `holt reship` fixes), not yet landed, or a dirty-tree footnote. A summary header totals the counts once more than one agent is running. Left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
@@ -3785,7 +3983,7 @@ A paw pill tracking your agent-worktree panes. The label always names the state 
 
 ### `haus.sill.items.aiUsage`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, or Opencode API token cost as daily $). Automatically shows whichever provider reported most recently. Click for expanded session/weekly limits and daily/monthly API costs with model breakdowns. Claude and Opencode are read off disk; Codex has no local usage data, so its row is polled from your ChatGPT account with the OAuth token in ~/.codex/auth.json (refreshed and rewritten in place) — no Codex login on the machine, no call is made. Claude's row is pushed by its statusline; the Codex and Opencode rows are pulled by the pill itself on a 3-minute TTL, so they stay current on a machine that never opens Claude at all. Claude and Opencode also get a `tokens` block in the dropdown — raw tokens moved today, this week, this month and all time (cache reads and all), two periods to a line so a full set reads as a 2×2, purely for the fun of watching the number climb. A period with nothing in it is left out rather than printed as a zero, so the block simply gets smaller, and a closing `∑ Everything` adds every provider up when more than one is reporting. It is a score, not a limit: nothing acts on it, and it never reaches the pill's own label. Claude's is summed from your transcripts on a 15-minute TTL behind an index, so only sessions that grew since the last pass are re-read; Codex has no row because it keeps no local history to count.
 
@@ -3793,7 +3991,7 @@ A gauge pill showing AI usage (Claude Code/Codex subscription rate limits as %, 
 
 ### `haus.sill.items.battery`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The battery pill.
 
@@ -3801,7 +3999,7 @@ The battery pill.
 
 ### `haus.sill.items.caffeinate`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-hour duration, or indefinitely. The display may still turn off; closing a MacBook lid still sleeps it. Uses macOS's built-in `caffeinate`, so there is no extra package.
 
@@ -3809,7 +4007,7 @@ A coffee pill that prevents idle system sleep for 1/2/4/8 hours, a custom whole-
 
 ### `haus.sill.items.calendar`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 The one meeting you have to be at next, and one gesture to join it. It reads "in 12m · Design review" — countdown first, because a label is clipped from the END and the number is the part you must never lose; below `haus.sill.calendar.preciseUnder` hours it carries minutes, above it just "in 14h" or "in 2d", and while an event is running it says "now · …" instead of going blank. For `haus.sill.calendar.imminent` minutes either side of the start the whole pill FILLS with the accent — a shape change rather than a colour change, so it catches the eye you aren't pointing at it. RIGHT-CLICK joins: it opens the event's conferencing link, found in the invite's url, location or notes (Meet, Zoom, Teams, Webex, Jitsi, Whereby and friends out of the box; `haus.sill.calendar.joinHosts` adds your own). LEFT-CLICK opens the day as a timeline — what's DONE in the last `haus.sill.calendar.past` hours, what's on NOW, and what's NEXT — each event carrying its day, clock time, length and who it's with, the next one boxed, and a `Join` affordance on every row that has a link. Your own address is dropped from the "with" line automatically: a CalDAV calendar is named for the account it syncs, so the pill can work out which attendee is you with no configuration (`haus.sill.calendar.me` for the cases where it can't). A name too long for the pill sweeps past only while you HOVER it — nothing here starts a marquee on its own — and `haus.sill.calendar.width` sets how much room it gets before that applies. Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for Calendar access on first run.
 
@@ -3817,7 +4015,7 @@ The one meeting you have to be at next, and one gesture to join it. It reads "in
 
 ### `haus.sill.items.claudeUsage`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Deprecated alias for `aiUsage`.
 
@@ -3825,7 +4023,7 @@ Deprecated alias for `aiUsage`.
 
 ### `haus.sill.items.clock`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The clock pill, pinned to the far right.
 
@@ -3833,7 +4031,7 @@ The clock pill, pinned to the far right.
 
 ### `haus.sill.items.cpu`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Total CPU load, drawn as a graph pill: the last two minutes of it behind the number, because a percentage on its own can't tell a spike settling from a climb that started five minutes ago. The reading is a DELTA between samples — the `ps` sum this used to print is each process's average over its whole lifetime, which on a machine that has been up a week barely moves while every core is pinned. LEFT-CLICK opens a dropdown: the user/system split, the load average, then what's responsible, biggest first and aggregated per app so a browser's twenty helpers are one row; clicking a row focuses that app's window. RIGHT-CLICK opens Activity Monitor on its CPU tab. The rows can only cover processes you own, so anything root runs — `kernel_task`, `WindowServer` — lands in `everything else` rather than going quietly missing from the sum.
 
@@ -3841,7 +4039,7 @@ Total CPU load, drawn as a graph pill: the last two minutes of it behind the num
 
 ### `haus.sill.items.elgato`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Toggles an Elgato Key Light on the local network. The light is found over mDNS (or pinned with `haus.sill.elgato.host`), and the pill draws dim when it can't be reached at all — a light that dropped off the wifi is not the same thing as a light that's switched off.
 
@@ -3849,7 +4047,7 @@ Toggles an Elgato Key Light on the local network. The light is found over mDNS (
 
 ### `haus.sill.items.harvest`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh you provide.
 
@@ -3857,7 +4055,7 @@ A Harvest time-tracking pill; needs a ~/.config/sketchybar/harvest_secrets.sh yo
 
 ### `haus.sill.items.media`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The now-playing track — auto-hides when nothing plays, dims when paused, and counts DOWN instead of scrolling a title once the thing playing is longer than twenty minutes (a podcast or a video is one you already know the name of; what you keep glancing at the bar for is how much is left). The title scrolls for a few seconds after a track changes and then settles, so nothing moves in the corner of your eye forever; hovering brings the full title back. Gestures: left click the dropdown, RIGHT click play/pause, ⌥ next, ⇧ previous, ⌘ jump to whatever is making the noise, scroll to seek ±10s. That ⌘ click reaches the browser TAB, not just the browser: the track's title is matched against the open tabs through Safari's and Chromium's AppleScript tab APIs, and on a Firefox fork (Zen among them) — which expose no tab list at all, neither to AppleScript nor to accessibility — through Firefox's own open-tab search in the address bar. Both routes ask for a permission the first time they run, Automation for the scriptable browsers and Accessibility for the Firefox forks, and both quietly fall back to just fronting the app if you say no. The dropdown carries the cover when the source published one, a scrubbable position slider, and transport rows — plus, for a source with no cover, a small app-icon badge floating in its bottom-right corner. It reads the same system-wide session Control Center does, so it follows a browser tab as readily as Apple Music or Spotify, and its icon says what KIND of thing is playing: an app it recognises gets that app's glyph, a browser gets video or music depending on whether an album was published. It cannot say which SITE — no URL reaches the now-playing session and none of window titles, artwork shape or the session's pid can recover one, so a wrong YouTube glyph on a Netflix tab is a guess this deliberately doesn't make; `haus.sill.media.icons` is the override for a machine that knows better. SketchyBar's own `media_change` event has been dead since macOS 15.4, where Apple started requiring an entitlement to talk to `mediaremoted`; the pill is fed instead by `media-control`, which does the read from inside the entitled `/usr/bin/perl`. That is a private-framework route Apple could close in any point release — `media-control test` exits non-zero once it has.
 
@@ -3865,7 +4063,7 @@ The now-playing track — auto-hides when nothing plays, dims when paused, and c
 
 ### `haus.sill.items.memory`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Memory in use, drawn as a graph pill. It counts what Activity Monitor counts — app memory + wired + compressed — and deliberately NOT the file cache: macOS fills idle RAM with cache on purpose, and the old reading counted that as used, which is why it sat near 90% on a machine doing nothing. The pill's COLOUR is the kernel's own pressure level (green normal, amber warning, red critical) rather than the percentage, because 60% of RAM in use is a Mac working correctly and a pill that goes amber for it is a pill you learn to ignore. LEFT-CLICK opens a dropdown with used/total, the cache, compressed and swap figures and then the biggest footprints per app, each row clicking through to that app's window. RIGHT-CLICK opens Activity Monitor on its Memory tab.
 
@@ -3873,7 +4071,7 @@ Memory in use, drawn as a graph pill. It counts what Activity Monitor counts —
 
 ### `haus.sill.items.volume`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Output volume / mute state.
 
@@ -3881,7 +4079,7 @@ Output volume / mute state.
 
 ### `haus.sill.items.weather`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The weather pill and its click-to-open forecast popover.
 
@@ -3889,7 +4087,7 @@ The weather pill and its click-to-open forecast popover.
 
 ### `haus.sill.items.wifi`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The Wi-Fi status pill.
 
@@ -3897,7 +4095,7 @@ The Wi-Fi status pill.
 
 ### `haus.sill.logo.color`
 
-`null or one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `null`
+`null or one of "rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach", "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"` · default `null` · desktop-safe
 
 The logo's resting colour, by Catppuccin name. `null` (the default)
 follows `haus.theme.accent`, which is almost always what you want — the
@@ -3918,7 +4116,7 @@ Example:
 
 ### `haus.sill.logo.gestures`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 What the logo pill does when clicked:
 
@@ -3944,7 +4142,7 @@ second copy nobody could check.
 
 ### `haus.sill.logo.icon`
 
-`string` · default `""`
+`string` · default `""` · desktop-safe
 
 The glyph in the far-left logo pill — the one that was an Apple menu
 until it was the nebelhaus cat-ears mark. Any single character your bar
@@ -3987,7 +4185,7 @@ Example:
 
 ### `haus.sill.logo.size`
 
-`positive integer, meaning >0` · default `20`
+`positive integer, meaning >0` · default `20` · desktop-safe
 
 Point size of the logo glyph. Its own knob rather than the bar's
 `FS_ICON`, because the glyphs worth putting here have wildly different
@@ -4004,7 +4202,7 @@ Example:
 
 ### `haus.sill.logo.status`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Let the logo's colour report the health of the machine, so the pill says
 something without being clicked:
@@ -4030,7 +4228,7 @@ shows the worst thing true about the machine.
 
 ### `haus.sill.logo.sweep`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Sweep the logo through the six hausfold accents — mauve, teal, green,
 yellow, peach, pink, the order the site runs them (nebelung → holt →
@@ -4050,7 +4248,7 @@ Leader mode suppresses it for the same reason.
 
 ### `haus.sill.logo.updateCheck`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Add the yellow "a newer rice is available" state to the logo pill. Off
 by default because it is the one part of the pill that leaves the
@@ -4070,7 +4268,7 @@ true
 
 ### `haus.sill.media.artworkTint`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Colour the media pill's glyph from the current cover art instead of from
 what kind of thing is playing.
@@ -4095,7 +4293,7 @@ true
 
 ### `haus.sill.media.collapse`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Draw the media pill as its glyph alone, and reveal the title only while
 the pointer is on it.
@@ -4116,7 +4314,7 @@ true
 
 ### `haus.sill.media.icons`
 
-`attribute set of string` · default `{ }`
+`attribute set of string` · default `{ }` · desktop-safe after `attrs-of-string` validation
 
 Override the media pill's glyph, keyed by bundle id
 (`com.spotify.client`) or by KIND — one of `music`, `spotify`,
@@ -4148,7 +4346,7 @@ Example:
 
 ### `haus.sill.media.width`
 
-`positive integer, meaning >0` · default `32`
+`positive integer, meaning >0` · default `32` · desktop-safe
 
 How wide the media pill's title is allowed to get, in CHARACTERS — not
 pixels. Anything longer is clipped to this and swept past instead, so
@@ -4172,7 +4370,7 @@ Example:
 
 ### `haus.sill.position`
 
-`one of "top", "bottom", "auto"` · default `"top"`
+`one of "top", "bottom", "auto"` · default `"top"` · desktop-safe
 
 Where the bar sits. `top` and `bottom` pin it there. `auto` flips it
 at runtime — `bottom` whenever an external display is attached (docked
@@ -4199,7 +4397,7 @@ The ⌘Space command palette.
 
 ### `haus.pounce.autoQuit.delay`
 
-`integer or floating point number between 0.25 and 3600 (both inclusive)` · default `2`
+`integer or floating point number between 0.25 and 3600 (both inclusive)` · default `2` · desktop-safe
 
 Seconds to wait after the last window closes before looking again and
 quitting. Load-bearing, not politeness: it is what tells "I'm done with
@@ -4226,7 +4424,7 @@ Example:
 
 ### `haus.pounce.autoQuit.enable`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Quit an app when you close its last window, the way Windows does it.
 macOS keeps a windowless app running, so every one of them is a ⌘Q you
@@ -4259,7 +4457,7 @@ for you; nothing here needs a log-out to land.
 
 ### `haus.pounce.autoQuit.exclude`
 
-`null or (list of string)` · default `pounce's own list — `[ "com.apple.finder" ]``
+`null or (list of string)` · default `pounce's own list — `[ "com.apple.finder" ]`` · desktop-safe
 
 Bundle ids never auto-quit. `null` leaves pounce's own default in
 place, which is `[ "com.apple.finder" ]` — Finder is the one app macOS
@@ -4291,7 +4489,7 @@ Example:
 
 ### `haus.pounce.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The pounce command palette daemon (⌘Space) + its rice commands.
 
@@ -4299,7 +4497,7 @@ The pounce command palette daemon (⌘Space) + its rice commands.
 
 ### `haus.pounce.followSystemAppearance`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Let the palette follow macOS Light/Dark Mode instead of pinning one
 polarity: pounce gets the nebelung variant AND its latte counterpart at
@@ -4319,7 +4517,7 @@ what it did before this option existed.
 
 ### `haus.pounce.items`
 
-`attribute set of (submodule)` · default `{ }`
+`attribute set of (submodule)` · default `{ }` · desktop-safe after `pounce-items` validation
 
 Per-item palette settings, keyed by the item's own address. One entry is
 one row of the palette: hide it, give it a search shorthand, give it a key.
@@ -4383,7 +4581,7 @@ Example:
 
 ### `haus.pounce.items.<name>.alias`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 A search shorthand, matched at a bonus over the item's real name —
 so "emo" can find the Emoji Picker without renaming it.
@@ -4398,7 +4596,7 @@ Example:
 
 ### `haus.pounce.items.<name>.caption`
 
-`null or string` · default `null`
+`null or string` · default `null` · desktop-safe
 
 How this item reads on the cheatsheet page that lists your item
 hotkeys (⌘Space then ⇥, or the leader's `/`). Only used when the
@@ -4422,7 +4620,7 @@ Example:
 
 ### `haus.pounce.items.<name>.hotkey`
 
-`null or string or list of string` · default `null`
+`null or string or list of string` · default `null` · desktop-safe
 
 A global chord, or a leader sequence, that invokes this item
 directly without opening the palette first. Modifier names follow
@@ -4447,7 +4645,7 @@ Example:
 
 ### `haus.pounce.items.<name>.listed`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Whether the item appears in the palette's list.
 
@@ -4462,7 +4660,7 @@ surface has today. (It writes pounce's own `enabled` key.)
 
 ### `haus.pounce.scale`
 
-`integer or floating point number between 0.8 and 2.0 (both inclusive)` · default `haus.ui.scale, held inside pounce's 0.8-2.0`
+`integer or floating point number between 0.8 and 2.0 (both inclusive)` · default `haus.ui.scale, held inside pounce's 0.8-2.0` · desktop-safe
 
 How big the palette is drawn. Multiplies every size in pounce's UI — the
 launcher's rows, header, icons and action bar, and the panels behind it:
@@ -4494,7 +4692,7 @@ Example:
 
 ### `haus.pounce.signingIdentity`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 A code-signing identity in your login keychain — either its SHA-1 or
 (preferred) its full common name. The pounce daemon is re-signed with
@@ -4526,7 +4724,7 @@ Example:
 
 ### `haus.pounce.windowMode`
 
-`one of "default", "compact"` · default `"compact"`
+`one of "default", "compact"` · default `"compact"` · desktop-safe
 
 The palette's proportions. `compact` is narrower with tighter rows and
 keeps its list hidden until you type — the rice's tuned look, and what it
@@ -4541,7 +4739,7 @@ is still the compact layout, just readable from further away.
 
 ### `haus.pounce.windowSwitcher`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Replace the stock ⌘Tab app switcher with pounce's MRU *window* switcher:
 tap ⌘⇥ to toggle to the last window (across workspaces), hold ⌘ and keep
@@ -4571,7 +4769,7 @@ The notch file shelf.
 
 ### `haus.perch.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The perch notch file shelf, installed via the perch flake (copied to /Applications).
 
@@ -4579,7 +4777,7 @@ The perch notch file shelf, installed via the perch flake (copied to /Applicatio
 
 ### `haus.perch.followSystemAppearance`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Let the shelf's palette follow macOS Light/Dark Mode instead of pinning
 one polarity: perch gets the nebelung variant AND its latte counterpart
@@ -4604,7 +4802,7 @@ One quiet switch: Do Not Disturb, optional Slack status, and your hooks.
 
 ### `haus.hush.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The hush room: one quiet switch — bar pill, palette command, and a
 `hush` CLI — that turns macOS Do Not Disturb on/off (via the
@@ -4621,7 +4819,7 @@ sketchybar once for the pill). `hush doctor` walks the one-time steps.
 
 ### `haus.hush.hooks`
 
-`list of (absolute path or string)` · default `[ ]`
+`list of (absolute path or string)` · default `[ ]` · host-only
 
 Extra scripts run on every hush/unhush, each called with a single
 argument "on" or "off". Paths are copied into the store; strings are
@@ -4638,7 +4836,7 @@ Example:
 
 ### `haus.hush.slack.enable`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Also set a Slack status and snooze Slack notifications (all devices,
 phone included) while hushed. Off by default: it needs a personal
@@ -4650,7 +4848,7 @@ unhush.
 
 ### `haus.hush.slack.snooze`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Also pause Slack's own notifications (dnd.setSnooze) while hushed —
 this is what silences the phone. Ended on unhush; capped at 24h as
@@ -4660,7 +4858,7 @@ a failsafe if you forget.
 
 ### `haus.hush.slack.statusEmoji`
 
-`string` · default `":no_bell:"`
+`string` · default `":no_bell:"` · desktop-safe
 
 Slack status emoji while hushed.
 
@@ -4668,7 +4866,7 @@ Slack status emoji while hushed.
 
 ### `haus.hush.slack.statusText`
 
-`string` · default `"heads down"`
+`string` · default `"heads down"` · desktop-safe
 
 Slack status text while hushed.
 
@@ -4676,7 +4874,7 @@ Slack status text while hushed.
 
 ### `haus.hush.slack.tokenCommand`
 
-`string` · default `""`
+`string` · default `""` · host-only
 
 Shell command that prints the Slack user token (xoxp-…) to stdout.
 Keychain-first so no secret ever lands in the store or a dotfile:
@@ -4696,7 +4894,7 @@ Text expansion via espanso.
 
 ### `haus.snippets.enable`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Text expansion via espanso: type a short trigger (say "@@") and it's
 replaced inline with a longer string (your email), in any app —
@@ -4717,7 +4915,7 @@ window only ever meant "the grant went missing").
 
 ### `haus.snippets.matches`
 
-`list of (submodule)` · default `[ ]`
+`list of (submodule)` · default `[ ]` · desktop-safe after `submodule-list` validation
 
 The expansion table — one { trigger; replace; } per snippet, written
 to ~/.config/espanso/match/default.yml. Only espanso's plain
@@ -4738,7 +4936,7 @@ Example:
 
 ### `haus.snippets.matches.*.replace`
 
-`string` · no default
+`string` · no default · desktop-safe
 
 What it expands to.
 
@@ -4752,7 +4950,7 @@ Example:
 
 ### `haus.snippets.matches.*.trigger`
 
-`string` · no default
+`string` · no default · desktop-safe
 
 What you type.
 
@@ -4770,7 +4968,7 @@ The first-run tutor.
 
 ### `haus.tour.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The haus tour — a first-run tutor that walks the four moves (launch /
 navigate / resize / palette) as ONE quiet pill in the bar, advancing
@@ -4788,7 +4986,7 @@ the ⌘Space step is dropped when pounce is off. Progress lives in
 
 ### `haus.tour.steps`
 
-`null or (non-empty (list of (submodule)))` · default `null`
+`null or (non-empty (list of (submodule)))` · default `null` · desktop-safe after `submodule-list` validation
 
 A community-authored tour, in order. null keeps the built-in four-move
 nebelhaus tour unchanged; supplying a list replaces it, so a shared rice can
@@ -4819,7 +5017,7 @@ Example:
 
 ### `haus.tour.steps.*.detect`
 
-`one of "launch", "workspace", "navigate", "resize", "palette"` · no default
+`one of "launch", "workspace", "navigate", "resize", "palette"` · no default · desktop-safe
 
 The existing rice signal that completes this step: entering launch,
 navigate or resize mode; changing workspace; or running the Haus Tour
@@ -4837,7 +5035,7 @@ Example:
 
 ### `haus.tour.steps.*.hint`
 
-`string` · no default
+`string` · no default · desktop-safe
 
 The instruction shown in the tour pill for this step.
 
@@ -4862,7 +5060,7 @@ The developer pack: the CLI toolbelt, Git tooling, coding-agent tooling, and lan
 
 ### `haus.developer.agents.enable`
 
-`boolean` · default `config.haus.developer.enable`
+`boolean` · default `config.haus.developer.enable` · desktop-safe
 
 Coding-agent *tooling*: `holt` (agent worktrees), `agent-state` (the
 pane-status writer behind the `agents` bar pill and the zellij tab
@@ -4878,7 +5076,7 @@ since a client with no `holt` to park it is not the deal on offer.
 
 ### `haus.developer.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The developer pack: the CLI toolbelt, Git tooling, coding-agent
 tooling, and language runtimes. On (the default) is the rice as it
@@ -4905,7 +5103,7 @@ false
 
 ### `haus.developer.git.enable`
 
-`boolean` · default `config.haus.developer.enable`
+`boolean` · default `config.haus.developer.enable` · desktop-safe
 
 Git and its surroundings: the shell alias vocabulary, the themed git
 config, delta (diff pager), lazygit, `gh`, and gnupg for commit
@@ -4916,7 +5114,7 @@ nothing to configure.
 
 ### `haus.developer.languages`
 
-`list of value "node" (singular enum)` · default `[ "node" ] when developer.enable is true, else [ ]`
+`list of value "node" (singular enum)` · default `[ "node" ] when developer.enable is true, else [ ]` · desktop-safe
 
 Language runtimes to install. Currently only "node" (bun + fnm, with
 fnm's `--use-on-cd` shell hook).
@@ -4934,7 +5132,7 @@ Example:
 
 ### `haus.developer.toolbelt.enable`
 
-`boolean` · default `config.haus.developer.enable`
+`boolean` · default `config.haus.developer.enable` · desktop-safe
 
 The terminal toolbelt: bat, fzf, fd, ripgrep, yazi, zoxide, lsd,
 glow, jq, tree, chafa, ttyd and fastfetch — the themed replacements
@@ -4952,7 +5150,7 @@ Touch ID for sudo — including inside a terminal multiplexer — and the passwo
 
 ### `haus.collar.enable`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 The collar room: Touch ID for `sudo`, with `reattach` — the PAM shim
 that keeps the prompt working when sudo runs inside a terminal
@@ -4965,7 +5163,7 @@ rebuild below. Nothing else in the rice depends on it.
 
 ### `haus.collar.passwordlessRebuild`
 
-`boolean` · default `true`
+`boolean` · default `true` · desktop-safe
 
 Exempt system activation from authenticating at all: a sudoers rule
 granting NOPASSWD to `darwin-rebuild` and `haus-activate` at their
@@ -4988,7 +5186,7 @@ Where secret values come from on this machine.
 
 ### `haus.secrets.provider`
 
-`null or string` · default `"keyring"`
+`null or string` · default `"keyring"` · host-only
 
 The secretspec provider that supplies secret VALUES on this machine.
 The secrets room writes it to ~/.config/secretspec/config.toml as the
@@ -5021,7 +5219,7 @@ How rebuilds treat Homebrew packages you did not declare.
 
 ### `haus.homebrew.autoUpdate`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Run `brew update` before activating the Homebrew step on every
 rebuild. Off by default — reproducible rebuilds shouldn't silently
@@ -5031,7 +5229,7 @@ pull newer formulae. Turn on if you want brew to track upstream.
 
 ### `haus.homebrew.cleanup`
 
-`one of "none", "uninstall", "zap"` · default `"none"`
+`one of "none", "uninstall", "zap"` · default `"none"` · desktop-safe
 
 How `darwin-rebuild switch` treats Homebrew casks/brews that are
 installed but NOT declared anywhere in your config.
@@ -5048,221 +5246,9 @@ installed but NOT declared anywhere in your config.
 
 ### `haus.homebrew.upgrade`
 
-`boolean` · default `false`
+`boolean` · default `false` · desktop-safe
 
 Upgrade outdated Homebrew packages on every rebuild. Off by default
 for the same reproducibility reason as autoUpdate.
 
 <small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/haus/blob/main/modules/den/options.nix).</small>
-
-## haus.zen
-### `haus.zen.extensions`
-
-`attribute set of (submodule)` · default `{ }`
-
-Browser extensions to deploy into Zen, by a stable id of your choosing.
-
-The mechanism is Firefox's enterprise policies — the rice renders an
-`ExtensionSettings` block — so it reaches Zen the way an IT department
-reaches Firefox, without a profile to hand-edit. `haus.roster`
-deliberately cannot do this: a roster entry installs from a cask, a
-brew, a nixpkgs package or the App Store, and a browser add-on is none
-of those.
-
-Two consequences of HOW the policies are delivered, both visible.
-Firefox only ever looks for a `policies.json` inside the app bundle,
-which a rice has no business writing into (it breaks the code signature
-and a cask upgrade wipes it), so the rice uses the other route macOS
-offers: a managed preference at
-`/Library/Preferences/app.zen-browser.zen.plist`. That file is
-root-owned, so it's written during system activation and a `haus
-rebuild` that can't reach it warns instead of installing anything. And
-because enterprise policies are on, Zen will tell you it is "managed by
-your organization" — that organization is this rice.
-
-The rice knows the id and slug of the extensions it themes
-(stylus),
-so those need only be named. Everything else needs `id` — see that
-option for where to find it.
-
-Naming `stylus` here also turns on the stamped userstyle bundle (see
-haus.theme.accent): the Catppuccin-derived styles Stylus imports
-carry their own accent and flavor variables, which no palette file can
-reach, so the rice stamps the bundle from your theme — accent, flavor,
-and the contrast it's rendered for — and tells you when there's a new
-one to import.
-
-Example:
-
-```nix
-{
-  # Known to the rice — id and slug are filled in.
-  stylus = { };
-  # Anything else: bring the id.
-  ublock-origin = {
-    id = "uBlock0@raymondhill.net";
-    slug = "ublock-origin";
-  };
-}
-```
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.extensions.<name>.enable`
-
-`boolean` · default `true`
-
-Whether to deploy this extension. Set false to remove one an imported rice added.
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.extensions.<name>.id`
-
-`null or string` · default `null`
-
-The extension's own id — the key Firefox's policy engine
-matches on, NOT its AMO slug. Usually a brace-wrapped UUID,
-sometimes an email-shaped string (`addon@example.org`).
-
-Find it by installing the add-on once and reading `Extension
-ID` under about:debugging ▸ This Firefox, or from the
-`browser_specific_settings` block of its source. Wrong id and
-the policy silently installs nothing — which is why this has
-no guessable default.
-
-Example:
-
-```nix
-"{7a7a4a92-a2a0-41d1-9fd7-1e92480d612d}"
-```
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.extensions.<name>.mode`
-
-`one of "force_installed", "normal_installed", "allowed", "blocked"` · default `"force_installed"`
-
-Firefox's `installation_mode`. `force_installed` installs it
-and stops the user removing it (the point, for a rice that
-wants an extension present); `normal_installed` installs it
-but leaves it removable.
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.extensions.<name>.slug`
-
-`null or string` · default `null`
-
-The add-on's AMO slug — the last path segment of its
-addons.mozilla.org URL. Only used to build the default
-`url`; set `url` directly and this is ignored.
-
-Example:
-
-```nix
-"styl-us"
-```
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.extensions.<name>.url`
-
-`string` · default `""`
-
-Where the .xpi comes from. Defaults to AMO's "latest" endpoint
-for `slug`, so the add-on updates itself; point it at a pinned
-version or a self-hosted file to freeze it.
-
-A `file://` url has a second effect, and it is not local to
-this extension: a file on disk cannot have been signed by
-Mozilla, and Zen refuses an unsigned add-on
-(`ERROR_SIGNEDSTATE_REQUIRED`) unless
-`xpinstall.signatures.required` is off. So naming one makes
-the rice lock that pref off **for the whole browser** — the
-same switch `haus.zen.tabBridge.enable` documents, since the
-bridge is the rice's own `file://` install. An `https://` AMO
-url never turns it on.
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.extraPolicies`
-
-`attribute set` · default `{ }`
-
-Anything else to put in Zen's policy set, merged beside the
-`ExtensionSettings` block `haus.zen.extensions` renders. The rice OWNS
-the file these land in — `/Library/Preferences/app.zen-browser.zen.plist`,
-written as root — so this is the escape hatch for the rest of the policy
-surface rather than a reason to take the file back by hand. Keys here
-win over the rice's on a collision.
-
-Write the policy names as Firefox documents them, nested: this becomes
-the top level of a plist beside `EnterprisePoliciesEnabled`, so
-`{ Extensions.Install = [ "…" ]; }` is an `Extensions` dict with an
-`Install` array in it, not a key called `Extensions.Install`. Setting
-every policy back to `{ }` (and naming no extensions) takes the file
-down again on the next rebuild.
-
-The merge is one level deep, so naming a policy takes that policy over
-WHOLE. Two of them the rice writes itself: `ExtensionSettings` (from
-`haus.zen.extensions`) and `Preferences` (which is where the signature
-switch a `file://` install needs ends up). Restate what you still want
-if you set either — dropping the signature switch this way is invisible
-until you notice the add-on isn't there.
-
-Values are passed to a plist writer, so `null` is not a value: it
-renders as a key with nothing under it, which makes the whole file
-invalid and drops **every** policy, not just that one. Omit the key
-instead.
-
-Example:
-
-```nix
-{ DisableTelemetry = true; }
-```
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
-
-### `haus.zen.tabBridge.enable`
-
-`boolean` · default `false`
-
-Deploy the rice's own tiny extension into Zen, so the bar can find and
-switch to the tab that is making noise.
-
-This is what makes the media pill's ⌘ click land on the **tab** rather
-than just bringing Zen forward. Safari and the Chromium browsers need
-nothing here — they hand their tab list to AppleScript and the pill uses
-that. Firefox and its forks hand out nothing at all, to AppleScript or
-to accessibility, so without this the pill falls back to driving
-Firefox's own address-bar tab search with synthetic keystrokes, which
-needs the Accessibility permission and is exactly as pleasant as it
-sounds.
-
-Off by default because it force-installs an add-on into your browser,
-which is not a thing a rice should do to you unasked. Turning it on
-costs one derivation, a native-messaging manifest, and two keys in the
-rice's root-owned policy plist — one of which is the signature switch
-below. Turning it back off stops the rice deploying it — what Zen then
-does with the add-on already installed is Firefox's policy engine's
-business, not the rice's, so check `about:addons` and remove it there if
-it outstays the option.
-
-**Zen only, and that's a signing constraint rather than a choice.**
-Release Firefox refuses an extension Mozilla hasn't signed, and it is
-built so that no pref and no policy can say otherwise. Zen is built the
-other way (`MOZ_REQUIRE_SIGNING = false`), which is the whole reason the
-rice can build the `.xpi` itself and install it out of the nix store.
-
-It still costs a switch. Zen carries Firefox's own preference defaults,
-which turn signature enforcement back on, so turning this option on also
-makes the rice lock `xpinstall.signatures.required = false` — for the
-browser, not just for its own add-on. Without it Zen refuses the bridge
-with `ERROR_SIGNEDSTATE_REQUIRED` and the option quietly does nothing;
-with it, an unsigned add-on from anywhere would also install if
-something asked. That is the second reason this is off by default.
-
-Firefox support would mean an AMO account and unlisted self-distribution
-signing — packaging, not a code change — and would drop the pref.
-
-<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
