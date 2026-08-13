@@ -55,10 +55,24 @@ personal bar pills and other strong opinions belong to desktops. Enabling a
 launcher should provide a working launcher, for example, but a desktop decides
 whether it takes over Command-Space.
 
-Not every top-level `haus.*` namespace is a room. Identity, keys, the app roster,
-workspaces and shared macOS settings are cross-room configuration surfaces. The
-current generated reference treating every namespace as one of “35 rooms” is an
-implementation accident to replace with an explicit room registry.
+Not every top-level `haus.*` namespace is a room. The registry classifies every
+namespace as one of three kinds:
+
+- **room** — owned by one product room in the catalogue below;
+- **shared** — a surface several rooms consume, such as keys, the app roster or
+  workspaces;
+- **host** — machine/person-specific configuration such as identity.
+
+Classification and desktop safety are separate. Every public option also states
+whether desktop data may set it. The answer must be explicit, not inferred from
+its namespace: most Pounce settings belong in a desktop, while its signing
+identity belongs only in a host; semantic display scaling can belong in a
+desktop, while a physical display UUID cannot. Host config may set any public
+option. Desktop config is rejected when it reaches a host-only leaf.
+
+The current generated reference treating every namespace as one of “35 rooms”
+is an implementation accident to replace with this registry and per-option
+desktop metadata.
 
 ## The room catalogue
 
@@ -121,7 +135,8 @@ rooms and configures their exposed options. nebelhaus is the first desktop: its
 silver-grey, keyboard-first, developer-focused choices should live in a desktop
 definition rather than masquerading as generic module defaults.
 
-A shareable desktop remains data-only:
+A shareable desktop remains data-only and may set only options marked safe for
+desktop data:
 
 ```nix
 {
@@ -139,8 +154,10 @@ A shareable desktop remains data-only:
 
 The exact future option addresses above are illustrative; the trust boundary is
 not. A desktop receives no `pkgs`, `lib` or `config`, cannot add activation code,
-and sets only public `haus.*` options. A full host evaluation proves that those
-options and values are valid.
+and sets only desktop-safe public `haus.*` options. Identity, secrets, account
+coordinates, signing identities and hardware identifiers are host-only even
+when a room uses them. A full host evaluation proves that the remaining options
+and values are valid.
 
 One desktop per host removes desktop-versus-desktop precedence from the user
 model. Concerns previously called presets or layers become room-owned profiles
@@ -219,15 +236,15 @@ gate must be green before the next step changes behavior. An agent taking a step
 owns it through its report and leaves newly discovered work in **Findings**, not
 silently folded into the scope.
 
-| Step | Status | Work | Exit gate |
-|---|---|---|---|
-| **0. Baseline** | ready | Inventory current modules, exported `darwinModules`, `haus.*` namespaces, enable switches, defaults and cross-room reads. Record which values are generic mechanism versus nebelhaus opinion. | The inventory accounts for every generated option group and names every behavior that must remain identical during the refactor. |
-| **1. Room registry** | blocked by 0 | Add one explicit, generated room registry. Map implementation modules and option namespaces to the product rooms above without moving or renaming options. Make the host template and docs renderer consume it. | Generated output has no unclassified namespace, current option addresses are unchanged, and counts come from the registry rather than prose. |
-| **2. AI proof** | blocked by 1 | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; current nebelhaus behavior and old addresses still evaluate. |
-| **3. Desktop seam** | blocked by 2 | Add exactly-one-desktop selection, source attribution and host-wins priority. Keep the compatibility builder selecting nebelhaus implicitly. Do not design remote acquisition here. | A fixture proves one desktop is selected, a plain host assignment overrides it, a second desktop is rejected clearly, and the source filename survives diagnostics. |
-| **4. Carve out nebelhaus** | blocked by 3 | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus` and old option addresses as compatibility surfaces. | Existing nebelhaus builds are behaviorally identical; Blank enables no optional rooms; there is no commit on `main` where existing installs silently lose a room. |
-| **5. Retire top-level fragments** | blocked by 4 | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
-| **6. Rebuild the docs journey** | blocked by 5 | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
+| Step | Status | Work | Durable evidence | Exit gate |
+|---|---|---|---|---|
+| **0. Baseline** | ready | Inventory current modules, exported `darwinModules`, `haus.*` namespaces, enable switches, defaults and cross-room reads. Classify each namespace as room/shared/host, each leaf as desktop-safe/host-only, and each value as generic mechanism/nebelhaus opinion. | Commit `notes/rooms-inventory.md` in the workshop, including the commands and revision used to produce it. | The inventory accounts for every generated option group and names every behavior that must remain identical during the refactor. Re-running its commands at the recorded haus revision reproduces its counts. |
+| **1. Room registry** | blocked by 0 | Expand `haus/modules/options-groups.nix` into the single registry for room/shared/host classification and per-option desktop safety, without moving or renaming options. Make the host template and docs renderer consume it. | The source registry, regenerated `haus/docs/site-data/groups.json`, and a flake check that fails on an unclassified namespace or option with no desktop-safety decision. | Every public namespace and leaf is classified, current option addresses are unchanged, generated artifacts are current, and counts come from the registry rather than prose. |
+| **2. AI proof** | blocked by 1 | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room, plus the compatibility evaluation in the PR's Verify section. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; current nebelhaus behavior and old addresses still evaluate. |
+| **3. Desktop seam** | blocked by 2 | Add exactly-one-desktop selection, source attribution, desktop-safety enforcement and host-wins priority. Keep the compatibility builder selecting nebelhaus implicitly. Do not design remote acquisition here. | A named haus flake check with fixtures for one desktop, two desktops, host override, source diagnostics, and rejected host-only leaves. | One desktop is selected; a plain host assignment overrides it; a second is rejected clearly; source filenames survive diagnostics; desktop data cannot set identity, secrets, account coordinates, signing identities or hardware identifiers. |
+| **4. Carve out nebelhaus** | blocked by 3 | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus` and old option addresses as compatibility surfaces. | Before/after evaluated configuration snapshots for the example and real consumer, a Blank fixture, `nix flake check`, and `bench try`; record the compared artifacts and commands in the PR. | Existing nebelhaus builds are behaviorally identical; Blank enables no optional rooms; there is no commit on `main` where existing installs silently lose a room. |
+| **5. Retire top-level fragments** | blocked by 4 | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
+| **6. Rebuild the docs journey** | blocked by 5 | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
 
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
 the nebelhaus values that replace them and the compatibility selection must land
@@ -235,21 +252,28 @@ together even if preparatory refactors land earlier.
 
 ### Agent status report
 
-Every agent working a step reports back in this shape, in commentary while work
-is live and in the PR body when it is ready:
+Every agent working a step reports back in this shape while work is live:
 
 ```text
 Step: <number and name>
 Status: not started | in progress | blocked | ready for review | done
 Changed: <repos and the bounded outcome>
-Verified: <commands run and observable result>
+Why: <the need this step addresses>
+Verified: <commands run, durable evidence path and observable result>
 Findings:
 - [impact 1–5] <new fact> — <consequence and recommendation>
+Watch-outs: <risks, fragile boundaries and deliberately deferred work>
 Decisions needed: <only unresolved items at impact 3–5, with a recommendation>
 Next: <the next concrete action or the next plan step now unblocked>
 ```
 
-“Done” means the exit gate is proven, not merely that a diff exists. A blocker
-names the failed gate and the evidence; it does not expand the step. Findings at
-impact 1–2 may be resolved in scope when reversible. Findings at 3–5 are
-reported with a recommendation before they change the architecture.
+The PR body keeps the repository-wide contract: **What** comes from Changed,
+**Why** from Why, **Verify** from Verified, and **Watch-out** from Findings plus
+Watch-outs. Do not paste the status line or Next action into the PR as substitute
+headings.
+
+“Done” means the exit gate is proven and its evidence is committed or linked,
+not merely that a diff exists. A blocker names the failed gate and the evidence;
+it does not expand the step. Findings at impact 1–2 may be resolved in scope when
+reversible. Findings at 3–5 are reported with a recommendation before they
+change the architecture.
