@@ -164,28 +164,24 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-12
+### Current handoff — 2026-08-13
 
-**§5.2's first landing is in: `hausfold.co/docs` exists**, and six merged
-batches take it to **twenty-four of the twenty-nine pages**. The
-Fumadocs build, the theme and the CI came with the first
-([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12), with #15
-following as the colour pass); the daily-driver
-guides — windows, apps, the terminal, theming, keybindings — came with the second
-([hausfold.co#17](https://github.com/hausfold/hausfold.co/pull/17)); the launcher
-pair, Touch ID and hush with the third
-([hausfold.co#18](https://github.com/hausfold/hausfold.co/pull/18)); the
-coding-agents consolidation with the fourth; the update loop and the `haus` CLI
-reference with the fifth ([hausfold.co#21](https://github.com/hausfold/hausfold.co/pull/21));
-and the host-file cookbook plus both exits — troubleshooting and leaving — with
-the sixth ([hausfold.co#23](https://github.com/hausfold/hausfold.co/pull/23)). §5.2's
-status box carries what each proved, what it changed and what is left — read that
-before assuming any bullet further down this section is still the plan. The
-three headlines: the docs are **two trees behind a sidebar switcher**
-(`/docs/haus/*`, `/docs/nebelhaus/*`), which spends "preserve slugs"; porting a
-page is a **rewrite to about half its length**, not a move; and the landing
-pages **will** become Next routes (👤, 2026-08-12), which settles the one fork
-§5.2 had left open.
+**§5.2's docs source work is complete.** All twenty-nine source decisions are
+closed: twenty-eight sources became Fumadocs pages, and `start/the-family` was
+deliberately retired after its three unique pieces moved into
+`internals/contributing`. The last one was the generated options reference
+([hausfold.co#26](https://github.com/hausfold/hausfold.co/pull/26)): its generator,
+keybinding checker, committed snapshot and both weekly drift workflows now live
+in hausfold.co, reading haus's committed `docs/site-data/` with no Nix in the
+site repo. The current data is **237 `haus.*` options across 35 rooms** — one
+option beyond the 236 counted when this final move was planned.
+
+The three headlines still govern the result: the docs are **two trees behind a
+sidebar switcher** (`/docs/haus/*`, `/docs/nebelhaus/*`), which spends "preserve
+slugs"; prose ports were **rewrites to about half their source length**, not
+moves; and the landing pages **will** become Next routes (👤, 2026-08-12). What
+remains in §5.2 is no longer docs writing: the landing routes, `worker.js`, the
+installer route and the `nebelhaus.com/*` 301s.
 
 ⚠️ **The rewrite is finding real bugs in the old pages, which is an argument for
 doing it rather than a cost of it.** Batch two's fact-check against the rice
@@ -194,8 +190,8 @@ turned up a roster example whose launcher key an assertion refuses outright
 does not exist. Both were fixed in `web/` too, in the same change as this note —
 29 pages written against a moving target are 29 pages nobody has re-read since.
 
-§5.2 is still the whole of the 🤖 work left on the rename proper — it is just no
-longer untouched.
+§5.2 is still the whole of the 🤖 work left on the rename proper; its docs-source
+half is closed, and its route/Worker half is next.
 
 ### Current handoff — 2026-08-11
 
@@ -2293,7 +2289,7 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
-#### 🟡 Status 2026-08-12 — the shell is up, and twenty-four of twenty-nine pages
+#### 🟡 Status 2026-08-13 — docs source work complete; routes and Worker remain
 
 **Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
 #15 followed with the colour pass):
@@ -2686,26 +2682,33 @@ developer-pack row and a corrected `everyday` description), and both landed in
 this batch's hausfold.co PR. **The rule works; the window is measured in minutes,
 not merges. Re-check `origin/main` before you commit, not only before you read.**
 
-**Still open, and each is its own piece of work:**
+**Landed, the generated reference**
+([hausfold.co#26](https://github.com/hausfold/hausfold.co/pull/26)): the final
+source, `reference/options`, now renders as
+`content/docs/haus/reference/options.mdx`. `scripts/gen-options.mjs` and
+`scripts/check-rice-bindings.mjs` moved with it, along with the committed
+keybinding snapshot and the two weekly drift workflows. The two live pages that
+linked back to nebelhaus.com now point locally; the page has its Fumadocs icon
+and two-card foot; and the build proved the 237-option page parses, enters search
+and appears in `llms-full.txt`. Pull-request checks run read-only; only the
+scheduled/manual regeneration job receives write credentials.
 
-- the remaining **1 source page**: `reference/options.md`, the generated
-  one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
-  pointed at haus's committed `docs/site-data/`. ✅ Checked while planning:
-  that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
-  among them, so "every option including the dev ones" needs no change to the
-  generator — it filters on the namespace and nothing else. ⚠️ **It is also now
-  load-bearing for the 301s**: `haus/index` and `guides/sharing-a-rice` both link
-  out to `nebelhaus.com/reference/options/`, so flipping the redirects before
-  that generator moves points two live pages at nothing.
+**All twenty-nine source decisions are closed:** twenty-eight ported, one
+retired. The generator move was deliberately not a writing pass — descriptions
+remain owned by haus and flow from its committed site data rather than gaining a
+second editable copy here.
+
+**Still open after the docs source work, and each is its own piece of work:**
+
 - the landing pages becoming Next routes. 👤 decided **yes** on 2026-08-12,
   which settles the "still not decided" line below; not done.
 - `worker.js`, the `hausfold.co/<desktop>.sh` installer route, and the
   `nebelhaus.com/*` 301s. **Until those land the docs print
   `nebelhaus.com/init.sh`**, deliberately — it is the URL that resolves — and
-  nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
+  nebelhaus.com stays live serving the old pages. A fact fixed in one tree
   and not the other will disagree; fix it in both or in neither.
 
-##### The one left, with the tree it lands in
+##### The source ledger, now closed
 
 Derived after batch two and struck through as batches land, so the next session
 doesn't re-derive it. `→` means consolidate into one page. Source paths are under
@@ -2716,12 +2719,12 @@ reconcile to twenty-nine without them: batch one's four (`start/install`,
 the table, and three of batch two's (`guides/adding-apps`, `guides/the-shell`,
 `nebelhaus/keybindings`), which landed as it was being written. The ✅ rows are
 batch two's other three plus everything struck since, kept so a later session
-can see what the consolidations actually became. So: 1 row = 1 pending
-source, plus 21 in ✅ rows, plus the 7 rowless = 29.
+can see what the consolidations actually became. So: 22 sources in ✅ rows,
+plus the 7 rowless = 29.
 
 | Source | Lines | Tree | Note |
 |---|---|---|---|
-| `reference/options` | 5231 | haus | generated — the `gen-options.mjs` bullet above, not a writing job. **The only source left.** |
+| ~~`reference/options`~~ | — | — | ✅ done in [hausfold.co#26](https://github.com/hausfold/hausfold.co/pull/26), generated as `haus/reference/options` from haus's committed `docs/site-data/` — 237 options across 35 rooms |
 | ~~`guides/sharing-a-rice`~~ | — | — | ✅ done (batch seven) as `guides/sharing-a-desktop`, with the **tour** (`haus.tour.steps`) folded in from `making-it-yours` as planned |
 | ~~`internals/flakes`~~ | — | — | ✅ done (batch seven) |
 | ~~`internals/contributing`~~ | — | — | ✅ done (batch seven), as `internals/contributing`; a new **Internals** sidebar group holds it and `flakes` |
@@ -2901,34 +2904,35 @@ The determinism that matters day to day isn't build reproducibility — it's
 already built (§5.1), unchanged by the move to Fumadocs:
 
 ```
-rice module system  →  nix build .#site-data  →  hausfold/docs/site-data/options.json
-     (committed in the rice, pinned by its own `site-data-current` flake check)
-         ↓  web/scripts/gen-options.mjs
-     src/content/docs/reference/options.md   (generated, COMMITTED)
+haus module system  →  nix build .#site-data  →  haus/docs/site-data/options.json
+     (committed in haus, pinned by its own `site-data-current` flake check)
+         ↓  hausfold.co/scripts/gen-options.mjs
+     content/docs/haus/reference/options.mdx   (generated, COMMITTED)
          ↓  the docs build
      a normal page  →  indexed like any other  →  searchable
 ```
 
 The options reference is a **generated file that is committed**, not rendered at
-build time — `gen-options.mjs` runs in the drift workflow (Monday cron + a PR
+build time — `scripts/gen-options.mjs` runs in the drift workflow (Monday cron + a PR
 check), not in `npm run build`. So a deploy indexes whatever snapshot is
 committed. That is §5.1's already-recorded residue ("the site checks a snapshot,
 not the source"), and it is the *only* gap between "live options" and "what
-search returns". Nothing about Fumadocs changes it: same script, same input,
-output lands in the content dir, Fumadocs indexes it.
+search returns". The repository move kept that boundary: Fumadocs indexes the
+committed page, and the weekly workflow notices when haus's site data moves.
 
-✅ **Confirmed by the measurement below rather than assumed** — `options.md` was
-in the 29-page corpus that produced the 3,004-section index, so the numbers
-already cover the whole option surface.
+✅ **Confirmed live in hausfold.co#26 rather than assumed** — all 237 option keys
+match haus `origin/main` exactly, and the built page appears in both the search
+index and `llms-full.txt`.
 
-⚠️ **And it's the reason the index is big.** `reference/options.md` is
-**151 KB of the corpus's 429 KB (35%)** and carries **226 of its 477 headings
-(47%)**. So the search index's size is, roughly, *the option reference*. If the
-457 KB brotli figure ever needs to come down, that page — not the prose docs —
-is the lever, and trimming what's indexed per option beats changing search
-engines.
+⚠️ **The pre-port spike also found why the index would be big.** Everything
+through the size table below is the 2026-08-09 measurement, not today's export:
+`reference/options.md` was **151 KB of the corpus's 429 KB (35%)** and carried
+**226 of its 477 headings (47%)**. So the search index's size was, roughly, *the
+option reference*. If the current index ever needs to come down, that page — not
+the prose docs — is still the lever, and trimming what's indexed per option
+beats changing search engines.
 
-##### 🚨 Then measured against the **real** corpus, and the index is big
+##### 🚨 The pre-port spike against the **real** corpus
 
 A 2-page scaffold proves nothing about size. The 29 real pages from
 `web/src/content/docs` (prose only — see the caveat below) were built through
