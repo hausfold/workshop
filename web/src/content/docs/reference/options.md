@@ -3899,6 +3899,23 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
+### `haus.sill.clock.monoFont`
+
+`boolean` · default `true` · desktop-safe
+
+Whether the clock pill's date and time use `haus.fonts.mono.name`, like
+the rest of Sill. Disable this to use macOS's system UI font, whose zero
+has no dot and is easier to distinguish from an 8 at a glance. The
+calendar icon remains in the Nerd Font either way.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
 ### `haus.sill.elgato.host`
 
 `string` · default `""` · host-only
