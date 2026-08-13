@@ -11,8 +11,8 @@ switch, update, roll back — with safe defaults.
 
 <Aside type="note" title="haus vs. bench vs. holt">
 The `haus` on your `PATH` (documented here) manages **your machine** — it's all
-you need as an end user. The rice also ships **[`holt`](/guides/claude-agents/)**
-for Claude Code agent worktrees (useful to anyone, contributor or not), and
+you need as an end user. With `haus.developer.agents.enable`, the desktop also
+ships **[`holt`](/guides/claude-agents/)** for coding-agent worktrees, and
 family *contributors* get a separate **[`bench`](/internals/contributing/)** CLI
 in the workshop for moving changes between repos. See
 [the CLIs at a glance](/start/the-family/#the-clis-at-a-glance) for the full map.
@@ -33,7 +33,7 @@ take down your running system — you just see the build fail and fix it.
 
 ## Staying current
 
-The rice lives upstream. To pull new versions:
+The desktop lives upstream. To pull new versions:
 
 ```sh
 haus update     # bump the nebelhaus pin, then rebuild
@@ -72,13 +72,13 @@ them, including `set`, `plan`, `diff`, `capture` and `revert-settings`.
 | `haus update` | Update the nebelhaus pin, then rebuild |
 | `haus rollback [N]` | Return to the previous generation (or generation `N`) |
 | `haus generations` | List available generations |
-| `haus status` | Current generation and how stale the rice is |
+| `haus status` | Current generation and how stale the desktop is |
 | `haus edit` | Open your host file in `$EDITOR` |
 | `haus doctor` | Diagnose Nix / CLT / agent health and cask drift |
 | `haus btm` | On macOS Tahoe+, diagnose Background Task Management blocks on nix login items |
 
 <Aside type="tip" title="From the palette, too">
-The rice ships a **Rebuild System** command into
+The desktop ships a **Rebuild System** command into
 [Pounce](/guides/pounce/) — ⌘Space, type "rebuild" — that runs `haus rebuild` in
 a floating terminal, plus a **Nix Config** command that opens your host file in
 your editor. Handy when your hands are already on the launcher.

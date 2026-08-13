@@ -6,6 +6,12 @@ This folder's own repo holds the README, this file, `bench`, `web/` (the
 nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
 `assets/` and `test/`; the subdirectories are independent git repos.
 
+> **Terminology update, decided 2026-08-13:** user-facing prose says
+> **desktop**, not "rice", for an installable `{ haus = { … }; }` configuration.
+> Existing "rice" spellings in this file and the rename plan are legacy wording;
+> preserve them only in historical quotations, URLs, filenames, code identifiers,
+> and records of the earlier decision. Do not introduce the term into new prose.
+
 > 🚨 **`nebelhaus` means five different things and only some of them are being
 > renamed.** `notes/hausfold-rename.md` is the plan of record; §2's table is the
 > rule. In one line each:
@@ -13,9 +19,9 @@ nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
 > | spelling | what it is | this rename |
 > |---|---|---|
 > | `haus.<option>` | the option namespace | ✅ **already renamed** (nebelhaus#261). `nebelhaus.*` still evaluates via `modules/renamed.nix`, with a warning — never write it. Options that later moved *within* `haus.*` (the `claude` room → `agents`, 2026-08-11) are aliased in `modules/moved.nix` instead; same warning, different file, and that one has no deletion condition. |
-> | **nebelhaus** bare | the **rice** — one desktop built on `haus` | **stays**, forever (§6) |
+> | **nebelhaus** bare | one **desktop** built on `haus` | **stays**, forever (§6) |
 > | `github.com/nebelhaus/*`, `GH_ORG` | the org and its repos | ✅ **already renamed** — every *family* repo is `github.com/hausfold/*` (§3, 2026-08-09). The archived Messages client stayed behind (§3.4), and the dead org is kept alive forever regardless: shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` for their update check and only a live org redirects them. |
-> | `--override-input nebelhaus/…` in `bench`, `nebelhaus.url` | the consumer's flake **input name** | **not renamed** — it names the rice, not the org (§3.3's flake-input-paths box). Nix doesn't hard-fail an override for an unknown input, so renaming these makes `bench try` build the pinned rice while reporting your branch. Whether the consumer's own input gets renamed is a still-open 👤 call on a 👤 file. |
+> | `--override-input nebelhaus/…` in `bench`, `nebelhaus.url` | the consumer's flake **input name** | **not renamed** — it names the desktop, not the org (§3.3's flake-input-paths box). Nix doesn't hard-fail an override for an unknown input, so renaming these makes `bench try` build the pinned desktop while reporting your branch. Whether the consumer's own input gets renamed is a still-open 👤 call on a 👤 file. |
 > | `nebelhaus.com` | the domain | **§5**, with the 301s |
 >
 > **And since 2026-08-10, `haus` carries five senses of its own** (decision 8):
@@ -32,7 +38,7 @@ nebelhaus.com Astro Starlight docs site + its Cloudflare Worker), plus
 > dirs (`~/.local/state/nebelhaus`, deliberately held — §2.2), and
 > `~/.cache/claude-worktrees/` (historical, stays). **The word alone tells you
 > nothing — read the hit before you touch it**, and grep the bare word
-> separately: a rice file's top-level key is `{ haus = { … }; }`, with no dot
+> separately: a desktop file's top-level key is `{ haus = { … }; }`, with no dot
 > for a regex to find.
 
 **This file is the one set of instructions, for every agent.** Claude Code,

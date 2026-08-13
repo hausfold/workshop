@@ -5,7 +5,7 @@ description: How the family repos fit together, the workshop bench CLI, and the 
 
 import { Aside } from '@astrojs/starlight/components';
 
-Want to hack on nebelhaus itself — the rice, the launcher, or the palette? This
+Want to hack on nebelhaus itself — the desktop, the launcher, or the palette? This
 page covers how the family is developed. (To just *use* nebelhaus, you never need
 any of this — see [Keeping in sync](/guides/staying-in-sync/).)
 
@@ -87,7 +87,7 @@ under `~/.cache/claude-worktrees/<repo>/<name>` (the path name is historical, no
 a claim about the client), so agents never yank the branch out from under each
 other. That whole mechanism (spawning with `Super a`, never losing work when a
 pane closes, resuming a parked session, the statusline HUD) is
-[`holt`](/guides/claude-agents/), which the rice ships, and it works for any
+[`holt`](/guides/claude-agents/), which the desktop ships, and it works for any
 repo.
 Three things matter specifically when the repo is a *family* one:
 
@@ -156,11 +156,11 @@ a PR the batch never built. It also takes optional repo arguments
 
 ## Feel-testing a zellij edit (zscratch)
 
-One class of rice change escapes the ripple entirely. A freshly-built plugin
+One class of desktop change escapes the ripple entirely. A freshly-built plugin
 `.wasm`, a candidate zellij binary, or a layout change to tabs that already
 exist **cannot hot-reload** — a running server caches plugin wasm in memory for
 its whole lifetime — so seeing one means restarting the zellij server yourself,
-which costs you every open tab. The rice ships **`zscratch`** for exactly this.
+which costs you every open tab. The desktop ships **`zscratch`** for exactly this.
 It renders your candidate over a copy of your live `~/.config/zellij` into a temp
 config dir and boots a throwaway session in its **own Ghostty window**, so your
 working multiplexer is untouched:
@@ -226,7 +226,7 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
    waits with you while it happens. Four repos are releasable: **pounce**
    (GitHub release + Homebrew *formula* bump), **perch** (Homebrew *cask* bump,
    plus a commit of perch's own `nix/release.nix` back to the perch repo — the
-   rice's flake pin only moves on the next `bench ship`), **haus** (the tag
+   desktop's flake pin only moves on the next `bench ship`), **haus** (the tag
    becomes what `nebelhaus.com/init.sh` serves to new installs), and **holt**
    (five SDKs, to npm, PyPI, crates.io, SwiftPM and the Go proxy).
 
@@ -236,9 +236,9 @@ Versions are date-based (CalVer). `bench release <repo>` stamps today's date —
 source, commits it, and tags `v<date>`; passing a version to a CalVer repo is
 *refused*. CI then publishes the GitHub release, and for the two app repos bumps
 the formula and the cask — haus's run has no tap job at all, and holt's publishes
-SDKs. No number is typed by hand, and you never hand-edit the formula's url/sha.
+SDKs. No CalVer number is typed by hand, and you never hand-edit the formula's url/sha.
 It also wants a clean tree and no unpushed commits before it starts. And because
-the installer serves the latest **rice** release, user-visible rice changes
+the installer serves the latest **desktop** release, user-visible desktop changes
 aren't really "out" until `bench release haus` tags one.
 
 **holt is the exception**, and it's forced: `bench release holt 0.2.0` takes a
@@ -274,7 +274,7 @@ file — the repo's `.agents/README.md` maps which tool reads what.
 
 ## Licences
 
-The rice, nebelung and pounce are MIT. Two repos aren't: **holt** is Apache-2.0,
+The desktop, nebelung and pounce are MIT. Two repos aren't: **holt** is Apache-2.0,
 and **perch** is *fair source* — [FSL-1.1-ALv2](https://fsl.software), which
 turns into Apache-2.0 two years after each release ships. You can read it, build
 it and change it for yourself; you can't sell it as a competing product.

@@ -1,7 +1,12 @@
 # The hausfold rename — a walkthrough
 
+> **Terminology update, decided 2026-08-13:** current prose calls an installable
+> `{ haus = { … }; }` configuration a **desktop**, not a "rice". Older wording
+> remains below where this file records historical decisions, URLs, filenames,
+> code identifiers, or quotations; do not carry it into new user-facing copy.
+
 Working doc, written 2026-08-08. **Separates `hausfold` (the org, the maker,
-the seller) from `nebelhaus` (one rice — the developer-focused one, and the
+the seller) from `nebelhaus` (one desktop — the developer-focused one, and the
 first).** The nix-darwin layer between them is **`haus`**, which is also its
 CLI and its option namespace — amended 2026-08-10, decision 8 below, and it is
 a naming refinement rather than a fourth position: nothing in code moves.
@@ -2583,8 +2588,9 @@ the last one fixed. **`git -C ~/code/workshop pull --ff-only` before reading a
 source, or read it out of a lane branched from `origin/main`.**
 
 **Landed, batch seven** ([hausfold.co#25](https://github.com/hausfold/hausfold.co/pull/25)):
-the last three **writing** pages — `guides/sharing-a-rice` (with the tour folded
-in from `making-it-yours`, as planned), plus `internals/flakes` and
+the last three **writing** pages — `guides/sharing-a-rice`, ported as
+`guides/sharing-a-desktop` (with the tour folded in from `making-it-yours`, as
+planned), plus `internals/flakes` and
 `internals/contributing` under a new **Internals** sidebar group. 624 source
 lines to 574 (**92%** — see below), and `start/the-family` **decided dead**.
 **Twenty-eight of twenty-nine sources**, twenty-seven pages; only the generated
@@ -2596,24 +2602,23 @@ returned corrections on **24 of ~95** checked claims. The ones with teeth:
   `developer.agents.enable = false` — which `presets/everyday` implies — ships
   neither. The draft's CLI table said "haus, so every install has it", copied
   from `start/the-family`, and it contradicted `reference/haus` and
-  `guides/coding-agents` one click away. ⚠️ **The rice's own `AGENTS.md:410`
-  still says "the rice puts on PATH regardless"** — same stale claim, not fixed
-  here.
+  `guides/coding-agents` one click away. ⚠️ **haus's own `AGENTS.md:410`
+  makes the same stale claim** — not fixed here.
 - **The perch flake input does not track releases.** `haus/flake.nix:44` is a
   bare `github:hausfold/perch` with no `ref`; what makes a *release* land is a
-  pin **inside perch**, `nix/release.nix`. ⚠️ Seeded by the rice's own comment,
+  pin **inside perch**, `nix/release.nix`. ⚠️ Seeded by haus's own comment,
   fixed in the same batch ([hausfold/haus#329](https://github.com/hausfold/haus/pull/329)) — the second batch running to
-  find a doc error that a comment in the rice had written down first.
+  find a doc error that a comment in haus had written down first.
 - **`holt` is a ninth flake input** and neither tree listed it, though its
   overlay is applied unconditionally by `mkNebelhaus`.
 - **`roster` is `attrsOf`, not a list, so it *does* conflict.** The old page's
-  "quiet half" aside told rice authors that lists *and sets* merge silently —
+  "quiet half" aside told desktop authors that lists *and sets* merge silently —
   true of `tour.steps`, false of `roster`, `workspaces` and `pounce.items`,
   which merge per key and then conflict as loudly as any scalar on the same
   key's same field. Its third example, `theme.ports.handled`, is
-  `internal = true` and unreachable from a rice at all. Both trees now split the
+  `internal = true` and unreachable from a desktop at all. Both trees now split the
   three cases.
-- **A rice *can* name a package.** "package or store paths that require `pkgs`"
+- **A desktop *can* name a package.** "package or store paths that require `pkgs`"
   read as a dead end; every package-typed option has a `packageName` string
   sibling, mechanically enforced by the `data-only-surface` check, so changing
   the mono font never leaves the data-only surface.
@@ -2626,13 +2631,13 @@ returned corrections on **24 of ~95** checked claims. The ones with teeth:
   after the merge was missing from the old page.
 - **`bench release` does not always bump the tap.** haus's run has no tap job and
   holt's publishes SDKs; only pounce (formula) and perch (cask) touch it. perch's
-  run commits **its own** `nix/release.nix` back, not the rice's flake pin.
+  run commits **its own** `nix/release.nix` back, not the desktop's flake pin.
 - **holt is Apache-2.0.** Both trees said the family was "MIT with one
   exception: perch". Two exceptions.
 
 Smaller, fixed in both trees: the `palette` tour detector needs Pounce **and** a
 palette key bound, not just Pounce; every tour warning lives inside sill's
-module, so a bar-less rice gets none of them; `tour.steps = []` is a type error
+module, so a bar-less desktop gets none of them; `tour.steps = []` is a type error
 rather than "no tour" (`nonEmptyListOf`); `checkRice` accepts a `nebelhaus`-keyed
 file and refuses one using both spellings; `haus plan` runs a full build, so it
 is not the free upgrade a first draft called it; `haus update` also upgrades the
@@ -2655,13 +2660,13 @@ into `internals/contributing` rather than dying with it: the **four-CLI table**
 said), the **Built on** credits, and the **licences**. Nothing was dropped
 silently.
 
-⚠️ **Two redirect-map entries this batch creates**, for whoever writes the 301s:
-`/guides/sharing-a-rice/` → `/docs/haus/guides/sharing-a-rice`,
+⚠️ **Four redirect-map entries this batch creates**, for whoever writes the 301s:
+`/guides/sharing-a-rice/` → `/docs/haus/guides/sharing-a-desktop`,
 `/internals/flakes/` → `/docs/haus/internals/flakes`,
 `/internals/contributing/` → `/docs/haus/internals/contributing`, and
 `/start/the-family/` → `/docs` (it has no successor page). Plus one *anchor*
 move that is easy to miss: `/guides/making-it-yours/#the-first-run-tour` now
-lives at `/docs/haus/guides/sharing-a-rice#teach-it-your-own-first-lap`, and the
+lives at `/docs/haus/guides/sharing-a-desktop#teach-it-your-own-first-lap`, and the
 old `sharing-a-rice` links to that old anchor today.
 
 ⚠️ **The ratio, and why this batch missed the bar.** AGENTS.md says to expect
@@ -2685,7 +2690,7 @@ not merges. Re-check `origin/main` before you commit, not only before you read.*
 
 - the remaining **1 source page**: `reference/options.md`, the generated
   one, which needs `gen-options.mjs` + `check-rice-bindings.mjs` moved over and
-  pointed at the rice's committed `docs/site-data/`. ✅ Checked while planning:
+  pointed at haus's committed `docs/site-data/`. ✅ Checked while planning:
   that file carries **236 `haus.*` options across 35 rooms**, `haus.developer.*`
   among them, so "every option including the dev ones" needs no change to the
   generator — it filters on the namespace and nothing else. ⚠️ **It is also now
@@ -2694,7 +2699,7 @@ not merges. Re-check `origin/main` before you commit, not only before you read.*
   that generator moves points two live pages at nothing.
 - the landing pages becoming Next routes. 👤 decided **yes** on 2026-08-12,
   which settles the "still not decided" line below; not done.
-- `worker.js`, the `hausfold.co/<rice>.sh` installer route, and the
+- `worker.js`, the `hausfold.co/<desktop>.sh` installer route, and the
   `nebelhaus.com/*` 301s. **Until those land the docs print
   `nebelhaus.com/init.sh`**, deliberately — it is the URL that resolves — and
   nebelhaus.com stays live serving the unported pages. A fact fixed in one tree
@@ -2717,7 +2722,7 @@ source, plus 21 in ✅ rows, plus the 7 rowless = 29.
 | Source | Lines | Tree | Note |
 |---|---|---|---|
 | `reference/options` | 5231 | haus | generated — the `gen-options.mjs` bullet above, not a writing job. **The only source left.** |
-| ~~`guides/sharing-a-rice`~~ | — | — | ✅ done (batch seven), with the **tour** (`haus.tour.steps`) folded in from `making-it-yours` as planned |
+| ~~`guides/sharing-a-rice`~~ | — | — | ✅ done (batch seven) as `guides/sharing-a-desktop`, with the **tour** (`haus.tour.steps`) folded in from `making-it-yours` as planned |
 | ~~`internals/flakes`~~ | — | — | ✅ done (batch seven) |
 | ~~`internals/contributing`~~ | — | — | ✅ done (batch seven), as `internals/contributing`; a new **Internals** sidebar group holds it and `flakes` |
 | ~~`start/the-family`~~ | — | — | ✅ **decided 2026-08-12: it dies.** Not ported. See the salvage note under batch seven — three things in it had no other home and moved into `internals/contributing`. |

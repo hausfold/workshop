@@ -6,13 +6,13 @@ description: The consumer config, the mkNebelhaus builder, and why pinned flake 
 import { Aside } from '@astrojs/starlight/components';
 
 nebelhaus is built on [Nix flakes](https://nixos.org/). You don't need to
-understand Nix deeply to use the rice, but knowing how the pieces fit makes the
+understand Nix deeply to use the desktop, but knowing how the pieces fit makes the
 `update` / `rebuild` model click — and it's essential if you want to
 [contribute](/internals/contributing/).
 
 ## Your config is a thin consumer
 
-The installer scaffolds `~/.config/nix` as a **thin consumer** of the rice. Its
+The installer scaffolds `~/.config/nix` as a **thin consumer** of the desktop. Its
 `flake.nix` imports nebelhaus as an input and calls the `mkNebelhaus` builder:
 
 ```nix
@@ -30,7 +30,7 @@ The installer scaffolds `~/.config/nix` as a **thin consumer** of the rice. Its
 ```
 
 All your personal choices live in `hosts/<hostname>/default.nix` — your
-[options](/reference/options/), your app roster, your casks. The rice stays
+[options](/reference/options/), your app roster, your casks. The desktop stays
 upstream; you never edit it directly.
 
 Three other things sit in that host directory: `options.nix`, the whole
@@ -41,7 +41,7 @@ is no second store of state anywhere; the machine writes the same Nix you do.
 
 ## The mkNebelhaus builder
 
-`mkNebelhaus` is the rice's entry point. Given a username, hostname, and host
+`mkNebelhaus` is the desktop's entry point. Given a username, hostname, and host
 file, it returns a full nix-darwin `darwinSystem` with every room wired up:
 
 ```nix
@@ -58,7 +58,7 @@ Only `username` and `hostname` are required — `host` defaults to the repo's
 example. It composes the whole house: 19 module imports covering 35 `haus.*`
 namespaces, `den`, `theme`, `hearth`, `prowl`, `sill`, `collar`, `pounce`,
 `perch`, `hush`, `secrets`, `workspaces`, `roster`, `displays`, `wallpaper`,
-`snippets` and `apps` ([the picks the rice makes for
+`snippets` and `apps` ([the picks the desktop makes for
 you](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) among them — and
 layers in home-manager, the [nebelung](/reference/palette/) theme, and the
 [pounce](/guides/pounce/) app.
@@ -75,7 +75,7 @@ evaluate.
 
 ## The inputs
 
-The rice flake pulls together nine:
+The desktop flake pulls together nine:
 
 - `nixpkgs` (unstable) — the package set
 - `nix-darwin` — macOS system modules
@@ -87,8 +87,9 @@ The rice flake pulls together nine:
   `ref`, so it tracks perch's default branch like every other one; what gets
   *built* is perch's CI-built, notarized release zip, because **perch's own**
   flake pins that zip in `nix/release.nix`. The pin is inside perch, not here.
-- `holt` — the agent-worktree substrate, whose overlay the builder applies
-  unconditionally and which den puts on your `PATH` (a family input)
+- `holt` — the agent-worktree substrate. The builder applies its overlay
+  unconditionally; den puts the CLI on your `PATH` only with
+  `haus.developer.agents.enable` (a family input)
 - `nix-index-database` — for `nix-index` + `comma`
 
 ## Why pins mean "nothing changes until you say so"
@@ -98,13 +99,13 @@ That's what makes a rebuild reproducible — the same lock produces the same sys
 on any machine, any day.
 
 The flip side, and the thing that surprises everyone: pushing a change to
-nebelung or the rice changes **nothing** on your machine until your `flake.lock`
+nebelung or the desktop changes **nothing** on your machine until your `flake.lock`
 is bumped to point at the new commit. A colour change therefore ripples like
 this across the family:
 
 ![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](/media/ripple.webp?v=2)
 
-`perch` and `holt` hang off the rice directly rather than sitting on that line,
+`perch` and `holt` hang off the desktop directly rather than sitting on that line,
 so a change in either is one shorter hop under the same rule.
 
 <Aside type="tip" title="haus update does the ripple for you">
@@ -119,13 +120,13 @@ the workshop's `bench ship` to ripple a change all the way down the chain; see
 ## Cold-boot safety
 
 One subtlety worth knowing if you ever debug a login issue: Determinate Nix
-lives on a separate APFS volume, and macOS sometimes tries to launch the rice's
+lives on a separate APFS volume, and macOS sometimes tries to launch the desktop's
 GUI agents (AeroSpace, SketchyBar, Pounce) before that volume mounts or before
-the GUI event manager is ready. The rice wraps **those three** in a small
+the GUI event manager is ready. The desktop wraps **those three** in a small
 `gui-wait` shim that polls for Dock/Finder/SystemUIServer readiness before
 exec'ing — which is why your bar and tiling reliably come back after a reboot.
 The shim is written *into* `~/Library/LaunchAgents` rather than referenced out
 of `/nix/store`, which is the part that survives the unmounted volume, and it
 gives up after 60 seconds and launches anyway: an unbounded wait meant quitting
-Finder once left Pounce dead until the next reboot. The rice's non-GUI agents —
+Finder once left Pounce dead until the next reboot. The desktop's non-GUI agents —
 `awake`, `hush-watcher`, `sleepwatcher` — are not wrapped.

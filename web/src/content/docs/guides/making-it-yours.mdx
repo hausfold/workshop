@@ -13,9 +13,9 @@ page is the map of those dials and the thinking behind the loudest defaults.
 
 There are two halves to your setup, and they stay cleanly apart:
 
-- **The rice** (`github:hausfold/haus`) — the generic, no-identity system.
+- **The desktop** (`github:hausfold/haus`) — the generic, no-identity system.
   You *never* edit this to use it. It updates upstream; you pull it when you like.
-- **Your config** (`~/.config/nix`) — a ~18-line flake that imports the rice,
+- **Your config** (`~/.config/nix`) — a ~18-line flake that imports the desktop,
   plus **one host file** where *you* live:
   `hosts/<hostname>/default.nix`.
 
@@ -25,7 +25,7 @@ That host file is where every tweak on this page goes. Open it instantly:
 haus edit
 ```
 
-It's a plain nix-darwin module — whatever you write merges with what the rice
+It's a plain nix-darwin module — whatever you write merges with what the desktop
 already declares. Change something, then:
 
 ```sh
@@ -33,10 +33,10 @@ haus rebuild    # builds first; a broken config never activates
 ```
 
 <Aside type="tip" title="Why the split matters">
-Because *your* stuff and *the rice* are separate repos, `nix flake update
+Because *your* stuff and *the desktop* are separate repos, `nix flake update
 nebelhaus` (or `haus update`) pulls new fog without ever touching your identity,
-apps, or overrides. Your machine stays yours; the rice stays upstream. Keep
-personal things in your host file — never in the rice repo itself.
+apps, or overrides. Your machine stays yours; the desktop stays upstream. Keep
+personal things in your host file — never in the desktop repo itself.
 </Aside>
 
 ## The named-workspace idea
@@ -86,7 +86,7 @@ Every knob below is a `haus.*` option (or a plain nix-darwin one) you set in
 your host file. This is the tour; the exhaustive list with types and defaults is
 the [options reference](/reference/options/).
 
-Or don't look any of it up. The rice installs a skill that teaches Claude Code
+Or don't look any of it up. The desktop installs a skill that teaches Claude Code
 this whole surface — generated from the revision you're pinned to — so you can
 ask in plain words instead: [Changing your Mac with an
 agent](/guides/ai-agent/).
@@ -96,12 +96,12 @@ Or read the surface straight out of your own config. A fresh install drops a
 its default, a sentence each, **all commented out**. Uncomment what you want,
 delete what you'll never touch; you find out a knob exists by reading the file you
 already edit. It's rendered from the build you're actually running, so it can't
-advertise an option your machine doesn't have — the rice-side twin of pounce's
+advertise an option your machine doesn't have — the desktop-side twin of pounce's
 `pounce config init`. If you've edited your copy, a refresh writes
 `options.nix.new` beside it rather than overwriting your work.
 
 ```sh
-haus options    # refresh it against the current rice (--force overwrites yours)
+haus options    # refresh it against the current desktop (--force overwrites yours)
 ```
 
 <Aside type="note" title="Scaffolded, not active">
@@ -111,7 +111,7 @@ file is missing it. Commented-out is deliberate, for two separate reasons. A
 spelled-out default **collides** with a preset rather than beating it — import
 order carries no priority, so `extraModules = [ nebelhaus.presets.large-print ]`
 would fail on `haus.ui.scale` with a conflict, not pick a winner. And against
-the rice's own `mkDefault`s a plain restatement *does* win, permanently, freezing
+the desktop's own `mkDefault`s a plain restatement *does* win, permanently, freezing
 that value against any future retuning upstream.
 </Aside>
 
@@ -124,7 +124,7 @@ push your config repo.
 ```sh
 haus set theme.accent teal
 haus get theme.accent        # teal
-haus reset theme.accent      # remove the override; inherit the rice/preset again
+haus reset theme.accent      # remove the override; inherit the desktop/preset again
 ```
 
 A path may go *inside* an option — `haus set sill.items.aiUsage true` switches
@@ -170,7 +170,7 @@ haus.wallpaper.style = "minimal";   # the default — none | minimal | orbits | 
 `accent` recolours lazygit, fzf, yazi/Glow, and the browser accent. Full palette
 on [Theming & accents](/guides/theming/).
 
-`minimal` is the desktop the rice generates for you, and the one it wears unless
+`minimal` is the wallpaper the desktop generates for you, and the one it wears unless
 you say otherwise: a flat field in your
 palette, the haus mark ⌂ at its centre, and a bloom in your accent. Set
 `style = "none"` to keep the wallpaper you already have. It has a
@@ -212,7 +212,7 @@ timer, an agents pill — off unless you ask. See [The bar](/guides/the-bar/).
 
 ### The first-run tour
 
-The built-in tour teaches nebelhaus's four core moves. A shared rice can replace
+The built-in tour teaches nebelhaus's four core moves. A shared desktop can replace
 that lap with its own instructions while staying data-only:
 
 ```nix
@@ -228,13 +228,13 @@ haus.tour.steps = [
 ];
 ```
 
-Steps run in order and advance from signals the rice already emits — `launch`,
+Steps run in order and advance from signals the desktop already emits — `launch`,
 `workspace`, `navigate`, `resize`, or `palette` — rather than by logging keys.
 The first four need prowl; `palette` needs Pounce **and a palette key actually
 bound** (`keys.palette = "none"` warns as loudly as `pounce.enable = false`). A
 left-click skips the current step, and the module warns during a rebuild if a
 step depends on a room you disabled — though all three of those warnings live
-inside sill's own module, so a rice that turns the bar off gets none of them.
+inside sill's own module, so a desktop that turns the bar off gets none of them.
 
 Leave `tour.steps` at its default `null` to keep the built-in tour. An **empty
 list** is a type error rather than "no tour" — the off switch is
@@ -242,14 +242,14 @@ list** is a type error rather than "no tour" — the off switch is
 
 Write keys as the placeholders `{palette}`, `{leader}` and `{leaderName}` rather
 than a literal chord: they expand to what *that* machine resolved, so a tour you
-share still names the right keys on a rice that moved `keys.palette`. A hardcoded
+share still names the right keys on a desktop that moved `keys.palette`. A hardcoded
 `⌘Space` would be wrong there — and wrong invisibly, since the author never sees
 the consumer's bar. A misspelled placeholder renders as typed, and the rebuild
 warns and names it.
 
 <Aside type="caution" title="Tour with prowl off">
 The built-in tour is leader moves plus the palette, so turning prowl off leaves
-it nothing to teach: `tour.enable` on a `prowl.enable = false` rice draws no pill
+it nothing to teach: `tour.enable` on a `prowl.enable = false` desktop draws no pill
 at all unless you author `tour.steps` yourself. The `everyday` preset does exactly
 that — one step, the launcher.
 </Aside>
@@ -290,7 +290,7 @@ haus.homebrew.upgrade = true;     # then upgrade outdated casks
 
 The trade-off is the flip side of reproducibility: a rebuild may now upgrade
 **all** your casks at once, so two rebuilds days apart can land different app
-versions. Prefer per-host: set these in your host file, not the rice default,
+versions. Prefer per-host: set these in your host file, not the desktop default,
 so the rest of the family keeps deterministic rebuilds.
 </Aside>
 
@@ -307,7 +307,7 @@ Every room you can see has a switch:
 | hush (quiet switch) | `haus.hush.enable = false` | No bar pill, palette command or `hush` CLI |
 | collar (Touch ID sudo) | `haus.collar.enable = false` | The stock password prompt everywhere, rebuilds included |
 | the developer pack | `haus.developer.enable = false` | No language toolchains, git tooling or agent CLIs. `.git`, `.toolbelt`, `.agents` and `.languages` take one piece out at a time |
-| apps (the rice's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `haus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
+| apps (the desktop's [picks](/guides/adding-apps/#the-apps-the-rice-picks-for-you)) | `haus.apps.videoPlayer.enable = false` | No IINA; videos keep whatever handler they have |
 
 **pounce** doesn't hand its key back on the way out: turning it off does not
 return `⌘Space` to Spotlight, because that shortcut was disabled by a one-way
@@ -323,12 +323,12 @@ Caps-Lock. See [rebinding](/guides/window-management/#not-fond-of-these-keys).
 
 **den** (system + Homebrew) and **hearth** (shell) are the foundation the rest
 sits on and have no switch; of the rooms you can *see*, all six do. Everything
-in the table comes out independently, and the others keep working — the rice
+in the table comes out independently, and the others keep working — the desktop
 degrades gracefully.
 
-## Presets: start from someone else's rice
+## Presets: start from someone else's desktop
 
-A **preset** is a data-only rice — a file whose only top-level key is
+A **preset** is a data-only desktop — a file whose only top-level key is
 `haus`. No `pkgs`, no `lib`, no activation scripts, so it can't reach outside
 the option surface and you can read one in a minute and know the worst it can do.
 Import one alongside your host file:
@@ -358,12 +358,12 @@ definitions merge, so restating a preset's own choice costs you nothing.)
 
 | Preset | For |
 |---|---|
-| `full` | the whole rice: bar, tiling, palette, developer pack. The default. |
+| `full` | the whole desktop: bar, tiling, palette, developer pack. The default. |
 | `minimal` | just the themed shell — no bar, no tiling, no palette. Still a developer machine. |
 | `everyday` | the inverse: a Mac for someone who doesn't write code. No developer pack, and `prowl.enable = false` — so no tiling either, not just no Caps-Lock remap. |
-| `large-print` | bigger and sharper — the rice UI and whole display, plus the high-contrast palette and macOS's own contrast lift. |
+| `large-print` | bigger and sharper — the desktop UI and whole display, plus the high-contrast palette and macOS's own contrast lift. |
 
-The first three are whole rices; pick one. **`large-print` is a layer** — it
+The first three are whole desktops; pick one. **`large-print` is a layer** — it
 describes seeing rather than the person, so it stacks:
 
 ```nix
@@ -373,11 +373,11 @@ extraModules = [ nebelhaus.presets.everyday nebelhaus.presets.large-print ];
 It uses two complementary size controls. `ui.scale = 1.4` moves the terminal
 font, the whole command palette, the menu bar's type, the Dock icons, Finder's
 sidebar rows and the tiling gaps together — pin any single one afterwards and
-yours wins. (One thing inside the rice it does *not* move: the perch shelf,
+yours wins. (One thing inside the desktop it does *not* move: the perch shelf,
 which takes its size from the screen rather than from you.)
 `displays.main.uiScale = "larger-text"` moves the current main display one step
 toward larger text, which makes **everything** bigger, including third-party apps
-the rice knows nothing about. The trade-off is less desktop space.
+the desktop knows nothing about. The trade-off is less desktop space.
 
 Note that the two **multiply**: a larger-text display leaves you fewer points of
 desktop, and `ui.scale` asks for bigger points inside it. That's the intended
@@ -387,7 +387,7 @@ For per-display control, add a UUID-specific setting in your host file; it wins
 over the preset's broad `main` selector. `hausdisp list` prints the persistent
 UUIDs of the displays currently attached.
 
-One size limit remains, and it's macOS's rather than the rice's: **the menu bar's
+One size limit remains, and it's macOS's rather than the desktop's: **the menu bar's
 height.** Sill is 36pt tall with 28pt pills so the pills sit inside the 32pt band
 that macOS's own menu-bar hover-reveal covers — taller pills poke out below it.
 There is no menu-bar-size setting on macOS to delegate to. So the bar's *type*
@@ -400,27 +400,27 @@ The preset also doesn't change an app's own font preference or macOS's separate
 Dynamic Type text-size setting; display scaling is the system-wide lever that
 works.
 
-Want to make one for other people? [Sharing a rice](/guides/sharing-a-rice/)
+Want to make one for other people? [Sharing a desktop](/guides/sharing-a-rice/)
 covers the data-only boundary, `checkRice`, composition testing, and the
 smallest useful publishing shape.
 
 ## Overriding macOS defaults
 
-The rice sets Dock, Finder, trackpad, and keyboard defaults — but every one of
+The desktop sets Dock, Finder, trackpad, and keyboard defaults — but every one of
 them is a *soft* default you can beat by just setting the same key with a plain
 value in your host file:
 
 ```nix
-# Rice hides the Dock and puts it on the bottom; put it on the left, always shown:
+# Desktop hides the Dock and puts it on the bottom; put it on the left, always shown:
 system.defaults.dock.autohide = false;
 system.defaults.dock.orientation = "left";
 ```
 
 Anything under [`system.defaults`](https://nix-darwin.github.io/nix-darwin/manual/)
-is fair game. Your plain value wins over the rice's default.
+is fair game. Your plain value wins over the desktop's default.
 
 <Aside type="note" title="Four exceptions">
-Two menu-bar keys track whether the bar (sill) is on, so the rice sets them
+Two menu-bar keys track whether the bar (sill) is on, so the desktop sets them
 plainly rather than as `mkDefault`s:
 
 - **`_HIHideMenuBar`** — the auto-hide, a typed nix-darwin option. Setting it in
@@ -429,7 +429,7 @@ plainly rather than as `mkDefault`s:
   sill is on gets you a bar and a menu bar fighting for the same strip of pixels.
 - **`NSGlobalDomain.SLSMenuBarUseBlurredAppearance`** — System Settings ▸ Menu
   Bar ▸ "Show menu bar background". Tahoe's Liquid Glass made the hidden menu
-  bar's hover-reveal translucent, so Sill showed straight through it; the rice
+  bar's hover-reveal translucent, so Sill showed straight through it; the desktop
   forces it opaque again. It goes through `CustomUserPreferences`, so it is
   rewritten on every activation rather than merged: flip it in System Settings
   and the next rebuild flips it back.
@@ -455,7 +455,7 @@ throws the output away, so nothing says so. Use
 
 Anything sensitive — API keys, tokens, your app list if you'd rather it stay
 private — belongs in your host file (which is *your* repo). The secret **values**
-belong nowhere on disk at all, and the rice ships
+belong nowhere on disk at all, and the desktop ships
 [secretspec](https://secretspec.dev) to keep them there:
 
 ```sh
@@ -493,7 +493,7 @@ doesn't unpublish the key, so rotate anything it finds.
 
 <Aside type="tip" title="Wrong repo?">
 Changing a *color*? That's the [nebelung](/reference/palette/) palette, a
-different repo. Changing the rice's *shared* behaviour for everyone (not just
+different repo. Changing the desktop's *shared* behaviour for everyone (not just
 your machine)? That's the nebelhaus repo — see
 [Contributing](/internals/contributing/). Personalizing *your* Mac? You're in
 the right place: your host file.

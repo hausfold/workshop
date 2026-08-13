@@ -1,13 +1,13 @@
 ---
-title: Sharing a rice
-description: Author, validate, and publish a data-only nebelhaus rice that other people can inspect, compose, and trust.
+title: Sharing a desktop
+description: Author, validate, and publish a data-only nebelhaus desktop that other people can inspect, compose, and trust.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-A shared rice is an ordinary `.nix` file that changes only `haus.*`.
+A shared desktop is an ordinary `.nix` file that changes only `haus.*`.
 Keeping that boundary small makes the result easy to inspect, combine with
-other rices, and override from a host file.
+other desktops, and override from a host file.
 
 ## The format
 
@@ -43,12 +43,12 @@ It also does not set `system.defaults`, install packages, or add activation
 scripts. Every setting stays inside the documented
 [`haus.*` option surface](/reference/options/).
 
-<Aside type="tip" title="Whole rice or layer?">
-A **whole rice** describes a kind of machine or person and usually chooses all
+<Aside type="tip" title="Whole desktop or layer?">
+A **whole desktop** describes a kind of machine or person and usually chooses all
 the big rooms: developer tools, tiling, the bar, and the launcher. A **layer**
 describes one concern, such as larger text, and sets only what that concern
 needs. Layers are easier to compose because they leave unrelated choices alone.
-Of the four nebelhaus ships, `full`, `minimal` and `everyday` are whole rices and
+Of the four nebelhaus ships, `full`, `minimal` and `everyday` are whole desktops and
 `large-print` is a layer.
 </Aside>
 
@@ -71,10 +71,10 @@ file being a *function* rather than data. A file keyed `nebelhaus` rather than
 spellings is refused. `checkRice` is the trust-boundary check; it does not prove
 that every option name or value is valid.
 
-For that, import the rice into a real host:
+For that, import the desktop into a real host:
 
 ```nix
-extraModules = [ ./rices/writer.nix ];
+extraModules = [ ./desktops/writer.nix ];
 ```
 
 Then evaluate the configuration before activating it:
@@ -83,46 +83,46 @@ Then evaluate the configuration before activating it:
 nix eval .#darwinConfigurations.myhost.system.drvPath
 ```
 
-[`haus plan`](/reference/haus/) is the stronger version of that last step and
-costs nothing: it prints what a rebuild *would* change — packages, settings,
-files, launchd jobs, casks — without applying any of it. And `haus rebuild`
+[`haus plan`](/reference/haus/) is the stronger version of that last step: it
+runs a full build, then prints what activation *would* change — packages,
+settings, files, launchd jobs, casks — without applying any of it. And `haus rebuild`
 still gives you the usual build-before-apply safety on top.
 
 ## Test composition, not just isolation
 
-A useful rice should survive being combined with a layer and then overridden
+A useful desktop should survive being combined with a layer and then overridden
 by its user:
 
 ```nix
 extraModules = [
-  ./rices/writer.nix
+  ./desktops/writer.nix
   nebelhaus.presets.large-print
 ];
 ```
 
 Before publishing, try:
 
-- the rice by itself;
-- the rice plus an unrelated layer;
-- a host value set on top of one of the rice's own choices;
+- the desktop by itself;
+- the desktop plus an unrelated layer;
+- a host value set on top of one of the desktop's own choices;
 - each combination of rooms you turn off.
 
 For the middle two of those you need neither a Mac nor a build. The nebelhaus
 repo checks its own presets exactly that way — `nix flake check`'s
 `preset-composition` composes every pair of them through `lib.evalModules` over
 the option surface alone, in seconds, and diffs the answers against a table.
-(Evaluating a rice *by itself* is a different check, `presets`, and that one does
-raise a whole darwin system.) Composition is the one property a rice cannot have
+(Evaluating a desktop *by itself* is a different check, `presets`, and that one does
+raise a whole darwin system.) Composition is the one property a desktop cannot have
 on its own, which is what makes it the one worth testing before you publish.
 
 ### The composition rule, in one line
 
-**Two rices compose unless they *disagree*.** Import order carries no priority,
+**Two desktops compose unless they *disagree*.** Import order carries no priority,
 so "imported after, therefore wins" is not a mechanism you can lean on in either
 direction — but naming the same option is not the problem people assume it is:
 
 - **Same option, same value** — fine. Nix merges identical definitions, so a
-  rice that restates a value the consumer already holds costs them nothing.
+  desktop that restates a value the consumer already holds costs them nothing.
 - **Same option, different values** — the build stops, and tells you plenty:
 
   ```text
@@ -136,7 +136,7 @@ direction — but naming the same option is not the problem people assume it is:
   in their host — and that line belongs in your README for every field you set
   that a reasonable person might disagree with.
 
-So narrow the rice until ordinary Nix merging is enough: every optional field
+So narrow the desktop until ordinary Nix merging is enough: every optional field
 you set is one a consumer has to force. A layer that leaves unrelated choices
 alone composes; one that restates a whole machine collides with the next layer
 along.
@@ -145,27 +145,27 @@ along.
 The conflict above only happens for options that hold a single value. A
 **list**-typed one — `tour.steps`, `keys.leaderExtras`, `snippets.matches` —
 never conflicts at all: the definitions are **combined**, with no error and no
-warning. Two rices that each author one tour step produce a tour with both, in
+warning. Two desktops that each author one tour step produce a tour with both, in
 an order neither author chose.
 
-It can also surface later as something harder than a merge. Two rices each
+It can also surface later as something harder than a merge. Two desktops each
 adding a leader key merge quietly, and *then* prowl asserts that leader keys are
 unique and don't reuse a roster app's — a failure at eval that points at neither
 file.
 
 **Attribute sets are the middle case, not the same case.** `roster`,
-`workspaces` and `pounce.items` are `attrsOf`, so definitions merge *per key*: two rices naming
+`workspaces` and `pounce.items` are `attrsOf`, so definitions merge *per key*: two desktops naming
 different apps compose, while two naming the same app's same field conflict as
 loudly as any single value. That is deliberate — a silent merge there would
 quietly drop somebody's app.
 
 That is the failure mode worth testing for, because nothing will tell you about
-it. If your rice sets any of these, say so in its README, and say whether it
+it. If your desktop sets any of these, say so in its README, and say whether it
 expects to be the only one.
 </Aside>
 
 <Aside type="note" title="App packs are the exception">
-A pack — a rice narrowed to `haus.roster`, the apps on a machine — is
+A pack — a desktop narrowed to `haus.roster`, the apps on a machine — is
 imported through `nebelhaus.lib.pack`, which lowers every field it sets so the
 consumer's own host wins with a plain assignment and no `mkForce`. That is a
 property of the seam, not of the file: the same pack imported as a bare path
@@ -177,7 +177,7 @@ still conflicts. Presets are deliberately not wrapped that way.
 The smallest useful repository is deliberately boring:
 
 ```text
-writer-rice/
+writer-desktop/
 ├── README.md
 ├── writer.nix
 └── LICENSE
@@ -185,8 +185,8 @@ writer-rice/
 
 In the README, say:
 
-- who the rice is for and what it changes;
-- whether it is a whole rice or a layer;
+- who the desktop is for and what it changes;
+- whether it is a whole desktop or a layer;
 - which nebelhaus revision you tested;
 - how to import it;
 - what it deliberately does not handle, including required rooms or
@@ -205,7 +205,7 @@ holding it — which is exactly why `lib.pack` sets one.
 Keep these in a private host file or an explicitly more powerful module:
 
 - identity, secrets, tokens, and personal account names;
-- a personal app roster that reveals more than the rice needs;
+- a personal app roster that reveals more than the desktop needs;
 - raw macOS defaults outside `haus.*`;
 - a `pkgs` value, or a `/nix/store` path;
 - activation hooks and shell commands;
@@ -216,7 +216,7 @@ Keep these in a private host file or an explicitly more powerful module:
 `packageName` sibling taking the nixpkgs attribute as a *string*
 (`haus.roster.<name>.packageName`, `haus.fonts.mono.packageName`), and
 `nix flake check`'s `data-only-surface` mechanically requires one for every
-package-typed leaf. So a rice can change the mono font or add a tool without
+package-typed leaf. So a desktop can change the mono font or add a tool without
 leaving the data-only surface.
 
 A configuration that genuinely needs `pkgs`, scripts, or arbitrary
@@ -228,11 +228,11 @@ different trust model and should be labelled as one.
 - [ ] The file has only a top-level `haus` key.
 - [ ] `checkRice` prints `true`.
 - [ ] A real host configuration evaluates.
-- [ ] The rice composes with an unrelated layer.
+- [ ] The desktop composes with an unrelated layer.
 - [ ] If it sets a list option — `tour.steps`, `keys.leaderExtras` — the README
-      says so, because a second rice setting the same one merges into it
+      says so, because a second desktop setting the same one merges into it
       silently.
-- [ ] Every field the rice sets is listed in its README with the `lib.mkForce`
+- [ ] Every field the desktop sets is listed in its README with the `lib.mkForce`
       line a consumer needs to override it — or, for a pack, imported through
       `nebelhaus.lib.pack` so they don't.
 - [ ] Disabled rooms agree with dependent features, including
