@@ -251,8 +251,8 @@ more, each for a different job — see [the CLIs at a glance](/start/the-family/
 for the full map:
 
 - **[`holt`](/guides/claude-agents/)** — agent worktrees (Claude Code, Codex, OpenCode) for any repo.
-  On your `PATH` once `haus.developer.agents.enable` is on (as is `zscratch`
-  below), and useful to anyone who runs a coding agent, contributor or not.
+  On your `PATH` once `haus.agents.enable` is on, and useful to anyone who runs
+  a coding agent, contributor or not.
 - **[`bench`](/internals/contributing/)** — the contributor CLI in the workshop
   checkout: `try`, `ship`, `release` for moving changes between the family's repos.
 - **`zscratch`** — feel-test a zellij edit without a rebuild (for rice

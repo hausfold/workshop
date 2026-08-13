@@ -89,7 +89,7 @@ The desktop flake pulls together nine:
   flake pins that zip in `nix/release.nix`. The pin is inside perch, not here.
 - `holt` — the agent-worktree substrate. The builder applies its overlay
   unconditionally; den puts the CLI on your `PATH` only with
-  `haus.developer.agents.enable` (a family input)
+  `haus.agents.enable` (a family input)
 - `nix-index-database` — for `nix-index` + `comma`
 
 ## Why pins mean "nothing changes until you say so"
