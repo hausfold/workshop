@@ -69,20 +69,24 @@ function riceFile(name, why) {
 
 const raw = riceFile('options.json', 'That file is what this page is rendered from.');
 
-// Reading order and a one-line blurb per room. The module system can't produce
-// these — it has no notion of "identity first, policy last", and nowhere to hang
-// a sentence about a whole namespace — so the rice carries them as data
-// (modules/options-groups.nix) and publishes them beside options.json.
+// Reading order, product ownership and the desktop trust boundary. The module
+// system can't produce these, so the rice carries one exhaustive registry
+// (modules/options-groups.nix) beside options.json.
 //
 // They used to live in this file, where they covered 16 of the rice's 23 rooms:
 // agents, collar, developer, displays, keys, perch and ui fell off the end of
 // the page alphabetically, blurbless, and nobody noticed because a missing blurb
 // looks exactly like a blurb nobody wrote. The rice's own host template renders
 // from the same file, so the two orderings can't disagree either.
-const GROUPS = riceFile(
+const REGISTRY = riceFile(
   'groups.json',
-  'That file carries the per-room order and blurbs this page is laid out with.',
+  'That file carries export ownership, namespace metadata and per-option desktop safety.',
 );
+if (REGISTRY.schemaVersion !== 1 || !REGISTRY.namespaces || !REGISTRY.exports) {
+  console.error('groups.json is not a supported room-registry document (schemaVersion 1).');
+  process.exit(1);
+}
+const GROUPS = REGISTRY.namespaces;
 
 // The option namespace is `haus.*`. This used to also detect the pre-rename
 // `nebelhaus.*`, for the window where the two repos hadn't landed the rename in
@@ -111,6 +115,14 @@ const options = Object.entries(raw)
   .filter(([name]) => name.startsWith(NS))
   .map(([name, o]) => ({ name, ...o }));
 
+for (const opt of options) {
+  const namespace = opt.name.split('.')[1];
+  if (!GROUPS[namespace]?.options?.[opt.name]) {
+    console.error(`groups.json has no namespace/safety decision for ${opt.name}.`);
+    process.exit(1);
+  }
+}
+
 // ---- grouping ---------------------------------------------------------------
 // Second path segment is the room/feature: haus.git.name -> "git".
 const groupOf = (name) => name.split('.')[1];
@@ -121,10 +133,7 @@ for (const opt of options) {
   if (!groups.has(g)) groups.set(g, []);
   groups.get(g).push(opt);
 }
-// A room the rice hasn't given an order lands alphabetically after the ones it
-// has, rather than vanishing — a freshly added room is on the page the day it
-// exists, and gets its blurb whenever someone writes one.
-const orderOf = (g) => GROUPS[g]?.order ?? Number.MAX_SAFE_INTEGER;
+const orderOf = (g) => GROUPS[g].order;
 const ordered = [...groups.keys()].sort(
   (a, b) => orderOf(a) - orderOf(b) || a.localeCompare(b),
 );
@@ -140,7 +149,19 @@ function renderDefault(opt) {
 }
 
 function renderOption(opt) {
-  const lines = [`### \`${opt.name}\``, '', `\`${opt.type}\` · ${renderDefault(opt)}`, ''];
+  const meta = GROUPS[groupOf(opt.name)].options[opt.name];
+  const safety =
+    meta.desktopSafe === true
+      ? 'desktop-safe'
+      : meta.desktopSafe === false
+        ? 'host-only'
+        : `desktop-safe after \`${meta.validator}\` validation`;
+  const lines = [
+    `### \`${opt.name}\``,
+    '',
+    `\`${opt.type}\` · ${renderDefault(opt)} · ${safety}`,
+    '',
+  ];
   // Descriptions are authored as Nix multi-line strings; their hard wrapping is
   // already sensible prose, so pass it through untouched.
   lines.push((opt.description ?? '').trimEnd(), '');
@@ -156,7 +177,7 @@ function renderOption(opt) {
 const body = ordered
   .map((g) => {
     const head = [`## ${PREFIX}.${g}`, ''];
-    const blurb = GROUPS[g]?.blurb;
+    const blurb = GROUPS[g].blurb;
     if (blurb) head.push(blurb, '', '');
     const opts = groups.get(g).sort((a, b) => a.name.localeCompare(b.name));
     return head.join('\n') + opts.map(renderOption).join('\n');
