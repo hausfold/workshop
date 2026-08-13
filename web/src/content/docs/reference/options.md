@@ -312,7 +312,9 @@ Example:
 `null or string` · default `null`
 
 The leader letter for this app: tap Caps Lock then this key to
-launch/focus it. Must be unique across the roster.
+launch/focus it. Must be unique across the roster, and not one of
+launch mode's own: `v` `e` `z` `,` `` ` `` `-` `=` `/` `1`-`4` `esc`
+and the arrows are taken, and a rebuild refuses them.
 
 null (the default) means the entry is INSTALL-ONLY: it still
 brings its cask/formula/package, but claims no leader key, no
@@ -1726,6 +1728,24 @@ Example:
   "Library/Mobile Documents/iCloud~md~obsidian/Documents/notes"
 ]
 ```
+
+<small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
+
+### `haus.hearth.rightClickFullscreen`
+
+`boolean` · default `true`
+
+When true (the default), a bare right-click on any pane zooms it
+fullscreen — the same MouseAction::ToggleFullscreen Ctrl+Click already
+triggers, just a different, easier-to-reach trigger. It's a whole
+zellij-unwrapped patch, not a config toggle (mouse buttons still
+aren't bindable in config.kdl — see naked-click-links.patch's header
+for why link gestures hit the same wall), so flipping this rebuilds
+zellij; it does not take effect on a running server. The real cost:
+right-click stops reaching the pane's own program, so a TUI's own
+right-click context menu (lazygit, vim, mc, …) goes with it. Set
+false to leave right-click alone and keep zooming with Ctrl+Click or
+Super Enter.
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
 
@@ -3345,7 +3365,7 @@ Example:
 
 `boolean or one of "left", "center", "right"` · default `false`
 
-A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
+A paw pill tracking your agent-worktree panes. The label always names the state worth interrupting you for — "2 ready" outranks "5 working", which outranks "1 done" — never a bare count you'd have to click to decode. Click for the per-agent breakdown, sorted the same way (waiting first, then working, then idle, longest-elapsed first within each), each block showing the client, how long it's sat in that state, and — when the pane's checkout is a `holt` lane — its repo and PR status: merged, `+N unshipped` (exactly what `holt reship` fixes), not yet landed, or a dirty-tree footnote. A summary header totals the counts once more than one agent is running. Left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
@@ -3664,6 +3684,23 @@ Example:
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
+### `haus.sill.clock.monoFont`
+
+`boolean` · default `true`
+
+Whether the clock pill's date and time use `haus.fonts.mono.name`, like
+the rest of Sill. Disable this to use macOS's system UI font, whose zero
+has no dot and is easier to distinguish from an 8 at a glance. The
+calendar icon remains in the Nerd Font either way.
+
+Example:
+
+```nix
+false
+```
+
+<small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
+
 ### `haus.sill.elgato.host`
 
 `string` · default `""`
@@ -3742,7 +3779,7 @@ Example:
 
 `boolean` · default `false`
 
-A paw pill tracking your agent-worktree panes — amber when one is blocked on you, click for the per-agent list, each row marked with the client sitting in it; left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
+A paw pill tracking your agent-worktree panes. The label always names the state worth interrupting you for — "2 ready" outranks "5 working", which outranks "1 done" — never a bare count you'd have to click to decode. Click for the per-agent breakdown, sorted the same way (waiting first, then working, then idle, longest-elapsed first within each), each block showing the client, how long it's sat in that state, and — when the pane's checkout is a `holt` lane — its repo and PR status: merged, `+N unshipped` (exactly what `holt reship` fixes), not yet landed, or a dirty-tree footnote. A summary header totals the counts once more than one agent is running. Left-click a row to jump to that pane, ⌥/right-click for a live `zellij subscribe` peek. Fed by each client's own lifecycle hooks, which all call `agent-state` (also installed as ~/.config/sketchybar/plugins/agents-hook.sh): Opencode's plugin and Codex's ~/.codex/hooks.json are written for you (Codex asks you to trust its hooks the first time it sees them), while Claude Code's four agent-state hooks stay yours to point at it in ~/.claude/settings.json — Claude owns that file and rewrites it, so the rice merges in only the keys it must and never touches those four. (The two worktree hooks ARE declared, in hearth: they point at a rice-controlled path and self-heal on rebuild.) A row whose zellij pane is gone drops off by itself, which is what stands in for the session-end event Codex doesn't have. Dormant until a client fires.
 
 <small>Declared in [`modules/sill/options.nix`](https://github.com/hausfold/haus/blob/main/modules/sill/options.nix).</small>
 
