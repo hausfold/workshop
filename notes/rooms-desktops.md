@@ -255,9 +255,9 @@ the tree.
 | Step | Status | Work | Durable evidence | Exit gate |
 |---|---|---|---|---|
 | **0. Baseline** | done | Inventory current implementation modules, exported `darwinModules`, `haus.*` namespaces, enable switches, defaults and cross-room reads. Classify every public export, each namespace as room/shared/host, each leaf as desktop-safe/host-only, and each value as generic mechanism/nebelhaus opinion. | Commit `notes/rooms-inventory.md` in the workshop, including the bounded sources, commands and haus revision used to produce it. | The inventory accounts for every public module export and generated option group, and names every behavior that must remain identical during the refactor. Re-running its commands at the recorded haus revision reproduces its counts. |
-| **1. Room registry** | ready for review | Expand `haus/modules/options-groups.nix` into the single registry for public-export ownership, room/shared/host classification and per-option desktop safety, without moving or renaming options. Make the host template and docs renderer consume it. | The source registry, regenerated `haus/docs/site-data/groups.json`, and a flake check that fails on an unmapped `darwinModules` export, unclassified namespace, unsafe dynamic subtree or option with no desktop-safety decision. | Every public export, namespace and transitively reachable leaf is classified; current option addresses are unchanged; generated artifacts are current; counts come from the registry rather than prose. |
-| **2. AI proof** | blocked by 1 | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room. Pair old and new addresses in fixtures that compare behavioral projections, warnings and plain-host-override priority. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; old and new addresses produce identical behavior and precedence, with the intended migration warning only. |
-| **3. Desktop seam** | blocked by 2 | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
+| **1. Room registry** | done | Expand `haus/modules/options-groups.nix` into the single registry for public-export ownership, room/shared/host classification and per-option desktop safety, without moving or renaming options. Make the host template and docs renderer consume it. | The source registry, regenerated `haus/docs/site-data/groups.json`, and a flake check that fails on an unmapped `darwinModules` export, unclassified namespace, unsafe dynamic subtree or option with no desktop-safety decision. | Every public export, namespace and transitively reachable leaf is classified; current option addresses are unchanged; generated artifacts are current; counts come from the registry rather than prose. |
+| **2. AI proof** | ready for review | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room. Pair old and new addresses in fixtures that compare behavioral projections, warnings and plain-host-override priority. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; old and new addresses produce identical behavior and precedence, with the intended migration warning only. |
+| **3. Desktop seam** | unblocked once 2 lands | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
 | **4. Carve out nebelhaus** | blocked by 3 | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
 | **5. Retire top-level fragments** | blocked by 4 | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
 | **6. Rebuild the docs journey** | blocked by 5 | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
@@ -265,6 +265,46 @@ the tree.
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
 the nebelhaus values that replace them and the compatibility selection must land
 together even if preparatory refactors land earlier.
+
+### Findings carried out of step 2
+
+Reported rather than folded into that step's scope, because each one changes
+what a LATER step has to do.
+
+- **[3] The AI room defaults to another room's switch.** `haus.agents.enable`
+  keeps `developer.enable` as its default, which is the exact "rooms do not
+  silently enable each other" violation the model forbids. Step 2 could not fix
+  it: a neutral default there is a behaviour change, and the value that replaces
+  it belongs to the nebelhaus desktop. It is step 4's, and it is the reason step
+  4 is indivisible.
+- **[3] The AI room sits in the standalone `darwinModules` foundation.**
+  `flake.nix`'s `standaloneModule` imports `modules/ai` beside `den`, `roster`
+  and `workspaces`, because a partial that imported only `sill` would otherwise
+  draw its agents pill off an unwritten extension point. That is the behaviour
+  those exports had before, so nothing regressed — but "Blank plus the
+  explicitly imported room" (step 3) has to decide whether Blank carries the AI
+  room, or whether an unwritten extension point is simply inert.
+- **[2] The AI room's payload still lives in `den` and `hearth`.** Only
+  ownership, the assertions and the contributions moved. `holt`, `agent-state`
+  and the statusline are still system packages written by `den`; the clients,
+  the instructions/skill files and the per-client hook wiring are still home
+  ones written by `hearth`. Both are now gated on `haus.agents.enable`. Moving a
+  package between a system and a home profile is an install change rather than a
+  refactor, so it waits for step 4's projection comparator to prove it moved for
+  free.
+- **[2] Extension points are not yet the general mechanism.** `modules/lib/contrib.nix`
+  and `haus._contrib.*` exist for exactly the three the AI room needs. The other
+  cooperations the model names — Windows' workspace pills, Focus's controls,
+  Bar's reserved space from Windows — still read each other's config directly.
+  Generalising is worth doing on the next room that needs it, not speculatively.
+- **[2] `sill`'s `hush` gate is the same shape and not yet on the seam.** The bar
+  already special-cases `hush` (`name != "hush" || config.haus.hush.enable`)
+  beside the new `contributed` predicate. Two spellings of one idea; folding
+  `hush` in is a small, behaviour-preserving follow-up.
+- **[1] `zscratch` left the agent switch.** It followed
+  `developer.agents.enable` only because that is where the switch lived; nothing
+  about a throwaway zellij session is about coding agents. It follows
+  `developer.enable` now, beside `nixfmt`.
 
 ### Agent status report
 
