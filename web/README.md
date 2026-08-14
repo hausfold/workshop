@@ -14,6 +14,16 @@ One Cloudflare Worker serves all of `nebelhaus.com`:
 curl -fsSL https://nebelhaus.com/init.sh | bash
 ```
 
+> ⚠️ **That is no longer the canonical install URL, and this is no longer the
+> canonical copy of these pages.** Since 2026-08-14 hausfold.co serves the
+> one-liner itself — `curl -fsSL https://hausfold.co/nebelhaus.sh | bash` —
+> from its own port of this Worker, and every docs page here has a rebuilt
+> equivalent under `hausfold.co/docs`. Both sites work, which is the problem:
+> **a fact fixed in one tree and not the other will disagree.** This site's
+> remaining job is to become the `nebelhaus.com/*` → `hausfold.co/*` 301 map
+> (rename plan §5.2), after which `/init.sh` redirects to `/nebelhaus.sh`.
+> Until then, fix a fact in both trees or in neither.
+
 The site is a static [Astro](https://astro.build) build (Starlight for docs, a
 hand-rolled landing page). It's served by Cloudflare's `[assets]` binding.
 `worker.js` handles `/init.sh`, `/download/*`, and `/api/release/*`; everything
