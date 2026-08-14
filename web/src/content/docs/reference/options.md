@@ -1449,7 +1449,7 @@ Example:
 
 ### `haus.fonts.mono.size`
 
-`positive integer, meaning >0` · default `round (haus.fonts.mono.baseSize * haus.ui.scale)` · desktop-safe
+`positive integer, meaning >0` · default `fonts.mono.baseSize, scaled by haus.ui.scale and rounded` · desktop-safe
 
 Terminal font size in points. The single most useful knob for a
 larger-text machine, since it moves everything the rice actually
