@@ -2737,7 +2737,7 @@ second editable copy here.
 
 #### ✅ The Worker moved, 2026-08-14 — and the install URL moved with it
 
-[hausfold.co#31](https://github.com/hausfold/hausfold.co/pull/31). `worker.js`
+[hausfold.co#33](https://github.com/hausfold/hausfold.co/pull/33). `worker.js`
 is in the site repo, so `wrangler.toml` has a `main` and hausfold.co is no
 longer an assets-only Worker. Three routes run code and nothing else does —
 static assets still short-circuit first, which was verified rather than assumed
@@ -2769,6 +2769,31 @@ section above had left as intentions:
   workshop's `web/`, and the workshop's own docs still print it — correct, that
   is the URL that resolves on *that* site. It becomes a 301 when the map below
   lands.
+
+🚨 **The assurance pass found a real hole in the ported guard, and it is worth
+carrying wherever a `curl | bash` endpoint gets built again.** The old
+`SAFE_REF` (`[A-Za-z0-9._-]+`) stops path traversal, which is what it was
+written for — but a 40-hex **commit SHA** passes it, and
+`raw.githubusercontent.com` serves any object in a public repo's **fork
+network**, including commits that are on no branch at all (measured: the head
+commit of a merged PR whose branch GitHub had deleted still returned 200).
+`hausfold/haus` is public, so anyone could get an object into that network with
+a fork PR and then hand out
+`curl -fsSL 'https://hausfold.co/nebelhaus.sh?ref=<sha>' | bash` — our domain,
+our TLS, no visible redirect, their script. `?ref=` is now held to the release
+**tag** shape, the only ref shape a stranger cannot create; the deploy-time
+`REF` var keeps the wider shape because it is set by whoever deploys rather
+than by whoever clicks a link. ⚠️ **The same hole is still open on
+`nebelhaus.com/init.sh`**, whose worker is the unmodified original — it closes
+when `web/` becomes the 301 map, which is one more reason not to leave that
+half sitting.
+
+📌 **Follow-up this found and deliberately did not take**: `haus`'s own
+`bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`, and
+the install page invites the reader to `curl … | less` and read exactly that
+file — so the script disagrees with the page that serves it. It waits for
+[haus#345](https://github.com/hausfold/haus/pull/345), which is in flight in
+that same file.
 
 **What the 301s still need, so the next session doesn't re-derive it.** The map
 is old-Astro-URL → current-hausfold.co-URL, and both halves are already
