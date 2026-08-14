@@ -94,7 +94,6 @@ lands on `main`.
 - [workflows](./docs/workflows.md) — daily driving, parallel agents, batch-testing, releasing
 - [the four CLIs](./docs/workflows.md#the-four-clis) — `haus` vs `bench` vs `holt` vs `zscratch`
 - [AGENTS.md](./AGENTS.md) — where a change goes, and the one instruction file every agent reads
-- [nebelhaus.com](https://nebelhaus.com) — the docs this repo publishes
 
 ---
 
