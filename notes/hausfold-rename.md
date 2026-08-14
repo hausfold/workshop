@@ -177,9 +177,10 @@ only assets, and the three things that were hand-copied across nine files (the
 head, the copy button, the colophon) are components. §5.2's landing-routes box
 carries the detail.
 
-**§5's gate was run rather than built, and it is green** — with one exception
-that is a live defect, not a leftover. Measured 2026-08-14 14:53–14:55 UTC,
-cache-busted, and re-measured independently at 15:00:
+**§5's gate was run rather than built, and it is green** — after one row of it
+turned out to be a live defect rather than a leftover, and was fixed the same
+hour. Measured 2026-08-14 14:53–14:55 UTC, cache-busted, and re-measured
+independently at 15:00 and again at 15:40:
 
 | checked | result |
 |---|---|
@@ -211,7 +212,7 @@ unchanged from the audit below.
 ### Handoff — 2026-08-14 (evening)
 
 **nebelhaus.com is the 301 map, the old site is deleted, and the rename proper
-has ~~one 🤖 piece left~~ none** *(the piece it meant had merged seven hours
+has ~~one 🤖 piece left~~ none** *(the piece it meant had merged 47 minutes
 earlier — see the late handoff above)*. `web/` is now a single `worker.js` — 35 exact rows to
 hausfold.co, `/init.sh` → `/nebelhaus.sh` in one hop, everything else an honest
 404 — with no Astro, no Starlight and no build. §5.2's 301 box carries what it
@@ -2872,16 +2873,22 @@ wrangler configs. What that settled, beyond the redirect itself:
   `index.html` stripped) instead.
 - **Query strings survive**, which is why this is a Worker and not a
   `_redirects` file — that one would need an assets binding, i.e. a build whose
-  only output is the file saying the build is gone. `/init.sh?ref=v2026.07.18`
-  keeps its pin across the hop.
+  only output is the file saying the build is gone. `/init.sh?ref=v2026.08.13`
+  keeps its pin across the hop — measured through to a 200. 📌 **Pick a tag that
+  exists when you demo it:** a well-formed ref that is not a release comes back
+  **502** from hausfold.co's handler, not 404, which reads as a broken redirect
+  rather than a bad ref. (`v2026.07.18` was this bullet's example for a month and
+  was never a haus tag — a fictitious example in a paragraph about verification.)
+  The 502 is hausfold.co's `worker.js` to fix, not this map's.
 - ✅ 🚨 **The `?ref=` fork-network hole is closed, in the code and on the zone.**
   This Worker fetches nothing, so there is no object left to poison, and the
   forwarded `?ref=` is checked where it is used — hausfold.co holds it to the
-  release-tag shape and answers 400 to a 40-hex sha. ⚠️ **The zone half was a
-  day late and nobody would have known:** `/init.sh` didn't reach this Worker at
-  all until an orphaned route from the installer's first deployment was deleted
-  (§5.3). The sentence above was true of `worker.js` from the moment it merged
-  and true of nebelhaus.com only after 👤 ran one command.
+  release-tag shape and answers 400 to a 40-hex sha. ⚠️ **The zone half was half
+  an hour late and nobody would have known:** `/init.sh` didn't reach this Worker
+  at all until an orphaned route from the installer's first deployment was
+  deleted (§5.3). The sentence above was true of `worker.js` from the moment it
+  merged and true of nebelhaus.com only after 👤 ran one command — and the gap
+  being small is luck, not design. Nothing was watching it.
 - **`/download/<app>` and `/api/release/<app>` pass through with their slug**,
   and the app list is deliberately NOT re-stated here: hausfold.co 404s an
   unknown one, so the promise of which apps resolve lives in one place.
@@ -2970,10 +2977,10 @@ than by whoever clicks a link. ✅ **The same hole on `nebelhaus.com/init.sh` is
 closed too, and by deletion rather than by a narrower regex** — that Worker
 became the 301 map hours later and fetches nothing at all, so no object in any
 fork network is reachable through it. The `?ref=` it forwards is checked on
-arrival, where the check belongs. ⚠️ **And "hours later" was optimistic by a
-day**: an orphaned route kept the old proxy answering that exact path until
-§5.3's delete. Measured after it: `/init.sh?ref=<40-hex sha>` 301s and then
-**400s** on arrival.
+arrival, where the check belongs. ⚠️ **"Hours later" was right about the code and
+half an hour short about the zone**: an orphaned route kept the old proxy
+answering that exact path for another ~30 minutes, until §5.3's delete. Measured
+after it: `/init.sh?ref=<40-hex sha>` 301s and then **400s** on arrival.
 
 📌 ~~**Follow-up this found and deliberately did not take**: `haus`'s own
 `bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`~~ ✅
@@ -3377,12 +3384,14 @@ fix later.
 #### ✅ One route outlived its config — found and killed, 2026-08-14
 
 **Found by running §5's gate, and fixed the same hour** (👤 ran
-`npx wrangler delete --name nebelhaus-init`). The account is clean and the whole
-chain was then measured end to end:
+`npx wrangler delete --name nebelhaus-init`). The whole chain was then measured
+end to end — ⚠️ **the *path* is proven, the *account* is not**: nothing here
+enumerated the other scripts, and per this box's own lesson only the dashboard's
+Workers ▸ Routes can. Worth one look while you are next in there.
 
 | | |
 |---|---|
-| `nebelhaus.com/init.sh` | **301** → `hausfold.co/nebelhaus.sh` |
+| `nebelhaus.com/init.sh` | **301** → `hausfold.co/nebelhaus.sh`, `max-age` a year (the map's, not a cached old answer) |
 | `…?ref=v2026.08.14-2` | 301, followed → **200** — a real release still pins |
 | `…?ref=<40-hex sha>` | 301, followed → **400** — hausfold.co refuses it |
 
@@ -3407,10 +3416,14 @@ unmapped path all behaved.
 under a different name with the whole-zone route — and **a route belongs to the
 script that declared it**, so no deploy under a new name ever reclaims one, and
 Cloudflare matches most-specific-first. The orphan quietly won that path from
-then on. Nobody noticed because it kept doing the right thing right up until this
-month, when doing the old thing became the wrong thing twice over: the 301 didn't
-fire, and the `raw.githubusercontent` fork-network hole the 301 box called
-"closed by deletion" was still open in production.
+2026-07-08 on — **five weeks, and harmless for all but the last thirty minutes
+of them**, because until the 301 map merged both scripts did the same thing.
+That is what made it invisible: it only became a defect at 14:33Z on 2026-08-14,
+when doing the old thing turned wrong twice over — the 301 didn't fire, and the
+`raw.githubusercontent` fork-network hole the 301 box called "closed by deletion"
+was still open in production. **A latent shadow becomes a live one the moment the
+thing it shadows changes**, which is the version of this worth remembering: the
+window to find it was never the five weeks, it was the half hour.
 
 🚨 **The site Worker's own `wrangler.toml` warns about exactly this trap** ("The
 Worker keeps its name. Renaming it uploads a NEW script and leaves the old one

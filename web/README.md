@@ -30,8 +30,11 @@ Cloudflare's static-assets redirect file is the obvious tool and it needs an
 assets binding to run — which means keeping a build whose only output is the
 file that says the build is gone. A route-less Worker is 160 lines with a unit
 suite, and it gives the one behaviour `_redirects` can't: **query strings
-survive**, so a shell history holding `/init.sh?ref=v2026.07.18` still pins that
-ref on the other side.
+survive**, so a shell history holding `/init.sh?ref=v2026.08.13` still pins that
+ref on the other side. (Use a tag that exists when you demo this — a well-formed
+ref that isn't a release comes back **502**, not 404, from the other side, which
+reads exactly like a broken redirect. `?ref=v2026.07.18`, this line's example
+until 2026-08-14, was never a haus tag.)
 
 ## The map itself
 

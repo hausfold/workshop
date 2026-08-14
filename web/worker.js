@@ -149,8 +149,10 @@ export default {
     const target = REDIRECTS[path];
     if (target) {
       // Carry the query string through. It matters for exactly one row —
-      // `/init.sh?ref=v2026.07.18`, which the docs showed for months — and
-      // costs nothing on the rest.
+      // `/init.sh?ref=<tag>`, the pin the docs showed for months — and costs
+      // nothing on the rest. (The tag those docs printed, `v2026.07.18`, was
+      // never a real haus release; the test below asserts the redirect target,
+      // which is true of any ref, real or not.)
       return redirect(url.search ? `${target}${url.search}` : target);
     }
 
