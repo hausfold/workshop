@@ -28,17 +28,21 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 |---|---|---|---|---|
 | 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
 | 2 | **Rice hero desktop** | `hausfold/assets/hero.png` | rice README · `hausfold.co/desktops/` ×2 | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder. The staged replacement is speced in [`SHOT-nebelhaus-desktop.md`](./SHOT-nebelhaus-desktop.md) — scene, pre-capture checklist, export sizes and a ready-to-apply site patch.)* |
-| 3 | **OG social card** | `web/public/social/og.png` | share-link thumbnail (meta tags) | Every link anyone posts renders this. Evergreen wordmark, already wired. |
-| 4 | **Landing reel** *(optional)* | *unshot* | nebelhaus.com hero background | At most ONE muted ~30–60s stitch, poster = the rice hero. A single film, never a menu of clips. |
+| 3 | ~~**OG social card**~~ | `assets/site/social/og.png` | ~~share-link thumbnail~~ — **nothing, since 2026-08-14** | It was wired into every Astro page's `og:image`; that site is deleted and hausfold.co ships **no** `og:image`, deliberately. The file is kept (evergreen wordmark), the slot is not. Re-earning it means hausfold.co deciding it wants social cards. |
+| 4 | **Landing reel** *(optional)* | *unshot* | the hausfold.co landing page | At most ONE muted ~30–60s stitch, poster = the desktop hero. A single film, never a menu of clips. ⚠️ Its old surface was nebelhaus.com's hero background, which no longer exists. |
 
 *(Nebelung's README now leads with its evergreen wordmark banner — an exempt
 graphic per the policy above, not a survivor-table hero; the old
 `swatch-cascade.webp` marketing loop was retired.)*
 
-*(The pounce/perch landings show the app **in code**, not in a capture:
-`web/src/components/ProductDemo.astro` draws each UI in HTML/CSS inside an SVG
-MacBook. Those aren't survivor-table assets — nothing was shot, nothing rots,
-and no byte ships. Don't "fix" them by pointing a landing at a video.)*
+*(The pounce/perch landings showed the app **in code**, not in a capture:
+`web/src/components/ProductDemo.astro` drew each UI in HTML/CSS inside an SVG
+MacBook. Both that component and its Astro pages died with nebelhaus.com on
+2026-08-14 — hausfold.co's `/pounce` and `/perch` are Next routes now. The
+principle is what carries: those weren't survivor-table assets, nothing was
+shot, nothing rots, no byte ships. Don't "fix" a landing by pointing it at a
+video. The MacBook frame survives at `assets/site/macbook-pro-orthographic.svg`
+if the drawn-UI idea is ever rebuilt there.)*
 
 ## Everything else is delisted
 
@@ -47,9 +51,11 @@ composites (`S2-trio`, `S16-gallery`), the ports gallery. That menu is retired.
 The raw frames still sit on disk as **source material only** — referenced by
 nothing, owed to no one:
 
-- `assets/stills/S2*–S16*` and the composites (workshop, source frames)
-- `web/public/media/stills/*`, `web/src/assets/stills/*` (mirror copies)
-- `web/public/media/theming.webp`, `web/public/media/tap-caps.webp` (retired demo loops)
+- `assets/stills/S2*–S16*` and the composites (workshop, source frames) — **the
+  only copies now**; the two `web/` mirror trees went with the site on 2026-08-14
+  (hash-compared first, so nothing unique was dropped)
+- `assets/site/theming.webp`, `assets/site/tap-caps.webp` (retired demo loops,
+  moved out of `web/public/media/` in the same change)
 
 Nothing here is deleted — but nothing here is an obligation either. Don't reshoot
 to "fill in" the set; the set is the five above.
@@ -57,8 +63,13 @@ to "fill in" the set; the set is the five above.
 ## If you ever shoot a new marketing asset
 
 1. It has to displace something, or it's a sixth hero — and there is no sixth.
-2. Host it under `web/public/media/<name>` (the one stable public URL, so any
-   README *or* the docs site can hotlink the same file).
+2. Host it in the repo whose surface it serves — a README's hero lives beside
+   that README, a site image lives in `hausfold.co`. ⚠️ **`web/public/media/<name>`
+   was the answer here until 2026-08-14 and is now a permanent 404**: that site
+   is deleted and nebelhaus.com only 301s the pages it used to have, so there is
+   no one-stable-public-URL to hotlink from two places any more. If two surfaces
+   genuinely need one file, `raw.githubusercontent.com` is the shared URL (it is
+   what `org-profile`'s README already uses).
 3. Add a row here and name the single surface it serves. If you can't name one, don't shoot it.
 
 **Staging still matters for the shots that survive** — consistency is what makes

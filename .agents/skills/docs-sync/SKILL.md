@@ -215,7 +215,8 @@ gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
 - Commit **only** doc files. If a fix needs a code change, don't make it — report it.
 - Branch per repo, never a cross-repo commit. Each repo owns its own boundary.
 - If the site changed, build it before pushing — a broken build is worse than a stale
-  page: `cd web && npm run build`.
+  page: `cd hausfold.co && npm run build`. (The workshop's `web/` has no build any
+  more; it is the 301 map.)
 
 **The PR body carries the findings.** A scheduled run's chat output is read once and
 lost; the PR is where the reasoning has to live, so a reviewer can judge the diff without

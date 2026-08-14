@@ -145,7 +145,10 @@ export default {
       return redirect(url.search ? `${target}${url.search}` : target);
     }
 
-    if (PASSTHROUGH.test(path)) return redirect(`${SITE}${path}`);
+    // Query carried here too, for the same reason and none of its own: nothing
+    // reads a query on these two today, and an asymmetry between the branches is
+    // the kind of thing a later reader has to test to believe.
+    if (PASSTHROUGH.test(path)) return redirect(`${SITE}${path}${url.search}`);
 
     // Everything else — the old build's hashed CSS, the stills, the social card,
     // a typo — 404s honestly rather than being swept to the homepage.

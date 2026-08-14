@@ -2,9 +2,9 @@
 #   • web/worker.js  — nebelhaus.com's 301 map (Vitest unit suite)
 #   • bench          — the family CLI (bats unit suite + shellcheck)
 #
-# This is the gate the repo was missing: deploy-web.yml only builds + deploys,
-# so nothing checked behavior before. Kept separate from deploy so a red test
-# blocks a merge without touching the deploy path.
+# This is the gate the repo was missing: deploy-web.yml only deploys, so nothing
+# checked behavior before. Kept separate from deploy so a red test blocks a merge
+# without touching the deploy path.
 name: Tests
 
 on:
