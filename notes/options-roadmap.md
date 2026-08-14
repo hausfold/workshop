@@ -131,8 +131,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > able to check, but it can always say where.
 > The other box was filed as "the data half is done and this is now a rendering
 > job." Half right. `plan_restarts` already read killalls, `activateSettings` and
-> the notification posts out of the built script — but the map's fourth verb,
-> `logout`, was subtracted in den and then **vanished**, so there was nothing for
+> the notification posts out of the built script — but the map's `logout`
+> sentinel was subtracted in den and then **vanished**, so there was nothing for
 > a reader to find. ★ **A verb that renders to nothing is not a rendering
 > problem**, and this is the same silence §5.6 refuses to ship a settings *group*
 > into, left wide open to a domain arriving the other way, through `haus capture`
@@ -2187,6 +2187,13 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   way to say "takes effect at next login" (the way `nebelhaus.accessibility`
   says "needs Full Disk Access") — that's what unblocks building them, not a
   fix to the domain itself, since neither has a live-reload path on macOS 26.
+  → **◐ Half of it exists since haus#353** (§5.11): activation announces every
+  logout-only domain the built configuration writes and `haus plan` reports it,
+  so the *machine* now says "this waits for a logout". What's still missing is
+  the half this box is really about — saying it at the **option**, in its
+  description, before anyone builds anything. The FDA note it points at is a
+  property of the option; this is a property of the rebuild. Building these two
+  groups needs both.
 - [x] Spike Sound, Locale/input sources and Power the way §4 spiked
       universalaccess/dock/finder/etc — **done 2026-08-08**, three probes on the
       shelf (`notes/probes/{sound,locale,power}-sweep.sh`) plus two oracles
@@ -2443,9 +2450,12 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
 
 - [x] `haus plan` — promote bootstrap's preflight audit; show exact settings,
       packages, and scripts that will change. **Settings and packages**, felt
-      through a real `bench try` build; the "scripts" half (a restart-map
-      preview) is still just "what packages and casks change" — see the ninth
-      pass above.
+      through a real `bench try` build; the "scripts" half was still just "what
+      packages and casks change" at the ninth pass. **✅ Closed since:
+      `plan_restarts` reads the killalls, `activateSettings` and the notification
+      posts out of the built script, and haus#353 added the half a restart can't
+      cover — the domains that wait for a logout.** See the two boxes at the end
+      of this section.
 - [x] `haus capture` — promote the `NEBELHAUS_KEEP` current-value reader into a
       general "turn this Mac into config" command. Generalised past the three
       named categories via `system.defaults.CustomUserPreferences` for any
@@ -2484,7 +2494,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       in two halves that landed a week apart. The restart half was already live
       (`plan_restarts` reads killalls, `activateSettings` and the notification
       posts straight out of the built script). **The half still missing was the
-      map's fourth verb: `logout` was subtracted in den and then vanished** — no
+      map's `logout` sentinel: it was subtracted in den and then vanished** — no
       signal at build, none in `plan`, nothing anywhere saying why a write landed
       and did nothing, which is precisely the silence §5.6 refuses to ship a
       settings *group* into while leaving the same silence open to a domain
@@ -2719,7 +2729,8 @@ contents — the same shape, noticed and then not generalized.
       *there*. **A referent check is a new place for the referent's own shape to
       bite you**, and it was only visible by running it against the real host's
       roster, not against the synthetic one the checks use.
-      *(One process note, for the next person who mutation-checks a rice module:
+      *(One process note, for the next person who mutation-checks a `haus`
+      module:
       `nix fmt` on `modules/hearth/default.nix` rewrites 727 lines — the file is
       not nixfmt-clean and the repo doesn't check it, so §8's "run the formatter"
       still means hand-matching the local style. And a `path:` flake override
@@ -3075,10 +3086,14 @@ that visible, and turned up two things that were already broken:
 
 **Phase 4 — the non-dev Mac**
 - [x] §5.7 `haus set` — done 2026-08-07; see the twelfth-pass status note.
-- ◐ §5.6 curated settings groups — **eight of the table's nine rows now carry a
+- ◐ §5.6 curated settings groups — **nine of the table's ten rows now carry a
       shipped marker:** hot corners + screenshots (rice#198), then `lock` (lock
       half only), `menuBar.{clock,controlCenter}` and `security.firewall`
-      (rice#250), then `sound`, `locale` and `power` (rice#267). The one row
+      (rice#250), then `sound`, `locale` and `power` (rice#267), then the tenth
+      group (rice#286). *(This line read "eight of nine" until the seventeenth
+      pass; §5.6's own header had said ten since #286 landed — the phase list
+      drifting from the section again, which is the fourteenth pass's finding
+      recurring in the same place it was first found.)* The one row
       left is **deferred on a reason**: Windows is logout-only. Two *halves*
       inside shipped groups are deferred on that same reason — `lock`'s login
       half and `security`'s guest-user/remote-login half.
@@ -3614,6 +3629,13 @@ Per the workshop's routing table, this work is **not** one repo:
 | theme flavors, light mode, high-contrast palette, port metadata, contrast CI | `nebelung` |
 | command packs, typed commands, per-item settings, palette-as-settings-app | `pounce` |
 | generated options reference, community rice gallery, the guides | `web` |
+
+⚠️ **Three PR prefixes, one repo.** `nebelhaus#N`, `rice#N` and `haus#N`
+throughout this file all mean the same repo — the layer, at
+`github.com/hausfold/haus` since §10 of the rename plan. The spelling records
+*when* the line was written, not a different repo: `nebelhaus#` is oldest,
+`rice#` is the middle period, `haus#` is what to write now. Only the link target
+is authoritative.
 
 **Not `trill`, any more.** It was in this table's orbit through §5.1's "bakes its
 own colours" list; rice#212/#213 removed the module and the flake input outright,
