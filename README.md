@@ -3,17 +3,17 @@
 **Where the [hausfold](https://github.com/hausfold) family gets built.**
 *Every repo in one directory, and `bench` — the CLI that moves a change across them.*
 
-Each repo is a Nix flake pinning the one before it. Split a desktop across six
-repos and you buy yourself a new daily annoyance: nothing you write is visible
-to its own neighbour until a lock file says so. `bench` is what makes the chain
-feel like one codebase — build your real Mac against your uncommitted edits,
-then push a change the whole way down.
+Five of them are Nix flakes, each pinning the one before it. Split a desktop
+across five repos and you buy yourself a daily annoyance: nothing you write is
+visible to its own neighbour until a lock file says so. `bench` is what makes
+that chain feel like one codebase — build your real Mac against your
+uncommitted edits, then push a change the whole way down.
 
 ## the one gotcha
 
 ```
-nebelung  ──►  pounce  ──►  haus  ──►  ~/.config/nix  ──►  your Mac
-the theme      the palette   the layer   your host file      darwin-rebuild
+nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your Mac
+theme        palette    layer    host file         darwin-rebuild
 ```
 
 A flake input is not "whatever's on GitHub right now" — it's one exact commit,
@@ -23,7 +23,8 @@ downstream.** A one-hex-digit colour tweak in nebelung reaches your Mac only
 after three lock files move behind it.
 
 Never walk that by hand. `./bench ship` does it in order; `./bench status`
-names every pin that's fallen behind.
+names every pin that's fallen behind. (Those are repo names — in
+`~/.config/nix`, the layer's flake input is still spelled `nebelhaus`.)
 
 ## start
 
@@ -68,12 +69,14 @@ Four more ride along with no lock edge, so the ripple never walks them:
 🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you
 almost never touch it), ⌂ [hausfold.co](https://github.com/hausfold/hausfold.co)
 and 🐙 [org-profile](https://github.com/hausfold/.github). `bench clone` plants
-them anyway; they carry docs. Your own `~/.config/nix` stays private, and
-outside this directory.
+them anyway; they carry docs. Your own `~/.config/nix` — the host file naming
+your apps, your identity, your secrets — stays private, outside this directory,
+and is restored from its own repo.
 
 This repo itself holds `bench`, one set of agent instructions, and `web/` — the
-Astro site behind [nebelhaus.com](https://nebelhaus.com), `curl | bash`
-installer included.
+Astro site and Cloudflare Worker behind
+[nebelhaus.com](https://nebelhaus.com), which serves the docs and the
+`curl | bash` install one-liner.
 
 ## the life of a change
 
