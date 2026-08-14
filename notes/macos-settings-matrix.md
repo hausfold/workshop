@@ -87,7 +87,7 @@ were live:
 
 | key | Rice use | Status |
 |---|---|---|
-| `mouseDriverCursorSize` | `ui.cursorScale` | ✅ effective at `3.0` — pointer visibly larger — **after `killall universalaccessd`** |
+| `mouseDriverCursorSize` | ~~`ui.cursorScale`~~ → `haus.accessibility.mouseDriverCursorSize` (a `ui.*` token may only derive from unconditionally-reachable keys; this one is FDA-gated — options-roadmap.md §5.2) | ✅ effective at `3.0` — pointer visibly larger — **after `killall universalaccessd`** |
 | `closeViewScrollWheelToggle` | scroll-to-zoom | ✅ effective — ⌃+scroll magnifies the display — **after `killall universalaccessd`** |
 | `closeViewZoomFollowsFocus` | zoom follows focus | ✅ effective — ⇥ to an off-screen input snaps the viewport to it (it snaps, it does not glide) — **after `killall universalaccessd`** |
 
@@ -96,11 +96,15 @@ were live:
 > with `closeViewZoomFollowsFocus` off. The test that means anything is: park the
 > pointer, move **keyboard** focus out of the viewport.
 >
-> ⚠️ **And `modules/lib/restart-map.nix` is wrong about this domain** — it carries
-> `"com.apple.universalaccess" = "none"`, which is true of the four keys above
-> (they have an NSWorkspace oracle and were measured with it) and false of these
-> three. Nothing here is shippable as an option until the map learns
-> `universalaccessd`; see options-roadmap.md §5.12.
+> ✅ **`modules/lib/restart-map.nix` was wrong about this domain and was fixed the
+> same day** (haus#360). It carried `"com.apple.universalaccess" = "none"`, which
+> is true of the four keys above (they have an NSWorkspace oracle and were
+> measured with it) and false of these three; the entry is `universalaccessd`
+> now, fired per-key rather than per-domain so a rebuild that only sets
+> `increaseContrast` doesn't bounce the daemon. All three keys are shipped
+> options, classed `by-eye` rather than `effective` — measured on one Mac by a
+> human, with nothing able to re-check them on yours. See options-roadmap.md
+> §5.12.
 >
 > ⚠️ **The domain grows keys on its own.** Deleting these three afterwards did not
 > restore the plist: using zoom once left `universalaccessd`'s own bookkeeping
@@ -336,7 +340,8 @@ why.
 | `NSGlobalDomain` | varies per key | 53 typed keys |
 | `com.apple.AppleMultitouchTrackpad` | none | 22 typed keys |
 | `com.apple.WindowManager` | logout | 12 typed keys |
-| `com.apple.controlcenter` | `killall ControlCenter` — not done | ByHost domain |
+| `com.apple.controlcenter` | `killall ControlCenter` — **done since rice#250**, and unconditionally: the domain is in den's `typedDomainsWritten` whether or not a `haus.menuBar.controlCenter` key is set | ByHost domain |
+| `com.apple.universalaccess` | `killall universalaccessd` — **done since haus#360**, fired only for the three `by-eye` keys (the four oracle-backed ones need no restart) | FDA-gated; see the accessibility section above |
 
 **The animation keys are the one family in these domains shipped without a
 per-key sweep** (`haus.animations`, rice#286: `autohide-time-modifier`,

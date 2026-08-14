@@ -101,6 +101,62 @@ already exist, and one it treated as a detail is the actual root blocker.
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-14 (twentieth pass) — §5.12 is closed: the eye-check's own
+> code landed the same day. And the *other* eye-check's follow-up didn't,
+> because it had been parked on this one's PR.**
+>
+> [haus#360](https://github.com/hausfold/haus/pull/360) and
+> [hausfold.co#43](https://github.com/hausfold/hausfold.co/pull/43) both merged.
+> §5.12's last box is ticked, §5.2's `cursorScale` box with it, and Phase 5's
+> line goes back to naming §5.8 alone. What shipped, beyond the one-word
+> promotion the box first predicted: a **fifth reachability class, `by-eye`**;
+> the restart-map entry (`com.apple.universalaccess` → `universalaccessd`) with
+> a **per-key** trigger in den rather than a per-family one; and a `keyTypes`
+> table, because `mouseDriverCursorSize` is the domain's first float and both
+> consumers had `-bool` baked in. `haus.accessibility` is seven options now,
+> still generated from the table.
+>
+> ★ **The residue this section called load-bearing is gone, and nobody removed
+> it.** §5.12's guard refused the raw `system.defaults.universalaccess.*` route
+> while three nix-darwin-typed keys were reachable *only* that way — a guard
+> that costs you a setting, defended here as "the right residue". nix-darwin
+> types exactly five keys in this domain; all five have a guarded option today,
+> so the raw route reaches strictly less than the safe one. **The friction was
+> never the guard's strictness, it was three unmeasured keys**, and it ended
+> when somebody watched a cursor rather than when anybody argued about policy.
+>
+> ★ **The finding, and it is about this document's own mechanics: an edit parked
+> on somebody else's PR has no owner and no trigger.** The nineteenth pass
+> watched §5.6's `lock`/`menuBar` pair, found them fine, and wrote down that
+> `restart-map.nix`'s comment (and §5.6's prose) still denied the measurement —
+> then filed the fix as *"can be upgraded when the restart-map PR in §5.12 opens
+> that file anyway."* haus#360 opened that file, edited it heavily, and did not
+> touch the comment, exactly as a PR scoped to a different domain should. The
+> box was in this doc; the file was in another repo; the PR was about a third
+> thing. **A follow-up that names no repo, no PR and no owner is a note, not a
+> plan** — the same shape as the phase-list drift the fourteenth and seventeenth
+> passes found, one repo over. Fixed now, on its own, in
+> [haus#362](https://github.com/hausfold/haus/pull/362).
+>
+> ★ **And the thing that fix had to say is stronger than "nobody needs it
+> today": a restart-map entry for an unconditionally-written domain cannot be
+> confirmed by watching a rebuild.** `com.apple.menuExtraClock` and
+> `com.apple.controlcenter` sit in den's `typedDomainsWritten` *unconditionally*
+> (only `com.apple.universalaccess` has a `restartDeclaredBy` gate), so
+> SystemUIServer and ControlCenter are killed on every rebuild of every machine
+> whether or not a clock option is set. The clock re-rendering is therefore
+> evidence for "no logout needed" and can never be evidence for *this row*. The
+> only experiment that could isolate it is **deleting the entry** and seeing
+> what stops — which generalises: an always-on entry in a table of triggers is
+> falsifiable only by removal, so its cost is not "it's untested", it's "it is
+> untestable in place". `com.apple.screensaver = "none"` is the opposite and was
+> genuinely confirmed — no persistent process, nothing else firing on its
+> behalf.
+>
+> **Verified:** `nix flake check` green in the haus lane (23 checks, four
+> rebuilt), `nixfmt --check` clean. The change is comment-only — no eval
+> behaviour moves — which is why it needed no `bench try`.
+
 > **Status, 2026-08-14 (nineteenth pass) — both of this file's outstanding
 > eye-checks were finally watched, in one hour, and they came back opposite.**
 >
@@ -1885,7 +1941,7 @@ contrast.
       Note the flag's blast radius before deciding — it is what every browser
       reads as `prefers-reduced-motion`, so a semantic token switching it on is
       a bigger promise than it looks.
-- [ ] ~~`cursorScale`~~ ~~**cut** — `mouseDriverCursorSize` is in the locked
+- [x] ~~`cursorScale`~~ ~~**cut** — `mouseDriverCursorSize` is in the locked
       `universalaccess` domain.~~ ❌ **Cut for a false reason** (§5.12,
       2026-08-14). The domain isn't locked, `mouseDriverCursorSize` is typed by
       nix-darwin, and `modules/lib/reachability.nix` carries it as
@@ -1914,6 +1970,13 @@ contrast.
       semantic token may only be derived from keys that are reachable
       unconditionally.** That is the rule this box actually produced, and it
       applies to every future `ui.*` member, not just this one.
+      → ✅ **Closed 2026-08-14 with haus#360**, as `haus.accessibility.
+      mouseDriverCursorSize` (a float, `1.0`–`4.0`, the range enforced at eval
+      from `reachability.nix`'s `keyTypes` rather than written in prose), and
+      the option's own description carries the reason it is not a `ui.*` token.
+      So the box closes **answered rather than built** — which is the honest
+      outcome for a `ui.*` item whose whole content turned out to be "this
+      belongs in the other family."
 - [x] ✅ **Sill: the type scales to a CEILING and stops — a different shape of
       answer, and the more interesting one.** Everything else here was a multiplier
       a tool was missing; the bar is not that. `sketchybarrc` pins `height=36` with
@@ -2370,10 +2433,14 @@ of these cost one probe to find and would have cost a bug report to discover.
 deliberately didn't.** Unlike hot corners and screenshots, neither `lock` nor
 `menuBar` has an NSWorkspace-style effective-state probe available — there's no
 cheap oracle for "did the menu bar clock actually re-render" the way
-`reduceMotion` has one. Both rest on nix-darwin's own restart precedent
+`reduceMotion` has one. Both rested on nix-darwin's own restart precedent
 (Finder/Dock: killall re-reads the domain at launch) rather than a spike on this
-machine, and modules/lib/restart-map.nix says so in a comment rather than
-claiming `support = "tested-macos-26"` for something that isn't. `security.firewall`
+machine, and modules/lib/restart-map.nix said so in a comment rather than
+claiming `support = "tested-macos-26"` for something that isn't. **Watched
+2026-08-14 (box below), and the comment now says "no logout needed, measured
+26.6.1" — for the pair, not for each entry.** `com.apple.screensaver = "none"`
+is confirmed on its own; the `SystemUIServer` and `ControlCenter` entries are
+not, and can't be by watching a rebuild — see the box. `security.firewall`
 is the one exception worth trusting more: it isn't a plist write at all, it's
 nix-darwin calling `socketfilterfw` directly in its own activation script, so
 none of the restart-map machinery — or its risk — applies to it.
@@ -2418,12 +2485,29 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   Isolating the entry needs a build that writes `com.apple.menuExtraClock` with
   the unconditional restarts suppressed, and nobody needs that today.
   → Both domains are now **spiked on this machine**, which the §5.6 prose above
-  (and `restart-map.nix`'s own comment) still denies — both say these rows rest
-  on nix-darwin's Finder/Dock precedent rather than a local measurement, and
-  both invite exactly this confirmation. The comment can be upgraded when the
-  restart-map PR in §5.12 opens it anyway; per the caveat above, upgrade it to
+  (and `restart-map.nix`'s own comment) then still denied — both said these rows
+  rest on nix-darwin's Finder/Dock precedent rather than a local measurement, and
+  both invited exactly this confirmation. ~~The comment can be upgraded when the
+  restart-map PR in §5.12 opens it anyway~~; per the caveat above, upgrade it to
   "no logout needed, measured 26.6.1", **not** to `support = "tested-macos-26"`
   for the entry itself, which is the stronger claim this run didn't make.
+  → ❌ **Piggybacking it on §5.12's PR was the mistake, and it is the twentieth
+  pass's finding.** haus#360 opened `restart-map.nix`, rewrote a different
+  domain's entry, and left this comment untouched — correctly, for a PR scoped
+  to accessibility. **A follow-up parked on somebody else's PR has no owner and
+  no trigger**; it is a note wearing a plan's clothes. Done properly in
+  [haus#362](https://github.com/hausfold/haus/pull/362), on its own.
+  → ★ **And doing it turned up something stronger than "nobody needs the
+  isolation today": the `SystemUIServer` entry is untestable in place.**
+  `com.apple.menuExtraClock` and `com.apple.controlcenter` are in den's
+  `typedDomainsWritten` **unconditionally** (only `com.apple.universalaccess`
+  has a `restartDeclaredBy` gate), so both processes are killed on every rebuild
+  of every machine whether or not a clock option is set. No observation of a
+  rebuild can ever attribute the clock's re-render to *this row*; the only
+  experiment that isolates it is deleting the entry and seeing what stops.
+  Generalises to the whole table: **an always-fired entry in a table of triggers
+  is falsifiable only by removal.** `com.apple.screensaver = "none"` has no such
+  problem, which is why it is the one that genuinely got confirmed.
   → ★ **The eye-check that mattered was the one that came back boring.** This
   box and the matrix's `mouseDriverCursorSize` row were filed as the same class
   of open item — "wired and plausible, not yet watched" — and were resolved in
@@ -2779,7 +2863,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       sentence and wrong that none was needed for the second: a verb that renders
       to nothing has nothing for a reader to find.)*
 
-### 5.12 Accessibility — ◐ **designed and built 2026-08-14 in haus#356; the last 👤 eye-check came back 2026-08-14 and reopened a smaller thing: all three `unconfirmed` keys work, but only after `killall universalaccessd`, which `restart-map.nix` doesn't do** · M
+### 5.12 Accessibility — ✅ **closed 2026-08-14. Designed and built in haus#356; the last 👤 eye-check came back the same day, reopened one smaller thing (all three `unconfirmed` keys work, but only after `killall universalaccessd`), and haus#360 shipped it — the restart-map entry, the three promotions as a new `by-eye` class, and the float key's type. No open box left** · M
 Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
 **if the app invoking the rebuild holds Full Disk Access**. So the option tree is
 viable, but the caveat is load-bearing and has to be designed *into* it.
@@ -2879,10 +2963,17 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       terminal, and disappears the moment someone looks at a cursor.
       ❗ **Someone looked (2026-08-14) and it didn't disappear** — all three keys
       are effective, but only after `killall universalaccessd`, so
-      `reachability.nix` correctly still reads `"unconfirmed"` for them until
-      the restart-map entry lands (box below). The raw form still reaches
-      something the options don't; the sentence about what ends that is what was
-      wrong. The warning
+      `reachability.nix` correctly still read `"unconfirmed"` for them until
+      the restart-map entry landed (box below). The raw form still reached
+      something the options didn't; the sentence about what ends that is what was
+      wrong.
+      ✅ **And then it did disappear, hours later, in haus#360.** The three keys
+      are `by-eye` options now, so nix-darwin's five typed keys in this domain
+      are five guarded options — the raw route reaches **strictly less** than the
+      safe one and the guard costs nobody a setting. Worth keeping the shape:
+      the residue was defended here as "the right residue", and it was, but it
+      was never a property of the guard. It was three unmeasured keys wearing a
+      policy argument. The warning
       and the refusal both name those three rather than implying full coverage;
       the first draft of both claimed it, which is why this bullet exists.
       → And "impossible to hit by accident" is now three layers, none of which
@@ -2953,16 +3044,20 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       its own, from ordinary use, with nobody writing them** — so a capture that
       diffs it will report drift that was never configuration, and the
       reachability table is where the distinction has to live.
-- [ ] **Teach `modules/lib/restart-map.nix` `universalaccessd` for
+- [x] ✅ **Teach `modules/lib/restart-map.nix` `universalaccessd` for
       `com.apple.universalaccess`, then promote the three keys in
       `modules/lib/reachability.nix` and write their descriptions.** One PR, not
       two, and in that order: the promotion is what makes the options exist, the
       map entry is what makes them mean anything, and either alone is a
       regression on this section's own bar. Then `ui.cursorScale` (§5.2)
       unblocks.
-      → **Open as [haus#360](https://github.com/hausfold/haus/pull/360)**, with
-      [hausfold.co#43](https://github.com/hausfold/hausfold.co/pull/43) behind
-      it — tick this box when they land. It answered the question below in a
+      → ✅ **Shipped as [haus#360](https://github.com/hausfold/haus/pull/360)**,
+      with [hausfold.co#43](https://github.com/hausfold/hausfold.co/pull/43)
+      behind it — both merged 2026-08-14, docs second because its `options:check`
+      re-renders from haus's `main`. `haus.accessibility` is seven options,
+      still `genAttrs`-generated from the table; `ui.cursorScale` is
+      unblocked-and-declined, for a reason worth reading in §5.2. It answered
+      the question below in a
       way worth reading before the next promotion: a fifth class, `by-eye`,
       because `effective` promises an oracle can re-check the key on YOUR Mac
       and nothing can re-check these anywhere. And it needed a per-KEY restart
@@ -2978,6 +3073,19 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       already live before the restart — and to say in the comment *why* the
       entry exists, so the next person doesn't re-derive `"none"` from the
       oracle-backed four the way this section already did once.
+      → ✅ **That is what shipped, plus the half this box didn't see.** The map
+      value is one verb for the whole domain, as guessed, and the comment says
+      why. What the guess missed is that the *trigger* couldn't live in the map
+      at all: `com.apple.universalaccess` sits in den's `typedDomainsWritten`
+      unconditionally so every lookup finds an answer, so a domain-level trigger
+      would bounce `universalaccessd` on **every rebuild of every machine** —
+      and `haus.appearance.largePrint` sets `increaseContrast`, so the
+      option-family version would still bounce it on exactly the machines
+      likeliest to have VoiceOver or Zoom running. den's `restartDeclaredBy`
+      gates it on the three `by-eye` keys specifically, read out of the table.
+      Third instance of the same rule, now well past coincidence: **"which
+      restart" is data, "does this rebuild need one" often isn't** (the locale
+      notification, `fdaDeclaredBy`, this).
       → The description for `closeViewZoomFollowsFocus` should say the viewport
       **snaps** rather than glides. That is the feature, and it is the first
       thing anyone will report as a bug.
@@ -3563,14 +3671,15 @@ that visible, and turned up two things that were already broken:
       2026-08-14 (haus#353)** — and one of them was not rendering: the restart
       map's `logout` verb rendered to nothing, so den had to emit the line before
       `plan` could read one. §5.11 has no open box left.
-- [ ] §5.8 scenes · ~~§5.12 accessibility doctor checklist~~ — **§5.12's build
-      is done as of 2026-08-14 (haus#356)**: the doctor half was already in
-      (rice#128), and the designation, the option coverage and the guard landed
-      together. The 👤 eye-check that was left came back 2026-08-14: the three
-      keys work, so what remains of §5.12 IS code again — a `restart-map.nix`
-      entry for `universalaccessd` plus the promotion it gates. §5.8 is no
-      longer the only thing on this line needing code — a "just needs a human to
-      look" item turned back into work by being looked at.
+- [ ] §5.8 scenes · ~~§5.12 accessibility~~ — **§5.12 is closed as of
+      2026-08-14.** The doctor half was already in (rice#128); the designation,
+      the option coverage and the guard landed in haus#356; the 👤 eye-check came
+      back the same day and turned itself back into code (a `restart-map.nix`
+      entry for `universalaccessd` plus the promotions it gates), which shipped
+      hours later in haus#360. **So §5.8 is once again the only thing on this
+      line needing code** — it was briefly not, because a "just needs a human to
+      look" item became work by being looked at, and then stopped being work by
+      being built the same day.
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
       workshop#135/#137
 
