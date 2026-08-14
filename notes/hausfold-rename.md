@@ -232,8 +232,8 @@ Nothing else in this document is 🤖. §5.3's DNS and every other open box is �
 unchanged from the audit below. ⚠️ **§5.3 is now the gate on the whole of §5**:
 the 301s are deployed by CI on merge, so the phase gate below (`curl -sI
 https://nebelhaus.com/guides/pounce` → 301) is a thing to *check* after the
-merge, not a thing to build. *(Run 2026-08-14 — it passes; `/init.sh` does not.
-See the late handoff.)*
+merge, not a thing to build. *(Run 2026-08-14 — it passes, `/init.sh` included
+once §5.3's orphaned route was deleted. See the late handoff.)*
 
 ### Handoff — 2026-08-14 (morning)
 
@@ -2970,7 +2970,10 @@ than by whoever clicks a link. ✅ **The same hole on `nebelhaus.com/init.sh` is
 closed too, and by deletion rather than by a narrower regex** — that Worker
 became the 301 map hours later and fetches nothing at all, so no object in any
 fork network is reachable through it. The `?ref=` it forwards is checked on
-arrival, where the check belongs.
+arrival, where the check belongs. ⚠️ **And "hours later" was optimistic by a
+day**: an orphaned route kept the old proxy answering that exact path until
+§5.3's delete. Measured after it: `/init.sh?ref=<40-hex sha>` 301s and then
+**400s** on arrival.
 
 📌 ~~**Follow-up this found and deliberately did not take**: `haus`'s own
 `bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`~~ ✅
