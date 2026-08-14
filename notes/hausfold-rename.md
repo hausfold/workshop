@@ -217,11 +217,35 @@ options across 36 namespaces, grouped into the twelve rooms** a person actually
 meets.
 
 The three headlines still govern the result: the docs are **two trees behind a
-sidebar switcher** (`/docs/haus/*`, `/docs/nebelhaus/*`), which spends "preserve
-slugs"; prose ports were **rewrites to about half their source length**, not
-moves; and the landing pages **will** become Next routes (👤, 2026-08-12). What
-remains in §5.2 is no longer docs writing: the landing routes, `worker.js`, the
-installer route and the `nebelhaus.com/*` 301s.
+sidebar switcher**, which spends "preserve slugs"; prose ports were **rewrites
+to about half their source length**, not moves; and the landing pages **will**
+become Next routes (👤, 2026-08-12). What remains in §5.2 is no longer docs
+writing: the landing routes, `worker.js`, the installer route and the
+`nebelhaus.com/*` 301s.
+
+> ⚠️ **Which two trees changed on 2026-08-14** (👤, hausfold.co#38). This
+> paragraph read `/docs/haus/*`, `/docs/nebelhaus/*`; it is now `/docs/haus/*`
+> and **`/docs/pounce/*`**. The switcher's axis went from *the layer and one
+> desktop built on it* to **the layer and the apps** — which is what the
+> landing page's own sections already were (`#desktops`, `Apps`, then haus),
+> so it aligns the two rather than adding a claim. `content/docs/nebelhaus/`
+> was retired into `/desktops/nebelhaus` (`#first-moves`, `#keys`), explicitly
+> "for now": a desktop is a set of values for haus's own options rather than a
+> subject of its own, and choosing between desktops is already
+> `docs/haus/desktops/`.
+>
+> The test a tree has to pass, and it is the reason pounce earned one: **can a
+> stranger install this without haus?** pounce is MIT and one `brew install`,
+> so a URL under `/docs/haus/` was telling most of its readers something
+> untrue. perch and holt clear the same bar and have no tree yet; nebelung (a
+> palette) and a desktop do not. The corollary rule: a **room page documents
+> the room** — the haus wiring — and everything about the app lives in the
+> app's tree. `rooms/launcher` went from 268 lines to ~90 the same day.
+>
+> Two "preserve slugs" consequences, both already paid: `/docs/nebelhaus/*`
+> and `/pounce` are six more exact rows in `hausfold.co/public/_redirects`,
+> and six rows of `web/worker.js`'s map below were re-pointed so this zone
+> still lands on the current URL in one hop rather than two.
 
 ⚠️ **The rewrite is finding real bugs in the old pages, which is an argument for
 doing it rather than a cost of it.** Batch two's fact-check against the rice
@@ -2199,7 +2223,19 @@ docs and installer it describes below all live in the second.)*
 added to this list 2026-08-10 with decision 8, ~~ahead of the build~~ **and it
 shipped the same morning**, from a parallel session: `hausfold/hausfold.co` PR
 #8, live at `hausfold.co/haus`. Same pattern as `/desktops` — the page beat the
-plan by hours, so read this list as "already true for `/haus`", not "to do".)* One repo, one domain, one deploy. The landing pages get
+plan by hours, so read this list as "already true for `/haus`", not "to do".)*
+
+> ⚠️ **This is a list of URLs the repo owns, not of sheets.** Two of them
+> stopped being pages on 2026-08-14, within hours of each other and for the
+> same reason: `/haus` → `/docs/haus/` (hausfold.co#39) and `/pounce` →
+> `/docs/pounce/` (hausfold.co#38). Both had become a shorter, staler account
+> of a docs tree covering the same subject, and **two pages about one thing do
+> not stay in step** — the rule this plan already applies to
+> `nebelhaus.com/perch`. Both paths still resolve, as 301s. `/holt` never
+> shipped and, on the same reasoning, should arrive as a tree rather than a
+> sheet.
+
+One repo, one domain, one deploy. The landing pages get
 **redesigned**, not ported — nebelhaus stops being a destination and becomes one
 rice inside `/desktops`, so its landing page has no domain to be the front door of.
 
@@ -2446,9 +2482,12 @@ Three of this section's own predictions were tested by doing it:
 Two things this section decided that the landing **changed**:
 
 - **The docs are two trees behind a switcher**, `/docs/haus/*` and
-  `/docs/nebelhaus/*` — Fumadocs root folders, rendered as the dropdown at the
-  head of the sidebar. 👤's call, 2026-08-12. It makes decision 8 navigable
-  rather than merely stated: the layer and the desktop are different reading
+  ~~`/docs/nebelhaus/*`~~ **`/docs/pounce/*`** — Fumadocs root folders,
+  rendered as the dropdown at the head of the sidebar. 👤's call, 2026-08-12;
+  the second tree changed on 2026-08-14 (hausfold.co#38 — see the box in §5.2
+  above for why the axis is now *the layer and the apps*, and what the bar for
+  a tree is). It makes decision 8 navigable
+  rather than merely stated: the layer and what runs on it are different reading
   paths, not two sections of one. ⚠️ **The cost is slugs**: no docs URL keeps
   its old shape, so "preserve slugs" is spent and the 301 map must be derived
   from the old build's output in full. This section already required deriving
@@ -2891,6 +2930,16 @@ current-hausfold.co-URL, from the source ledger below plus
 Worker rather than doubled in the table), and the three the note called out by
 name all landed as predicted — `/start/what-is-nebelhaus/` → `/docs/nebelhaus/`,
 `/start/the-family/` → `/docs/`, `/init.sh` → `https://hausfold.co/nebelhaus.sh`.
+
+⚠️ **Six of those rows were re-pointed hours later** (hausfold.co#38), and the
+reason generalizes: *"every row points at the current URL"* is an invariant
+that decays the moment the other side moves a page. `/pounce` and the two
+`reference/pounce` rows now land in `/docs/pounce/*`; the two nebelhaus-tree
+rows and `/reference/keybindings` land on `/desktops/nebelhaus` with a
+fragment. All six would still have *worked* — a 301 onto a 301 resolves — but
+this map exists so a visitor pays one hop, and the test suite only freezes the
+old URL *keys*, so nothing would have told us. **Re-read this map whenever
+hausfold.co retires a page.**
 The two rows worth re-reading before "correcting" one are `/guides/ai-agent` →
 `rooms/agent-rebuilds/` and `/guides/claude-agents` → `rooms/ai/`: the titles
 read the other way round, the content doesn't. The map lives in

@@ -43,21 +43,29 @@ const SITE = "https://hausfold.co";
 // the *current* URL — `guides/theming` became `guides/theming` and then
 // `rooms/appearance`, and a visitor should not pay for that history.
 export const REDIRECTS = {
-  // The landing page and the two product pages.
+  // The landing page and the two products. ⚠️ They land in different *kinds*
+  // of page, and that is not a mistake to tidy: hausfold.co retired its
+  // `/pounce` sheet into a docs tree on 2026-08-14 (pounce installs from
+  // Homebrew with no Nix and is read about more than it is pitched), while
+  // perch keeps a sheet because it is an App Store app with a policy URL and,
+  // later, a price.
   "": `${SITE}/`,
-  "/pounce": `${SITE}/pounce/`,
+  "/pounce": `${SITE}/docs/pounce/`,
   "/perch": `${SITE}/perch/`,
 
   // Generated routes, same names on the other side.
   "/llms.txt": `${SITE}/llms.txt`,
   "/llms-full.txt": `${SITE}/llms-full.txt`,
 
-  // Start here. `what-is-nebelhaus` is the DESKTOP tree's index, not haus's —
-  // verified by reading both pages, and the easiest row in the table to get
-  // wrong now that the docs are two trees.
-  "/start/what-is-nebelhaus": `${SITE}/docs/nebelhaus/`,
+  // Start here. `what-is-nebelhaus` and `first-run` were the desktop tree's
+  // pages; that tree was retired into the desktop's own sheet on 2026-08-14,
+  // so both land outside `/docs` now. The fragments are real ids on that page
+  // — see `public/hausfold.css`'s scroll-margin rule — and a fragment in a
+  // Location header costs nothing, because the browser applies it after the
+  // hop rather than sending it.
+  "/start/what-is-nebelhaus": `${SITE}/desktops/nebelhaus/`,
   "/start/install": `${SITE}/docs/haus/install/`,
-  "/start/first-run": `${SITE}/docs/nebelhaus/first-run/`,
+  "/start/first-run": `${SITE}/desktops/nebelhaus/#first-moves`,
   // `start/the-family` was deliberately retired rather than ported (§5.2,
   // 2026-08-12) — three pieces of it moved into `internals/contributing` and
   // the rest was about a family the docs index now shows. The index is the
@@ -77,9 +85,12 @@ export const REDIRECTS = {
   "/guides/the-shell": `${SITE}/docs/haus/rooms/development/`,
   "/guides/touch-id": `${SITE}/docs/haus/rooms/security/`,
   "/guides/hush": `${SITE}/docs/haus/rooms/focus/`,
+  // ⚠️ These two land in different trees on purpose. `rooms/launcher` is the
+  // haus *room* — the module, the options, the ⌘Space hand-off from Spotlight
+  // — and everything about the app itself moved into pounce's own tree on
+  // 2026-08-14, writing a command included.
   "/guides/pounce": `${SITE}/docs/haus/rooms/launcher/`,
-  // Writing a command is reference material there, not a guide.
-  "/guides/pounce-commands": `${SITE}/docs/haus/reference/pounce/`,
+  "/guides/pounce-commands": `${SITE}/docs/pounce/writing-commands/`,
   "/guides/theming": `${SITE}/docs/haus/rooms/appearance/`,
   // `staying-in-sync` + `new-mac` were consolidated into one page.
   "/guides/staying-in-sync": `${SITE}/docs/haus/keeping-it-current/`,
@@ -88,9 +99,10 @@ export const REDIRECTS = {
 
   // Reference.
   "/reference/options": `${SITE}/docs/haus/reference/options/`,
-  // The cheatsheet is a desktop's muscle memory, so it lives in that tree.
-  "/reference/keybindings": `${SITE}/docs/nebelhaus/keybindings/`,
-  "/reference/pounce": `${SITE}/docs/haus/reference/pounce/`,
+  // The cheatsheet is a desktop's muscle memory, so it went where that
+  // desktop's pages did.
+  "/reference/keybindings": `${SITE}/desktops/nebelhaus/#keys`,
+  "/reference/pounce": `${SITE}/docs/pounce/config/`,
   // The palette page was folded into theming, which is now the appearance room.
   "/reference/palette": `${SITE}/docs/haus/rooms/appearance/`,
   "/reference/haus": `${SITE}/docs/haus/reference/haus/`,
