@@ -3663,6 +3663,39 @@ carries the same rule at the point someone would break it. Restating it as "the
 page is a placeholder" was over-broad, and the cost of an over-broad gate is
 that the first person who finds it harmless ignores the whole thing.
 
+**★ Repealed 2026-08-14 — the rooms model dissolved the danger, and the note is
+catching up to the repo rather than the other way round.** `compose` was not the
+live candidate by then (§6(e) decided against building it on 2026-08-05; the
+naming banner in `options-roadmap.md` was corrected accordingly, and re-pointed
+the gate at §6(f)'s silent blend). The **desktop seam** settles both:
+[`rooms-desktops.md`](./rooms-desktops.md) step 3 shipped, a host selects
+**exactly one** desktop and a second fails an assertion on
+`haus._desktop.sources` in the evaluated system — deliberately there rather than
+at either entry point, because two desktops can arrive from two places and
+neither seam sees the other. A desktop's leaves then land at priority **900**,
+where a host naming a list *replaces* the desktop's rather than appending to it.
+Every bullet above needs two desktops composed; the model forbids that outright,
+so `/desktops` gained `everyday` and `minimal` on 2026-08-14 with nothing to
+trip. The residue is real and is not a catalogue entry: two **packs**, or two
+raw `extraModules` fragments, still collide loudly and still blend quietly.
+
+**The citation was pointing at the wrong repo, and the right one had already
+closed the rule itself.** The Shipping section quoted above is
+[`hausfold/hausfold.co`](https://github.com/hausfold/hausfold.co)'s `AGENTS.md`,
+not the layer's — which is correct placement, since adding a gallery row *is* a
+site change, and it is why the rule sat at "the point someone would break it".
+haus's own `AGENTS.md` never carried it. hausfold.co reworded it in place on
+2026-08-14 with a ✅ block reaching the same verdict from the other side
+("composition is not deferred, it is **gone**"), so this note is the strategy
+record, not the only one. Read its 🚨 with it: **that block closes this gate and
+nothing else.** The bar a fourth row still clears is *exists, and a stranger can
+install it* — a `desktops/<name>.nix` in haus, a `DESKTOPS` row in `worker.js`
+so `hausfold.co/<name>.sh` installs it, a page under `src/app/desktops/<name>/`
+reading its facts off that file, and a catalogue row on `/`. `blank` has none of
+them on purpose. So the live gate on a *third-party* entry is acquisition and
+trust, not composition; see
+[`go-to-market.md` §5](./go-to-market.md#5-the-gallery--marketplace-question--answered).
+
 ---
 
 ## §8 — Order of operations, at a glance

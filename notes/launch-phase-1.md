@@ -79,9 +79,12 @@ Missions 6–8 need no Mac rebuild and no trust, so they're the easiest to recru
 and the fastest to report. Start there if recruiting stalls — a completed small
 mission is worth more than a promised big one.
 
-**Ask for a rice.** Anyone completing missions 1–5 has, by definition, a host
-file. Ask them for the `nebelhaus.*` part of it as a shareable rice
-(`web/src/content/docs/guides/sharing-a-rice.mdx`). That collection is the seed
+**Ask for a desktop.** Anyone completing missions 1–5 has, by definition, a host
+file. Ask them for the `haus.*` part of it as a shareable desktop — the format is
+[Creating a desktop](https://hausfold.co/docs/haus/desktops/creating), which is
+where the old `web/` guide's URL now 301s, and
+[Sharing one](https://hausfold.co/docs/haus/desktops/sharing) is the publishing
+half. That collection is the seed
 inventory for the gallery in [`go-to-market.md` §5](./go-to-market.md#5-the-gallery--marketplace-question--answered) —
 it is the single most valuable byproduct of this round and it evaporates if you
 don't ask at the time.
