@@ -87,7 +87,7 @@ were live:
 
 | key | Rice use | Status |
 |---|---|---|
-| `mouseDriverCursorSize` | `ui.cursorScale` | ✅ effective at `3.0` — pointer visibly larger — **after `killall universalaccessd`** |
+| `mouseDriverCursorSize` | ~~`ui.cursorScale`~~ → `haus.accessibility.mouseDriverCursorSize` (a `ui.*` token may only derive from unconditionally-reachable keys; this one is FDA-gated — options-roadmap.md §5.2) | ✅ effective at `3.0` — pointer visibly larger — **after `killall universalaccessd`** |
 | `closeViewScrollWheelToggle` | scroll-to-zoom | ✅ effective — ⌃+scroll magnifies the display — **after `killall universalaccessd`** |
 | `closeViewZoomFollowsFocus` | zoom follows focus | ✅ effective — ⇥ to an off-screen input snaps the viewport to it (it snaps, it does not glide) — **after `killall universalaccessd`** |
 
@@ -96,11 +96,15 @@ were live:
 > with `closeViewZoomFollowsFocus` off. The test that means anything is: park the
 > pointer, move **keyboard** focus out of the viewport.
 >
-> ⚠️ **And `modules/lib/restart-map.nix` is wrong about this domain** — it carries
-> `"com.apple.universalaccess" = "none"`, which is true of the four keys above
-> (they have an NSWorkspace oracle and were measured with it) and false of these
-> three. Nothing here is shippable as an option until the map learns
-> `universalaccessd`; see options-roadmap.md §5.12.
+> ✅ **`modules/lib/restart-map.nix` was wrong about this domain and was fixed the
+> same day** (haus#360). It carried `"com.apple.universalaccess" = "none"`, which
+> is true of the four keys above (they have an NSWorkspace oracle and were
+> measured with it) and false of these three; the entry is `universalaccessd`
+> now, fired per-key rather than per-domain so a rebuild that only sets
+> `increaseContrast` doesn't bounce the daemon. All three keys are shipped
+> options, classed `by-eye` rather than `effective` — measured on one Mac by a
+> human, with nothing able to re-check them on yours. See options-roadmap.md
+> §5.12.
 >
 > ⚠️ **The domain grows keys on its own.** Deleting these three afterwards did not
 > restore the plist: using zoom once left `universalaccessd`'s own bookkeeping
@@ -336,7 +340,8 @@ why.
 | `NSGlobalDomain` | varies per key | 53 typed keys |
 | `com.apple.AppleMultitouchTrackpad` | none | 22 typed keys |
 | `com.apple.WindowManager` | logout | 12 typed keys |
-| `com.apple.controlcenter` | `killall ControlCenter` — not done | ByHost domain |
+| `com.apple.controlcenter` | `killall ControlCenter` — **done since rice#250**, and unconditionally: the domain is in den's `typedDomainsWritten` whether or not a `haus.menuBar.controlCenter` key is set | ByHost domain |
+| `com.apple.universalaccess` | `killall universalaccessd` — **done since haus#360**, fired only for the three `by-eye` keys (the four oracle-backed ones need no restart) | FDA-gated; see the accessibility section above |
 
 **The animation keys are the one family in these domains shipped without a
 per-key sweep** (`haus.animations`, rice#286: `autohide-time-modifier`,
@@ -741,12 +746,24 @@ see, and it is worth filing upstream.
 
 ## Consequences for the roadmap
 
-1. **`nebelhaus.accessibility` as designed is mostly unbuildable.** Vision and
+1. ~~**`nebelhaus.accessibility` as designed is mostly unbuildable.** Vision and
    motor knobs route through a locked domain or a no-op domain. Demote it from a
    full option family to: a few keys that genuinely work, plus `haus doctor`
-   checklist items with System Settings deep links. **Do not ship options that
-   write `com.apple.Accessibility`** — they'd report success and do nothing.
-2. **Delete `ui.cursorScale`** from the `ui.*` token set (§5.2). Locked domain.
+   checklist items with System Settings deep links.~~ ❌ **The premise died with
+   the "locked domain" retraction at the top of this file, and the conclusion
+   with it** (2026-08-14): the domain is FDA-gated, not locked, and
+   `haus.accessibility` shipped as **seven** options (haus#356 + haus#360),
+   generated from `modules/lib/reachability.nix`. The doctor checklist happened
+   too — as well as the options, not instead of them. What survives verbatim,
+   and is the only part of this item that was ever about macOS rather than about
+   what we guessed: **do not ship options that write `com.apple.Accessibility`**
+   — they'd report success and do nothing.
+2. ~~**Delete `ui.cursorScale`** from the `ui.*` token set (§5.2). Locked
+   domain.~~ ◐ **Right answer, wrong reason.** It is gone from `ui.*`, but not
+   because the domain is locked (it isn't) — it ships as
+   `haus.accessibility.mouseDriverCursorSize`, because a `ui.*` token may only
+   derive from keys that are reachable **unconditionally**, and this one needs
+   Full Disk Access. See the row at the top of this file and roadmap §5.2.
 3. **The large-print rice is still absolutely buildable — just not out of macOS
    accessibility settings.** It's built from:
    - display mode (`larger-text`) — ✅ proven reachable
