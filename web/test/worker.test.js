@@ -76,7 +76,12 @@ describe('the map covers the old site, exactly', () => {
   });
 
   it('keeps hausfold.co\'s trailing slash on pages, and omits it where there is no page', () => {
-    const noSlash = Object.entries(REDIRECTS).filter(([, to]) => !to.endsWith('/'));
+    // Compare the *path*, not the whole URL: three rows carry a fragment
+    // (`/desktops/nebelhaus/#keys` and friends, since the desktop's docs tree
+    // was retired into sections of its sheet), and those are pages with a
+    // slash — the `#` just sits after it.
+    const path = (to) => to.split('#')[0];
+    const noSlash = Object.entries(REDIRECTS).filter(([, to]) => !path(to).endsWith('/'));
     expect(noSlash.map(([from]) => from).sort()).toEqual(
       ['/init.sh', '/llms-full.txt', '/llms.txt'].sort(),
     );
