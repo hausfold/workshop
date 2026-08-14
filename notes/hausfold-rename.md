@@ -2810,6 +2810,15 @@ wrangler configs. What that settled, beyond the redirect itself:
   `nebelhaus.com/init.sh`.** That went stale when the installer moved on
   2026-08-14, one PR before this one; fixed here in `bench`, `docs/workflows.md`
   and `/release`.
+- 🔗 **`haus` needed the same treatment and got it in
+  [haus#350](https://github.com/hausfold/haus/pull/350)** — its `AGENTS.md` and
+  copilot instructions routed every user-facing docs edit at
+  `web/src/content/docs/`, and it *prints* nebelhaus.com URLs into things users
+  read: the README's one-liner, the `# docs:` comment above every option in a
+  generated host file, the agent skill that ships onto each machine. **Land this
+  PR first** — haus#350 states the deletion as fact. It also closes the 📌
+  follow-up above (haus's `bootstrap.sh:4` / `README.md:44`), whose blocker,
+  haus#345, has since merged without touching the URL.
 
 #### ✅ The Worker moved, 2026-08-14 — and the install URL moved with it
 
@@ -2865,12 +2874,15 @@ became the 301 map hours later and fetches nothing at all, so no object in any
 fork network is reachable through it. The `?ref=` it forwards is checked on
 arrival, where the check belongs.
 
-📌 **Follow-up this found and deliberately did not take**: `haus`'s own
-`bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`, and
-the install page invites the reader to `curl … | less` and read exactly that
-file — so the script disagrees with the page that serves it. It waits for
-[haus#345](https://github.com/hausfold/haus/pull/345), which is in flight in
-that same file.
+📌 ~~**Follow-up this found and deliberately did not take**: `haus`'s own
+`bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`~~ ✅
+**taken 2026-08-14 in [haus#350](https://github.com/hausfold/haus/pull/350)**,
+once haus#345 merged without touching the URL and unblocked that file. It grew
+on the way: the same PR repoints every docs URL haus *prints* — the `# docs:`
+line above each option in a generated host file, the agent skill that ships onto
+every machine, hearth's guide link — and, the part that actually failed
+silently, its `AGENTS.md`/copilot instructions, which routed user-facing docs
+edits at the `web/src/content/docs/` this section deletes.
 
 ~~**What the 301s still need, so the next session doesn't re-derive it.**~~ ✅
 **Done, and it composed exactly as written.** The map is old-Astro-URL →
