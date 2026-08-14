@@ -30,8 +30,11 @@ Cloudflare's static-assets redirect file is the obvious tool and it needs an
 assets binding to run — which means keeping a build whose only output is the
 file that says the build is gone. A route-less Worker is 160 lines with a unit
 suite, and it gives the one behaviour `_redirects` can't: **query strings
-survive**, so a shell history holding `/init.sh?ref=v2026.07.18` still pins that
-ref on the other side.
+survive**, so a shell history holding `/init.sh?ref=v2026.08.13` still pins that
+ref on the other side. (Use a tag that exists when you demo this — a well-formed
+ref that isn't a release comes back **502**, not 404, from the other side, which
+reads exactly like a broken redirect. `?ref=v2026.07.18`, this line's example
+until 2026-08-14, was never a haus tag.)
 
 ## The map itself
 
@@ -123,6 +126,24 @@ commit into `hausfold/haus`'s network with a fork PR and hand out
 their script. hausfold.co closed it by holding `?ref=` to the release-tag shape.
 This zone closes it by deletion — there is no fetch left to poison. The `?ref=`
 it forwards is checked on arrival, where the check belongs.
+
+Measured end to end on 2026-08-14, which is the only kind of proof this
+paragraph is worth:
+
+```sh
+curl -sIL 'https://nebelhaus.com/init.sh?ref=v2026.08.14-2'   # 301 → 200, a release still pins
+curl -sIL 'https://nebelhaus.com/init.sh?ref=<40-hex sha>'    # 301 → 400, refused on arrival
+```
+
+> ⚠️ **It was true here a day before it was true of the zone.** `/init.sh` did
+> not reach this Worker at all: the installer's *first* deployment was a
+> separate script, `nebelhaus-init`, holding the more specific route
+> `nebelhaus.com/init.sh*` — and a route belongs to the script that declared it,
+> so the rename never reclaimed it. It quietly served the old proxy, arbitrary
+> 40-hex ref and all, until `npx wrangler delete --name nebelhaus-init` on the
+> account. Rename plan [§5.3](../notes/hausfold-rename.md) has the whole finding.
+> The lesson is one line long: **a config file describes the deployment it wants,
+> and nothing in this repo enumerates the one that exists.** Curl the zone.
 
 ## When this can be turned off
 

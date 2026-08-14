@@ -164,10 +164,56 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-14 (evening)
+### Current handoff — 2026-08-14 (late)
+
+**There is no 🤖 work left in this document.** §5.2's last piece — the landing
+pages becoming Next routes — had already landed as
+[hausfold.co#35](https://github.com/hausfold/hausfold.co/pull/35) — by 47
+minutes — when the evening handoff below was written; that handoff read the
+section's own "still open" list rather than the repo, and the list was one merge
+stale. All eight
+hand-written pages under `public/` are `src/app/**/page.tsx` now, `public/` holds
+only assets, and the three things that were hand-copied across nine files (the
+head, the copy button, the colophon) are components. §5.2's landing-routes box
+carries the detail.
+
+**§5's gate was run rather than built, and it is green** — after one row of it
+turned out to be a live defect rather than a leftover, and was fixed the same
+hour. Measured 2026-08-14 14:53–14:55 UTC, cache-busted, and re-measured
+independently at 15:00 and again at 15:40:
+
+| checked | result |
+|---|---|
+| `nebelhaus.com/guides/pounce` | 301 → `hausfold.co/docs/haus/rooms/launcher/` |
+| `nebelhaus.com/` · `/download/pounce` | 301 → the apex · the passthrough |
+| an unmapped path | 404, five-minute cache |
+| the eight landing routes on hausfold.co | 200 at the apex, 307 → trailing slash → 200 for the other seven |
+| ~~**`nebelhaus.com/init.sh`**~~ | ~~**200 — the old proxy, not the 301**~~ ✅ **fixed the same hour** |
+
+🚨 **That last row was a Cloudflare route that outlived its config, and it kept a
+closed security hole open in production.** The install one-liner's *first* Worker
+was a separate script, `nebelhaus-init`, on the more-specific route
+`nebelhaus.com/init.sh*` (`web/wrangler.toml` at `8ceca10`). The site Worker that
+replaced it took a new name and the whole-zone route — and **a route belongs to
+the script that declared it**, so a deploy under a different name can never
+reclaim one. The orphan therefore kept winning that path, kept proxying
+`raw.githubusercontent.com`, and kept accepting an arbitrary 40-hex ref. The 301
+map's claim that the `?ref=` fork-network hole is "closed by deletion" was true
+of the code and false of the zone.
+
+✅ **👤 ran `npx wrangler delete --name nebelhaus-init` the same hour**, and the
+chain now measures 301 → 200 for a release tag and 301 → **400** for a 40-hex
+sha: refused where the check belongs, not merely re-homed. §5.3 carries the
+verification and the three things the fix turned on. **§5's gate is green.**
+
+Nothing else changed. §5.3's DNS confirmation and every other open box is 👤,
+unchanged from the audit below.
+
+### Handoff — 2026-08-14 (evening)
 
 **nebelhaus.com is the 301 map, the old site is deleted, and the rename proper
-has one 🤖 piece left.** `web/` is now a single `worker.js` — 35 exact rows to
+has ~~one 🤖 piece left~~ none** *(the piece it meant had merged 47 minutes
+earlier — see the late handoff above)*. `web/` is now a single `worker.js` — 35 exact rows to
 hausfold.co, `/init.sh` → `/nebelhaus.sh` in one hop, everything else an honest
 404 — with no Astro, no Starlight and no build. §5.2's 301 box carries what it
 settled; the two things to know before touching it are that the map normalizes
@@ -179,14 +225,16 @@ again, on hausfold.co, so the standing "fix it in both trees or in neither"
 instruction is spent — and the `docs-sync`/`ship` skills, which named
 `web/src/content/docs/` as the source of truth, were repointed in the same change.
 
-**What remains in §5.2 is one item:** the landing pages becoming Next routes
-(decided 2026-08-12, untouched). Everything else there is ✅.
+~~**What remains in §5.2 is one item:** the landing pages becoming Next routes
+(decided 2026-08-12, untouched).~~ *Wrong when written — hausfold.co#35 had
+merged at 13:46Z, this at 14:33Z.* Everything there is ✅.
 
 Nothing else in this document is 🤖. §5.3's DNS and every other open box is 👤,
 unchanged from the audit below. ⚠️ **§5.3 is now the gate on the whole of §5**:
 the 301s are deployed by CI on merge, so the phase gate below (`curl -sI
 https://nebelhaus.com/guides/pounce` → 301) is a thing to *check* after the
-merge, not a thing to build.
+merge, not a thing to build. *(Run 2026-08-14 — it passes, `/init.sh` included
+once §5.3's orphaned route was deleted. See the late handoff.)*
 
 ### Handoff — 2026-08-14 (morning)
 
@@ -2365,14 +2413,14 @@ Three things the build found that this section didn't have:
 The two drift workflows keep their jobs unchanged otherwise — the Monday cron
 still opens the regeneration PR, it just no longer installs Nix to do it.
 
-### 5.2 🤖 The move — and the salvage list
+### 5.2 ✅ The move — and the salvage list
 
-#### 🟡 Status 2026-08-14 — docs, Worker and the 301s done; the landing routes remain
+#### ✅ Status 2026-08-14 — docs, Worker, 301s and the landing routes all done
 
 *(The 2026-08-13 status below is kept for how the docs work went. What changed
-since: the Worker moved, and nebelhaus.com became the 301 map — both boxes
-further down. The only 🤖 piece of §5.2 still open is the landing pages becoming
-Next routes.)*
+since: the Worker moved, nebelhaus.com became the 301 map, and the eight landing
+pages became Next routes — three boxes further down. **§5.2 is closed**, and with
+it the last 🤖 step in this document; what remains in §5 is §5.3, which is 👤.)*
 
 **Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
 #15 followed with the colour pass):
@@ -2788,16 +2836,63 @@ retired. The generator move was deliberately not a writing pass — descriptions
 remain owned by haus and flow from its committed site data rather than gaining a
 second editable copy here.
 
-**Still open after the docs source work, and each is its own piece of work:**
+**Open after the docs source work — all three closed on 2026-08-14:**
 
-- the landing pages becoming Next routes. 👤 decided **yes** on 2026-08-12,
-  which settles the "still not decided" line below; not done.
+- ~~the landing pages becoming Next routes~~ ✅ **landed 2026-08-14** — see the
+  landing-routes box below. 👤 decided **yes** on 2026-08-12, which settled the
+  "still not decided" line further down.
 - ~~`worker.js`, the `hausfold.co/<desktop>.sh` installer route~~ ✅ **landed
   2026-08-14** — see the Worker box below.
 - ~~the `nebelhaus.com/*` 301s~~ ✅ **landed 2026-08-14** — see the 301 box
   below. **The two-copies problem is over**: the Astro/Starlight tree is deleted,
   so there is exactly one copy of every docs page again and "fix it in both or in
   neither" no longer applies to anything.
+
+#### ✅ The landing routes, 2026-08-14 — and what stopped being hand-copied
+
+[hausfold.co#35](https://github.com/hausfold/hausfold.co/pull/35), merged 13:46
+UTC — **before** the 301 PR, which is why the evening handoff calling it open was
+wrong. All eight hand-written pages are Next routes (`/`, `/haus`, `/perch`,
+`/perch/privacy`, `/pounce`, `/terms`, `/refunds`, `/desktops/nebelhaus`), and
+`public/` is assets only: `_headers`, `_redirects`, the two favicons,
+`hausfold.css`, `robots.txt`. What the port bought, and what it cost:
+
+- **Three things stopped being copied by hand across nine files.** The head
+  (canonical + six `og:` tags + `twitter:card`, now `src/lib/page-meta.ts`), the
+  copy button (four identical twelve-line `<script>` blocks → `<Command>`), and
+  the breadcrumb/colophon/GitHub mark (`<Sheet>`). The tell was already in the
+  tree: #32's Pre-release mark went in as **nine** hand-copied `<span>`s, the
+  ninth carrying a comment asking the next person to keep the other eight in
+  step. That comment is the argument for this PR, written by the thing it argues
+  against.
+- **Fidelity was measured, not asserted.** Each route's rendered `<main>` was
+  diffed against the HTML it replaced — visible text plus the tag+class sequence
+  — and re-run after each of two rebases; seven of eight identical, and
+  `/perch/privacy` differs by its CSS-module wrapper class and one intended copy
+  fix (its footer still linked `nebelhaus.com/perch`, six days after `/perch`
+  landed here).
+- ⚠️ **A landing page ships JS now** — a Next route carries the client runtime
+  whether it uses it or not. What it stopped shipping is Fumadocs: `<Provider>`
+  moved into `src/app/docs/layout.tsx`, so a landing page is 8 chunks / 173 KB
+  gzip rather than 12 / 398, with no ⌘K and no Orama fetch. The deliberate
+  consequence is that **the light/dark toggle is a `/docs` affordance**; the
+  landing pages follow `prefers-color-scheme`, which is exactly what they did as
+  hand-written HTML.
+- ⚠️ **The `theme-color` audit moved with them.** `sync-nebelung.mjs` used to
+  walk ten `<meta>`s across `public/**.html`; it reads `themeColor.dark` in
+  `src/lib/shared.ts` now. The old *"a new page owes a theme-color"* rule is
+  gone rather than relaxed — no page declares one.
+- **Two small differences worth knowing before someone calls them drift:** the
+  docs half's `og:locale` went `en` → `en_US` (the eight pages always sent
+  `en_US`, and one build emitting both spellings is the drift this merge ends),
+  and Next adds `twitter:title`/`twitter:description` from the openGraph pair
+  where the hand-written pages sent `twitter:card` alone.
+- 📌 **A latent flake it found rather than caused:** `docs.yml`'s
+  two-cold-builds diff went red once in three runs on `docs/haus/guides/leaving`,
+  where Shiki tokenized one `sh` fence as one span in one build and four in the
+  other — a lazy-grammar race across the parallel page workers, reproducible on
+  `main` too. More pages makes it likelier. If it bites, preloading `langs` in
+  `rehypeCodeOptions` is the shape of the fix.
 
 #### ✅ The 301s, 2026-08-14 — and the old site is deleted, not parked
 
@@ -2817,12 +2912,22 @@ wrangler configs. What that settled, beyond the redirect itself:
   `index.html` stripped) instead.
 - **Query strings survive**, which is why this is a Worker and not a
   `_redirects` file — that one would need an assets binding, i.e. a build whose
-  only output is the file saying the build is gone. `/init.sh?ref=v2026.07.18`
-  keeps its pin across the hop.
-- ✅ 🚨 **The `?ref=` fork-network hole is closed on this side too, by
-  deletion.** The old Worker proxied `raw.githubusercontent.com`; this one
-  fetches nothing, so there is no object left to poison. The forwarded `?ref=`
-  is checked where it is used — hausfold.co holds it to the release-tag shape.
+  only output is the file saying the build is gone. `/init.sh?ref=v2026.08.13`
+  keeps its pin across the hop — measured through to a 200. 📌 **Pick a tag that
+  exists when you demo it:** a well-formed ref that is not a release comes back
+  **502** from hausfold.co's handler, not 404, which reads as a broken redirect
+  rather than a bad ref. (`v2026.07.18` was this bullet's example for a month and
+  was never a haus tag — a fictitious example in a paragraph about verification.)
+  The 502 is hausfold.co's `worker.js` to fix, not this map's.
+- ✅ 🚨 **The `?ref=` fork-network hole is closed, in the code and on the zone.**
+  This Worker fetches nothing, so there is no object left to poison, and the
+  forwarded `?ref=` is checked where it is used — hausfold.co holds it to the
+  release-tag shape and answers 400 to a 40-hex sha. ⚠️ **The zone half was half
+  an hour late and nobody would have known:** `/init.sh` didn't reach this Worker
+  at all until an orphaned route from the installer's first deployment was
+  deleted (§5.3). The sentence above was true of `worker.js` from the moment it
+  merged and true of nebelhaus.com only after 👤 ran one command — and the gap
+  being small is luck, not design. Nothing was watching it.
 - **`/download/<app>` and `/api/release/<app>` pass through with their slug**,
   and the app list is deliberately NOT re-stated here: hausfold.co 404s an
   unknown one, so the promise of which apps resolve lives in one place.
@@ -2911,7 +3016,10 @@ than by whoever clicks a link. ✅ **The same hole on `nebelhaus.com/init.sh` is
 closed too, and by deletion rather than by a narrower regex** — that Worker
 became the 301 map hours later and fetches nothing at all, so no object in any
 fork network is reachable through it. The `?ref=` it forwards is checked on
-arrival, where the check belongs.
+arrival, where the check belongs. ⚠️ **"Hours later" was right about the code and
+half an hour short about the zone**: an orphaned route kept the old proxy
+answering that exact path for another ~30 minutes, until §5.3's delete. Measured
+after it: `/init.sh?ref=<40-hex sha>` 301s and then **400s** on arrival.
 
 📌 ~~**Follow-up this found and deliberately did not take**: `haus`'s own
 `bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`~~ ✅
@@ -3239,9 +3347,10 @@ way that reads as a config error rather than as this decision.
 landing pages become Next pages too, or stay the hand-written HTML they are
 today, served from the same assets directory beside the exported docs.~~
 ✅ **Decided 2026-08-12 — they become Next pages**, 👤's call, asked rather than
-settled by accident. Not done: the first landing left them as hand-written HTML
-beside the export, which is the shape this paragraph described as the
-alternative. Read it as a staging order, not as the answer.
+settled by accident. ✅ **And done 2026-08-14** (hausfold.co#35 — see §5.2's
+landing-routes box). The first landing had left them as hand-written HTML beside
+the export, which is the shape this paragraph described as the alternative: it
+was a staging order, and the second stage has now run.
 
 **The three things this decision hands the port as concrete work**, all proven
 below rather than guessed: pin `generateBuildId`, verify the search index is
@@ -3315,8 +3424,74 @@ fix later.
 - Cloudflare: `hausfold.co` zone gets the Astro worker; confirm the custom-domain
   records wrangler creates.
 - 👤 `npx wrangler deploy` (nixpkgs' wrangler fails to build — use npx).
+  *(Both zones deploy from CI on merge now — the workshop's `Deploy nebelhaus.com`
+  and hausfold.co's own `deploy.yml` — so this line is the by-hand form, not a
+  step anyone still has to take.)*
 - ⚠️ **Cloudflare edge-caches 404s.** Cache-bust when verifying, or you'll chase
   a redirect that already works.
+
+#### ✅ One route outlived its config — found and killed, 2026-08-14
+
+**Found by running §5's gate, and fixed the same hour** (👤 ran
+`npx wrangler delete --name nebelhaus-init`). The whole chain was then measured
+end to end — ⚠️ **the *path* is proven, the *account* is not**: nothing here
+enumerated the other scripts, and per this box's own lesson only the dashboard's
+Workers ▸ Routes can. Worth one look while you are next in there.
+
+| | |
+|---|---|
+| `nebelhaus.com/init.sh` | **301** → `hausfold.co/nebelhaus.sh`, `max-age` a year (the map's, not a cached old answer) |
+| `…?ref=v2026.08.14-2` | 301, followed → **200** — a real release still pins |
+| `…?ref=<40-hex sha>` | 301, followed → **400** — hausfold.co refuses it |
+
+That last row is the point: the hole isn't merely un-reachable, it is *refused
+where the check belongs*. §5.2's Worker box always said hausfold.co holds `?ref=`
+to the release-tag shape; this is the first time both halves have been true at
+once on the live zones. **The gate for the whole of §5 is now green.**
+
+What it was, kept because the shape recurs:
+
+`nebelhaus.com/init.sh` answered **200 with 35 KB of `bootstrap.sh`**, not the
+301 the map declared — and it answered 200 for `?ref=<any 40-hex sha>` too,
+echoing whatever you sent back as `x-nebelhaus-ref` (measured with `14063b63…`,
+haus's tip at the time, because a ref that resolves proves the acceptance without
+going near a fork). Everything *else* on the zone was already the new Worker,
+which is what made it invisible: `/`, `/guides/pounce`, `/download/pounce` and an
+unmapped path all behaved.
+
+**Why, in one line:** the install one-liner's first Worker was its own script,
+`nebelhaus-init`, on the *more specific* route `nebelhaus.com/init.sh*`
+(`web/wrangler.toml` at `8ceca10`). `f5da0a1` folded it into the site Worker
+under a different name with the whole-zone route — and **a route belongs to the
+script that declared it**, so no deploy under a new name ever reclaims one, and
+Cloudflare matches most-specific-first. The orphan quietly won that path from
+2026-07-08 on — **five weeks, and harmless for all but the last thirty minutes
+of them**, because until the 301 map merged both scripts did the same thing.
+That is what made it invisible: it only became a defect at 14:33Z on 2026-08-14,
+when doing the old thing turned wrong twice over — the 301 didn't fire, and the
+`raw.githubusercontent` fork-network hole the 301 box called "closed by deletion"
+was still open in production. **A latent shadow becomes a live one the moment the
+thing it shadows changes**, which is the version of this worth remembering: the
+window to find it was never the five weeks, it was the half hour.
+
+🚨 **The site Worker's own `wrangler.toml` warns about exactly this trap** ("The
+Worker keeps its name. Renaming it uploads a NEW script and leaves the old one
+holding the zone route until something takes it away") — the trap named in the
+abstract, by a session that never checked whether the zone was already living
+inside it. **A warning is not a check**, and that is the transferable half of
+this: nothing in either repo enumerates what is actually deployed, so a config
+file describes the deployment it *wants*. The dashboard's Workers ▸ Routes for
+the two zones is the only place the answer lives.
+
+Three things the fix itself turned on, worth keeping for the next one:
+
+- **Delete the script, not just the route.** A script with no route is a loaded
+  gun for whoever adds one; deleting the script takes its routes with it.
+- **The old script served `max-age=300`**, so a stale 200 can outlive the delete
+  by five minutes at a colo. Cache-bust *and* wait before concluding it failed.
+- **Verify by following the hop, not by reading the 301.** The 301 firing only
+  proves the orphan is gone; it took `curl -sL` to the other side to show that
+  `?ref=<sha>` is now **refused** (400) rather than merely re-homed.
 
 ### 5.4 ✅ Support address — swept, and settled on `hi@hausfold.co`
 
@@ -3513,11 +3688,13 @@ that the first person who finds it harmless ignores the whole thing.
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-14):** §5.2 is ✅ but for the landing pages becoming
-Next routes — the docs, the Worker and the `nebelhaus.com/*` 301s all landed, so
-the phase's gate is now a `curl` to run after the deploy rather than a build.
-§5.3 (DNS, 👤) is what §5 waits on. The 2026-08-10 reading below still holds for
-§0–§4.
+**You are here (2026-08-14, late):** **§5.2 is ✅ and this document has no 🤖
+work left in it.** The docs, the Worker, the `nebelhaus.com/*` 301s and the eight
+landing routes all landed today. The phase gate was run rather than built, and it
+**passes** — including `nebelhaus.com/init.sh`, which an orphaned Cloudflare
+route answered with the old proxy until 👤 deleted the script (§5.3). What §5
+still waits on is §5.3's DNS confirmation, which is 👤 and always was. The
+2026-08-10 reading below still holds for §0–§4.
 
 **You were here (2026-08-10):** §0 green bar §0.3's branch clause — §0.2's
 register search ran 2026-08-10 and leaves only the clearance *opinion*, which is

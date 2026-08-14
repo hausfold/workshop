@@ -19,6 +19,15 @@
 // Worker fetches nothing, so the hole closes by deletion rather than by a
 // narrower regex. `?ref=` is preserved on the redirect: hausfold.co's own
 // handler holds it to the release-tag shape, which is where that check belongs.
+//
+// ⚠️ That was true of this file before it was true of the zone. `/init.sh` did
+// not reach this Worker at all until 2026-08-14: `nebelhaus-init`, the
+// installer's first Worker, still held the more specific route
+// `nebelhaus.com/init.sh*`, because a route belongs to the script that declared
+// it and no deploy under a new name reclaims one. Deleting that script is what
+// made this comment true — rename plan §5.3. Measured after: `/init.sh` 301s,
+// `?ref=<tag>` still resolves, `?ref=<40-hex sha>` is refused with a 400 on the
+// other side.
 
 // The one destination. Every value below is a path on this origin.
 const SITE = "https://hausfold.co";
@@ -152,8 +161,10 @@ export default {
     const target = REDIRECTS[path];
     if (target) {
       // Carry the query string through. It matters for exactly one row —
-      // `/init.sh?ref=v2026.07.18`, which the docs showed for months — and
-      // costs nothing on the rest.
+      // `/init.sh?ref=<tag>`, the pin the docs showed for months — and costs
+      // nothing on the rest. (The tag those docs printed, `v2026.07.18`, was
+      // never a real haus release; the test below asserts the redirect target,
+      // which is true of any ref, real or not.)
       return redirect(url.search ? `${target}${url.search}` : target);
     }
 
