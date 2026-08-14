@@ -78,14 +78,35 @@ Full sweep run twice, byte-identical results, clean restore both times.
 > `system.defaults.CustomUserPreferences."com.apple.universalaccess"`, which
 > routes through the same `launchctl asuser` path (so: same FDA gate).
 
-**Writes and persists, effect NOT verified** — no programmatic oracle exists, and
-the visual check wasn't reported back, so these stop at "the plist holds it":
+**Writes, persists, and — checked by eye 2026-08-14 on macOS 26.6.1 — all three
+work, but only after `killall universalaccessd`.** No programmatic oracle exists
+for any of them, which is why this table sat at "the plist holds it" for three
+weeks. Written bare, the way activation writes them, every one of them changed
+nothing on screen; one daemon restart later (values intact across it) all three
+were live:
 
 | key | Rice use | Status |
 |---|---|---|
-| `mouseDriverCursorSize` | `ui.cursorScale` | ◻️ persists (`3.0`); effect unconfirmed |
-| `closeViewScrollWheelToggle` | scroll-to-zoom | ◻️ persists; effect unconfirmed |
-| `closeViewZoomFollowsFocus` | zoom follows focus | ◻️ persists; effect unconfirmed |
+| `mouseDriverCursorSize` | `ui.cursorScale` | ✅ effective at `3.0` — pointer visibly larger — **after `killall universalaccessd`** |
+| `closeViewScrollWheelToggle` | scroll-to-zoom | ✅ effective — ⌃+scroll magnifies the display — **after `killall universalaccessd`** |
+| `closeViewZoomFollowsFocus` | zoom follows focus | ✅ effective — ⇥ to an off-screen input snaps the viewport to it (it snaps, it does not glide) — **after `killall universalaccessd`** |
+
+> ⚠️ **Isolate this one properly if you re-check it.** Panning the zoomed view by
+> pushing the *pointer* at a screen edge is zoom's default behaviour and happens
+> with `closeViewZoomFollowsFocus` off. The test that means anything is: park the
+> pointer, move **keyboard** focus out of the viewport.
+>
+> ⚠️ **And `modules/lib/restart-map.nix` is wrong about this domain** — it carries
+> `"com.apple.universalaccess" = "none"`, which is true of the four keys above
+> (they have an NSWorkspace oracle and were measured with it) and false of these
+> three. Nothing here is shippable as an option until the map learns
+> `universalaccessd`; see options-roadmap.md §5.12.
+>
+> ⚠️ **The domain grows keys on its own.** Deleting these three afterwards did not
+> restore the plist: using zoom once left `universalaccessd`'s own bookkeeping
+> behind (`closeViewDesiredZoomFactor`, `closeViewZoomedIn`,
+> `closeViewZoomFactorBeforeTermination`, …). Anything that diffs this domain
+> will see drift that was never configuration.
 
 **`FontSizeCategory` — real, but far narrower than hoped.** ⚠️
 

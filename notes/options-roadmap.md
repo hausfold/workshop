@@ -108,9 +108,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > smaller code item. §5.6's `lock`/`menuBar` pair **needs nothing** — seconds
 > appeared in the menu bar clock the moment `bench try switch` finished, and the
 > screen saver honoured a 60-second grace period on macOS 26 despite Apple
-> having moved that setting to `sysadminctl -screenLock`, so
-> `restart-map.nix`'s `"none"` and `SystemUIServer` entries are both right for
-> the reasons they gave. §5.12's three `unconfirmed` `universalaccess` keys
+> having moved that setting to `sysadminctl -screenLock`. `restart-map.nix`'s
+> `"none"` for `com.apple.screensaver` is confirmed; the `SystemUIServer` entry
+> is *not* separately confirmed, because every rebuild restarts that process
+> anyway — see the box for why that doesn't weaken the answer the box asked for.
+> §5.12's three `unconfirmed` `universalaccess` keys
 > (`mouseDriverCursorSize`, `closeViewScrollWheelToggle`,
 > `closeViewZoomFollowsFocus`) **all work** — and none of them does anything
 > until `universalaccessd` is restarted, which the layer never does.
@@ -2378,19 +2380,34 @@ log: **a deferral needs its premise checked as hard as a shipped option does.**
 The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
 `modules/power/`.
 
-- [x] **Watched 2026-08-14 — both take effect live, and the restart map was
-  right about both for the reason it gave.** `haus.menuBar.clock.showSeconds =
+- [x] **Watched 2026-08-14 — both take effect live, with no logout, and the one
+  that could have gone wrong (`lock`) is the one that came back clean.**
+  `haus.menuBar.clock.showSeconds =
   true` + `haus.lock.requirePasswordDelay = 60` in the host file, one
   `bench try switch`, no logout: the menu bar clock was ticking seconds
-  immediately (the SystemUIServer/ControlCenter kill is enough — the doubt was
-  that macOS 26 draws the clock from ControlCenter, and it doesn't matter, both
-  are restarted), and starting the screen saver then waking inside the grace
+  immediately, and starting the screen saver then waking inside the grace
   period went **straight to the desktop with no password prompt**, where the
   same machine had always asked. So `com.apple.screensaver = "none"` holds:
   there is no persistent process, the setting is read at the next lock, and
   Apple's move of this setting to `sysadminctl -screenLock` did **not** make the
   plist key inert on 26 — which was the live worry, and the reason a group with
   no oracle still had to be watched rather than reasoned about.
+  → **What this does NOT prove, stated so nobody upgrades it later by
+  misreading the box:** the clock re-rendered, but this run can't say the
+  `SystemUIServer` entry is what did it. `haus plan` reports that **every**
+  rebuild restarts ControlCenter, Dock, Finder and SystemUIServer and broadcasts
+  `activateSettings`, so the per-domain entry was never the only thing firing —
+  and macOS 26 draws the clock from ControlCenter, which is in that unconditional
+  set. The claim earned here is "no logout needed", which is what the box asked.
+  Isolating the entry needs a build that writes `com.apple.menuExtraClock` with
+  the unconditional restarts suppressed, and nobody needs that today.
+  → Both domains are now **spiked on this machine**, which the §5.6 prose above
+  (and `restart-map.nix`'s own comment) still denies — both say these rows rest
+  on nix-darwin's Finder/Dock precedent rather than a local measurement, and
+  both invite exactly this confirmation. The comment can be upgraded when the
+  restart-map PR in §5.12 opens it anyway; per the caveat above, upgrade it to
+  "no logout needed, measured 26.6.1", **not** to `support = "tested-macos-26"`
+  for the entry itself, which is the stronger claim this run didn't make.
   → ★ **The eye-check that mattered was the one that came back boring.** This
   box and the matrix's `mouseDriverCursorSize` row were filed as the same class
   of open item — "wired and plausible, not yet watched" — and were resolved in
@@ -2843,7 +2860,13 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       alternative was shipping an option whose only claim is that the plist held
       the value — which is the thing this section has refused three times. So the
       friction sits on the unmeasured keys, costs one rebuild from a granted
-      terminal, and disappears the moment someone looks at a cursor. The warning
+      terminal, and disappears the moment someone looks at a cursor.
+      ❗ **Someone looked (2026-08-14) and it didn't disappear** — all three keys
+      are effective, but only after `killall universalaccessd`, so
+      `reachability.nix` correctly still reads `"unconfirmed"` for them until
+      the restart-map entry lands (box below). The raw form still reaches
+      something the options don't; the sentence about what ends that is what was
+      wrong. The warning
       and the refusal both name those three rather than implying full coverage;
       the first draft of both claimed it, which is why this bullet exists.
       → And "impossible to hit by accident" is now three layers, none of which
@@ -2914,6 +2937,24 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       its own, from ordinary use, with nobody writing them** — so a capture that
       diffs it will report drift that was never configuration, and the
       reachability table is where the distinction has to live.
+- [ ] **Teach `modules/lib/restart-map.nix` `universalaccessd` for
+      `com.apple.universalaccess`, then promote the three keys in
+      `modules/lib/reachability.nix` and write their descriptions.** One PR, not
+      two, and in that order: the promotion is what makes the options exist, the
+      map entry is what makes them mean anything, and either alone is a
+      regression on this section's own bar. Then `ui.cursorScale` (§5.2)
+      unblocks.
+      → **The question that PR has to answer rather than assume:** the map is
+      one process (or list of verbs) per *domain*, and this domain now wants a
+      kill for three of its keys and demonstrably doesn't need one for the other
+      four. Simplest honest answer is to kill `universalaccessd` on any
+      `haus.accessibility.*` write — it costs the four nothing, since they were
+      already live before the restart — and to say in the comment *why* the
+      entry exists, so the next person doesn't re-derive `"none"` from the
+      oracle-backed four the way this section already did once.
+      → The description for `closeViewZoomFollowsFocus` should say the viewport
+      **snaps** rather than glides. That is the feature, and it is the first
+      thing anyone will report as a bug.
 - [x] **`FontSizeCategory` resolved, and it's narrower than hoped.** Real
       vocabulary is `DEFAULT` / `AX1`… (read back after setting Text size in
       System Settings — my earlier `LARGE` guess would have been stored and
