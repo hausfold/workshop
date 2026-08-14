@@ -60,9 +60,11 @@ example, and `desktop` to nebelhaus, so leaving it out means what it has always
 meant. A **desktop** is a complete, data-only answer to "what should this Mac
 feel like?": one file whose only top-level key is `haus`, holding values a
 shared file is allowed to hold — no identity, no secrets, no hardware ids, no
-code. A machine runs exactly one (naming a second is an error that names both
-files), and your own host file still wins over it with a plain assignment, no
-`lib.mkForce` needed. `desktop = null` selects none.
+code. A finished configuration runs exactly one (naming a second is an error that
+names both files), and your own host file still wins over it with a plain
+assignment, no `lib.mkForce` needed. `desktop = null` is the low-level composition
+escape hatch: by itself it selects the bare haus foundation, or it makes room for
+one `nebelhaus.lib.desktop` passed through `extraModules`.
 
 The nebelhaus desktop is currently empty: the values that make a machine feel
 like nebelhaus are still the rooms' own defaults, and they move into it in one
