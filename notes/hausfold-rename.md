@@ -173,8 +173,13 @@ deliberately retired after its three unique pieces moved into
 ([hausfold.co#26](https://github.com/hausfold/hausfold.co/pull/26)): its generator,
 keybinding checker, committed snapshot and both weekly drift workflows now live
 in hausfold.co, reading haus's committed `docs/site-data/` with no Nix in the
-site repo. The current data is **237 `haus.*` options across 35 rooms** — one
-option beyond the 236 counted when this final move was planned.
+site repo. The data it read then was **237 `haus.*` options across 35 rooms** —
+one option beyond the 236 counted when this final move was planned, and "rooms"
+there meant one namespace apiece, which was the implementation accident
+`notes/rooms-desktops.md` set out to replace. Since that plan's step 6
+(haus#344, hausfold.co#30) the reference renders the registry instead: **253
+options across 36 namespaces, grouped into the twelve rooms** a person actually
+meets.
 
 The three headlines still govern the result: the docs are **two trees behind a
 sidebar switcher** (`/docs/haus/*`, `/docs/nebelhaus/*`), which spends "preserve

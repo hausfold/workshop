@@ -76,9 +76,11 @@ only when every reachable sub-option is classified and safe. Freeform attrsets,
 as commands default to host-only unless an explicit recursive validator narrows
 their payload. A parent marked safe never blesses unknown dynamic children.
 
-The current generated reference treating every namespace as one of “35 rooms”
-is an implementation accident to replace with this registry and per-option
-desktop metadata.
+The generated reference used to treat every namespace as one of “35 rooms”,
+which was an implementation accident rather than a model. Step 1 replaced it
+with this registry and per-option desktop metadata, and step 6 taught the
+reference to render both — the room a person meets, and the namespace their
+host file spells.
 
 ## The room catalogue
 
@@ -520,11 +522,14 @@ Step 6 closed on 2026-08-14 with haus#344 and hausfold.co#30 merged, so the
 plan's six steps are all done and nothing is in flight. Its gate was re-checked
 against `main` rather than against the PRs: `options drift` is green on
 hausfold.co's `main` after both merges, the sidebar lists five Desktops pages
-then twelve room pages, `/docs/haus/guides/sharing-a-rice/` 301s,
+and then thirteen under Rooms (the twelve, plus the `agent-rebuilds` guide —
+see below), `/docs/haus/guides/sharing-a-rice/` 301s,
 `/docs/haus/rooms/displays/` and `/docs/haus/desktops/choosing/` are 200, and
-`docs/site-data/groups.json` on haus `main` carries 14 registry entries — twelve
-`kind = "room"` plus one shared and one host — over 36 namespaces and 253
-options, which is what every page now says.
+`docs/site-data/groups.json` on haus `main` carries 14 registry entries —
+twelve `"kind": "room"` plus one shared and one host — over 36 namespaces and
+253 options. Every page that states a room count says twelve; that the
+reference agrees with haus rather than with a snapshot is what the `options
+drift` job guarantees from here on.
 
 The plan therefore has no step 7. What follows are the findings from earlier
 steps that no step ever owned, re-verified against merged `main` today so the
@@ -550,7 +555,7 @@ standalone change; none of them blocks another.
   and 900 is one token; the fixture that can see the difference is the work.
 - **[2] The generated reference names a validator; the key rule it enforces is
   hand-written prose somewhere else.** `groups.json` ships `haus.displays` as
-  `{ desktopSafe = "recursive"; validator = "display-selectors"; }`. A reader is
+  `{"desktopSafe": "recursive", "validator": "display-selectors"}`. A reader is
   not stranded — `/docs/haus/desktops/creating/` explains in words that a
   display UUID is host-only and that attrsets carry per key — but exactly one of
   those two statements is generated, so they can now drift apart. Step 3
@@ -576,6 +581,16 @@ standalone change; none of them blocks another.
   room.** Twelve room pages plus one guide share the prefix. Harmless, and
   exactly the kind of thing a catalogue-shaped navigation makes visible — step
   6's own finding about missing pages, running the other way.
+
+Two earlier findings are NOT in that list, and both deserve a sentence rather
+than a silent disappearance. Step 3's "Blank still has to decide about the AI
+room" is **closed**: `desktops/blank.nix` is `{ haus = { }; }`, step 4 made
+`haus.ai.enable` default `false`, and `flake.nix`'s `standaloneModule` comment
+now says why `modules/ai` stays in the foundation — an unwritten extension point
+is inert, so Blank carrying the module costs nothing. Step 3's "the seam's check
+is darwin-only" is **still true and deliberately dropped**: splitting the pure
+half out is only worth doing if CI ever needs the fast half alone, and it never
+has.
 
 ### Agent status report
 
