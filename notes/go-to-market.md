@@ -181,6 +181,49 @@ is in the guides and has to be disambiguated from home-manager on every page.
 > install command, which is safe only because rice-vs-rice needs two rices and
 > there is one. *Don't build it first* survives both — one rice, listed
 > honestly, is not a store.
+>
+> **★ Gate lifted 2026-08-14 — the rooms model repealed it, and the catalogue
+> passed it three times on the way.** Everything above is written about
+> *rice-vs-rice*: two whole configurations composed onto one host, colliding on
+> a shared option. haus's **desktop seam** ([`rooms-desktops.md`](./rooms-desktops.md),
+> step 3, shipped) makes that composition **impossible rather than dangerous** —
+> a host selects exactly one desktop and a second fails an assertion on
+> `haus._desktop.sources` in the evaluated system, so "whole desktops do not
+> stack" is enforced, not advised. (The check sits there, not at either entry
+> point, because two desktops can arrive from two places and neither seam sees
+> the other.) Both halves of the
+> gate fall with it: the loud conflict needs two desktops, and so does §6(f)'s
+> *silent blend* on list- and attrs-valued options, which the same seam answers
+> directly — a desktop's leaves land at priority 900, and "when the host names
+> that list, its list **replaces** the desktop's rather than appending to it".
+> Overriding your desktop never needs `lib.mkForce`.
+>
+> **What the gate still covers, unchanged: packs and raw `extraModules`.** Two
+> packs naming one app still collide, and two list-valued fragments still blend
+> silently — those rows outlived `preset-composition` on purpose and moved into
+> `fragment-compat` intact. A `/desktops` entry is not either of those things.
+>
+> Events had already overtaken it: `/desktops/everyday` and `/desktops/minimal`
+> shipped 2026-08-14 beside `/desktops/nebelhaus`. **hausfold.co's `AGENTS.md`
+> closed the rule in place the same day** — it is the repo that carries it, since
+> adding a row *is* a site change — and its 🚨 is the sentence to keep: **that
+> closes this gate and nothing else.** The bar above it is untouched: a row must
+> *exist and be installable by a stranger*, which today means four things in
+> step: `hausfold/haus`'s `desktops/<name>.nix`; a row in `worker.js`'s
+> `DESKTOPS`, which is the **installer** map only — it is what makes
+> `hausfold.co/<name>.sh` work, not what makes a catalogue URL resolve; a page
+> at `src/app/desktops/<name>/`, which is that URL and reads every fact off the
+> `.nix` file; and a catalogue row on `/`. `blank` deliberately has none of
+> them — it is a real desktop and the null selection, so a row would promise a
+> machine it doesn't produce.
+>
+> **So what stands between here and a *third-party* entry is acquisition and
+> trust, not composition:** where a stranger's desktop is fetched from, who
+> vouched for it, and whether a row can point outside `hausfold/haus` at all —
+> every desktop listed today ships inside our own repo.
+> `haus.lib.checkDesktop` / `haus.lib.desktopFailures` are public so an author
+> can self-test one, which is the piece that exists. That is the open item this
+> gate was standing in front of, and it is a different item.
 
 **Don't build it first**, ~~and don't put it on hausfold.co.~~
 
@@ -189,19 +232,29 @@ Three reasons it isn't first:
 - **A gallery's value is the number of rices in it, and there is currently one.**
   Launching an empty store is worse than launching no store — it reads as
   abandoned, which is exactly the failure mode hausfold's `PRESENCE.md` warns
-  about for dormant channels.
+  about for dormant channels. ⚠️ **Three since 2026-08-14** — `nebelhaus`,
+  `everyday`, `minimal` — and all three are ours, so the reason survives its
+  number: the count that makes a gallery is *other people's* desktops, which is
+  still zero. hausfold.co's closing line says exactly that out loud ("Three
+  today, and that's the honest number").
 - **The supply comes from the testers.** The format already exists and is
-  documented ([Sharing a rice](../web/src/content/docs/guides/sharing-a-rice.mdx)
-  — a data-only `.nix` file touching only `haus.*`, `nebelhaus.*` until the rename lands). Phase 1 testers are
+  documented — a data-only `{ haus = { … }; }` file:
+  [Creating a desktop](https://hausfold.co/docs/haus/desktops/creating), where
+  the deleted `web/` guide's `/guides/sharing-a-rice/` URL now 301s, plus
+  [Sharing one](https://hausfold.co/docs/haus/desktops/sharing) for the
+  publishing half. Phase 1 testers are
   the first people who will ever author one. Collect what they write; *that's*
   the gallery's seed content, and it doesn't exist yet.
 - **It isn't a revenue path.** A directory of free `.nix` files has no plausible
   take rate. Perch is the decided revenue line; the gallery is retention and
   social proof, which is real value but not money.
 
-Where it belongs: ~~nebelhaus.com/rices~~ → **`hausfold.co/desktops`**, submissions
+Where it belongs: ~~nebelhaus.com/rices~~ → **`hausfold.co/#desktops`** (its own
+page from 2026-08-08 until 2026-08-12, when it became the landing page's first
+section and `/desktops` began 301ing there; `/desktops/<name>` stayed), submissions
 by PR to a `hausfold/rices` repo (CI validates that a submission only sets
-`haus.*` and evaluates). The hop argument is unchanged and now points the other
+`haus.*` and evaluates — still unbuilt, and `haus.lib.checkDesktop` is now what
+it would call). The hop argument is unchanged and now points the other
 way: a rice reached through a *different domain* puts an extra hop between "I
 like that" and `haus rebuild`, and hausfold.co is where the platform, the docs
 and the installer live.

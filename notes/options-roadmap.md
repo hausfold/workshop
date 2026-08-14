@@ -63,7 +63,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > possible removed the reason for it, because a colliding consumer gets a named
 > option, two named files and the fix, and what the seam would add on top is *a
 > blend nobody chose*. The rule shipped instead, in both places a stranger meets
-> it (rice `presets/README.md`, `guides/sharing-a-rice.mdx`), and it is a golden
+> it (rice `presets/README.md`, `guides/sharing-a-rice.mdx` — **all three of
+> those are gone now**: the presets dir survives only as `compat/presets.nix`,
+> the Astro guide is deleted, and `preset-composition` retired with its subject;
+> see the ⚠️ at §6(f)), and it is a golden
 > table in `nix flake check` since rice#239 (`preset-composition`). Adding
 > `lib.compose` later is additive and breaks nobody; removing it after a gallery
 > depends on ordering breaks strangers — so waiting is the decision, not the
@@ -77,6 +80,22 @@ already exist, and one it treated as a detail is the actual root blocker.
 > install command anyway — correctly, because every clause above needs *two*
 > rices composed and there is one. The blocker is real and it binds the second
 > entry, not the page.
+> ★ **Repealed for desktops 2026-08-14, hours after the correction above.** The
+> correction re-pointed the gate from §6(e) to §6(f) and left it standing; the
+> **desktop seam** retires it. A host selects *exactly one* desktop and a second
+> is rejected at the seam ([`rooms-desktops.md`](./rooms-desktops.md), step 3,
+> shipped), so the two rices §6(f) needs can never both arrive; and where the
+> blend could still have bitten — desktop vs host — the seam answers it by rule:
+> a desktop's leaves land at priority **900**, and a host naming a list
+> *replaces* the desktop's list rather than appending to it. **The silent blend
+> survives exactly where the model still allows two of something**: two packs,
+> or two raw `extraModules` fragments. Those rows are why `preset-composition`'s
+> generalisable half moved into `fragment-compat` instead of retiring with its
+> subject. So §6(f) stays open as a *format* limit and is no longer a gate on a
+> `/desktops` entry — `everyday` and `minimal` were listed on 2026-08-14 and
+> nothing composed. What a third-party entry waits on now is acquisition and
+> trust, which is [`go-to-market.md` §5](./go-to-market.md#5-the-gallery--marketplace-question--answered)'s
+> problem, not this file's.
 >
 > What §7's repo routing means now: `nebelhaus` → `hausfold/haus`, and `web`
 > → the consolidated site repo.
@@ -3463,7 +3482,8 @@ the fix. What the seam would add on top of that is a *blend nobody chose* —
 exactly the failure class this document keeps re-finding — in a format whose
 whole pitch is that you can read a rice and know what it does. **The rule
 shipped instead, in both places a stranger meets it** (rice `presets/README.md`,
-`guides/sharing-a-rice.mdx`):
+`guides/sharing-a-rice.mdx` — both since deleted; the format doc a stranger
+meets today is hausfold.co's `content/docs/haus/desktops/creating.mdx`):
 
 > **Two rices compose unless they disagree.** Same option, same value: merges.
 > Same option, different values: the build stops, naming the option, both files
@@ -3534,6 +3554,18 @@ glance instead of only in this file.
 unrelated lines in `flake.nix` at HEAD. Same trap as §8's, from the other side:
 `nix fmt` on a repo that isn't fmt-clean buries the change. Format, keep only the
 new region, restore the rest.
+
+**⚠️ The check is gone, and two of its rows aren't (2026-08-14).** The rooms
+refactor's step 5 retired presets as a top-level format, and
+`preset-composition` retired with its subject — *"which two presets stack"* is a
+question about a property the model now forbids, since a host takes exactly one
+desktop. Two rows were never about presets: **a list-typed option merges
+silently** and **an `attrsOf` merges per key**. Those moved into
+`fragment-compat` intact, because they still bite two **packs** or two
+`extraModules` entries. Worth generalising from: a golden table should be read
+for the rows that outlive its subject before it is deleted. What (f) still
+describes is therefore live for fragments and dead for desktops — the naming
+banner at the top of this file carries the same split.
 
 ### What the readiness test can and can't see, after limit 1 closed
 
