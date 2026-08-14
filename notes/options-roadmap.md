@@ -121,10 +121,16 @@ already exist, and one it treated as a detail is the actual root blocker.
 > dotted zero against an 8), which is §5.3's own opening argument. This document
 > tracked "sans doesn't exist" while a one-value version of it shipped and was
 > documented. The general shape, and it is the useful half: **an option surface
-> is not the same as an option list.** `data-only-surface` and the reach checks
-> read the evaluated option tree, so they can see a package-typed leaf with no
-> string sibling — none of them can see a *value* hardcoded on the far side of a
-> `bool`, because at that point the family isn't an option, it's a branch.
+> is not the same as an option list.** And the two checks that could plausibly
+> have caught it miss for *different* reasons, which is the instructive part.
+> `data-only-surface` reads the evaluated option tree, so it sees a
+> package-typed leaf with no string sibling and never a literal. `font-reach`
+> doesn't read the tree at all — it evaluates two whole systems differing in
+> `fonts.mono.name` and diffs the generated files (which is why it's
+> darwin-gated); it is the one that *should* have found this, and it can't,
+> because both of its systems leave `clock.monoFont` at its `true` default and
+> the branch holding `.AppleSystemUIFont` is never taken in either. **A reach
+> check that varies one option is blind to anything hidden behind a second one.**
 >
 > ★ **Second, about this file rather than the layer: a box that names a blocker
 > you have since removed promotes itself.** §5.3's sans line read "nothing blocks
@@ -132,16 +138,23 @@ already exist, and one it treated as a detail is the actual root blocker.
 > format limit this very section fixed — and that was never sans's dependency.
 > `.AppleSystemUIFont` needs no package; what sans needs is a consumer that can
 > be told to use it. So the box didn't just go stale, it read as *ready*, which
-> is worse than reading as blocked. §5.14's rule re-audits open boxes against the
-> repos; the sentence explaining why a box is open is running prose, and its
-> second pass already recorded that nothing catches those but reading commits.
+> is worse than reading as blocked: **it is the only one of §5.14's shapes that
+> makes an entry look better than it is.** Rule 1 re-audits the box against the
+> repos and rule 2 reads commits for falsified *closed* claims — the reason
+> sentence beside an OPEN box is in neither's path, and it's the sentence that
+> decides whether anyone picks the box up. Filed as §5.14's **sixth row**, with
+> the mitigation: when a section closes a limit, re-read every open box in that
+> section that cites it.
 >
 > **What it re-sizes.** A real `sans` is not S. The machine's proportional type
-> lives in pounce, perch and trill, all drawing `.system(…)` in three repos the
-> layer doesn't build — reachable, because the layer already hands pounce a
-> typography key through its generated config (`scale`, with the
+> lives in pounce, perch and trill, all drawing `.system(…)` — three apps the
+> layer reaches to three different depths (pounce built from source as a flake
+> input, perch consumed as a notarized zip with a theme-activation seam, trill
+> not an input at all). Reachable at the near end, because the layer already
+> hands pounce a typography key through its generated config (`scale`, with the
 > older-app-ignores-the-key tolerance already established), so `fontFamily`
-> beside it is the identical seam. That's ·M across three repos. The S-sized
+> beside it is the identical seam. That's ·M across three repos, and the far end
+> needs a seam built before it needs a font. The S-sized
 > thing that remains honest is naming the literal: `fonts.sans.name` defaulting
 > to `".AppleSystemUIFont"`, read by `clockLabelFont`, no `sans.size` (nothing
 > sizes proportional text by name here). Not built in this pass — it wants a
@@ -152,9 +165,13 @@ already exist, and one it treated as a detail is the actual root blocker.
 > both references here are ticked.
 >
 > **Verified:** by audit, not by build — `grep -rl font-family modules` (three
-> files, all mono) plus a sweep of `modules/` for hardcoded family literals (one
-> hit, above), read against `modules/appearance/options.nix:65-73`,
-> `modules/sill/options.nix:454-463` and `modules/pounce/default.nix:892`. No
+> files, all mono) plus a sweep of `modules/` for hardcoded family literals (two
+> hits: the clock's, and `sketchybar-app-font`, which is an icon font pinned on
+> purpose), read against `modules/appearance/options.nix:65-73`,
+> `modules/sill/options.nix:454-463` and `modules/pounce/default.nix:892`. Every
+> citation in this pass was re-checked against the files by the pre-PR assurance
+> subagent, which caught four of them wrong — including one that credited
+> `appearance/options.nix` with a measurement it never made. No
 > `nix flake check` run: nothing evaluable changed.
 
 > **Status, 2026-08-14 (twentieth pass) — §5.12 is closed: the eye-check's own
@@ -2107,6 +2124,13 @@ nebelhaus.fonts = {
 };
 ```
 
+⚠️ **The `sans` line of that sketch is retired by the last box (2026-08-14) and
+kept here as the original proposal, not as a plan.** Both halves of its comment
+moved: Atkinson-for-large-print ships today through `fonts.mono` (Atkynson Mono),
+and the only value `sans` would carry if it were built now is
+`".AppleSystemUIFont"`, because that is the one proportional family the layer
+emits. `"SF Pro"` as a settable *family name* was the thing measurement removed.
+
 - [x] Assert the mono font is a Nerd Font (or warn loudly) — starship/lsd/yazi tofu
       otherwise. Shipped as a warning when `name` is set without `package`.
 - [x] `ui.scale` multiplies `fonts.*.size` by default
@@ -2176,10 +2200,14 @@ nebelhaus.fonts = {
       written): exactly ONE surface would read it, and that surface is one
       label.** The audit is the same shape as rice#243's, run over the whole
       layer rather than one room: every `font-family` the layer emits
-      (`modules/den/options.nix:406`, `modules/wallpaper/package.nix:200`,
+      (`modules/den/options.nix:409`, `modules/wallpaper/package.nix:200`,
       `modules/hearth/ghostty/config`) plus every hardcoded family literal under
       `modules/`. All of them are mono, and the wallpaper's only text is its
-      debug band. The desktop's entire proportional-type surface is
+      debug band. (Two families are hardcoded, not one — `sketchybar-app-font`
+      at `modules/sill/default.nix:168` is the other, pinned on purpose:
+      `font-reach`'s own comment calls it the row that must NOT follow the
+      desktop. It's an icon font, so it is not proportional type and not a
+      candidate reader.) The desktop's entire proportional-type surface is
       `modules/sill/default.nix:161`:
       `clockLabelFont = if cfg.clock.monoFont then barFont else ".AppleSystemUIFont"`.
       → ★ **So `fonts.sans` already shipped. It is spelled `sill.clock.monoFont
@@ -2207,17 +2235,35 @@ nebelhaus.fonts = {
       that catches it: §5.14's rule re-audits open boxes against the repos, but
       the prose that says WHY a box is open is the same running text §5.14's
       second pass found nothing catches.
-      **(c) the surface the option's name promises is unreachable, and this repo
-      already wrote that down.** macOS exposes no supported knob for the system
-      UI font family; `appearance/options.nix`'s "what largePrint does NOT move"
-      list is where that lives. An option called `fonts.sans` would change one
+      **(c) the surface the option's NAME promises — every proportional glyph on
+      the machine — is not the surface it would reach.** macOS exposes no
+      supported knob for the system UI font family, so the menus, Finder and
+      Safari a reader pictures when they read `fonts.sans` stay SF Pro whatever
+      the option says. ⚠️ Do not cite `appearance/options.nix` for this: its
+      "what largePrint does NOT move" list declines the family on **taste**
+      grounds ("a typeface is taste and a legibility profile should not decide
+      yours") and then shows you how to change it — the unreachability entries
+      beside it are about text *size* (`FontSizeCategory` posts no change
+      notification) and third-party apps. Two different reasons for the same
+      non-move, and conflating them would make the layer look like it had
+      measured something it didn't. An option called `fonts.sans` would change one
       clock pill and nothing the user is actually reading — the "quietly
       under-delivers" failure that same description exists to prevent.
       **(d) ★ the real proportional type is in the APPS, and the seam to reach
       them already exists — which re-sizes this box out of S.** pounce, perch and
       trill draw their whole UI in SwiftUI's `.system(…)`
-      (`pounce/pkgs/pounce/Rows.swift`, `trill/Trill/UI/*`), i.e. SF Pro chosen
-      by a design token, in three repos the layer doesn't build. The layer
+      (`pounce/pkgs/pounce/Rows.swift`, `trill/Trill/UI/*`), i.e. a family chosen
+      by a design token rather than named — and not even one token: six of the
+      nine calls in `Rows.swift` pass `design: .rounded`, so the palette is
+      already drawn in SF Rounded, not SF Pro. **The three are reachable to three
+      different degrees, which is the actual cost here and is worth stating
+      precisely rather than as "three repos":** pounce is a flake input the layer
+      builds from source (`haus/flake.nix:33`, `pounce.overlays.default`), so a
+      new config key is a lock bump away; perch is consumed as its notarized
+      release zip (`haus/flake.nix:38-46`) but has a `home.activation.perchTheme`
+      seam to hand things through; **trill is not a haus input at all** and has
+      no `modules/trill`, so for it the seam doesn't exist yet and would have to
+      be built before a font could travel it. The layer
       already hands pounce a typography key through its generated config —
       `modules/pounce/default.nix:892`, `scale = config.haus.pounce.scale`, with
       the "an older pounce ignores the key rather than failing" tolerance
@@ -3343,6 +3389,19 @@ catch:
 | marker and body disagree | reading the two as separate claims |
 | description replaced by a *different* truth | building the thing and looking |
 | claim true, but about the wrong **layer** *(added on the sixth pass — see below)* | trying to write the check it implies |
+| open box, blocker already removed *(added on the twenty-first pass — §5.3's `sans`)* | re-reading the WHY beside a box, not just the box |
+
+The sixth shape needs its own line because it is the only one that makes an
+entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
+that naming a package is possible" — naming the very limit that section had
+fixed, which is a true sentence pointing at the wrong dependency, and which reads
+to anyone picking work off this file as **ready to build**. The first two shapes
+degrade an entry (stale, or wrong); this one promotes one. Rule 1 re-audits the
+*box* against the repos and rule 2 reads commits for falsified *closed* claims —
+the reason sentence beside an OPEN box is in neither's path, and it is the
+sentence that decides whether the box gets picked up. Cheap mitigation, same
+shape as the others: when a section closes a limit, re-read every open box in
+that section that cites it.
 
 ★ **The structural fix for reason 1, and it exists now.** §5.14 observed that
 every other cross-repo seam here got fixed by making the upstream repo emit
