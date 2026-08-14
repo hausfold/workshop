@@ -259,8 +259,8 @@ the tree.
 | **2. AI proof** | done | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room. Pair old and new addresses in fixtures that compare behavioral projections, warnings and plain-host-override priority. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; old and new addresses produce identical behavior and precedence, with the intended migration warning only. |
 | **3. Desktop seam** | done | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
 | **4. Carve out nebelhaus** | done | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
-| **5. Retire top-level fragments** | ready for review | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
-| **6. Rebuild the docs journey** | unblocked | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
+| **5. Retire top-level fragments** | done | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
+| **6. Rebuild the docs journey** | ready for review | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
 
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
 the nebelhaus values that replace them and the compatibility selection must land
@@ -465,6 +465,54 @@ desktop.
   one-desktop now, but renaming the file would break the URL, and the redirect
   belongs with step 6's navigation reorganisation rather than beside a content
   edit.
+
+### Findings carried out of step 6
+
+The docs turned out to be the place every earlier step's vocabulary went to
+die quietly: the pages still said "preset", still told a consumer to reach for
+`lib.mkForce`, and still explained how to compose two desktops.
+
+- **[3] The registry knew which room owned a namespace and nothing else.**
+  `roomOwners` has mapped every namespace to one of the twelve rooms since step
+  1, but no renderer could use it: there was no room TITLE and no room
+  sentence, so each consumer would have had to invent both. That is exactly how
+  the site came to say "237 options across 35 rooms" over a table of module
+  names. The fix is a `rooms` table beside the namespaces, with membership
+  DERIVED from `roomOwners` — a second hand-maintained list would drift the
+  first time a namespace moved. Two entries in it are not rooms (the shared
+  surfaces, and the host's own facts); they carry a `kind` rather than being
+  told apart by name in each renderer.
+- **[3] "Rooms" and "namespaces" are two different countable things, and the
+  docs were counting the wrong one.** Twelve rooms, thirty-six namespaces, 253
+  options. A person meets rooms; a host file spells namespaces. The reference
+  page renders both — room heading, namespace subheading — because dropping
+  either loses something, and every other page now says twelve.
+- **[3] Nine guides became room pages, but three rooms had no guide at all.**
+  Displays, Shelf and Text expansion were fully implemented and entirely
+  undocumented — the gap was invisible while the docs were an arbitrary list of
+  guides, and became obvious the moment the navigation had to name every room.
+  Expect that shape again: a catalogue-shaped table of contents is what makes a
+  missing page a hole rather than an absence.
+- **[2] A URL move is one line per page, by hand, in two spellings.** Every old
+  `/docs/haus/guides/*` landed somewhere different, so a wildcard could only
+  have sent them all to one place. Both the slashed and unslashed forms are
+  needed, because the no-slash form only 307s while an `index.html` exists at
+  that path.
+- **[2] The generator refuses a haus checkout that predates the registry.**
+  `gen-options.mjs` errors rather than falling back to namespace grouping, so
+  the two PRs have a merge ORDER (haus first) and hausfold.co's `options-drift`
+  job stays red until it lands. A silent fallback would have been worse — it
+  would render a page that looks right and disagrees with the sidebar.
+- **[2] The landing page's section order is a decision, not a gap.** This
+  step's plan asks for hero → haus explanation → desktops → apps. The page
+  deliberately closes with haus instead, and says so in a comment: that
+  ordering "answered *how* before anyone had asked *what*". The model-agreement
+  half landed (the Desktops section now says one desktop per Mac, rooms, and
+  host-wins); the reordering is 👤's call and is left alone.
+- **[1] `/guides/sharing-a-rice/` is finally dead.** Step 5's finding held the
+  rename until the navigation moved; it now 301s to `/docs/haus/desktops/creating`
+  along with everything else, and its content was split — writing a desktop is
+  one page, publishing one is another.
 
 ### Agent status report
 

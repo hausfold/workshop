@@ -2657,13 +2657,17 @@ said), the **Built on** credits, and the **licences**. Nothing was dropped
 silently.
 
 ⚠️ **Four redirect-map entries this batch creates**, for whoever writes the 301s:
-`/guides/sharing-a-rice/` → `/docs/haus/guides/sharing-a-desktop`,
+`/guides/sharing-a-rice/` → `/docs/haus/desktops/creating`,
 `/internals/flakes/` → `/docs/haus/internals/flakes`,
 `/internals/contributing/` → `/docs/haus/internals/contributing`, and
 `/start/the-family/` → `/docs` (it has no successor page). Plus one *anchor*
 move that is easy to miss: `/guides/making-it-yours/#the-first-run-tour` now
-lives at `/docs/haus/guides/sharing-a-desktop#teach-it-your-own-first-lap`, and the
-old `sharing-a-rice` links to that old anchor today.
+lives at `/docs/haus/desktops/creating#teach-it-your-own-first-lap`, and the
+old `sharing-a-rice` links to that old anchor today. (Both targets were
+`/docs/haus/guides/sharing-a-desktop` until the rooms plan's step 6 reorganised
+the tree on 2026-08-14; every `/docs/haus/guides/*` URL now 301s inside
+hausfold.co as well, so a nebelhaus.com redirect that still names the old path
+merely costs a second hop rather than a 404.)
 
 ⚠️ **The ratio, and why this batch missed the bar.** AGENTS.md says to expect
 about half; batch six hit 76%; this one is **92%**. The corrections above are
