@@ -65,7 +65,10 @@ template under its own extension:
   `VERSION`-date ≤ `purchased` + 1 yr; an uncovered build runs the free tier
   with a strip that says which builds the license does cover.
 - Private key: a Cloudflare Worker secret + one offline backup. Public key:
-  a constant in the app. A keygen/sign script lives in `web/scripts/`.
+  a constant in the app. A keygen/sign script lives in `hausfold.co/scripts/`.
+  ⚠️ This said `web/scripts/` when it was written; the workshop's `web/` became
+  nebelhaus.com's 301 map on 2026-08-14 and has no scripts dir. The Worker that
+  would sign a licence is hausfold.co's, so the script belongs beside it.
 
 ### 2.1 Why Paddle, and not the other four
 

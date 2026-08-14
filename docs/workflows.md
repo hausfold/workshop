@@ -173,7 +173,7 @@ argument for these three, to make that unarguable.
 ./bench release perch       # date-stamps VERSION + tags v<date> — CI bumps the
                             # homebrew cask AND the rice's flake pin (nix/release.nix)
 ./bench release haus        # date-stamps VERSION + tags v<date> — this is what
-                            # nebelhaus.com/init.sh serves to new installs
+                            # hausfold.co/nebelhaus.sh serves to new installs
 ./bench release holt 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
                             # crates.io, SwiftPM, the Go proxy) share one number
 ```

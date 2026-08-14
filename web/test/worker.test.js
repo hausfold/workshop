@@ -1,273 +1,163 @@
-// Unit tests for worker.js — the nebelhaus.com Worker, which is the `curl | bash`
-// install front door. The security-critical surface is ref validation (no path
-// traversal into raw.githubusercontent.com) and the latestRef() fallback chain,
-// so those get the most attention here.
+// Unit tests for worker.js — the nebelhaus.com 301 map.
 //
-// The worker only touches two globals we don't get for free in Node: `fetch`
-// (GitHub API + raw content) and `caches` (the ~1h latest-release cache). We
-// stub both per-test so the suite is fast and offline.
+// The suite that used to live here tested a Worker that fetched things: the
+// `curl | bash` proxy, the release lookups, their caches. None of that survives
+// the retirement (rename plan §5.2) — this Worker fetches nothing, so what's
+// worth testing is the table itself.
+//
+// The load-bearing test is `OLD_URLS`: the frozen list of every URL
+// nebelhaus.com ever published, derived from the old Starlight sidebar plus the
+// three non-docs routes. The site that served them is deleted, so that list can
+// never grow — which makes it a real completeness gate rather than a copy of the
+// map. A row dropped by accident fails here.
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import worker from '../worker.js';
-
-const RELEASE_KEY = 'https://nebelhaus.com/__latest_release';
-
-// A minimal stand-in for Cloudflare's `caches.default`. Stores the cached ref
-// as a string and hands back a fresh Response each match (Response bodies are
-// single-use, so we can't stash the Response object itself).
-function makeCaches() {
-  const store = new Map();
-  return {
-    _store: store,
-    default: {
-      async match(req) {
-        const url = typeof req === 'string' ? req : req.url;
-        return store.has(url) ? new Response(store.get(url)) : undefined;
-      },
-      async put(req, res) {
-        const url = typeof req === 'string' ? req : req.url;
-        store.set(url, await res.text());
-      },
-    },
-  };
-}
-
-// Build a fetch stub from a list of { match, ... } routes. First substring hit
-// wins; an unmatched URL throws so tests can't silently pass on a stray fetch.
-function makeFetch(routes) {
-  return vi.fn(async (input) => {
-    const url = typeof input === 'string' ? input : input.url;
-    const route = routes.find((r) => url.includes(r.match));
-    if (!route) throw new Error(`unexpected fetch: ${url}`);
-    if (route.throws) throw new Error('network down');
-    const body = route.json !== undefined ? JSON.stringify(route.json) : route.body ?? '';
-    return new Response(body, { status: route.status ?? 200 });
-  });
-}
+import { describe, it, expect } from 'vitest';
+import worker, { REDIRECTS, normalize } from '../worker.js';
 
 const req = (path) => new Request(`https://nebelhaus.com${path}`);
+const loc = async (path) => (await worker.fetch(req(path))).headers.get('location');
 
-beforeEach(() => {
-  globalThis.caches = makeCaches();
-  vi.restoreAllMocks();
-});
+// Every page the old site published. Order follows the old sidebar so a human
+// can diff it against `src/lib/sidebar.js` in the history if they ever need to.
+const OLD_URLS = [
+  '/',
+  '/pounce',
+  '/perch',
+  '/llms.txt',
+  '/llms-full.txt',
+  '/start/what-is-nebelhaus',
+  '/start/install',
+  '/start/first-run',
+  '/start/the-family',
+  '/guides/making-it-yours',
+  '/guides/sharing-a-rice',
+  '/guides/ai-agent',
+  '/guides/adding-apps',
+  '/guides/window-management',
+  '/guides/the-bar',
+  '/guides/the-shell',
+  '/guides/claude-agents',
+  '/guides/touch-id',
+  '/guides/hush',
+  '/guides/pounce',
+  '/guides/pounce-commands',
+  '/guides/theming',
+  '/guides/staying-in-sync',
+  '/guides/new-mac',
+  '/guides/leaving',
+  '/reference/options',
+  '/reference/keybindings',
+  '/reference/pounce',
+  '/reference/palette',
+  '/reference/haus',
+  '/reference/troubleshooting',
+  '/internals/flakes',
+  '/internals/contributing',
+  '/writing/park-not-stash',
+  '/init.sh',
+];
 
-describe('/init.sh ref validation (path-traversal guard)', () => {
-  // These are the guards that keep a curl|bash endpoint from being pointed at
-  // an arbitrary path. Each must yield a 400 and must NOT fetch bootstrap.sh.
-  const BAD_REFS = [
-    ['dot-dot traversal', '..'],
-    ['embedded traversal', 'v1..2'],
-    ['slash / nested path', 'a/b'],
-    ['leading slash', '/etc/passwd'],
-    ['space', 'v1 0'],
-    ['shell metachars', 'v1;rm'],
-  ];
+describe('the map covers the old site, exactly', () => {
+  it('has a row for every URL nebelhaus.com published', () => {
+    const missing = OLD_URLS.filter((u) => !(normalize(u) in REDIRECTS));
+    expect(missing).toEqual([]);
+  });
 
-  for (const [label, ref] of BAD_REFS) {
-    it(`rejects ${label} with 400`, async () => {
-      globalThis.fetch = makeFetch([{ match: 'raw.githubusercontent.com', body: 'BOOT' }]);
-      const res = await worker.fetch(req(`/init.sh?ref=${encodeURIComponent(ref)}`), {});
-      expect(res.status).toBe(400);
-      expect(globalThis.fetch).not.toHaveBeenCalled();
-    });
-  }
+  it('has no row the old site never published', () => {
+    const extra = Object.keys(REDIRECTS).filter((k) => !OLD_URLS.map(normalize).includes(k));
+    expect(extra).toEqual([]);
+  });
 
-  it('accepts a well-formed tag and proxies bootstrap.sh', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/hausfold/haus/v1.2.3/bootstrap.sh', body: '#!/bin/bash\n' },
-    ]);
-    const res = await worker.fetch(req('/init.sh?ref=v1.2.3'), {});
-    expect(res.status).toBe(200);
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('v1.2.3');
-    expect(await res.text()).toBe('#!/bin/bash\n');
+  it('sends everything to hausfold.co and nothing back here', () => {
+    for (const [from, to] of Object.entries(REDIRECTS)) {
+      expect(to, from).toMatch(/^https:\/\/hausfold\.co\//);
+      expect(to, from).not.toMatch(/nebelhaus\.com/);
+    }
+  });
+
+  it('keeps hausfold.co\'s trailing slash on pages, and omits it where there is no page', () => {
+    const noSlash = Object.entries(REDIRECTS).filter(([, to]) => !to.endsWith('/'));
+    expect(noSlash.map(([from]) => from).sort()).toEqual(
+      ['/init.sh', '/llms-full.txt', '/llms.txt'].sort(),
+    );
   });
 });
 
-describe('latestRef() fallback chain', () => {
-  it('env.REF hard-pin wins without any fetch or cache read', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/hausfold/haus/v9.9.9/bootstrap.sh', body: 'PINNED' },
-    ]);
-    const res = await worker.fetch(req('/init.sh'), { REF: 'v9.9.9' });
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('v9.9.9');
-    // API was never consulted.
-    expect(globalThis.fetch.mock.calls.every(([u]) => !String(u).includes('api.github.com'))).toBe(true);
+describe('redirecting', () => {
+  it('301s a docs page to its rebuilt equivalent', async () => {
+    const res = await worker.fetch(req('/guides/pounce'));
+    expect(res.status).toBe(301);
+    expect(res.headers.get('location')).toBe('https://hausfold.co/docs/haus/rooms/launcher/');
   });
 
-  it('resolves and caches the latest release tag from the GitHub API', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'api.github.com', json: { tag_name: 'v2.0.0' } },
-      { match: 'raw.githubusercontent.com/hausfold/haus/v2.0.0/bootstrap.sh', body: 'LATEST' },
-    ]);
-    const res = await worker.fetch(req('/init.sh'), {});
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('v2.0.0');
-    expect(globalThis.caches._store.get(RELEASE_KEY)).toBe('v2.0.0');
+  // The [assets] binding used to 307 the no-slash form onto the slash form. It
+  // is gone, so both spellings have to land here — the same lesson
+  // hausfold.co's `_redirects` learned on 2026-08-14.
+  it('answers both spellings, and index.html', async () => {
+    const want = 'https://hausfold.co/docs/haus/rooms/bar/';
+    expect(await loc('/guides/the-bar')).toBe(want);
+    expect(await loc('/guides/the-bar/')).toBe(want);
+    expect(await loc('/guides/the-bar/index.html')).toBe(want);
+    expect(await loc('/GUIDES/The-Bar/')).toBe(want);
   });
 
-  it('serves a cached ref without hitting the API', async () => {
-    globalThis.caches._store.set(RELEASE_KEY, 'v1.5.0');
-    globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com/hausfold/haus/v1.5.0/bootstrap.sh', body: 'CACHED' },
-    ]);
-    const res = await worker.fetch(req('/init.sh'), {});
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('v1.5.0');
-    expect(globalThis.fetch.mock.calls.some(([u]) => String(u).includes('api.github.com'))).toBe(false);
+  it('sends the root to the root', async () => {
+    expect(await loc('/')).toBe('https://hausfold.co/');
   });
 
-  it('falls back to main when the API returns a non-2xx', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'api.github.com', status: 403, body: 'rate limited' },
-      { match: 'raw.githubusercontent.com/hausfold/haus/main/bootstrap.sh', body: 'MAIN' },
-    ]);
-    const res = await worker.fetch(req('/init.sh'), {});
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
+  // The whole point of hausfold.co having no /init.sh: one hop, not two.
+  it('lands /init.sh on /nebelhaus.sh directly', async () => {
+    expect(await loc('/init.sh')).toBe('https://hausfold.co/nebelhaus.sh');
   });
 
-  it('falls back to main when the API throws (network hiccup)', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'api.github.com', throws: true },
-      { match: 'raw.githubusercontent.com/hausfold/haus/main/bootstrap.sh', body: 'MAIN' },
-    ]);
-    const res = await worker.fetch(req('/init.sh'), {});
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
+  it('carries ?ref= through, which is the one query the docs ever showed', async () => {
+    expect(await loc('/init.sh?ref=v2026.07.18')).toBe(
+      'https://hausfold.co/nebelhaus.sh?ref=v2026.07.18',
+    );
   });
 
-  it('falls back to main when the API returns an unsafe tag_name', async () => {
-    // A compromised/garbage release tag must not become a fetch path.
-    globalThis.fetch = makeFetch([
-      { match: 'api.github.com', json: { tag_name: '../../evil' } },
-      { match: 'raw.githubusercontent.com/hausfold/haus/main/bootstrap.sh', body: 'MAIN' },
-    ]);
-    const res = await worker.fetch(req('/init.sh'), {});
-    expect(res.headers.get('x-nebelhaus-ref')).toBe('main');
-    expect(globalThis.caches._store.has(RELEASE_KEY)).toBe(false);
+  it('passes the two Worker routes through with their slug', async () => {
+    expect(await loc('/download/perch')).toBe('https://hausfold.co/download/perch');
+    expect(await loc('/api/release/pounce')).toBe('https://hausfold.co/api/release/pounce');
+  });
+
+  it('caches the redirects hard', async () => {
+    const res = await worker.fetch(req('/reference/options'));
+    expect(res.headers.get('cache-control')).toContain('max-age=31536000');
   });
 });
 
-describe('serveInitScript upstream handling', () => {
-  it('returns 502 when bootstrap.sh cannot be fetched', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'raw.githubusercontent.com', status: 404, body: 'not found' },
-    ]);
-    const res = await worker.fetch(req('/init.sh?ref=v1.0.0'), {});
-    expect(res.status).toBe(502);
-    expect(await res.text()).toContain('v1.0.0');
+describe('everything else', () => {
+  it('404s an old asset rather than sweeping it to the homepage', async () => {
+    for (const path of ['/social/og.png', '/media/stills/S3.png', '/_astro/index.abc123.css']) {
+      const res = await worker.fetch(req(path));
+      expect(res.status, path).toBe(404);
+      expect(res.headers.get('location'), path).toBeNull();
+    }
   });
 
-  it('sets caching headers on a successful proxy', async () => {
-    globalThis.fetch = makeFetch([{ match: 'raw.githubusercontent.com', body: 'OK' }]);
-    const res = await worker.fetch(req('/init.sh?ref=v1.0.0'), {});
-    expect(res.headers.get('cache-control')).toBe('public, max-age=300');
-    expect(res.headers.get('content-type')).toContain('text/plain');
-  });
-});
-
-describe('/download and /api/release', () => {
-  const PONCE_RELEASE = {
-    tag_name: 'v2026.07.29',
-    published_at: '2026-07-29T00:00:00Z',
-    assets: [
-      { name: 'pounce-v2026.07.29-macos.tar.gz', size: 701478, browser_download_url: 'https://github.com/hausfold/pounce/releases/download/v2026.07.29/pounce-v2026.07.29-macos.tar.gz' },
-    ],
-  };
-
-  it('302s /download/<app> to the latest macOS asset', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'api.github.com/repos/hausfold/pounce/releases/latest', json: PONCE_RELEASE },
-    ]);
-    const res = await worker.fetch(req('/download/pounce'), {});
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe(PONCE_RELEASE.assets[0].browser_download_url);
+  it('404s a path that was never a page', async () => {
+    expect((await worker.fetch(req('/guides/'))).status).toBe(404);
+    expect((await worker.fetch(req('/nope'))).status).toBe(404);
   });
 
-  it('picks the -macos asset over other assets', async () => {
-    globalThis.fetch = makeFetch([
-      {
-        match: 'api.github.com/repos/hausfold/perch/releases/latest',
-        json: {
-          tag_name: 'v1',
-          assets: [
-            { name: 'checksums.txt', size: 10, browser_download_url: 'https://example.com/checksums.txt' },
-            { name: 'perch-v1-macos.zip', size: 99, browser_download_url: 'https://example.com/perch-v1-macos.zip' },
-          ],
-        },
-      },
-    ]);
-    const res = await worker.fetch(req('/download/perch'), {});
-    expect(res.headers.get('location')).toBe('https://example.com/perch-v1-macos.zip');
+  // A year-long 404 at an edge colo is how a missing row becomes unfixable.
+  it('does not cache a 404 for a year', async () => {
+    const res = await worker.fetch(req('/nope'));
+    expect(res.headers.get('cache-control')).not.toContain('31536000');
   });
 
-  it('prefers the DMG over the tarball when a release ships both', async () => {
-    // Pounce releases ship both: the tarball is the Homebrew formula's artifact
-    // (app + CLI scripts, brew wires the daemon), the DMG is the human's
-    // drag-to-Applications one. A human clicking Download must get the DMG —
-    // handing them the tarball strands them with a half-installed palette.
-    globalThis.fetch = makeFetch([
-      {
-        match: 'api.github.com/repos/hausfold/pounce/releases/latest',
-        json: {
-          tag_name: 'v2026.07.31',
-          assets: [
-            { name: 'pounce-v2026.07.31-macos.tar.gz', size: 701478, browser_download_url: 'https://example.com/pounce.tar.gz' },
-            { name: 'pounce-v2026.07.31-macos.dmg', size: 812345, browser_download_url: 'https://example.com/pounce.dmg' },
-          ],
-        },
-      },
-    ]);
-    const res = await worker.fetch(req('/download/pounce'), {});
-    expect(res.headers.get('location')).toBe('https://example.com/pounce.dmg');
-  });
-
-  it('falls back to the releases page when the API is down', async () => {
-    globalThis.fetch = makeFetch([{ match: 'api.github.com', throws: true }]);
-    const res = await worker.fetch(req('/download/perch'), {});
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('https://github.com/hausfold/perch/releases/latest');
-  });
-
-  it('serves release metadata as JSON and caches it', async () => {
-    globalThis.fetch = makeFetch([
-      { match: 'api.github.com/repos/hausfold/pounce/releases/latest', json: PONCE_RELEASE },
-    ]);
-    const res = await worker.fetch(req('/api/release/pounce'), {});
-    expect(res.status).toBe(200);
-    const meta = await res.json();
-    expect(meta.tag).toBe('v2026.07.29');
-    expect(meta.size).toBe(701478);
-    expect(globalThis.caches._store.has('https://nebelhaus.com/__release/pounce')).toBe(true);
-
-    // Second hit is served from cache — no API call.
-    globalThis.fetch = makeFetch([]);
-    const cached = await worker.fetch(req('/api/release/pounce'), {});
-    expect((await cached.json()).tag).toBe('v2026.07.29');
-  });
-
-  it('returns 502 JSON when metadata is unavailable', async () => {
-    globalThis.fetch = makeFetch([{ match: 'api.github.com', status: 403, body: 'rate limited' }]);
-    const res = await worker.fetch(req('/api/release/pounce'), {});
-    expect(res.status).toBe(502);
-  });
-
-  it('does not treat unknown apps as downloadable', async () => {
-    globalThis.fetch = makeFetch([]);
-    const res = await worker.fetch(req('/download/nebelhaus'), {});
-    expect(res.status).toBe(404); // falls through to the assets/404 path
-    expect(globalThis.fetch).not.toHaveBeenCalled();
-  });
-});
-
-describe('router', () => {
-  it('delegates non-init requests to the ASSETS binding', async () => {
-    const assets = { fetch: vi.fn(async () => new Response('site', { status: 200 })) };
-    const res = await worker.fetch(req('/guides/theming'), { ASSETS: assets });
-    expect(assets.fetch).toHaveBeenCalledOnce();
-    expect(await res.text()).toBe('site');
-  });
-
-  it('returns a 404 text fallback when ASSETS is absent', async () => {
-    const res = await worker.fetch(req('/whatever'), {});
-    expect(res.status).toBe(404);
-    expect(await res.text()).toContain('github.com/hausfold');
+  it('does not proxy anything — the ?ref= hole closes by deletion', async () => {
+    const fetchSpy = () => {
+      throw new Error('the redirect map must not fetch');
+    };
+    const original = globalThis.fetch;
+    globalThis.fetch = fetchSpy;
+    try {
+      const res = await worker.fetch(req('/init.sh?ref=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'));
+      expect(res.status).toBe(301);
+    } finally {
+      globalThis.fetch = original;
+    }
   });
 });

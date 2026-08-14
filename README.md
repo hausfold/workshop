@@ -76,9 +76,9 @@ your apps, your identity, your secrets — stays private, outside this directory
 and is restored from its own repo.
 
 This repo itself holds `bench`, one set of agent instructions, and `web/` — the
-Astro site and Cloudflare Worker behind
-[nebelhaus.com](https://nebelhaus.com), which serves the docs and the
-`curl | bash` install one-liner.
+Cloudflare Worker behind [nebelhaus.com](https://nebelhaus.com), which is a 301
+map to [hausfold.co](https://hausfold.co) now that the docs, the product pages
+and the `curl | bash` one-liner all live there.
 
 ## the life of a change
 

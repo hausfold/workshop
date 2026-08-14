@@ -164,30 +164,42 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-14
+### Current handoff — 2026-08-14 (evening)
 
-**The Worker moved; the 301s are the last 🤖 piece of the rename proper.**
-`worker.js` now lives in `hausfold.co` and hausfold.co serves the install
-one-liner itself — `curl -fsSL https://hausfold.co/nebelhaus.sh | bash` — plus
-`/download/<app>` and `/api/release/<app>`. §5.2's Worker box carries what it
-settled and how it was verified; the short version is that the site stopped
-being assets-only, one desktop is one row in a table rather than one route, and
-the preview config had to learn `main` or a PR could never feel an installer
-change.
+**nebelhaus.com is the 301 map, the old site is deleted, and the rename proper
+has one 🤖 piece left.** `web/` is now a single `worker.js` — 35 exact rows to
+hausfold.co, `/init.sh` → `/nebelhaus.sh` in one hop, everything else an honest
+404 — with no Astro, no Starlight and no build. §5.2's 301 box carries what it
+settled; the two things to know before touching it are that the map normalizes
+paths (the `[assets]` binding that used to 307 the no-slash form is gone) and
+that it is a Worker rather than a `_redirects` file so query strings survive.
 
-**Two pieces of §5.2 remain, and they are independent of each other:**
+**The two-copies problem is over.** There is exactly one copy of every docs page
+again, on hausfold.co, so the standing "fix it in both trees or in neither"
+instruction is spent — and the `docs-sync`/`ship` skills, which named
+`web/src/content/docs/` as the source of truth, were repointed in the same change.
 
-1. **The `nebelhaus.com/*` 301s** (workshop `web/`). This is the one that ends
-   the two-copies problem, and its map no longer has to be derived from an old
-   build: §5.2's Worker box says how to compose it from the source ledger plus
-   `hausfold.co/public/_redirects`. Merging it retires the old docs site, so it
-   is a 👤-timed merge rather than a 👤-designed one.
-2. **The landing pages becoming Next routes** — decided 2026-08-12, untouched.
+**What remains in §5.2 is one item:** the landing pages becoming Next routes
+(decided 2026-08-12, untouched). Everything else there is ✅.
 
 Nothing else in this document is 🤖. §5.3's DNS and every other open box is 👤,
-unchanged from the audit below.
+unchanged from the audit below. ⚠️ **§5.3 is now the gate on the whole of §5**:
+the 301s are deployed by CI on merge, so the phase gate below (`curl -sI
+https://nebelhaus.com/guides/pounce` → 301) is a thing to *check* after the
+merge, not a thing to build.
 
-### Current handoff — 2026-08-13
+### Handoff — 2026-08-14 (morning)
+
+**The Worker moved.** `worker.js` now lives in `hausfold.co`, which serves the
+install one-liner itself — `curl -fsSL https://hausfold.co/nebelhaus.sh | bash` —
+plus `/download/<app>` and `/api/release/<app>`. §5.2's Worker box carries what
+it settled and how it was verified; the short version is that the site stopped
+being assets-only, one desktop is one row in a table rather than one route, and
+the preview config had to learn `main` or a PR could never feel an installer
+change. The 301s it handed off to landed the same day — see the evening handoff
+above.
+
+### Handoff — 2026-08-13
 
 **§5.2's docs source work is complete.** All twenty-nine source decisions are
 closed: twenty-eight sources became Fumadocs pages, and `start/the-family` was
@@ -221,7 +233,7 @@ does not exist. Both were fixed in `web/` too, in the same change as this note �
 §5.2 is still the whole of the 🤖 work left on the rename proper; its docs-source
 half is closed, and its route/Worker half is next.
 
-### Current handoff — 2026-08-11
+### Handoff — 2026-08-11
 
 **Decision 9 landed the layer's repo rename: `hausfold/hausfold` →
 `hausfold/haus`, checkout `./hausfold` → `./haus`.** The slug moved on GitHub
@@ -2172,7 +2184,9 @@ name.
 > below explains why that was the only way to satisfy §5.1's public requirement.
 > Read `hausfold/website` in this section as `hausfold/hausfold.co` throughout.
 
-Two site codebases exist today and they merge into the second:
+Two site codebases exist today and they merge into the second: *(✅ done
+2026-08-14 — the first is now one Worker holding the 301 map, and the pages,
+docs and installer it describes below all live in the second.)*
 
 - `workshop/web/` — the Astro Starlight docs + `index/pounce/perch` landing
   pages + **the Worker**, serving `nebelhaus.com` (worker name `nebelhaus`,
@@ -2317,7 +2331,12 @@ still opens the regeneration PR, it just no longer installs Nix to do it.
 
 ### 5.2 🤖 The move — and the salvage list
 
-#### 🟡 Status 2026-08-13 — docs source work complete; routes and Worker remain
+#### 🟡 Status 2026-08-14 — docs, Worker and the 301s done; the landing routes remain
+
+*(The 2026-08-13 status below is kept for how the docs work went. What changed
+since: the Worker moved, and nebelhaus.com became the 301 map — both boxes
+further down. The only 🤖 piece of §5.2 still open is the landing pages becoming
+Next routes.)*
 
 **Landed, batch one** ([hausfold.co#12](https://github.com/hausfold/hausfold.co/pull/12);
 #15 followed with the colour pass):
@@ -2736,9 +2755,70 @@ second editable copy here.
   which settles the "still not decided" line below; not done.
 - ~~`worker.js`, the `hausfold.co/<desktop>.sh` installer route~~ ✅ **landed
   2026-08-14** — see the Worker box below.
-- the `nebelhaus.com/*` 301s. Until they land nebelhaus.com stays live serving
-  the old pages, so there are two copies of every docs page and a fact fixed in
-  one tree and not the other will disagree; fix it in both or in neither.
+- ~~the `nebelhaus.com/*` 301s~~ ✅ **landed 2026-08-14** — see the 301 box
+  below. **The two-copies problem is over**: the Astro/Starlight tree is deleted,
+  so there is exactly one copy of every docs page again and "fix it in both or in
+  neither" no longer applies to anything.
+
+#### ✅ The 301s, 2026-08-14 — and the old site is deleted, not parked
+
+The zone answers with `worker.js` and nothing else: no Astro, no Starlight, no
+`[assets]` binding, no build. `web/` is one Worker file, its unit suite, and two
+wrangler configs. What that settled, beyond the redirect itself:
+
+- **The map is exact rows, not a wildcard**, because the docs were reorganised
+  into rooms on the way over and each guide went somewhere different. 35 rows,
+  composed from this section's source ledger plus `hausfold.co/public/_redirects`
+  exactly as the handoff said, and every one points at the **current** URL — all
+  31 distinct destinations were curled for a `200`, so nobody pays a second hop
+  for the rooms move.
+- **Both spellings resolve, and that is now the Worker's job.** The `[assets]`
+  binding used to 307 `/guides/pounce` onto `/guides/pounce/` before the Worker
+  ran; with it gone the map normalizes (lowercase, no trailing slash,
+  `index.html` stripped) instead.
+- **Query strings survive**, which is why this is a Worker and not a
+  `_redirects` file — that one would need an assets binding, i.e. a build whose
+  only output is the file saying the build is gone. `/init.sh?ref=v2026.07.18`
+  keeps its pin across the hop.
+- ✅ 🚨 **The `?ref=` fork-network hole is closed on this side too, by
+  deletion.** The old Worker proxied `raw.githubusercontent.com`; this one
+  fetches nothing, so there is no object left to poison. The forwarded `?ref=`
+  is checked where it is used — hausfold.co holds it to the release-tag shape.
+- **`/download/<app>` and `/api/release/<app>` pass through with their slug**,
+  and the app list is deliberately NOT re-stated here: hausfold.co 404s an
+  unknown one, so the promise of which apps resolve lives in one place.
+- **Unmapped paths 404 honestly** rather than sweeping to the homepage — the same
+  call hausfold.co made when it dropped its SPA fallback. The redirects carry a
+  year's `max-age`; the 404s carry five minutes, because Cloudflare edge-caches
+  404s and a row found missing later would otherwise be stuck at that colo.
+- **What was salvaged before deleting `public/`:** the logos, app icons, the two
+  OG cards and the three demo assets moved to `assets/site/` (with a README
+  saying nothing renders them — hausfold.co ships no images at all, deliberately).
+  Everything with a copy already in `assets/` — every still, `ripple.webp`, the
+  favicon — was dropped rather than moved, hash-compared first.
+- **Two workflows died with the tree**: the workshop's `keybindings-drift` and
+  `options-drift` were maintaining a docs tree that no longer exists, and
+  hausfold.co has run its own copies of both since
+  [hausfold.co#26](https://github.com/hausfold/hausfold.co/pull/26). One weekly
+  cron per question, not two.
+- ⚠️ **The `docs-sync` and `ship` skills named `web/src/content/docs/` as the
+  source of truth** and were repointed at `hausfold.co/content/docs/` in the same
+  change, component vocabulary included (Fumadocs' `<Callout>`/`<Cards>`, not
+  Starlight's `<Aside>`/`<CardGrid>`). A skill that routes a fix into a deleted
+  directory fails silently — it just finds nothing to edit.
+- ⚠️ **`bench`'s release bookkeeping still said the desktop reaches users via
+  `nebelhaus.com/init.sh`.** That went stale when the installer moved on
+  2026-08-14, one PR before this one; fixed here in `bench`, `docs/workflows.md`
+  and `/release`.
+- 🔗 **`haus` needed the same treatment and got it in
+  [haus#350](https://github.com/hausfold/haus/pull/350)** — its `AGENTS.md` and
+  copilot instructions routed every user-facing docs edit at
+  `web/src/content/docs/`, and it *prints* nebelhaus.com URLs into things users
+  read: the README's one-liner, the `# docs:` comment above every option in a
+  generated host file, the agent skill that ships onto each machine. **Land this
+  PR first** — haus#350 states the deletion as fact. It also closes the 📌
+  follow-up above (haus's `bootstrap.sh:4` / `README.md:44`), whose blocker,
+  haus#345, has since merged without touching the URL.
 
 #### ✅ The Worker moved, 2026-08-14 — and the install URL moved with it
 
@@ -2769,11 +2849,11 @@ section above had left as intentions:
   existed** — the two product pages link `/download/pounce` and
   `/download/perch` now, which is hausfold.co's own rule for links, applied to
   routes rather than pages for the first time.
-- **The old URL is not broken and must not be "fixed" yet.**
-  `nebelhaus.com/init.sh` still serves `bootstrap.sh` directly from the
-  workshop's `web/`, and the workshop's own docs still print it — correct, that
-  is the URL that resolves on *that* site. It becomes a 301 when the map below
-  lands.
+- ~~**The old URL is not broken and must not be "fixed" yet.**~~ ✅ **Superseded
+  the same day.** For a few hours `nebelhaus.com/init.sh` still served
+  `bootstrap.sh` directly from the workshop's `web/`; the 301 map landed that
+  afternoon and it is now a redirect onto `/nebelhaus.sh`, in one hop, with
+  `?ref=` carried through.
 
 🚨 **The assurance pass found a real hole in the ported guard, and it is worth
 carrying wherever a `curl | bash` endpoint gets built again.** The old
@@ -2788,28 +2868,33 @@ a fork PR and then hand out
 our TLS, no visible redirect, their script. `?ref=` is now held to the release
 **tag** shape, the only ref shape a stranger cannot create; the deploy-time
 `REF` var keeps the wider shape because it is set by whoever deploys rather
-than by whoever clicks a link. ⚠️ **The same hole is still open on
-`nebelhaus.com/init.sh`**, whose worker is the unmodified original — it closes
-when `web/` becomes the 301 map, which is one more reason not to leave that
-half sitting.
+than by whoever clicks a link. ✅ **The same hole on `nebelhaus.com/init.sh` is
+closed too, and by deletion rather than by a narrower regex** — that Worker
+became the 301 map hours later and fetches nothing at all, so no object in any
+fork network is reachable through it. The `?ref=` it forwards is checked on
+arrival, where the check belongs.
 
-📌 **Follow-up this found and deliberately did not take**: `haus`'s own
-`bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`, and
-the install page invites the reader to `curl … | less` and read exactly that
-file — so the script disagrees with the page that serves it. It waits for
-[haus#345](https://github.com/hausfold/haus/pull/345), which is in flight in
-that same file.
+📌 ~~**Follow-up this found and deliberately did not take**: `haus`'s own
+`bootstrap.sh:4` and `README.md:44` still print `nebelhaus.com/init.sh`~~ ✅
+**taken 2026-08-14 in [haus#350](https://github.com/hausfold/haus/pull/350)**,
+once haus#345 merged without touching the URL and unblocked that file. It grew
+on the way: the same PR repoints every docs URL haus *prints* — the `# docs:`
+line above each option in a generated host file, the agent skill that ships onto
+every machine, hearth's guide link — and, the part that actually failed
+silently, its `AGENTS.md`/copilot instructions, which routed user-facing docs
+edits at the `web/src/content/docs/` this section deletes.
 
-**What the 301s still need, so the next session doesn't re-derive it.** The map
-is old-Astro-URL → current-hausfold.co-URL, and both halves are already
-written down: the source ledger above says which source became which page, and
-`hausfold.co/public/_redirects` says where the rooms reorganisation then moved
-it on 2026-08-14. Composed, that is one row per old page — including
-`/start/what-is-nebelhaus/` → `/docs/nebelhaus/` (verified by reading both
-pages, it is the desktop tree's index, not haus's), `/start/the-family/` →
-`/docs`, and `/init.sh` → `https://hausfold.co/nebelhaus.sh`. Both spellings
-per row, as `_redirects` already learned: the no-slash form only 307s while an
-`index.html` exists at that path, and after the move none does.
+~~**What the 301s still need, so the next session doesn't re-derive it.**~~ ✅
+**Done, and it composed exactly as written.** The map is old-Astro-URL →
+current-hausfold.co-URL, from the source ledger below plus
+`hausfold.co/public/_redirects`; 35 rows, both spellings each (normalized in the
+Worker rather than doubled in the table), and the three the note called out by
+name all landed as predicted — `/start/what-is-nebelhaus/` → `/docs/nebelhaus/`,
+`/start/the-family/` → `/docs/`, `/init.sh` → `https://hausfold.co/nebelhaus.sh`.
+The two rows worth re-reading before "correcting" one are `/guides/ai-agent` →
+`rooms/agent-rebuilds/` and `/guides/claude-agents` → `rooms/ai/`: the titles
+read the other way round, the content doesn't. The map lives in
+[`web/worker.js`](../web/worker.js) and its test suite freezes the old URL list.
 
 ##### The source ledger, now closed
 
@@ -3249,11 +3334,19 @@ an SLA doesn't gate a receipt.
 ### §5's gate
 
 *(The phase gate, not §5.4's — it sits here only because §5.4 is the last
-subsection. §5.4 can be green while this is red, and today it is: §5.2 and §5.3
-haven't run.)*
+subsection. §5.4 can be green while this is red.)*
 
 **Gate:** `curl -sI https://nebelhaus.com/guides/pounce` returns 301 to the
 hausfold.co equivalent; every docs page resolves; the options reference renders.
+
+**Status 2026-08-14: the map is written and merged; the gate is a check to
+*run*, not work to do.** Both halves were verified before the PR — every one of
+the 35 rows against the local runtime (`wrangler dev`, which is what proved the
+no-slash spelling and `?ref=` pass-through), and all 31 distinct destinations
+curled on the live hausfold.co for a `200`. What the gate adds is the deploy:
+`deploy-web.yml` publishes on merge, so run the `curl` above afterwards — and
+give the edge a moment, since Cloudflare caches 404s and this Worker replaces a
+site that answered 200 at those paths minutes earlier.
 
 ---
 
@@ -3371,7 +3464,13 @@ that the first person who finds it harmless ignores the whole thing.
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-10):** §0 green bar §0.3's branch clause — §0.2's
+**You are here (2026-08-14):** §5.2 is ✅ but for the landing pages becoming
+Next routes — the docs, the Worker and the `nebelhaus.com/*` 301s all landed, so
+the phase's gate is now a `curl` to run after the deploy rather than a build.
+§5.3 (DNS, 👤) is what §5 waits on. The 2026-08-10 reading below still holds for
+§0–§4.
+
+**You were here (2026-08-10):** §0 green bar §0.3's branch clause — §0.2's
 register search ran 2026-08-10 and leaves only the clearance *opinion*, which is
 trigger-gated, not a step; §1–§3 green; **§4 fully merged and released, with no 🤖
 work left in it** (hausfold#282 closed the last one) — its 👤 TCC feel-test and
@@ -3381,6 +3480,10 @@ site needs no Nix) is already done — what's left is §5.2's rebuild itself, th
 §5.3's deploy. **§5.2 is the only step in this document an agent takes
 unattended; §5.3 is 👤** — DNS records and `npx wrangler deploy` are a
 production change on a live zone, and the section is tagged 👤 for that reason.
+*(2026-08-14: §5.2's rebuild is done bar the landing routes. One nuance the
+sentence above didn't anticipate — the workshop's `web/` deploys itself from CI
+on merge, so the 301s reach the live zone without anyone running `wrangler`;
+what stays 👤 in §5.3 is the DNS side.)*
 
 ## §9 — Loose ends found while writing this
 

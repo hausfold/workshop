@@ -14,8 +14,13 @@ Code moves daily across ten repos; the docs don't follow on their own. This swee
 closes that gap once a day: read what landed, decide what it broke or left unsaid, fix
 it in the right place, open a PR.
 
-**The site is the source of truth.** `web/src/content/docs/` (Astro Starlight,
-nebelhaus.com) is where anything a *user* experiences gets documented. READMEs,
+**The site is the source of truth, and since 2026-08-14 that is `hausfold.co`.**
+`hausfold.co/content/docs/` (Fumadocs, two trees — `haus/` for the layer,
+`nebelhaus/` for the desktop) is where anything a *user* experiences gets
+documented. ⚠️ **The workshop's `web/src/content/docs/` is gone** — that tree was
+rebuilt page-by-page and deleted when nebelhaus.com became a 301 map (rename plan
+§5.2), so a path below that starts `web/…` is history, and `web/` now takes one
+kind of change only: a redirect row. READMEs,
 agent instructions (`AGENTS.md`/`CLAUDE.md`) and in-repo docs serve contributors and
 agents. When the two disagree, the
 site wins and the repo doc gets corrected — never the reverse.
@@ -68,27 +73,33 @@ doc consequence — skip them fast and spend the budget on behavior changes.
 
 Every repo maps to a documentation surface. Follow the workshop's routing table, then:
 
+Doc paths below are relative to **`hausfold.co/content/docs/`** unless a repo is
+named. Two trees: `haus/` is the layer, `nebelhaus/` is the desktop, and a page
+about the machinery never goes in the second (that repo's `AGENTS.md` has the
+rule — if a page seems to want both, it is two pages).
+
 | Changed… | Reconcile against |
 |---|---|
-| `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
-| `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
-| `perch/` — the notch file shelf | `perch/README.md`, `perch/docs/*`, and `guides/staying-in-sync.mdx` for anything install-shaped (perch ships as a cask) |
-| `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a web guide once one exists — `/trill` and `/guides/trill` are both free |
-| `holt/` — the worktree substrate + its five SDKs | `holt/README.md`, `holt/SPEC.md`, `holt/docs/*`, `holt/sdk/*/README`, and `web/.../guides/claude-agents.mdx` (the user-facing worktree story). ⚠️ An SDK surface change is also a **release** question — see `/release`. ⚠️ holt's `AGENTS.md` arrived only in [holt#31](https://github.com/hausfold/holt/pull/31), so anything older than that was written with no boundary doc in the repo |
-| `hausfold.co/` — the public company site | `hausfold.co`'s own `README.md`/`AGENTS.md`. ⚠️ It is **not** nebelhaus.com: product docs stay on the site in `web/`, and the two must not grow copies of each other. Never move anything from `hausfold/ops`' name register into it — that repo is private for a reason |
-| `haus/modules/*` (the layer + rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
-| a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
-| a new/changed keybind | `reference/keybindings.md` — **always** |
-| `bench`, workshop `README.md` | `internals/contributing.mdx`, `internals/flakes.mdx`, workshop `README.md`/`AGENTS.md` |
-| `homebrew-tap`, release CI | `start/install.mdx`, `guides/staying-in-sync.mdx` |
-| `org-profile` (the `hausfold/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against `start/the-family.md` |
+| `pounce/pkgs/pounce/*.swift`, commands | `haus/rooms/launcher.mdx`, `haus/reference/pounce.mdx` (config, CLI **and** writing a command), `pounce/README.md` |
+| `nebelung/` palette, ports | `haus/rooms/appearance.mdx` (theming and the palette are one page now), `nebelung/README.md` |
+| `perch/` — the notch file shelf | `perch/README.md`, `perch/docs/*`, and `haus/keeping-it-current.mdx` for anything install-shaped (perch ships as a cask) |
+| `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and a docs page once one exists — `haus/rooms/notifications.mdx` is free |
+| `holt/` — the worktree substrate + its five SDKs | `holt/README.md`, `holt/SPEC.md`, `holt/docs/*`, `holt/sdk/*/README`, and `haus/rooms/ai.mdx` (the user-facing worktree story). ⚠️ An SDK surface change is also a **release** question — see `/release`. ⚠️ holt's `AGENTS.md` arrived only in [holt#31](https://github.com/hausfold/holt/pull/31), so anything older than that was written with no boundary doc in the repo |
+| `hausfold.co/` — the site itself (shell, routes, landing pages) | `hausfold.co`'s own `README.md`/`AGENTS.md`. ⚠️ The *docs* it serves are the row above and below this one, not this row. Never move anything from `hausfold/ops`' name register into it — that repo is private for a reason |
+| `haus/modules/*` (the layer + the desktop) | the matching **room**: `haus/rooms/{bar,development,windows,security,focus,apps,appearance,launcher,ai,displays,shelf,text-expansion}.mdx`, plus `haus/reference/options.mdx` and `nebelhaus/keybindings.mdx` |
+| a new/renamed nix option | `haus/reference/options.mdx` — **always**; an option users can set and can't discover is a bug. It is **generated** in hausfold.co from haus's committed `docs/site-data/`, so the fix is re-running its generator, not writing prose |
+| a new/changed keybind | `nebelhaus/keybindings.mdx` — **always**. Prose, and hausfold.co's `keybindings-drift` workflow is what catches it |
+| `bench`, workshop `README.md` | `haus/internals/contributing.mdx`, `haus/internals/flakes.mdx`, workshop `README.md`/`AGENTS.md` |
+| `homebrew-tap`, release CI | `haus/install.mdx`, `haus/keeping-it-current.mdx` |
+| `web/` — nebelhaus.com | only ever a redirect row in `web/worker.js`, and only if a hausfold.co URL moved. There are no pages here to reconcile |
+| `org-profile` (the `hausfold/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against the docs index, `content/docs/index.mdx` (the old `start/the-family` page was retired, not ported) |
 | a shot/asset placement anywhere | `assets/SHOTLIST.md` in the workshop — it tracks which README each still has landed in, so a placement commit makes it stale |
 
 **Every repo here is both an input and a target.** The question is never only "does
 this commit change the site?" — it's also "did it make a doc *in that repo* wrong?" A
 repo with no bearing on the site can still have a stale README of its own, and the
 front-of-house repos (`org-profile`, `homebrew-tap`) are the easiest to overlook
-precisely because they don't feed nebelhaus.com.
+precisely because they don't feed the docs site.
 
 ### The one word you must not sweep
 
@@ -113,7 +124,7 @@ Grep before concluding something is undocumented — the feature may be describe
 name you didn't search for:
 
 ```bash
-grep -ril "<feature>\|<flag>\|<option>" web/src/content/docs/ <repo>/README.md
+grep -ril "<feature>\|<flag>\|<option>" hausfold.co/content/docs/ <repo>/README.md
 ```
 
 ## Step 3 — the bar (don't be trigger-happy)
@@ -153,7 +164,7 @@ A surfaced judgment call is cheap; a wrong doc is expensive.
 
 The docs read like a person who knows the system explaining it to a friend — never like
 generated reference. Match the file you're editing; when in doubt, read
-`guides/the-bar.mdx` as the reference for tone.
+`haus/rooms/bar.mdx` as the reference for tone.
 
 - **Slim and dense.** Every sentence earns its place. Cut hedging, preamble and
   restatement. If a paragraph can be a sentence, make it a sentence.
@@ -162,12 +173,14 @@ generated reference. Match the file you're editing; when in doubt, read
 - **Fun, lightly.** Dry wit and a strong turn of phrase are house style — *"reads
   everything, changes nothing"*. One good line per page, not one per paragraph. Never
   jokey at the reader's expense when they're mid-problem.
-- **Pretty.** Use the Starlight components already imported in the file — `<Aside>` for
-  the gotcha that will bite them, `<Steps>` for ordered setup, `<CardGrid>`/`<Card>` for
-  parallel choices, tables for dense reference. Keep frontmatter `description` accurate;
-  it's the search and social snippet.
-- **Link, don't repeat.** Cross-link to `/reference/options/#…` rather than restating an
-  option inline. One fact, one home.
+- **Pretty.** Use the Fumadocs components — `<Callout>` for the gotcha that will bite
+  them, `<Steps>`/`<Step>` for ordered setup, `<Cards>`/`<Card>` for parallel choices,
+  tables for dense reference. They are global (hausfold.co's `src/components/mdx.tsx`
+  provides them), so a page imports nothing — and they are **not** Starlight's
+  `<Aside>`/`<CardGrid>`. Keep frontmatter `description` accurate; it's the search and
+  social snippet.
+- **Link, don't repeat.** Cross-link to `/docs/haus/reference/options/#…` rather than
+  restating an option inline. One fact, one home.
 - **Keep it honest.** Say what's read-only, what needs a permission, what's a non-goal.
   Under-promising is house style.
 
@@ -202,7 +215,8 @@ gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
 - Commit **only** doc files. If a fix needs a code change, don't make it — report it.
 - Branch per repo, never a cross-repo commit. Each repo owns its own boundary.
 - If the site changed, build it before pushing — a broken build is worse than a stale
-  page: `cd web && npm run build`.
+  page: `cd hausfold.co && npm run build`. (The workshop's `web/` has no build any
+  more; it is the 301 map.)
 
 **The PR body carries the findings.** A scheduled run's chat output is read once and
 lost; the PR is where the reasoning has to live, so a reviewer can judge the diff without

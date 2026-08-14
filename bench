@@ -457,7 +457,7 @@ ensure_perch_dev_app() {
 }
 
 # Release bookkeeping. Releases are what users actually consume — pounce via
-# the Homebrew tap, the rice via nebelhaus.com/init.sh (which serves the
+# the Homebrew tap, the desktop via hausfold.co/nebelhaus.sh (which serves the
 # LATEST RELEASE's bootstrap, not main) — so a tag that falls behind main is
 # every bit as stale as a lock edge, just invisible without this.
 latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if none
@@ -646,7 +646,7 @@ cmd_status() {
     case "$name" in
       pounce)    audience="brew installs" ;;
       perch)     audience="brew + the rice's flake pin" ;;
-      haus)      audience="nebelhaus.com/init.sh (the rice)" ;;
+      haus)      audience="hausfold.co/nebelhaus.sh (the desktop)" ;;
       # holt is the only one whose release lands OUTSIDE our own infrastructure:
       # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins holt's
       # main, so this machine sees a holt commit via the lock edge above — but
