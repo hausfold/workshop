@@ -638,16 +638,17 @@ install the app and leave every association alone.
 
 ### `haus.apps.videoPlayer.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 Install IINA — the rice's video player — as the roster entry `iina`.
 A nixpkgs build, so it lands in ~/Applications/Home Manager Apps
 rather than /Applications.
 
-On by default: macOS ships QuickTime Player, which refuses most of
-what you actually double-click (mkv, webm, and anything not in
-Apple's codec list), so "a video player that plays videos" is part
-of what the rice considers a finished machine.
+The nebelhaus desktop turns this on, because macOS ships QuickTime
+Player, which refuses most of what you actually double-click (mkv,
+webm, and anything not in Apple's codec list) — so "a video player
+that plays videos" is part of what that desktop considers a finished
+machine. The bare layer installs nothing you didn't ask for.
 
 Set false and nothing is installed or rebound — bring your own
 player via the pounce "Install App" palette command or a roster
@@ -816,7 +817,7 @@ Example:
 
 ### `haus.theme.ports.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 Theme the apps in your roster (`haus.roster`) that Nebelung ships a
 port for, without wiring each one by hand.
@@ -1306,7 +1307,7 @@ Example:
 
 ### `haus.wallpaper.style`
 
-`one of "none", "minimal", "orbits", "constellation", "flow", "bold"` · default `"minimal"` · desktop-safe
+`one of "none", "minimal", "orbits", "constellation", "flow", "bold"` · default `"none"` · desktop-safe
 
 Which desktop this machine wears, set at each home-manager activation
 (osascript, every desktop on the current Space).
@@ -1320,23 +1321,26 @@ Which desktop this machine wears, set at each home-manager activation
   bold           generated from haus.theme.accent alone (a diagonal
                  accent→crust sweep), which predates `minimal`.
 
-The default is `minimal`, so a machine that says nothing about its
-desktop wears the haus one. That is a change of mind: this defaulted to
-"none" while the generated look was new, on the grounds that the desktop
-is visible and personal. It is — but a rice whose own desktop is opt-in
-ships looking like nothing in particular, and `minimal` is drawn from
-the palette, accent and gaps this machine already chose, so it is the
-one look that can't clash with the rest of the install.
+The default is `none`, and it is a real value rather than an absence:
+nothing here runs and whatever wallpaper you already have stays exactly
+where it was. Replacing someone's desktop picture is the most visible
+thing this layer can do, so the bare room does not do it uninvited — a
+DESKTOP says which look it wants, and nebelhaus picks `minimal`.
 
-"none" is the way back, and it is a real value rather than an absence:
-set it and nothing here runs, leaving whatever wallpaper you already
-have exactly where it was (the bootstrap interview still offers the
-choice, and writes this line when you take it).
+That is the second change of mind on this option, and the reasoning
+survives both: `minimal` was made the default so a rice wouldn't ship
+looking like nothing in particular, which is still true of nebelhaus
+and is why its desktop sets it. What changed is that a desktop is now
+the thing making that choice, rather than every install of the layer.
+
+Every option below tunes `minimal`, and all of them keep their tuned
+values — the choice being opt-in is not a reason for the look to be
+worse once chosen.
 
 Example:
 
 ```nix
-"none"
+"minimal"
 ```
 
 <small>Declared in [`modules/wallpaper/options.nix`](https://github.com/hausfold/haus/blob/main/modules/wallpaper/options.nix).</small>
@@ -1344,6 +1348,28 @@ Example:
 ## haus.fonts
 
 The terminal font. The bar keeps its own font at its own tuned sizes.
+
+### `haus.fonts.mono.baseSize`
+
+`positive integer, meaning >0` · default `13` · desktop-safe
+
+The terminal-font baseline, before `haus.ui.scale` multiplies it.
+The neutral room uses 13pt; nebelhaus selects 19pt in its desktop.
+
+This exists so a desktop can carry that tuned baseline WITHOUT
+breaking the scale relationship. Setting `size` directly pins an
+absolute number, which would make `haus.ui.scale` (and the
+large-print preset built on it) stop moving the terminal font at
+all — a silent regression, since everything else would still grow.
+Say the baseline here; say the exception with `size`.
+
+Example:
+
+```nix
+19
+```
+
+<small>Declared in [`modules/den/options.nix`](https://github.com/hausfold/haus/blob/main/modules/den/options.nix).</small>
 
 ### `haus.fonts.mono.name`
 
@@ -1423,13 +1449,13 @@ Example:
 
 ### `haus.fonts.mono.size`
 
-`positive integer, meaning >0` · default `19, scaled by haus.ui.scale` · desktop-safe
+`positive integer, meaning >0` · default `fonts.mono.baseSize, scaled by haus.ui.scale and rounded` · desktop-safe
 
 Terminal font size in points. The single most useful knob for a
 larger-text machine, since it moves everything the rice actually
 lives in.
 
-19 (at ui.scale = 1.0) is the base for a reason worth knowing: the Ghostty window is
+nebelhaus's 19pt baseline exists for a reason worth knowing: the Ghostty window is
 tiled to a fixed pixel height by prowl, and sizes that don't divide
 that height evenly used to leave a gap under zellij's status bar.
 That's since been fixed properly (window-padding-balance +
@@ -1615,6 +1641,10 @@ and the file-association hijack. Those open the target in a new zellij
 tab running this command, so a terminal editor (hx, nvim, vim, nano) is
 the natural fit for the rice; a GUI editor's CLI works too (e.g. "code"
 or "code -w" to block).
+
+The rice installs helix, which is why the default is `hx`. Naming
+anything else here assumes that editor is already on the machine — this
+option points at an editor, it does not install one.
 
 Example:
 
@@ -1981,26 +2011,26 @@ signing — packaging, not a code change — and would drop the pref.
 
 <small>Declared in [`modules/hearth/options.nix`](https://github.com/hausfold/haus/blob/main/modules/hearth/options.nix).</small>
 
-## haus.agents
+## haus.ai
 
-Which coding-agent clients this machine installs, which one the agent keybinding spawns, and the two files the rice ships into every one of their homes — your instructions, and the `haus` skill.
+The AI room: whether this machine runs coding agents at all, which clients it installs, which one the agent keybinding spawns, and the two files the rice ships into every one of their homes — your instructions, and the `haus` skill. Spelled `haus.agents.*` before 2026-08-13, with the switch under `haus.developer.agents`; both are gone rather than aliased.
 
-### `haus.agents.clients`
+### `haus.ai.clients`
 
-`list of (one of "claude", "codex", "opencode")` · see below · desktop-safe
+`list of (one of "claude", "codex", "opencode")` · default `[ ]` · desktop-safe
 
 Which coding-agent clients to install. `claude` is Claude Code, `codex`
 is OpenAI Codex, `opencode` is OpenCode. The ⌘A terminal binding starts
-whichever one `agents.default` names — Claude Code through its own
+whichever one `ai.default` names — Claude Code through its own
 `--worktree` hook, the others through `holt new`.
 
 A list rather than one bool per client, matching `developer.languages`
 — a fourth client later doesn't change this option's shape.
 
-This is the option that makes `agents.default` honest. Naming a client
+This is the option that makes `ai.default` honest. Naming a client
 you have not installed used to fail *at spawn time*, inside the pane,
 after the worktree already existed: a flash of
-`codex is unavailable`, and litter to reap. `agents.default` must now
+`codex is unavailable`, and litter to reap. `ai.default` must now
 be a member of this list, so the same mistake fails the rebuild
 instead, with both values named.
 
@@ -2008,6 +2038,15 @@ Override the package for a client the usual Nix way — an overlay on
 `claude-code`, `codex` or `opencode` — rather than dropping the client
 here and installing your own copy alongside; two derivations shipping
 the same `bin/` name collide in one profile.
+
+Ignored entirely when `ai.enable` is off — see `haus._ai.clients`, the
+resolved list every room actually installs from. Before step 4 this was
+an assertion instead ("clients are set but the room is off"), which was
+right while the list defaulted from the room's own switch and wrong
+afterwards: a desktop names the clients, so a host turning the room off
+would have had to blank the desktop's list as well to get a rebuild at
+all. One switch now removes the room, which is what "clean removal when
+disabled" means.
 
 Example:
 
@@ -2018,9 +2057,9 @@ Example:
 ]
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/ai/options.nix`](https://github.com/hausfold/haus/blob/main/modules/ai/options.nix).</small>
 
-### `haus.agents.default`
+### `haus.ai.default`
 
 `one of "claude", "codex", "opencode"` · default `"claude"` · desktop-safe
 
@@ -2030,7 +2069,7 @@ worktrees with no client recorded yet. Each spawned worktree records its
 own client, so changing this affects new work but never reopens an
 existing Codex or OpenCode task in Claude.
 
-Must be one of `agents.clients` — see there.
+Must be one of `ai.clients` — see there.
 
 Only `claude` can make its own worktree (its native `--worktree` flag,
 which fires `holt hook create`); for `codex` and `opencode` ⌘A runs
@@ -2049,15 +2088,42 @@ Example:
 "codex"
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/ai/options.nix`](https://github.com/hausfold/haus/blob/main/modules/ai/options.nix).</small>
 
-### `haus.agents.instructions`
+### `haus.ai.enable`
+
+`boolean` · default `false` · desktop-safe
+
+The AI room: coding-agent *tooling*. `holt` (agent worktrees),
+`agent-state` (the pane-status writer behind the `agents` bar pill and
+the zellij tab badge), the agent-worktree statusline, and the client
+config hearth writes (Claude Code's settings.json keys, opencode's
+agent-state plugin). Which clients get installed is `ai.clients`.
+
+On, this room brings its clients, `holt` and the lifecycle wiring on its
+own. What it adds to OTHER rooms it adds only when they are present: the
+⌘A terminal binds and the `c` alias arrive with the terminal, the
+`agents` pill with the bar, the agent commands with the launcher. None
+of those rooms is switched on by turning this one on.
+
+Off is right for any machine not running coding agents — it's a large
+surface a non-developer never sees. The neutral default installs no
+clients; a desktop that selects this room names both `ai.clients` and
+`ai.default`.
+
+Was `haus.developer.agents.enable`, and the rest of this namespace was
+`haus.agents.*`, until 2026-08-13. Neither spelling is aliased — see
+modules/moved.nix for why.
+
+<small>Declared in [`modules/ai/options.nix`](https://github.com/hausfold/haus/blob/main/modules/ai/options.nix).</small>
+
+### `haus.ai.instructions`
 
 `strings concatenated with "\n"` · default `""` · host-only
 
 Your always-on, cross-project operating context — the "instructions"
 slot every client has under a different name. Written once per client
-in `agents.clients`, to the path that client actually reads:
+in `ai.clients`, to the path that client actually reads:
 `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`,
 `~/.config/opencode/AGENTS.md`.
 
@@ -2076,7 +2142,7 @@ you wrote by hand, home-manager moves yours aside as `<file>.backup`
 rather than refusing — quiet, so check for one before the first rebuild
 after setting this.
 
-With `agents.clients` empty (a machine the rice installs no client on)
+With `ai.clients` empty (a machine the rice installs no client on)
 every known client's path is written instead of none: the list being
 empty means the rice installs none, not that no agent runs here.
 
@@ -2089,13 +2155,13 @@ Example:
 ''
 ```
 
-<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/ai/options.nix`](https://github.com/hausfold/haus/blob/main/modules/ai/options.nix).</small>
 
-### `haus.agents.skill`
+### `haus.ai.skill`
 
 `boolean` · default `true` · desktop-safe
 
-Install the `haus` skill for every client in `agents.clients`, so an
+Install the `haus` skill for every client in `ai.clients`, so an
 agent asked to "install Slack" or "make everything bigger" edits your
 host file and runs `haus rebuild` instead of guessing at dotfiles and
 `brew install`.
@@ -2116,13 +2182,13 @@ the rules in the first, a one-line import in the second, so a session
 opened there is oriented whichever client it runs.
 
 Unrelated to the clients' own settings, which follow
-`haus.developer.agents.enable`. This is a plain file drop: with
-`agents.clients` empty — a machine the rice installs no client on, which
+`haus.ai.enable`. This is a plain file drop: with
+`ai.clients` empty — a machine the rice installs no client on, which
 can still have one from npm or Homebrew — every known client's directory
 gets a copy rather than none. Set false to leave every client's skills
 directory alone.
 
-<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
+<small>Declared in [`modules/ai/options.nix`](https://github.com/hausfold/haus/blob/main/modules/ai/options.nix).</small>
 
 ## haus.accessibility
 
@@ -2193,7 +2259,7 @@ The keys the rice owns — the leader, the palette, the window-chord modifier �
 
 ### `haus.keys.leader`
 
-`one of "caps", "alt-space", "none"` · default `"caps"` · desktop-safe
+`one of "caps", "alt-space", "none"` · default `"none"` · desktop-safe
 
 What enters the launcher/leader mode — tap it, then a letter opens an
 app, a digit focuses a workspace, ⇧+either throws the focused window
@@ -2305,7 +2371,7 @@ Example:
 
 ### `haus.keys.palette`
 
-`one of "cmd-space", "alt-space", "ctrl-space", "none"` · default `"cmd-space"` · desktop-safe
+`one of "cmd-space", "alt-space", "ctrl-space", "none"` · default `"none"` · desktop-safe
 
 What opens the pounce command palette. Registered in-process by the
 daemon, so it's near-instant and doesn't go through AeroSpace.
@@ -2329,7 +2395,7 @@ Example:
 
 ### `haus.keys.windowNav`
 
-`one of "alt", "ctrl-alt", "cmd-alt", "none"` · default `"alt"` · desktop-safe
+`one of "alt", "ctrl-alt", "cmd-alt", "none"` · default `"none"` · desktop-safe
 
 The modifier vocabulary for prowl's window chords — one setting rather
 than a bind-per-action, because what people need to move is the
@@ -3443,7 +3509,7 @@ Tiling window management and the Caps-Lock leader launcher.
 
 ### `haus.prowl.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 AeroSpace tiling window management + the leader-key launcher.
 
@@ -3470,7 +3536,7 @@ Clicking the pill always displays the full dropdown with all reporting providers
 Note this is about *usage readouts*, not about which client `holt` can
 spawn: a provider reports here whenever it has data for your account —
 Codex notably does so from a ChatGPT login alone, with no CLI installed
-— so it is deliberately not tied to `haus.agents.clients`.
+— so it is deliberately not tied to `haus.ai.clients`.
 
 Example:
 
@@ -3941,7 +4007,7 @@ Example:
 
 ### `haus.sill.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 The SketchyBar menu bar. When off, the native macOS menu bar is kept
 (nebelhaus stops hiding it) and no bar is drawn.
@@ -4144,10 +4210,10 @@ What the logo pill does when clicked:
 | right click | the full pounce palette (⌘Space), which is what a bare click on this pill used to do |
 
 All three are drawn by **pounce**, so all three need
-`haus.pounce.enable` (on by default). With pounce off they are silent
-no-ops and this option is the switch that says so out loud — turn it off
-and the pill stops responding to clicks entirely, rather than looking
-like an affordance that does nothing.
+`haus.pounce.enable` (which the nebelhaus desktop turns on). With pounce
+off they are silent no-ops and this option is the switch that says so out
+loud — turn it off and the pill stops responding to clicks entirely,
+rather than looking like an affordance that does nothing.
 
 The menu's rows are not reimplemented here: each one runs the palette
 command of the same name, so fixing one fixes both places. That is the
@@ -4506,7 +4572,7 @@ Example:
 
 ### `haus.pounce.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 The pounce command palette daemon (⌘Space) + its rice commands.
 
@@ -4786,7 +4852,7 @@ The notch file shelf.
 
 ### `haus.perch.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 The perch notch file shelf, installed via the perch flake (copied to /Applications).
 
@@ -4819,7 +4885,7 @@ One quiet switch: Do Not Disturb, optional Slack status, and your hooks.
 
 ### `haus.hush.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 The hush room: one quiet switch — bar pill, palette command, and a
 `hush` CLI — that turns macOS Do Not Disturb on/off (via the
@@ -4985,7 +5051,7 @@ The first-run tutor.
 
 ### `haus.tour.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 The haus tour — a first-run tutor that walks the four moves (launch /
 navigate / resize / palette) as ONE quiet pill in the bar, advancing
@@ -5073,47 +5139,35 @@ Example:
 
 ## haus.developer
 
-The developer pack: the CLI toolbelt, Git tooling, coding-agent tooling, and language runtimes. Off is a nebelhaus machine for someone who never opens a terminal by choice.
-
-### `haus.developer.agents.enable`
-
-`boolean` · default `config.haus.developer.enable` · desktop-safe
-
-Coding-agent *tooling*: `holt` (agent worktrees), `agent-state` (the
-pane-status writer behind the `agents` bar pill and the zellij tab
-badge), `zscratch`, the agent-worktree statusline, and the client
-config hearth writes (Claude Code's settings.json keys, opencode's
-agent-state plugin). Which clients get installed is `agents.clients`.
-
-Off is right for any machine not running coding agents — it's a large
-surface a non-developer never sees. It also empties `agents.clients`,
-since a client with no `holt` to park it is not the deal on offer.
-
-<small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
+The developer pack: the CLI toolbelt, Git tooling and language runtimes. Coding agents left this pack on 2026-08-13 and are their own room now (`haus.ai.*`). Off is a nebelhaus machine for someone who never opens a terminal by choice.
 
 ### `haus.developer.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
-The developer pack: the CLI toolbelt, Git tooling, coding-agent
-tooling, and language runtimes. On (the default) is the rice as it
-has always been.
+The Development room: the CLI toolbelt, Git tooling and language
+runtimes. The neutral catalogue leaves it off; nebelhaus selects it
+in its desktop.
+
+Coding agents left this pack on 2026-08-13 and are their own room
+now (`haus.ai.*`). The two rooms are independent: a desktop or host
+selects each one explicitly.
 
 `false` is what makes a non-developer nebelhaus possible — it strips
 those tools rather than merely hiding them. What remains is the
 product: `haus`, `awake`, the theme, the terminal, the bar, the tiler
 and the palette.
 
-The sub-options below each default to THIS value, so turning it off
-turns everything off and you can then re-enable one piece:
+The Git and toolbelt sub-options below default to this value, so a
+host can turn the room on and then remove one piece:
 
-  haus.developer.enable = false;
-  haus.developer.git.enable = true;  # …but keep git
+  haus.developer.enable = true;
+  haus.developer.git.enable = false;  # …but leave Git tooling out
 
 Example:
 
 ```nix
-false
+true
 ```
 
 <small>Declared in [`modules/options.nix`](https://github.com/hausfold/haus/blob/main/modules/options.nix).</small>
@@ -5131,7 +5185,7 @@ nothing to configure.
 
 ### `haus.developer.languages`
 
-`list of value "node" (singular enum)` · default `[ "node" ] when developer.enable is true, else [ ]` · desktop-safe
+`list of value "node" (singular enum)` · default `[ ]` · desktop-safe
 
 Language runtimes to install. Currently only "node" (bun + fnm, with
 fnm's `--use-on-cd` shell hook).
@@ -5167,7 +5221,7 @@ Touch ID for sudo — including inside a terminal multiplexer — and the passwo
 
 ### `haus.collar.enable`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 The collar room: Touch ID for `sudo`, with `reattach` — the PAM shim
 that keeps the prompt working when sudo runs inside a terminal
@@ -5180,7 +5234,7 @@ rebuild below. Nothing else in the rice depends on it.
 
 ### `haus.collar.passwordlessRebuild`
 
-`boolean` · default `true` · desktop-safe
+`boolean` · default `false` · desktop-safe
 
 Exempt system activation from authenticating at all: a sudoers rule
 granting NOPASSWD to `darwin-rebuild` and `haus-activate` at their

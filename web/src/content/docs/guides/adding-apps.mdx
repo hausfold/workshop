@@ -313,8 +313,9 @@ should have them. They live in their own room — `haus.apps` — and each is
 one switch:
 
 ```nix
-# IINA, the video player. On by default; it also takes over the video file
-# types macOS hands QuickTime Player, TV and your browser.
+# IINA, the video player. Part of the nebelhaus desktop, so it is on unless
+# you say otherwise; it also takes over the video file types macOS hands
+# QuickTime Player, TV and your browser.
 haus.apps.videoPlayer.enable = false;          # don't install it at all
 haus.apps.videoPlayer.claimFileTypes = false;  # install it, rebind nothing
 ```

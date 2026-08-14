@@ -258,8 +258,8 @@ the tree.
 | **1. Room registry** | done | Expand `haus/modules/options-groups.nix` into the single registry for public-export ownership, room/shared/host classification and per-option desktop safety, without moving or renaming options. Make the host template and docs renderer consume it. | The source registry, regenerated `haus/docs/site-data/groups.json`, and a flake check that fails on an unmapped `darwinModules` export, unclassified namespace, unsafe dynamic subtree or option with no desktop-safety decision. | Every public export, namespace and transitively reachable leaf is classified; current option addresses are unchanged; generated artifacts are current; counts come from the registry rather than prose. |
 | **2. AI proof** | done | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room. Pair old and new addresses in fixtures that compare behavioral projections, warnings and plain-host-override priority. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; old and new addresses produce identical behavior and precedence, with the intended migration warning only. |
 | **3. Desktop seam** | done | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
-| **4. Carve out nebelhaus** | unblocked | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
-| **5. Retire top-level fragments** | blocked by 4 | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
+| **4. Carve out nebelhaus** | ready for review | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
+| **5. Retire top-level fragments** | unblocked | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
 | **6. Rebuild the docs journey** | blocked by 5 | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
 
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
@@ -355,6 +355,61 @@ already works.
   diagnostics table) and would run on Linux CI, but it is one check because it
   is one seam, and the behavioural half needs a real evaluated machine. Worth
   splitting only if CI ever needs the fast half alone.
+
+### Findings carried out of step 4
+
+The step landed with the closure provably unchanged, and the interesting part
+is what the inventory's "54 nebelhaus opinions" turned out to be once each one
+was actually moved.
+
+- **[3] "Opinion" was two categories wearing one name, and only one of them
+  belongs in a desktop.** A desktop decides which ROOMS it wants and which
+  machine-wide CLAIMS it makes (the global hotkeys, the root grant, the desktop
+  picture, writing themes into apps the rice never installed). The tuned values
+  INSIDE a room — the bar's pills and position, the launcher's `compact`, the
+  wallpaper's grain and mark — stayed put, because the model already requires a
+  room to be "neutral and useful when enabled" and a bar that is drawn badly is
+  not neutral, just worse. The split also keeps retuning to one edit: values
+  restated in a desktop drift the first time only one copy is changed. The
+  desktop file is ~25 lines because of this, not because anything was missed.
+- **[3] Three inventoried "opinions" cannot be carved out at all today, and
+  each one is a room that would become BROKEN rather than unopinionated.**
+  `fonts.mono.name` must stay a patched Nerd Font or starship, lsd, yazi and
+  half the bar render tofu — which family is taste, being patched is a
+  requirement. `hearth.editor` is host-only (it is executed) AND the layer
+  installs helix unconditionally, so `hx` is what the room ships; a
+  desktop-safe enum was written and deleted, because every value in it except
+  `hx` named an editor nothing installs. The zellij interaction pair is
+  in-room behaviour of a terminal the layer always ships. Step 5 or 6 should
+  decide whether a desktop may choose which EDITOR and FONT get installed —
+  that is the real fix, and it is vocabulary work rather than a default flip.
+- **[3] Only the tuned font SIZE moved, and it needed a new option to move
+  safely.** `fonts.mono.size` defaults to `19 * ui.scale`, so a desktop setting
+  `size = 19` would have pinned it and silently stopped `ui.scale` — and the
+  large-print preset with it — from moving the terminal font, while everything
+  else still grew. `haus.fonts.mono.baseSize` carries the baseline instead and
+  the scale relationship survives.
+- **[3] A room's switch has to be able to REMOVE the room, which an assertion
+  cannot do once a desktop is writing the values.** `ai.clients` was guarded by
+  "clients are set but the room is off" — correct while the list defaulted from
+  the room's own switch, and wrong afterwards: with the desktop naming three
+  clients, a host setting `ai.enable = false` got a failed rebuild instead of a
+  machine without agents. It resolves through an internal `haus._ai.clients`
+  now. Expect the same shape wherever a desktop names a LIST that a room's
+  switch is supposed to empty.
+- **[2] A fixture can go vacuous the moment a default flips, and nothing says
+  so.** `test/desktops/valid-sample.nix` set `sill.enable = false` to prove a
+  desktop outranked a `true` room default. Step 4 made `false` the default, so
+  the row asserted nothing and would have passed with the desktop seam entirely
+  disconnected. It is `true` now. Worth a sweep of the other fixtures whenever
+  a default moves under them.
+- **[2] `nix fmt` reformats whole files, so it cannot be run casually on this
+  repo mid-change.** It rewrote ~700 unrelated lines of
+  `modules/hearth/default.nix` around a one-line edit. Format the touched files
+  with `nixfmt` directly, or the diff stops being reviewable.
+- **[1] The docs asserted layer-wide defaults in prose.** Three guides said a
+  room was "on by default" — true of nebelhaus, false of `haus` now. Fixed in
+  the same change; the generated options reference regenerates itself.
 
 ### Agent status report
 
