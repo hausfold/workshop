@@ -76,9 +76,11 @@ only when every reachable sub-option is classified and safe. Freeform attrsets,
 as commands default to host-only unless an explicit recursive validator narrows
 their payload. A parent marked safe never blesses unknown dynamic children.
 
-The current generated reference treating every namespace as one of “35 rooms”
-is an implementation accident to replace with this registry and per-option
-desktop metadata.
+The generated reference used to treat every namespace as one of “35 rooms”,
+which was an implementation accident rather than a model. Step 1 replaced it
+with this registry and per-option desktop metadata, and step 6 taught the
+reference to render both — the room a person meets, and the namespace their
+host file spells.
 
 ## The room catalogue
 
@@ -260,7 +262,7 @@ the tree.
 | **3. Desktop seam** | done | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
 | **4. Carve out nebelhaus** | done | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
 | **5. Retire top-level fragments** | done | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
-| **6. Rebuild the docs journey** | ready for review | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
+| **6. Rebuild the docs journey** | done | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
 
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
 the nebelhaus values that replace them and the compatibility selection must land
@@ -513,6 +515,82 @@ die quietly: the pages still said "preset", still told a consumer to reach for
   rename until the navigation moved; it now 301s to `/docs/haus/desktops/creating`
   along with everything else, and its content was split — writing a desktop is
   one page, publishing one is another.
+
+## What carries past step 6
+
+Step 6 closed on 2026-08-14 with haus#344 and hausfold.co#30 merged, so the
+plan's six steps are all done and nothing is in flight. Its gate was re-checked
+against `main` rather than against the PRs: `options drift` is green on
+hausfold.co's `main` after both merges, the sidebar lists five Desktops pages
+and then thirteen under Rooms (the twelve, plus the `agent-rebuilds` guide —
+see below), `/docs/haus/guides/sharing-a-rice/` 301s,
+`/docs/haus/rooms/displays/` and `/docs/haus/desktops/choosing/` are 200, and
+`docs/site-data/groups.json` on haus `main` carries 14 registry entries —
+twelve `"kind": "room"` plus one shared and one host — over 36 namespaces and
+253 options. Every page that states a room count says twelve; that the
+reference agrees with haus rather than with a snapshot is what the `options
+drift` job guarantees from here on.
+
+The plan therefore has no step 7. What follows are the findings from earlier
+steps that no step ever owned, re-verified against merged `main` today so the
+next agent starts from the tree rather than from the prose. Each is a
+standalone change; none of them blocks another.
+
+- **[3] Nothing owns "may a desktop choose the editor?"** Step 4 handed this to
+  "step 5 or 6" and neither took it. Half of it resolved on its own:
+  `haus.fonts.mono.name` and `.packageName` are `desktopSafe: true` in the
+  merged registry, so a desktop CAN name a font family — the patched-Nerd-Font
+  rule is a requirement at the option, not a trust boundary. The editor half is
+  untouched: `haus.hearth.editor` is `desktopSafe: false` because its value is
+  executed, and Development installs helix unconditionally, so no desktop can
+  say "this Mac is a neovim Mac". The fix is a room-owned enum whose values name
+  editors the room actually installs — a new option plus packages, not a safety
+  flip on the existing one.
+- **[2] A desktop still outranks a pack the consumer composed themselves.**
+  Verified in merged `flake.nix`: `desktopPriority = 900`, while `lib.pack`
+  carries its file in at per-leaf `mkDefault` (1000). Step 3 left it alone as
+  unobservable and it still is, but only by luck — `desktops/nebelhaus.nix` sets
+  no `haus.roster`, so the first desktop that names an app silently beats a pack
+  the host explicitly imported. Moving the pack seam to a priority between 100
+  and 900 is one token; the fixture that can see the difference is the work.
+- **[2] The generated reference names a validator; the key rule it enforces is
+  hand-written prose somewhere else.** `groups.json` ships `haus.displays` as
+  `{"desktopSafe": "recursive", "validator": "display-selectors"}`. A reader is
+  not stranded — `/docs/haus/desktops/creating/` explains in words that a
+  display UUID is host-only and that attrsets carry per key — but exactly one of
+  those two statements is generated, so they can now drift apart. Step 3
+  predicted this against step 6; step 6 rendered rooms and left it standing.
+- **[2] The AI room's payload still lives in `den` and `hearth`.** `modules/ai`
+  is still `default.nix` + `options.nix` — ownership, assertions and
+  contributions only. Step 2 deferred the move until a comparator could prove it
+  free; `desktop-projection` has existed since step 4, so `holt`, `agent-state`,
+  the statusline and the client/hook files can now move under proof.
+- **[2] The bar spells one gate three ways.** `contributed`,
+  `name != "hush" || config.haus.hush.enable` in `bottomGroup`, and `topHush`
+  all answer "does this pill's source exist?" — checked, and there is no bug:
+  `topHush` covers the top bar that `bottomGroup`'s filter does not. The cost is
+  that the next contributed pill has to be remembered in two places.
+- **[2] Extension points are still only the three the AI room needed.** Windows'
+  workspace pills, Focus's controls and Bar's reserved space from Windows still
+  read each other's config directly. Worth generalising on the next room that
+  needs one, not speculatively — unchanged from step 2's judgement.
+- **[2] The landing page's section order is still 👤's call.** The page closes
+  with haus rather than explaining it second, and says why in a comment. The
+  model-agreement half of step 6 landed; only the ordering is open.
+- **[1] `/docs/haus/rooms/agent-rebuilds/` is in the Rooms group and is not a
+  room.** Twelve room pages plus one guide share the prefix. Harmless, and
+  exactly the kind of thing a catalogue-shaped navigation makes visible — step
+  6's own finding about missing pages, running the other way.
+
+Two earlier findings are NOT in that list, and both deserve a sentence rather
+than a silent disappearance. Step 3's "Blank still has to decide about the AI
+room" is **closed**: `desktops/blank.nix` is `{ haus = { }; }`, step 4 made
+`haus.ai.enable` default `false`, and `flake.nix`'s `standaloneModule` comment
+now says why `modules/ai` stays in the foundation — an unwritten extension point
+is inert, so Blank carrying the module costs nothing. Step 3's "the seam's check
+is darwin-only" is **still true and deliberately dropped**: splitting the pure
+half out is only worth doing if CI ever needs the fast half alone, and it never
+has.
 
 ### Agent status report
 
