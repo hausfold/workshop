@@ -82,6 +82,82 @@ already exist, and one it treated as a detail is the actual root blocker.
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-14 (eighteenth pass) — §5.12 is built out to its last 👤
+> box, and the guard that existed to make its sharpest edge unhittable was
+> asking the wrong question in both directions at once.**
+>
+> Three boxes flipped ([haus#356](https://github.com/hausfold/haus/pull/356)),
+> carrying four things: the `reachability = "needs-fda"` designation, the option
+> coverage that makes it enforceable (inside the first box), the strict guard,
+> and the `com.apple.Accessibility` prohibition turned from a rule into a table
+> row. §5.12's fourth box stays open and stays 👤 — the
+> `mouseDriverCursorSize` / `closeView*` eye-check.
+> `modules/lib/reachability.nix` is the
+> sibling of `restart-map.nix` — restart-map says what makes a write *felt*, this
+> says whether the write can *land* and whether it *means* anything.
+>
+> **★ The finding: a guard that identifies its caller is guessing; a guard that
+> tests the capability is checking.** `haus rebuild` refused to run when a config
+> set `system.defaults.universalaccess.*` — the shape that aborts activation
+> two-thirds in and takes every launchd service with it — and its first line was
+> `under_agent || return 0`. That let **two of the three clients through**
+> (`under_agent` tests `CLAUDECODE`; ⌘A spawns Codex and OpenCode too, and
+> neither sets it) *and* **waved through the human it was protecting** (a person
+> in a terminal nobody granted FDA hits the identical abort, unwarned), while
+> refusing an FDA-holding Claude pane that was always going to work. One
+> predicate is wrong twice. The fix deletes the question: does this config write
+> an unguarded TCC-protected domain, and can *this process* write it — the same
+> answer the machine is about to give anyway. The wrong shape came from a true
+> observation ("the agent broke it") promoted to the wrong rule ("agents break
+> it").
+>
+> **★ Strictness needed coverage, and neither would have shipped alone.** The
+> reason anybody reaches for the hazardous spelling is that the safe one didn't
+> reach their key: `reduceMotion` and `reduceTransparency` are nix-darwin-typed,
+> so until this pass the documented way to set them was the one that breaks the
+> machine. `haus.accessibility` now covers all four measured-effective keys, so
+> refusing the raw form never refuses a setting that had no safer way to be said.
+> A guard that forbids the only route is a guard people route around.
+>
+> **★ The table generates the option surface rather than being checked against
+> it.** `lib.genAttrs` over the `effective` keys, so the two cannot disagree in
+> either direction — a key promoted with no prose fails at eval, prose for a key
+> the table doesn't back is refused. It also reverses a judgement this file made
+> in §5.1: *"that designation never became a typed field, and on this evidence
+> probably shouldn't."* True at one copy, false at six, and nothing about writing
+> the second copy tells you which world you're in. **A fact stated twice is a
+> style choice; the same fact stated six times is a table you haven't written
+> yet.**
+>
+> Verified by running it: 22 `nix flake check` checks green, the host-template
+> settability step run locally, `bench try` against `mbp`, `haus doctor` run from
+> the branch, and — the check that matters — four synthetic configurations built
+> to four *distinct* store paths, each grepped for the announcement den renders:
+> nothing declared → silence, `haus.accessibility.*` → `needs-full-disk-access`,
+> raw `system.defaults.universalaccess.*` → `aborts-without-full-disk-access`,
+> `com.apple.Accessibility` captured → `writes-but-does-nothing`. Distinct
+> derivations rather than a mutate/revert loop, which sidesteps the `path:`
+> override's root-mtime trap entirely. `plan_permissions` and all five guard
+> branches are pinned in `test/haus-plan.sh`; writing those tests turned up one
+> more thing worth knowing — bash scopes dynamically, so a stub reading `$keys`
+> saw the *function under test's* `local keys`, and every case passed for the
+> wrong reason until it was renamed.
+>
+> **The docs cost was cross-repo, and the assurance pass is what found it.**
+> Three hausfold.co pages described the guard as agent-scoped in enough detail
+> to be actively misleading — one told a reader in an ungranted terminal that
+> the refusal they had just hit could not happen to them
+> ([hausfold.co#41](https://github.com/hausfold/hausfold.co/pull/41), which
+> **must merge after** haus#356: its `options-drift` job checks out
+> `hausfold/haus` main). Worth generalising: a behaviour change whose whole
+> subject is "who does this apply to" will have been *explained* somewhere, and
+> the explanation is where the reversal actually bites.
+>
+> Also recorded: **`?Privacy_Automation` lands on the right pane on macOS 26**,
+> confirmed by hand — one of the three deep links the seventeenth pass left as an
+> eye-check. The other two, and §5.6's `lock`/`menuBar` eye-check, are still open
+> and still 👤.
+
 > **Status, 2026-08-14 (seventeenth pass) — §5.11 is closed, and the box this
 > file called "low priority, a belt on a check" was hiding a silent break in
 > the user's home directory.**
@@ -159,6 +235,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > and left where this file always leaves it: whether the three deep links still
 > land on the right System Settings panes on macOS 26 — `open` accepts the URLs,
 > but the pane is an eye-check, alongside §5.6's still-open `lock`/`menuBar` one.
+> (One of the three has since been confirmed by hand: `?Privacy_Automation`
+> lands correctly on 26. `?Privacy_Accessibility` and `?Privacy_AllFiles` are
+> still unchecked.)
 >
 > **Status, 2026-08-08 (sixteenth pass) — §5.6's last unspiked box is closed:
 > Sound, Locale/input sources and Power are all reachable, and the reason given
@@ -354,8 +433,13 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `haus set` rebuilds per call, so two calls is two rebuilds *with the machine
 > sitting in the half-done state in between*. Driving System Events also needs an
 > Automation grant, degrading to a named warning — the same reachability shape as
-> `accessibility.increaseContrast`'s FDA caveat, which §5.12 already decided not
-> to promote into a typed field.
+> `accessibility.increaseContrast`'s FDA caveat. (§5.12 had decided not to promote
+> that into a typed field; it reversed on 2026-08-14, so Automation is now the
+> obvious second row for `modules/lib/reachability.nix` — a `needs-automation`
+> reachability whose `guardedBy` is `haus.theme.systemAppearance`. Not built:
+> nothing measures an Automation grant without prompting, which is the same wall
+> `haus doctor`'s Automation row already hit, so the table would carry a
+> designation with no reader for it yet.)
 > **Status, 2026-08-08 (fourteenth pass) — an audit pass, not a shipping one.
 > Nothing new was built; two claims in this file were wrong, the phase summary
 > had drifted from the sections it summarizes, and this pass's own first finding
@@ -582,8 +666,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `com.apple.WindowManager` (all of "Windows") are both declared `"logout"` in
 > the restart map, with no live-reload path on macOS 26. Rather than ship them
 > anyway with a "requires logout" note in the description — which the codebase
-> has no established pattern for yet, unlike `nebelhaus.accessibility`'s FDA
-> note — both are left out entirely, and §5.6's table now says so in place of
+> had no established pattern for at the time, unlike `haus.accessibility`'s FDA
+> note (there is one now: `modules/lib/reachability.nix`, §5.12) — both are
+> left out entirely, and §5.6's table now says so in place of
 > the group. **Sound**, **Locale/input sources** and **Power** are left out for
 > the opposite reason: no domain for any of them has been spiked for effect on
 > this machine at all (typed or not), so there is nothing yet to curate
@@ -644,7 +729,18 @@ already exist, and one it treated as a detail is the actual root blocker.
 > pinned nebelhaus flake input they cannot edit. Fixed the same PR, one commit
 > later: an undeclared domain is now `warnings`, matching the pattern the
 > `universalaccess` block already uses just below it in the same file — "don't
-> block a config that would otherwise work." **A generalized check still needs
+> block a config that would otherwise work."
+> *(The cited precedent has since moved: `universalaccess` **does** block now,
+> at `haus rebuild` rather than at eval — §5.12, 2026-08-14. The rule is
+> unchanged and this is the same rule applied, not an exception to it: that
+> config would **not** otherwise work, it would abort activation partway and
+> strand the machine, and the block arrives before anything is built with an
+> escape hatch beside it. An undeclared restart-map domain, by contrast, still
+> works perfectly — it just waits for a logout — so it stays a warning. What
+> the tenth pass got right is what decides both: **ask who the check can fail
+> on.** For universalaccess the answer is "someone whose rebuild was going to
+> fail anyway, one step later and much worse".)*
+> **A generalized check still needs
 > to ask who it can fail on**, not just whether it fires correctly — the same
 > lesson §5.14 has drawn from drift before, from the opposite direction (a
 > check too soft to catch anything) rather than this one (a check hard enough
@@ -1319,6 +1415,13 @@ after — zero net change to the machine.
       → nebelhaus **warns** (nebelhaus#89 — a warning, not an assertion: with FDA
       these work, so blocking would be wrong), and it's reported on
       [nix-darwin#1049](https://github.com/nix-darwin/nix-darwin/issues/1049).
+      → ◐ **Amended 2026-08-14 (§5.12).** The eval-time warning stands, unchanged
+      and for exactly this reason. What was added beside it is a check at a
+      different moment: `haus rebuild` now refuses to *run* when the config sets
+      this domain raw and the current app can't write it. Not a contradiction —
+      the warning is right that blocking a config that WORKS would be wrong, and
+      the refusal only ever fires on the machines where it demonstrably doesn't.
+      Escape hatch: `HAUS_FDA_ANYWAY=1`.
 
 ---
 
@@ -1588,15 +1691,28 @@ nebelhaus.theme = {
       falsified, but a box whose *marker and body disagree with each other*.
       The sweep proved `increaseContrast` (and `differentiateWithoutColor`) write
       *and take effect*, and neither is typed by nix-darwin, so they're reachable
-      via `system.defaults.CustomUserPreferences."com.apple.universalaccess"` with
-      no upstream change. Both are real options now —
-      `nebelhaus.accessibility.increaseContrast` and `.differentiateWithoutColor` —
+      with no upstream change (~~via
+      `system.defaults.CustomUserPreferences."com.apple.universalaccess"`~~ — as
+      it turned out, via a guarded write of the layer's own; see §5.12's sweep
+      box for why that route and not this one). Both are real options now —
+      `haus.accessibility.increaseContrast` and `.differentiateWithoutColor` —
       and `presets/large-print.nix` sets the first, which is what makes that preset
       reach *native* apps and not only the tools nebelung themes. It degrades
       exactly as required: the palette half works for everyone, the OS half
       sharpens it where FDA is granted, and the option's own description carries
-      the reachability caveat in prose (see §5.12 — that designation never became a
-      typed field, and on this evidence probably shouldn't).
+      the reachability caveat in prose.
+      → ~~"That designation never became a typed field, and on this evidence
+      probably shouldn't."~~ ❌ **Reversed 2026-08-14 (haus#356, §5.12)** — it is
+      a table now, and the evidence this rested on was the wrong evidence. Prose
+      in one description genuinely *was* enough for one option; the cost only
+      appeared at six copies (den's warning, den's domain list, hearth's skill,
+      `haus rebuild`'s guard, `haus doctor`'s row, and the paragraph itself), and
+      nothing about writing the second one tells you which of those two worlds
+      you are in. **A fact stated twice is a style choice; the same fact stated
+      six times is a table you haven't written yet.** Worth keeping as a
+      counter-example to this document's own instinct to defer structure until
+      it's obviously needed — by then the copies exist and each is separately
+      true and separately maintained.
 
 ### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done**
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
@@ -1693,10 +1809,25 @@ contrast.
       That's the first entry in §4's restart map, written by hand rather than as
       the map.
 - [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
-      Sill's transitions directly. The macOS reduce-motion knob is locked
-      (§4), so there is nothing to delegate to.
-- [ ] ~~`cursorScale`~~ **cut** — `mouseDriverCursorSize` is in the locked
-      `universalaccess` domain. Cursor size is `haus doctor` checklist only.
+      Sill's transitions directly. ~~The macOS reduce-motion knob is locked
+      (§4), so there is nothing to delegate to.~~ ❌ **The rationale is dead**
+      (§5.12, 2026-08-14): the domain was never locked, only FDA-gated, and
+      `haus.accessibility.reduceMotion` is a shipped option. So there IS
+      something to delegate the OS half to — which changes what this box is
+      for rather than closing it: prowl's and sill's own animations are still
+      ours alone, and the token's job becomes *composing* the two (does
+      `motion = "none"` set the macOS flag, or only say it pairs well with it?).
+      Note the flag's blast radius before deciding — it is what every browser
+      reads as `prefers-reduced-motion`, so a semantic token switching it on is
+      a bigger promise than it looks.
+- [ ] ~~`cursorScale`~~ ~~**cut** — `mouseDriverCursorSize` is in the locked
+      `universalaccess` domain.~~ ❌ **Cut for a false reason** (§5.12,
+      2026-08-14). The domain isn't locked, `mouseDriverCursorSize` is typed by
+      nix-darwin, and `modules/lib/reachability.nix` carries it as
+      `"unconfirmed"` — the write persists, nobody has ever watched the cursor
+      afterwards, and no oracle exists to watch it for you. So this is **blocked
+      on a 👤 eye-check, not cut**: look at the cursor at `3.0`, and promoting
+      the key in the table is then a one-word edit that generates the option.
 - [x] ✅ **Sill: the type scales to a CEILING and stops — a different shape of
       answer, and the more interesting one.** Everything else here was a multiplier
       a tool was missing; the bar is not that. `sketchybarrc` pins `height=36` with
@@ -2105,7 +2236,7 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 | **Locale / input sources** | ✅ **`haus.locale.*` — rice#267.** `language`, `region`, `metric` (writes both unit keys), `temperature`, `hourFormat`, `inputSources` (exhaustive; via the TIS API). Needed restart-map's third verb, `notify:<name>` — this family has no daemon to kill, so a write reaches newly launched processes only until `AppleDatePreferencesChangedNotification` is posted. No `firstWeekday`: that key is stored and ignored |
 | **Power** | ✅ **`haus.power.*` — rice#267.** Sleep timers and Low Power Mode, per power source, as a `pmset` activation step — the `security.firewall` family rather than the `system.defaults` one. Deliberately NOT on nix-darwin's typed `power.sleep.*`: measured on 26.6.1, `systemsetup -setcomputersleep` wrote the AC profile while the machine was on battery, with its stderr discarded upstream (reported) |
 | **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
-| **Animations** | ✅ **`haus.animations` — rice#286.** Five keys across two already-verified domains: the Dock's `autohide-time-modifier` / `expose-animation-duration` / `launchanim` / `mineffect`, plus `NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`. Defaults to `"system"` = write nothing, same as every other row — it was drafted the other way round and reversed before merge; see the policy note below for what that cost would have been. Two firsts worth knowing: it's the only group with no per-key spike (there is no oracle for "did the Dock slide faster" — the keys are felt, not measured), and its NSGlobalDomain half is read by each app AT LAUNCH, so running apps keep animating until relaunched. What it deliberately is NOT is `universalaccess reduceMotion`: that flag is what every browser reads as `prefers-reduced-motion`, via the same `NSWorkspace` property `hausax` prints — so the negative claim is checkable (`hausax \| jq .reduceMotion` stays `false`) even though the positive ones aren't |
+| **Animations** | ✅ **`haus.animations` — rice#286.** Five keys across two already-verified domains: the Dock's `autohide-time-modifier` / `expose-animation-duration` / `launchanim` / `mineffect`, plus `NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`. Defaults to `"system"` = write nothing, same as every other row — it was drafted the other way round and reversed before merge; see the policy note below for what that cost would have been. Two firsts worth knowing: it's the only group with no per-key spike (there is no oracle for "did the Dock slide faster" — the keys are felt, not measured), and its NSGlobalDomain half is read by each app AT LAUNCH, so running apps keep animating until relaunched. What it deliberately is NOT is `universalaccess reduceMotion`: that flag is what every browser reads as `prefers-reduced-motion`, via the same `NSWorkspace` property `hausax` prints — so the negative claim is checkable (`hausax \| jq .reduceMotion` stays `false` — on a machine that hasn't also set `haus.accessibility.reduceMotion`, which is the option that DOES move it, added in §5.12) even though the positive ones aren't |
 | **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
 The first two shipped settled the group's **default policy**, which was the real
@@ -2184,7 +2315,7 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   matrix's `mouseDriverCursorSize`/`closeViewScrollWheelToggle` rows: wired and
   plausible, not yet watched.
 - [ ] Give the login half of "Lock / login / screensaver" and Windows an honest
-  way to say "takes effect at next login" (the way `nebelhaus.accessibility`
+  way to say "takes effect at next login" (the way `haus.accessibility`
   says "needs Full Disk Access") — that's what unblocks building them, not a
   fix to the domain itself, since neither has a live-reload path on macOS 26.
   → **◐ Half of it exists since haus#353** (§5.11): activation announces every
@@ -2194,6 +2325,17 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   description, before anyone builds anything. The FDA note it points at is a
   property of the option; this is a property of the rebuild. Building these two
   groups needs both.
+  → ★ **And the other half now has a worked example to copy, from the analogy
+  this box was already drawing.** §5.12 (haus#356) built exactly that shape for
+  Full Disk Access: one table
+  ([`modules/lib/reachability.nix`](https://github.com/hausfold/haus/blob/main/modules/lib/reachability.nix)),
+  which *generates* the affected options rather than being checked against them,
+  and which den also renders into the built activation script for `haus plan`
+  and `haus doctor` to read back. `restart-map.nix` could carry `logout` the same
+  way — the missing piece was never the data, it was a description that can't
+  drift from it. What §5.12 additionally proves is the failure mode to design
+  against: the FDA note lived as prose in six places before it lived in a table,
+  and every one of them was separately true and separately maintained.
 - [x] Spike Sound, Locale/input sources and Power the way §4 spiked
       universalaccess/dock/finder/etc — **done 2026-08-08**, three probes on the
       shelf (`notes/probes/{sound,locale,power}-sweep.sh`) plus two oracles
@@ -2516,32 +2658,136 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       sentence and wrong that none was needed for the second: a verb that renders
       to nothing has nothing for a reader to find.)*
 
-### 5.12 Accessibility — ✅ **back on the table, with an FDA caveat** · M
+### 5.12 Accessibility — ◐ **designed and built 2026-08-14 in haus#356; one 👤 eye-check left open** · M
 Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
 **if the app invoking the rebuild holds Full Disk Access**. So the option tree is
 viable, but the caveat is load-bearing and has to be designed *into* it.
 
-- [ ] Model these as **`reachability = "needs-fda"`** options (§5.6's designation
-      scheme), not as ordinary settings. A rice that silently behaves differently
-      on two machines is exactly the failure a shared-rice format must not have.
+- [x] ✅ Model these as **`reachability = "needs-fda"`** options (§5.6's
+      designation scheme — the box's own words, though §5.6 never names one;
+      what it has is the metadata block at the end of the section and
+      `restart-map.nix` as its realisation, and *that* is what got copied), not
+      as ordinary settings. A rice that silently behaves
+      differently on two machines is exactly the failure a shared-rice format must
+      not have. **Shipped as `modules/lib/reachability.nix`**, deliberately the
+      same shape as `restart-map.nix` and read the same way: restart-map answers
+      "what makes this write felt", this one answers "can the write land, and does
+      it mean anything" (`reachability` = open / needs-fda, `guardedBy` = which
+      option route survives a refusal, and a per-key `effect` of
+      effective / unconfirmed / gui-only / noop). Three consumers, no second copy:
+      den derives from it, den's activation script **announces the verdict**, and
+      `haus plan` / `haus doctor` / `haus rebuild`'s guard grep that announcement
+      out of the built script — §5.11's discipline, applied to a second table.
+      ★ **The table doesn't just describe the option surface, it generates it.**
+      `haus.accessibility` is `lib.genAttrs` over the `effective` keys, so the two
+      cannot disagree in either direction: a key promoted in the table with no
+      prose fails at eval saying so, and prose for a key the table doesn't back is
+      refused the same way. The one thing left by hand is the description, which
+      is the one thing a table can't hold. That is what a designation scheme buys
+      over a comment — the six hand-copies of "this domain needs FDA" that existed
+      before (den's warning, den's domain list, hearth's skill section, the
+      guard, doctor's row, and the paragraph pasted into every description) are
+      one fact now.
+      → **It also went the other way, and that was the point.** The surface grew
+      from two options to four — `reduceMotion` and `reduceTransparency` join
+      `increaseContrast` and `differentiateWithoutColor` — not for completeness
+      but for safety: both are nix-darwin-**typed**, so until now the documented
+      way to set them was `system.defaults.universalaccess.*`, the unguarded route
+      that aborts activation. **The reason anyone writes the dangerous form is
+      that the safe form didn't reach their key**, which is what made the guard
+      below un-strictenable. Every measured-working key having a guarded option is
+      the precondition for refusing the raw one, not a separate nicety.
+      *(One shipped decision reversed on the way: `haus.animations`' description
+      said reduced motion was "deliberately not a rice option". The scope
+      argument it was making — that five Dock timing keys are not the
+      accessibility flag — survives intact and is now easier to make, because the
+      flag has an option of its own to point at.)*
 - [x] ✅ **`haus doctor` detects FDA — shipped in rice#128** (`has_fda()`, a
       strict `head -c1` read of the TCC database; no `ls` fallback, which is the
       bug that cost a whole spike). It went further than this box asked: the same
       predicate guards `haus rebuild`, so the warning arrives *before* the
       activation it would abort rather than after.
-- [ ] **Do not** add options that write `com.apple.Accessibility` — that domain
-      writes and does nothing. Still true, still the worst failure mode.
-- [ ] ⚠️ **Agent asymmetry:** Claude Code lacks FDA, Ghostty has it. Any of these
-      options set in a host makes agent-driven `haus rebuild` abort activation
-      while manual rebuilds succeed. Whatever `haus doctor` says, this needs to be
-      impossible to hit by accident — it's the sharpest edge in the whole set.
+- [x] **Do not** add options that write `com.apple.Accessibility` — that domain
+      writes and does nothing. Still true, still the worst failure mode — and
+      **as of haus#356 it is encoded rather than remembered**: the table carries
+      the domain with `effect = "noop"`, the option generator refuses any key the
+      table doesn't call `effective`, and a host that reaches the domain anyway
+      (only possible through `haus capture` into its own `CustomUserPreferences`)
+      gets a build warning plus a `writes-but-does-nothing` line in `haus plan`.
+      Worth stating why it needed more than the prohibition: this is the one
+      failure a read-back check *cannot* catch, because the plist reads back
+      exactly right on a machine that never moved. A rule nobody can verify by
+      looking is a rule that needs a table.
+- [x] ✅ ⚠️ **Agent asymmetry** — the sharpest edge in the set, and **closed by
+      deleting the question the guard was asking**. Any of these options set in a
+      host used to make an agent-driven `haus rebuild` abort activation while a
+      manual one succeeded; `haus rebuild` had grown a guard for it, and the guard
+      was wrong in **both** directions:
+      - **It let three quarters of the agents through.** Its first line was
+        `under_agent || return 0`, and `under_agent` tested `CLAUDECODE`. ⌘A
+        spawns whichever client `haus.ai.default` names — Codex and OpenCode set
+        no such variable, so the one config shape that breaks a machine sailed
+        straight past the check written to catch it.
+      - **It waved through the human it was protecting.** A person in a terminal
+        nobody has granted FDA hits the identical abort and got no warning at
+        all — while a Claude pane *inside* an FDA-holding terminal, which was
+        always going to work, was the case it stopped. (Measured while closing
+        this: the pane that wrote it holds FDA by inheritance, so the guard's own
+        author was in the class it refused.)
+      ★ **The predicate that matters names no client and no persona:** does this
+      configuration write an unguarded TCC-protected domain, and can *this
+      process* write it. Agent or human, terminal or `.app`, same question, same
+      answer — and it is the same answer the machine is about to give anyway.
+      That is the general lesson, and it is not about accessibility: **a guard
+      that identifies its caller is guessing; a guard that tests the capability
+      is checking.** The old shape came from a true observation ("the agent
+      broke it") turned into the wrong predicate ("agents break it").
+      → What made strictness *affordable* is the first box above: with every
+      measured-working key reachable through a guarded option, refusing the raw
+      form almost never refuses a setting that had no safer spelling. Strictness
+      and coverage had to ship together — either alone would have been worse
+      than neither.
+      → **"Almost" is load-bearing, and it is the right residue.** nix-darwin
+      also types the three keys the box below leaves `unconfirmed`
+      (`mouseDriverCursorSize`, `closeViewScrollWheelToggle`,
+      `closeViewZoomFollowsFocus`), so the raw form still reaches something the
+      options don't, and the guard still refuses it without the grant. The
+      alternative was shipping an option whose only claim is that the plist held
+      the value — which is the thing this section has refused three times. So the
+      friction sits on the unmeasured keys, costs one rebuild from a granted
+      terminal, and disappears the moment someone looks at a cursor. The warning
+      and the refusal both name those three rather than implying full coverage;
+      the first draft of both claimed it, which is why this bullet exists.
+      → And "impossible to hit by accident" is now three layers, none of which
+      is a doc: the safe route covers every key, the hazardous one is refused
+      before anything is built, and `haus plan` says which grant a rebuild wants
+      *before you run it* — a reader that greps the built script without
+      executing it, which is the only honest place to report a permission you
+      may not have.
 - [x] Swept 2026-07-25. **`increaseContrast` and `differentiateWithoutColor`
-      write and take effect**, and neither is nix-darwin-typed → reach them via
-      `CustomUserPreferences`. `increaseContrast` is the OS-level half of the
-      high-contrast rice (§5.1), available with no upstream change.
+      write and take effect**, and neither is nix-darwin-typed → ~~reach them
+      via `CustomUserPreferences`~~. `increaseContrast` is the OS-level half of
+      the high-contrast desktop (§5.1), available with no upstream change. All
+      four keys the sweep proved are options now (`reduceMotion` and
+      `reduceTransparency` joined in §5.12).
+      → ❌ **The route is not `CustomUserPreferences`, and typed-vs-untyped was
+      the wrong axis to pick it on.** *None* of the four goes through
+      `system.defaults` at all: the layer emits its own `defaults write` for the
+      whole domain, in `modules/den/default.nix`'s `nebelhausAccessibility`
+      block. `CustomUserPreferences` would have funnelled through the identical
+      nix-darwin generator as a typed option — an **unguarded** write inside a
+      script running under `set -e` — so the untyped route carries exactly the
+      hazard the typed one does. What actually decides the route is **whether a
+      refusal is survivable**, which no amount of looking at nix-darwin's option
+      list would have told you.
 - [ ] `mouseDriverCursorSize` / `closeView*` persist but their **effect is
       unconfirmed** — no oracle exists, so they need an eyeball before
-      `ui.cursorScale` comes back.
+      `ui.cursorScale` comes back. **Still open, and now recorded where it
+      binds**: `modules/lib/reachability.nix` carries all three as
+      `"unconfirmed"`, and the option generator only builds from `"effective"`,
+      so promoting one is a one-word edit that then *demands* a description —
+      the eyeball is the only remaining step, not the plumbing. 👤 Julien's, on
+      real hardware: set the key, look at the cursor / try ^+scroll.
 - [x] **`FontSizeCategory` resolved, and it's narrower than hoped.** Real
       vocabulary is `DEFAULT` / `AX1`… (read back after setting Text size in
       System Settings — my earlier `LARGE` guess would have been stored and
@@ -3124,7 +3370,11 @@ that visible, and turned up two things that were already broken:
       2026-08-14 (haus#353)** — and one of them was not rendering: the restart
       map's `logout` verb rendered to nothing, so den had to emit the line before
       `plan` could read one. §5.11 has no open box left.
-- [ ] §5.8 scenes · §5.12 accessibility doctor checklist
+- [ ] §5.8 scenes · ~~§5.12 accessibility doctor checklist~~ — **§5.12's build
+      is done as of 2026-08-14 (haus#356)**: the doctor half was already in
+      (rice#128), and the designation, the option coverage and the guard landed
+      together. What is left of §5.12 is one 👤 eye-check, so §5.8 is the only
+      thing on this line still needing code.
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
       workshop#135/#137
 
@@ -3212,7 +3462,13 @@ the remaining work sits changed shape:
 - Phase 4 is emptier than it looks: §5.9's pounce half is fully landed on both
   sides now, so what's left there is `sill.widgets` and command metadata.
 - Phase 5's §5.12 has its doctor half, so the accessibility line item is now
-  purely about the remaining unmeasured keys.
+  purely about the remaining unmeasured keys. **Built out since (haus#356,
+  2026-08-14), down to those keys and nothing else**, and the sentence above was
+  the tell: "purely about the remaining
+  unmeasured keys" skipped the box that mattered, the one that said the whole
+  thing had to be *impossible to hit by accident*. A phase summary that
+  paraphrases a section can quietly drop the hard box and read as progress —
+  §5.14's drift shapes, one level up from the checkboxes.
 - **Phase 0 was the one genuinely stalled phase, and it is now closed** (rice#198).
   Worth naming why it had stalled: its last item needed no code at all — the
   format, the guide and the four install sources all existed — which is precisely
@@ -3754,5 +4010,8 @@ this family get taken while a table like this sits still:
 | scenes | `moods` | the states the cat is in; `hush` becomes one |
 | dev pack extracted from hearth | `quarry` / `kit` | weakest of the set — probably just call it `developer` |
 
-Not a blocker. `nebelhaus.accessibility.vision.*` is clearer to a stranger than
-`nebelhaus.eyes.*`, and strangers are the point.
+Not a blocker. `haus.accessibility.vision.*` is clearer to a stranger than
+`haus.eyes.*`, and strangers are the point. (Settled the other way in the end:
+§5.12 shipped `haus.accessibility.<key>` flat, with no `vision` tier — four keys
+did not need a sub-namespace, and the names macOS uses are the names people
+search for.)
