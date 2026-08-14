@@ -1,161 +1,100 @@
-<div align="center">
+# 🧰 workshop
 
-# 🧰 the hausfold workshop
+**Where the [hausfold](https://github.com/hausfold) family gets built.**
+*Every repo in one directory, and `bench` — the CLI that moves a change across them.*
 
-**where the family is built**
-
-the bench — every repo in one place, and the tool that moves changes between them.
-
-![part of hausfold](https://img.shields.io/badge/part_of-hausfold-f2c4e5?labelColor=202020)
-![themed by nebelung](https://img.shields.io/badge/themed_by-nebelung-c9a8f1?labelColor=202020)
-![license](https://img.shields.io/badge/license-MIT-d7d7d7?labelColor=202020)
-
-</div>
-
----
-
-This directory is the working checkout of the whole
-[hausfold](https://github.com/hausfold) org. Each subdirectory is its own repo;
-this folder itself is a small repo holding this README, an `AGENTS.md`, the
-`bench` script and `web/` (nebelhaus.com), plus `assets/` and `test/`.
-
-If you remember one thing: **work anywhere, then `./bench status` tells you
-what's out of sync and `./bench ship` makes it right.**
-
-## the family
-
-- 🏠 [**haus**](https://github.com/hausfold/haus) — the house. the nix-darwin layer and the nebelhaus rice, one Nix flake. start here. *(the repo is `hausfold/haus` and the checkout `./haus`; the rice built on it keeps the name nebelhaus)*
-- 🐾 [**pounce**](https://github.com/hausfold/pounce) — the palette. keyboard-first launcher; every command a file.
-- 🪺 [**perch**](https://github.com/hausfold/perch) — the shelf. files, caught in the notch.
-- 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the theme. the silver-mist palette.
-- 🪵 [**holt**](https://github.com/hausfold/holt) — the worktrees. parallel coding agents, safely, in any repo.
-- 🧰 [**workshop**](https://github.com/hausfold/workshop) — the bench. where the family is built. *(you are here)*
-
-Each one stands alone. Together they're a house.
-
-Four more ride along: 🐙 [**org-profile**](https://github.com/hausfold/.github)
-(the org's GitHub front page), 🍺
-[**homebrew-tap**](https://github.com/hausfold/homebrew-tap) (CI bumps it on
-every release — you almost never touch it), 🔔
-[**trill**](https://github.com/hausfold/trill) (the notification compositor —
-ejected from the incubator 2026-08-09; deliberately *not* a family repo — no
-lock edge, so `bench try`/`ship`/`status` never walk it, though `bench
-clone`/`pull` plant it and the docs sweep reads it), and ⌂
-[**hausfold.co**](https://github.com/hausfold/hausfold.co) — the site for
-**haus**, the nix-darwin layer all of this is becoming, sold and shipped under
-the name hausfold (decided 2026-08-08, named 2026-08-10; see
-[`notes/hausfold-rename.md`](notes/hausfold-rename.md)). Its checkout is
-`hausfold.co/`, **with the `.co`** — spell it in full. It sat one dot from the
-layer's own checkout until 2026-08-11, and site work sent to the short name
-edited the desktop with nothing to show for it. hausfold.co used to
-be the only private checkout here; it's public as of 2026-08-08. Your
-`~/.config/nix` lives outside this dir entirely.
+Five of them are Nix flakes, each pinning the one before it. Split a desktop
+across five repos and you buy yourself a daily annoyance: nothing you write is
+visible to its own neighbour until a lock file says so. `bench` is what makes
+that chain feel like one codebase — build your real Mac against your
+uncommitted edits, then push a change the whole way down.
 
 ## the one gotcha
 
-The repos form a chain of pinned flake inputs:
-
 ```
-nebelung ──► pounce ──► nebelhaus ──► ~/.config/nix ──► your Mac
+nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your Mac
+theme        palette    layer    host file         darwin-rebuild
 ```
 
-(Those are flake **input** names, not directories — the rice's input is still
-spelled `nebelhaus` while its checkout is `./haus`.)
+A flake input is not "whatever's on GitHub right now" — it's one exact commit,
+frozen in `flake.lock`. That's what makes a rebuild reproducible, and it's the
+catch: **committing changes nothing downstream. Pushing changes nothing
+downstream.** A one-hex-digit colour tweak in nebelung reaches your Mac only
+after three lock files move behind it.
 
-A flake input is **not** "whatever is on GitHub right now" — it's an exact commit
-hash, frozen in `flake.lock`. That's what makes a rebuild reproducible. The flip
-side: **committing, even pushing, changes nothing downstream** until each
-downstream lock is updated. One hex value costs three repos of ceremony.
+Never walk that by hand. `./bench ship` does it in order; `./bench status`
+names every pin that's fallen behind. (Those are repo names — in
+`~/.config/nix`, the layer's flake input is still spelled `nebelhaus`.)
 
-Never hand-walk that ripple. `./bench ship` performs it in order, and
-`./bench status` shows every pin that's fallen behind.
-
-![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](./assets/ripple.webp)
-
-## the taste
+## start
 
 ```sh
-./bench status         # what's dirty, unpushed, stale, or waiting in a worktree
+git clone https://github.com/hausfold/workshop && cd workshop
+./bench clone          # plant every other repo beside this one
+
+./bench status         # what this Mac is RUNNING · dirty trees · stale pins · agent lanes
 ./bench try            # build your real machine against the LOCAL checkouts
-./bench try switch     # …and run it on this Mac (nothing pushed)
-./bench ship           # push upstream→downstream, updating each lock along the way
+./bench try switch     # …and run it, for real (still nothing pushed)
+./bench ship           # push upstream→downstream, updating each lock on the way
 ```
 
-`bench try` is the important one: it builds your actual machine config against
-your local, uncommitted checkouts. You never push to find out whether something
-works.
+`try` is the one that earns the repo. It builds your actual machine config out
+of your local, uncommitted checkouts — so you never push to find out whether
+something works, and `main` never holds code nobody has felt.
 
-## the bench commands
+| `./bench …` | |
+|---|---|
+| `status` | what's activated right now (the pinned build, or the branch a `try switch` put on it), every git and lock edge, every release edge |
+| `try [switch]` | build (and activate) against the local checkouts — worktree-aware, so it can build ONE unmerged branch |
+| `try lane [switch]` | same, plus every repo a `holt child` spawned from this pane — a cross-repo lane in one rebuild |
+| `try-batch [switch]` | every **open PR** merged onto a throwaway tree per repo and built together in ONE rebuild, `main` untouched |
+| `ship` | push in dependency order, rippling each `flake.lock` |
+| `rebuild` | the plain pinned rebuild — the normal day |
+| `pull` · `clone` | fast-forward every repo · fetch the ones you're missing |
+| `release <repo> [version]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for holt, which takes semver because five SDK registries share the number |
+| `docs-since [--mark]` | every commit since the docs were last reconciled — the input to the daily docs sweep |
 
-| command | what it does |
-|---------|--------------|
-| `./bench status` | what this Mac is actually running (the pinned build, or a local branch a `try switch` put on it), git state of every repo, every lock edge (who's pinning an old rev of whom — or an **off-main** one, a pin that dies when its PR branch is deleted), and every release edge (is the tag users install from behind main?) |
-| `./bench try [switch]` | build (and optionally activate) your machine against the local checkouts — from inside an agent worktree too, which is how you feel ONE unmerged branch |
-| `./bench try lane [switch]` | like `try`, but also overrides every repo a `holt child` spawned from this pane — a whole cross-repo lane, built and activated together, no PR needed |
-| `./bench try-batch [switch]` | merge every **open PR** onto a throwaway tree per repo and build the whole queue in ONE rebuild, `main` untouched |
-| `./bench ship` | push everything in dependency order, rippling `flake.lock` updates downstream |
-| `./bench rebuild` | plain pinned rebuild of `~/.config/nix` |
-| `./bench pull` | fast-forward every repo |
-| `./bench clone` | fetch any repo missing from this directory — the family, plus `trill` and `hausfold.co`, which carry docs but no lock edge |
-| `./bench release <repo> [version] [--ship]` | stamp the version + tag it, then **watch the CI run to the end** — release + brew tap bump. CalVer for pounce/perch/haus (`v<YYYY.MM.DD>`, `-N` on a same-day repeat, and a version argument is refused); **holt takes a semver argument and requires one** — five SDK registries share that number. `--ship` ripples the new lock edge after |
-| `./bench docs-since [--mark]` | every commit since the docs were last reconciled, per repo — the input to the daily `/docs-sync` sweep |
+## the family
 
-The rice ships a `bench` shell alias, so these work from anywhere.
+Five repos share the lock chain above:
 
-## the whole life of a change
+- 🏠 [**haus**](https://github.com/hausfold/haus) — the whole desktop, one Nix flake: the nix-darwin layer, plus **nebelhaus**, the desktop built on it. **start here.**
+- 🐾 [**pounce**](https://github.com/hausfold/pounce) — a keyboard-first command palette. every command is a file.
+- 🪺 [**perch**](https://github.com/hausfold/perch) — a file shelf that grows out of the notch.
+- 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the silver-mist palette underneath all of it.
+- 🦦 [**holt**](https://github.com/hausfold/holt) — worktree lanes, so parallel coding agents never fight over a checkout.
+
+Four more ride along with no lock edge, so the ripple never walks them:
+🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor),
+🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you
+almost never touch it), ⌂ [hausfold.co](https://github.com/hausfold/hausfold.co)
+and 🐙 [org-profile](https://github.com/hausfold/.github). `bench clone` plants
+them anyway; they carry docs. Your own `~/.config/nix` — the host file naming
+your apps, your identity, your secrets — stays private, outside this directory,
+and is restored from its own repo.
+
+This repo itself holds `bench`, one set of agent instructions, and `web/` — the
+Astro site and Cloudflare Worker behind
+[nebelhaus.com](https://nebelhaus.com), which serves the docs and the
+`curl | bash` install one-liner.
+
+## the life of a change
 
 ```
-hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
+hack ──► test ──► assure ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
-Agents draft on `worktree-*` branches in parallel · `bench try` proves it builds
-· a PR lands it (never a direct push to `main`) · `bench try-batch` feels the
-whole queue in one rebuild before anything merges · `bench ship` ripples the
-locks · `bench release` tags it and CI does the rest.
-
-Each step, and why it's shaped that way, is in
-[`docs/workflows.md`](./docs/workflows.md).
-
-## setting up on a fresh machine
-
-```sh
-git clone https://github.com/hausfold/workshop.git
-cd workshop
-./bench clone
-```
-
-(Your private `~/.config/nix` is restored separately — see its own README.)
-
-## where a change goes
-
-Every repo's agent instructions open with the same routing table, so a session
-started anywhere knows whether it's in the right place. The short version:
-**colors → nebelung · the palette app → pounce · system behavior → `./haus`
-(the rice) · personal anything → `~/.config/nix`**. When in doubt, start here and read
-[`AGENTS.md`](./AGENTS.md).
-
-Those instructions are harness-neutral on purpose: `AGENTS.md` is the one body,
-and Claude Code, Codex, OpenCode, Copilot & co. each reach it through a
-one-line pointer, with the shared flows (`/ship`, `/docs-sync`) and the session
-bootstrap in [`.agents/`](./.agents/README.md).
+Coding agents draft on `worktree-*` branches in parallel, `bench try` proves a
+branch builds, a clean-context reviewer reads the diff cold, and `bench
+try-batch` feels the whole review queue in a single rebuild — before any of it
+lands on `main`.
 
 ## more
 
-- [Workflows](./docs/workflows.md) — daily driving, parallel agents, batch-testing, releasing
-- [The four CLIs](./docs/workflows.md#the-four-clis) — `haus` vs `bench` vs `holt` vs `zscratch`
-- [nebelhaus.com](https://nebelhaus.com) — the user-facing docs this repo publishes
+- [workflows](./docs/workflows.md) — daily driving, parallel agents, batch-testing, releasing
+- [the four CLIs](./docs/workflows.md#the-four-clis) — `haus` vs `bench` vs `holt` vs `zscratch`
+- [AGENTS.md](./AGENTS.md) — where a change goes, and the one instruction file every agent reads
 
-## roadmap
+---
 
-- **nebelhaus tui options program** — a custom install script people can `curl`
-  and pipe into bash, spawning a TUI that asks for preferences (favorite IDE,
-  accent color, …) and templates `haus.*` options into the generated host
-  file.
-- **the one hero shot** — media is marketing-only here (docs stay text; shots rot
-  as the rice moves — see [`assets/SHOTLIST.md`](./assets/SHOTLIST.md)), and the
-  rice's `assets/hero.png` is the single placeholder still worth capturing: for a
-  rice, that one clean-desktop shot *is* the pitch.
-
-## license
-
-MIT © hausfold
+<p align="center"><a href="https://hausfold.co">⌂ hausfold</a></p>
