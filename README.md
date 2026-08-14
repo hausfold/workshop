@@ -3,6 +3,8 @@
 **Where the [hausfold](https://github.com/hausfold) family gets built.**
 *Every repo in one directory, and `bench` — the CLI that moves a change across them.*
 
+<sub>**pre-release** · every path that could lose your work is either reversible by design or stops to ask you first. that's the intent, not a warranty — run it on a machine you can afford to rebuild, and tell us what breaks.</sub>
+
 Five of them are Nix flakes, each pinning the one before it. Split a desktop
 across five repos and you buy yourself a daily annoyance: nothing you write is
 visible to its own neighbour until a lock file says so. `bench` is what makes
