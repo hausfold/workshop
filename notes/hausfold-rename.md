@@ -164,7 +164,55 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-14 (late)
+### Current handoff — 2026-08-14 (night)
+
+**The rename is done, and "drop nebelhaus" is not the step after it — it is the
+step this document spent §6 forbidding.** Asked at the end of the arc, the
+question is worth answering in full rather than by pointing at a bullet, because
+the word survives in four live senses and each one stays for a *different*
+reason:
+
+| the surviving spelling | why it stays |
+|---|---|
+| **nebelhaus, the desktop** | it's a product with an install command (`hausfold.co/nebelhaus.sh`), a `/desktops/nebelhaus` page and users. §6 |
+| `inputs.nebelhaus.url`, `--override-input nebelhaus/…` | the input names the **desktop**, not the org or the layer. §10.0's last box — rename it and every override silently stops applying while still reporting success |
+| `github.com/nebelhaus/*`, the dead org | shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` to check for updates; only a live org redirects them. Kept alive forever, deliberately |
+| `~/.local/state/nebelhaus`, `/Library/Application Support/nebelhaus/…`, `~/.cache/claude-worktrees/` | state paths and a two-repo contract (§6, §3.3 Tier D). Renaming one end breaks rice-install detection |
+
+So there is no sweep left to run. The thing that *did* remain was **§10's tail**,
+and re-measuring it today found two of its three items already closed by work
+that never came back to update the note:
+
+- **§10.3 is history.** `bench relocate-haus` ran (the layer is at `./haus`), and
+  the compatibility shim it left — the command, `repo_dir`'s `$ROOT/hausfold`
+  fallback, the `bench status` nudge, three bats cases — was retired by
+  workshop#331 on 2026-08-12. `bench` carries none of it now.
+- **§10.4's lock bullet and its repo-descriptions bullet are both closed.** Zero
+  family locks still record `"repo": "hausfold"`, and no repo in the org still
+  describes itself as nebelhaus.
+- **§10's gate re-runs green**, with all six `hausfold/hausfold` hits on the
+  allow-list §10.2 wrote (four historical PR links, two lines of `bench`'s own
+  prose about the rename).
+
+⚠️ **One live item is left in the whole document that is a *rename* item, and it
+is one fix rather than two:** `~/.config/nix/flake.nix:7` still reads
+`inputs.nebelhaus.url = "github:hausfold/hausfold"`. It resolves through the
+redirect, so nothing is broken — but a lock's `original` is copied from the flake
+ref, which is exactly why the consumer's `flake.lock` is the last place in the
+family recording the old slug and cannot correct itself. Editing the URL
+re-locks the input on the next eval, so it wants to ride a `haus rebuild` you
+were doing anyway, not a standalone commit. The input **name** stays `nebelhaus`.
+
+Everything else unchecked in this file is 👤 and belongs to §0/§4/§5.4, not to
+the rename: two App Store record deletions (gated on `Perch Companion` being
+approved), the post-activation attribution re-check, a ruling on
+`org.nebelhaus.awake`, the `hi@` SLA, and the Paddle contact in `hausfold/ops`.
+§5.3 also leaves one *look* rather than a step — the Cloudflare dashboard's
+Workers ▸ Routes for both zones, since nothing in either repo enumerates what is
+actually deployed and that is how the orphaned `nebelhaus-init` script survived
+five weeks.
+
+### Handoff — 2026-08-14 (late)
 
 **There is no 🤖 work left in this document.** §5.2's last piece — the landing
 pages becoming Next routes — had already landed as
@@ -3721,7 +3769,13 @@ trust, not composition; see
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-14, late):** **§5.2 is ✅ and this document has no 🤖
+**You are here (2026-08-14, night):** **§10 is closed too** — its checkout step
+ran, its shim was retired (workshop#331), its lock and repo-description tails are
+measured clean, and its gate re-runs green. The one rename item left anywhere is
+`~/.config/nix/flake.nix:7`, which is 👤 and rides a rebuild. See the night
+handoff for why "drop nebelhaus" is not the next phase.
+
+**You were here (2026-08-14, late):** **§5.2 is ✅ and this document has no 🤖
 work left in it.** The docs, the Worker, the `nebelhaus.com/*` 301s and the eight
 landing routes all landed today. The phase gate was run rather than built, and it
 **passes** — including `nebelhaus.com/init.sh`, which an orphaned Cloudflare
@@ -3877,7 +3931,7 @@ lookahead (`hausfold/hausfold(?!\.co)`) and the result was grepped for
 records the name the repo had at the time, which is the convention this family
 already kept through the org migration.
 
-### 10.3 👤 The checkout — `bench relocate-haus`
+### 10.3 ✅ The checkout — `bench relocate-haus`, run and then retired
 
 The directory is the only part that a `git pull` cannot deliver: it is machine
 state, and on this machine it had **four live agent lanes** whose `.git` files
@@ -3903,24 +3957,48 @@ fallback is how a shim becomes permanent. **Three bats cases pin that arm's
 exact shape.** Delete the arm, the nudge, the command and its tests when every
 machine has run it.
 
+✅ **Both halves have happened, and this box is history.** The command ran on
+this machine (`$ROOT/haus` exists, `$ROOT/hausfold` does not — measured
+2026-08-14), and the shim it left behind was retired two days earlier by
+**workshop#331** (`f8c6692`, 2026-08-12): `bench` today has no `relocate-haus`
+arm, no `$ROOT/hausfold` fallback in `repo_dir` (`bench:184`), no `bench status`
+nudge and no bats cases for any of them. "Every machine" was one machine, which
+is why the window between running it and deleting it could be two days rather
+than a deprecation cycle. Nothing here is a step any more — the paragraphs above
+are kept because the *ordering* (slug → edges → checkout → shim) is the part
+that transfers.
+
 ### 10.4 👤 Left for you, and why each is small
 
 - **`~/.config/nix/flake.nix:7`** — `inputs.nebelhaus.url = "github:hausfold/hausfold"`.
   A 👤 file outside the family. It resolves through the redirect, so this is
   hygiene; fix it at the next `haus rebuild` and the input *name* still stays
   `nebelhaus`.
-- **`flake.lock`'s `original` field** across the family — same story as §3.3:
-  the recorded owner/repo is the old one until a `nix flake update --refresh`
-  rewrites it. Nothing breaks meanwhile (the rev is what's fetched), and
-  `bench ship` corrects it on the next real ripple.
-- **The org repo descriptions** — `workshop`'s and `homebrew-tap`'s still say
-  "nebelhaus family" / `brew tap nebelhaus/tap`. Unrelated to §10, found while
-  looking; a two-minute `gh repo edit`.
+- ~~**`flake.lock`'s `original` field** across the family~~ ✅ **corrected by the
+  ripple, as predicted** — measured 2026-08-14: `"repo": "hausfold"` appears in
+  **zero** family locks (haus, pounce, perch, nebelung, holt). The one survivor
+  is the consumer's own `~/.config/nix/flake.lock`, and it survives *because* of
+  the bullet above it: a lock's `original` is copied from the flake ref, so it
+  cannot correct itself while `flake.nix:7` still names the old slug. The two
+  are one fix, not two.
+- ~~**The org repo descriptions**~~ ✅ **done** — measured 2026-08-14 via
+  `gh search repos --owner hausfold`: `workshop` reads "Every repo in the
+  hausfold family…", `homebrew-tap` reads "…`brew tap hausfold/tap`". No repo in
+  the org describes itself as nebelhaus.
 
-### §10's gate
+### §10's gate — ✅ green, measured 2026-08-14
 
 `bats test/bench.bats` green (71 cases, 3 of them new), `web`'s vitest green
 (43), `shellcheck bench` clean, and `rg 'hausfold/hausfold(?!\.co)'` returning
 nothing outside historical PR links. Then, on the machine: `bench relocate-haus`
 followed by `bench status` reporting the layer at `./haus` with every lane
 still resumable in `holt`.
+
+**Re-run 2026-08-14.** The `rg` half returns six hits and **every one is on the
+allow-list §10.2 wrote**: four historical PR links (`docs/workflows.md:220`,
+`AGENTS.md:80,163`, and the `#69` citation) and two lines of `bench`'s own prose
+explaining the rename (`bench:83,204`). The machine half is green too — the
+layer is at `./haus`, and `bench status` no longer *has* the fallback nudge to
+print (§10.3). ⚠️ The three bats cases the gate counts were deleted with the
+shim, so a future re-run reads 68-ish, not 71; the number was a snapshot, not an
+invariant. **§10 is closed** bar the single 👤 line in §10.4.
