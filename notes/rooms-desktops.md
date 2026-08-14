@@ -536,16 +536,25 @@ steps that no step ever owned, re-verified against merged `main` today so the
 next agent starts from the tree rather than from the prose. Each is a
 standalone change; none of them blocks another.
 
-- **[3] Nothing owns "may a desktop choose the editor?"** Step 4 handed this to
-  "step 5 or 6" and neither took it. Half of it resolved on its own:
-  `haus.fonts.mono.name` and `.packageName` are `desktopSafe: true` in the
-  merged registry, so a desktop CAN name a font family — the patched-Nerd-Font
-  rule is a requirement at the option, not a trust boundary. The editor half is
-  untouched: `haus.hearth.editor` is `desktopSafe: false` because its value is
-  executed, and Development installs helix unconditionally, so no desktop can
-  say "this Mac is a neovim Mac". The fix is a room-owned enum whose values name
-  editors the room actually installs — a new option plus packages, not a safety
-  flip on the existing one.
+- **[3] Nothing owned "may a desktop choose the editor?" — ANSWERED, 2026-08-14
+  (haus#347, hausfold.co#34).** Step 4 handed this to "step 5 or 6" and neither
+  took it. Half of it had resolved on its own: `haus.fonts.mono.name` and
+  `.packageName` are `desktopSafe: true` in the registry, so a desktop could
+  already name a font family — the patched-Nerd-Font rule is a requirement at
+  the option, not a trust boundary. The editor half needed the enum this note
+  predicted: `haus.hearth.editorName` (helix | neovim | vim | nano) is the
+  desktop-safe half, and `hearth.editor` keeps its type, its host-only
+  classification and the last word — it just defaults to the chosen editor's
+  command now. Two things worth carrying forward from doing it:
+  **the enum had to move four things, three of them silently** — the package,
+  `$EDITOR`, the Nebelung theme file and whether the room claims the `helix`
+  port for `haus doctor` — which is why it got a check that reads all four back
+  off evaluated machines rather than a type and a hope. And **the installer was
+  writing the wrong half again**: `bootstrap.sh` offered `hx/nvim/vim/nano` and
+  scaffolded `hearth.editor`, so a fresh machine answering `nvim` got
+  `$EDITOR=nvim` and no neovim. That is step 5's own finding — grep the
+  installer whenever a public spelling changes — hitting for the second time in
+  a week, which is a habit rather than a coincidence.
 - **[2] A desktop still outranks a pack the consumer composed themselves.**
   Verified in merged `flake.nix`: `desktopPriority = 900`, while `lib.pack`
   carries its file in at per-leaf `mkDefault` (1000). Step 3 left it alone as
