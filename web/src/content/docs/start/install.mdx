@@ -13,11 +13,14 @@ curl -fsSL https://nebelhaus.com/init.sh | bash
 
 That scaffolds your config and installs Nix if you don't have it. It does **not**
 change your system on its own — it writes files and then tells you the one
-command that activates them. Nothing is switched until you run that command.
+command that activates them. **Nothing is switched without you saying yes:**
+the last thing it asks is whether to run that command for you, and declining
+leaves you exactly where the two-step install would.
 
-(Run interactively rather than through a pipe —
-`bash -c "$(curl -fsSL https://nebelhaus.com/init.sh)"` — and it offers to run
-that command for you at the end, after asking.)
+(The pipe doesn't cost you the questions — the installer reaches your terminal
+directly, so `| bash` interviews you like any other form. Somewhere with no one
+watching — CI, a container, or a run whose output you've captured to a file — it
+takes the defaults and never offers to switch.)
 
 ## What you need first
 
@@ -85,8 +88,8 @@ release it falls back to `main`. Releases are date-tagged, so add
 
 </Steps>
 
-Nothing is activated yet. The bootstrap prints the build command — and, when
-it's running interactively, offers to run it for you (build, switch, then `haus
+Nothing is activated yet. The bootstrap prints the build command — and, whenever
+there's a terminal to ask on, offers to run it for you (build, switch, then `haus
 doctor`).
 
 ## Build and switch
@@ -125,7 +128,7 @@ Other useful knobs:
 | Variable / flag | Effect |
 |---|---|
 | `NEBELHAUS_DESKTOP` | Which desktop the generated config selects — `nebelhaus` (default), `everyday`, `minimal` or `blank` |
-| `NEBELHAUS_DRY_RUN=1` | Print the generated config instead of writing it |
+| `NEBELHAUS_DRY_RUN=1` | Print the generated config instead of writing it. Still interviews you if you have a terminal — add `--defaults` for a silent one |
 | `NEBELHAUS_NONINTERACTIVE=1` or `--defaults` | Skip the interview, accept all defaults |
 | `NEBELHAUS_KEEP` | Which current macOS settings to keep (`dock,keyboard,finder`) |
 | `NEBELHAUS_DIR` | Scaffold somewhere other than `~/.config/nix` |
@@ -152,9 +155,10 @@ Paste something like this:
 Read https://nebelhaus.com/llms.txt and then the install page it links to.
 I want to install nebelhaus on this Mac.
 
-Do the parts you can: run the bootstrap with NEBELHAUS_DRY_RUN=1 first and show
-me the config it would write, then run it for real, then run the `nix build`.
-Stop and hand back to me for anything needing sudo — I'll run those myself.
+Do the parts you can: run the bootstrap with NEBELHAUS_DRY_RUN=1 --defaults
+first and show me the config it would write, then run it for real, then run the
+`nix build`. Stop and hand back to me for anything needing sudo — I'll run those
+myself.
 ```
 
 **What an agent can and can't do here**, which is worth being explicit about:
