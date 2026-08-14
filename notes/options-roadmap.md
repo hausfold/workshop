@@ -56,17 +56,110 @@ already exist, and one it treated as a detail is the actual root blocker.
 > What's actually unfixed for a *gallery*: composing two rices is rice-vs-rice,
 > §6(d) measured that `mkDefault` "can never be" a fix for it, `checkRice` can't
 > catch it because the module system stops first, and a transforming seam prints
-> `<unknown-file>` twice. §6(e)'s **priority by list position** (`compose`) is
-> the live candidate, and it is what a **second rice in `/desktops`** should wait
-> on. ⚠️ **Amended 2026-08-08:** this read "what `/desktops` should wait on", and
-> the page shipped that day with a working install command anyway — correctly,
-> because every clause above needs *two* rices composed and there is one. The
-> blocker is real and it binds the second entry, not the page.
+> `<unknown-file>` twice. ⚠️ **Corrected 2026-08-14:** this used to name §6(e)'s
+> **priority by list position** (`compose`) as "the live candidate" — it is not,
+> and §6(e) itself says so. **`compose` was decided against on 2026-08-05**, in
+> the same pass that measured it buildable: the measurement that made the seam
+> possible removed the reason for it, because a colliding consumer gets a named
+> option, two named files and the fix, and what the seam would add on top is *a
+> blend nobody chose*. The rule shipped instead, in both places a stranger meets
+> it (rice `presets/README.md`, `guides/sharing-a-rice.mdx`), and it is a golden
+> table in `nix flake check` since rice#239 (`preset-composition`). Adding
+> `lib.compose` later is additive and breaks nobody; removing it after a gallery
+> depends on ordering breaks strangers — so waiting is the decision, not the
+> backlog. **What actually binds a second rice in `/desktops` is §6(f): the
+> silent blend.** List- and attrs-valued options (`tour.steps`, `roster`,
+> `theme.ports.handled`, `agents.clients`) never conflict — they concatenate, in
+> reverse import order, with no error and no warning. The loud failure mode is
+> the one that can't hurt anybody; the quiet one has no check and no story yet.
+> ⚠️ **Amended 2026-08-08:** an earlier version of this paragraph read "what
+> `/desktops` should wait on", and the page shipped that day with a working
+> install command anyway — correctly, because every clause above needs *two*
+> rices composed and there is one. The blocker is real and it binds the second
+> entry, not the page.
 >
 > What §7's repo routing means now: `nebelhaus` → `hausfold/haus`, and `web`
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-14 (seventeenth pass) — §5.11 is closed, and the box this
+> file called "low priority, a belt on a check" was hiding a silent break in
+> the user's home directory.**
+>
+> Three open boxes shipped ([haus#353](https://github.com/hausfold/haus/pull/353)),
+> and one line of this document's own preamble was contradicting the section it
+> summarises.
+>
+> **★ The finding: `accent-reach`'s referent box was filed under the wrong
+> risk, and the audit half was the whole of it.** The box read "Low priority: no
+> break has occurred, and this is a belt on a check rather than a check on the
+> surface" — true of the glow half (the one line it predicted, now shipped), and
+> false of the roster-port half it appended as an afterthought.
+> `modules/theme/ports.nix` set `home.file.<target>.source` to a plain string
+> under nebelung's themes root, and home-manager's `insertFile` ends in a bare
+> `ln -s` — read out of the pinned home-manager's `modules/files.nix`, not
+> assumed — so a port whose file nebelung doesn't render becomes a **dangling
+> symlink in `~/`**, with no error at build and none at activation. Glow's gap
+> could only fool a *check*; this one fools the *machine*, and its symptom is
+> "the app looks stock", which is verbatim the outcome that room's own header
+> says it refuses to produce. **A pointer-vs-referent gap is worth exactly as
+> much as what stands on the other end of the pointer, and this file graded two
+> instances of one bug by the more comfortable one.**
+>
+> Fixed by copying the placed ports through one `runCommand`, which makes the
+> referent a build **dependency** rather than a promise. Swept the pinned
+> nebelung across 4 variants × 14 accents × all 22 placeable darwin ports: **0
+> missing files**, so both checks are insurance rather than a fix for a live
+> break — which is what the original box guessed, for the wrong reason.
+>
+> **★ And the mutation check caught a bug the fix itself introduced.** A
+> rendered port's filename routinely contains a space (`Catppuccin
+> Mocha.xccolortheme`), which an unquoted `[ -e ]` reads as two arguments — so
+> the first version of this assertion failed the build on a file that was
+> *there*. **A referent check is a new place for the referent's own shape to bite
+> you**, and it was only visible by mutating against the real `mbp` host's
+> roster, not the synthetic one the flake checks use.
+>
+> **§5.11's last two boxes, and the one that wasn't the rendering job it was
+> filed as.** `haus doctor` grew a `Permissions` section — Accessibility, Full
+> Disk Access, Automation, each with its `x-apple.systempreferences:` pane; they
+> had been three grants in three sections with no link between them, and FDA
+> moved rather than being stated twice. Automation is the first row with **no
+> readable state at all** (every API that answers it prompts, and prompting from
+> a health check is worse than not knowing), so it reports whether anything on
+> this machine will *ask* and links the pane regardless: a checklist may not be
+> able to check, but it can always say where.
+> The other box was filed as "the data half is done and this is now a rendering
+> job." Half right. `plan_restarts` already read killalls, `activateSettings` and
+> the notification posts out of the built script — but the map's fourth verb,
+> `logout`, was subtracted in den and then **vanished**, so there was nothing for
+> a reader to find. ★ **A verb that renders to nothing is not a rendering
+> problem**, and this is the same silence §5.6 refuses to ship a settings *group*
+> into, left wide open to a domain arriving the other way, through `haus capture`
+> into a host's own `CustomUserPreferences`. Activation announces those domains
+> now and `plan` reads the announcement back out of the built script — the
+> reader stays "grep what a rebuild actually runs", so no second copy of the map
+> comes into existence.
+>
+> **Housekeeping, in this file's own shape 1.** The naming banner told readers
+> `compose` was "the live candidate" and what a second rice in `/desktops` should
+> wait on; §6(e) had **decided against building it on 2026-08-05**, in the same
+> pass that measured it buildable. Corrected in place, with what actually binds a
+> second entry named instead (§6(f)'s silent blend on list- and attrs-valued
+> options — the failure mode with no check and no story). The sixteenth pass's
+> locale bullet still called restart-map's third verb "the gating work item"
+> after rice#267 shipped it; amended. **Both are the same drift the fourteenth
+> pass found in the phase summary: a claim written at the top of a file, about a
+> section further down, that nothing keeps true when the section moves.**
+>
+> Verified by running it: 22 `nix flake check` checks green with
+> `accent-reach`/`scale-reach`/`font-reach` byte-identical, a real `bench try`
+> against `mbp`, three mutation checks each reverted and re-proved, `haus doctor`
+> run from the built binary, and shellcheck clean of anything new. Not verified,
+> and left where this file always leaves it: whether the three deep links still
+> land on the right System Settings panes on macOS 26 — `open` accepts the URLs,
+> but the pane is an eye-check, alongside §5.6's still-open `lock`/`menuBar` one.
+>
 > **Status, 2026-08-08 (sixteenth pass) — §5.6's last unspiked box is closed:
 > Sound, Locale/input sources and Power are all reachable, and the reason given
 > for deferring each of them was wrong.**
@@ -104,7 +197,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   the first setting family whose "restart" is neither a `killall` nor a
 >   logout, so `modules/lib/restart-map.nix` (rice#249) needs a **third verb**
 >   before this group can ship honestly. That is now the gating work item, and
->   it is small.
+>   it is small. → ✅ **Built, and the group shipped with it (rice#267).** The
+>   verb is `notify:<DistributedNotificationName>`, and the map's locale entry
+>   carries both it and `activateSettings` — the two do different jobs (one
+>   invalidates a cache, one tells running apps), which is why it's a list and
+>   not a replacement. Anyone re-reading this bullet for "what's left" should
+>   read the map, not this paragraph.
 > - **`com.apple.sound.beep.volume` is `e^(slider − 1)`, not a fraction** —
 >   `0.5` is 31% and anything at or below `e⁻¹ ≈ 0.368` is silence. nix-darwin's
 >   docstring lists 75/50/25% as three magic constants and never names the
@@ -2340,7 +2438,7 @@ nebelhaus.displays.internal.uiScale = "larger-text";
 - [ ] Multi-display arrangement is still untested (only one display was attached).
       Test on the dock before designing `profiles.docked`
 
-### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M · ◐ **the four commands shipped and were felt; two boxes remain**
+### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M · ✅ **closed 2026-08-14 — the four commands shipped and were felt (rice#248), and the last two rendering boxes landed in haus#353**
 Before strangers' configs run arbitrary `defaults write` and activation scripts:
 
 - [x] `haus plan` — promote bootstrap's preflight audit; show exact settings,
@@ -2363,17 +2461,50 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       (the installer already admits Nix rollback doesn't undo macOS defaults).
       Proved end-to-end: captured a scratch domain, changed it, reverted it,
       read back the original value.
-- [ ] `haus doctor` grows a permission checklist with System Settings deep links
-- [ ] Restart/logout/reboot annotations from the §4 matrix. **The data half is
-      done and this is now a rendering job** — `modules/lib/restart-map.nix`
+- [x] ✅ **`haus doctor` grows a permission checklist with System Settings deep
+      links** — shipped 2026-08-14 (haus#353). One `Permissions` section carries
+      Accessibility, Full Disk Access and Automation, each with its
+      `x-apple.systempreferences:` URL. **What the box didn't say, and is the
+      reason it was worth doing: they were three grants reported in three
+      different sections and none of them linked.** FDA moved here out of
+      `Agents` rather than being stated twice — the fourteenth pass's "a table
+      plus a filter over that table is two sources of truth wearing one name",
+      in prose instead of Nix.
+      ★ **Automation is the first row with no readable state at all.** Every API
+      that answers "is Automation granted" *prompts*, and prompting from a health
+      check is worse than not knowing — so the row reports whether anything on
+      this machine will **ask** (detected from the running home-manager
+      generation's `nebelhausSystemAppearance` block) and links the pane either
+      way. A checklist may not be able to check; it can still always say where.
+      The detection is an `if`, not an `&&` chain: under `haus.sh`'s `set -euo
+      pipefail` a chain ending false aborts doctor partway through, printing
+      nothing after it — the ninth pass's `settings_diff` bug, and here the
+      common case (appearance unmanaged) is the false one.
+- [x] ✅ **Restart/logout/reboot annotations** — closed 2026-08-14 (haus#353),
+      in two halves that landed a week apart. The restart half was already live
+      (`plan_restarts` reads killalls, `activateSettings` and the notification
+      posts straight out of the built script). **The half still missing was the
+      map's fourth verb: `logout` was subtracted in den and then vanished** — no
+      signal at build, none in `plan`, nothing anywhere saying why a write landed
+      and did nothing, which is precisely the silence §5.6 refuses to ship a
+      settings *group* into while leaving the same silence open to a domain
+      arriving via `haus capture`. Activation now announces those domains and
+      `haus plan` reads the announcement back out of the **built script**, so the
+      reader stays "grep what a rebuild actually runs" and no second copy of the
+      map comes into existence. Dormant by construction: no `haus.*` option is
+      backed by a logout-only domain today, so it is the signal waiting for the
+      first one.
+      *(The box as originally written, for the record: "**The data half is done
+      and this is now a rendering job** — `modules/lib/restart-map.nix`
       (rice#249) is the table, and `modules/den/default.nix` already derives
       `processesToRestart` from it against whichever domains the built
-      configuration actually has. Nothing reads it back for the *user*: `haus
-      plan` still previews packages and casks only, which is exactly the "scripts
-      half" its own box above admits is missing, and a plan that doesn't say
-      "this rebuild will restart Finder" or "this setting waits for a logout" is
-      the reversibility gap this section exists to close. One consumer, not a new
-      mechanism.
+      configuration actually has. Nothing reads it back for the user: `haus plan`
+      still previews packages and casks only … a plan that doesn't say 'this
+      rebuild will restart Finder' or 'this setting waits for a logout' is the
+      reversibility gap this section exists to close. One consumer, not a new
+      mechanism." It was right that no new mechanism was needed for the first
+      sentence and wrong that none was needed for the second: a verb that renders
+      to nothing has nothing for a reader to find.)*
 
 ### 5.12 Accessibility — ✅ **back on the table, with an FDA caveat** · M
 Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
@@ -2555,11 +2686,47 @@ reference is free and proves nothing. `zed`'s row already carries a comment
 calling itself the one fingerprint that is a FILENAME rather than a file's
 contents — the same shape, noticed and then not generalized.
 
-- [ ] Assert the referent exists for every cross-repo reference `accent-reach`
-      pins — one line (`[ -f ${glowStyle} ]`) in the existing `glowPlugin`
-      `runCommand` in `modules/hearth/default.nix`, then audit the roster-port
-      rows for the same pointer-vs-referent gap. Low priority: no break has
-      occurred, and this is a belt on a check rather than a check on the surface.
+- [x] ✅ **Assert the referent exists for every cross-repo reference
+      `accent-reach` pins** — shipped 2026-08-14. The glow half was the one line
+      this box predicted (`[ -f "${glowStyle}" ]` in `glowPlugin`'s existing
+      `runCommand`). **The audit half was not a belt, and this box's own "low
+      priority: no break has occurred" was the wrong reading.**
+      ★ **The roster-port rows have the same gap and it fails SILENTLY in the
+      user's home directory, not in a check.** `modules/theme/ports.nix` set
+      `home.file.<target>.source` to a plain string under nebelung's themes
+      root, and home-manager's `insertFile` ends in a bare `ln -s` — measured
+      in the pinned home-manager's `modules/files.nix` — so a port whose file
+      nebelung doesn't render becomes a **dangling symlink** in `~/`, with no
+      error at build and none at activation. Where glow's gap could only fool a
+      *check*, this one fools the *machine*: you find it months later wondering
+      why the app looks stock, which is verbatim the outcome that room's own
+      header says it refuses to produce.
+      It is also the riskiest place for it, because a port's path is re-spelled
+      **twice** before it means anything — once for the flavor (and
+      `modules/lib/nebelung.nix`'s own comment already said "a mocha path under
+      a latte root silently resolves to nothing", noticed and not closed) and
+      once for `<accent>`. Two substitutions, neither side validating.
+      Fixed by copying the placed ports through one `runCommand`, which makes
+      the referent a build **dependency** rather than a promise, and
+      mutation-checked in both directions against the real `mbp` host: the
+      broken path fails the build naming the port, the roster id, the flavor and
+      the accent; the restored path builds clean (22 `nix flake check` checks
+      green, real `darwin-system`).
+      ★ **And the mutation check caught a bug the fix itself introduced** — a
+      rendered port's filename routinely contains a space (`Catppuccin
+      Mocha.xccolortheme`), which an unquoted `[ -e ]` reads as two arguments.
+      The first version of this assertion failed the build on a file that was
+      *there*. **A referent check is a new place for the referent's own shape to
+      bite you**, and it was only visible by running it against the real host's
+      roster, not against the synthetic one the checks use.
+      *(One process note, for the next person who mutation-checks a rice module:
+      `nix fmt` on `modules/hearth/default.nix` rewrites 727 lines — the file is
+      not nixfmt-clean and the repo doesn't check it, so §8's "run the formatter"
+      still means hand-matching the local style. And a `path:` flake override
+      caches on the checkout's ROOT mtime: editing a file two directories down
+      leaves `bench try` re-reading the old copy and reporting a green build for
+      a mutation that never reached the evaluator. `touch` the worktree root
+      between mutations, or the check silently proves nothing.)*
 - [x] ✅ **A downstream lock pinned at an upstream rev that is not on the
       upstream's `main`** — fetchable only until the PR branch is deleted, and
       nothing in the family noticed. Found in the fourteenth pass's retraction:
@@ -2937,8 +3104,11 @@ that visible, and turned up two things that were already broken:
       **`diff` must compare effective state, not plists**; a plist-only diff
       would have called both no-op writes "applied" — is what `haus diff`
       actually does, routing the four keys with a measured write-vs-effect gap
-      through an `NSWorkspace` probe. Two boxes remain inside §5.11, both `haus
-      doctor`/`haus plan` rendering rather than new mechanism.
+      through an `NSWorkspace` probe. ~~Two boxes remain inside §5.11, both `haus
+      doctor`/`haus plan` rendering rather than new mechanism.~~ **Both closed
+      2026-08-14 (haus#353)** — and one of them was not rendering: the restart
+      map's `logout` verb rendered to nothing, so den had to emit the line before
+      `plan` could read one. §5.11 has no open box left.
 - [ ] §5.8 scenes · §5.12 accessibility doctor checklist
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
       workshop#135/#137
