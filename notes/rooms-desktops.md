@@ -258,9 +258,9 @@ the tree.
 | **1. Room registry** | done | Expand `haus/modules/options-groups.nix` into the single registry for public-export ownership, room/shared/host classification and per-option desktop safety, without moving or renaming options. Make the host template and docs renderer consume it. | The source registry, regenerated `haus/docs/site-data/groups.json`, and a flake check that fails on an unmapped `darwinModules` export, unclassified namespace, unsafe dynamic subtree or option with no desktop-safety decision. | Every public export, namespace and transitively reachable leaf is classified; current option addresses are unchanged; generated artifacts are current; counts come from the registry rather than prose. |
 | **2. AI proof** | done | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room. Pair old and new addresses in fixtures that compare behavioral projections, warnings and plain-host-override priority. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; old and new addresses produce identical behavior and precedence, with the intended migration warning only. |
 | **3. Desktop seam** | done | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
-| **4. Carve out nebelhaus** | ready for review | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
-| **5. Retire top-level fragments** | unblocked | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
-| **6. Rebuild the docs journey** | blocked by 5 | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
+| **4. Carve out nebelhaus** | done | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
+| **5. Retire top-level fragments** | ready for review | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
+| **6. Rebuild the docs journey** | unblocked | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
 
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
 the nebelhaus values that replace them and the compatibility selection must land
@@ -410,6 +410,61 @@ was actually moved.
 - **[1] The docs asserted layer-wide defaults in prose.** Three guides said a
   room was "on by default" — true of nebelhaus, false of `haus` now. Fixed in
   the same change; the generated options reference regenerates itself.
+
+### Findings carried out of step 5
+
+The vocabulary was the easy half. What the step actually surfaced is that
+"preset" had been hiding two different things, and only one of them was a
+desktop.
+
+- **[3] `everyday` and `minimal` as desktops are not the machines the presets
+  produced, and cannot be.** A preset was a LAYER: four lines on top of whichever
+  whole rice you had selected, so `presets.everyday` meant "nebelhaus, minus the
+  developer tooling". A desktop is the complete selection, so the new
+  `desktops/everyday.nix` has to state the ~10 values the preset silently
+  inherited from nebelhaus. One of them changes on purpose: the AI room is OFF
+  there, because the preset never mentioned `ai.enable` and inherited a `true`
+  that means coding agents on a machine that ships no coding tools. Reported
+  rather than hidden — the compatibility ALIAS still produces the old machine
+  exactly, so nobody's rebuild changes; only the new spelling differs.
+- **[3] Only two of the four fragments were genuine MOVES, and those are the
+  ones with a fixture.** `large-print` → `haus.appearance.largePrint` and
+  `writing` → `haus.apps.packs.writing.enable` are the same values at a new
+  address, so `fragment-compat` evaluates both spellings as whole systems and
+  compares derivations. The other two are a vocabulary retirement, and no
+  fixture can assert equality for them without asserting the wrong thing. Expect
+  the same split whenever a "format" turns out to be two shapes under one name.
+- **[2] Adding two public options is not a no-op for the machine, and that is
+  worth knowing before the next step reads it as a regression.** The example
+  host's derivation moved — `nix-diff` traces every difference to `options.json`
+  flowing into the agent skill and the host template, both of which enumerate
+  the surface. `desktop-projection` (the step 4 comparator) stayed equal, which
+  is the value-level claim. So "the closure changed" and "behaviour changed" are
+  now genuinely different questions on this repo.
+- **[2] The installer was writing the retired spelling into every new
+  machine.** `bootstrap.sh` scaffolded `extraModules = [ presets.$NAME ]`, so a
+  fresh install would have landed on a deprecation warning on its first rebuild.
+  It emits `desktop = nebelhaus.desktops.$NAME` now, `NEBELHAUS_DESKTOP` is the
+  knob, and `NEBELHAUS_PRESET=full` still maps to the nebelhaus desktop. Worth a
+  standing habit: grep the installer whenever a public spelling changes.
+- **[2] `preset-composition` was a check about a property the model forbids.**
+  Its whole subject was "which two presets stack", so it retired with them. Two
+  of its rows were not about presets at all — a list-typed option merges
+  silently, an `attrsOf` merges per key — and those moved into `fragment-compat`
+  intact, because they still bite two packs or two `extraModules` entries. A
+  golden table that outlives its subject should be read for the rows that
+  generalise before it is deleted.
+- **[2] Three shareable formats went to two, and the loose one is now the
+  narrow one.** Step 3's finding asked whether a preset simply IS a desktop; the
+  answer is yes for the whole rices and no for the layer. What remains is a
+  desktop (closed schema, registry-validated, one per host) and a pack (data,
+  `haus.roster` only, `checkRice`/`checkPack`). `checkRice` no longer guards
+  anything a person selects — only pack files — which is a smaller job than it
+  had and worth remembering when its message is next edited.
+- **[1] The docs page is still at `/guides/sharing-a-rice/`.** Its content is
+  one-desktop now, but renaming the file would break the URL, and the redirect
+  belongs with step 6's navigation reorganisation rather than beside a content
+  edit.
 
 ### Agent status report
 

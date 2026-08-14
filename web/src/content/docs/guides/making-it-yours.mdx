@@ -108,11 +108,11 @@ haus options    # refresh it against the current desktop (--force overwrites you
 Nothing in that file does anything until you uncomment a line *and* `import` it —
 `haus options` prints the `imports = [ ./options.nix ];` line to add if your host
 file is missing it. Commented-out is deliberate, for two separate reasons. A
-spelled-out default **collides** with a preset rather than beating it — import
-order carries no priority, so `extraModules = [ nebelhaus.presets.large-print ]`
-would fail on `haus.ui.scale` with a conflict, not pick a winner. And against
-the desktop's own `mkDefault`s a plain restatement *does* win, permanently, freezing
-that value against any future retuning upstream.
+spelled-out default silently **overrides your whole desktop** — a plain line in
+your host outranks it, so `haus.appearance.largePrint = true` would stop reaching
+`haus.ui.scale`, on an option you never meant to set. And against a room's own
+`mkDefault`s a plain restatement wins permanently, freezing that value against
+any future retuning upstream.
 </Aside>
 
 For a one-off change, you can skip the editor entirely. `haus set` writes and
@@ -124,7 +124,7 @@ push your config repo.
 ```sh
 haus set theme.accent teal
 haus get theme.accent        # teal
-haus reset theme.accent      # remove the override; inherit the desktop/preset again
+haus reset theme.accent      # remove the override; inherit the desktop's value again
 ```
 
 A path may go *inside* an option — `haus set sill.items.aiUsage true` switches
@@ -250,7 +250,7 @@ warns and names it.
 <Aside type="caution" title="Tour with prowl off">
 The built-in tour is leader moves plus the palette, so turning prowl off leaves
 it nothing to teach: `tour.enable` on a `prowl.enable = false` desktop draws no pill
-at all unless you author `tour.steps` yourself. The `everyday` preset does exactly
+at all unless you author `tour.steps` yourself. The `everyday` desktop does exactly
 that — one step, the launcher.
 </Aside>
 
@@ -326,48 +326,49 @@ sits on and have no switch; of the rooms you can *see*, all six do. Everything
 in the table comes out independently, and the others keep working — the desktop
 degrades gracefully.
 
-## Presets: start from someone else's desktop
+## Desktops: start from someone else's Mac
 
-A **preset** is a data-only desktop — a file whose only top-level key is
-`haus`. No `pkgs`, no `lib`, no activation scripts, so it can't reach outside
-the option surface and you can read one in a minute and know the worst it can do.
-Import one alongside your host file:
+A **desktop** is a data-only file — its only top-level key is `haus`. No `pkgs`,
+no `lib`, no activation scripts, so it can't reach outside the option surface
+and you can read one in a minute and know the worst it can do. A host selects
+**exactly one**:
 
 ```nix
 darwinConfigurations.myhost = nebelhaus.mkNebelhaus {
   username = "ada";
   hostname = "myhost";
   host = ./hosts/myhost;
-  extraModules = [ nebelhaus.presets.everyday ];
+  desktop = nebelhaus.desktops.everyday;
 };
 ```
 
-Your host file can override anything a preset sets — but not by being imported
-*after* it. Import order carries no priority in Nix's module system: an option
-the preset leaves alone is yours to set plainly; an option it also sets to a
-*different* value is a *conflict*, not a silent win, until you reach for
-`lib.mkForce`. (Setting one to the value it already holds is fine — identical
-definitions merge, so restating a preset's own choice costs you nothing.)
+Omit the argument and you get `nebelhaus`, the full desktop. Two of them are
+refused by name — whole selections don't stack, because nothing could arbitrate
+two complete answers to the same question.
+
+Your host file overrides anything the desktop sets, with a **plain assignment**:
+the desktop sits between the rooms and you in the priority ladder, so there is
+no `lib.mkForce` and no import-order trick involved.
 
 ```nix
-{ lib, ... }:                              # add lib to your host's args
 {
-  haus.ui.scale = lib.mkForce 1.0;    # large-print sets this — force to win
+  haus.ui.scale = 1.0;    # largePrint asked for 1.4 — yours wins
 }
 ```
 
-| Preset | For |
+| Desktop | For |
 |---|---|
-| `full` | the whole desktop: bar, tiling, palette, developer pack. The default. |
-| `minimal` | just the themed shell — no bar, no tiling, no palette. Still a developer machine. |
-| `everyday` | the inverse: a Mac for someone who doesn't write code. No developer pack, and `prowl.enable = false` — so no tiling either, not just no Caps-Lock remap. |
-| `large-print` | bigger and sharper — the desktop UI and whole display, plus the high-contrast palette and macOS's own contrast lift. |
+| `nebelhaus` | the whole thing: bar, tiling, palette, developer tooling, coding agents. The default. |
+| `minimal` | just the themed shell — no bar, no tiling, no palette, no shelf. Still a developer machine. |
+| `everyday` | the inverse: a Mac for someone who doesn't write code. No developer tooling, no agents, and `prowl.enable = false` — so no tiling either, not just no Caps-Lock remap. |
+| `blank` | from scratch: no optional room, no global shortcut claimed. Build your own out of host lines. |
 
-The first three are whole desktops; pick one. **`large-print` is a layer** — it
-describes seeing rather than the person, so it stacks:
+**Bigger and sharper is not a fifth desktop** — it is one line, in whichever
+desktop or host you like, because a concern that cuts across rooms belongs to
+the room that owns it rather than to a file you stack:
 
 ```nix
-extraModules = [ nebelhaus.presets.everyday nebelhaus.presets.large-print ];
+haus.appearance.largePrint = true;
 ```
 
 It uses two complementary size controls. `ui.scale = 1.4` moves the terminal
@@ -384,7 +385,7 @@ desktop, and `ui.scale` asks for bigger points inside it. That's the intended
 effect — it's just a bigger jump than either alone.
 
 For per-display control, add a UUID-specific setting in your host file; it wins
-over the preset's broad `main` selector. `hausdisp list` prints the persistent
+over the profile's broad `main` selector. `hausdisp list` prints the persistent
 UUIDs of the displays currently attached.
 
 One size limit remains, and it's macOS's rather than the desktop's: **the menu bar's
@@ -396,13 +397,14 @@ extra room against the tiled windows as it grows. Making the whole bar bigger is
 what `displays.*.uiScale` is for: it changes what a point *means*, which is the
 only thing that band responds to.
 
-The preset also doesn't change an app's own font preference or macOS's separate
+The profile also doesn't change an app's own font preference or macOS's separate
 Dynamic Type text-size setting; display scaling is the system-wide lever that
 works.
 
 Want to make one for other people? [Sharing a desktop](/guides/sharing-a-rice/)
-covers the data-only boundary, `checkRice`, composition testing, and the
-smallest useful publishing shape.
+covers the data-only boundary, `checkDesktop`, the priority ladder, app packs,
+and the smallest useful publishing shape — plus what to do if you are still
+importing a `preset`.
 
 ## Overriding macOS defaults
 

@@ -1,13 +1,18 @@
 ---
 title: Sharing a desktop
-description: Author, validate, and publish a data-only nebelhaus desktop that other people can inspect, compose, and trust.
+description: Author, validate, and publish a data-only haus desktop that other people can inspect, select, and override from their own host.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 A shared desktop is an ordinary `.nix` file that changes only `haus.*`.
-Keeping that boundary small makes the result easy to inspect, combine with
-other desktops, and override from a host file.
+Keeping that boundary small makes the result easy to inspect, select, and
+override from a host file.
+
+A host selects **exactly one** desktop. Desktops do not stack: two of them are
+refused by name, because two complete answers to "what should this Mac feel
+like?" have nothing to arbitrate them. What you layer on top is your own host
+file, and it wins with a plain assignment.
 
 ## The format
 
@@ -40,44 +45,79 @@ The file evaluates to an attribute set whose only top-level key is
 
 It is not a module function: there is no `{ pkgs, lib, config, ... }:` header.
 It also does not set `system.defaults`, install packages, or add activation
-scripts. Every setting stays inside the documented
-[`haus.*` option surface](/reference/options/).
+scripts, and it cannot reach a **host-only** option — identity, secrets, a
+signing identity, a display UUID. Every setting stays inside the desktop-safe
+half of the documented [`haus.*` option surface](/reference/options/).
 
-<Aside type="tip" title="Whole desktop or layer?">
-A **whole desktop** describes a kind of machine or person and usually chooses all
-the big rooms: developer tools, tiling, the bar, and the launcher. A **layer**
-describes one concern, such as larger text, and sets only what that concern
-needs. Layers are easier to compose because they leave unrelated choices alone.
-Of the four nebelhaus ships, `full`, `minimal` and `everyday` are whole desktops and
-`large-print` is a layer.
+## Select it
+
+```nix
+darwinConfigurations.myhost = haus.mkNebelhaus {
+  username = "ada";
+  hostname = "myhost";
+  host = ./hosts/myhost;
+  desktop = ./desktops/writer.nix;
+};
+```
+
+One argument, one desktop. Omit it and you get the `nebelhaus` desktop, which
+is what every consumer had before the argument existed. `desktop = null` selects
+none — the bare haus foundation plus whatever your host turns on, which is also
+what the built-in `blank` desktop names.
+
+Composing by hand instead? Pass the desktop through the seam *and* say
+`desktop = null`, or the builder's own default becomes your second one:
+
+```nix
+desktop = null;
+extraModules = [ (haus.lib.desktop ./desktops/writer.nix) ];
+```
+
+## Your host wins, plainly
+
+The priority ladder is the whole point of the seam, and it means an ordinary
+line in your own host file overrides the desktop you chose — no `lib.mkForce`,
+no import-order trick (import order carries no priority in the module system):
+
+| | |
+|---|---|
+| 100 | your host file |
+| 900 | the desktop |
+| 1000 | a room's own default |
+| 1500 | an option's declared default |
+
+Lower wins. So a desktop must outrank the generic defaults it exists to replace,
+and must lose to the person who chose it.
+
+```nix
+# your host file — no lib, no mkForce
+{
+  haus.theme.accent = "teal";   # the desktop said "mauve"
+}
+```
+
+<Aside type="caution" title="A list your host also names REPLACES the desktop's">
+Lists normally concatenate. Across this seam they do not: a host that names
+`haus.pounce.autoQuit.exclude` replaces the desktop's list rather than appending
+to it, which is the behaviour you want when overriding a whole choice, and a
+surprise if you expected to add one entry. Restate the entries you want to keep.
 </Aside>
 
 ## Validate the boundary
 
-Run the same structural check as nebelhaus's built-in presets:
-
 ```sh
 nix eval --impure --expr \
-  '(builtins.getFlake "github:hausfold/haus").lib.checkRice ./writer.nix'
+  '(builtins.getFlake "github:hausfold/haus").lib.checkDesktop ./writer.nix'
 ```
 
-If the file is an app **pack** — only `haus.roster`, the apps on a machine —
-run `lib.checkPack` instead. It is the same rule one level in, and it is what
-makes the pack safe to import through `lib.pack` below.
+It prints `true`, or throws naming the file and **every** rule it broke at once:
+a module function rather than data, an `imports` or `_module` key, a stray
+top-level key, `system.activationScripts`, an option that does not exist, or a
+host-only leaf a desktop may not set. `haus.lib.desktopFailures` returns that
+list instead of throwing, if you would rather test it than read it.
 
-It prints `true`, or throws naming what escaped — a stray top-level key, or the
-file being a *function* rather than data. A file keyed `nebelhaus` rather than
-`haus` still passes, and evaluates with a rename warning; one using both
-spellings is refused. `checkRice` is the trust-boundary check; it does not prove
-that every option name or value is valid.
-
-For that, import the desktop into a real host:
-
-```nix
-extraModules = [ ./desktops/writer.nix ];
-```
-
-Then evaluate the configuration before activating it:
+That check is structural and runs before evaluation. It is not the same as
+proving the desktop builds — for that, select it into a real host and evaluate:
 
 ```sh
 nix eval .#darwinConfigurations.myhost.system.drvPath
@@ -85,91 +125,78 @@ nix eval .#darwinConfigurations.myhost.system.drvPath
 
 [`haus plan`](/reference/haus/) is the stronger version of that last step: it
 runs a full build, then prints what activation *would* change — packages,
-settings, files, launchd jobs, casks — without applying any of it. And `haus rebuild`
-still gives you the usual build-before-apply safety on top.
+settings, files, launchd jobs, casks — without applying any of it. And
+`haus rebuild` still gives you the usual build-before-apply safety on top.
 
-## Test composition, not just isolation
+haus checks its own catalogue exactly this way. `nix flake check`'s
+`desktop-seam` runs the closed-schema rules against a directory of fixtures —
+valid ones and one per class of refusal — and diffs the diagnostics it produces
+against a table; `catalogue` raises a whole darwin system from every desktop
+this flake ships.
 
-A useful desktop should survive being combined with a layer and then overridden
-by its user:
+## One concern, not one more desktop
+
+The thing people reach for a second desktop to express — "the same machine, but
+readable" — belongs to the room that owns it, as a **profile**:
 
 ```nix
-extraModules = [
-  ./desktops/writer.nix
-  nebelhaus.presets.large-print
-];
+haus.appearance.largePrint = true;
 ```
 
-Before publishing, try:
+One line, in a desktop or in your host. It sets the interface scale, the
+high-contrast palette, macOS's own contrast lift and the screen's scaled
+resolution together, each as a *default*, so any single one of them stays yours
+to pin. That is what a cross-cutting concern looks like under one-desktop-per-
+host: a room-owned option, not a file to stack.
 
-- the desktop by itself;
-- the desktop plus an unrelated layer;
-- a host value set on top of one of the desktop's own choices;
-- each combination of rooms you turn off.
+## App packs
 
-For the middle two of those you need neither a Mac nor a build. The nebelhaus
-repo checks its own presets exactly that way — `nix flake check`'s
-`preset-composition` composes every pair of them through `lib.evalModules` over
-the option surface alone, in seconds, and diffs the answers against a table.
-(Evaluating a desktop *by itself* is a different check, `presets`, and that one does
-raise a whole darwin system.) Composition is the one property a desktop cannot have
-on its own, which is what makes it the one worth testing before you publish.
+A **pack** is a data-only file narrowed to one option family, `haus.roster` —
+the apps on a machine, not the kind of machine it is. It is not a peer of a
+desktop; it belongs to the [Apps](/reference/options/#apps) room, and the ones
+haus ships are one switch each:
 
-### The composition rule, in one line
+```nix
+haus.apps.packs.writing.enable = true;   # Obsidian, Zotero, Anki, calibre
+```
 
-**Two desktops compose unless they *disagree*.** Import order carries no priority,
-so "imported after, therefore wins" is not a mechanism you can lean on in either
-direction — but naming the same option is not the problem people assume it is:
+Someone else's pack file arrives through the seam that gives it its priority:
 
-- **Same option, same value** — fine. Nix merges identical definitions, so a
-  desktop that restates a value the consumer already holds costs them nothing.
-- **Same option, different values** — the build stops, and tells you plenty:
+```nix
+extraModules = [ (haus.lib.pack ./writer-pack.nix) ];
+```
 
-  ```text
-  error: The option `haus.sill.enable' has conflicting definition values:
-         - In `…/presets/minimal.nix': false
-         - In `…/presets/everyday.nix': true
-         Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
-  ```
+`lib.pack` lowers **every field** the pack sets to a default, per leaf, so your
+own `haus.roster.obsidian.key = "n"` wins that one field with a plain assignment
+and the rest of the pack's entry — the cask that installs it, its name —
+survives. That is a property of the seam, not of the file: the same pack
+imported as a bare path conflicts the old way. Self-test one with
+`haus.lib.checkPack`, which is `checkRice` one level in.
 
-  The option, both files, and the fix. A consumer resolves it with `lib.mkForce`
-  in their host — and that line belongs in your README for every field you set
-  that a reasonable person might disagree with.
-
-So narrow the desktop until ordinary Nix merging is enough: every optional field
-you set is one a consumer has to force. A layer that leaves unrelated choices
-alone composes; one that restates a whole machine collides with the next layer
-along.
+Two packs naming the same app still stop the build, and should: you cannot be
+expected to know what is inside a pack, while two pack authors are equals.
+Naming that app in your own host settles it, because a plain assignment outranks
+both at once.
 
 <Aside type="caution" title="The quiet half: a list option merges instead of conflicting">
-The conflict above only happens for options that hold a single value. A
-**list**-typed one — `tour.steps`, `keys.leaderExtras`, `snippets.matches` —
-never conflicts at all: the definitions are **combined**, with no error and no
-warning. Two desktops that each author one tour step produce a tour with both, in
-an order neither author chose.
+Between two *modules at the same priority* — two packs, two `extraModules`
+entries — a **list**-typed option (`tour.steps`, `keys.leaderExtras`,
+`snippets.matches`) never conflicts at all: the definitions are **combined**,
+with no error and no warning. Two files that each author one tour step produce a
+tour with both, in an order neither author chose.
 
-It can also surface later as something harder than a merge. Two desktops each
+It can also surface later as something harder than a merge. Two files each
 adding a leader key merge quietly, and *then* prowl asserts that leader keys are
 unique and don't reuse a roster app's — a failure at eval that points at neither
 file.
 
-**Attribute sets are the middle case, not the same case.** `roster`,
-`workspaces` and `pounce.items` are `attrsOf`, so definitions merge *per key*: two desktops naming
+**Attribute sets are the middle case.** `roster`, `workspaces` and
+`pounce.items` are `attrsOf`, so definitions merge *per key*: two files naming
 different apps compose, while two naming the same app's same field conflict as
 loudly as any single value. That is deliberate — a silent merge there would
 quietly drop somebody's app.
 
-That is the failure mode worth testing for, because nothing will tell you about
-it. If your desktop sets any of these, say so in its README, and say whether it
-expects to be the only one.
-</Aside>
-
-<Aside type="note" title="App packs are the exception">
-A pack — a desktop narrowed to `haus.roster`, the apps on a machine — is
-imported through `nebelhaus.lib.pack`, which lowers every field it sets so the
-consumer's own host wins with a plain assignment and no `mkForce`. That is a
-property of the seam, not of the file: the same pack imported as a bare path
-still conflicts. Presets are deliberately not wrapped that way.
+If your file sets any of these, say so in its README.
 </Aside>
 
 ## Publish something inspectable
@@ -186,31 +213,30 @@ writer-desktop/
 In the README, say:
 
 - who the desktop is for and what it changes;
-- whether it is a whole desktop or a layer;
-- which nebelhaus revision you tested;
-- how to import it;
-- what it deliberately does not handle, including required rooms or
-  permissions;
-- whether both `checkRice` and a real host evaluation passed.
+- which rooms it turns on, and which it deliberately leaves off;
+- which haus revision you tested;
+- how to select it;
+- what it deliberately does not handle, including required permissions;
+- whether both `checkDesktop` and a real host evaluation passed.
 
 For a first release, invite people to review and vendor the `.nix` file. A
 remote flake wrapper can come later if versioned imports become useful; it
 should not hide the data users are being asked to trust, and it owes every
 module it wraps a `_file`. Rebuilding an attribute set loses the filename, and a
 conflict that reads `<unknown-file>` on both sides is unresolvable by the person
-holding it — which is exactly why `lib.pack` sets one.
+holding it — which is exactly why `lib.desktop` and `lib.pack` both set one.
 
 ## What does not belong
 
-Keep these in a private host file or an explicitly more powerful module:
+Keep these in a private host file or an explicitly more powerful module — a
+desktop is *refused* for most of them rather than merely discouraged:
 
 - identity, secrets, tokens, and personal account names;
-- a personal app roster that reveals more than the desktop needs;
 - raw macOS defaults outside `haus.*`;
 - a `pkgs` value, or a `/nix/store` path;
 - activation hooks and shell commands;
 - a display UUID — `haus.displays.main` names "the screen this Mac is using"
-  without naming anyone's hardware, which is what `large-print` uses.
+  without naming anyone's hardware, which is what `appearance.largePrint` uses.
 
 **Naming a package is not on that list.** Options that take a package have a
 `packageName` sibling taking the nixpkgs attribute as a *string*
@@ -223,18 +249,35 @@ A configuration that genuinely needs `pkgs`, scripts, or arbitrary
 nix-darwin options is a **power module**. That can be useful, but it carries a
 different trust model and should be labelled as one.
 
+## Coming from presets
+
+`presets` was the older name for a shareable file, and it let two of them stack.
+Every one still resolves, with a warning naming its replacement, and will be
+removed:
+
+| was | is |
+|---|---|
+| `extraModules = [ haus.presets.full ]` | nothing — `mkNebelhaus` already selects the `nebelhaus` desktop |
+| `extraModules = [ haus.presets.everyday ]` | `desktop = haus.desktops.everyday` |
+| `extraModules = [ haus.presets.minimal ]` | `desktop = haus.desktops.minimal` |
+| `extraModules = [ haus.presets.large-print ]` | `haus.appearance.largePrint = true` |
+| `extraModules = [ haus.packs.writing ]` | `haus.apps.packs.writing.enable = true` |
+| `lib.checkRice ./my-rice.nix` | `lib.checkDesktop ./my-desktop.nix` (still `lib.checkRice` for a pack file) |
+
+The two rows in the middle are not the same machine they were: as a preset,
+`everyday` was four lines layered on top of whichever desktop you had, and as a
+desktop it is the whole selection those four lines implied. Read
+`desktops/everyday.nix` before you switch — the one deliberate difference is
+that it leaves the AI room off, which the preset never mentioned.
+
 ## Before you share
 
 - [ ] The file has only a top-level `haus` key.
-- [ ] `checkRice` prints `true`.
-- [ ] A real host configuration evaluates.
-- [ ] The desktop composes with an unrelated layer.
+- [ ] `checkDesktop` prints `true`.
+- [ ] A real host configuration evaluates with it selected.
+- [ ] A plain host assignment overrides one of its choices, with no `mkForce`.
 - [ ] If it sets a list option — `tour.steps`, `keys.leaderExtras` — the README
-      says so, because a second desktop setting the same one merges into it
-      silently.
-- [ ] Every field the desktop sets is listed in its README with the `lib.mkForce`
-      line a consumer needs to override it — or, for a pack, imported through
-      `nebelhaus.lib.pack` so they don't.
+      says so, because a host that names the same one replaces it wholesale.
 - [ ] Disabled rooms agree with dependent features, including
       [`tour.steps`](/guides/making-it-yours/#the-first-run-tour).
 - [ ] The README states the audience, scope, tested revision, and limits.
