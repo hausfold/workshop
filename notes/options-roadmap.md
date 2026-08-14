@@ -135,10 +135,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > **What that leaves as work** (§5.12's box has it, §5.8's line too): a
 > `restart-map.nix` entry teaching this domain `universalaccessd`, then the
-> one-word promotions to `"effective"` and the descriptions they demand, then
-> `ui.cursorScale`. Promoting without the restart entry ships exactly the thing
-> §5.12 refused three times — an option that writes a plist and shows the user
-> nothing until their next logout.
+> promotions and the descriptions they demand. Promoting without the restart
+> entry ships exactly the thing §5.12 refused three times — an option that
+> writes a plist and shows the user nothing until their next logout. **Open as
+> [haus#360](https://github.com/hausfold/haus/pull/360)** the same day, with
+> [hausfold.co#43](https://github.com/hausfold/hausfold.co/pull/43) behind it;
+> `ui.cursorScale` is answered there rather than built — see §5.2.
 >
 > **Verified:** by eye, on `mbp`, macOS 26.6.1 (25G76), by Julien — the whole
 > point; there is no oracle for any of these five keys and there is not going to
@@ -1893,11 +1895,25 @@ contrast.
       the key in the table is then a one-word edit that generates the option.
       → ★ **Eye-checked 2026-08-14: the key works, and the one-word edit is no
       longer the whole change.** `3.0` does enlarge the pointer — but only after
-      `killall universalaccessd`, which the layer never runs
-      (`restart-map.nix` has this domain as `"none"`). So `cursorScale` is
-      un-cut and unblocked on *effect*, and newly blocked on the restart map:
+      `killall universalaccessd`, which the layer never ran
+      (`restart-map.nix` had this domain as `"none"`). So `cursorScale` is
+      un-cut and unblocked on *effect*, and was newly blocked on the restart map:
       ship the promotion alone and the option writes a plist the user sees
-      nothing come of until their next logout. §5.12's box carries the detail.
+      nothing come of until their next logout. §5.12's box carries the detail;
+      [haus#360](https://github.com/hausfold/haus/pull/360) does both halves.
+      → ❌ **But it ships as `haus.accessibility.mouseDriverCursorSize`, NOT as a
+      `ui.*` token, and the reason generalises to this whole section.**
+      Deriving the pointer from `ui.scale` — the obvious move, and what the
+      name `cursorScale` implied — would make `ui.scale = 1.4` pull an
+      **FDA-gated** write into the one option family every machine sets. A Mac
+      whose rebuilding app lacks the grant would then warn about TCC because
+      the user asked for larger text, for a write that gets skipped anyway.
+      §5.12's own conclusion already said it: treat `universalaccess` as a
+      **bonus layer that sharpens the result when the grant happens to be
+      there, never as the foundation** — and `ui.scale` is foundation. **A
+      semantic token may only be derived from keys that are reachable
+      unconditionally.** That is the rule this box actually produced, and it
+      applies to every future `ui.*` member, not just this one.
 - [x] ✅ **Sill: the type scales to a CEILING and stops — a different shape of
       answer, and the more interesting one.** Everything else here was a multiplier
       a tool was missing; the bar is not that. `sketchybarrc` pins `height=36` with
@@ -2944,6 +2960,16 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       map entry is what makes them mean anything, and either alone is a
       regression on this section's own bar. Then `ui.cursorScale` (§5.2)
       unblocks.
+      → **Open as [haus#360](https://github.com/hausfold/haus/pull/360)**, with
+      [hausfold.co#43](https://github.com/hausfold/hausfold.co/pull/43) behind
+      it — tick this box when they land. It answered the question below in a
+      way worth reading before the next promotion: a fifth class, `by-eye`,
+      because `effective` promises an oracle can re-check the key on YOUR Mac
+      and nothing can re-check these anywhere. And it needed a per-KEY restart
+      trigger, not a per-family one — `haus.appearance.largePrint` sets
+      `increaseContrast`, so the simple version would have bounced the daemon
+      on every rebuild of every large-print machine, which is the population
+      most likely to have VoiceOver or Zoom actually running.
       → **The question that PR has to answer rather than assume:** the map is
       one process (or list of verbs) per *domain*, and this domain now wants a
       kill for three of its keys and demonstrably doesn't need one for the other
