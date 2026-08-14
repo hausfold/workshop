@@ -2,9 +2,24 @@
 
 **The hausfold workshop** — the parent directory holding every repo in the
 **hausfold** family, plus the `bench` script that moves changes between them.
-This folder's own repo holds the README, this file, `bench`, `web/` (one
-Cloudflare Worker — nebelhaus.com's 301 map to hausfold.co, since 2026-08-14),
-plus `assets/` and `test/`; the subdirectories are independent git repos.
+This folder's own repo holds the README, this file, `bench` (plus `_bench`, its
+zsh completion), `web/` (one Cloudflare Worker — nebelhaus.com's 301 map to
+hausfold.co, since 2026-08-14), plus `assets/` and `test/`; the subdirectories
+are independent git repos.
+
+> **`_bench` gets onto fpath by symlink, not by Nix.** `bench` reaches PATH
+> through a wrapper in the private machine repo that `exec`s *this* checkout's
+> script, so the completion lives beside the script it describes and is wired up
+> with `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench` — haus's hearth
+> room already prepends that dir. Nothing rebuilds when you edit either file;
+> `exec zsh` reloads the completion. Its subcommand descriptions paraphrase
+> `bench`'s own usage header (`bench:2-40`) and must follow it. Only `FAMILY` and
+> `OVERRIDABLE` are drift-proof — those two are single-line arrays, so `_bench`
+> seds their members out of the script at completion time. **Everything else in
+> it is a hand copy and can rot**: `pull`'s six non-flake names (`bench:1158`),
+> `release`'s four repos (the arms of `version_file`, `bench:1183-1188`), and the
+> fallbacks beside both sed'd lists. Add a repo to `version_file` and the
+> completion silently omits it.
 
 > **Terminology update, decided 2026-08-13:** user-facing prose says
 > **desktop**, not "rice", for an installable `{ haus = { … }; }` configuration.
