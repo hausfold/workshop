@@ -20,12 +20,14 @@
 // narrower regex. `?ref=` is preserved on the redirect: hausfold.co's own
 // handler holds it to the release-tag shape, which is where that check belongs.
 //
-// 🚨 …in this file. NOT on the zone, as of 2026-08-14: `/init.sh` is still
-// answered by `nebelhaus-init`, the installer's first Worker, which holds the
-// more specific route `nebelhaus.com/init.sh*` because `wrangler deploy` never
-// removes a route its config stopped declaring. One 👤 command ends it —
-// rename plan §5.3. Until then this map's `/init.sh` row is code that never
-// runs, and the old proxy is what a user gets.
+// ⚠️ That was true of this file before it was true of the zone. `/init.sh` did
+// not reach this Worker at all until 2026-08-14: `nebelhaus-init`, the
+// installer's first Worker, still held the more specific route
+// `nebelhaus.com/init.sh*`, because a route belongs to the script that declared
+// it and no deploy under a new name reclaims one. Deleting that script is what
+// made this comment true — rename plan §5.3. Measured after: `/init.sh` 301s,
+// `?ref=<tag>` still resolves, `?ref=<40-hex sha>` is refused with a 400 on the
+// other side.
 
 // The one destination. Every value below is a path on this origin.
 const SITE = "https://hausfold.co";

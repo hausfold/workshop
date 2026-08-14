@@ -187,23 +187,26 @@ cache-busted, and re-measured independently at 15:00:
 | `nebelhaus.com/` · `/download/pounce` | 301 → the apex · the passthrough |
 | an unmapped path | 404, five-minute cache |
 | the eight landing routes on hausfold.co | 200 at the apex, 307 → trailing slash → 200 for the other seven |
-| **`nebelhaus.com/init.sh`** | **200 — the old proxy, not the 301** |
+| ~~**`nebelhaus.com/init.sh`**~~ | ~~**200 — the old proxy, not the 301**~~ ✅ **fixed the same hour** |
 
-🚨 **That last row is a Cloudflare route that outlived its config, and it keeps a
+🚨 **That last row was a Cloudflare route that outlived its config, and it kept a
 closed security hole open in production.** The install one-liner's *first* Worker
 was a separate script, `nebelhaus-init`, on the more-specific route
 `nebelhaus.com/init.sh*` (`web/wrangler.toml` at `8ceca10`). The site Worker that
 replaced it took a new name and the whole-zone route — and **a route belongs to
 the script that declared it**, so a deploy under a different name can never
-reclaim one. The orphan therefore still wins that path, still proxies
-`raw.githubusercontent.com`, and still accepts an arbitrary 40-hex ref:
-`nebelhaus.com/init.sh?ref=<sha>` answered 200 with `x-nebelhaus-ref` echoing the
-sha while this was written. The 301 map's claim that the
-`?ref=` fork-network hole is "closed by deletion" is true of the code and false
-of the zone. **It is 👤 and it is one command** — see §5.3.
+reclaim one. The orphan therefore kept winning that path, kept proxying
+`raw.githubusercontent.com`, and kept accepting an arbitrary 40-hex ref. The 301
+map's claim that the `?ref=` fork-network hole is "closed by deletion" was true
+of the code and false of the zone.
 
-Nothing else changed. §5.3's DNS and every other open box is 👤, unchanged from
-the audit below.
+✅ **👤 ran `npx wrangler delete --name nebelhaus-init` the same hour**, and the
+chain now measures 301 → 200 for a release tag and 301 → **400** for a 40-hex
+sha: refused where the check belongs, not merely re-homed. §5.3 carries the
+verification and the three things the fix turned on. **§5's gate is green.**
+
+Nothing else changed. §5.3's DNS confirmation and every other open box is 👤,
+unchanged from the audit below.
 
 ### Handoff — 2026-08-14 (evening)
 
@@ -2871,15 +2874,14 @@ wrangler configs. What that settled, beyond the redirect itself:
   `_redirects` file — that one would need an assets binding, i.e. a build whose
   only output is the file saying the build is gone. `/init.sh?ref=v2026.07.18`
   keeps its pin across the hop.
-- 🚨 **The `?ref=` fork-network hole is closed in the code and *not* on the
-  zone.** This Worker fetches nothing, so there is no object left to poison, and
-  the forwarded `?ref=` is checked where it is used — hausfold.co holds it to the
-  release-tag shape. But `/init.sh` never reaches this Worker: an orphaned route
-  from the installer's first deployment still points at a separate script that
-  proxies `raw.githubusercontent.com` to this day. Verified live 2026-08-14 —
-  §5.3 carries the finding and the one command that ends it. **Until it runs,
-  every sentence in this box about `/init.sh` describes intent rather than
-  behaviour.**
+- ✅ 🚨 **The `?ref=` fork-network hole is closed, in the code and on the zone.**
+  This Worker fetches nothing, so there is no object left to poison, and the
+  forwarded `?ref=` is checked where it is used — hausfold.co holds it to the
+  release-tag shape and answers 400 to a 40-hex sha. ⚠️ **The zone half was a
+  day late and nobody would have known:** `/init.sh` didn't reach this Worker at
+  all until an orphaned route from the installer's first deployment was deleted
+  (§5.3). The sentence above was true of `worker.js` from the moment it merged
+  and true of nebelhaus.com only after 👤 ran one command.
 - **`/download/<app>` and `/api/release/<app>` pass through with their slug**,
   and the app list is deliberately NOT re-stated here: hausfold.co 404s an
   unknown one, so the promise of which apps resolve lives in one place.
@@ -3369,50 +3371,62 @@ fix later.
 - ⚠️ **Cloudflare edge-caches 404s.** Cache-bust when verifying, or you'll chase
   a redirect that already works.
 
-#### 🚨 One route outlived its config, and it is the whole of §5's remaining work
+#### ✅ One route outlived its config — found and killed, 2026-08-14
 
-**Found by running §5's gate, 2026-08-14.** `nebelhaus.com/init.sh` answers
-**200 with 35 KB of `bootstrap.sh`**, not the 301 the map declares — and it
-answers 200 for `?ref=<any 40-hex sha>` too, echoing whatever you send back as
-`x-nebelhaus-ref` (measured with `14063b63…`, haus's tip at the time, because a
-ref that resolves proves the acceptance without going near a fork).
-Everything else on the zone is the new Worker: `/`,
-`/guides/pounce`, `/download/pounce` and an unmapped path all behave.
+**Found by running §5's gate, and fixed the same hour** (👤 ran
+`npx wrangler delete --name nebelhaus-init`). The account is clean and the whole
+chain was then measured end to end:
+
+| | |
+|---|---|
+| `nebelhaus.com/init.sh` | **301** → `hausfold.co/nebelhaus.sh` |
+| `…?ref=v2026.08.14-2` | 301, followed → **200** — a real release still pins |
+| `…?ref=<40-hex sha>` | 301, followed → **400** — hausfold.co refuses it |
+
+That last row is the point: the hole isn't merely un-reachable, it is *refused
+where the check belongs*. §5.2's Worker box always said hausfold.co holds `?ref=`
+to the release-tag shape; this is the first time both halves have been true at
+once on the live zones. **The gate for the whole of §5 is now green.**
+
+What it was, kept because the shape recurs:
+
+`nebelhaus.com/init.sh` answered **200 with 35 KB of `bootstrap.sh`**, not the
+301 the map declared — and it answered 200 for `?ref=<any 40-hex sha>` too,
+echoing whatever you sent back as `x-nebelhaus-ref` (measured with `14063b63…`,
+haus's tip at the time, because a ref that resolves proves the acceptance without
+going near a fork). Everything *else* on the zone was already the new Worker,
+which is what made it invisible: `/`, `/guides/pounce`, `/download/pounce` and an
+unmapped path all behaved.
 
 **Why, in one line:** the install one-liner's first Worker was its own script,
 `nebelhaus-init`, on the *more specific* route `nebelhaus.com/init.sh*`
 (`web/wrangler.toml` at `8ceca10`). `f5da0a1` folded it into the site Worker
-under a different name with the whole-zone route — and **`wrangler deploy` adds
-the routes a config declares and never removes the ones it doesn't.** Cloudflare
-matches most-specific-first, so the orphan has quietly won that one path ever
-since; nobody noticed because the old script kept doing the right thing right up
-until this month, when doing the old thing became the wrong thing twice over —
-the 301 doesn't fire, and the `raw.githubusercontent` fork-network hole the 301
-box says is "closed by deletion" is still open in production.
+under a different name with the whole-zone route — and **a route belongs to the
+script that declared it**, so no deploy under a new name ever reclaims one, and
+Cloudflare matches most-specific-first. The orphan quietly won that path from
+then on. Nobody noticed because it kept doing the right thing right up until this
+month, when doing the old thing became the wrong thing twice over: the 301 didn't
+fire, and the `raw.githubusercontent` fork-network hole the 301 box called
+"closed by deletion" was still open in production.
 
 🚨 **The site Worker's own `wrangler.toml` warns about exactly this trap** ("The
 Worker keeps its name. Renaming it uploads a NEW script and leaves the old one
 holding the zone route until something takes it away") — the trap named in the
 abstract, by a session that never checked whether the zone was already living
-inside it. A warning is not a check.
+inside it. **A warning is not a check**, and that is the transferable half of
+this: nothing in either repo enumerates what is actually deployed, so a config
+file describes the deployment it *wants*. The dashboard's Workers ▸ Routes for
+the two zones is the only place the answer lives.
 
-👤, one command, on an account this repo's CI token can't reach:
+Three things the fix itself turned on, worth keeping for the next one:
 
-```sh
-npx wrangler delete --name nebelhaus-init     # takes its route with it
-curl -sI 'https://nebelhaus.com/init.sh?cb=1' # expect 301 → hausfold.co/nebelhaus.sh
-```
-
-⚠️ **Delete the script, not just the route** — a script with no route is a
-loaded gun for the next person who adds one. And check the account for other
-orphans while you are in there (`npx wrangler deployments list` per script, or
-the dashboard's Workers ▸ Routes for the two zones): this is the second script
-name these two zones have gone through, and nothing in either repo enumerates
-what is deployed.
-
-⚠️ **Cache note, so the verification isn't misread:** the old script serves
-`cache-control: public, max-age=300`, so a stale 200 can survive the delete for
-five minutes at a colo. Cache-bust *and* wait before concluding it didn't work.
+- **Delete the script, not just the route.** A script with no route is a loaded
+  gun for whoever adds one; deleting the script takes its routes with it.
+- **The old script served `max-age=300`**, so a stale 200 can outlive the delete
+  by five minutes at a colo. Cache-bust *and* wait before concluding it failed.
+- **Verify by following the hop, not by reading the 301.** The 301 firing only
+  proves the orphan is gone; it took `curl -sL` to the other side to show that
+  `?ref=<sha>` is now **refused** (400) rather than merely re-homed.
 
 ### 5.4 ✅ Support address — swept, and settled on `hi@hausfold.co`
 
@@ -3611,11 +3625,11 @@ green. Everything else is strictly sequential.
 
 **You are here (2026-08-14, late):** **§5.2 is ✅ and this document has no 🤖
 work left in it.** The docs, the Worker, the `nebelhaus.com/*` 301s and the eight
-landing routes all landed today. The phase gate was run rather than built and it
-passes — except for `nebelhaus.com/init.sh`, which an orphaned Cloudflare route
-still answers with the old proxy. **That one 👤 command is what §5 now waits
-on** (§5.3), alongside the DNS confirmation. The 2026-08-10 reading below still
-holds for §0–§4.
+landing routes all landed today. The phase gate was run rather than built, and it
+**passes** — including `nebelhaus.com/init.sh`, which an orphaned Cloudflare
+route answered with the old proxy until 👤 deleted the script (§5.3). What §5
+still waits on is §5.3's DNS confirmation, which is 👤 and always was. The
+2026-08-10 reading below still holds for §0–§4.
 
 **You were here (2026-08-10):** §0 green bar §0.3's branch clause — §0.2's
 register search ran 2026-08-10 and leaves only the clearance *opinion*, which is
