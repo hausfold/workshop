@@ -101,6 +101,48 @@ already exist, and one it treated as a detail is the actual root blocker.
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-14 (nineteenth pass) — both of this file's outstanding
+> eye-checks were finally watched, in one hour, and they came back opposite.**
+>
+> No code shipped in this pass; two boxes closed and one of them reopened as a
+> smaller code item. §5.6's `lock`/`menuBar` pair **needs nothing** — seconds
+> appeared in the menu bar clock the moment `bench try switch` finished, and the
+> screen saver honoured a 60-second grace period on macOS 26 despite Apple
+> having moved that setting to `sysadminctl -screenLock`, so
+> `restart-map.nix`'s `"none"` and `SystemUIServer` entries are both right for
+> the reasons they gave. §5.12's three `unconfirmed` `universalaccess` keys
+> (`mouseDriverCursorSize`, `closeViewScrollWheelToggle`,
+> `closeViewZoomFollowsFocus`) **all work** — and none of them does anything
+> until `universalaccessd` is restarted, which the layer never does.
+>
+> **★ The finding: an oracle doesn't only tell you whether a key works — it
+> selects which keys you ever learn from, and the generalisation you draw is
+> about that sample.** `"com.apple.universalaccess" = "none"` was true, and was
+> measured, for the four keys with an NSWorkspace read behind them. Those four
+> are the ones with an oracle *because* they are the ones with an oracle; the
+> three without were then judged by a rule derived entirely from their
+> unmeasurable siblings, and looked dead. Both halves of the mistake are the
+> same shape as §5.6's ★ below (a deferral needs its premise checked as hard as
+> a shipped option), one level up: **a domain-level fact inferred from the
+> measurable subset of that domain is not a domain-level fact.**
+>
+> Second, smaller, and aimed at whoever wires `haus capture` to this domain:
+> deleting the three test keys did **not** restore the plist. Using zoom once
+> left `universalaccessd`'s own bookkeeping behind. This domain grows keys from
+> ordinary use, with nobody writing them.
+>
+> **What that leaves as work** (§5.12's box has it, §5.8's line too): a
+> `restart-map.nix` entry teaching this domain `universalaccessd`, then the
+> one-word promotions to `"effective"` and the descriptions they demand, then
+> `ui.cursorScale`. Promoting without the restart entry ships exactly the thing
+> §5.12 refused three times — an option that writes a plist and shows the user
+> nothing until their next logout.
+>
+> **Verified:** by eye, on `mbp`, macOS 26.6.1 (25G76), by Julien — the whole
+> point; there is no oracle for any of these five keys and there is not going to
+> be one. Test state was reverted afterwards, by hand, including the weakened
+> `askForPasswordDelay`.
+
 > **Status, 2026-08-14 (eighteenth pass) — §5.12 is built out to its last 👤
 > box, and the guard that existed to make its sharpest edge unhittable was
 > asking the wrong question in both directions at once.**
@@ -1847,6 +1889,13 @@ contrast.
       afterwards, and no oracle exists to watch it for you. So this is **blocked
       on a 👤 eye-check, not cut**: look at the cursor at `3.0`, and promoting
       the key in the table is then a one-word edit that generates the option.
+      → ★ **Eye-checked 2026-08-14: the key works, and the one-word edit is no
+      longer the whole change.** `3.0` does enlarge the pointer — but only after
+      `killall universalaccessd`, which the layer never runs
+      (`restart-map.nix` has this domain as `"none"`). So `cursorScale` is
+      un-cut and unblocked on *effect*, and newly blocked on the restart map:
+      ship the promotion alone and the option writes a plist the user sees
+      nothing come of until their next logout. §5.12's box carries the detail.
 - [x] ✅ **Sill: the type scales to a CEILING and stops — a different shape of
       answer, and the more interesting one.** Everything else here was a multiplier
       a tool was missing; the bar is not that. `sketchybarrc` pins `height=36` with
@@ -2329,10 +2378,30 @@ log: **a deferral needs its premise checked as hard as a shipped option does.**
 The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
 `modules/power/`.
 
-- [ ] Confirm `lock`/`menuBar` by eye — set a value, `bench try switch`, and see
-  it happen without a restart. This is the same class of open box as the
-  matrix's `mouseDriverCursorSize`/`closeViewScrollWheelToggle` rows: wired and
-  plausible, not yet watched.
+- [x] **Watched 2026-08-14 — both take effect live, and the restart map was
+  right about both for the reason it gave.** `haus.menuBar.clock.showSeconds =
+  true` + `haus.lock.requirePasswordDelay = 60` in the host file, one
+  `bench try switch`, no logout: the menu bar clock was ticking seconds
+  immediately (the SystemUIServer/ControlCenter kill is enough — the doubt was
+  that macOS 26 draws the clock from ControlCenter, and it doesn't matter, both
+  are restarted), and starting the screen saver then waking inside the grace
+  period went **straight to the desktop with no password prompt**, where the
+  same machine had always asked. So `com.apple.screensaver = "none"` holds:
+  there is no persistent process, the setting is read at the next lock, and
+  Apple's move of this setting to `sysadminctl -screenLock` did **not** make the
+  plist key inert on 26 — which was the live worry, and the reason a group with
+  no oracle still had to be watched rather than reasoned about.
+  → ★ **The eye-check that mattered was the one that came back boring.** This
+  box and the matrix's `mouseDriverCursorSize` row were filed as the same class
+  of open item — "wired and plausible, not yet watched" — and were resolved in
+  the same hour with opposite results: this pair needed nothing, that pair
+  needed a daemon kill nobody had modelled (§5.12). **Being in the same class of
+  unverified is not evidence of being in the same state**, which is exactly the
+  inference a shared "not yet watched" label invites. Both cost one look.
+  → Test state reverted afterwards: the host-file block was temporary, and
+  `askForPasswordDelay` was deleted rather than left at 60 — a `defaults` write
+  outlives the option that made it, so an eye-check that weakens a security
+  setting has to clean up after itself by hand.
 - [ ] Give the login half of "Lock / login / screensaver" and Windows an honest
   way to say "takes effect at next login" (the way `haus.accessibility`
   says "needs Full Disk Access") — that's what unblocks building them, not a
@@ -2677,7 +2746,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       sentence and wrong that none was needed for the second: a verb that renders
       to nothing has nothing for a reader to find.)*
 
-### 5.12 Accessibility — ◐ **designed and built 2026-08-14 in haus#356; one 👤 eye-check left open** · M
+### 5.12 Accessibility — ◐ **designed and built 2026-08-14 in haus#356; the last 👤 eye-check came back 2026-08-14 and reopened a smaller thing: all three `unconfirmed` keys work, but only after `killall universalaccessd`, which `restart-map.nix` doesn't do** · M
 Twice-corrected. It's buildable: `universalaccess` writes and takes effect —
 **if the app invoking the rebuild holds Full Disk Access**. So the option tree is
 viable, but the caveat is load-bearing and has to be designed *into* it.
@@ -2799,14 +2868,52 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       hazard the typed one does. What actually decides the route is **whether a
       refusal is survivable**, which no amount of looking at nix-darwin's option
       list would have told you.
-- [ ] `mouseDriverCursorSize` / `closeView*` persist but their **effect is
-      unconfirmed** — no oracle exists, so they need an eyeball before
-      `ui.cursorScale` comes back. **Still open, and now recorded where it
-      binds**: `modules/lib/reachability.nix` carries all three as
-      `"unconfirmed"`, and the option generator only builds from `"effective"`,
-      so promoting one is a one-word edit that then *demands* a description —
-      the eyeball is the only remaining step, not the plumbing. 👤 Julien's, on
-      real hardware: set the key, look at the cursor / try ^+scroll.
+- [x] **Watched 2026-08-14 — all three DO work, and the eyeball found what an
+      oracle would have hidden: they need a daemon restart the layer doesn't
+      do.** Written bare from an FDA-granted terminal — which is exactly what
+      activation does, since `restart-map.nix` carries
+      `"com.apple.universalaccess" = "none"` — `mouseDriverCursorSize = 3.0` and
+      `closeViewScrollWheelToggle = true` changed **nothing on screen**. One
+      `killall universalaccessd` later (same plist, every value intact across the
+      restart) the pointer was visibly larger and ⌃+scroll zoomed the display.
+      So the keys are **effective and the restart map is wrong about this
+      domain** — the opposite of the failure this section kept expecting, where a
+      key lands and lies (`FontSizeCategory`, below).
+      → ★ **"No restart needed" had been generalised from the wrong four keys.**
+      `"none"` is true of `reduceMotion`, `reduceTransparency`,
+      `increaseContrast` and `differentiateWithoutColor` — the four with an
+      NSWorkspace oracle, which is *why* they are the four that ever got
+      measured. Extending their restart behaviour to the domain is what made the
+      two unmeasurable keys look dead. **An oracle doesn't just tell you whether
+      a key works; it silently selects which keys you learn from, and the
+      generalisation you draw is about that sample, not the domain.**
+      → `closeViewZoomFollowsFocus` is **effective too, and it took a second
+      look to say so honestly.** The first observation — pointer to a screen
+      edge, view pans — proves nothing: that is zoom's default *pointer*
+      panning, which happens with this key off. Isolating it means parking the
+      pointer and moving **keyboard** focus: ⇥ to an input outside the viewport
+      and the view snaps to it. It *snaps* rather than glides, which is the
+      feature working, not a glitch — expect the option's description to say so,
+      because the first thing anyone will report is that it looks janky.
+      → **What this unblocks, and what it now costs.** `ui.cursorScale` is no
+      longer blocked on "does the key do anything". It is blocked on
+      `restart-map.nix` learning `universalaccessd` for this domain — a new
+      process kill, fired only on a rebuild that writes `haus.accessibility.*`.
+      Promoting the three keys to `"effective"` *without* that ships an option
+      which writes the plist and shows the user nothing until their next logout:
+      the exact shape §5.12 has refused three times. **The one-word promotion is
+      still one word; it just isn't the whole change any more.** The map value
+      is also the place to record that the four oracle-backed keys don't need
+      the kill and the three new ones do — one domain, two behaviours, which is
+      the first time that has come up.
+      → **Byproduct worth knowing before `haus capture` meets this domain:**
+      deleting the three test keys afterwards did not return the plist to its
+      prior contents. Using zoom once left `universalaccessd`'s own bookkeeping
+      behind (`closeViewDesiredZoomFactor`, `closeViewZoomedIn`,
+      `closeViewZoomFactorBeforeTermination`, …). **This domain grows keys on
+      its own, from ordinary use, with nobody writing them** — so a capture that
+      diffs it will report drift that was never configuration, and the
+      reachability table is where the distinction has to live.
 - [x] **`FontSizeCategory` resolved, and it's narrower than hoped.** Real
       vocabulary is `DEFAULT` / `AX1`… (read back after setting Text size in
       System Settings — my earlier `LARGE` guess would have been stored and
@@ -3392,8 +3499,11 @@ that visible, and turned up two things that were already broken:
 - [ ] §5.8 scenes · ~~§5.12 accessibility doctor checklist~~ — **§5.12's build
       is done as of 2026-08-14 (haus#356)**: the doctor half was already in
       (rice#128), and the designation, the option coverage and the guard landed
-      together. What is left of §5.12 is one 👤 eye-check, so §5.8 is the only
-      thing on this line still needing code.
+      together. The 👤 eye-check that was left came back 2026-08-14: the three
+      keys work, so what remains of §5.12 IS code again — a `restart-map.nix`
+      entry for `universalaccessd` plus the promotion it gates. §5.8 is no
+      longer the only thing on this line needing code — a "just needs a human to
+      look" item turned back into work by being looked at.
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
       workshop#135/#137
 
