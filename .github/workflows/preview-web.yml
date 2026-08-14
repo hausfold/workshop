@@ -1,6 +1,10 @@
-# Build nebelhaus.com and deploy an isolated, route-less Cloudflare Worker for
-# each same-repository PR. The PR number gives it a stable workers.dev URL
-# without moving the Worker serving the nebelhaus.com route.
+# Deploy an isolated, route-less Cloudflare Worker for each same-repository PR.
+# The PR number gives it a stable workers.dev URL without moving the Worker
+# serving the nebelhaus.com route.
+#
+# Since rename plan §5.2 the zone is a 301 map rather than a site, so there is no
+# build: the preview URL answers `/guides/pounce` with the redirect this PR would
+# publish, and `curl -sI <preview>/guides/pounce` is the whole review.
 name: Preview nebelhaus.com
 
 on:
@@ -74,9 +78,6 @@ jobs:
 
       - name: Test
         run: npm test
-
-      - name: Build the site
-        run: npm run build
 
       - name: Upload Cloudflare preview
         id: deploy

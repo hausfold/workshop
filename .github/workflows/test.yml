@@ -1,5 +1,5 @@
 # Verify the workshop's two code artifacts on every push and PR:
-#   • web/worker.js  — the /init.sh Worker (Vitest unit suite)
+#   • web/worker.js  — nebelhaus.com's 301 map (Vitest unit suite)
 #   • bench          — the family CLI (bats unit suite + shellcheck)
 #
 # This is the gate the repo was missing: deploy-web.yml only builds + deploys,

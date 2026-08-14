@@ -96,7 +96,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 | Check | The failure it catches |
 |---|---|
 | **Routing** | the change is in the wrong repo — a color hex landing in `hausfold` (the rice) instead of `nebelung`, launchd logic in `pounce` instead of the rice, site copy in `hausfold` instead of `hausfold.co`. The workshop's routing table decides, and "it works here" is not a defence. |
-| **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `web/src/content/docs/` (the SOT), `reference/options.md`, `reference/keybindings.md`, or the repo's README. An option a user can set and can't discover is a bug. |
+| **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `hausfold.co/content/docs/` (the SOT since 2026-08-14 — the workshop's `web/` tree is deleted), its `haus/reference/options.mdx`, `nebelhaus/keybindings.mdx`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(prowl) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
 | **Raw worktree adds** | a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |

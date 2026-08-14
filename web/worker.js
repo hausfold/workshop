@@ -1,160 +1,161 @@
-// nebelhaus.com — one Worker serves the whole site.
+// nebelhaus.com — the 301 map. This zone no longer serves a site.
 //
-//   /init.sh            → PROXIES the rice's bootstrap.sh as text/plain, so the
-//                         install one-liner is exactly:
-//                             curl -fsSL https://nebelhaus.com/init.sh | bash
-//   /download/<app>     → 302 to the latest GitHub release's macOS artifact,
-//                         so landing pages (and curl) get a stable URL while
-//                         GitHub keeps hosting bytes and counting downloads
-//   /api/release/<app>  → tiny JSON (tag, asset, size, publishedAt) the landing
-//                         pages use to label the download button with the real
-//                         version — nothing hardcoded to go stale between deploys
-//   everything else     → the static Astro/Starlight site (the [assets] binding)
+// Every page that lived here was rebuilt on hausfold.co (rename plan §5.2), and
+// two live copies of one docs tree is how a fact gets fixed in one and not the
+// other. So the Astro/Starlight build is gone, the [assets] binding with it, and
+// this Worker answers the whole zone with permanent redirects:
 //
-// We PROXY (fetch), not redirect, so the pretty URL is what curl sees and there's
-// no hop to a raw.githubusercontent.com link. By default /init.sh serves the
-// latest GitHub *release* tag of hausfold/haus (cached ~1h to stay well
-// under GitHub's unauthenticated API limit), falling back to `main` before the
-// first release. `?ref=v2026.07.18` pins an exact ref; a REF wrangler var hard-pins one.
+//   /guides/pounce      → https://hausfold.co/docs/haus/rooms/launcher/
+//   /init.sh            → https://hausfold.co/nebelhaus.sh   (one hop, not two)
+//   /download/<app>     → the same route on hausfold.co, which still 302s to
+//   /api/release/<app>     the latest notarized GitHub artifact
+//   anything else       → 404, honestly
+//
+// 🚨 This is also what closes the `?ref=` hole the assurance pass found on
+// hausfold.co's copy: a 40-hex commit SHA passes the old `SAFE_REF`, and
+// raw.githubusercontent.com serves any object in a public repo's FORK network,
+// so a stranger's fork commit could be handed out as
+// `nebelhaus.com/init.sh?ref=<sha>` — our domain, our TLS, their script. This
+// Worker fetches nothing, so the hole closes by deletion rather than by a
+// narrower regex. `?ref=` is preserved on the redirect: hausfold.co's own
+// handler holds it to the release-tag shape, which is where that check belongs.
 
-const REPO = "hausfold/haus";
-const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path traversal
+// The one destination. Every value below is a path on this origin.
+const SITE = "https://hausfold.co";
 
-// The apps with signed + notarized release artifacts on GitHub. Keys are the
-// URL slugs; each repo lives at github.com/hausfold/<app>.
-// A slug here is a promise to keep serving that app's latest release, so only
-// apps the site actually presents belong in this set.
-const DOWNLOADABLE = new Set(["pounce", "perch"]);
-// The human-facing artifact, most-preferred first. A DMG outranks the archive
-// on purpose: pounce's release ships BOTH — the tarball is the Homebrew
-// formula's artifact (app + CLI scripts, brew wires the daemon), the DMG is the
-// drag-to-Applications one (self-contained app, login item self-registers on
-// first open). Handing a human the tarball is how you strand them with a
-// half-installed palette.
-const MACOS_DMG = /-macos\.dmg$/;
-const MACOS_ASSET = /-macos\.(zip|tar\.gz)$/;
+// Old URL → new URL, one row per page the old site published, and it can never
+// grow: the site that served these is deleted, so this table is closed.
+//
+// Keys are normalized — lowercased, no trailing slash, `/` written as "". Both
+// spellings resolve because of that normalization, which matters more than it
+// used to: the no-slash form only 307'd to the slash form while an index.html
+// existed at that path, and the [assets] binding that did it is gone.
+//
+// Destinations carry hausfold.co's trailing slash (`trailingSlash: true` in its
+// Next config) so a visitor lands in one hop rather than two. The exceptions are
+// the two `worker.js` routes there and the generated text files, none of which
+// are pages.
+//
+// Composed from two records rather than derived from an old build: the rename
+// plan's source ledger (§5.2) says which source became which page, and
+// hausfold.co's `public/_redirects` says where the rooms reorganisation moved it
+// on 2026-08-14. Where a row disagrees with the ledger it is because it follows
+// the *current* URL — `guides/theming` became `guides/theming` and then
+// `rooms/appearance`, and a visitor should not pay for that history.
+export const REDIRECTS = {
+  // The landing page and the two product pages.
+  "": `${SITE}/`,
+  "/pounce": `${SITE}/pounce/`,
+  "/perch": `${SITE}/perch/`,
 
-const text = (body, status = 200, extra = {}) =>
-  new Response(body, {
-    status,
-    headers: { "content-type": "text/plain; charset=utf-8", ...extra },
-  });
+  // Generated routes, same names on the other side.
+  "/llms.txt": `${SITE}/llms.txt`,
+  "/llms-full.txt": `${SITE}/llms-full.txt`,
 
-async function latestRef(env) {
-  if (env.REF) return env.REF; // deploy-time hard pin wins
-  const cache = caches.default;
-  const key = new Request("https://nebelhaus.com/__latest_release");
-  const cached = await cache.match(key);
-  if (cached) return (await cached.text()).trim();
-  try {
-    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-      headers: { "user-agent": "nebelhaus-init", accept: "application/vnd.github+json" },
-    });
-    if (r.ok) {
-      const tag = (await r.json()).tag_name;
-      if (tag && SAFE_REF.test(tag)) {
-        // Cache for an hour so we make ~1 API call per colo per hour.
-        await cache.put(key, new Response(tag, { headers: { "cache-control": "max-age=3600" } }));
-        return tag;
-      }
-    }
-  } catch (_) {
-    /* network / API hiccup — fall through to main */
-  }
-  return "main";
-}
+  // Start here. `what-is-nebelhaus` is the DESKTOP tree's index, not haus's —
+  // verified by reading both pages, and the easiest row in the table to get
+  // wrong now that the docs are two trees.
+  "/start/what-is-nebelhaus": `${SITE}/docs/nebelhaus/`,
+  "/start/install": `${SITE}/docs/haus/install/`,
+  "/start/first-run": `${SITE}/docs/nebelhaus/first-run/`,
+  // `start/the-family` was deliberately retired rather than ported (§5.2,
+  // 2026-08-12) — three pieces of it moved into `internals/contributing` and
+  // the rest was about a family the docs index now shows. The index is the
+  // honest destination.
+  "/start/the-family": `${SITE}/docs/`,
 
-// Latest-release lookup for a family app, cached ~1h per colo like latestRef —
-// one shape serves both the redirect and the JSON endpoint.
-async function latestAppRelease(app) {
-  const cache = caches.default;
-  const key = new Request(`https://nebelhaus.com/__release/${app}`);
-  const cached = await cache.match(key);
-  if (cached) return cached.json();
-  try {
-    const r = await fetch(`https://api.github.com/repos/hausfold/${app}/releases/latest`, {
-      headers: { "user-agent": "nebelhaus-download", accept: "application/vnd.github+json" },
-    });
-    if (r.ok) {
-      const release = await r.json();
-      const asset =
-        release.assets?.find((a) => MACOS_DMG.test(a.name)) ??
-        release.assets?.find((a) => MACOS_ASSET.test(a.name)) ??
-        release.assets?.[0];
-      if (release.tag_name && asset) {
-        const meta = {
-          tag: release.tag_name,
-          asset: asset.name,
-          size: asset.size,
-          url: asset.browser_download_url,
-          publishedAt: release.published_at,
-        };
-        await cache.put(
-          key,
-          new Response(JSON.stringify(meta), {
-            headers: { "content-type": "application/json", "cache-control": "max-age=3600" },
-          }),
-        );
-        return meta;
-      }
-    }
-  } catch (_) {
-    /* network / API hiccup — caller falls back to the releases page */
-  }
-  return null;
-}
+  // Guides. Most became rooms; the two that didn't became desktop pages.
+  "/guides/making-it-yours": `${SITE}/docs/haus/desktops/customizing/`,
+  "/guides/sharing-a-rice": `${SITE}/docs/haus/desktops/creating/`,
+  // ⚠️ These two are easy to swap. `ai-agent` was "Changing your Mac with an
+  // agent" (rebuilds) and `claude-agents` was "Coding agents (holt)" (the room).
+  "/guides/ai-agent": `${SITE}/docs/haus/rooms/agent-rebuilds/`,
+  "/guides/claude-agents": `${SITE}/docs/haus/rooms/ai/`,
+  "/guides/adding-apps": `${SITE}/docs/haus/rooms/apps/`,
+  "/guides/window-management": `${SITE}/docs/haus/rooms/windows/`,
+  "/guides/the-bar": `${SITE}/docs/haus/rooms/bar/`,
+  "/guides/the-shell": `${SITE}/docs/haus/rooms/development/`,
+  "/guides/touch-id": `${SITE}/docs/haus/rooms/security/`,
+  "/guides/hush": `${SITE}/docs/haus/rooms/focus/`,
+  "/guides/pounce": `${SITE}/docs/haus/rooms/launcher/`,
+  // Writing a command is reference material there, not a guide.
+  "/guides/pounce-commands": `${SITE}/docs/haus/reference/pounce/`,
+  "/guides/theming": `${SITE}/docs/haus/rooms/appearance/`,
+  // `staying-in-sync` + `new-mac` were consolidated into one page.
+  "/guides/staying-in-sync": `${SITE}/docs/haus/keeping-it-current/`,
+  "/guides/new-mac": `${SITE}/docs/haus/keeping-it-current/`,
+  "/guides/leaving": `${SITE}/docs/haus/leaving/`,
 
-async function serveDownload(app) {
-  const release = await latestAppRelease(app);
-  // Even on an API hiccup the user still lands somewhere useful.
-  const target = release?.url ?? `https://github.com/hausfold/${app}/releases/latest`;
-  return new Response(null, {
-    status: 302,
-    headers: { location: target, "cache-control": "public, max-age=300" },
-  });
-}
+  // Reference.
+  "/reference/options": `${SITE}/docs/haus/reference/options/`,
+  // The cheatsheet is a desktop's muscle memory, so it lives in that tree.
+  "/reference/keybindings": `${SITE}/docs/nebelhaus/keybindings/`,
+  "/reference/pounce": `${SITE}/docs/haus/reference/pounce/`,
+  // The palette page was folded into theming, which is now the appearance room.
+  "/reference/palette": `${SITE}/docs/haus/rooms/appearance/`,
+  "/reference/haus": `${SITE}/docs/haus/reference/haus/`,
+  "/reference/troubleshooting": `${SITE}/docs/haus/reference/troubleshooting/`,
 
-async function serveReleaseMeta(app) {
-  const release = await latestAppRelease(app);
-  if (!release) return text("{}", 502, { "content-type": "application/json" });
-  return new Response(JSON.stringify(release), {
-    headers: {
-      "content-type": "application/json",
-      "cache-control": "public, max-age=300",
-    },
-  });
-}
+  // Under the hood.
+  "/internals/flakes": `${SITE}/docs/haus/internals/flakes/`,
+  "/internals/contributing": `${SITE}/docs/haus/internals/contributing/`,
 
-async function serveInitScript(url, env) {
-  const ref = url.searchParams.get("ref") || (await latestRef(env));
-  if (!SAFE_REF.test(ref) || ref.includes("..")) {
-    return text("# invalid ref\n", 400);
-  }
-  const raw = `https://raw.githubusercontent.com/${REPO}/${ref}/bootstrap.sh`;
-  const up = await fetch(raw, { cf: { cacheTtl: 300, cacheEverything: true } });
-  if (!up.ok) {
-    return text(`# could not fetch bootstrap.sh at '${ref}' (HTTP ${up.status})\n`, 502);
-  }
-  return text(await up.text(), 200, {
-    "cache-control": "public, max-age=300",
-    "x-nebelhaus-ref": ref,
-  });
+  // The one essay. Its subject — never `git stash` in a worktree, park instead —
+  // is a section of the AI room now.
+  "/writing/park-not-stash": `${SITE}/docs/haus/rooms/ai/`,
+
+  // The install one-liner, in shell histories and in every README written before
+  // 2026-08-14. It lands on `/nebelhaus.sh` directly: hausfold.co deliberately
+  // has no `/init.sh`, precisely so this costs one hop instead of two.
+  "/init.sh": `${SITE}/nebelhaus.sh`,
+};
+
+// The two Worker routes that exist on both sides, so they pass straight through
+// with their slug. hausfold.co gates the app names itself; an unknown one 404s
+// there rather than here, which keeps one list authoritative instead of two.
+const PASSTHROUGH = /^\/(?:download|api\/release)\/[a-z]+$/;
+
+// A year. These are permanent and the origin is going away, so there is nothing
+// to re-check — but a finite max-age still beats `immutable` if a destination
+// ever has to move again.
+const CACHE = "public, max-age=31536000";
+
+const redirect = (location) =>
+  new Response(null, { status: 301, headers: { location, "cache-control": CACHE } });
+
+// Lowercase, drop the trailing slash, drop `index.html` — the three shapes the
+// old static site answered for one page.
+export function normalize(pathname) {
+  let p = pathname.toLowerCase();
+  if (p.endsWith("/index.html")) p = p.slice(0, -"index.html".length);
+  if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
+  return p === "/" ? "" : p;
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request) {
     const url = new URL(request.url);
-    if (url.pathname === "/init.sh") {
-      return serveInitScript(url, env);
+    const path = normalize(url.pathname);
+
+    const target = REDIRECTS[path];
+    if (target) {
+      // Carry the query string through. It matters for exactly one row —
+      // `/init.sh?ref=v2026.07.18`, which the docs showed for months — and
+      // costs nothing on the rest.
+      return redirect(url.search ? `${target}${url.search}` : target);
     }
-    const appRoute = url.pathname.match(/^\/(download|api\/release)\/([a-z]+)$/);
-    if (appRoute && DOWNLOADABLE.has(appRoute[2])) {
-      return appRoute[1] === "download" ? serveDownload(appRoute[2]) : serveReleaseMeta(appRoute[2]);
-    }
-    // Everything else is the static site. With the [assets] binding present,
-    // matching assets are served automatically before the Worker even runs;
-    // this fallback covers requests that reach the Worker anyway.
-    if (env.ASSETS) return env.ASSETS.fetch(request);
-    return text("nebelhaus — https://github.com/hausfold/haus\n", 404);
+
+    if (PASSTHROUGH.test(path)) return redirect(`${SITE}${path}`);
+
+    // Everything else — the old build's hashed CSS, the stills, the social card,
+    // a typo — 404s honestly rather than being swept to the homepage.
+    //
+    // ⚠️ Deliberately NOT cached for a year like the redirects: Cloudflare
+    // edge-caches 404s, and a missing row found after the fact would then be
+    // unfixable for that long at whichever colo saw it first.
+    return new Response(`moved — https://hausfold.co\n`, {
+      status: 404,
+      headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=300" },
+    });
   },
 };
