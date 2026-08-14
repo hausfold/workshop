@@ -75,7 +75,9 @@ them anyway; they carry docs. Your own `~/.config/nix` — the host file naming
 your apps, your identity, your secrets — stays private, outside this directory,
 and is restored from its own repo.
 
-This repo itself holds `bench`, one set of agent instructions, and `web/` — the
+This repo itself holds `bench` (and `_bench`, its zsh completion — symlink it
+into `~/.zsh-completions/` to get it on fpath), one set of agent instructions,
+and `web/` — the
 Cloudflare Worker behind [nebelhaus.com](https://nebelhaus.com), which is a 301
 map to [hausfold.co](https://hausfold.co) now that the docs, the product pages
 and the `curl | bash` one-liner all live there.

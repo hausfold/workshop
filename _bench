@@ -1,0 +1,176 @@
+#compdef bench
+# _bench — zsh completion for the workshop CLI.
+#
+# It lives HERE, beside `bench`, because this is where the thing it describes
+# lives. What reaches your PATH is a one-line wrapper in the private machine
+# repo (`hosts/mbp/default.nix`) that `exec`s this directory's script — a
+# completion shipped from there would sit in a different repo from the nine
+# subcommands it has to stay in step with.
+#
+# zsh only SEES this file if something puts its directory on fpath. Today
+# that's a symlink into ~/.zsh-completions, which haus's hearth room prepends
+# (haus `modules/hearth/default.nix`):
+#
+#     ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench
+#
+# Nothing rebuilds when you edit this file — the wrapper `exec`s the script,
+# and this is read by zsh, not Nix. `exec zsh` reloads it.
+#
+# The subcommand descriptions are one-line paraphrases of bench's OWN usage
+# header (bench:2-40) — the same text `bench <garbage>` prints. That header is
+# the source; when it changes, this follows.
+
+# _bench_array <NAME> [fallback…] — the elements of a single-line bash array in
+# `bench`, one per line, falling back to the literals given.
+#
+# The repo lists are READ OUT OF the script rather than copied here: FAMILY
+# (bench:87) and OVERRIDABLE (bench:110) are both single-line arrays, so one
+# sed keeps this file from going stale the day a repo joins or leaves the
+# family. The fallbacks are what you get if the checkout has moved.
+_bench_array() {
+  local name=$1; shift
+  local script=${BENCH_SCRIPT:-${functions_source[_bench]:A:h}/bench}
+  [[ -r $script ]] || script=$HOME/code/workshop/bench
+  local -a got=()
+  # No `--` before $script: BSD sed (this is a Mac) takes it as a filename and
+  # spews "No such file or directory" onto the completion display.
+  [[ -r $script ]] && got=( ${=$(sed -n "s/^${name}=(\([^)]*\)).*/\1/p" $script | head -1)} )
+  (( $#got )) || got=( "$@" )
+  print -rl -- $got
+}
+
+_bench() {
+  local curcontext=$curcontext state line ret=1
+  typeset -A opt_args
+
+  local -a cmds=(
+    'status:what is this machine RUNNING, and where is everything else?'
+    'try:build YOUR machine against the LOCAL checkouts — no pushes'
+    'try-batch:feel-test every open PR together, on one integration tree per repo'
+    'ship:push everything in dependency order, rippling lock updates'
+    'rebuild:a plain, pinned rebuild of your machine (the normal day)'
+    'pull:fast-forward every repo, or just the named ones'
+    'clone:fetch any family repo missing from this directory'
+    'docs-since:commits in every repo since the docs were last reconciled'
+    'release:stamp the version and tag it, then WATCH the CI run to the end'
+  )
+
+  _arguments -C '1: :->cmd' '*:: :->args' && ret=0
+
+  case $state in
+    cmd)
+      _describe -t commands 'bench command' cmds && ret=0
+      ;;
+
+    args)
+      # Every word of the subcommand's arguments EXCEPT the one under the
+      # cursor — the repo lists below subtract it so a name can't be offered
+      # twice. Excluding CURRENT is the whole point: `$words[2,-1]` would
+      # include the half-typed word, and `bench pull haus<TAB>` would then
+      # strike `haus` off the list and silently insert the only survivor with
+      # that prefix — `hausfold.co`. One dot apart, two different repos, and
+      # bench:1150-1157 spends a paragraph on exactly that collision.
+      local -a typed=( $words[2,CURRENT-1] $words[CURRENT+1,-1] )
+
+      case $words[1] in
+        try)
+          # Order is load-bearing (cmd_try, bench:808-809): `lane` is shifted
+          # off FIRST and `switch` is only recognised after it, so `try lane
+          # switch` is real and `try switch lane` silently parses as a bare
+          # `try switch`. Offer them in the order the parser accepts them.
+          local -a try_first=(
+            'lane:…and ALSO override every repo a holt child spawned from this pane'
+            'switch:…and activate it (still no pushes; prod untouched)'
+          )
+          local -a try_switch=(
+            'switch:…and activate it (still no pushes; prod untouched)'
+          )
+          if (( CURRENT == 2 )); then
+            _describe -t modes 'try mode' try_first && ret=0
+          elif (( CURRENT == 3 )) && [[ $words[2] == lane ]]; then
+            _describe -t modes 'try mode' try_switch && ret=0
+          fi
+          ;;
+
+        try-batch)
+          # `switch` only in first position (cmd_try_batch, bench:899-901);
+          # everything after it is repos, and only OVERRIDABLE ones — bench
+          # warns and skips anything else.
+          local -a batchable=( $(_bench_array OVERRIDABLE nebelung pounce perch holt haus) )
+          local -a left=( ${batchable:|typed} )
+          local -a bmode=(
+            'switch:build AND activate the integration tree'
+          )
+          # Two _describe calls, not one with `--`: only the FIRST group of a
+          # `--`-separated _describe takes a description, so the second group's
+          # string gets read as an array NAME and you get a bare
+          # "(eval):1: bad substitution" over your completion list.
+          (( CURRENT == 2 )) && { _describe -t modes 'try-batch mode' bmode && ret=0 }
+          _describe -t repos 'overridable repo' left && ret=0
+          ;;
+
+        pull)
+          # The pullable set is a superset of FAMILY (cmd_pull, bench:1158):
+          # workshop itself, plus the repos that aren't flake inputs. bench
+          # warns on anything not in it.
+          local -a pullable=(
+            workshop
+            $(_bench_array FAMILY nebelung pounce perch holt haus)
+            org-profile homebrew-tap trill hausfold.co consumer
+          )
+          local -a left=( ${pullable:|typed} )
+          _describe -t repos 'pullable repo' left && ret=0
+          ;;
+
+        release)
+          # Releasable = the repos version_file() knows (bench:1183-1188).
+          #
+          # The VERSION argument is deliberately NOT completed. For every repo
+          # but holt the version is today's date and "typed by nobody"
+          # (bench:36-40) — offering a value there invites you to type one.
+          # holt is semver and the number is a judgement about the diff, which
+          # is exactly the thing a completion can't make for you.
+          local -a releasable=(
+            'pounce:the palette app'
+            'perch:the notch file shelf'
+            'haus:the nix-darwin layer + the nebelhaus desktop'
+            'holt:agent worktrees (semver — pass X.Y.Z yourself)'
+          )
+          # cmd_release's parser is position-AGNOSTIC (bench:1498-1504): it
+          # walks the args, takes `--ship` wherever it lands, and calls the
+          # first bare word the repo and the second the version. So gate on
+          # what is already on the line, not on CURRENT — `bench release
+          # --ship <TAB>` still wants the repo list, and once a repo is named
+          # it must not be offered again.
+          local -a named=( ${typed:#-*} )
+          local -a ship=( '--ship:ripple the new lock edge downstream afterwards' )
+          if (( $#named == 0 )); then
+            _describe -t repos 'releasable repo' releasable && ret=0
+            [[ -n ${(M)typed:#--ship} ]] || { _describe -t flags 'flag' ship && ret=0 }
+          elif [[ $#named == 1 && $named[1] == holt ]]; then
+            # holt is the one repo where the second bare word is REQUIRED, and
+            # it's the one number no list can pick for you. Say that instead of
+            # offering --ship, which zsh would insert as the sole match and
+            # leave you one slot further from the thing bench is waiting for.
+            _message -r 'X.Y.Z — holt is semver; the bump is your judgement about the diff'
+          else
+            [[ -n ${(M)typed:#--ship} ]] || { _describe -t flags 'flag' ship && ret=0 }
+          fi
+          ;;
+
+        docs-since)
+          # cmd_docs_since only ever looks at $1 (bench:1630), so --mark is
+          # meaningless anywhere but the first slot.
+          local -a mark=( '--mark:record new watermarks at the commits it reports' )
+          (( CURRENT == 2 )) && { _describe -t flags 'flag' mark && ret=0 }
+          ;;
+
+        # status, ship, rebuild, clone take no arguments.
+      esac
+      ;;
+  esac
+
+  return ret
+}
+
+_bench "$@"
