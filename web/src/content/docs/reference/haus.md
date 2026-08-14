@@ -24,7 +24,7 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 | `haus set <path> <value> [<path> <value>…]` | Write and stage machine overrides as ordinary Nix, type-check them, then rebuild once. `theme.accent` and `haus.theme.accent` are equivalent. Several pairs are applied all-or-nothing. A path may address one key inside an option (`sill.items.aiUsage`). |
 | `haus get [path]` | Print one declared value; with no path, list the machine-writable overrides. |
 | `haus unset <path> [<path>…]` | Explicitly set nullable options to `null`, then rebuild once. Takes a list, all-or-nothing. |
-| `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host/preset/rice value again, then rebuild once. Takes a list, all-or-nothing. A path that has no override is reported and skipped; if none of them had one, nothing is rebuilt. |
+| `haus reset <path> [<path>…]` | Remove machine overrides, inherit the host or desktop value again, then rebuild once. Takes a list, all-or-nothing. A path that has no override is reported and skipped; if none of them had one, nothing is rebuilt. |
 | `haus plan` | Preview what the next `haus rebuild` would change — packages, macOS settings, the files home-manager writes into your home (and which `onChange` hooks that would fire), launchd jobs, casks — read-only, nothing built into place. |
 | `haus diff` | What the configuration this machine is *running* set vs what macOS actually has right now — effective state, not just the plist. (Previewing an edit you haven't rebuilt yet is `haus plan`.) |
 | `haus capture [cat…]` | Turn this Mac's current settings into config lines *and* a snapshot. Defaults to `dock keyboard finder`; name a literal plist domain (e.g. `com.apple.Terminal`) for anything else. |
@@ -40,7 +40,7 @@ For one option, you do not need to open an editor:
 ```sh
 haus set theme.accent teal
 haus get theme.accent       # teal
-haus reset theme.accent     # inherit the preset/rice value again
+haus reset theme.accent     # inherit the desktop's value again
 ```
 
 `set` takes as many `<path> <value>` pairs as you like, and applies them in a
@@ -81,12 +81,12 @@ reset` stages the deletion for the same reason. Neither command commits or
 pushes your config repo.
 
 The overlay uses `lib.mkForce` because a machine choice must be able to override
-a preset deliberately. That makes `unset` and `reset` distinct:
+its desktop deliberately. That makes `unset` and `reset` distinct:
 
 - `haus unset lock.requirePassword` writes `null`; it succeeds only when that
   option's type admits `null`.
 - `haus reset lock.requirePassword` deletes the generated module, so whatever
-  the host file, preset, or rice says underneath becomes effective again.
+  the host file, the desktop, or the room says underneath becomes effective again.
 
 :::note[The namespace used to be `nebelhaus.*`]
 Every option on this site is spelled `haus.*`. Older configurations write

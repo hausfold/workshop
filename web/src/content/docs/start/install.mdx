@@ -64,7 +64,7 @@ release it falls back to `main`. Releases are date-tagged, so add
    non-Determinate Nix install rather than risk breaking it.
 
 3. **Interview.** A short [gum](https://github.com/charmbracelet/gum) TUI asks
-   for your **git name and email**, a **preset** (Full rice / Everyday /
+   for your **git name and email**, a **desktop** (nebelhaus / Everyday /
    Minimal / Custom — which decides the sill, prowl, and pounce rooms), your
    **accent colour**
    (default `mauve`), a **wallpaper** (default `minimal`, the generated haus
@@ -124,6 +124,7 @@ Other useful knobs:
 
 | Variable / flag | Effect |
 |---|---|
+| `NEBELHAUS_DESKTOP` | Which desktop the generated config selects — `nebelhaus` (default), `everyday`, `minimal` or `blank` |
 | `NEBELHAUS_DRY_RUN=1` | Print the generated config instead of writing it |
 | `NEBELHAUS_NONINTERACTIVE=1` or `--defaults` | Skip the interview, accept all defaults |
 | `NEBELHAUS_KEEP` | Which current macOS settings to keep (`dock,keyboard,finder`) |
