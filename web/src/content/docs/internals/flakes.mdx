@@ -51,11 +51,22 @@ nebelhaus.mkNebelhaus {
   host = ./hosts/fog;          # your identity + choices
   system = "aarch64-darwin";   # Apple Silicon only
   extraModules = [ ];          # extra nix-darwin modules, optional
+  desktop = nebelhaus.desktops.nebelhaus;  # which desktop, exactly one
 }
 ```
 
 Only `username` and `hostname` are required — `host` defaults to the repo's
-example. It composes the whole house: 19 module imports covering 35 `haus.*`
+example, and `desktop` to nebelhaus, so leaving it out means what it has always
+meant. A **desktop** is a complete, data-only answer to "what should this Mac
+feel like?": one file whose only top-level key is `haus`, holding values a
+shared file is allowed to hold — no identity, no secrets, no hardware ids, no
+code. A machine runs exactly one (naming a second is an error that names both
+files), and your own host file still wins over it with a plain assignment, no
+`lib.mkForce` needed. `desktop = null` selects none.
+
+The nebelhaus desktop is currently empty: the values that make a machine feel
+like nebelhaus are still the rooms' own defaults, and they move into it in one
+piece rather than a few at a time. It composes the whole house: 19 module imports covering 35 `haus.*`
 namespaces, `den`, `theme`, `hearth`, `prowl`, `sill`, `collar`, `pounce`,
 `perch`, `hush`, `secrets`, `workspaces`, `roster`, `displays`, `wallpaper`,
 `snippets` and `apps` ([the picks the desktop makes for
