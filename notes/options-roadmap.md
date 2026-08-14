@@ -101,6 +101,62 @@ already exist, and one it treated as a detail is the actual root blocker.
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-14 (twenty-first pass) — `fonts.sans` is not the next item,
+> and the audit that says so found the option already shipped, spelled as a
+> boolean, in another room.**
+>
+> No code in this pass either; one box measured rather than built. §5.3's last
+> open item asked, since rice#243, *which surface would read `sans`* — the
+> answer, from an audit of every `font-family` the layer emits and every family
+> literal under `modules/`, is **one label**:
+> `modules/sill/default.nix:161`, `clockLabelFont = if cfg.clock.monoFont then
+> barFont else ".AppleSystemUIFont"`. Everything else the desktop draws — the
+> terminal, the whole bar, the wallpaper's debug band — is mono on purpose, and
+> the layer emits no third proportional string anywhere.
+>
+> ★ **The finding: a bool can be a family option with the value welded in, and
+> then it doesn't show up when you grep for the option you think is missing.**
+> `sill.clock.monoFont = false` IS `fonts.sans`, at one fixed value, filed under
+> the room that needed it — and its description sells it on *legibility* (a
+> dotted zero against an 8), which is §5.3's own opening argument. This document
+> tracked "sans doesn't exist" while a one-value version of it shipped and was
+> documented. The general shape, and it is the useful half: **an option surface
+> is not the same as an option list.** `data-only-surface` and the reach checks
+> read the evaluated option tree, so they can see a package-typed leaf with no
+> string sibling — none of them can see a *value* hardcoded on the far side of a
+> `bool`, because at that point the family isn't an option, it's a branch.
+>
+> ★ **Second, about this file rather than the layer: a box that names a blocker
+> you have since removed promotes itself.** §5.3's sans line read "nothing blocks
+> it now that naming a package is possible" — pointing at `packageName`, the
+> format limit this very section fixed — and that was never sans's dependency.
+> `.AppleSystemUIFont` needs no package; what sans needs is a consumer that can
+> be told to use it. So the box didn't just go stale, it read as *ready*, which
+> is worse than reading as blocked. §5.14's rule re-audits open boxes against the
+> repos; the sentence explaining why a box is open is running prose, and its
+> second pass already recorded that nothing catches those but reading commits.
+>
+> **What it re-sizes.** A real `sans` is not S. The machine's proportional type
+> lives in pounce, perch and trill, all drawing `.system(…)` in three repos the
+> layer doesn't build — reachable, because the layer already hands pounce a
+> typography key through its generated config (`scale`, with the
+> older-app-ignores-the-key tolerance already established), so `fontFamily`
+> beside it is the identical seam. That's ·M across three repos. The S-sized
+> thing that remains honest is naming the literal: `fonts.sans.name` defaulting
+> to `".AppleSystemUIFont"`, read by `clockLabelFont`, no `sans.size` (nothing
+> sizes proportional text by name here). Not built in this pass — it wants a
+> `bench try switch` and a look at the clock pill, which is Julien's to run.
+>
+> Housekeeping: the twentieth pass's [haus#362](https://github.com/hausfold/haus/pull/362)
+> **merged**, so §5.6's restart-map comment now says what the look proved and
+> both references here are ticked.
+>
+> **Verified:** by audit, not by build — `grep -rl font-family modules` (three
+> files, all mono) plus a sweep of `modules/` for hardcoded family literals (one
+> hit, above), read against `modules/appearance/options.nix:65-73`,
+> `modules/sill/options.nix:454-463` and `modules/pounce/default.nix:892`. No
+> `nix flake check` run: nothing evaluable changed.
+
 > **Status, 2026-08-14 (twentieth pass) — §5.12 is closed: the eye-check's own
 > code landed the same day. And the *other* eye-check's follow-up didn't,
 > because it had been parked on this one's PR.**
@@ -2038,7 +2094,7 @@ contrast.
       two rows to `pinned`. Darwin-only, like `accent-reach` — it fingerprints a
       real evaluated system, so it fires on this machine or not at all.
 
-### 5.3 `nebelhaus.fonts` · S · risk L
+### 5.3 `nebelhaus.fonts` · S · risk L · ◐ **`mono` shipped and its reach fixed (rice#243); the `sans` half is measured rather than built (2026-08-14) and comes back ·M across three repos — or S scoped to the one label it would actually reach. See the last box; the header is the summary and the box decides (§5.14)**
 **Cheapest big win in the doc, and nobody has asked for it because it's
 invisible until you try to change it.** JetBrains Mono Nerd Font is hardcoded in
 [`den:125`](nebelhaus/modules/den/default.nix:125); Ghostty's size is hardcoded in hearth.
@@ -2115,11 +2171,73 @@ nebelhaus.fonts = {
       that four plugins share sources the fragment itself rather than trusting its
       callers;
       **(c) ★** and the check needed a row no evaluation could produce: see §5.14.
-- [ ] `sans` still doesn't exist (only `fonts.mono` does). Nothing blocks it now
-      that naming a package is possible; it's just unbuilt — and after rice#243
-      the question it has to answer first is *which surface would read it*, since
-      every surface the rice draws now takes the mono family on purpose (the bar
-      mixes Nerd Font icon glyphs into its labels).
+- [ ] `sans` still doesn't exist (only `fonts.mono` does) — and **the gating
+      question this box asked is now answered by measurement (2026-08-14, no code
+      written): exactly ONE surface would read it, and that surface is one
+      label.** The audit is the same shape as rice#243's, run over the whole
+      layer rather than one room: every `font-family` the layer emits
+      (`modules/den/options.nix:406`, `modules/wallpaper/package.nix:200`,
+      `modules/hearth/ghostty/config`) plus every hardcoded family literal under
+      `modules/`. All of them are mono, and the wallpaper's only text is its
+      debug band. The desktop's entire proportional-type surface is
+      `modules/sill/default.nix:161`:
+      `clockLabelFont = if cfg.clock.monoFont then barFont else ".AppleSystemUIFont"`.
+      → ★ **So `fonts.sans` already shipped. It is spelled `sill.clock.monoFont
+      = false`, it is a `bool`, it lives in another room, and its value is welded
+      in.** And its description argues for it on *legibility* — "macOS's system
+      UI font, whose zero has no dot and is easier to distinguish from an 8"
+      (`modules/sill/options.nix:454-463`) — which is this section's own opening
+      argument, arriving in a room that had one label to fix and fixed it. A
+      one-value family switch shipped while this box tracked "sans doesn't
+      exist"; both statements are true, and only one of them is useful.
+      **(a) the motivating example is already served, by the OTHER half of the
+      family.** Atkinson Hyperlegible for a parent's Mac — the case the section
+      opens with — is expressible today as `fonts.mono.packageName =
+      "nerd-fonts.atkynson-mono"`, and `modules/appearance/options.nix:65-73`
+      ships it as `largePrint`'s documented non-move (a typeface is taste, so the
+      profile names one and sets none). Whatever `sans` is still for, it is not
+      that.
+      **(b) ★ this box named a blocker it had already removed, which is how it
+      kept reading as ready-to-build.** "Nothing blocks it now that naming a
+      package is possible" points at `packageName` — §5.3's own fixed format
+      limit — and that was never the dependency. `.AppleSystemUIFont` needs no
+      package at all, and a third-party sans needs *a consumer that can be told
+      to use it*, which is the thing that's missing. **A box whose stated blocker
+      is one you've since fixed promotes itself**, and this doc has no mechanism
+      that catches it: §5.14's rule re-audits open boxes against the repos, but
+      the prose that says WHY a box is open is the same running text §5.14's
+      second pass found nothing catches.
+      **(c) the surface the option's name promises is unreachable, and this repo
+      already wrote that down.** macOS exposes no supported knob for the system
+      UI font family; `appearance/options.nix`'s "what largePrint does NOT move"
+      list is where that lives. An option called `fonts.sans` would change one
+      clock pill and nothing the user is actually reading — the "quietly
+      under-delivers" failure that same description exists to prevent.
+      **(d) ★ the real proportional type is in the APPS, and the seam to reach
+      them already exists — which re-sizes this box out of S.** pounce, perch and
+      trill draw their whole UI in SwiftUI's `.system(…)`
+      (`pounce/pkgs/pounce/Rows.swift`, `trill/Trill/UI/*`), i.e. SF Pro chosen
+      by a design token, in three repos the layer doesn't build. The layer
+      already hands pounce a typography key through its generated config —
+      `modules/pounce/default.nix:892`, `scale = config.haus.pounce.scale`, with
+      the "an older pounce ignores the key rather than failing" tolerance
+      established there — so a `fontFamily` beside `scale` is the identical
+      shape. That makes a *real* `sans` a three-repo Swift item (·M, risk M),
+      not the S this section has carried it as.
+      → **What to build, if anything: the small one.** Give `fonts.sans.name` a
+      default of `".AppleSystemUIFont"` and have `clockLabelFont` read it. One
+      option, one consumer, no lie — it turns a bool that hardcodes a family into
+      a bool that selects a *named* one, and makes the second consumer a line
+      instead of a design conversation. Explicitly **no `sans.size`**: nothing
+      here sizes proportional text by name (`ui.scale` and `pounce.scale` do),
+      and a field with no reader is precisely the drift §5.14 is about.
+      → **The ordering rule this leaves, which generalises past fonts: don't
+      ship a family option before the surface that reads it.** `fonts.mono` was
+      right on day one because the terminal read it, and rice#243 was the bill
+      for the ten surfaces that didn't. `sans` inverts the order — the option
+      would land first and its surfaces later — and an option that is true of one
+      pill is worse than no option, because a desktop that sets it believes
+      something.
 
 ### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ✅ **(a) shipped as `roster` (rice#182), (b) shipped (nebelhaus#253)**
 The registry is good. Two concrete gaps — and the halves came apart: the install
@@ -2440,7 +2558,7 @@ cheap oracle for "did the menu bar clock actually re-render" the way
 machine, and modules/lib/restart-map.nix said so in a comment rather than
 claiming `support = "tested-macos-26"` for something that isn't. **Watched
 2026-08-14 (box below); the comment says "no logout needed, measured 26.6.1" as
-of haus#362 (open at the time of writing) — for the pair, not for each entry.** `com.apple.screensaver = "none"`
+of haus#362, **merged** — for the pair, not for each entry.** `com.apple.screensaver = "none"`
 is confirmed on its own; the `SystemUIServer` and `ControlCenter` entries are
 not, and can't be by watching a rebuild — see the box. `security.firewall`
 is the one exception worth trusting more: it isn't a plist write at all, it's
@@ -2498,8 +2616,11 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   domain's entry, and left this comment untouched — correctly, for a PR scoped
   to accessibility. **A follow-up parked on somebody else's PR has no owner and
   no trigger**; it is a note wearing a plan's clothes. Done properly on its
-  own — **open as [haus#362](https://github.com/hausfold/haus/pull/362)**, tick
-  this when it lands.
+  own — ✅ **[haus#362](https://github.com/hausfold/haus/pull/362), merged
+  2026-08-14**, hours after it was named, so the follow-up-with-an-owner
+  experiment closed the same day. One data point, and it shows the cheap half:
+  a follow-up carrying a repo, a PR and an owner lands. It does not show that
+  the parked one never would have.
   → ★ **And doing it turned up something stronger than "nobody needs the
   isolation today": the `SystemUIServer` entry is untestable in place.**
   `com.apple.menuExtraClock` and `com.apple.controlcenter` are in den's
