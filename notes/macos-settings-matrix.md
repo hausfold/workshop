@@ -746,12 +746,24 @@ see, and it is worth filing upstream.
 
 ## Consequences for the roadmap
 
-1. **`nebelhaus.accessibility` as designed is mostly unbuildable.** Vision and
+1. ~~**`nebelhaus.accessibility` as designed is mostly unbuildable.** Vision and
    motor knobs route through a locked domain or a no-op domain. Demote it from a
    full option family to: a few keys that genuinely work, plus `haus doctor`
-   checklist items with System Settings deep links. **Do not ship options that
-   write `com.apple.Accessibility`** — they'd report success and do nothing.
-2. **Delete `ui.cursorScale`** from the `ui.*` token set (§5.2). Locked domain.
+   checklist items with System Settings deep links.~~ ❌ **The premise died with
+   the "locked domain" retraction at the top of this file, and the conclusion
+   with it** (2026-08-14): the domain is FDA-gated, not locked, and
+   `haus.accessibility` shipped as **seven** options (haus#356 + haus#360),
+   generated from `modules/lib/reachability.nix`. The doctor checklist happened
+   too — as well as the options, not instead of them. What survives verbatim,
+   and is the only part of this item that was ever about macOS rather than about
+   what we guessed: **do not ship options that write `com.apple.Accessibility`**
+   — they'd report success and do nothing.
+2. ~~**Delete `ui.cursorScale`** from the `ui.*` token set (§5.2). Locked
+   domain.~~ ◐ **Right answer, wrong reason.** It is gone from `ui.*`, but not
+   because the domain is locked (it isn't) — it ships as
+   `haus.accessibility.mouseDriverCursorSize`, because a `ui.*` token may only
+   derive from keys that are reachable **unconditionally**, and this one needs
+   Full Disk Access. See the row at the top of this file and roadmap §5.2.
 3. **The large-print rice is still absolutely buildable — just not out of macOS
    accessibility settings.** It's built from:
    - display mode (`larger-text`) — ✅ proven reachable

@@ -135,8 +135,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > box was in this doc; the file was in another repo; the PR was about a third
 > thing. **A follow-up that names no repo, no PR and no owner is a note, not a
 > plan** — the same shape as the phase-list drift the fourteenth and seventeenth
-> passes found, one repo over. Fixed now, on its own, in
-> [haus#362](https://github.com/hausfold/haus/pull/362).
+> passes found, one repo over. Fixed on its own, and **open as
+> [haus#362](https://github.com/hausfold/haus/pull/362)** — which is where a
+> follow-up with an owner is supposed to live, so this file gets to say "open
+> as", not "somebody will get to it".
 >
 > ★ **And the thing that fix had to say is stronger than "nobody needs it
 > today": a restart-map entry for an unconditionally-written domain cannot be
@@ -2437,8 +2439,8 @@ cheap oracle for "did the menu bar clock actually re-render" the way
 (Finder/Dock: killall re-reads the domain at launch) rather than a spike on this
 machine, and modules/lib/restart-map.nix said so in a comment rather than
 claiming `support = "tested-macos-26"` for something that isn't. **Watched
-2026-08-14 (box below), and the comment now says "no logout needed, measured
-26.6.1" — for the pair, not for each entry.** `com.apple.screensaver = "none"`
+2026-08-14 (box below); the comment says "no logout needed, measured 26.6.1" as
+of haus#362 (open at the time of writing) — for the pair, not for each entry.** `com.apple.screensaver = "none"`
 is confirmed on its own; the `SystemUIServer` and `ControlCenter` entries are
 not, and can't be by watching a rebuild — see the box. `security.firewall`
 is the one exception worth trusting more: it isn't a plist write at all, it's
@@ -2495,8 +2497,9 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   pass's finding.** haus#360 opened `restart-map.nix`, rewrote a different
   domain's entry, and left this comment untouched — correctly, for a PR scoped
   to accessibility. **A follow-up parked on somebody else's PR has no owner and
-  no trigger**; it is a note wearing a plan's clothes. Done properly in
-  [haus#362](https://github.com/hausfold/haus/pull/362), on its own.
+  no trigger**; it is a note wearing a plan's clothes. Done properly on its
+  own — **open as [haus#362](https://github.com/hausfold/haus/pull/362)**, tick
+  this when it lands.
   → ★ **And doing it turned up something stronger than "nobody needs the
   isolation today": the `SystemUIServer` entry is untestable in place.**
   `com.apple.menuExtraClock` and `com.apple.controlcenter` are in den's
@@ -3001,13 +3004,14 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
 - [x] **Watched 2026-08-14 — all three DO work, and the eyeball found what an
       oracle would have hidden: they need a daemon restart the layer doesn't
       do.** Written bare from an FDA-granted terminal — which is exactly what
-      activation does, since `restart-map.nix` carries
+      activation does, since `restart-map.nix` carried
       `"com.apple.universalaccess" = "none"` — `mouseDriverCursorSize = 3.0` and
       `closeViewScrollWheelToggle = true` changed **nothing on screen**. One
       `killall universalaccessd` later (same plist, every value intact across the
       restart) the pointer was visibly larger and ⌃+scroll zoomed the display.
-      So the keys are **effective and the restart map is wrong about this
-      domain** — the opposite of the failure this section kept expecting, where a
+      So the keys are **effective and the restart map was wrong about this
+      domain** (fixed hours later, haus#360) — the opposite of the failure this
+      section kept expecting, where a
       key lands and lies (`FontSizeCategory`, below).
       → ★ **"No restart needed" had been generalised from the wrong four keys.**
       `"none"` is true of `reduceMotion`, `reduceTransparency`,
@@ -3026,9 +3030,11 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       feature working, not a glitch — expect the option's description to say so,
       because the first thing anyone will report is that it looks janky.
       → **What this unblocks, and what it now costs.** `ui.cursorScale` is no
-      longer blocked on "does the key do anything". It is blocked on
+      longer blocked on "does the key do anything". It was blocked on
       `restart-map.nix` learning `universalaccessd` for this domain — a new
       process kill, fired only on a rebuild that writes `haus.accessibility.*`.
+      (Both landed in haus#360, and the promotion class turned out to be
+      `by-eye` rather than `effective` — see the box below.)
       Promoting the three keys to `"effective"` *without* that ships an option
       which writes the plist and shows the user nothing until their next logout:
       the exact shape §5.12 has refused three times. **The one-word promotion is
