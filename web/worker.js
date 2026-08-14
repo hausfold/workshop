@@ -19,6 +19,13 @@
 // Worker fetches nothing, so the hole closes by deletion rather than by a
 // narrower regex. `?ref=` is preserved on the redirect: hausfold.co's own
 // handler holds it to the release-tag shape, which is where that check belongs.
+//
+// 🚨 …in this file. NOT on the zone, as of 2026-08-14: `/init.sh` is still
+// answered by `nebelhaus-init`, the installer's first Worker, which holds the
+// more specific route `nebelhaus.com/init.sh*` because `wrangler deploy` never
+// removes a route its config stopped declaring. One 👤 command ends it —
+// rename plan §5.3. Until then this map's `/init.sh` row is code that never
+// runs, and the old proxy is what a user gets.
 
 // The one destination. Every value below is a path on this origin.
 const SITE = "https://hausfold.co";

@@ -10,7 +10,7 @@ whole domain with permanent redirects:
 | `/` | `hausfold.co/` |
 | `/pounce`, `/perch` | the product pages there |
 | `/start/*`, `/guides/*`, `/reference/*`, `/internals/*`, `/writing/*` | the rebuilt page in `hausfold.co/docs/*` — **one row each**, because the docs were reorganised into rooms on the way |
-| `/init.sh` | `hausfold.co/nebelhaus.sh` |
+| `/init.sh` | `hausfold.co/nebelhaus.sh` — 🚨 **not live yet**, see [Trust](#trust) |
 | `/download/<app>`, `/api/release/<app>` | the same routes there |
 | anything else | `404` |
 
@@ -123,6 +123,17 @@ commit into `hausfold/haus`'s network with a fork PR and hand out
 their script. hausfold.co closed it by holding `?ref=` to the release-tag shape.
 This zone closes it by deletion — there is no fetch left to poison. The `?ref=`
 it forwards is checked on arrival, where the check belongs.
+
+> 🚨 **True of this file, not yet of the zone.** `/init.sh` never reaches this
+> Worker: the installer's *first* deployment was a separate script,
+> `nebelhaus-init`, on the more specific route `nebelhaus.com/init.sh*`, and
+> `wrangler deploy` never removes a route its config stopped declaring. That
+> orphan still wins the path and still proxies `raw.githubusercontent.com` —
+> measured 2026-08-14, arbitrary 40-hex ref and all. Ending it is one 👤
+> command on the Cloudflare account, `npx wrangler delete --name nebelhaus-init`;
+> the finding, the verification and the cache caveat are in the rename plan's
+> [§5.3](../notes/hausfold-rename.md). **Delete this box when that lands** — and
+> re-curl `/init.sh` before you believe either version.
 
 ## When this can be turned off
 
