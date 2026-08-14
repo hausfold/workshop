@@ -465,6 +465,64 @@ awake off
 
   It is not a bill. Nothing de-duplicates, so a resumed or forked session counts
   the messages it inherited more than once.
+- **`github`** — one number from GitHub, and the rows behind it. What it counts
+  is a list of typed **sources** you write, and the pill speaks for whichever
+  one is worth interrupting you for: the highest-severity source with a nonzero
+  count, list order breaking a tie. With nothing to report it draws no number at
+  all — a count you never act on is a count you stop seeing, and then so is the
+  one that matters.
+
+  ```nix
+  haus.git.org = "hausfold";      # the owner the defaults are scoped to
+  haus.sill.items.github = true;
+  ```
+
+  That alone gives you two sources: the org's repos whose **default branch is
+  red**, then its **open PRs**. Name `haus.sill.github.sources` yourself and
+  your list replaces both:
+
+  ```nix
+  haus.sill.github.sources = [
+    { ci = true; }                                          # red default branches
+    { search = "org:hausfold is:pr is:open"; title = "open PRs"; }
+    {
+      search = "is:pr is:open review-requested:@me";        # yours to look at
+      title = "waiting on me";
+      severity = "warn";
+    }
+  ];
+  ```
+
+  Three kinds, and each entry sets exactly one. A **`search`** is a GitHub
+  search filter, typed exactly as you would into github.com's box — its count is
+  the search's own total, which can be bigger than the rows shown, and the
+  dropdown says how many it left out. A **`command`** is your own shell printing
+  one row per line as `<state>⇥<text>⇥<url>`, for anything GitHub isn't the
+  source of.
+
+  **`ci`** is the one you can't get anywhere else. A
+  [gh-dash](/guides/the-terminal/) section *is* a search filter, and GitHub's
+  search index carries no workflow runs at all — so "did main's last run pass?"
+  simply isn't a question you can ask it. It only exists as the check rollup of
+  each default branch's head commit, which this asks for in one query covering
+  the whole owner.
+
+  `severity` is what decides both the colour (`info` neutral, `warn` peach,
+  `bad` red) and which source the pill speaks for. It's per-source because the
+  same kind means different things twice over: `is:pr is:open` is a work queue
+  and `is:pr is:open status:failure` is an alarm, and both are searches. A `ci`
+  source is `bad` unless you say otherwise.
+
+  **Left-click** for the dropdown — one section per source, every row clicking
+  through to that PR or repo on github.com. **Right-click** refreshes, as does
+  the `Refresh · 4m ago` row at the bottom of the dropdown, which is also where
+  you find out how old the numbers are.
+
+  It needs `gh`, so it needs `haus.developer.git.enable` (an assertion says so),
+  and it needs you to have run `gh auth login`. Until you have, the pill says
+  **`auth`** in yellow and its dropdown hands you that command rather than
+  drawing a confident zero.
+
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
   The light is found for you over mDNS and remembered, so one that takes a new
   address just comes back; pin it with `haus.sill.elgato.host` if you have
@@ -505,7 +563,7 @@ per bar, and never two copies of the same readout racing each other.
 
 The set includes the five core pills — `clock`, `weather`, `media`, `battery`,
 `wifi` — and the extras: `cpu`, `memory`, `volume`, `calendar`, `caffeinate`,
-`agents`, `aiUsage`, `elgato`, `harvest`. Hush can move too when
+`agents`, `aiUsage`, `github`, `elgato`, `harvest`. Hush can move too when
 `haus.hush.enable` is on. The whole left side (workspace pills, front app, the
 leader picker) and the tour stay on the menu bar.
 
