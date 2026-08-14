@@ -190,9 +190,10 @@ that never came back to update the note:
 - **§10.4's lock bullet and its repo-descriptions bullet are both closed.** Zero
   family locks still record `"repo": "hausfold"`, and no repo in the org still
   describes itself as nebelhaus.
-- **§10's gate re-runs green**, with all six `hausfold/hausfold` hits on the
-  allow-list §10.2 wrote (four historical PR links, two lines of `bench`'s own
-  prose about the rename).
+- **§10's gate re-runs green**, with all six `hausfold/hausfold` hits accounted
+  for: three historical PR links, and three sentences that quote the old slug in
+  order to say it's gone (`AGENTS.md:48`, `bench:83,204`) — a second allowed kind
+  §10.2's list didn't anticipate.
 
 ⚠️ **One live item is left in the whole document that is a *rename* item, and it
 is one fix rather than two:** `~/.config/nix/flake.nix:7` still reads
@@ -3994,10 +3995,16 @@ nothing outside historical PR links. Then, on the machine: `bench relocate-haus`
 followed by `bench status` reporting the layer at `./haus` with every lane
 still resumable in `holt`.
 
-**Re-run 2026-08-14.** The `rg` half returns six hits and **every one is on the
-allow-list §10.2 wrote**: four historical PR links (`docs/workflows.md:220`,
-`AGENTS.md:80,163`, and the `#69` citation) and two lines of `bench`'s own prose
-explaining the rename (`bench:83,204`). The machine half is green too — the
+**Re-run 2026-08-14.** The `rg` half returns six hits, in two kinds. Three are
+historical PR links, which is exactly what §10.2's allow-list names:
+`docs/workflows.md:220` and `AGENTS.md:163` (both `#69`), and `AGENTS.md:80`
+(`#200`, `#245`). The other three are **prose *about* the rename** —
+`AGENTS.md:48` and `bench:83,204`, each explaining that the layer's repo stopped
+being spelled `hausfold/hausfold` — which is a second allowed kind the original
+list didn't anticipate, because it was written before anything had cause to
+explain the old slug. A sentence that quotes a name in order to say it's gone is
+the opposite of a leftover; the pattern cannot tell them apart, so a future
+re-run should expect both. The machine half is green too — the
 layer is at `./haus`, and `bench status` no longer *has* the fallback nudge to
 print (§10.3). ⚠️ The three bats cases the gate counts were deleted with the
 shim, so a future re-run reads 68-ish, not 71; the number was a snapshot, not an
