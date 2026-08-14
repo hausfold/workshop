@@ -164,6 +164,29 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
+### Current handoff — 2026-08-14
+
+**The Worker moved; the 301s are the last 🤖 piece of the rename proper.**
+`worker.js` now lives in `hausfold.co` and hausfold.co serves the install
+one-liner itself — `curl -fsSL https://hausfold.co/nebelhaus.sh | bash` — plus
+`/download/<app>` and `/api/release/<app>`. §5.2's Worker box carries what it
+settled and how it was verified; the short version is that the site stopped
+being assets-only, one desktop is one row in a table rather than one route, and
+the preview config had to learn `main` or a PR could never feel an installer
+change.
+
+**Two pieces of §5.2 remain, and they are independent of each other:**
+
+1. **The `nebelhaus.com/*` 301s** (workshop `web/`). This is the one that ends
+   the two-copies problem, and its map no longer has to be derived from an old
+   build: §5.2's Worker box says how to compose it from the source ledger plus
+   `hausfold.co/public/_redirects`. Merging it retires the old docs site, so it
+   is a 👤-timed merge rather than a 👤-designed one.
+2. **The landing pages becoming Next routes** — decided 2026-08-12, untouched.
+
+Nothing else in this document is 🤖. §5.3's DNS and every other open box is 👤,
+unchanged from the audit below.
+
 ### Current handoff — 2026-08-13
 
 **§5.2's docs source work is complete.** All twenty-nine source decisions are
@@ -2706,11 +2729,57 @@ second editable copy here.
 
 - the landing pages becoming Next routes. 👤 decided **yes** on 2026-08-12,
   which settles the "still not decided" line below; not done.
-- `worker.js`, the `hausfold.co/<desktop>.sh` installer route, and the
-  `nebelhaus.com/*` 301s. **Until those land the docs print
-  `nebelhaus.com/init.sh`**, deliberately — it is the URL that resolves — and
-  nebelhaus.com stays live serving the old pages. A fact fixed in one tree
-  and not the other will disagree; fix it in both or in neither.
+- ~~`worker.js`, the `hausfold.co/<desktop>.sh` installer route~~ ✅ **landed
+  2026-08-14** — see the Worker box below.
+- the `nebelhaus.com/*` 301s. Until they land nebelhaus.com stays live serving
+  the old pages, so there are two copies of every docs page and a fact fixed in
+  one tree and not the other will disagree; fix it in both or in neither.
+
+#### ✅ The Worker moved, 2026-08-14 — and the install URL moved with it
+
+[hausfold.co#31](https://github.com/hausfold/hausfold.co/pull/31). `worker.js`
+is in the site repo, so `wrangler.toml` has a `main` and hausfold.co is no
+longer an assets-only Worker. Three routes run code and nothing else does —
+static assets still short-circuit first, which was verified rather than assumed
+(`wrangler dev`: `/`, `/docs/`, `/api/search` and every `_redirects` rule
+answer without the Worker running; `/nebelhaus.sh` answers 200 with a real
+`x-hausfold-ref` and 32 KB of `bootstrap.sh`).
+
+**The install one-liner is now
+`curl -fsSL https://hausfold.co/nebelhaus.sh | bash`**, printed on
+`/desktops/nebelhaus` and in both docs trees. Four things this settled that the
+section above had left as intentions:
+
+- **`/init.sh` became `/<desktop>.sh`, and the table is data.** `DESKTOPS` maps
+  one name today — `nebelhaus` → `hausfold/haus`, because the desktop ships
+  inside the layer's own repo. A second desktop is a row, not a route. There is
+  deliberately **no `/init.sh` on hausfold.co**: the old URL's redirect belongs
+  on nebelhaus.com and should land on `/nebelhaus.sh` in one hop, not two.
+- **The preview Worker had to learn `main` too.** `wrangler.preview.toml` is
+  the copy a PR is *felt* on, and a `main` in one config and not the other is
+  invisible in the worst way — the installer change looks fine on the preview
+  URL precisely because the route isn't running there. `worker.yml` now fails a
+  PR whose two configs disagree about `main` or the `ASSETS` binding.
+- **`nebelhaus.com/download/<app>` moved inward on the day the inward route
+  existed** — the two product pages link `/download/pounce` and
+  `/download/perch` now, which is hausfold.co's own rule for links, applied to
+  routes rather than pages for the first time.
+- **The old URL is not broken and must not be "fixed" yet.**
+  `nebelhaus.com/init.sh` still serves `bootstrap.sh` directly from the
+  workshop's `web/`, and the workshop's own docs still print it — correct, that
+  is the URL that resolves on *that* site. It becomes a 301 when the map below
+  lands.
+
+**What the 301s still need, so the next session doesn't re-derive it.** The map
+is old-Astro-URL → current-hausfold.co-URL, and both halves are already
+written down: the source ledger above says which source became which page, and
+`hausfold.co/public/_redirects` says where the rooms reorganisation then moved
+it on 2026-08-14. Composed, that is one row per old page — including
+`/start/what-is-nebelhaus/` → `/docs/nebelhaus/` (verified by reading both
+pages, it is the desktop tree's index, not haus's), `/start/the-family/` →
+`/docs`, and `/init.sh` → `https://hausfold.co/nebelhaus.sh`. Both spellings
+per row, as `_redirects` already learned: the no-slash form only 307s while an
+`index.html` exists at that path, and after the move none does.
 
 ##### The source ledger, now closed
 
