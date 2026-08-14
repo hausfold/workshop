@@ -2,8 +2,20 @@
 # redirects to hausfold.co, which holds every page this zone used to.
 #
 #   /guides/pounce   → https://hausfold.co/docs/haus/rooms/launcher/
-#   /init.sh         → https://hausfold.co/nebelhaus.sh
+#   /init.sh         → https://hausfold.co/nebelhaus.sh   🚨 not on the zone yet
 #   anything else    → 404
+#
+# 🚨 `/init.sh` never reaches this Worker. The installer's first deployment was
+# its own script, `nebelhaus-init`, on the more specific route
+# `nebelhaus.com/init.sh*` (this file at 8ceca10) — and a route belongs to the
+# script that declared it, so no deploy under a different name reclaims it. The
+# orphan still answers that path with the old raw.githubusercontent proxy.
+# Ending it is one command on the Cloudflare account, and it is the file you are
+# reading that has to be right about it afterwards:
+#
+#   npx wrangler delete --name nebelhaus-init    # then delete this box
+#
+# The finding, the verification and the cache caveat: rename plan §5.3.
 #
 # The map is worker.js. There is no build and no [assets] binding — the Astro
 # site this Worker used to front is deleted (rename plan §5.2), which is what

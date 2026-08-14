@@ -168,9 +168,10 @@ One thing from §6 that survives and one that doesn't:
 
 **There is no 🤖 work left in this document.** §5.2's last piece — the landing
 pages becoming Next routes — had already landed as
-[hausfold.co#35](https://github.com/hausfold/hausfold.co/pull/35) when the
-evening handoff below was written; that handoff read the section's own "still
-open" list rather than the repo, and the list was one merge stale. All eight
+[hausfold.co#35](https://github.com/hausfold/hausfold.co/pull/35) — by 47
+minutes — when the evening handoff below was written; that handoff read the
+section's own "still open" list rather than the repo, and the list was one merge
+stale. All eight
 hand-written pages under `public/` are `src/app/**/page.tsx` now, `public/` holds
 only assets, and the three things that were hand-copied across nine files (the
 head, the copy button, the colophon) are components. §5.2's landing-routes box
@@ -178,25 +179,26 @@ carries the detail.
 
 **§5's gate was run rather than built, and it is green** — with one exception
 that is a live defect, not a leftover. Measured 2026-08-14 14:53–14:55 UTC,
-cache-busted:
+cache-busted, and re-measured independently at 15:00:
 
 | checked | result |
 |---|---|
 | `nebelhaus.com/guides/pounce` | 301 → `hausfold.co/docs/haus/rooms/launcher/` |
 | `nebelhaus.com/` · `/download/pounce` | 301 → the apex · the passthrough |
 | an unmapped path | 404, five-minute cache |
-| all eight landing routes on hausfold.co | 307 → trailing slash → 200 |
+| the eight landing routes on hausfold.co | 200 at the apex, 307 → trailing slash → 200 for the other seven |
 | **`nebelhaus.com/init.sh`** | **200 — the old proxy, not the 301** |
 
 🚨 **That last row is a Cloudflare route that outlived its config, and it keeps a
 closed security hole open in production.** The install one-liner's *first* Worker
 was a separate script, `nebelhaus-init`, on the more-specific route
 `nebelhaus.com/init.sh*` (`web/wrangler.toml` at `8ceca10`). The site Worker that
-replaced it took a new name and the whole-zone route, but `wrangler deploy` never
-deletes a route it no longer declares — so the orphan still wins for that one
-path, still proxies `raw.githubusercontent.com`, and still accepts an arbitrary
-40-hex ref: `nebelhaus.com/init.sh?ref=<sha>` answered 200 with
-`x-nebelhaus-ref: 14063b6…` while this was written. The 301 map's claim that the
+replaced it took a new name and the whole-zone route — and **a route belongs to
+the script that declared it**, so a deploy under a different name can never
+reclaim one. The orphan therefore still wins that path, still proxies
+`raw.githubusercontent.com`, and still accepts an arbitrary 40-hex ref:
+`nebelhaus.com/init.sh?ref=<sha>` answered 200 with `x-nebelhaus-ref` echoing the
+sha while this was written. The 301 map's claim that the
 `?ref=` fork-network hole is "closed by deletion" is true of the code and false
 of the zone. **It is 👤 and it is one command** — see §5.3.
 
@@ -2371,7 +2373,7 @@ Three things the build found that this section didn't have:
 The two drift workflows keep their jobs unchanged otherwise — the Monday cron
 still opens the regeneration PR, it just no longer installs Nix to do it.
 
-### 5.2 🤖 The move — and the salvage list
+### 5.2 ✅ The move — and the salvage list
 
 #### ✅ Status 2026-08-14 — docs, Worker, 301s and the landing routes all done
 
@@ -3371,9 +3373,10 @@ fix later.
 
 **Found by running §5's gate, 2026-08-14.** `nebelhaus.com/init.sh` answers
 **200 with 35 KB of `bootstrap.sh`**, not the 301 the map declares — and it
-answers 200 for `?ref=<any 40-hex sha>` too (measured:
-`x-nebelhaus-ref: 14063b63803fb03164c1cae554674ba8861f81d9`, a commit picked at
-random from `hausfold/haus`). Everything else on the zone is the new Worker: `/`,
+answers 200 for `?ref=<any 40-hex sha>` too, echoing whatever you send back as
+`x-nebelhaus-ref` (measured with `14063b63…`, haus's tip at the time, because a
+ref that resolves proves the acceptance without going near a fork).
+Everything else on the zone is the new Worker: `/`,
 `/guides/pounce`, `/download/pounce` and an unmapped path all behave.
 
 **Why, in one line:** the install one-liner's first Worker was its own script,
@@ -3389,9 +3392,9 @@ box says is "closed by deletion" is still open in production.
 
 🚨 **The site Worker's own `wrangler.toml` warns about exactly this trap** ("The
 Worker keeps its name. Renaming it uploads a NEW script and leaves the old one
-holding the zone route until something takes it away") — written *after* being
-bitten, by a session that didn't check whether the earlier bite had healed. A
-warning is not a check.
+holding the zone route until something takes it away") — the trap named in the
+abstract, by a session that never checked whether the zone was already living
+inside it. A warning is not a check.
 
 👤, one command, on an account this repo's CI token can't reach:
 
