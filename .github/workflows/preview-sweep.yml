@@ -1,0 +1,154 @@
+# Reap preview Workers whose PR is closed.
+#
+# `preview-web.yml`'s own `cleanup` job is the first line and stays the fast
+# one — it deletes within seconds of a close. It is not, however, reliable, and
+# both of its failure modes were found live on 2026-08-15 with four leaked
+# Workers on the account (rename plan §5.3):
+#
+#   1. The `paths:` filter is evaluated against the PR's whole diff, so a PR
+#      that touched `web/**` in an early push and not in its final diff
+#      *deploys* a preview and then never fires the `closed` event that would
+#      delete it. `nebelhaus-pr-321` leaked exactly this way: its preview
+#      uploaded 2026-08-11T19:54Z, its merged diff is one file under `notes/`.
+#   2. A PR closed in the same operation that deletes its head branch gets no
+#      `closed` run at all — there is no ref left to run the workflow from.
+#      `nebelhaus-pr-341` leaked that way (closed 19:52:10Z in favour of a
+#      `-salvage` branch; the preview workflow has no close run that day).
+#
+# Neither is fixable inside a `pull_request`-triggered workflow, because both
+# are the trigger failing to fire. So this one asks the other question — "which
+# Workers exist, and is their PR still open?" — on a schedule, from state
+# rather than from an event. That is the same lesson §5.3 drew from the
+# `nebelhaus-init` orphan: a config file describes the deployment it *wants*,
+# and only an enumeration says what is actually deployed.
+#
+# Why it matters beyond tidiness: a preview Worker is public. Every one of them
+# is `workers_dev = true` by design (`wrangler.preview.toml`, and preview-web's
+# route guard *requires* it), so a leaked preview keeps serving whatever that
+# PR's `worker.js` did, forever. The four found on 2026-08-15 predated the 301
+# map, so two of them were still answering `/init.sh` with 200 and still
+# honouring an arbitrary 40-hex `?ref=` — the fork-network hole §5.3 recorded
+# as "closed by deletion", live again on a URL nobody was looking at.
+#
+# Scope: this repo's own preview prefix and nothing else. `nebelhaus-pr-<n>` is
+# the only name shape it will delete — the production `nebelhaus` Worker (which
+# holds the nebelhaus.com zone route) cannot match, and neither can
+# hausfold.co's `hausfold-pr-<n>` previews, which that repo sweeps itself.
+name: Sweep stale nebelhaus.com previews
+
+on:
+  schedule:
+    # Daily, well away from the hour the family's other crons run.
+    - cron: '37 4 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List what would be deleted without deleting it'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: preview-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Reap previews whose PR is closed
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PREFIX: nebelhaus-pr-
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+
+          api='https://api.cloudflare.com/client/v4/accounts'
+          scripts=$(curl -sS --retry 3 --max-time 30 \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "${api}/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts")
+
+          if [ "$(printf '%s' "$scripts" | jq -r '.success')" != "true" ]; then
+            printf '%s\n' "$scripts"
+            echo "::error::Could not list Workers — the token needs Workers Scripts:Read."
+            exit 1
+          fi
+
+          # Anchor both ends. An unanchored match would put the production
+          # Worker one careless rename away from being swept.
+          names=$(printf '%s' "$scripts" \
+            | jq -r --arg p "$PREFIX" '.result[].id | select(test("^" + $p + "[0-9]+$"))')
+
+          if [ -z "$names" ]; then
+            echo "No ${PREFIX}* Workers on the account — nothing to sweep."
+            exit 0
+          fi
+
+          leaked=0
+          failed=0
+          for name in $names; do
+            pr=${name#"$PREFIX"}
+            # A PR number that 404s means the Worker outlived the PR record
+            # itself; treat that as stale rather than as a reason to stop.
+            state=$(gh api "repos/${REPO}/pulls/${pr}" --jq '.state' 2>/dev/null || echo 'missing')
+            if [ "$state" = "open" ]; then
+              echo "  keep   $name (PR #$pr is open)"
+              continue
+            fi
+            leaked=$((leaked + 1))
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  would delete $name (PR #$pr is $state)"
+              continue
+            fi
+            resp=$(curl -sS --retry 3 --max-time 30 -w '\n%{http_code}' -X DELETE \
+              "${api}/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${name}?force=true" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}") || true
+            code=$(printf '%s' "$resp" | tail -n1)
+            body=$(printf '%s' "$resp" | sed '$d')
+            # Same envelope-or-status-code reading as preview-web.yml's
+            # cleanup: Cloudflare documents this endpoint as returning no body
+            # on success while also showing an envelope example, so trusting
+            # either alone gets a green delete wrong.
+            # `grep -q … && ok=1` would be shorter and would exit the job under
+            # `set -e` on the first non-match, so each test gets an `if`.
+            ok=0
+            if printf '%s' "$body" | grep -q '"success": *true'; then ok=1; fi
+            # 10007 = no such Worker. Something else won the race; that is the
+            # outcome this job wanted.
+            if printf '%s' "$body" | grep -q '"code": *10007'; then ok=1; fi
+            if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
+              case "$code" in 2*|404) ok=1 ;; esac
+            fi
+            if [ "$ok" -eq 1 ]; then
+              echo "  DELETED $name (PR #$pr is $state)"
+            else
+              printf '%s\n' "$body"
+              echo "::error::Could not delete $name (HTTP $code)."
+              failed=$((failed + 1))
+            fi
+          done
+
+          {
+            echo '### nebelhaus.com preview sweep'
+            echo
+            if [ "$leaked" -eq 0 ]; then
+              echo 'No stale previews — every one belongs to an open PR.'
+            elif [ "$DRY_RUN" = "true" ]; then
+              echo "$leaked stale preview(s) found; dry run, nothing deleted."
+            else
+              echo "$leaked stale preview(s) reaped."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # A leak found here is a `closed` cleanup that did not run, which is
+          # worth seeing rather than silently absorbing — but it is not a
+          # failure, since the sweep just fixed it. Only a failed delete is.
+          [ "$failed" -eq 0 ]
