@@ -4,8 +4,9 @@
 **hausfold** family, plus the `bench` script that moves changes between them.
 This folder's own repo holds the README, this file, `bench` (plus `_bench`, its
 zsh completion), `web/` (one Cloudflare Worker — nebelhaus.com's 301 map to
-hausfold.co, since 2026-08-14), plus `assets/` and `test/`; the subdirectories
-are independent git repos.
+hausfold.co, since 2026-08-14), `notes/` — the plans of record this file points
+at throughout — plus `assets/` and `test/`; the subdirectories are independent
+git repos.
 
 > **`_bench` gets onto fpath by symlink, not by Nix.** `bench` reaches PATH
 > through a wrapper in the private machine repo that `exec`s *this* checkout's
