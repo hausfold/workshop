@@ -188,17 +188,32 @@ per repo (workshop#375, hausfold.co#50). Each reaps its own `<prefix>-pr-<n>`
 Workers whose PR is closed, daily and on demand, because no job on the
 `pull_request` trigger can fix a trigger that doesn't fire.
 
-⚠️ **Each copy only sweeps its own prefix, so clearing the four is two runs, not
-one** — the name match is anchored precisely so one repo's job can never reach
-into another's Workers on the shared account:
+⚠️ **Each copy only sweeps its own prefix, so clearing the four was two runs,
+not one** — the name match is anchored precisely so one repo's job can never
+reach into another's Workers on the shared account:
 
 ```sh
 gh workflow run preview-sweep.yml -R hausfold/workshop      # nebelhaus-pr-321, -341
 gh workflow run preview-sweep.yml -R hausfold/hausfold.co   # hausfold-pr-16, -22
 ```
 
-Add `-f dry_run=true` to see the list without deleting. Until both have run,
-two of the four are still public.
+✅ **Both merged and both ran, 2026-08-15 11:16 UTC — dry-run first, then for
+real.** All four Workers deleted; re-enumerating the account leaves exactly
+`nebelhaus`, `hausfold` and `hausfold-pr-49`, and the two hostnames that were
+serving `/init.sh?ref=<sha>` now answer **404**. Verified on the account, not
+from the job log.
+
+Three things the live run settled that construction alone could not:
+
+- **The `keep` arm is real, not just anchored.** hausfold.co's run had an open
+  PR's preview in front of it (`hausfold-pr-49`) and left it alone, in both the
+  dry run and the real one. That is the safety property this job most needed to
+  demonstrate before anyone trusts it on a cron.
+- **The CI token can list.** The header called Workers Scripts:Read "inference
+  until the first run"; it isn't any more, in either repo.
+- **`preview-web.yml`'s fast path is fine when it fires.** #375's own preview
+  was gone before the sweep looked — the sweep is a backstop, not a
+  replacement, and the account listing is what shows the difference.
 
 👤 **One thing no merge can do:** the enumeration also turned up an
 `api.hausfold.co` route pointing at the nebelhaus.com 301 map, declared in no
@@ -3646,6 +3661,14 @@ failure (a 502, a rate limit) must **not** read as "PR is gone" or one bad
 minute deletes an open PR's preview, and the list call asserts
 `result_info.total_count` against what it got, because a silently truncated
 page is the same "reports clean forever" failure this whole section is about.
+
+✅ **Both merged and ran the same day (11:16 UTC), and the account now holds
+`nebelhaus`, `hausfold` and one open PR's preview.** The four leaked Workers
+404 at their workers.dev hostnames, including on `?ref=<a resolvable sha>` —
+so the hole is gone from the *code's* last hiding place, not only from the
+zone. Production was untouched by the run: hausfold.co 200,
+`nebelhaus.com/guides/pounce` still 301s onto the launcher room, and the open
+PR's preview was explicitly kept.
 
 - [ ] 👤 **Delete the `api.hausfold.co` route.** Account-side, in no config, so
   no merge removes it — it is exactly the shape of the orphan below, caught
