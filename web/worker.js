@@ -72,9 +72,17 @@ export const REDIRECTS = {
   // — see `public/hausfold.css`'s scroll-margin rule — and a fragment in a
   // Location header costs nothing, because the browser applies it after the
   // hop rather than sending it.
-  "/start/what-is-nebelhaus": `${SITE}/desktops/nebelhaus/`,
+  //
+  // ⚠️ The KEYS here still say `nebelhaus` and must: they are the paths the old
+  // site published, and a redirect source is a fact about the past. The
+  // DESTINATIONS moved to `/desktops/hacker/` the same day the desktop was
+  // renamed (the rename note's §11) — re-pointed rather than left to chain onto
+  // hausfold.co's own `/desktops/nebelhaus` → `/desktops/hacker` row, because
+  // one hop is the whole point of this file (§5.2) and a chain is how it
+  // quietly becomes two again.
+  "/start/what-is-nebelhaus": `${SITE}/desktops/hacker/`,
   "/start/install": `${SITE}/docs/haus/install/`,
-  "/start/first-run": `${SITE}/desktops/nebelhaus/#first-moves`,
+  "/start/first-run": `${SITE}/desktops/hacker/#first-moves`,
   // `start/the-family` was deliberately retired rather than ported (§5.2,
   // 2026-08-12) — three pieces of it moved into `internals/contributing` and
   // the rest was about a family the docs index now shows. The index is the
@@ -110,7 +118,7 @@ export const REDIRECTS = {
   "/reference/options": `${SITE}/docs/haus/reference/options/`,
   // The cheatsheet is a desktop's muscle memory, so it went where that
   // desktop's pages did.
-  "/reference/keybindings": `${SITE}/desktops/nebelhaus/#keys`,
+  "/reference/keybindings": `${SITE}/desktops/hacker/#keys`,
   "/reference/pounce": `${SITE}/docs/pounce/config/`,
   // The palette page was folded into theming, which is now the appearance room.
   "/reference/palette": `${SITE}/docs/haus/rooms/appearance/`,
