@@ -67,22 +67,29 @@ export const REDIRECTS = {
   "/llms-full.txt": `${SITE}/llms-full.txt`,
 
   // Start here. `what-is-nebelhaus` and `first-run` were the desktop tree's
-  // pages; that tree was retired into the desktop's own sheet on 2026-08-14,
-  // so both land outside `/docs` now. The fragments are real ids on that page
-  // — see `public/hausfold.css`'s scroll-margin rule — and a fragment in a
-  // Location header costs nothing, because the browser applies it after the
-  // hop rather than sending it.
+  // pages. The fragment is a real id on the destination — see
+  // `public/hausfold.css`'s scroll-margin rule — and a fragment in a Location
+  // header costs nothing, because the browser applies it after the hop rather
+  // than sending it.
   //
   // ⚠️ The KEYS here still say `nebelhaus` and must: they are the paths the old
   // site published, and a redirect source is a fact about the past. The
-  // DESTINATIONS moved to `/desktops/hacker/` the same day the desktop was
-  // renamed (the rename note's §11) — re-pointed rather than left to chain onto
-  // hausfold.co's own `/desktops/nebelhaus` → `/desktops/hacker` row, because
-  // one hop is the whole point of this file (§5.2) and a chain is how it
-  // quietly becomes two again.
-  "/start/what-is-nebelhaus": `${SITE}/desktops/hacker/`,
+  // DESTINATIONS follow the desktop's rename (the rename note's §11) —
+  // re-pointed rather than left to chain onto hausfold.co's own
+  // `/desktops/nebelhaus` row, because one hop is the whole point of this file
+  // (§5.2) and a chain is how it quietly becomes two again.
+  //
+  // 🚨 **Re-point to where the page actually is, not to where the name moved.**
+  // These first pointed at `${SITE}/desktops/hacker/`, on the reasonable-looking
+  // assumption that the desktop's sheet stayed at `/desktops/<name>`. It did
+  // not: hausfold.co retired that tree into the haus docs hours later, so
+  // `/desktops/hacker/` is a **404** and `/desktops/nebelhaus/` is itself a 301
+  // into `/docs/haus/desktops/hacker/`. Measured live 2026-08-15, an hour after
+  // it shipped — three published URLs 301'ing onto a 404 is worse than the two
+  // hops this file exists to avoid. Curl the destination, don't derive it.
+  "/start/what-is-nebelhaus": `${SITE}/docs/haus/desktops/hacker/`,
   "/start/install": `${SITE}/docs/haus/install/`,
-  "/start/first-run": `${SITE}/desktops/hacker/#first-moves`,
+  "/start/first-run": `${SITE}/docs/haus/desktops/hacker/#first-moves`,
   // `start/the-family` was deliberately retired rather than ported (§5.2,
   // 2026-08-12) — three pieces of it moved into `internals/contributing` and
   // the rest was about a family the docs index now shows. The index is the
@@ -116,9 +123,15 @@ export const REDIRECTS = {
 
   // Reference.
   "/reference/options": `${SITE}/docs/haus/reference/options/`,
-  // The cheatsheet is a desktop's muscle memory, so it went where that
-  // desktop's pages did.
-  "/reference/keybindings": `${SITE}/desktops/hacker/#keys`,
+  // 🚨 The cheatsheet has no destination of its own, and the `#keys` fragment
+  // this row used to carry does not exist any more — measured 2026-08-15, the
+  // hacker page's ids are `what-it-turns-on`, `first-moves`, `making-it-yours`,
+  // `where-to-go-next`. hausfold.co already ruled on this exact URL for its own
+  // `/docs/nebelhaus/keybindings` row: the keys were a shortened reprint of
+  // what the windows room documents in full, and the port deliberately did not
+  // make a second copy — so the URL lands on the page that has them. Match that
+  // ruling rather than inventing a second answer for the same question.
+  "/reference/keybindings": `${SITE}/docs/haus/rooms/windows/`,
   "/reference/pounce": `${SITE}/docs/pounce/config/`,
   // The palette page was folded into theming, which is now the appearance room.
   "/reference/palette": `${SITE}/docs/haus/rooms/appearance/`,

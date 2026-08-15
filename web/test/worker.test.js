@@ -75,11 +75,41 @@ describe('the map covers the old site, exactly', () => {
     }
   });
 
+  // 🚨 This suite proves the map is *complete* and *points at hausfold.co*. It
+  // cannot prove a destination exists — nothing here fetches. On 2026-08-15
+  // three rows shipped pointing at `hausfold.co/desktops/hacker/`, which is a
+  // 404: the desktop's sheet had moved into the haus docs tree hours earlier.
+  // A green suite said nothing. So the rows that follow a *renamed* page are
+  // pinned by hand, and the rule the pin encodes is: curl the destination
+  // before you write it.
+  it('sends the desktop rows where the page actually is', () => {
+    expect(REDIRECTS['/start/what-is-nebelhaus']).toBe(
+      'https://hausfold.co/docs/haus/desktops/hacker/',
+    );
+    expect(REDIRECTS['/start/first-run']).toBe(
+      'https://hausfold.co/docs/haus/desktops/hacker/#first-moves',
+    );
+    // Not a fragment on the desktop page: those keys were a shortened reprint
+    // of the windows room and the port did not copy them. hausfold.co's own
+    // `/docs/nebelhaus/keybindings` row already lands here.
+    expect(REDIRECTS['/reference/keybindings']).toBe(
+      'https://hausfold.co/docs/haus/rooms/windows/',
+    );
+  });
+
+  it('never points at /desktops/<name>, which hausfold.co does not serve', () => {
+    // `/desktops` is a landing-page anchor there, and the per-desktop pages
+    // under it are themselves 301s into `/docs/haus/desktops/`. Landing on one
+    // is either a 404 or the second hop this file exists to avoid.
+    const bad = Object.entries(REDIRECTS).filter(([, to]) =>
+      /^https:\/\/hausfold\.co\/desktops\//.test(to),
+    );
+    expect(bad).toEqual([]);
+  });
+
   it('keeps hausfold.co\'s trailing slash on pages, and omits it where there is no page', () => {
-    // Compare the *path*, not the whole URL: three rows carry a fragment
-    // (`/desktops/nebelhaus/#keys` and friends, since the desktop's docs tree
-    // was retired into sections of its sheet), and those are pages with a
-    // slash — the `#` just sits after it.
+    // Compare the *path*, not the whole URL: two rows carry a fragment, and
+    // those are pages with a slash — the `#` just sits after it.
     const path = (to) => to.split('#')[0];
     const noSlash = Object.entries(REDIRECTS).filter(([, to]) => !path(to).endsWith('/'));
     expect(noSlash.map(([from]) => from).sort()).toEqual(
