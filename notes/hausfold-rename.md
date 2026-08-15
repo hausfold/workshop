@@ -37,6 +37,7 @@ them:
 | 7 | **One site repo: `hausfold/hausfold.co`** | `/`, `/haus`, `/docs`, `/desktops`, `/holt`, `/pounce`, `/perch` (`/haus` added 2026-08-10 with decision 8). `workshop/web` folds into it and the landing pages are redesigned, not ported — see §5.1. *(Was `hausfold/website`, which is archived and private; the new repo was created 2026-08-08.)* |
 | 8 | **The layer's public name is `haus`; `hausfold` is the org, the maker and the seller** | added 2026-08-10, in conversation, after looking at the page. **This refines decision 1, it does not reverse it** — see the box below. |
 | 9 | **The layer's repo is `hausfold/haus`, its checkout `./haus`** | added 2026-08-11, in conversation. Decision 8 said hausfold is never the layer; `hausfold/hausfold` said it was. **§10** is the walkthrough. |
+| 10 | 🔄 **The name `nebelhaus` is dropped. The desktop becomes `hacker`; everything else wearing the word becomes `haus`** | added 2026-08-14, in conversation. **This reverses §6's first two paragraphs**, which said the desktop keeps its name forever. **§11** is the walkthrough and the three-way split. |
 
 #### Decision 8, spelled out — because it looks like a third flip and isn't
 
@@ -166,6 +167,22 @@ One thing from §6 that survives and one that doesn't:
 
 ### Current handoff — 2026-08-14 (night)
 
+🔄 **The name `nebelhaus` is being dropped — decision 10, taken in conversation
+after the audit below was written.** The desktop becomes **`hacker`**; every
+other surviving `nebelhaus` becomes **`haus`**. **§11** is the walkthrough, and
+its §11.0 table is the thing to read first: the word has 1,125 hits and they
+take three different answers, most of them "leave it alone".
+
+⚠️ **The audit that follows in this handoff is still correct as *measurement* and
+is now wrong as *conclusion*.** It ended "there is no sweep left to run", which
+was true of the hausfold rename and is not true of this one. Kept in place
+because the four senses it enumerates are exactly the distinctions §11 has to
+respect — it is the right analysis with the wrong verdict attached, and §6's
+first bullet is struck through rather than deleted for the same reason. The one
+row of it that decision 10 actually reverses is the first.
+
+<details><summary>The audit as written, before decision 10</summary>
+
 **The rename is done, and "drop nebelhaus" is not the step after it — it is the
 step this document spent §6 forbidding.** Asked at the end of the arc, the
 question is worth answering in full rather than by pointing at a bullet, because
@@ -174,14 +191,16 @@ reason:
 
 | the surviving spelling | why it stays |
 |---|---|
-| **nebelhaus, the desktop** | it's a product with an install command (`hausfold.co/nebelhaus.sh`), a `/desktops/nebelhaus` page and users. §6 |
-| `inputs.nebelhaus.url`, `--override-input nebelhaus/…` | the input names the **desktop**, not the org or the layer. §10.0's last box — rename it and every override silently stops applying while still reporting success |
-| `github.com/nebelhaus/*`, the dead org | shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` to check for updates; only a live org redirects them. Kept alive forever, deliberately |
-| `~/.local/state/nebelhaus`, `/Library/Application Support/nebelhaus/…`, `~/.cache/claude-worktrees/` | state paths and a two-repo contract (§6, §3.3 Tier D). Renaming one end breaks rice-install detection |
+| ~~**nebelhaus, the desktop**~~ 🔄 **reversed** | it's a product with an install command (`hausfold.co/nebelhaus.sh`), a `/desktops/nebelhaus` page and users. §6 |
+| `inputs.nebelhaus.url`, `--override-input nebelhaus/…` | the input names the **desktop**, not the org or the layer. §10.0's last box — rename it and every override silently stops applying while still reporting success. *(§11.2 moves it to `haus` and inherits that trap whole)* |
+| `github.com/nebelhaus/*`, the dead org | shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` to check for updates; only a live org redirects them. Kept alive forever, deliberately — **unchanged by decision 10** |
+| `~/.local/state/nebelhaus`, `/Library/Application Support/nebelhaus/…`, `~/.cache/claude-worktrees/` | state paths and a two-repo contract (§6, §3.3 Tier D). Renaming one end breaks rice-install detection. *(§11.3 moves the first two to `haus` and defeats the contract with a symlink; the third stays)* |
 
-So there is no sweep left to run. The thing that *did* remain was **§10's tail**,
-and re-measuring it today found two of its three items already closed by work
-that never came back to update the note:
+</details>
+
+The thing that remained *before* decision 10 was **§10's tail**, and
+re-measuring it today found two of its three items already closed by work that
+never came back to update the note:
 
 - **§10.3 is history.** `bench relocate-haus` ran (the layer is at `./haus`), and
   the compatibility shim it left — the command, `repo_dir`'s `$ROOT/hausfold`
@@ -3629,10 +3648,20 @@ Write these down or they get "fixed" by a later session:
 
 - **`nebelung`** keeps its name. It's a cat breed, its audience is the
   Catppuccin community, and renaming costs a 53-port catalog sweep for zero gain.
-- **`nebelhaus`** keeps its name — as the **rice**. It loses its domain and its
+- ~~**`nebelhaus`** keeps its name — as the **rice**. It loses its domain and its
   landing page, but it still needs a *page*: it's the developer-focused showcase
   and the first entry in `/desktops`. Don't let "no landing page" turn into "no
-  page" — `curl … /init.sh | bash` installs it, so something has to describe it.
+  page" — `curl … /init.sh | bash` installs it, so something has to describe it.~~
+  🔄 **Reversed 2026-08-14 (decision 10) — the desktop is `hacker` now.** The
+  *reasoning* above survives intact and is why the reversal is cheap: everything
+  it protected was the **page**, not the word. `/desktops/hacker` is still the
+  developer-focused showcase, still the first entry, still described. What
+  changed is the answer to a question this bullet never asked — *is `nebelhaus`
+  a good name for it?* — and the tell is the company it now keeps: `blank`,
+  `minimal`, `everyday` and `nebelhaus`, three of which say who they are for and
+  one of which is a private joke about fog. **§11.** ⚠️ Only the *desktop* takes
+  the name `hacker`; every other surviving `nebelhaus` becomes **`haus`**, which
+  is decision 8 reaching the places decision 8 declined to touch.
 - **`haus` the CLI** — unchanged, and now the namespace matches it. As of
   2026-08-10 the *layer* is called `haus` in user-facing copy too (decision 8),
   which makes verb, namespace and name one word on purpose. `hausfold` stays
@@ -3652,11 +3681,16 @@ Write these down or they get "fixed" by a later session:
   on Go's immutable proxy**. It is 60 imports across 23 `.go` files, it is
   nobody's API (the root module is a binary), and a change is a version-contract
   event for all five SDKs at once. Revisit only at a major bump.
-- **`/Library/Application Support/nebelhaus/perch.installed-from`** — the rice
-  keeps its name, so this marker is correctly spelled. It is also a **two-repo
-  contract** (written by `nebelhaus/modules/perch/default.nix`, read by
-  `perch/Perch/Platform/UpdateCheck.swift:118`); renaming it in one repo makes
-  perch stop recognising rice installs. See §3.3's Tier D.
+- ~~**`/Library/Application Support/nebelhaus/perch.installed-from`** — the rice
+  keeps its name, so this marker is correctly spelled.~~ 🔄 **Its premise died
+  with decision 10** — the desktop does *not* keep the name, and this path was
+  never the desktop's anyway: it is the **layer's**, so it becomes
+  `…/haus/perch.installed-from`. The rest of the bullet stands and is now the
+  *hard* part rather than a footnote: it is a **two-repo contract** (written by
+  `haus/modules/perch/default.nix`, read by
+  `perch/Perch/Platform/UpdateCheck.swift:118`), and renaming it in one repo
+  makes perch stop recognising desktop installs. §11.3 carries the migration
+  that lets both ends move without a flag day. See §3.3's Tier D.
 - **`~/.cache/claude-worktrees/`** — already historical, stays.
 - **Roadmap §5 bodies, commit messages, PR titles** — historical record.
 
@@ -3770,11 +3804,14 @@ trust, not composition; see
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-14, night):** **§10 is closed too** — its checkout step
-ran, its shim was retired (workshop#331), its lock and repo-description tails are
-measured clean, and its gate re-runs green. The one rename item left anywhere is
-`~/.config/nix/flake.nix:7`, which is 👤 and rides a rebuild. See the night
-handoff for why "drop nebelhaus" is not the next phase.
+**You are here (2026-08-14, night):** **§10 is closed** — its checkout step ran,
+its shim was retired (workshop#331), its lock and repo-description tails are
+measured clean, and its gate re-runs green. 🔄 **And a §11 opened the same
+evening:** decision 10 drops the name `nebelhaus` — desktop → `hacker`,
+everything else → `haus`. It is not a phase of the map below; like §10 it is a
+decision that arrived after the plan was written. `~/.config/nix/flake.nix:7`,
+§10.4's last 👤 line, is now §11.2's problem too — the input wants renaming, not
+just re-pointing, so do both in one edit.
 
 **You were here (2026-08-14, late):** **§5.2 is ✅ and this document has no 🤖
 work left in it.** The docs, the Worker, the `nebelhaus.com/*` 301s and the eight
@@ -4009,3 +4046,151 @@ layer is at `./haus`, and `bench status` no longer *has* the fallback nudge to
 print (§10.3). ⚠️ The three bats cases the gate counts were deleted with the
 shim, so a future re-run reads 68-ish, not 71; the number was a snapshot, not an
 invariant. **§10 is closed** bar the single 👤 line in §10.4.
+
+---
+
+## §11 — Dropping `nebelhaus`
+
+**Decided 2026-08-14, in conversation.** The desktop becomes **`hacker`**.
+Everything else still spelled `nebelhaus` becomes **`haus`**. This reverses §6's
+first two paragraphs, which are struck through in place rather than deleted —
+the reasoning there was sound and is why the reversal is cheap.
+
+### 11.0 The three-way split — read this before touching anything
+
+🚨 **A blind `nebelhaus` → `hacker` sweep is wrong about seven times in ten.**
+Measured 2026-08-14 across every checkout: **1,125 hits**, and they fall into
+three groups that take three *different* answers. This is the same discipline
+§2's banner asks for, pointed at a different word — read the hit.
+
+| what the hit means | becomes | how to recognise it |
+|---|---|---|
+| **the desktop** — `desktops/nebelhaus.nix`, `haus.desktops.nebelhaus`, `/desktops/nebelhaus`, `hausfold.co/nebelhaus.sh`, and the prose phrase "the nebelhaus desktop/rice" | **`hacker`** | it is one of four peers: `blank`, `minimal`, `everyday`, `hacker` |
+| **the layer, still wearing the old coat** — `mkNebelhaus`, the 19 `NEBELHAUS_*` env vars, `~/.local/state/nebelhaus`, `~/.config/nebelhaus`, `/Library/Application Support/nebelhaus`, `nebelhausAccessibility`, the flake `description` | **`haus`** | it would be nonsense for a *desktop* to own it — a `HACKER_FLAKE` env var, or a state dir that `minimal` also writes to |
+| **must not move** | **stays** | see the box below |
+
+🚨 **The do-not-touch list, which is most of the count:**
+
+- **`github.com/nebelhaus/*` and the dead org.** Shipped copies of pounce and
+  perch hit `api.github.com/repos/nebelhaus/<app>` for their update check; only
+  a live org redirects them. This is §3's rule and decision 10 does not touch it.
+- **holt's Go module path, `github.com/nebelhaus/holt`** — root *and* SDK. §6's
+  🚨 stands unchanged and is the single largest block of hits (≈200): immutable
+  on Go's proxy, nobody's API, a version-contract event for five SDKs at once.
+  holt's test fixtures also use `nebelhaus` as an arbitrary repo name; that is a
+  fixture string, not this word.
+- **`nebelhaus.com`** — the domain, already a 301 map (§5). A dropped *name* is
+  not a dropped *redirect*; the map must outlive the name it redirects.
+- **`modules/renamed.nix`'s `nebelhaus.*` option aliases** (≈110 hits). They
+  exist so an external config written against the old namespace still evaluates.
+  Deleting them is a separate, later decision with its own trigger (§0.3's
+  compatibility-cleanup note), and decision 10 is not that trigger.
+- **`~/.cache/claude-worktrees/`** — holt's, repo-agnostic, historical. §6.
+- **Historical PR links, commit messages, and this document's own record.**
+
+### 11.1 The desktop → `hacker`
+
+Two repos, and the site half is already designed for it. `worker.js`'s own
+comment predicted this exact change: *"The desktop is expected to lose the
+nebelhaus name eventually; when it does, the new name is a new row and this one
+stays as an alias. A published install command is the last thing on this site
+that should ever 404."*
+
+**haus:**
+
+- `git mv desktops/nebelhaus.nix desktops/hacker.nix`, and rewrite its header
+  comment — it currently opens *"nebelhaus — the first desktop"*.
+- `flake.nix`: the `desktops` attrset key, `mkNebelhaus`'s
+  `desktop ? ./desktops/nebelhaus.nix` default, the `description`, and the
+  `nebelhaus-*-ok` check derivation names.
+- ⚠️ **`bootstrap.sh` should accept `nebelhaus` as a desktop name and resolve it
+  to `hacker`.** The site's alias row passes a pin, and the pin it passes has to
+  be one the installer still understands.
+
+**hausfold.co:**
+
+- `DESKTOPS` gains `hacker: { repo: "hausfold/haus", pin: "hacker" }`, and the
+  existing `nebelhaus` row **stays with its pin re-pointed to `"hacker"`** — the
+  URL keeps working and installs the same desktop under its new name. Leaving
+  the pin as `"nebelhaus"` is the bug to avoid: it would 200 at the Worker and
+  then fail inside bootstrap.
+- `src/app/desktops/nebelhaus/` → `hacker/`, plus a `_redirects` row, the
+  catalogue row on `/`, and the sibling pages that name it.
+
+**workshop:** `bench`'s installer-audience string, and `web/worker.js`'s 301 rows
+that land on `/desktops/nebelhaus` — those must re-point, or the old zone starts
+costing two hops again (the thing §5.2 paid to avoid).
+
+### 11.2 The layer's leftovers → `haus`
+
+Pure code identifiers, and every one of them can carry a compatibility shim, so
+none of this needs to be atomic:
+
+- **`mkNebelhaus` → `mkHaus`**, keeping `mkNebelhaus` as an alias. ⚠️ It is the
+  consumer's entry point, so without the alias this is the coupled
+  lock-bump-plus-config-edit that `bench ship` structurally cannot split. With
+  the alias it is three ordinary PRs in any order.
+- **The 19 `NEBELHAUS_*` env vars → `HAUS_*`**, each falling back to the old
+  spelling. They are the *installer's*, which is why they go to `haus` and not
+  `hacker`: `NEBELHAUS_DESKTOP=minimal` is already a sentence that contradicts
+  itself.
+- **`inputs.nebelhaus` in the consumer flake → `inputs.haus`.** 👤 file. ⚠️
+  §10.0's trap applies with full force and in both directions: `bench`'s
+  `OVERRIDABLE` list and the input name must move **in the same change**, or
+  every `--override-input` silently stops applying while still reporting
+  success. That is the one edit in §11 that cannot be half-done.
+
+### 11.3 The on-disk state → `haus`, by symlink
+
+Three live locations, holding a tour stamp, media state, zen tabs, the elgato
+host, the stylus announcement, `nebelung-ports.tsv`, the lane opener, the zen
+policy marker and **perch's install marker**:
+
+```
+~/.local/state/nebelhaus            →  ~/.local/state/haus
+~/.config/nebelhaus                 →  ~/.config/haus
+/Library/Application Support/nebelhaus  →  /Library/Application Support/haus
+```
+
+**The migration is: move the directory, then leave the old path as a symlink to
+the new one.** One idempotent activation snippet per location. This is worth
+stating as the design rather than the implementation detail, because it collapses
+the one genuinely awkward dependency in §11 — the perch marker — from a
+two-release contract into no contract at all:
+
+- Old perch binaries in the field read
+  `/Library/Application Support/nebelhaus/perch.installed-from` and **keep
+  working**, because the symlink resolves.
+- New perch reads the `haus` path directly.
+- Neither repo has to ship before the other, and nobody is mid-flight broken.
+
+Without the symlink this needs perch release *N* dual-reading and release *N+1*
+before haus may stop writing the old path — three releases of coordination to
+rename a directory. Take the symlink.
+
+⚠️ **Two things the snippet must get right:** it runs on a machine where the old
+dir already exists *and* on a fresh install where neither does, and it must not
+turn a real directory into a symlink loop on a second run. Guard on
+"old exists and is not already a symlink".
+
+### 11.4 The prose tail
+
+pounce, perch, nebelung and trill hold ~90 hits between them and **almost all
+are comments** — "the nebelhaus rice", "lockstep with modules/hush in the
+nebelhaus repo". Cheap, mechanical, and they follow the §11.0 table like
+everything else: a comment about the *layer* says `haus`, a comment about the
+*desktop* says `hacker`. The only runtime string among them is perch's marker
+path, which §11.3 covers.
+
+### §11's gate
+
+1. `rg -i nebelhaus` across every checkout returns **only** §11.0's
+   do-not-touch categories.
+2. `bench try` builds; `nix flake check` on the Mac (the reach checks are
+   darwin-only and will not fire in CI).
+3. `curl -fsSL https://hausfold.co/hacker.sh | head` serves the installer, and
+   `hausfold.co/nebelhaus.sh` **still** does — same script, `hacker` pinned.
+4. `/desktops/hacker` is 200 and `/desktops/nebelhaus` 301s onto it.
+5. On the machine, after activating: the three old state paths are symlinks, the
+   tour stamp still reads, and perch still reports *"Installed by the desktop"*
+   rather than offering to update itself.
