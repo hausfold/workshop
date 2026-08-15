@@ -25,8 +25,10 @@ downstream.** A one-hex-digit colour tweak in nebelung reaches your Mac only
 after three lock files move behind it.
 
 Never walk that by hand. `./bench ship` does it in order; `./bench status`
-names every pin that's fallen behind. (Those are repo names — in
-`~/.config/nix`, the layer's flake input is still spelled `nebelhaus`.)
+names every pin that's fallen behind. (Those are repo names. The consumer's flake INPUT is its own name for the
+same thing — `~/.config/nix` still spells it `nebelhaus`, and new installs
+scaffold `haus`; both work, and renaming it means renaming `bench`'s
+`--override-input` in the same edit or every override silently stops applying.)
 
 ## start
 
@@ -60,7 +62,7 @@ something works, and `main` never holds code nobody has felt.
 
 Five repos share the lock chain above:
 
-- 🏠 [**haus**](https://github.com/hausfold/haus) — the whole desktop, one Nix flake: the nix-darwin layer, plus **nebelhaus**, the desktop built on it. **start here.**
+- 🏠 [**haus**](https://github.com/hausfold/haus) — the whole desktop, one Nix flake: the nix-darwin layer, plus **hacker**, the desktop built on it. **start here.**
 - 🐾 [**pounce**](https://github.com/hausfold/pounce) — a keyboard-first command palette. every command is a file.
 - 🪺 [**perch**](https://github.com/hausfold/perch) — a file shelf that grows out of the notch.
 - 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the silver-mist palette underneath all of it.
