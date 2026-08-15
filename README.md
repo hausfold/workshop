@@ -26,9 +26,11 @@ after three lock files move behind it.
 
 Never walk that by hand. `./bench ship` does it in order; `./bench status`
 names every pin that's fallen behind. (Those are repo names. The consumer's flake INPUT is its own name for the
-same thing — `~/.config/nix` still spells it `nebelhaus`, and new installs
-scaffold `haus`; both work, and renaming it means renaming `bench`'s
-`--override-input` in the same edit or every override silently stops applying.)
+same thing — it is spelled `nebelhaus` everywhere, in `~/.config/nix` and in
+what `bootstrap.sh` scaffolds for a new install alike. Moving it to `haus` is
+§11.2 of the rename note, and it means renaming `bench`'s `--override-input` in
+the same edit or every override silently stops applying while still reporting
+success.)
 
 ## start
 

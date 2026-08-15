@@ -183,23 +183,59 @@ Routes for both zones". Two things came back:
   on at `nebelhaus-pr-341.<sub>.workers.dev/init.sh`, which answered 200 for an
   arbitrary ref. Measured, not inferred.
 
-The durable half is done and is in this PR: **`.github/workflows/preview-sweep.yml`**
-reaps `<prefix>-pr-<n>` Workers whose PR is closed, daily and on demand, because
-both leak paths are `pull_request` triggers *not firing* and no job on that
-trigger can fix that. hausfold.co gets the same file. Merging it and running it
-once (`gh workflow run preview-sweep.yml`) is what actually deletes the four.
+The durable half landed as **`.github/workflows/preview-sweep.yml`**, one copy
+per repo (workshop#375, hausfold.co#50). Each reaps its own `<prefix>-pr-<n>`
+Workers whose PR is closed, daily and on demand, because no job on the
+`pull_request` trigger can fix a trigger that doesn't fire.
+
+⚠️ **Each copy only sweeps its own prefix, so clearing the four is two runs, not
+one** — the name match is anchored precisely so one repo's job can never reach
+into another's Workers on the shared account:
+
+```sh
+gh workflow run preview-sweep.yml -R hausfold/workshop      # nebelhaus-pr-321, -341
+gh workflow run preview-sweep.yml -R hausfold/hausfold.co   # hausfold-pr-16, -22
+```
+
+Add `-f dry_run=true` to see the list without deleting. Until both have run,
+two of the four are still public.
 
 👤 **One thing no merge can do:** the enumeration also turned up an
 `api.hausfold.co` route pointing at the nebelhaus.com 301 map, declared in no
 config in either repo. It is dormant only because that subdomain has no DNS
 record. §5.3 carries the box.
 
-**The substantive work left in this document is §11**, and the workshop half of
-it merged as #372 while this was being written. What remains is haus (11.1's
-desktop rename, 11.2's `mkNebelhaus`/`NEBELHAUS_*` shims, 11.3's state-dir
-symlinks), hausfold.co's `DESKTOPS` row and routes, and 11.4's comment tail
-across pounce/perch/nebelung/trill. Read §11.0's table before touching any of
-it.
+🚨 **§11 shipped two live defects an hour before this was written, and the
+assurance pass on an unrelated PR is what caught them.** Both are fixed here;
+both are worth keeping as shapes.
+
+- **Three published nebelhaus.com URLs were 301'ing onto a 404.** #372 re-pointed
+  `/start/what-is-nebelhaus`, `/start/first-run` and `/reference/keybindings` at
+  `hausfold.co/desktops/hacker/` — the desktop's old path with the new name
+  substituted in. But hausfold.co had retired that tree into the docs hours
+  earlier (#47): `/desktops/hacker/` is a **404**, and `/desktops/nebelhaus/` is
+  itself a 301 into `/docs/haus/desktops/hacker/`. The `#keys` fragment the
+  keybindings row carried no longer exists at all. ⚠️ **The lesson is narrow and
+  useful: when a rename moves a page, curl the destination — don't derive it by
+  substituting the new name into the old path.** `web/`'s suite went green
+  throughout, because it proves the map is complete and points at hausfold.co
+  and cannot prove a destination exists. Two tests now pin these rows, and one
+  fails any future row pointing under `hausfold.co/desktops/`.
+- **`README.md` and `AGENTS.md` claimed "new installs scaffold `haus`".** They
+  don't: `haus`'s `bootstrap.sh:567` writes `inputs.nebelhaus.url =
+  "github:hausfold/haus"` for a fresh install. That claim is the §11.2 trap
+  dressed as progress — a reader who believes the input has already half-moved
+  is a reader who might finish the job by editing `bench`'s `OVERRIDABLE` alone,
+  which is precisely the edit that makes every `--override-input` silently
+  no-op. Both lines now say what `bootstrap.sh` actually writes.
+
+**The substantive work left in this document is §11.** Its workshop half merged
+as #372 and its hausfold.co half as hausfold.co#47, both 2026-08-15. What
+remains is **haus**: 11.1's desktop rename (`desktops/nebelhaus.nix` →
+`hacker.nix`, `flake.nix`'s keys, and `bootstrap.sh` accepting `nebelhaus` as an
+alias — the site's alias row passes that pin), 11.2's `mkNebelhaus`/`NEBELHAUS_*`
+shims, 11.3's state-dir symlinks; plus 11.4's comment tail across
+pounce/perch/nebelung/trill. Read §11.0's table before touching any of it.
 
 ### Handoff — 2026-08-14 (night)
 
@@ -3586,22 +3622,41 @@ the *trigger* not firing, which a `pull_request`-triggered job cannot fix:
    closed 19:52:10Z in favour of a `-salvage` branch, and the preview workflow
    has no close run that day.
 
+There is a third mode the two leaks didn't exercise and the sweep also covers,
+named in `preview-web.yml`'s own comment: a closed PR never re-fires the event,
+so one transient delete failure leaks the Worker until a human re-runs a job on
+a closed PR, which nobody does.
+
 So the fix asks the other question, from state rather than from an event:
-**`.github/workflows/preview-sweep.yml`** (and hausfold.co's own copy) lists the
-account's Workers on a daily cron, asks GitHub whether each `<prefix>-pr-<n>`'s
-PR is still open, and deletes the ones that aren't. It matches an anchored
-`^<prefix>-pr-[0-9]+$`, so neither production Worker can be caught by it, and
-`workflow_dispatch` takes a `dry_run` input. Verified before merge by driving
-the extracted job body against the live account in dry-run: it named those four
-and nothing else.
+**`.github/workflows/preview-sweep.yml`** — one copy per repo, this one and
+hausfold.co's — lists the account's Workers on a daily cron, asks GitHub
+whether each `<prefix>-pr-<n>`'s PR is still open, and deletes the ones that
+aren't. ⚠️ **Each copy sweeps only its own prefix**, deliberately: both repos'
+Workers share one Cloudflare account, and the name match is anchored at both
+ends (`^<prefix>-pr-[0-9]+$`, built without interpolating the prefix into a
+regex) so neither production Worker nor the sibling repo's previews can be
+caught by it. That is also why clearing these four takes **two** dispatches,
+one per repo. `workflow_dispatch` takes a `dry_run` input.
+
+Verified before merge by driving each extracted job body against the live
+account in dry-run: the workshop's named `nebelhaus-pr-321` and `-341` and
+nothing else, hausfold.co's named `hausfold-pr-16` and `-22` and nothing else.
+Two details the review caught and the shipped version fixes: a non-404 `gh`
+failure (a 502, a rate limit) must **not** read as "PR is gone" or one bad
+minute deletes an open PR's preview, and the list call asserts
+`result_info.total_count` against what it got, because a silently truncated
+page is the same "reports clean forever" failure this whole section is about.
 
 - [ ] 👤 **Delete the `api.hausfold.co` route.** Account-side, in no config, so
   no merge removes it — it is exactly the shape of the orphan below, caught
-  before it had anything to shadow. Ids measured 2026-08-15:
+  before it had anything to shadow. Route id measured 2026-08-15; `$ZID` is the
+  hausfold.co zone, which `deploy-web.yml` carries as
+  `secrets.CLOUDFLARE_ZONE_ID` and this public tree therefore does not print:
 
   ```sh
+  # both ids: GET /zones?name=hausfold.co, then GET /zones/$ZID/workers/routes
   curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
-    https://api.cloudflare.com/client/v4/zones/f4ceec0bf169389965bf7305aab7e021/workers/routes/9bcda9b5dd184c489676bea69054ede8
+    "https://api.cloudflare.com/client/v4/zones/$ZID/workers/routes/$RID"
   ```
 - [ ] 👤 **The account is enumerated but not *audited*** — the two calls above
   cover scripts and zone routes. Custom domains, Pages projects and DNS are
