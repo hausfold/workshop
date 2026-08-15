@@ -101,6 +101,83 @@ already exist, and one it treated as a detail is the actual root blocker.
 > → the consolidated site repo.
 
 
+> **Status, 2026-08-15 (twenty-second pass) — the small `sans` is built, and the
+> reason it could hide is now a row in the check that couldn't see it.**
+>
+> [haus#363](https://github.com/hausfold/haus/pull/363) open. `haus.fonts.sans.name`
+> exists, defaults to `".AppleSystemUIFont"`, and `clockLabelFont` reads it —
+> the one-option, one-reader version §5.3's last box asked for, with no
+> `sans.size` and no `sans.package`. §5.3's `sans` box ticks; a new box under it
+> holds the ·M app-side half, which is unchanged and still needs a seam before
+> it needs a font. **Nothing on any machine moves**: the option's default is
+> byte-for-byte the literal it replaces, which the new check row demonstrates
+> rather than asserts — so the `bench try switch` and the look at the clock pill
+> the last pass said were Julien's to run are **not owed**. That was worth
+> checking rather than assuming; an "invisible refactor" that is actually
+> invisible is the rare one.
+>
+> ★ **The finding, and it is about the check rather than the bar: A REACH TABLE
+> THAT VARIES ONE OPTION IS BLIND TO ANYTHING BEHIND A SECOND ONE.** `font-reach`
+> evaluates two systems differing in `fonts.mono.name`; both leave
+> `sill.clock.monoFont` at its `true` default, so `clockLabelFont`'s other branch
+> — the one holding the hardcoded family — was never evaluated **inside the one
+> check whose entire job is finding hardcoded families.** No smarter pattern
+> fixes that. The fix is a third pair of systems with the second key flipped, and
+> it is now in the flake with the sans rows beside it. The question it leaves for
+> every golden table here: *which conditional does my sample never enter?*
+>
+> ★ **And that makes this the first INSTANCE of §5.14's longest-surviving check
+> candidate to become a check.** "What second key or precondition makes the first
+> one a lie" has outlived every other candidate since the sixth pass, and the
+> reason §5.14 gave was that it is a design rule for options not yet written
+> rather than a property of one that exists. That was true of the *rule* and hid
+> a false corollary: the rule has instances in options that exist right now, and
+> an instance is checkable even when the rule isn't. The candidate stays open —
+> §5.6 still has no general check — but it is no longer the untestable kind.
+> **Nine ★ findings, still six checks**: the ledger's two numbers move
+> independently, and this pass moves only the first, because `font-reach` now
+> carries two findings the way `packs` and `scale-reach` already do. The one
+> `bench status` *warning* stays counted separately, as the fourteenth pass
+> ruled.
+>
+> ★ **Third, from the assurance pass, which killed two sentences and left the
+> finding standing.** The write-up said the hardcode "sat in [the blind spot] for
+> months" — `git log -S` finds it landed the day before, in haus#330. And "six
+> pills set `label.font=` in the same generated file" counted the **source**: one
+> of the six writes a different file, three are opt-in `sill.items` the example
+> system never enables, and the survivor is `:Regular`, so the sampled file has
+> exactly **one** matching line. Both errors have the same shape and it is this
+> section's own: **a claim about a generated artifact, derived by reading the
+> generator.** The first one also inverts the moral — the blind spot is *older*
+> than the bug it hid (font-reach is rice#243, the literal is haus#330), so the
+> cost was luck rather than time: nothing here would have reported it in a year.
+>
+> ★ **Fourth, small and reusable: a row that passes for a reason it does not
+> state.** The new capture is anchored to the clock's own block, and the anchor
+> is **not load-bearing today** — widening it to `.*` leaves the row green,
+> because no rival line exists in the sampled system. Both facts are properties
+> of the SAMPLE, not of the bar, which is the argument for keeping the anchor and
+> for saying so in the comment. A check that is green for an unstated reason is
+> indistinguishable from one that is green for the stated one, right up until the
+> sample changes.
+>
+> Housekeeping: the audit half of this pass was empty — haus's tip was
+> [haus#362](https://github.com/hausfold/haus/pull/362), the twenty-first pass's
+> own follow-up, so no open box had shipped and no closed claim was falsified.
+> Two things fixed on the way: `options-groups.nix`'s `fonts` blurb still said
+> "the bar keeps its own font", which rice#243 made false; and the new option was
+> missing from `test/desktop-projection.nix`, which names the public values a
+> desktop carve-out may move — it is desktop-safe, so a projection without it
+> reports "no difference" for a machine whose clock changed face.
+>
+> **Verified:** `nix flake check` green in the haus lane (23 checks), mutation-checked
+> in both directions — re-welding the literal turns the new row into
+> `.AppleSystemUIFont | .AppleSystemUIFont` and drops the file row, naming exactly
+> what regressed — plus `desktop-projection` red-then-green against its updated
+> golden. `site-data` regenerated twice (the second time for a reworded first
+> line: `haus set`'s picker shows the description's FIRST PHYSICAL LINE, and it
+> ended mid-phrase). No `bench try switch`: see above, nothing moves.
+
 > **Status, 2026-08-14 (twenty-first pass) — `fonts.sans` is not the next item,
 > and the audit that says so found the option already shipped, spelled as a
 > boolean, in another room.**
@@ -2111,7 +2188,7 @@ contrast.
       two rows to `pinned`. Darwin-only, like `accent-reach` — it fingerprints a
       real evaluated system, so it fires on this machine or not at all.
 
-### 5.3 `nebelhaus.fonts` · S · risk L · ◐ **`mono` shipped and its reach fixed (rice#243); the `sans` half is measured rather than built (2026-08-14) and comes back ·M across three repos — or S scoped to the one label it would actually reach. See the last box; the header is the summary and the box decides (§5.14)**
+### 5.3 `nebelhaus.fonts` · S · risk L · ◐ **`mono` shipped and its reach fixed (rice#243); the S-sized `sans` — one option, one label — shipped 2026-08-15 (haus#363). What stays open is the ·M app-side half across three repos, which needs a seam built before it needs a font. See the last two boxes; the header is the summary and the box decides (§5.14)**
 **Cheapest big win in the doc, and nobody has asked for it because it's
 invisible until you try to change it.** JetBrains Mono Nerd Font is hardcoded in
 [`den:125`](nebelhaus/modules/den/default.nix:125); Ghostty's size is hardcoded in hearth.
@@ -2124,12 +2201,14 @@ nebelhaus.fonts = {
 };
 ```
 
-⚠️ **The `sans` line of that sketch is retired by the last box (2026-08-14) and
-kept here as the original proposal, not as a plan.** Both halves of its comment
-moved: Atkinson-for-large-print ships today through `fonts.mono` (Atkynson Mono),
-and the only value `sans` would carry if it were built now is
-`".AppleSystemUIFont"`, because that is the one proportional family the layer
-emits. `"SF Pro"` as a settable *family name* was the thing measurement removed.
+⚠️ **The `sans` line of that sketch is retired by the measurement box below
+(2026-08-14) and kept here as the original proposal, not as a plan.** Both halves
+of its comment moved: Atkinson-for-large-print ships today through `fonts.mono`
+(Atkynson Mono), and the only value `sans` would carry is `".AppleSystemUIFont"`,
+because that is the one proportional family the layer emits. `"SF Pro"` as a
+settable *family name* was the thing measurement removed — and the option that
+shipped on 2026-08-15 is exactly the sketch minus that: `sans.name`, defaulting
+to the family the bar was already hardcoding.
 
 - [x] Assert the mono font is a Nerd Font (or warn loudly) — starship/lsd/yazi tofu
       otherwise. Shipped as a warning when `name` is set without `package`.
@@ -2195,7 +2274,34 @@ emits. `"SF Pro"` as a settable *family name* was the thing measurement removed.
       that four plugins share sources the fragment itself rather than trusting its
       callers;
       **(c) ★** and the check needed a row no evaluation could produce: see §5.14.
-- [ ] `sans` still doesn't exist (only `fonts.mono` does) — and **the gating
+- [x] ✅ **`sans` exists now, at the honest size — `haus.fonts.sans.name`,
+      shipped 2026-08-15 in haus#363**, defaulting to `".AppleSystemUIFont"` and
+      read by `clockLabelFont` and nothing else. No `sans.size`, no
+      `sans.package`. Ticked as the measurement + decision this box asked for;
+      what it decided AGAINST building is the box below. Everything under here
+      is the measurement that produced it, kept as written (2026-08-14) —
+      `sans` did not exist when it was written, and every claim in it is still
+      true.
+      → **What shipping it actually changed, which is smaller than the option
+      and bigger than the label**: `sill.clock.monoFont` stopped being a family
+      switch with its second value welded in. The *machine* does not move — the
+      default is byte-for-byte the old literal — so the value is entirely that a
+      second consumer is now a line rather than a design conversation, and that
+      the family is in the option tree where `haus set`, the desktop projection
+      and the options page can all see it.
+      → ★ **And the reason the welded family survived is not that nobody
+      looked** — it is that `font-reach`, the check whose whole job is finding
+      hardcoded families, evaluates two systems that both leave
+      `sill.clock.monoFont` at its default, so the branch holding the literal was
+      never taken in either. **A reach table that varies one option is blind to
+      anything behind a second one.** Fixed in the same PR with a third pair of
+      systems, which makes this the first instance of §5.14's oldest check
+      candidate to become an actual check — see the twenty-second pass's box.
+- [x] ⤷ *(The measurement that decided the box above, written 2026-08-14 and
+      kept verbatim. Its marker is ticked so a reader picking work off the
+      checkboxes doesn't find an open box asserting the opposite of what
+      shipped — §5.14's third shape, which is exactly this.)*
+      `sans` still doesn't exist (only `fonts.mono` does) — and **the gating
       question this box asked is now answered by measurement (2026-08-14, no code
       written): exactly ONE surface would read it, and that surface is one
       label.** The audit is the same shape as rice#243's, run over the whole
@@ -2284,6 +2390,36 @@ emits. `"SF Pro"` as a settable *family name* was the thing measurement removed.
       would land first and its surfaces later — and an option that is true of one
       pill is worse than no option, because a desktop that sets it believes
       something.
+      → ⚠️ **Read that rule against what shipped, because the two look like they
+      disagree and don't.** haus#363 did not invert the order: the surface
+      (`clockLabelFont`) existed first and the option was named for it, which is
+      the rule being obeyed rather than broken. What the rule forbids is the
+      *app-side* `sans` in the box below — one option, three consumers that
+      can't read it yet — and that is still forbidden.
+- [ ] **The app-side `sans` — ·M, risk M, and it needs a seam before it needs a
+      font.** The machine's real proportional type is pounce's, perch's and
+      trill's, all drawing SwiftUI `.system(…)`; measurement (2026-08-14, the
+      box above, (d)) put them at three different reachable depths, and nothing
+      about that changed when the small `sans` shipped. **This box is the only
+      thing left in §5.3, and its blocker is named on purpose** — §5.14's sixth
+      shape is a box whose stated blocker has since been fixed, which is how the
+      last one promoted itself to looking ready. The blocker here is *a consumer
+      that can be told which family to use*, in three apps that each need a
+      different amount of plumbing to be told anything:
+      **(a)** pounce is a flake input built from source and already takes a
+      typography key through its generated config (`scale`), so `fontFamily`
+      beside it is the identical seam — the one-line end;
+      **(b)** perch is consumed as a notarized zip, with `home.activation.perchTheme`
+      as the only channel that reaches it;
+      **(c)** trill is not a haus input at all and has no `modules/trill` — for it
+      the seam does not exist, so a font is at least two PRs behind a decision
+      nobody has made.
+      → **Don't take this box as staged work.** The honest form of "what would
+      make this worth building" is a *reader* asking for it: a desktop that wants
+      its palette rows in a legibility face, not a roadmap that wants the option
+      surface symmetrical. `fonts.mono` earned its place from the terminal
+      backwards; there is no equivalent pull here yet, and inventing one is how
+      an option surface grows things nobody sets.
 
 ### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ✅ **(a) shipped as `roster` (rice#182), (b) shipped (nebelhaus#253)**
 The registry is good. Two concrete gaps — and the halves came apart: the install
@@ -3390,6 +3526,8 @@ catch:
 | description replaced by a *different* truth | building the thing and looking |
 | claim true, but about the wrong **layer** *(added on the sixth pass — see below)* | trying to write the check it implies |
 | open box, blocker already removed *(added on the twenty-first pass — §5.3's `sans`)* | re-reading the WHY beside a box, not just the box |
+| audit invents a regression *(fourteenth pass — it was written as a one-row table below and never folded in here, which is the hazard this table exists to fix; folded in on the twenty-second)* | a clean-context reader who re-derives the evidence |
+| claim about a generated artifact, derived from its generator *(twenty-second pass — §5.3's `sans`)* | reading the artifact the check actually samples |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -3658,9 +3796,8 @@ is the most expensive kind: every other row here describes a *true thing going
 stale*, while this one puts a false thing in a document whose whole authority is
 that its claims were checked.
 
-| Shape | Caught by |
-|---|---|
-| audit invents a regression | a clean-context reader who re-derives the evidence |
+*(This shape's row lives in the table at the top of §5.14 — it sat here as a
+one-row table until the twenty-second pass folded it in.)*
 
 Still **eight ★ findings, six checks** — and one *warning*, which is a new
 category the ledger should keep separate. The more valuable of the two
@@ -3670,6 +3807,42 @@ reports an `OFF-MAIN` lock edge), but it fires only when someone runs
 seventh check would overstate the guarantee. The other candidate — assert the
 referent exists behind `accent-reach`'s cross-repo references — stays open and
 low priority, since no break has occurred.
+
+**Twenty-second pass, 2026-08-15 — the oldest candidate on this list got its
+first instance, and it turns out the candidate's own excuse was half wrong.**
+§5.6's "what second key or precondition makes the first one a lie" has outlived
+every other candidate since the sixth pass, and the reason recorded here was
+that it is *a design rule for options not yet written* rather than a property of
+one that exists. True about the rule; false about its instances. `font-reach`
+had one sitting in it: the check varies `fonts.mono.name` across two systems
+that both leave `sill.clock.monoFont` at its default, so `clockLabelFont`'s
+second branch — the one holding a hardcoded family — was never evaluated *by the
+check whose entire job is finding hardcoded families* (§5.3, haus#363). The fix
+is a third pair of systems with the second key flipped, and it costs one PR.
+
+**So the candidate splits, and only half of it is hard.** The general rule needs
+a design convention nobody has written; the instances are ordinary check work,
+and every golden table in the flake can be asked the question today: *which
+conditional does my sample never enter?* `scale-reach`, `accent-reach` and
+`ai-room` all evaluate systems that leave most options at their defaults, so
+each of them is blind in the same way to some branch — the question is only
+whether anything interesting hides there. **Nine ★ findings, still six checks**
+(`font-reach` now carries two, like `packs` and `scale-reach`) — the two numbers
+moving independently is normal and worth restating, since the fifth pass's rule
+about quoting a count applies to this ledger's own.
+
+★ **And a seventh row for the shapes table, from the same pass's assurance
+read.** Two claims in the PR were derived by reading the *generator* rather than
+the artifact — "six pills set `label.font=` in that file" (five write it, three
+are opt-in, one writes a different file, so the sampled file has one matching
+line) and "the hardcode sat there for months" (`git log -S` finds one day). Both
+are one shape, and the second one also inverted the moral: the blind spot is
+OLDER than the bug it hid, so the cost was luck rather than time. **Filed as a
+row in the shapes table at the top of this section, not as a table down here** —
+and while doing that, the fourteenth pass's own row turned out to have been left
+as a one-row table beside the list rather than folded into it, which is verbatim
+the hazard the third pass warned about when it created the list. Both are in the
+table now.
 
 ---
 
