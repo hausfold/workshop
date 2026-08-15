@@ -107,8 +107,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > option namespace. Decision 10 renamed the **bare** word: the desktop
 > `nebelhaus` is `desktops/hacker.nix` / `haus.desktops.hacker`, and every other
 > surviving `nebelhaus` in the layer became `haus` (`mkNebelhaus`→`mkHaus`, the
-> env vars, the state dirs). The word appears **203 times below and the dotted
-> rule reaches 82 of them**; read the rest in three senses, none of which that
+> env vars, the state dirs). Counted over the body proper — §1 onward, so the
+> number doesn't grow every time a pass writes the word — **it appears 137 times
+> and the dotted rule translates 63 of them correctly**, plus two it matches and
+> gets *wrong* (`nebelhaus.com` and a `.md` filename, both of which stay). Read
+> the remaining seventy-odd in three senses, none of which that
 > rule covers: **the repo** (`nebelhaus/modules/…`,
 > `nebelhaus#NNN`) → `hausfold/haus`, unchanged as a citation; **the desktop**
 > ("a non-dev nebelhaus", "publish nebelhaus configs") → `hacker`; and **the org
@@ -133,10 +136,16 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ★ **The finding: a translation rule for a historical document is only as good
 > as the token it keys on, and the bare word is the one no regex finds.** The
 > 2026-08-08 banner told readers to translate `nebelhaus.*`; the rename that
-> arrived translated `nebelhaus`. Those are different edits on 203 hits — the
-> dotted rule reaches 82 — and in this file the undotted word carries three
-> referents at once (repo, desktop, org), so a reader "applying the banner" gets
-> two fifths of it right and silently mis-reads the rest. The workshop's own `AGENTS.md` had already written
+> arrived translated `nebelhaus`. Those are different edits on the body's 137
+> hits — the dotted rule gets 63 right and two wrong — and the undotted word
+> carries three referents at once (repo, desktop, org), so a reader "applying the
+> banner" is right on **under half** of them and silently mis-reads the rest.
+> ⚠️ The first draft of this paragraph said "203 hits, the rule reaches 82",
+> which is **two different regions counted once each** — 203 is the whole file
+> (including the fifteen times this very block says the word) and 82 was the
+> body. A count is a claim, and a pair of counts is a claim about a scope; the
+> fifth pass's rule (quote the command that produced the number) exists exactly
+> because this is easy to get wrong while sounding precise. The workshop's own `AGENTS.md` had already written
 > the trap down — *"grep the bare word separately: a desktop file's top-level key
 > is `{ haus = { … }; }`, with no dot for a regex to find"* — for the layer, one
 > repo over, in the same week. **A rule written for the code and not carried to
@@ -145,8 +154,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ★ **Second, and it is about how these audits are run: "audit against the repos,
 > not against memory" (§5.14's founding rule) has a third thing in it. The local
 > checkout is memory wearing the repo's clothes.** `~/code/workshop/haus` still
-> held `desktops/nebelhaus.nix`, with no `hacker.nix`, half an hour after #364
-> merged (`holt child` branched this lane from `afc3b58`, one merge behind)
+> held `desktops/nebelhaus.nix`, with no `hacker.nix`, **46 minutes** after #364
+> merged (`holt child` branched this lane from `afc3b58`, the commit immediately
+> before the merge)
 > — so every question this pass put to the disk would have come back answered by
 > yesterday, in the confident voice of a file that exists. It is the worst of the
 > three sources precisely because it *looks* like the repo; memory at least knows
@@ -167,9 +177,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > nothing carries the grammar it speaks.** `haus.pounce.items` validates its keys
 > against a hand copy of pounce's `ItemTarget` grammar. pounce added a fourth
 > address prefix — `shortcut:<uuid>`, the Shortcuts library as launcher rows
-> ([pounce#80](https://github.com/hausfold/pounce/pull/80), 2026-08-14 21:03) —
-> and haus's lock moved to that pounce **two minutes later** (`Update flake
-> inputs (pounce)`, 657a3a2, 21:05), so this layer has been
+> ([pounce#80](https://github.com/hausfold/pounce/pull/80), merged 2026-08-14
+> 21:03:50) — and haus's lock moved to that exact merge commit **seventy-nine
+> seconds later** (657a3a2, `Update flake inputs (pounce perch)`, 21:05:09), so
+> this layer has been
 > shipping a daemon that accepts the key while its own module asserts the key
 > *"is not an item key"*. The layer tells the user their valid key is a typo, at
 > build time, in an assertion, quoting an error string that pounce's own copy had
@@ -178,8 +189,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > **What makes it worth a ★ rather than a fix: the two mirrors sit in the same
 > `let`, and only the smaller one was ever argued about.** `builtinModes` carries
-> a comment weighing its own risk — *"six strings, so it's the size of mirror
-> that's worth its risk"* — and the prefix list four lines below it carries none.
+> a comment weighing its own risk — *"Six strings, so it's the size of mirror
+> that's worth its risk"* — and the if-chain three lines below it, which
+> enumerates the prefixes inline rather than as a list, carries none.
 > The comment sized the risk of the **values** it mirrors and never the risk of
 > the **set** it enumerates, which is the twenty-second pass's blind-spot finding
 > one level up: *a check that varies one option is blind to what hides behind a
@@ -198,21 +210,75 @@ already exist, and one it treated as a detail is the actual root blocker.
 > IS the upstream repo, pinned at the rev you ship, and its source is readable as
 > data without asking that repo for anything.** It cost no change in pounce. It
 > is in the all-systems check set, so unlike `accent-reach` it fires on CI as
-> well as here. **Ten ★ findings, seven checks.**
+> well as here. **Ten ★ findings, seven checks.** Open as
+> [haus#365](https://github.com/hausfold/haus/pull/365) — with an owner and a
+> number, per the twentieth pass's rule.
+>
+> ⚠️ **And the assurance pass earned its place again: the first version of that
+> check mirrored pounce's ERROR SENTENCE, which is not where pounce's grammar
+> lives.** Only `ItemTarget.modes` is single-sourced in pounce (its "can't drift"
+> comment sits on that line and covers it alone); the prefixes are `hasPrefix`
+> literals in `parse` and a hand-written restatement in `problem` — two copies,
+> so the mirror was a mirror of a mirror. A prefix added to `parse` and forgotten
+> in the sentence would have left both repos wrong **in agreement**, with the
+> check green: this very bug, recurring undetected. The same read found that a
+> check pinning the mirror pins nothing about the **validator** — the cheapest
+> way to green it is appending one string to the data file, which leaves
+> `itemKeyProblem` rejecting the key its own error message now advertises (fixed
+> with an assertion that every shape has a sample and every sample survives),
+> and that the check's "don't delete me" guard was unreachable under the
+> builder's `set -e -o pipefail`. **A tripwire is worth exactly what its
+> weakest sample is worth, and three of those four defects were the check being
+> green for the wrong reason** — the twenty-second pass's fourth finding,
+> arriving as a class rather than an instance.
+>
+> ★ **Fourth, and it is this section's own lesson wearing a different repo's
+> clothes: haus's CI census carries the instruction to keep itself honest, and
+> checking it beat appending to it four to nothing.** `.github/workflows/check.yml`
+> enumerates which checks run on CI's Linux runner, and says in the file: *"Keep
+> this census honest when a check is added: it is this repo's only record of what
+> CI actually covers, and it went one stale before anyone noticed."* The
+> twenty-third pass's first instinct was to add one name and bump "ten" to
+> "eleven" — which would have been correct and would have left **four** existing
+> errors in place: the count was already one short, `sill-rc-executable` was
+> filed as darwin-only when it is portable, `desktop-projection` as portable when
+> it is darwin-gated, and `sill-plugins-executable` had never been listed at all.
+> Both lists are re-derived now from the one line that decides the split
+> (`optionalAttrs (hasSuffix "-darwin" system)`), and the portable half is a
+> table rather than a paragraph, because a paragraph is what made four errors
+> invisible. **Same shape as the ledger correction on the twenty-second pass, in
+> another repo, found the same way — by re-deriving instead of reading.** The
+> rule generalises past both: *a prose census of a machine-readable fact rots in
+> every direction at once, so the instruction to keep it honest has to mean
+> re-derive it, not extend it.*
 >
 > Housekeeping: two rows added to §5.14's shapes table (stale checkout, negative
 > claim by grep), the ledger paragraph appended there, and §5.9's two pounce
-> boxes amended — its address space is four prefixes now, not three.
+> boxes amended — its address space is four prefixes now, not three. Two
+> rename-side corrections fell out of the assurance read and are fixed in the
+> same commit, both shape 2: `AGENTS.md` still called the four state dirs
+> "deliberately held" and `hausfold-rename.md` §2.2's do-not-sweep table still
+> agreed with it — left behind by the very commit (workshop#372) that amended
+> the row four lines above, which is how a partial sweep fails. The
+> instructive part is *where* it was found: the pass quoted `AGENTS.md`
+> approvingly two lines below a line its own finding falsified — **a document you
+> are citing is not a document you are reading.**
 >
 > **Verified:** `nix flake check` green in the haus lane (**24** checks),
 > `nixfmt --check` clean, `docs/site-data/options.json` regenerated and
-> committed. `pounce-item-grammar` mutation-checked in both directions —
+> committed. `pounce-item-grammar` mutation-checked in every direction —
 > deleting `shortcut:<uuid>` from the data file reproduces the exact pre-fix
 > error string and the check names the missing prefix; corrupting a mode name
-> names that instead. The assertion itself was proved live rather than by
-> reading: a system evaluating two `shortcut:` items builds, and a `shortcutz:`
-> typo still fails, now with pounce's wording word for word. No
-> `bench try switch` — no drawn output moves.
+> names that instead; an unsampled shape and a sampled-but-still-rejected shape
+> each fail with their own sentence; a dropped mode caption names the mode. The
+> assertions were proved live rather than by reading: a system evaluating two
+> `shortcut:` items builds, and a `shortcutz:` typo still fails, now with
+> pounce's wording word for word. No `bench try switch` — no drawn output moves.
+> **The two assurance passes (one per repo, clean context, diff plus AGENTS.md)
+> found eleven things between them, four of them ≥3/5** — including both count
+> claims in this block, a check that could go green while the validator it
+> protects stays broken, and the CI census above. Every one of them was a claim
+> about code, made from a document, by the session that wrote the code.
 
 
 > **Status, 2026-08-15 (twenty-second pass) — the small `sans` is built, and the
@@ -3219,7 +3285,8 @@ break timer · storage pressure · NAS reachability · world clocks.
       own daemon accepts *"is not an item key"* — validation whose failure mode
       is not a missed typo but a **refused valid key**, in the user's face, at
       build time. Fixed and pinned to the *locked* pounce's source by
-      `pounce-item-grammar` (see the twenty-third pass's block at the top). The
+      `pounce-item-grammar` ([haus#365](https://github.com/hausfold/haus/pull/365);
+      see the twenty-third pass's block at the top). The
       generalisable half is in §5.14: this box argued the risk of the small
       mirror beside it (`mode:` names) and never the risk of the enumeration
       itself.

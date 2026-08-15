@@ -2082,7 +2082,7 @@ next to the org, not just here.
 | Do not sweep | Why |
 |---|---|
 | `/Library/Application Support/nebelhaus/perch.installed-from` | a **two-repo contract**: written by the rice (`nebelhaus/modules/perch/default.nix`), read by perch (`Perch/Platform/UpdateCheck.swift:118`, documented at `perch/docs/architecture-decisions/0003-*.md`). Rename it in one repo and perch stops recognising a rice install — it would start nudging rice users to download from GitHub. It is the *rice's* directory and the rice keeps its name. |
-| `~/.local/state/nebelhaus/` | §2.2, deliberately held |
+| `~/.local/state/nebelhaus/` | ⚠️ **§11.3 overtook this row on 2026-08-14**: all four state dirs moved to `haus` and left a **symlink** behind, which is exactly what keeps the two-repo contract above working from an older perch. Read a bare hit as a compat path, not a live one |
 | ⚠️ *(those two are **not** among the 649)* | neither matches the census regex — there's no repo name after the slash. A sweeper who reads "Tier D is ≥126 of the hits" and assumes the state dirs are inside that number is wrong: **they need their own grep**, which is §2.2's whole point |
 | `nebelhaus/modules/…` source paths in docs | the rice's own tree |
 | everything in `messages/` (24 hits) | §3.4 — it stays in the `nebelhaus` org |
