@@ -51,7 +51,11 @@ git repos.
 > else; `GH_ORG="hausfold"`, `com.hausfold.*` and `hausfold.co` all stand.
 >
 > Plus `com.nebelhaus.*` / `org.nixos.pounce` bundle ids (**§4**), the state
-> dirs (`~/.local/state/nebelhaus`, deliberately held — §2.2), and
+> dirs (`~/.local/state/nebelhaus` and its three siblings — this row said
+> "deliberately held — §2.2" until 2026-08-14, when **§11.3 moved all four to
+> `haus` and left a symlink behind**, which is what keeps an older perch's
+> install-marker contract working; the old paths still resolve, so a bare hit is
+> a *compat* path, not a live one), and
 > `~/.cache/claude-worktrees/` (historical, stays). **The word alone tells you
 > nothing — read the hit before you touch it**, and grep the bare word
 > separately: a desktop file's top-level key is `{ haus = { … }; }`, with no dot
