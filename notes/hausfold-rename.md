@@ -168,7 +168,7 @@ One thing from §6 that survives and one that doesn't:
 ### Current handoff — 2026-08-16 (evening)
 
 **§11's last ⏳ deployed, the curl sweep it asks for was re-run clean, and one of
-the four 👤 leftovers turns out to have been done by hand three hours before the
+the 👤 leftovers turns out to have been done by hand three hours before the
 handoff below said it hadn't been.** No new decisions here — four measurements
 and two corrections to lines that went stale between them.
 
@@ -206,11 +206,14 @@ script moves on releases, so a docs fix inside it is a release, not a merge.**
 ✅ **The 31-destination curl sweep, re-run after both merges: all 31 → 200, no
 chains, no 404s.** The fourth chain found on 2026-08-16 (`/guides/ai-agent`)
 stays fixed, and hausfold.co#47's retirement of `/desktops/*` introduced nothing
-new. ⏳ **Re-run it after hausfold.co#63** — open at the time of writing, and it
-edits four docs pages plus the perch sheet, which is exactly the trigger the
-standing instruction names. It is a curl loop over the `${SITE}` literals in
-`web/worker.js`, not a test: `web/`'s suite proves the map is complete *by
-construction* and can never see a chain.
+new. ⏳ **Re-run it after hausfold.co#63**, open at the time of writing. ⚠️ As it
+stands #63 *edits* pages and **moves** none, so strictly it does not trip the
+"whenever a page moves" trigger — re-run anyway, because a live PR is a moving
+target and the sweep costs one command. It is a curl loop over the `${SITE}`
+literals in `web/worker.js`, not a test: `web/`'s suite proves the map is
+complete *by construction* and can never see a chain. The command now lives in
+`web/README.md` rather than in this note, which is the point — a check nobody
+can run is a claim that somebody once ran it.
 
 🔄 **§10.4's one 👤 line is DONE, and both §10.4 and §11.2 below were stale about
 it.** `~/.config/nix/flake.nix:7` has read `inputs.nebelhaus.url =
@@ -220,13 +223,15 @@ local), and `flake.lock`'s `original` followed on the next update — so
 row beneath it. Corrected in place in both sections. **What is left on that line
 is only the input's NAME**: `inputs.nebelhaus` → `inputs.haus`, plus
 `mkNebelhaus` → `mkHaus` at `:12` and the two comments above them. `haus` has
-exposed `mkHaus` with `mkNebelhaus = mkHaus` beside it since 2026-08-14
-(`flake.nix:555,563`), so it is one commit, in any order, coupled to nothing.
+exposed `mkHaus` with `mkNebelhaus = mkHaus` beside it since **2026-08-15**
+(haus#364, `flake.nix:555,563`) — 08-14 is the date of the *decision*, which is
+what `flake.nix:557`'s own comment records, not the date the alias became
+available. So it is one commit, in any order, coupled to nothing.
 
-**The 👤 list, with the URL struck off:** §0.5/§0.6's App Store audit, §4's TCC
-feel-test and attribution re-check, §5.3's `api.hausfold.co` route box, and the
-input-name edit above. Newly beside them, and the only one that changes what a
-stranger sees: `bench release haus`.
+**The 👤 list, with the URL struck off, is four:** §0.5/§0.6's App Store audit,
+§4's TCC feel-test and attribution re-check, §5.3's `api.hausfold.co` route box,
+and the input-name edit above. Newly beside them, and the only one that changes
+what a stranger sees: `bench release haus`.
 
 ### Handoff — 2026-08-16 (afternoon)
 
@@ -2113,8 +2118,12 @@ isn't.
 > ✅ **npm's trusted publisher was flipped 2026-08-09.** The private consumer's
 > `flake.nix:7` now points at `github:hausfold/hausfold`; only the flake input
 > *name* remains `nebelhaus`, deliberately (§6 / the input-name box above).
-> ⚠️ That URL is one rename behind since §10 — it resolves through the redirect,
-> and retargeting it at `github:hausfold/haus` is §10.4's one 👤 line.
+> ~~⚠️ That URL is one rename behind since §10 — it resolves through the redirect,
+> and retargeting it at `github:hausfold/haus` is §10.4's one 👤 line.~~
+> ✅ **Retargeted 2026-08-16** (`1178ff2`): `flake.nix:7` reads
+> `github:hausfold/haus`, the lock's `original` followed on the next update, and
+> `bench status` no longer prints a `RENAMED` row for that edge. The input
+> *name* is still `nebelhaus` — a separate question, and still open (§11.2).
 
 Redirects work, but `flake.lock`'s `original` field keeps the old owner and
 that's a landmine.
@@ -4148,11 +4157,19 @@ green. Everything else is strictly sequential.
 
 **You are here (2026-08-16): §11 is closed too, and with it the last 🤖 work in
 this document.** Its gate ran green (two items reworded against a site that
-moved under them — see the 2026-08-16 handoff), and what remains is 👤 only:
+moved under them — see the 2026-08-16 afternoon handoff), and what remains is 👤 only:
 §0.5/§0.6's App Store audit, §4's TCC feel-test, §5.3's `api.hausfold.co` route,
-and the two independent one-line edits on `~/.config/nix/flake.nix:7` — §11.2's
-`inputs.nebelhaus` → `inputs.haus` and §10.4's `github:hausfold/hausfold` URL.
-Neither is coupled to `bench` any more (workshop#383).
+and **one** one-line edit on `~/.config/nix/flake.nix:7` — §11.2's
+`inputs.nebelhaus` → `inputs.haus`. ✅ **The other edit on that line, §10.4's
+`github:hausfold/hausfold` URL, was done by hand the same day** (`1178ff2`); the
+lock's `original` followed on its own. Neither was ever coupled to `bench`
+(workshop#383), and the one that landed alone is the proof.
+
+⚠️ **Four places in this document called that URL open, and the 2026-08-16 evening handoff
+only corrected two of them.** This paragraph and §3.3's flake-input box were the
+other two — a reader asking "what's left" hits §8 first, so a strike-off that
+stops at the owning section sends someone to redo a finished edit. **When a 👤
+line closes, grep the whole file for it, not just its own §.**
 
 **You were here (2026-08-14, night):** **§10 is closed** — its checkout step ran,
 its shim was retired (workshop#331), its lock and repo-description tails are
@@ -4591,7 +4608,7 @@ path, which §11.3 covers.
    the one carrying old `?ref=`s out of shell histories, and only the old pin
    resolves at a pre-rename tag. ⚠️ The script's own usage header still names
    `nebelhaus.sh` as the install command; that is haus#374, fixed on `main` and
-   waiting on the next `bench release haus` — see the evening handoff.
+   waiting on the next `bench release haus` — see the 2026-08-16 evening handoff.
 4. 🔄 **Reworded.** `/desktops/nebelhaus` 301s onto `/docs/haus/desktops/hacker/`
    and that destination is 200. There is **no `/desktops/hacker`** — hausfold.co#47
    retired that whole tree into the docs, and this line originally asked for a URL

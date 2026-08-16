@@ -60,6 +60,11 @@ whole repo exists to remove. It has happened four times, most recently
 2026-08-16, when the rooms were renamed on the other side and `/guides/ai-agent`
 started landing on a 301.
 
+That was the **first chain**; the three occurrences before it, on 2026-08-15,
+were the loud kind — rows pointing at a `/desktops/hacker/` that had never
+existed, so they 404'd and said so. Both kinds come out of the same mistake and
+the same check catches both, but only one of them is invisible.
+
 So: **whenever a page moves on hausfold.co, curl all 31 destinations.** Anything
 that isn't `200` is either a chain to re-point or a 404 to fix.
 
@@ -76,14 +81,23 @@ All 31 → `200`, measured 2026-08-16. Fetch the destination; never derive it by
 substituting a new name into an old path — that is how three rows once landed on
 a 404 that "obviously" existed.
 
+⚠️ **31 is the `REDIRECTS` table, not the whole map.** The `grep -v '{path}'`
+drops the two `PASSTHROUGH` classes (`/download/<app>`, `/api/release/<app>`),
+which have no fixed destination to curl — they take their slug from the request
+and hausfold.co gates the app names on arrival. Curl one by hand if you suspect
+them; they are not in the count.
+
 Two rows are worth knowing because they are the ones a later reader will
 "correct" wrongly:
 
 - `/start/what-is-nebelhaus` → `/docs/haus/desktops/hacker/`. The desktop was
   renamed (rename plan §11) *and* its sheet was retired into the haus docs
-  (hausfold.co#47), so neither `/docs/nebelhaus/` nor `/desktops/hacker/` exists.
-  The **key** keeps the old name forever: a redirect source is a fact about the
-  past.
+  (hausfold.co#47). 🚨 **The two tempting "corrections" fail differently, and
+  that asymmetry is the point of this bullet.** `/desktops/hacker/` is a **404**
+  — loud, and someone would fix it. `/docs/nebelhaus/`, the old spelling, is a
+  live **301** onto this very destination — so "correcting" the row to it costs
+  a second hop and nothing complains, forever. The **key** keeps the old name
+  regardless: a redirect source is a fact about the past.
 - `/guides/ai-agent` → `/docs/haus/agent-rebuilds/` — **not** under `rooms/`,
   unlike every neighbour, because agent-rebuilds is a guide rather than a room.
   Its sibling `/guides/claude-agents` → `rooms/ai/` is the room. The titles read
