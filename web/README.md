@@ -47,16 +47,47 @@ Each row was composed from two records rather than guessed from an old build:
 the rename plan's **source ledger** (which source page became which new page)
 and hausfold.co's **`public/_redirects`** (where the 2026-08-14 rooms
 reorganisation then moved it). Rows point at the *current* URL, so a visitor
-never pays for that history with a second hop — verified by curling all 31
-destinations for a `200`.
+never pays for that history with a second hop.
+
+### 🚨 The one check the test suite cannot do — curl the destinations
+
+`npm test` proves the map is **complete** and that every value is a hausfold.co
+URL. It proves that *by construction*, with no network, so it can never see the
+one failure this file actually has: a destination that still resolves but has
+itself become a redirect. A map degrades into a **chain** silently — every hop
+returns a page, nothing goes red, and the only symptom is the second hop this
+whole repo exists to remove. It has happened four times, most recently
+2026-08-16, when the rooms were renamed on the other side and `/guides/ai-agent`
+started landing on a 301.
+
+So: **whenever a page moves on hausfold.co, curl all 31 destinations.** Anything
+that isn't `200` is either a chain to re-point or a 404 to fix.
+
+```sh
+cd web
+grep -vE '^\s*//' worker.js | grep -oE '\$\{SITE\}[^`]*' \
+  | sed 's|^\${SITE}|https://hausfold.co|' | grep -v '{path}' | sort -u \
+  | while read -r u; do
+      printf '%s  %s\n' "$(curl -s -o /dev/null -w '%{http_code}' "$u")" "$u"
+    done
+```
+
+All 31 → `200`, measured 2026-08-16. Fetch the destination; never derive it by
+substituting a new name into an old path — that is how three rows once landed on
+a 404 that "obviously" existed.
 
 Two rows are worth knowing because they are the ones a later reader will
 "correct" wrongly:
 
-- `/start/what-is-nebelhaus` → `/docs/nebelhaus/`, the **desktop** tree's index.
-  Not `/docs/haus/`. The docs are two trees now.
-- `/guides/ai-agent` → `rooms/agent-rebuilds/` and `/guides/claude-agents` →
-  `rooms/ai/`. The titles read the other way round; the content doesn't.
+- `/start/what-is-nebelhaus` → `/docs/haus/desktops/hacker/`. The desktop was
+  renamed (rename plan §11) *and* its sheet was retired into the haus docs
+  (hausfold.co#47), so neither `/docs/nebelhaus/` nor `/desktops/hacker/` exists.
+  The **key** keeps the old name forever: a redirect source is a fact about the
+  past.
+- `/guides/ai-agent` → `/docs/haus/agent-rebuilds/` — **not** under `rooms/`,
+  unlike every neighbour, because agent-rebuilds is a guide rather than a room.
+  Its sibling `/guides/claude-agents` → `rooms/ai/` is the room. The titles read
+  the other way round; the content doesn't.
 
 ## Test
 
@@ -149,5 +180,8 @@ curl -sIL 'https://nebelhaus.com/init.sh?ref=<40-hex sha>'    # 301 → 400, ref
 
 Not soon, and not on a schedule: the one-liner is in READMEs, shell histories
 and anything anyone bookmarked. The zone costs a Worker with no build. Retire it
-only when the redirect logs go quiet, and the `nebelhaus` **desktop** keeps its
-name either way (rename plan §6) — this is the domain retiring, not the desktop.
+only when the redirect logs go quiet — this is the domain retiring, and nothing
+else. ⚠️ This paragraph used to add *"the `nebelhaus` **desktop** keeps its name
+either way (rename plan §6)"*; §11 renamed the desktop to **`hacker`** on
+2026-08-14, which reversed §6 on exactly that point. The domain and the desktop
+were always separate questions — they just both stopped being called nebelhaus.

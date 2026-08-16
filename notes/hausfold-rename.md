@@ -165,7 +165,70 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-16
+### Current handoff — 2026-08-16 (evening)
+
+**§11's last ⏳ deployed, the curl sweep it asks for was re-run clean, and one of
+the four 👤 leftovers turns out to have been done by hand three hours before the
+handoff below said it hadn't been.** No new decisions here — four measurements
+and two corrections to lines that went stale between them.
+
+**hausfold.co#62 and haus#374 are both merged.** Measured on the live zone:
+
+| surface | serves |
+|---|---|
+| `hausfold.co/hacker.sh` | `export HAUS_DESKTOP=hacker NEBELHAUS_DESKTOP=hacker` |
+| `hausfold.co/nebelhaus.sh` | `export HAUS_DESKTOP=nebelhaus …` — the old pin, kept on purpose |
+
+Both still install the same desktop. The difference is which `?ref=` each
+survives, which is the whole reason §11.1's *"re-point the old pin"* bullet was
+reversed.
+
+🚨 **haus#374 fixed the install table on `main` and did not fix it on the site,
+and the gap has a shape worth naming: a fix in `bootstrap.sh` is not live on
+hausfold.co until a release tag carries it.** The Worker serves that script from
+the latest **release**, not from `main`. `v2026.08.16` was cut at 13:32Z; #374
+merged at 16:36Z. So `curl -fsSL https://hausfold.co/hacker.sh | head` still
+prints, in its own usage header:
+
+```
+#   curl -fsSL https://hausfold.co/nebelhaus.sh | bash     (or the github raw URL)
+```
+
+— the exact class of "a surface handing out the old name as the current one"
+that the handoff below was closing, sitting one release tag behind its own fix.
+**Do not re-fix it; it is fixed.** `bench status` already names the lag out loud
+(`⚠ haus  v2026.08.16 is 1 commit(s) behind main — hausfold.co/hacker.sh (the
+desktop) get the old one`), and 👤 `bench release haus` is the only thing that
+clears it. §11 paid this same lag once already for the `DESKTOPS` pin, and
+anything that edits `bootstrap.sh` will pay it again: **the site's copy of that
+script moves on releases, so a docs fix inside it is a release, not a merge.**
+
+✅ **The 31-destination curl sweep, re-run after both merges: all 31 → 200, no
+chains, no 404s.** The fourth chain found on 2026-08-16 (`/guides/ai-agent`)
+stays fixed, and hausfold.co#47's retirement of `/desktops/*` introduced nothing
+new. ⏳ **Re-run it after hausfold.co#63** — open at the time of writing, and it
+edits four docs pages plus the perch sheet, which is exactly the trigger the
+standing instruction names. It is a curl loop over the `${SITE}` literals in
+`web/worker.js`, not a test: `web/`'s suite proves the map is complete *by
+construction* and can never see a chain.
+
+🔄 **§10.4's one 👤 line is DONE, and both §10.4 and §11.2 below were stale about
+it.** `~/.config/nix/flake.nix:7` has read `inputs.nebelhaus.url =
+"github:hausfold/haus"` since commit `1178ff2` ("naming", 2026-08-16 11:41
+local), and `flake.lock`'s `original` followed on the next update — so
+`bench status` now prints a plain `✓ you → nebelhaus  current` with no `RENAMED`
+row beneath it. Corrected in place in both sections. **What is left on that line
+is only the input's NAME**: `inputs.nebelhaus` → `inputs.haus`, plus
+`mkNebelhaus` → `mkHaus` at `:12` and the two comments above them. `haus` has
+exposed `mkHaus` with `mkNebelhaus = mkHaus` beside it since 2026-08-14
+(`flake.nix:555,563`), so it is one commit, in any order, coupled to nothing.
+
+**The 👤 list, with the URL struck off:** §0.5/§0.6's App Store audit, §4's TCC
+feel-test and attribution re-check, §5.3's `api.hausfold.co` route box, and the
+input-name edit above. Newly beside them, and the only one that changes what a
+stranger sees: `bench release haus`.
+
+### Handoff — 2026-08-16 (afternoon)
 
 **§11 is closed. Its gate was run, not built, and it passes — with one item
 reworded because the site moved under it.** The haus half the 2026-08-15 handoff
@@ -4295,24 +4358,32 @@ that transfers.
 
 ### 10.4 👤 Left for you, and why each is small
 
-- **`~/.config/nix/flake.nix:7`** — `inputs.nebelhaus.url = "github:hausfold/hausfold"`.
-  A 👤 file outside the family. It resolves through the redirect, so this is
-  hygiene; fix it at the next `haus rebuild` and the input *name* still stays
-  `nebelhaus`. ⚠️ **Still true on 2026-08-16, five days later, and that is the
-  interesting part**: this bullet is the whole of the reminder, and a bullet in a
-  closed section is read once. `bench status` says it out loud now — the edge
-  reports `RENAMED: fetches hausfold/hausfold, which is hausfold/haus now`
-  (workshop#383) — because it had been printing `✓ current` for that edge every
-  day, comparing the locked **rev** and never the locked **source**. The one-line
-  fix is unchanged; what changed is that not doing it is now visible daily
-  instead of filed.
+- ~~**`~/.config/nix/flake.nix:7`** — `inputs.nebelhaus.url = "github:hausfold/hausfold"`~~
+  ✅ **done by hand 2026-08-16**, commit `1178ff2` ("naming"): that line now reads
+  `github:hausfold/haus`, `flake.lock`'s `original` followed on the next update,
+  and `bench status` prints `✓ you → nebelhaus  current` with no `RENAMED` row
+  under it. **The input's *name* is still `nebelhaus`, and that was always a
+  separate question** — it is §11.2's bullet, not this one.
+
+  ⚠️ **Worth keeping the middle of this bullet rather than deleting it, because
+  it is the only part that generalises.** It stood open for five days while
+  reading as closed, since a bullet in a finished section is read once; what
+  actually moved it was `bench status` learning to say it every day
+  (`RENAMED: fetches hausfold/hausfold, which is hausfold/haus now`,
+  workshop#383) — the edge had been reporting `✓ current` all along, comparing
+  the locked **rev** and never the locked **source**. **A reminder that lives in
+  a doc is filed; a reminder that lives in the tool you run each morning gets
+  done.** The fix was one word the whole time.
 - ~~**`flake.lock`'s `original` field** across the family~~ ✅ **corrected by the
   ripple, as predicted** — measured 2026-08-14: `"repo": "hausfold"` appears in
   **zero** family locks (haus, pounce, perch, nebelung, holt). The one survivor
   is the consumer's own `~/.config/nix/flake.lock`, and it survives *because* of
   the bullet above it: a lock's `original` is copied from the flake ref, so it
   cannot correct itself while `flake.nix:7` still names the old slug. The two
-  are one fix, not two.
+  are one fix, not two. ✅ **And it went exactly that way** — measured
+  2026-08-16, after `1178ff2` edited the flake ref: the consumer's lock node now
+  records `"owner": "hausfold", "repo": "haus"` in `original` as well as
+  `locked`, with no separate edit and no `--refresh`.
 - ~~**The org repo descriptions**~~ ✅ **done** — measured 2026-08-14 via
   `gh search repos --owner hausfold`: `workshop` reads "Every repo in the
   hausfold family…", `homebrew-tap` reads "…`brew tap hausfold/tap`". No repo in
@@ -4455,12 +4526,14 @@ none of this needs to be atomic:
   both. ⚠️ §10.0's trap itself is untouched — an override for an input a flake
   doesn't have is a **no-op, not an error** — which is exactly why the name is
   derived now instead of remembered.
-- ⚠️ **The same line carries a second, unrelated leftover — the URL, not the
-  name** — and it is §10.4's open bullet, still open five days on: that flake
-  asks for `github:hausfold/hausfold`, the slug §10.1 freed, so every
-  `nix flake update` here resolves through the rename redirect. The two edits sit
-  on the same line and are otherwise independent; the URL one needs no
-  coordination with anything and `bench status` now nags about it (see §10.4).
+- ~~⚠️ **The same line carries a second, unrelated leftover — the URL, not the
+  name**~~ ✅ **closed 2026-08-16.** It was §10.4's open bullet — that flake asked
+  for `github:hausfold/hausfold`, the slug §10.1 freed, so every `nix flake
+  update` here resolved through the rename redirect. Commit `1178ff2` changed the
+  word; the lock's `original` followed on the next update; `bench status` no
+  longer prints a `RENAMED` row for that edge. **The two edits were on the same
+  line and independent, and the proof is that one of them landed alone.** The
+  input's name is what this bullet is still about, and it remains a 👤 one-liner.
 
 ### 11.3 The on-disk state → `haus`, by symlink
 
@@ -4511,11 +4584,14 @@ path, which §11.3 covers.
 2. `bench try` builds; `nix flake check` on the Mac (the reach checks are
    darwin-only and will not fire in CI).
 3. `curl -fsSL https://hausfold.co/hacker.sh | head` serves the installer, and
-   `hausfold.co/nebelhaus.sh` **still** does — same script. ⚠️ Not the same pin,
-   once **hausfold.co#62** deploys: `hacker.sh` pins `hacker` (safe from
-   `v2026.08.16` on), `nebelhaus.sh` keeps pinning `nebelhaus`, on purpose. Until
-   then both pin the old name and both install the same desktop. See the
-   2026-08-16 handoff.
+   `hausfold.co/nebelhaus.sh` **still** does — same script, different pin.
+   ✅ **hausfold.co#62 deployed**, measured on the live zone 2026-08-16:
+   `hacker.sh` exports `HAUS_DESKTOP=hacker` (safe from `v2026.08.16` on),
+   `nebelhaus.sh` exports `HAUS_DESKTOP=nebelhaus`, on purpose — the old URL is
+   the one carrying old `?ref=`s out of shell histories, and only the old pin
+   resolves at a pre-rename tag. ⚠️ The script's own usage header still names
+   `nebelhaus.sh` as the install command; that is haus#374, fixed on `main` and
+   waiting on the next `bench release haus` — see the evening handoff.
 4. 🔄 **Reworded.** `/desktops/nebelhaus` 301s onto `/docs/haus/desktops/hacker/`
    and that destination is 200. There is **no `/desktops/hacker`** — hausfold.co#47
    retired that whole tree into the docs, and this line originally asked for a URL
