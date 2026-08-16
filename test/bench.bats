@@ -11,10 +11,26 @@ setup() {
   # the same everywhere. (Without this, a global tag.gpgsign=true turns the
   # lightweight `git tag` calls below into "fatal: no tag message?" failures.)
   export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
+  # HAUS_HOST is host_name()'s escape hatch and short-circuits it before any
+  # nix lookup, so a developer who exports it would see the host_name test
+  # below fail for a reason that has nothing to do with the code.
+  unset HAUS_HOST
   # Source the library form; override ROOT so repo_dir() resolves into fixtures.
   HAUS_LIB=1 source "$HAUS"
   ROOT="$TMP/root"
   mkdir -p "$ROOT"
+  BATS_SAVED_PATH="$PATH"
+}
+
+teardown() {
+  # The ensure_nix_path tests below deliberately strip PATH down to a fixture
+  # dir, to hide `nix` from `command -v`. That mutation escapes the test body,
+  # and bats' own per-test cleanup shells out to `rm` — so on bats-core 1.10
+  # (Ubuntu CI) every test still printed `ok` while the RUN exited 1 with
+  # `bats-exec-test: line 205: rm: command not found`. Newer bats (nixpkgs, on
+  # macOS) papers over it, which is exactly why this was green locally and red
+  # on CI. Put PATH back before bats needs it.
+  PATH="$BATS_SAVED_PATH"
 }
 
 # ── locked_rev: parse a rev out of flake.lock, degrade to "?" on anything odd ──
@@ -291,6 +307,66 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "${LANE_SRC[haus]}" = "$ROOT/haus-child" ]
   [ "${LANE_SRC[nebelung]}" = "$ROOT/nebelung-child" ]
   [ -z "${LANE_SRC[perch]:-}" ]
+}
+
+# ── ensure_nix_path: nix on PATH for a caller with no login shell ─────────────
+# Regression: the layer binds ⌘B straight to `bench try lane switch` via a
+# zellij `Run`, which execs bench from the zellij server's environment. That
+# PATH carries /run/current-system/sw/bin (so bash 5 resolves) but NOT
+# /nix/var/nix/profiles/default/bin, where nix actually lives — so bench got
+# as far as announcing a build and died on `nix: command not found`.
+
+@test "ensure_nix_path appends a nix bindir the caller's PATH is missing" {
+  mkdir -p "$TMP/nixbin"
+  : >"$TMP/nixbin/nix"; chmod +x "$TMP/nixbin/nix"
+  NIX_BINDIRS=("$TMP/nixbin")
+  PATH="$TMP/empty"          # no nix reachable
+  ensure_nix_path
+  [[ ":$PATH:" == *":$TMP/nixbin:"* ]]
+  command -v nix >/dev/null
+}
+
+@test "ensure_nix_path leaves PATH alone when nix already resolves" {
+  mkdir -p "$TMP/mine" "$TMP/nixbin"
+  : >"$TMP/mine/nix"; chmod +x "$TMP/mine/nix"
+  NIX_BINDIRS=("$TMP/nixbin")
+  PATH="$TMP/mine"
+  ensure_nix_path
+  [ "$PATH" = "$TMP/mine" ]   # a caller's own nix is never shadowed or duplicated
+}
+
+@test "ensure_nix_path never appends a bindir PATH already carries" {
+  mkdir -p "$TMP/nixbin" "$TMP/other"
+  NIX_BINDIRS=("$TMP/nixbin")
+  PATH="$TMP/other:$TMP/nixbin"   # already there, but nix isn't in it yet
+  ensure_nix_path
+  [ "$PATH" = "$TMP/other:$TMP/nixbin" ]
+}
+
+@test "ensure_nix_path can't put the current directory on PATH via an empty one" {
+  mkdir -p "$TMP/nixbin"
+  NIX_BINDIRS=("$TMP/nixbin")
+  PATH=""                        # a leading colon would mean "." to the shell
+  ensure_nix_path
+  [ "$PATH" = "$TMP/nixbin" ]
+}
+
+@test "ensure_nix_path skips bindirs that don't exist on this machine" {
+  NIX_BINDIRS=("$TMP/not-a-dir")
+  PATH="$TMP/empty"
+  ensure_nix_path
+  [[ ":$PATH:" != *":$TMP/not-a-dir:"* ]]
+}
+
+@test "host_name dies on missing nix instead of guessing a host that can't build" {
+  NIX_BINDIRS=("$TMP/not-a-dir")
+  PATH="$TMP/empty"
+  run host_name
+  [ "$status" -ne 0 ]
+  # The old code fell through to `hostname -s` here, so bench announced it was
+  # building a darwinConfiguration the consumer flake has never heard of
+  # ("Mac") and only then died on the next line. Fail on the real cause.
+  [[ "$output" == *"nix isn't on PATH"* ]]
 }
 
 # ── version_file / read_version: the release tag source (regression: $verfile) ─

@@ -35,7 +35,7 @@ This prints, per repo, every commit past the last reconciled watermark plus the 
 each touched. It is watermark-based, not "since yesterday" — a sweep that didn't run for
 four days still picks up all four.
 
-`docs-since` walks **`DOCS_REPOS`** (`bench:1522`): the workshop, `FAMILY` (nebelung,
+`docs-since` walks **`DOCS_REPOS`** (`bench:1652`): the workshop, `FAMILY` (nebelung,
 pounce, perch, holt, haus), `org-profile`, `homebrew-tap`, and the two repos that
 carry docs without carrying a lock edge — **`trill`** and **`hausfold.co`**. That last
 pair is why this list is not `FAMILY` plus trimmings: docs coverage and lock coverage
