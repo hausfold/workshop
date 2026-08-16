@@ -2,7 +2,7 @@
 # that worked for packs transfers.
 #
 # Evidence for options-roadmap.md §6, limit 3. rice#222 closed limit 3 for
-# packs: `nebelhaus.lib.pack` stamps `mkDefault` per leaf at the import seam, so
+# packs: `haus.lib.pack` stamps `mkDefault` per leaf at the import seam, so
 # a consumer's own host outranks a pack silently and two packs still collide
 # loudly. The gap it left, named in the roadmap, is **preset vs preset** — and
 # the gallery a launch produces is a pile of presets, not packs.
@@ -185,7 +185,7 @@ let
 
       goAttrs = optNode: value: lib.mapAttrs (n: v: go (optNode.${n} or null) v) value;
     in
-    { nebelhaus = goAttrs surface.options.nebelhaus data.nebelhaus; };
+    { haus = goAttrs surface.options.haus data.haus; };
 
   # "Imported later wins", implemented rather than asserted: each rice in the
   # list is stamped one priority weaker than the one after it, so the last
@@ -241,33 +241,33 @@ let
     };
 
   # A host that restates one value a preset already sets, identically.
-  hostAgrees.nebelhaus.sill.enable = true;
+  hostAgrees.haus.sill.enable = true;
   # The same option, the other way — the ordinary "I disagree with my preset" case.
-  hostDisagrees.nebelhaus.prowl.enable = true;
-  hostForces.nebelhaus.prowl.enable = lib.mkForce true;
+  hostDisagrees.haus.prowl.enable = true;
+  hostForces.haus.prowl.enable = lib.mkForce true;
 
   named = name: attrs: { inherit name; } // attrs;
 
   # ---- the options that DON'T conflict, which is its own hazard -------------
   # Two rices authoring a tour, and two rices naming apps. Neither errors.
-  riceTourA.nebelhaus.tour.steps = [
+  riceTourA.haus.tour.steps = [
     {
       hint = "A";
       detect = "palette";
     }
   ];
-  riceTourB.nebelhaus.tour.steps = [
+  riceTourB.haus.tour.steps = [
     {
       hint = "B";
       detect = "launch";
     }
   ];
-  riceRosterA.nebelhaus.roster.obsidian = {
+  riceRosterA.haus.roster.obsidian = {
     key = "o";
     name = "Obsidian";
     cask = "obsidian";
   };
-  riceRosterB.nebelhaus.roster.zotero = {
+  riceRosterB.haus.roster.zotero = {
     key = "z";
     name = "Zotero";
     cask = "zotero";
@@ -330,7 +330,7 @@ in
           riceTourB
         ]
         [
-          "nebelhaus"
+          "haus"
           "tour"
           "steps"
         ]
@@ -341,7 +341,7 @@ in
           riceRosterB
         ]
         [
-          "nebelhaus"
+          "haus"
           "roster"
         ]
       )

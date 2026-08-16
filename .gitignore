@@ -1,13 +1,10 @@
 # The family repos live inside this dir but are their own git repos.
 #
-# ✅ §3.3's checklist has run and §10 renamed the platform repo again, so these
-# two now mean what §3.1 decided: `haus/` is the PLATFORM checkout
-# (`hausfold/haus` — this was `nebelhaus/` until 2026-08-09 and `hausfold/`
-# until 2026-08-11) and `hausfold.co/` is the SITE (`hausfold/hausfold.co`, not
-# in FAMILY). Two different repos; each directory is named for its own.
-# `/nebelhaus/` and `/hausfold/` are gone from this list because no such
-# checkout exists any more — if either reappears, something re-cloned the layer
-# under a pre-rename name and `bench` will not find it.
+# ⚠️ Two of these are one dot apart: `haus/` is the PLATFORM checkout
+# (`hausfold/haus`, renamed there 2026-08-11) and `hausfold.co/` is the SITE
+# (`hausfold/hausfold.co`, not in FAMILY). Two different repos; each directory
+# is named for its own. A pre-rename spelling reappearing here means something
+# re-cloned the layer under a name `bench` will not find.
 /haus/
 /hausfold.co/
 /homebrew-tap/

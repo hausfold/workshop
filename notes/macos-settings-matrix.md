@@ -49,7 +49,7 @@ Access** — which was every process in the original spike. Not "flaky", not "ne
 a restart": a hard refusal, exit 1.
 
 ```
-$ defaults write com.apple.universalaccess nebelhausProbe -int 42
+$ defaults write com.apple.universalaccess hausProbe -int 42
 Could not write domain com.apple.universalaccess; exiting
 ```
 
@@ -187,7 +187,7 @@ registered more participants.)
 `com.apple.Accessibility` (writes, no effect) — and it was the worst until
 `AppleInterfaceStyle` was measured on 2026-08-08 (see below): that one is
 *read back correct* while doing nothing, so it defeats the read-back check
-this one at least survives. A nebelhaus option backed by this
+this one at least survives. A haus option backed by this
 would produce a Mac where System Settings claims 20 pt, every app renders 13 pt,
 and the settings pane looks broken — and the user would rightly blame the rice.
 
@@ -305,7 +305,7 @@ failing, not a claim about *why* it fails. It's also what makes the upstream
 reports so confusing: the symptom (launchd services missing, bar wrong) appears
 nowhere near the cause, and nothing tells you the run stopped early.
 
-Had we naively backed `nebelhaus.accessibility.motion = "reduced"` with that
+Had we naively backed `haus.accessibility.motion = "reduced"` with that
 option, a user without FDA would get a half-activated Mac and no clear reason
 why.
 
@@ -323,7 +323,7 @@ why.
       breaks the machine. Minimum fix is `|| true` on the generated writes (or a
       warning at eval time) so a missing grant costs you the setting, not the
       rest of activation.
-- [x] nebelhaus **warns** when those five are set — nebelhaus#89. A warning, not
+- [x] haus **warns** when those five are set — haus#89. A warning, not
       an assertion: with FDA they work, so blocking would be wrong.
 
 ---
@@ -387,7 +387,7 @@ fresh-process test — the usual tiebreaker for "is this just a caching problem?
 *also* fails. The appearance lives in session state the WindowServer owns;
 `defaults` never reaches it.
 
-Consequences already taken: `nebelhaus.theme.systemAppearance` drives it through
+Consequences already taken: `haus.theme.systemAppearance` drives it through
 System Events from home-manager activation, `hausax` grew an `appearance` key so
 the effect is confirmed against AppKit, and `haus diff` flags a hand-declared
 `AppleInterfaceStyle` the way it flags `com.apple.Accessibility`. Note this also
@@ -414,9 +414,9 @@ WindowManager, ControlCenter and menu-bar changes land in the plist and wait for
 a manual restart or logout. **The rice has to own this** — it's exactly the kind
 of "it didn't work / oh, log out" papercut that makes a shared rice feel broken.
 
-- [x] `nebelhaus` should own a post-activation restart map (which domain → which
+- [x] `haus` should own a post-activation restart map (which domain → which
       `killall` / "needs logout"), since upstream won't. **Done, 2026-08-07 —
-      `modules/lib/restart-map.nix` (nebelhaus), keyed by exactly the domain
+      `modules/lib/restart-map.nix` (haus), keyed by exactly the domain
       names in this matrix's tables; `com.apple.controlcenter` and
       `com.apple.WindowManager` are declared (`ControlCenter` / `logout`)
       ahead of the rice ever writing into them. See
@@ -502,7 +502,7 @@ What actually blocks each group is smaller, different, and in two cases not a
 key at all.
 
 **All three shipped in the rice on the same day this was written**
-(`haus.sound.*`, `haus.locale.*`, `haus.power.*` — nebelhaus#267), so the
+(`haus.sound.*`, `haus.locale.*`, `haus.power.*` — haus#267), so the
 "verdict" column below is now a record of what each group had to be built
 *around* rather than a plan.
 
@@ -669,7 +669,7 @@ Two limits, from `<nix-darwin>/modules/power/*.nix` (its tree, not the rice's
 Not typed at all, and unreachable through `system.defaults`: Low Power Mode
 (`pmset -a lowpowermode`), per-source anything (`pmset -b`/`-c`), lid and
 clamshell (`lidwake`, `disablesleep`), `hibernatemode`, `womp`. All are
-root-only writes into a root-owned plist, so a curated `nebelhaus.power.*`
+root-only writes into a root-owned plist, so a curated `haus.power.*`
 belongs in the `security.firewall` family (an activation step of our own),
 **not** in the `hotCorners`/`screenshots`/`menuBar` family.
 
@@ -746,7 +746,7 @@ see, and it is worth filing upstream.
 
 ## Consequences for the roadmap
 
-1. ~~**`nebelhaus.accessibility` as designed is mostly unbuildable.** Vision and
+1. ~~**`haus.accessibility` as designed is mostly unbuildable.** Vision and
    motor knobs route through a locked domain or a no-op domain. Demote it from a
    full option family to: a few keys that genuinely work, plus `haus doctor`
    checklist items with System Settings deep links.~~ ❌ **The premise died with
@@ -767,7 +767,7 @@ see, and it is worth filing upstream.
 3. **The large-print rice is still absolutely buildable — just not out of macOS
    accessibility settings.** It's built from:
    - display mode (`larger-text`) — ✅ proven reachable
-   - `nebelhaus.fonts` sizes — ✅ fully ours
+   - `haus.fonts` sizes — ✅ fully ours
    - Dock `tilesize` / `largesize`, Finder icon size — ✅ typed and writable
    - Bar height/padding, Pounce row height, Ghostty font size — ✅ fully ours
    - a high-contrast **theme flavor** — ✅ fully ours (nebelung)
@@ -812,5 +812,5 @@ is one OS release away from being wrong.
 - `ax.swift` / `probe.swift` — effective accessibility state via `NSWorkspace`
 - `disp.swift` — displays, persistent UUIDs, deduped HiDPI mode list
 
-- [ ] Move these into `nebelhaus/notes/probes/` and have `haus doctor --matrix`
+- [ ] Move these into `haus/notes/probes/` and have `haus doctor --matrix`
       run them, so "does this still hold on 27?" is one command

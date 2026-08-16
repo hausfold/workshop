@@ -1,8 +1,8 @@
 # Option-surface roadmap — from "Julien's dev rice" to a shareable rice format
 
-Working doc. The end goal: people publish **nebelhaus configs** of wildly
+Working doc. The end goal: people publish **haus configs** of wildly
 different kinds — a large-print Mac for a parent, a writer's machine, a
-mouse-first creative setup — by changing `nebelhaus.*` and nothing else. When
+mouse-first creative setup — by changing `haus.*` and nothing else. When
 this was written the option surface could express none of them; `full`,
 `everyday` and `large-print` now all pass the readiness test in §6, and what's
 left is tracked against it there. (Passing is not finishing — §6 records the
@@ -15,19 +15,19 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
-> **★ Naming banner, 2026-08-08 — read every `nebelhaus.*` below as `haus.*`.**
+> **★ Naming banner, 2026-08-08 — read every `haus.*` below as `haus.*`.**
 > The platform is **`haus`** — its own name since 2026-08-10 (decision 8), and
 > also its CLI and its option namespace — shipped by the org **hausfold**,
-> and `nebelhaus` demoted to what this document has always been arguing it
+> and `haus` demoted to what this document has always been arguing it
 > should be: **one rice among many**, the developer-focused one. The plan is
 > [`hausfold-rename.md`](./hausfold-rename.md).
 >
 > **The body of this file is deliberately NOT rewritten.** §5.14 makes it a
 > historical record, and retroactively renaming options in dated findings would
 > make ship-dates and PR numbers stop matching what those PRs actually say.
-> So: `nebelhaus.roster` below is today's `haus.roster`, and so on throughout.
+> So: `haus.roster` below is today's `haus.roster`, and so on throughout.
 >
-> **⚠️ Every `trill` below is the archived Messages client** (`nebelhaus/messages`
+> **⚠️ Every `trill` below is the archived Messages client** (`hausfold/messages`
 > since 2026-08-08), so "**`trill` is out of the rice entirely**" — the claim
 > recurs five times, in the preamble's progress log, §3.1, §6's tail, §7 and §9,
 > spelled differently each time — stays true *about that app*: rice#212 made it
@@ -35,7 +35,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > the name. The notification compositor took `trill` on 2026-08-08
 > ([`hausfold-rename.md`](./hausfold-rename.md) §3.4), and the rice's roster
 > carries a `haus.roster.trill` entry for it (renamed from `haus.roster.flick`,
-> nebelhaus#264) — metadata-only, a `float` rule for its Settings/Inbox windows
+> haus#264) — metadata-only, a `float` rule for its Settings/Inbox windows
 > in `modules/windows/default.nix`; the rice installs nothing and the app has no
 > repo yet. So a reader who greps this file for what the rice declares concludes
 > the opposite of what's live — read the app, not the word. §9's "names this
@@ -97,27 +97,27 @@ already exist, and one it treated as a detail is the actual root blocker.
 > trust, which is [`go-to-market.md` §5](./go-to-market.md#5-the-gallery--marketplace-question--answered)'s
 > problem, not this file's.
 >
-> What §7's repo routing means now: `nebelhaus` → `hausfold/haus`, and `web`
+> What §7's repo routing means now: `haus` → `hausfold/haus`, and `web`
 > → the consolidated site repo.
 >
 > ★ **Amended 2026-08-15 (decision 10, haus#364): the desktop this document is
 > about is called `hacker` now, and the banner's translation rule cannot reach
-> the word that moved.** The rule above is *"read every `nebelhaus.*` below as
+> the word that moved.** The rule above is *"read every `haus.*` below as
 > `haus.*`"* — keyed on the dot, because in August the thing being renamed was an
 > option namespace. Decision 10 renamed the **bare** word: the desktop
-> `nebelhaus` is `desktops/hacker.nix` / `haus.desktops.hacker`, and every other
-> surviving `nebelhaus` in the layer became `haus` (`mkNebelhaus`→`mkHaus`, the
+> `haus` is `desktops/hacker.nix` / `haus.desktops.hacker`, and every other
+> surviving `haus` in the layer became `haus` (`mkHaus`→`mkHaus`, the
 > env vars, the state dirs). Counted over the body proper — §1 onward, so the
 > number doesn't grow every time a pass writes the word — **it appears 137 times
 > and the dotted rule translates 63 of them correctly**, plus two it matches and
-> gets *wrong* (`nebelhaus.com` and a `.md` filename, both of which stay). Read
+> gets *wrong* (`hausfold.co` and a `.md` filename, both of which stay). Read
 > the remaining seventy-odd in three senses, none of which that
-> rule covers: **the repo** (`nebelhaus/modules/…`,
-> `nebelhaus#NNN`) → `hausfold/haus`, unchanged as a citation; **the desktop**
-> ("a non-dev nebelhaus", "publish nebelhaus configs") → `hacker`; and **the org
-> or the domain** (`github.com/nebelhaus`, `nebelhaus.com`) → *stays*, forever.
+> rule covers: **the repo** (`haus/modules/…`,
+> `haus#NNN`) → `hausfold/haus`, unchanged as a citation; **the desktop**
+> ("a non-dev haus", "publish haus configs") → `hacker`; and **the org
+> or the domain** (`github.com/hausfold`, `hausfold.co`) → *stays*, forever.
 > The plan of record is [`hausfold-rename.md`](./hausfold-rename.md) **§11**;
-> `mkNebelhaus`, `desktopFiles.nebelhaus` and the four state-dir symlinks are
+> `mkHaus`, `desktopFiles.haus` and the four state-dir symlinks are
 > deliberate compatibility seams, so nothing here is broken by the rename — it
 > is only mis-named. The body stays un-rewritten for the reason given above.
 >
@@ -128,25 +128,25 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `collar`→`security.touchId` ([`rooms-desktops.md`](./rooms-desktops.md#the-names-2026-08-16)),
 > **with no aliases** — the old `haus.*` spellings are gone, not deprecated.
 > `modules/renamed.nix` is untouched, and that is the whole point: its left-hand
-> sides are the frozen `nebelhaus.*` names, so the literal `nebelhaus.pounce.items`
+> sides are the frozen `haus.*` names, so the literal `haus.pounce.items`
 > printed below **still evaluates**, now onto `haus.launcher.items`, while the
 > banner's own instruction turns it into `haus.pounce.items`, which is an unknown
 > option and a hard eval failure. A translation rule aged into a trap: the
 > untranslated text is the one that works. Run over §1 onward,
-> `grep -oE '\b(nebelhaus|haus)\.(hearth|prowl|sill|pounce|perch|hush|collar|den)\b'`
-> returns **ten**: eight `nebelhaus.pounce`, which are addresses — read them as
-> `haus.launcher.*` — and two `nebelhaus.sill`, which are **not**: they sit
+> `grep -oE '\b(haus|haus)\.(hearth|prowl|sill|pounce|perch|hush|collar|den)\b'`
+> returns **ten**: eight `haus.pounce`, which are addresses — read them as
+> `haus.launcher.*` — and two `haus.sill`, which are **not**: they sit
 > inside §6(b)'s quoted error transcript, where the whole point is what the
 > option was called on 2026-08-05, so they must not be translated at all. ⚠️
 > Those two were added by the very pass that wrote this paragraph, whose first
-> draft said "eight, all `nebelhaus.pounce`" and was falsified by its own commit
-> — caught by the assurance read. Every other `nebelhaus.<x>` below takes the
+> draft said "eight, all `haus.pounce`" and was falsified by its own commit
+> — caught by the assurance read. Every other `haus.<x>` below takes the
 > 2026-08-08 rule unchanged.
 >
 > The reason there are only eight is worth a sentence, because it inverts the
 > usual complaint about this file: **where §5 sketched a room that had a code
 > name, it wrote the room's own word, and the rename arrived at that word.**
-> §5.9 is `nebelhaus.bar.widgets` / `bar.items` against a tree that said `sill`,
+> §5.9 is `haus.bar.widgets` / `bar.items` against a tree that said `sill`,
 > and §5.8 is titled *Generalize `focus` into scenes* against a tree that said
 > `hush` — both live addresses since 2026-08-16. (The rest of §5's namespaces —
 > `keys`, `displays`, `lock`, `security.firewall`, `roster` — were never
@@ -198,7 +198,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > ★ **First, and it is the one to carry: a sketch borrowed a plain English word,
 > and then the codebase took that word for something it already had.** §5.8 has
-> proposed `nebelhaus.scenes.*` as a NEW namespace since July, with `focus.*`
+> proposed `haus.scenes.*` as a NEW namespace since July, with `focus.*`
 > demoted to an alias "so no host breaks" — written when this room was called
 > `hush` and `focus` was a free word the document had picked up.
 > [haus#367](https://github.com/hausfold/haus/pull/367) merged at 10:08 UTC
@@ -257,7 +257,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > 10:06 UTC (decision dated 2026-08-14); the rooms landed in haus#367, 2026-08-16
 > 10:08 UTC. **That is one day, not eight** (two if you count from decision 10's
 > own date, 2026-08-14). Eight days is
-> [nebelhaus#261](https://github.com/hausfold/haus/pull/261) `2026-08-08T22:43Z`
+> [haus#261](https://github.com/hausfold/haus/pull/261) `2026-08-08T22:43Z`
 > → #367 — the *namespace* rename, a different rename of a different thing, in
 > the header of the pass whose own subject was reading the hit rather than the
 > word. ⚠️ And "eight" there is the calendar subtraction: elapsed is **7d
@@ -349,7 +349,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ⚠️ **"eight days after the desktop was" is wrong, corrected by the
 > twenty-fifth pass (above).** haus#364 (the desktop → `hacker`) merged
 > 2026-08-15 10:06 UTC; haus#367 (the rooms) merged 2026-08-16 10:08 UTC — **one
-> day.** Eight days is nebelhaus#261 → #367, the *namespace* rename: a different
+> day.** Eight days is haus#261 → #367, the *namespace* rename: a different
 > rename, of a different thing, in the header of the pass about reading the hit
 > rather than the word. The rest of the block is unamended.
 >
@@ -375,7 +375,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > the flake-input row had said *"§11.2 moves it to `haus` — new installs scaffold
 > that already"*, correct, written by workshop#372 at 10:06 UTC; #375 rewrote it
 > to *"⚠️ **not yet, and nothing scaffolds `haus` today**: `haus`'s
-> `bootstrap.sh` writes `inputs.nebelhaus.url` for a fresh install (measured
+> `bootstrap.sh` writes `inputs.haus.url` for a fresh install (measured
 > 2026-08-15)"*. [haus#364](https://github.com/hausfold/haus/pull/364) had
 > flipped that line to `inputs.haus.url` at **10:06:01 UTC**, sixty-eight minutes
 > earlier (`gh api repos/hausfold/haus/commits/9718fb3` shows the one-line patch;
@@ -392,10 +392,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ★ **Second, from re-reading the row that finding sits in: it named the wrong
 > file as the coupled one, and the coupling it was protecting is now gone.**
 > Both `AGENTS.md` and [`hausfold-rename.md`](./hausfold-rename.md) §11.2 said
-> renaming `inputs.nebelhaus` needs *"`bench`'s `OVERRIDABLE` in the same edit"*.
+> renaming `inputs.haus` needs *"`bench`'s `OVERRIDABLE` in the same edit"*.
 > `OVERRIDABLE` holds **repo directory names** (`nebelung pounce perch holt
 > haus`) and never held an input name; the literals that actually
-> coupled were `overrides()`'s five `--override-input nebelhaus/…` strings and
+> coupled were `overrides()`'s five `--override-input haus/…` strings and
 > one row of `EDGES`. A decision record that says *don't touch this, it's
 > coupled* has to name the line, or the next person greps the named file, finds
 > nothing to change, and concludes the warning is stale rather than misfiled.
@@ -428,12 +428,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > ★ **Fourth, and it is the softest kind: §6(b)'s "measured" error transcript
 > names an option that never existed.** The block quotes
-> ``error: The option `nebelhaus.bar.enable' has conflicting definition values``
+> ``error: The option `haus.bar.enable' has conflicting definition values``
 > as the measurement that retracted this file's own claim about composition — and
 > on 2026-08-05 the bar room was `sill`, so the real error can only have said
-> `nebelhaus.sill.enable`. (`modules/renamed.nix` is generated by enumerating the
-> whole option tree at the `nebelhaus`→`haus` rename; it maps
-> `nebelhaus.sill.enable` → `haus.bar.enable` and contains no `nebelhaus.bar.*`
+> `haus.sill.enable`. (`modules/renamed.nix` is generated by enumerating the
+> whole option tree at the `haus`→`haus` rename; it maps
+> `haus.sill.enable` → `haus.bar.enable` and contains no `haus.bar.*`
 > at all.) Nothing the block concludes is wrong — the error does name the option,
 > both files and the fix. What happened is that the transcriber **normalised the
 > quote into the document's own dialect**, the same dialect the banner above
@@ -460,7 +460,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `grep -cE '^@test '` rather than carried forward) under nixpkgs' bats 1.12 *and* a real bats
 > **1.10.0** tarball — CI's apt version, which doesn't subshell a test body, so a
 > suite can print all-`ok` and still exit non-zero there. Every new assertion was
-> mutation-checked: re-baking the literal `nebelhaus` into `overrides()` fails
+> mutation-checked: re-baking the literal `haus` into `overrides()` fails
 > exactly one test, re-baking it into `EDGES` fails exactly one, and dropping
 > `locked_slug`'s github-type guard fails the test that says a GitLab-hosted
 > input has no GitHub slug to be wrong about. The `RENAMED` row and the resolved
@@ -475,8 +475,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > coupling (*"renaming it needs bench's `OVERRIDABLE` in the same edit"*) that
 > finding two exists to retire — newly written, in the user-facing copy, one file
 > away from the correction. **(ii)** The banner paragraph above said the body
-> holds "eight hits, all `nebelhaus.pounce`", which this pass's own §6(b)
-> correction falsified in the same commit by adding two `nebelhaus.sill`; the
+> holds "eight hits, all `haus.pounce`", which this pass's own §6(b)
+> correction falsified in the same commit by adding two `haus.sill`; the
 > count is re-derived and scoped now, one paragraph after §5.9 preaches exactly
 > that. **(iii)** The PR number this work cites in three permanent places was
 > already taken by another open PR — a plan-of-record citation pointing at a
@@ -498,7 +498,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > a stale checkout instead of the repo.**
 >
 > [haus#364](https://github.com/hausfold/haus/pull/364) merged four hours after
-> the twenty-second pass's own PR: **decision 10 drops the name `nebelhaus`**,
+> the twenty-second pass's own PR: **decision 10 drops the name `haus`**,
 > the desktop becomes **`hacker`**, and the naming banner above is amended rather
 > than the body rewritten. Nothing this file tracks as work moved — the rename
 > configures nothing differently, and its three compatibility seams mean no
@@ -506,8 +506,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > ★ **The finding: a translation rule for a historical document is only as good
 > as the token it keys on, and the bare word is the one no regex finds.** The
-> 2026-08-08 banner told readers to translate `nebelhaus.*`; the rename that
-> arrived translated `nebelhaus`. Those are different edits on the body's 137
+> 2026-08-08 banner told readers to translate `haus.*`; the rename that
+> arrived translated `haus`. Those are different edits on the body's 137
 > hits — the dotted rule gets 63 right and two wrong — and the undotted word
 > carries three referents at once (repo, desktop, org), so a reader "applying the
 > banner" is right on **under half** of them and silently mis-reads the rest.
@@ -525,7 +525,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ★ **Second, and it is about how these audits are run: "audit against the repos,
 > not against memory" (§5.14's founding rule) has a third thing in it. The local
 > checkout is memory wearing the repo's clothes.** `~/code/workshop/haus` still
-> held `desktops/nebelhaus.nix`, with no `hacker.nix`, **46 minutes** after #364
+> held `desktops/haus.nix`, with no `hacker.nix`, **46 minutes** after #364
 > merged (`holt child` branched this lane from `afc3b58`, the commit immediately
 > before the merge)
 > — so every question this pass put to the disk would have come back answered by
@@ -1238,8 +1238,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > checked whether the blocker had cleared; nobody had checked whether the blocker
 > was real.
 >
-> **What shipped ([nebelhaus#257](https://github.com/nebelhaus/nebelhaus/pull/257)).**
-> `nebelhaus.theme.systemAppearance` — `unmanaged` (default) / `flavor` /
+> **What shipped ([haus#257](https://github.com/hausfold/haus/pull/257)).**
+> `haus.theme.systemAppearance` — `unmanaged` (default) / `flavor` /
 > `light` / `dark`. `"flavor"` is the one that makes light mode complete: latte
 > sets macOS to Light, mocha to Dark, so a latte rice stops looking half-done on
 > a dark Mac. Applied from home-manager activation via System Events, guarded and
@@ -1271,7 +1271,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > a managed default would silently revert an appearance picked in System Settings
 > on the next rebuild. Which left pounce's one-click "Switch to light mode"
 > (§5.7's audience) still landing on a dark macOS — **closed in the follow-up,
-> [nebelhaus#258](https://github.com/nebelhaus/nebelhaus/pull/258)**: `haus set`
+> [haus#258](https://github.com/hausfold/haus/pull/258)**: `haus set`
 > takes PAIRS now (`haus set theme.flavor latte theme.systemAppearance flavor`),
 > all-or-nothing, one rebuild, and the palette row sets both. The reason it had
 > to be one call rather than two lines in the runner is the interesting part —
@@ -1391,9 +1391,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **Status, 2026-08-07 (thirteenth pass) — §5.4's last open box, a real workspace
 > model, is shipped: Phase 3 now has no unstarted item.**
 >
-> **What shipped ([nebelhaus#253](https://github.com/nebelhaus/nebelhaus/pull/253)
+> **What shipped ([haus#253](https://github.com/hausfold/haus/pull/253)
 > + a paired, currently-draft [nix-config#45](https://github.com/JulienMartel/nix-config/pull/45)).**
-> `nebelhaus.workspaces` is a real, first-class option now: `roster.*.workspace`
+> `haus.workspaces` is a real, first-class option now: `roster.*.workspace`
 > and `roster.*.barIcon` are gone — a workspace names its own member apps
 > (`apps = [ "slack" "mail" "messages" ]`) instead of one app claiming a
 > workspace, so a role or project workspace is representable for the first
@@ -1425,14 +1425,14 @@ already exist, and one it treated as a detail is the actual root blocker.
 > because nobody got to it.
 >
 > **What this does and doesn't close.** A pack still can't claim a workspace
-> for its own apps — `checkPack` only carries `nebelhaus.roster` through
-> `lib.pack`, and extending it to `nebelhaus.workspaces` (where `apps` needs
+> for its own apps — `checkPack` only carries `haus.roster` through
+> `lib.pack`, and extending it to `haus.workspaces` (where `apps` needs
 > list-merge semantics every other pack field doesn't) is real follow-up work,
 > not done here; `packs/writing.nix` and its README now say so explicitly
 > rather than silently going stale. `monitor` / `layout` from the original
 > sketch didn't ship either — nothing needed them this pass, and per-workspace
 > monitor pinning is its own feature with its own risk (bridging AeroSpace's
-> monitor matching against `nebelhaus.displays`' UUID vocabulary).
+> monitor matching against `haus.displays`' UUID vocabulary).
 >
 > Verified on the real machine, not just through an evaluator: a full build of
 > the actual `mbp` host against this branch finished with zero warnings, the
@@ -1447,8 +1447,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **Status, 2026-08-07 (twelfth pass) — §5.7 is built: the machine-writable
 > overlay is ordinary Nix, and the palette has its first settings front door.**
 >
-> **What shipped ([nebelhaus#252](https://github.com/nebelhaus/nebelhaus/pull/252),
-> docs [workshop#247](https://github.com/nebelhaus/workshop/pull/247)).** `mkNebelhaus` now auto-imports
+> **What shipped ([haus#252](https://github.com/hausfold/haus/pull/252),
+> docs [workshop#247](https://github.com/hausfold/workshop/pull/247)).** `mkHaus` now auto-imports
 > `hosts/<host>/settings/*.nix` beside the existing `packages/*.nix` seam.
 > `haus set theme.accent teal` writes one managed module there, stages it so a
 > git-backed flake can see it, evaluates the machine's own option tree to reject
@@ -1466,11 +1466,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > evaluated declaration, while bare `haus get` lists only overlay-owned values.
 >
 > **The boundary is executable, not prose.** Both `theme.accent` (short form)
-> and `nebelhaus.theme.accent` resolve inside the same namespace; `system.*`, an
-> unknown `nebelhaus.*` leaf, unsafe path syntax, and a type-invalid value all
+> and `haus.theme.accent` resolve inside the same namespace; `system.*`, an
+> unknown `haus.*` leaf, unsafe path syntax, and a type-invalid value all
 > fail before activation. The integration test raises a real temporary consumer
 > flake and proves string + number writes, nullable unset, reset-to-default,
-> invalid enum rollback, and the non-nebelhaus guard through evaluation — not by
+> invalid enum rollback, and the non-haus guard through evaluation — not by
 > grepping the emitted file alone.
 >
 > **The Pounce last mile came with it.** A `Haus Settings` submenu exposes the
@@ -1493,10 +1493,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > restart map, ships three curated behaviour groups; four remain unbuilt, two
 > of them deliberately.**
 >
-> **What shipped ([nebelhaus#250](https://github.com/nebelhaus/nebelhaus/pull/250)).**
-> `nebelhaus.lock` (screensaver password + delay), `nebelhaus.menuBar.{clock,
+> **What shipped ([haus#250](https://github.com/hausfold/haus/pull/250)).**
+> `haus.lock` (screensaver password + delay), `haus.menuBar.{clock,
 > controlCenter}` (clock format/seconds/date/analog + which Control Center
-> glyphs show) and `nebelhaus.security.firewall` (wraps nix-darwin's
+> glyphs show) and `haus.security.firewall` (wraps nix-darwin's
 > `networking.applicationFirewall`) — three of §5.6's seven still-open groups,
 > named and scoped the same way `hotCorners`/`screenshots` already were: every
 > leaf null by default, action names instead of raw plist values, restart
@@ -1544,7 +1544,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **Status, 2026-08-07 (tenth pass) — §4's last open box, the restart map, is
 > built and generalized past the one hand-rolled fix it started from.**
 >
-> **What shipped ([nebelhaus#249](https://github.com/nebelhaus/nebelhaus/pull/249),
+> **What shipped ([haus#249](https://github.com/hausfold/haus/pull/249),
 > `modules/lib/restart-map.nix` + `modules/core/default.nix`).** The matrix's own finding — nix-darwin restarts
 > only Dock, and only when a `dock.*` option changed, so Finder/menu-bar/Control
 > Center writes silently wait for a logout — had exactly one fix in the repo
@@ -1571,7 +1571,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > consumer snapshot *any* plist domain into their own host file's
 > `CustomUserPreferences`, which the map has no way to know about in advance,
 > so the hard assertion would fail their `haus rebuild` over a file inside the
-> pinned nebelhaus flake input they cannot edit. Fixed the same PR, one commit
+> pinned haus flake input they cannot edit. Fixed the same PR, one commit
 > later: an undeclared domain is now `warnings`, matching the pattern the
 > `universalaccess` block already uses just below it in the same file — "don't
 > block a config that would otherwise work."
@@ -1619,7 +1619,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > and caught on this machine, not just reasoned about.**
 >
 > **What shipped.** All four promote exactly what §5.11 named as already existing
-> ad hoc: bootstrap.sh's `preflight_audit` → `haus plan`, its `NEBELHAUS_KEEP`
+> ad hoc: bootstrap.sh's `preflight_audit` → `haus plan`, its `HAUS_KEEP`
 > current-value reader → `haus capture`, plus two genuinely new commands,
 > `haus diff` and `haus revert-settings`. The comparison engine underneath
 > `plan`/`diff` (`declared_defaults`) does **not** hand-map nix-darwin's ~193
@@ -1725,10 +1725,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `preset-composition`) ran `lib.evalModules` over `modules/options-modules.nix`
 > — the pure option **surface**, deliberately narrow so it's fast and
 > Linux-capable. Nobody had run the actual thing a stranger's own flake calls:
-> `mkNebelhaus`, full home-manager and all, on a composition nothing here had
+> `mkHaus`, full home-manager and all, on a composition nothing here had
 > tried — a preset **and** a pack **and** a host that already disagrees with
-> the pack, together. Built (not just evaluated) from a nebelhaus child
-> worktree: `flake.mkNebelhaus { extraModules = [ flake.presets.everyday
+> the pack, together. Built (not just evaluated) from a haus child
+> worktree: `flake.mkHaus { extraModules = [ flake.presets.everyday
 > flake.packs.writing ]; host = <a file declaring roster.obsidian.key = "n">;
 > }` — real `darwin-system` derivation, actually realised, not a drvPath.
 > Result: **clean.** The host's key won (`"n"`), the pack's other three apps
@@ -1752,7 +1752,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > still open, and is the one thing left in limit 3 that only a real outside
 > user can close.
 >
-> **The audit** (§5.14's rule, run first): `nebelhaus` landed #240–#246 since
+> **The audit** (§5.14's rule, run first): `haus` landed #240–#246 since
 > the seventh pass (`rice#243`). Two are option-surface-relevant and both
 > **already fix** things this file was still calling open:
 > **(a)** §5.2's own "follow-up this turned up and did not fix" — the
@@ -1762,7 +1762,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > — display scaling doesn't move the perch shelf either, a **display's** points
 > shrink by exactly the factor that grows them, so the shelf's physical size
 > holds and everything around it grows past it). Marked done below.
-> **(b)** **perch now follows `theme.accent`** (nebelhaus#244 + perch#31,
+> **(b)** **perch now follows `theme.accent`** (haus#244 + perch#31,
 > merged the same day as #243) — takes the catppuccin **role name**, not a
 > hex, so one key is right in both light and dark and needs no rebuild on a
 > flavor change. `accent-reach` moves perch from `pinned` to `moves`; this is
@@ -1878,7 +1878,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > was *measured* rather than asserted, and the measurement is better than a count:
 > `options-json` built from rice#228 and from HEAD is **the same store path**, so
 > the surface is identical rather than merely the same size. It holds **130**
-> options (`jq '[keys[]|select(startswith("nebelhaus."))]|length'` over
+> options (`jq '[keys[]|select(startswith("haus."))]|length'` over
 > `share/doc/nixos/options.json` — the raw file has 131 keys, `_module.args`
 > being the extra), which is the number this document has been quoting — worth
 > pinning down, because three other defensible ways of counting the same tree
@@ -1924,7 +1924,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > rice#222 nothing changed the option surface — 130 leaves, unmoved. rice#223–227
 > are terminal/core/pounce surfaces, and the one roadmap-adjacent commit is
 > §5.7's — the rice now generates `~/.config/holt/config.toml` from
-> `nebelhaus.agents.default`, a third instance of the two-writers seam, correctly
+> `haus.agents.default`, a third instance of the two-writers seam, correctly
 > labelled *edit that option, not here*.)
 >
 > **Status, 2026-08-04 (third pass) — limit 3's proposed fix was RUN, and it has
@@ -1938,7 +1938,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > was wanted — and a data-only pack can write *neither*, because `checkRice`
 > refuses a file that takes `lib`. So option 1 is a property of the import seam,
 > not of the pack file, and the obvious version of it fails silently.
-> **Then shipped, same day — rice#222**: `nebelhaus.lib.pack` + `checkPack`, and
+> **Then shipped, same day — rice#222**: `haus.lib.pack` + `checkPack`, and
 > a `packs` check that composes a pack with a conflicting host and fails if the
 > host doesn't win — the first check here that pins a *relationship between two
 > rices* rather than one rice's table. **Limit 3 is closed for packs**; presets
@@ -1957,7 +1957,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > install from Nixpkgs (§5.4). Three things worth carrying:
 > **(a)** the fix is one convention, not two options: `<option>Name`, resolved by
 > `modules/lib/pkg-by-name.nix`, and `nix flake check`'s new
-> **`data-only-surface`** fails when a package-typed `nebelhaus.*` leaf is added
+> **`data-only-surface`** fails when a package-typed `haus.*` leaf is added
 > without its string sibling — because the third one gets added by someone who
 > never read the note explaining the first two.
 > **(b)** the mechanical audit this doc kept asking for was finally run, and the
@@ -2042,17 +2042,17 @@ already exist, and one it treated as a detail is the actual root blocker.
 > the actual repos found **three items that had shipped and were never ticked**
 > (§5.9's rice-side `pounce.items` in rice#149, §5.12's FDA detection in rice#128,
 > §5.2's Finder sidebar in rice#181) plus one family renamed out from under the
-> whole document: **`nebelhaus.apps` is `nebelhaus.roster` since rice#182**, which
+> whole document: **`haus.apps` is `haus.roster` since rice#182**, which
 > also shipped §5.4's multi-source install. Those are corrected below. §5.14
 > records why it drifted and what to do about it — the short version is that this
 > header is a summary and the CHECKBOXES are the source of truth, and when they
 > disagree the repo settles it.
 >
 > Also new, both in rice#198: §5.6's first two groups shipped
-> (`nebelhaus.hotCorners.*` and `nebelhaus.screenshots.*`), settling that
+> (`haus.hotCorners.*` and `haus.screenshots.*`), settling that
 > section's default policy — null = write nothing, and null ≠ off — and turning up
 > two silent failures worth reading before the next group. And **Phase 0 is
-> closed**: `nebelhaus.packs.writing` is the shareable app pack that item asked
+> closed**: `haus.packs.writing` is the shareable app pack that item asked
 > for. Writing it found a real bug (roster leader keys were never checked against
 > the built-in launch actions, so a pack could silently eat one) and hit §5.3's
 > package-type format limit from a second family, which makes that limit worth
@@ -2095,7 +2095,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > displays still wants a docked multi-monitor proof before growing profiles, but
 > that validation no longer blocks `large-print`.
 >
-> **Earlier history.** §3's four items landed as nebelhaus#92/#96/#98/#93 +
+> **Earlier history.** §3's four items landed as haus#92/#96/#98/#93 +
 > workshop#81 and the macOS spikes settled in the matrix; fonts (#91), the two
 > working accessibility keys (#90), `ui.scale` (§5.2), the contrast axis
 > (nebelung#11 + rice#103), light mode (nebelung#12 + rice#108) and `keys.*`
@@ -2108,21 +2108,21 @@ already exist, and one it treated as a detail is the actual root blocker.
 
 | Claim | Reality |
 |---|---|
-| "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](nebelhaus/modules/options.nix) — but 13 of those are the `bar.items` pill bools and 5 are `focus.slack.*`. The *shape* surface is more like 25. |
-| "rice sets ~19 macOS defaults" | ✅ 19 keys in [`core/default.nix:144-183`](nebelhaus/modules/core/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
-| "replace `windows.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `nebelhaus.apps`; **rice#182 renamed it `nebelhaus.roster`** and grew it the multi-source install §5.4(a) asked for. `nebelhaus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
+| "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](haus/modules/options.nix) — but 13 of those are the `bar.items` pill bools and 5 are `focus.slack.*`. The *shape* surface is more like 25. |
+| "rice sets ~19 macOS defaults" | ✅ 19 keys in [`core/default.nix:144-183`](haus/modules/core/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
+| "replace `windows.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `haus.apps`; **rice#182 renamed it `haus.roster`** and grew it the multi-source install §5.4(a) asked for. `haus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
 | "add `haus plan` / `capture` / `diff` / `undo`" | ✅ **Promoted, 2026-08-07 (ninth pass, §5.11).** `haus plan`/`capture`/`diff`/`revert-settings` (`undo`'s real name) are real subcommands now, built on a probe of activation-script output rather than a hand-maintained domain map. `bootstrap.sh` keeps its own copy of the capture logic (it runs before `haus` is on PATH). |
-| "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `core`+`theme`+`terminal`+`security`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt` (now `holt`), `zscratch`, and a git-alias vocabulary. |
+| "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](haus/modules/default.nix) unconditionally imports `core`+`theme`+`terminal`+`security`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt` (now `holt`), `zscratch`, and a git-alias vocabulary. |
 
 **Two mechanisms already in the repo that the brainstorm missed, and that change the plan:**
 
-1. **Machine-writable config already works.** `mkNebelhaus` auto-imports every
-   `.nix` in `hosts/<host>/packages/` ([`flake.nix:76-95`](nebelhaus/flake.nix:76)) —
+1. **Machine-writable config already works.** `mkHaus` auto-imports every
+   `.nix` in `hosts/<host>/packages/` ([`flake.nix:76-95`](haus/flake.nix:76)) —
    that's how pounce's "Install App" command writes config without a parallel
    JSON store. **This is the mechanism for a GUI-editable rice** (§3.7), and
    rice#252 generalizes it to `hosts/<host>/settings/*.nix` + `haus set`.
 2. **Registry merging means an app pack is shareable *today*.** A file that only
-   sets `nebelhaus.roster.*` composes cleanly across modules. That's a
+   sets `haus.roster.*` composes cleanly across modules. That's a
    zero-architecture v0 of the community (§6, Phase 0).
 
 ---
@@ -2148,7 +2148,7 @@ to the second?*
 Adding 60 options on top of today's structure makes the next refactor 3× worse.
 These four are cheap now and expensive later.
 
-### 3.1 Split `options.nix` per room · ✅ **DONE** (nebelhaus#92)
+### 3.1 Split `options.nix` per room · ✅ **DONE** (haus#92)
 656 lines in one file for every room. Move to `modules/<room>/options.nix`,
 keep `modules/options.nix` as the cross-cutting/identity file. Purely
 mechanical, no behaviour change. **Do this first or everything else compounds.**
@@ -2161,11 +2161,11 @@ mechanical, no behaviour change. **Do this first or everything else compounds.**
 - [x] `modules/options.nix` keeps `apps` + `developer` (752 → 122 lines). `git`/`claude` went to terminal, which owns them.
 - [x] Verified as a pure move: the example host's derivation is byte-identical and all 39 leaf option paths are unchanged.
 
-### 3.2 Make `developer` a real pack, not the foundation · ✅ **DONE** (nebelhaus#96)
+### 3.2 Make `developer` a real pack, not the foundation · ✅ **DONE** (haus#96)
 The single highest-leverage change in this doc. Today "minimal" is a lie.
 
 ```nix
-nebelhaus.developer = {
+haus.developer = {
   enable = true;          # the whole dev pack — off means a non-dev Mac
   shell.toolbelt = true;  # bat/delta/lazygit/lsd/fzf/zoxide/yazi
   multiplexer = "zellij"; # zellij | none
@@ -2183,24 +2183,24 @@ nebelhaus.developer = {
       command-plugin deps, which is correct while pounce is on.
 
 **Non-obvious consequence:** with dev off, `terminal.editor = "hx"` is the wrong
-default and Ghostty may not even be wanted. Decide what a non-dev nebelhaus
+default and Ghostty may not even be wanted. Decide what a non-dev haus
 *terminal story* is (probably: no terminal at all, and `haus` reached only via
 pounce).
 
-### 3.3 Presets become the community format, from day one · ✅ **DONE** (nebelhaus#98)
+### 3.3 Presets become the community format, from day one · ✅ **DONE** (haus#98)
 The earlier plan put "define the community rice format" at step 9. Invert it.
 Make the repo's own presets use the exact mechanism a stranger's rice would —
 otherwise you'll build eight layers and discover the format can't express them.
 
-- [x] `presets/{full,minimal,everyday}.nix` — each sets **only** `nebelhaus.*`.
+- [x] `presets/{full,minimal,everyday}.nix` — each sets **only** `haus.*`.
       `large-print` deferred: it needs §5.1/§5.2/§5.3, which don't exist yet.
-- [x] `bootstrap.sh` offers Everyday and emits `extraModules = [ nebelhaus.presets.X ]` —
+- [x] `bootstrap.sh` offers Everyday and emits `extraModules = [ haus.presets.X ]` —
       the same line a person writes to import a rice found online. "Custom" emits none.
 - [x] `nix flake check` runs `checkRice` over every preset **and** evaluates a real
       system with each — trust half and usefulness half
-- [x] `nebelhaus.lib.checkRice` exposed, with `presets/README.md` defining the format
+- [x] `haus.lib.checkRice` exposed, with `presets/README.md` defining the format
 
-### 3.4 Generate the options reference · ✅ **DONE** (nebelhaus#93 + workshop#81)
+### 3.4 Generate the options reference · ✅ **DONE** (haus#93 + workshop#81)
 [`web/src/content/docs/reference/options.md`](web/src/content/docs/reference/options.md)
 is 389 hand-written lines. At 5× the surface it rots within a month.
 
@@ -2257,7 +2257,7 @@ after — zero net change to the machine.
       *whenever it fails* — missing FDA being the common way — activation
       **aborts** and skips every later step, including all launchd daemon/agent
       setup. The symptom lands nowhere near the cause.
-      → nebelhaus **warns** (nebelhaus#89 — a warning, not an assertion: with FDA
+      → haus **warns** (haus#89 — a warning, not an assertion: with FDA
       these work, so blocking would be wrong), and it's reported on
       [nix-darwin#1049](https://github.com/nix-darwin/nix-darwin/issues/1049).
       → ◐ **Amended 2026-08-14 (§5.12).** The eval-time warning stands, unchanged
@@ -2274,13 +2274,13 @@ after — zero net change to the machine.
 
 Ranked by *(unlocks a genuinely different rice) ÷ (effort)*.
 
-### 5.1 `nebelhaus.theme` — break out of the Mocha-grey monopoly · L · risk M · ✅ **flavor + contrast + roster ports shipped**
+### 5.1 `haus.theme` — break out of the Mocha-grey monopoly · L · risk M · ✅ **flavor + contrast + roster ports shipped**
 **★ Biggest miss in the earlier brainstorm.** `theme.accent` is an enum of 14
 Catppuccin Mocha names; the base palette is always Nebelung grey-dark
-([`options.nix:335`](nebelhaus/modules/options.nix:335)). So:
+([`options.nix:335`](haus/modules/options.nix:335)). So:
 
 - ~~There is **no light mode** anywhere in the rice.~~ **(✅ shipped — nebelung#12
-  + nebelhaus#108: `theme.flavor = "latte"`.)**
+  + haus#108: `theme.flavor = "latte"`.)**
 - There is **no high-contrast mode** — the root requirement for the
   "old people" rice that started this whole thread. **(✅ shipped — see boxes.)**
 - A community rice cannot ship its own colours at all. **(still true: `palette`
@@ -2290,7 +2290,7 @@ Nebelung is whiskers-based, so it can render *any* palette — the ceiling is
 the option surface, not the renderer.
 
 ```nix
-nebelhaus.theme = {
+haus.theme = {
   flavor  = "mocha";        # mocha | latte | high-contrast-dark | high-contrast-light | custom
   scheme  = "auto";         # light | dark | auto (follows macOS appearance)
   palette = null;           # attrs of name → hex, for flavor = "custom"
@@ -2318,7 +2318,7 @@ nebelhaus.theme = {
       where Latte has ~0.04 above its, so Mocha's 0.35 melts Latte's
       base/mantle/crust into one white. Mutation-checked — forcing them equal fails
       the ramp-collapse test.
-- [x] rice: the flavor is in the **paths**, not just the colours — **nebelhaus#108**.
+- [x] rice: the flavor is in the **paths**, not just the colours — **haus#108**.
       whiskers names its output after the rendered flavor, so `latte` moves ghostty,
       bat, lsd, yazi, zen and zsh-syntax-highlighting filenames as well as hexes.
       The subtlest one: delta's single gitconfig carries **all four** flavor
@@ -2363,7 +2363,7 @@ nebelhaus.theme = {
       and its row pins a real gotcha — the port renames its theme file per accent,
       so the app's own `theme` key ends up naming the old file. And trill's row is
       simply gone with rice#213; pounce and perch cover runtime-palette theming.
-      → ✅ **Perch's row moved `pinned` → `moves` (nebelhaus#244 + perch#31,
+      → ✅ **Perch's row moved `pinned` → `moves` (haus#244 + perch#31,
       2026-08-07).** "Pounce and perch cover runtime-palette theming" above was
       about *following macOS light/dark*, not the accent hue — perch's ember,
       pinned tile and notice button were still nailed to a fixed green until
@@ -2377,7 +2377,7 @@ nebelhaus.theme = {
       `about:` pages. Real sites are **Stylus's** job, and its Catppuccin-derived
       styles carry their own accent var in the extension's storage, which no file
       the rice writes can reach. Fixed by declaring the extension and stamping a
-      bundle (`nebelhaus.zen.extensions.stylus`) — which then also gave
+      bundle (`haus.zen.extensions.stylus`) — which then also gave
       `high-contrast/` and `latte*/` a stylus dir to read, so flavor and contrast
       reach the web too. The lesson is the wording one: a scope sentence naming an
       *app* implies everything that app shows you, and a browser is the one app
@@ -2395,7 +2395,7 @@ nebelhaus.theme = {
 - [ ] ◐ `scheme = "auto"` — **one consumer shipped it, and it wasn't the one this
       box expected.** No bar-hosted watcher was needed: pounce#42 + rice#142 give the
       palette `theme`/`themeLight` and it picks per open, exposed as
-      `nebelhaus.pounce.followSystemAppearance` (default **true**). Three things
+      `haus.pounce.followSystemAppearance` (default **true**). Three things
       that generalise:
       **(a)** the unit that follows appearance is a *tool*, not the rice — anything
       that can re-read a palette at draw time can opt in on its own, and only tools
@@ -2444,7 +2444,7 @@ nebelhaus.theme = {
       and `theme.ports.handled` — rooms declaring what they already wire by hand,
       with an assertion that every id is a real port — is the pattern to copy for any
       future "generic pass plus hand-tuned exceptions" option.
-- [x] ✅ **macOS's own Light/Dark — SHIPPED as `nebelhaus.theme.systemAppearance`
+- [x] ✅ **macOS's own Light/Dark — SHIPPED as `haus.theme.systemAppearance`
       (rice#257), and the spike falsified this box's own premise.** This box said
       the asymmetry was the problem: "turning dark mode on is one typed setting,
       turning it off means deleting a default." **Both halves are wrong on macOS
@@ -2559,12 +2559,12 @@ nebelhaus.theme = {
       it's obviously needed — by then the copies exist and each is separately
       true and separately maintained.
 
-### 5.2 `nebelhaus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done**
+### 5.2 `haus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done**
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
 every room, so a rice says "spacious" once instead of tuning nine numbers.
 
 ```nix
-nebelhaus.ui = {
+haus.ui = {
   scale = 1.35;            # 1.0 = today
   density = "spacious";    # compact | comfortable | spacious
   motion = "reduced";      # full | reduced | none
@@ -2589,7 +2589,7 @@ contrast.
       **(a)** every size in pounce is now written for scale 1.0 and read through a
       `pt()` helper, so `"scale": 1.4` in `config.json` multiplies the launcher AND
       the emoji / clipboard / screenshots / camera / Find Files / cheatsheet / ⌘Tab
-      panels together. `nebelhaus.pounce.scale` follows `ui.scale`, clamped into
+      panels together. `haus.pounce.scale` follows `ui.scale`, clamped into
       pounce's narrower 0.8–2.0 so `ui.scale = 2.5` yields a 2.0 palette rather
       than an eval error.
       **(b)** the rejected alternative is the part worth keeping: a `.scaleEffect`
@@ -2637,7 +2637,7 @@ contrast.
       carrying is the narrow one: *a point-valued number only meets `displays`
       when something sizes itself from it* — tiled and OS-managed surfaces absorb
       the change.
-      → ✅ **Fixed the same day, one PR before this pass's own #243 — nebelhaus#241
+      → ✅ **Fixed the same day, one PR before this pass's own #243 — haus#241
       + #242 (caught by the eighth pass's audit, §5.14's rule).** #241 added
       Finder's sidebar row and named perch as never-reached by `ui.scale`;
       #242 corrected #241's own first-guess fix — `displays.*.uiScale` doesn't
@@ -2735,7 +2735,7 @@ contrast.
       rows flipping from `ceiling` to `moves`. A stated ceiling is only the better
       answer while it *is* one, and nothing errors the day it stops being.
 - [x] ✅ **Honest scope line — and it's a GOLDEN TABLE now, `scale-reach`
-      (2026-08-06).** The prose: this changes *nebelhaus's own* UI reliably and
+      (2026-08-06).** The prose: this changes *haus's own* UI reliably and
       Dock/Finder sizes reliably. System-wide text size is reachable **only** via
       display mode (§5.10) — macOS 26's per-app `FontSizeCategory` is locked.
       The check is `accent-reach`'s shape applied to the other fan-out option,
@@ -2760,13 +2760,13 @@ contrast.
       two rows to `pinned`. Darwin-only, like `accent-reach` — it fingerprints a
       real evaluated system, so it fires on this machine or not at all.
 
-### 5.3 `nebelhaus.fonts` · S · risk L · ◐ **`mono` shipped and its reach fixed (rice#243); the S-sized `sans` — one option, one label — shipped 2026-08-15 (haus#363). What stays open is the ·M app-side half across three repos, which needs a seam built before it needs a font. See the ship box and the open one after it; the header is the summary and the box decides (§5.14)**
+### 5.3 `haus.fonts` · S · risk L · ◐ **`mono` shipped and its reach fixed (rice#243); the S-sized `sans` — one option, one label — shipped 2026-08-15 (haus#363). What stays open is the ·M app-side half across three repos, which needs a seam built before it needs a font. See the ship box and the open one after it; the header is the summary and the box decides (§5.14)**
 **Cheapest big win in the doc, and nobody has asked for it because it's
 invisible until you try to change it.** JetBrains Mono Nerd Font is hardcoded in
-[`core:125`](nebelhaus/modules/core/default.nix:125); Ghostty's size is hardcoded in terminal.
+[`core:125`](haus/modules/core/default.nix:125); Ghostty's size is hardcoded in terminal.
 
 ```nix
-nebelhaus.fonts = {
+haus.fonts = {
   mono = { package = pkgs.nerd-fonts.jetbrains-mono; name = "JetBrainsMono Nerd Font"; size = 14; };
   sans = { name = "SF Pro"; };              # e.g. "Atkinson Hyperlegible" for large-print
   extraPackages = [ ];
@@ -2817,7 +2817,7 @@ to the family the bar was already hardcoding.
       accepts `./thing` beside the rice file, which is still data. The thing this
       doc kept describing as an audit to schedule was ten seconds of work.
       **(c)** it's a CHECK now, exactly as this box asked: `data-only-surface` in
-      `nix flake check` fails when a package-typed `nebelhaus.*` leaf has no string
+      `nix flake check` fails when a package-typed `haus.*` leaf has no string
       sibling named `<option>Name`. It reads the same evaluated option tree the
       docs render from — so it sees the public surface by construction — and it's
       pure lib, so it runs on Linux CI beside `keymap`/`theme-variants`.
@@ -3004,13 +3004,13 @@ to the family the bar was already hardcoding.
       backwards; there is no equivalent pull here yet, and inventing one is how
       an option surface grows things nobody sets.
 
-### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ✅ **(a) shipped as `roster` (rice#182), (b) shipped (nebelhaus#253)**
+### 5.4 registry v2 — install sources + a real workspace model · M · risk M · ✅ **(a) shipped as `roster` (rice#182), (b) shipped (haus#253)**
 The registry is good. Two concrete gaps — and the halves came apart: the install
 sources shipped without the workspace model, which is the right order (one is
 additive, the other is the schema migration).
 
 **(a) `cask` is the only install source.** ✅ **Shipped, differently than sketched.**
-rice#182 renamed `nebelhaus.apps` → **`nebelhaus.roster`** and gave each entry
+rice#182 renamed `haus.apps` → **`haus.roster`** and gave each entry
 four parallel nullable source fields — `cask`, `brew`, `package` (+ `scope`),
 `appStoreId` — rather than the tagged union proposed here:
 
@@ -3036,7 +3036,7 @@ pack-authored half is not a second code path. Only the both-set assertion reads
 the raw entries, because after resolution the two would look like agreement.
 
 Still not shipped from this sketch: the `flake` / `pwa` / `manual` sources. `mas`
-did land, gated behind `nebelhaus.appStore.install` — off by default, because it
+did land, gated behind `haus.appStore.install` — off by default, because it
 reaches the network and acts on your Apple Account, and `mas` can neither sign in
 nor buy a paid app, so it can never be complete.
 
@@ -3045,7 +3045,7 @@ into the schema itself.** Role workspaces ("communication" = Mail + Slack +
 Messages) and project workspaces are literally unrepresentable. Invert it:
 
 ```nix
-nebelhaus.workspaces.comms = {
+haus.workspaces.comms = {
   key = "c"; icon = ":slack:"; monitor = "main"; layout = "tiles";
   apps = [ "slack" "mail" "messages" ];
 };
@@ -3053,17 +3053,17 @@ nebelhaus.workspaces.comms = {
 …with `roster.<id>.workspace` kept as sugar that desugars into the above, so
 existing hosts don't break.
 
-**Update 2026-08-07 (nebelhaus#253): shipped, and NOT the way the sketch above
+**Update 2026-08-07 (haus#253): shipped, and NOT the way the sketch above
 proposed.** Julien is the only consumer of this rice — he asked explicitly for a
 clean rename over a back-compat alias, so `roster.*.workspace` and
 `roster.*.barIcon` are **gone**, not deprecated. What shipped is otherwise the
-sketch's inversion: `nebelhaus.workspaces.<id>` owns `key`, `icon` and `apps`
+sketch's inversion: `haus.workspaces.<id>` owns `key`, `icon` and `apps`
 (the roster ids that live there); windows and bar resolve an app's workspace
-through a new internal `nebelhaus._appWorkspace` lookup (roster id → workspace
+through a new internal `haus._appWorkspace` lookup (roster id → workspace
 id) rather than reading a field off the app. `monitor` / `layout` from the
 sketch did **not** ship — nothing in this pass needed them, and per-workspace
 monitor pinning would mean bridging AeroSpace's monitor-pattern matching
-against `nebelhaus.displays`' own UUID vocabulary, a separate feature with its
+against `haus.displays`' own UUID vocabulary, a separate feature with its
 own risk. Left for whoever needs it.
 
 The workspace-throw key moved off the app too: `shift-<key>` used to throw to
@@ -3074,13 +3074,13 @@ workspaces claiming one key; a workspace key colliding with the fixed
 numbered-workspace `⇧` throws). Plain `<key>` stays exactly what it always
 was: a roster app's launch letter, never a workspace's.
 
-Also finished the second, previously-unstarted box: `nebelhaus.roster.*.float`
+Also finished the second, previously-unstarted box: `haus.roster.*.float`
 (+ optional `titleRegex`, scoped to AeroSpace's `window-title-regex-substring`)
 generalises the "float" half of window rules — the shape the three
 hand-hardcoded `aerospace.toml` rules (FaceTime, Flick, Ghostty) were asking to
 become. FaceTime and Flick are now ordinary `float = true` roster entries
 (`modules/windows/default.nix` — the live entry is `haus.roster.trill`, Flick
-having been renamed by nebelhaus#264; see the naming banner at the top); Ghostty's rule stays hand-written on purpose —
+having been renamed by haus#264; see the naming banner at the top); Ghostty's rule stays hand-written on purpose —
 it's genuinely bespoke (assign-once-at-startup vs. float-always-at-runtime),
 racing the same AX-title-lands-late problem `titleRegex`'s own docs warn about,
 so generating it would just move the bespoke-ness into the generator.
@@ -3094,17 +3094,17 @@ truth rule asks: a checked box that says "verified infeasible, here's the
 citation" beats an unchecked one that looks like nobody got to it.
 
 **A real gap this surfaced, not designed in: a pack can't claim a workspace.**
-`checkPack` only lets a pack set `nebelhaus.roster` (packs/README.md), and
+`checkPack` only lets a pack set `haus.roster` (packs/README.md), and
 `lib.pack` only lowers *that* option's priority on the way into a consumer.
 `packs/writing.nix` can no longer give Obsidian or Zotero a workspace itself —
-its README now tells the consumer to add the two-line `nebelhaus.workspaces`
-entry by hand. Extending `checkPack`/`lib.pack` to carry `nebelhaus.workspaces`
+its README now tells the consumer to add the two-line `haus.workspaces`
+entry by hand. Extending `checkPack`/`lib.pack` to carry `haus.workspaces`
 through too — with `apps` needing list-merge semantics where every other field
 wants `mkDefault`, per that option's own docs — is follow-up work, not done
 here.
 
 **Measured, not assumed:** a full build of the real `mbp` host (this machine)
-against nebelhaus#253's branch, `--override-input`'d in for `nebelhaus`,
+against haus#253's branch, `--override-input`'d in for `haus`,
 finished with **zero warnings** (`nix eval
 .#darwinConfigurations.mbp.config.warnings` → `[]`) — every one of the seven
 migrated single-app workspaces (`N`/`R`/`S`/`H`/`C`/`D`/`X`) still resolves.
@@ -3122,7 +3122,7 @@ during the eval, not just written and trusted.
 
 The consumer half of the migration (`~/.config/nix`'s `hosts/mbp/default.nix`)
 is a **paired, currently-draft PR** (nix-config#45) — it can't bump
-`flake.lock`'s `nebelhaus` input until nebelhaus#253 actually merges (a lock
+`flake.lock`'s `haus` input until haus#253 actually merges (a lock
 bump computed against an unmerged rev pins nothing real), so it's blocked
 rather than red. Same shape every breaking rename here takes: the lock bump
 and the config edit that depends on it land together, in one PR, once there's
@@ -3131,16 +3131,16 @@ a real merged rev to point at — never split across the merge boundary.
 `holt` currently fails to build from the workshop's own main checkout
 independent of any of this (`sdk/go`'s nested `go.mod` collides with the root
 module under `buildGoModule` — reproduced building `holt` alone, zero
-nebelhaus involvement) — worked around for verification by overriding
-`nebelhaus/holt` to a pre-SDK rev. Not this pass's bug to fix; flagging it
+haus involvement) — worked around for verification by overriding
+`hausfold/holt` to a pre-SDK rev. Not this pass's bug to fix; flagging it
 here so it isn't mistaken for fallout of this migration.
 
 - [x] Multi-source install — shipped as `roster`'s parallel source fields, not a
       tagged union (see above)
-- [x] First-class `workspaces` — shipped nebelhaus#253, **no** back-compat
+- [x] First-class `workspaces` — shipped haus#253, **no** back-compat
       alias (single-user rice, clean rename per instruction — see above).
       **§5.4 is now fully checked off.**
-- [x] Window rules beyond assignment — shipped nebelhaus#253 as `float` +
+- [x] Window rules beyond assignment — shipped haus#253 as `float` +
       `titleRegex`. `center` and `sticky` are verified-infeasible against
       AeroSpace itself (see above), not shipped, and that's the closed state
       for both — there's no upstream primitive to build them on.
@@ -3148,7 +3148,7 @@ here so it isn't mistaken for fallout of this migration.
       Quick Look / Finder / Share extensions, printers, network shares, VSTs.
       **Two of the five have answers now and NEITHER went into the registry:**
       fonts are `fonts.mono.packageName` (rice#215) and browser extensions are
-      `nebelhaus.zen.extensions` (rice#211), each its own surface.
+      `haus.zen.extensions` (rice#211), each its own surface.
       ★ That's three losses in a row for the instinct behind this bullet — the
       third being §5.9's command metadata, which landed in nebelung's
       `ports.meta.json` rather than a rice-side table. **The registry is for
@@ -3156,14 +3156,14 @@ here so it isn't mistaken for fallout of this migration.
       roster must grow to swallow them" — and note that both answers were
       *cheaper* than the schema migration would have been, which is the argument.
 
-### 5.5 `nebelhaus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (nebelhaus#108)**
+### 5.5 `haus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (haus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This
 single-handedly makes **mouse-first**, **one-handed**, and **non-QWERTY /
 international layout** rices impossible — a real accessibility *and*
 internationalization gap the earlier brainstorm didn't name.
 
 ```nix
-nebelhaus.keys = {
+haus.keys = {
   leader = "caps";           # caps | hyper | none  (none = mouse-first rice)
   palette = "cmd-space";     # or "none" to keep Spotlight
   windowNav = "alt";         # the modifier vocabulary, not individual binds
@@ -3271,19 +3271,19 @@ nebelhaus.keys = {
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
 ### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **nine of ten groups shipped or part-shipped (rice#198, #250, #267, #286); every row is spiked except `animations`, which ships unspiked on purpose (below) — and the null-default policy now holds across all ten without exception. One row is unbuilt and stays that way on purpose: Windows, which is logout-only. Two half-groups are deferred on the same reason — `lock`'s login half and `security`'s guest/remote-login half**
-Do **not** mirror every nix-darwin default into `nebelhaus.*`; `system.defaults`
+Do **not** mirror every nix-darwin default into `haus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
 | Group | Notable gaps today |
 |---|---|
-| **Hot corners** | ✅ **`nebelhaus.hotCorners.*` — rice#198.** Action by name, not the integer macOS stores |
-| **Screenshots** | ✅ **`nebelhaus.screenshots.*` — rice#198.** Folder, format, shadow, thumbnail, date |
-| **Lock / login / screensaver** | ◐ **`nebelhaus.lock.*` — rice#250.** The LOCK half only (`requirePassword`, `requirePasswordDelay`, `com.apple.screensaver`). The LOGIN half (guest account, login window text) is `com.apple.loginwindow` — read once at boot, no live-reload path, and killing `loginwindow` to force one would end the current session — so it stays out until this group has an honest way to say "takes effect at next login" instead of shipping a setting that silently doesn't apply. |
-| **Menu bar & Control Center** | ✅ **`nebelhaus.menuBar.{clock,controlCenter}.*` — rice#250.** Clock format/seconds/date/day-of-week/analog (`com.apple.menuExtraClock`, restarts `SystemUIServer`) + which Control Center glyphs show (battery %, sound, bluetooth, AirDrop, display, Focus, Now Playing — `com.apple.controlcenter`, restarts `ControlCenter`, a whitelisted process since rice#249 that nothing had written into until now) |
+| **Hot corners** | ✅ **`haus.hotCorners.*` — rice#198.** Action by name, not the integer macOS stores |
+| **Screenshots** | ✅ **`haus.screenshots.*` — rice#198.** Folder, format, shadow, thumbnail, date |
+| **Lock / login / screensaver** | ◐ **`haus.lock.*` — rice#250.** The LOCK half only (`requirePassword`, `requirePasswordDelay`, `com.apple.screensaver`). The LOGIN half (guest account, login window text) is `com.apple.loginwindow` — read once at boot, no live-reload path, and killing `loginwindow` to force one would end the current session — so it stays out until this group has an honest way to say "takes effect at next login" instead of shipping a setting that silently doesn't apply. |
+| **Menu bar & Control Center** | ✅ **`haus.menuBar.{clock,controlCenter}.*` — rice#250.** Clock format/seconds/date/day-of-week/analog (`com.apple.menuExtraClock`, restarts `SystemUIServer`) + which Control Center glyphs show (battery %, sound, bluetooth, AirDrop, display, Focus, Now Playing — `com.apple.controlcenter`, restarts `ControlCenter`, a whitelisted process since rice#249 that nothing had written into until now) |
 | **Sound** | ✅ **`haus.sound.*` — rice#267.** `alertVolume` (0–100, converted from the `e^(v/100−1)` macOS actually stores), `alertSound` (an enum over `/System/Library/Sounds`, because a bad path is silence not a fallback), `volumeFeedback`, `uiSounds`, `startupChime` (`nvram`, so it survives a reinstall). Live writes, no FDA, no restart. The volume curve is pinned by a `nix flake check` against numbers CoreAudio reported |
 | **Locale / input sources** | ✅ **`haus.locale.*` — rice#267.** `language`, `region`, `metric` (writes both unit keys), `temperature`, `hourFormat`, `inputSources` (exhaustive; via the TIS API). Needed restart-map's third verb, `notify:<name>` — this family has no daemon to kill, so a write reaches newly launched processes only until `AppleDatePreferencesChangedNotification` is posted. No `firstWeekday`: that key is stored and ignored |
 | **Power** | ✅ **`haus.power.*` — rice#267.** Sleep timers and Low Power Mode, per power source, as a `pmset` activation step — the `security.firewall` family rather than the `system.defaults` one. Deliberately NOT on nix-darwin's typed `power.sleep.*`: measured on 26.6.1, `systemsetup -setcomputersleep` wrote the AC profile while the machine was on battery, with its stderr discarded upstream (reported) |
-| **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
+| **Security posture** | ◐ **`haus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
 | **Animations** | ✅ **`haus.animations` — rice#286.** Five keys across two already-verified domains: the Dock's `autohide-time-modifier` / `expose-animation-duration` / `launchanim` / `mineffect`, plus `NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`. Defaults to `"system"` = write nothing, same as every other row — it was drafted the other way round and reversed before merge; see the policy note below for what that cost would have been. Two firsts worth knowing: it's the only group with no per-key spike (there is no oracle for "did the Dock slide faster" — the keys are felt, not measured), and its NSGlobalDomain half is read by each app AT LAUNCH, so running apps keep animating until relaunched. What it deliberately is NOT is `universalaccess reduceMotion`: that flag is what every browser reads as `prefers-reduced-motion`, via the same `NSWorkspace` property `hausax` prints — so the negative claim is checkable (`hausax \| jq .reduceMotion` stays `false` — on a machine that hasn't also set `haus.accessibility.reduceMotion`, which is the option that DOES move it, added in §5.12) even though the positive ones aren't |
 | **Windows** | Stage Manager, native tiling, edge drag (must interlock with windows) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
@@ -3523,7 +3523,7 @@ directly to `haus set`, all of them non-obvious:
 written-down table, because *a confident wrong number in a file that looks
 authoritative* is the one drift a template makes worse than no template;
 **(b)** it refuses outright when the target is a symlink into the Nix store —
-under the rice that file is generated from `nebelhaus.pounce.*`, so a copy
+under the rice that file is generated from `haus.pounce.*`, so a copy
 written beside it would be silently reverted by the next rebuild. `haus set`
 faces the identical two-writers question from the other side;
 **(c)** every commented line carries its own trailing comma (the config is read
@@ -3534,13 +3534,13 @@ otherwise the file's promise breaks on your second edit.
 in two before #252 closed it.** A fresh
 install now gets `hosts/<host>/options.nix` beside its host file: every settable
 option at its default, with description, type and docs anchor, all commented
-out, rendered from the same `options.json` nebelhaus.com and the agent skill are
+out, rendered from the same `options.json` hausfold.co and the agent skill are
 rendered from, and refreshed by `haus options` after `haus update`. Two
 independent repos reached the same shape within days of each other, which is
 about as strong a signal as this document gets that the shape is right.
 
 **A third instance landed 2026-08-04, from the other direction:** the rice now
-generates `~/.config/holt/config.toml` from `nebelhaus.agents.default`, because a
+generates `~/.config/holt/config.toml` from `haus.agents.default`, because a
 zellij server or a launchd daemon outlives the environment that started it, so
 `holt new` has to resolve a file rather than inherit a stale selection. Holt owns
 that file when installed standalone — so this is the same two-writers question as
@@ -3576,9 +3576,9 @@ file.** The worst copy was the header written into *every user's* host file.
 - [x] `haus get` / `haus unset` / `haus reset <path>`
 - [x] Pounce commands wrapping it: **"Make text bigger"**, "Switch to light mode",
       "High contrast on" — the palette becomes the settings app
-- [x] Guard: only `nebelhaus.*` paths are settable this way (same boundary as §3.3)
+- [x] Guard: only `haus.*` paths are settable this way (same boundary as §3.3)
 
-This is what lets someone use a nebelhaus rice for a year without ever opening
+This is what lets someone use a hacker desktop for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
 ### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is BUILT and in review (haus#376, opened 2026-08-16 — not merged, so the box below stays open); the trigger engine is deliberately still open, which is what this section's one box always said**
@@ -3587,7 +3587,7 @@ integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
 
 ```nix
-nebelhaus.scenes.recording = {
+haus.scenes.recording = {
   dnd = true; preventSleep = true;
   audio.input = "Studio Mic";
   apps.open = [ "OBS" ];
@@ -3595,7 +3595,7 @@ nebelhaus.scenes.recording = {
   restorePreviousState = true;
 };
 ```
-with `focus` shipped as the built-in `quiet` scene (keep `nebelhaus.focus.*` as
+with `focus` shipped as the built-in `quiet` scene (keep `haus.focus.*` as
 an alias so no host breaks).
 
 Good scenes: meeting · recording · presentation · reading · travel · docked ·
@@ -3622,7 +3622,7 @@ power source, display attach.
       engine every one of them shares.
       Four things about the shipped shape, three of which reverse a line above:
       **(a) ★ the namespace moved, because the ROOM RENAME took the word this
-      sketch was borrowing.** The block above proposes `nebelhaus.scenes.*` as a
+      sketch was borrowing.** The block above proposes `haus.scenes.*` as a
       new namespace with `focus.*` demoted to an alias — written in July, when
       the room was `hush` and `focus` was a free word this document had picked
       up (the naming banner's own paragraph on §5.8 notices the coincidence and
@@ -3698,16 +3698,16 @@ script-discovery only with **no Nix option at all**; as of pounce#43 the
 from "design a surface" to "generate a file", the cheapest it will ever be.
 
 ```nix
-nebelhaus.bar.widgets.backup = {
+haus.bar.widgets.backup = {
   command = ./backup-status.sh; interval = 300;
   icon = "󰁯"; placement = "right"; permissions = [ "full-disk-access" ];
 };
 
-nebelhaus.pounce.commands.callAnna = {
+haus.pounce.commands.callAnna = {
   name = "Call Anna"; run = "open facetime://+15550100";
   mutates = false; needsConfirm = false;
 };
-nebelhaus.pounce.packs = [ "everyday" "people" ];   # vs the dev pack
+haus.pounce.packs = [ "everyday" "people" ];   # vs the dev pack
 ```
 
 Non-dev widget ideas the current set has no room for: Time Machine health ·
@@ -3717,8 +3717,8 @@ break timer · storage pressure · NAS reachability · world clocks.
 - [ ] `bar.items` becomes sugar over `bar.widgets` (bundled widgets pre-declared)
 - [x] ✅ **Pounce's window sizing is an option now** (pounce#53 + rice#175).
       `windowMode` had been written straight into `config.json` with no option at
-      all; it is `nebelhaus.pounce.windowMode` now, and it gained a sibling —
-      `nebelhaus.pounce.scale`, following `ui.scale` — because writing the option
+      all; it is `haus.pounce.windowMode` now, and it gained a sibling —
+      `haus.pounce.scale`, following `ui.scale` — because writing the option
       exposed that one enum was answering two questions. `windowMode` is the
       layout's *proportions*; `scale` is how big it's drawn; they compose. See
       §5.2 for the app-side seam that made the second one possible.
@@ -3728,9 +3728,9 @@ break timer · storage pressure · NAS reachability · world clocks.
       `shortcut:<uuid>` addresses a Shortcuts-library entry), each taking
       `enabled` / `alias` / `hotkey`. The
       design fork recorded there was *one schema now* vs *a key per stage*, resolved
-      to one **because these ripple into `nebelhaus/modules/launcher` either way** —
+      to one **because these ripple into `haus/modules/launcher` either way** —
       i.e. the rice-side option was a known consequence, not an afterthought.
-- [x] ✅ **rice side shipped — rice#149.** `nebelhaus.pounce.items` generates that
+- [x] ✅ **rice side shipped — rice#149.** `haus.pounce.items` generates that
       map, keyed by the same `cmd:`/`app:`/`mode:` addresses, with `listed` /
       `alias` / `caption` / `hotkey` per row. (This box sat unticked for four
       days while the status block above already credited #149 — see §5.14.)
@@ -3773,13 +3773,13 @@ break timer · storage pressure · NAS reachability · world clocks.
       (§5.1) — same idea, other room. Copy that shape: the declaration lives with the
       command, the consumer reads it.
 
-### 5.10 `nebelhaus.displays` — ✅ **shipped in nebelhaus#147** · M · risk M
+### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
 it moves up sharply. It is the **only** working path to "make everything bigger"
 on macOS 26. Don't expose `1920×1200`; expose intent:
 
 ```nix
-nebelhaus.displays.internal.uiScale = "larger-text";
+haus.displays.internal.uiScale = "larger-text";
 # more-space | default | larger-text | largest-text
 ```
 
@@ -3805,7 +3805,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       posts out of the built script, and haus#353 added the half a restart can't
       cover — the domains that wait for a logout.** See the two boxes at the end
       of this section.
-- [x] `haus capture` — promote the `NEBELHAUS_KEEP` current-value reader into a
+- [x] `haus capture` — promote the `HAUS_KEEP` current-value reader into a
       general "turn this Mac into config" command. Generalised past the three
       named categories via `system.defaults.CustomUserPreferences` for any
       literal plist domain; felt against this machine's real
@@ -3833,7 +3833,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       that answers "is Automation granted" *prompts*, and prompting from a health
       check is worse than not knowing — so the row reports whether anything on
       this machine will **ask** (detected from the running home-manager
-      generation's `nebelhausSystemAppearance` block) and links the pane either
+      generation's `hausSystemAppearance` block) and links the pane either
       way. A checklist may not be able to check; it can still always say where.
       The detection is an `if`, not an `&&` chain: under `haus.sh`'s `set -euo
       pipefail` a chain ending false aborts doctor partway through, printing
@@ -3993,7 +3993,7 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       → ❌ **The route is not `CustomUserPreferences`, and typed-vs-untyped was
       the wrong axis to pick it on.** *None* of the four goes through
       `system.defaults` at all: the layer emits its own `defaults write` for the
-      whole domain, in `modules/core/default.nix`'s `nebelhausAccessibility`
+      whole domain, in `modules/core/default.nix`'s `hausAccessibility`
       block. `CustomUserPreferences` would have funnelled through the identical
       nix-darwin generator as a typed option — an **unguarded** write inside a
       script running under `set -e` — so the untyped route carries exactly the
@@ -4117,19 +4117,19 @@ a **bonus layer** that sharpens the result when FDA happens to be granted — ne
 as the foundation. That ranking survived all three revisions of this finding,
 which is the main argument for it.
 
-### 5.13 Authorable tour steps · ✅ **shipped in nebelhaus#156** · docs workshop#135/#137 · S · risk L
+### 5.13 Authorable tour steps · ✅ **shipped in haus#156** · docs workshop#135/#137 · S · risk L
 Small, and **nobody else can ship this**. `tour.enable` teaches the four moves
 of *this* rice. A community rice teaches its own:
 
 ```nix
-nebelhaus.tour.steps = [
+haus.tour.steps = [
   { hint = "Press ⌘Space to find anything"; detect = "pounce-opened"; }
 ];
 ```
 The detection signals already exist (the leader-mode scripts). This is the
 difference between downloading someone's config and *learning* it.
 
-nebelhaus#156 kept `steps = null` as the unchanged built-in lap; supplying a
+haus#156 kept `steps = null` as the unchanged built-in lap; supplying a
 non-empty list replaces it. `detect` is deliberately the existing outcome
 vocabulary (`launch`, `workspace`, `navigate`, `resize`, `palette`), so the
 community file remains data-only, and the module warns when a step names a
@@ -4150,7 +4150,7 @@ family had been renamed out from under the whole document:
 | §5.9 rice-side `pounce.items` | rice#149, 2026-07-30 |
 | §5.12 `haus doctor` detects FDA | rice#128 |
 | §5.2 Finder sidebar size | rice#181 |
-| §5.4(a) multi-source install | rice#182 — and it **renamed `nebelhaus.apps` → `nebelhaus.roster`** |
+| §5.4(a) multi-source install | rice#182 — and it **renamed `haus.apps` → `haus.roster`** |
 
 The §5.9 one is the instructive case, because the doc **already knew**: the
 status block at the top credits rice#149 by number, while the checkbox 600 lines
@@ -4168,7 +4168,7 @@ Two structural reasons this drifts more than a normal TODO list, both worth
 designing around rather than resolving to try harder:
 
 1. **The work happens in four repos and the doc lives in a fifth.** Nothing in
-   `nebelhaus`, `nebelung` or `pounce` CI can see this file, so a PR that closes
+   `haus`, `nebelung` or `pounce` CI can see this file, so a PR that closes
    an item has no mechanical way to say so. Every other cross-repo seam in this
    project got fixed by making the upstream repo emit data (`options-json`,
    `wm-bindings-json`, `ports.meta.json` — see §7); this one is still prose on
@@ -4247,7 +4247,7 @@ that section that cites it.
 every other cross-repo seam here got fixed by making the upstream repo emit
 something mechanical, while this one stayed prose on both sides. Two roadmap
 findings are now **checks in the repo that can break them**: `data-only-surface`
-fails when a package-typed `nebelhaus.*` leaf has no string sibling (§5.3), and
+fails when a package-typed `haus.*` leaf has no string sibling (§5.3), and
 `accent-reach` fingerprints seventeen surfaces under three accents so §5.1's
 honest-scope paragraph can't silently stop being true. Both cost one PR each.
 *(Corrected on the fifth pass: only `data-only-surface` is pure `lib` and runs on
@@ -4352,7 +4352,7 @@ makes the first one a lie", and every "what this does NOT reach" paragraph in
 
 **A fourth candidate arrived with limit 3's measurements, and closed within the
 hour: a pack's SURFACE.** Nothing enforced that a pack touches only
-`nebelhaus.roster` — `checkRice` bounds it to `nebelhaus.*` and stopped there,
+`haus.roster` — `checkRice` bounds it to `haus.*` and stopped there,
 which is why `packs/writing.nix` opened with a comment explaining the narrower
 rule instead of a check enforcing it. It cost nothing until §6's seam existed,
 and would have cost real confusion the moment it did, because the wrapper
@@ -4637,13 +4637,13 @@ is a program. A document doesn't get one.
 > names it in the same edit.
 
 **Phase 0 — ship this week, no architecture required**
-- ◐ `nebelhaus.fonts` (§5.3) — nebelhaus#91. Turned up a real bug on the way:
+- ◐ `haus.fonts` (§5.3) — haus#91. Turned up a real bug on the way:
       bar named `Hack Nerd Font` in seven places and **nothing installed it**,
       so every fresh install had been drawing tofu across the whole bar.
       Phase 0's part is done; §5.3 is `◐` because of the app-side `sans` box,
       which is not Phase-0-shaped work.
 - [x] ✅ **Shareable app pack — rice#198.** `packs/writing.nix` +
-      `packs/README.md`, exposed as `nebelhaus.packs.<name>` and run through the
+      `packs/README.md`, exposed as `haus.packs.<name>` and run through the
       same `nix flake check` the presets are. **Phase 0 is now closed.**
       A pack is a preset that touches ONE family (`roster`), which is why it
       composes rather than competes: `[ everyday large-print writing ]` is a
@@ -4691,10 +4691,10 @@ is a program. A document doesn't get one.
       turned up.
 
 **Phase 1 — structure (blocks everything else)** ✅ **done 2026-07-26**
-- [x] §3.1 split options (nebelhaus#92) — 752 → 122 lines, byte-identical derivation
-- [x] §3.2 `developer.enable` (nebelhaus#96) — "minimal" is no longer a lie
-- [x] §3.3 presets-as-format (nebelhaus#98) — `checkRice` + `nix flake check`
-- [x] §3.4 generated docs (nebelhaus#93 + workshop#81) — page rendered from the module system
+- [x] §3.1 split options (haus#92) — 752 → 122 lines, byte-identical derivation
+- [x] §3.2 `developer.enable` (haus#96) — "minimal" is no longer a lie
+- [x] §3.3 presets-as-format (haus#98) — `checkRice` + `nix flake check`
+- [x] §3.4 generated docs (haus#93 + workshop#81) — page rendered from the module system
 
   Worth recording: **§3.1 paid for §3.4 immediately.** Splitting options into
   pure `{ lib, ... }` modules is what let the docs generator evaluate them
@@ -4706,20 +4706,20 @@ is a program. A document doesn't get one.
 - [x] §4 spikes → [`macos-settings-matrix.md`](macos-settings-matrix.md)
 - [x] `universalaccess` confirmed dead via a real `darwin-rebuild` — fails as
       root, and aborts activation when set
-- [x] Guardrail shipped: nebelhaus **warns** when `system.defaults.universalaccess.*`
-      is set (nebelhaus#89), and it's reported upstream on nix-darwin#1049.
+- [x] Guardrail shipped: haus **warns** when `system.defaults.universalaccess.*`
+      is set (haus#89), and it's reported upstream on nix-darwin#1049.
 - [x] **Positive case settled** (Ghostty + FDA): `reduceMotion` writes *and*
       takes effect. The sweep then proved `reduceTransparency`,
       `increaseContrast` and `differentiateWithoutColor` too — the last two
       aren't nix-darwin-typed, so they ship via `CustomUserPreferences`
-      (nebelhaus#90) and give §5.1 an OS-level high-contrast lever.
+      (haus#90) and give §5.1 an OS-level high-contrast lever.
 - [x] `FontSizeCategory` resolved and **rejected**: writes land but post no
       change notification, so apps never re-read them and System Settings
       renders a desynced view. Third member of the write-that-lies family.
 
 **Phase 3 — the expression layer** *(the spike raised this phase's priority: it's
 everything macOS can't veto)* — **mostly done 2026-07-27**
-- ◐ §5.3 fonts (nebelhaus#91) — **the mono half**, plus its reach fixed
+- ◐ §5.3 fonts (haus#91) — **the mono half**, plus its reach fixed
       (rice#243) and the proportional half named (haus#363, 2026-08-15). Open:
       the app-side `sans` across pounce/perch/trill, which needs a config seam
       before it needs a font. *(Ticked `[x]` until the twenty-second pass, on
@@ -4729,22 +4729,22 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       (`density`/`motion` still unbuilt). **Pounce and bar both reached**
       (pounce#53 + rice#175): the palette and every panel behind it scale freely,
       the bar's type scales to the menu-bar band's ceiling and stops
-- [x] §5.1 theme: **contrast** (nebelung#11 + nebelhaus#103) and **flavor / light
-      mode** (nebelung#12 + nebelhaus#108), then **roster theming from port
-      metadata** (nebelung#17/#18/#19 + nebelhaus#136) and **pounce off the
-      "bakes its own" list** (pounce#37/#42 + nebelhaus#139/#142). `scheme = "auto"`
+- [x] §5.1 theme: **contrast** (nebelung#11 + haus#103) and **flavor / light
+      mode** (nebelung#12 + haus#108), then **roster theming from port
+      metadata** (nebelung#17/#18/#19 + haus#136) and **pounce off the
+      "bakes its own" list** (pounce#37/#42 + haus#139/#142). `scheme = "auto"`
       is now *partly* shipped — per-tool rather than rice-wide, which is a design
       answer as much as progress; `flavor = "custom"` remains untouched.
-- [x] §5.5 `keys.*` (nebelhaus#108) — leader / palette / windowNav, each with a real
+- [x] §5.5 `keys.*` (haus#108) — leader / palette / windowNav, each with a real
       `"none"`. Per-action `bindings` deferred; it wants an action vocabulary first.
-- [x] §5.4 registry v2 — **fully shipped 2026-08-07 (nebelhaus#253).** The
-      multi-source install landed first as `nebelhaus.roster` (rice#182); the
+- [x] §5.4 registry v2 — **fully shipped 2026-08-07 (haus#253).** The
+      multi-source install landed first as `haus.roster` (rice#182); the
       risky half — `workspaces` — landed as a **clean rename, no back-compat
       alias** (single-user rice, Julien's explicit call), not the
       `roster.*.workspace`-desugars-into-`workspaces` sketch this line
       originally described. See §5.4 for what was measured before calling the
       live host safe.
-- [x] §5.10 displays (nebelhaus#147) — the only working system-wide "make it
+- [x] §5.10 displays (haus#147) — the only working system-wide "make it
       bigger" lever, now part of `large-print`; docked multi-display validation
       remains before any `profiles.docked` design
 
@@ -4759,7 +4759,7 @@ that visible, and turned up two things that were already broken:
       had never reached the page.
 - [x] `guides/theming.mdx` gains contrast + light mode; it still described nebelung
       as "low-contrast" and documented neither. Same phrase corrected in
-      `start/what-is-nebelhaus.md` and `reference/palette.mdx`.
+      `start/what-is-haus.md` and `reference/palette.mdx`.
 - [x] `guides/window-management.mdx` + `reference/keybindings.md` say the keymap is
       configurable, and that `⇪`/`⌥` in the tables mean "the leader" and "the nav
       modifier" on a rice that moved them.
@@ -4840,17 +4840,17 @@ that visible, and turned up two things that were already broken:
       it recommends building the palette surface **before** the triggers. Phase 5
       does still have code in front of it; what it no longer has is an item
       nobody has started.
-- [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
+- [x] §5.13 authorable tour steps — shipped in haus#156; documented in
       workshop#135/#137
 
 **The readiness test:** three reference rices that are deliberately far apart —
 today's developer rice, `large-print` + `everyday`, and a mouse-first
 writer/creative setup — each expressible **without reaching around
-`nebelhaus.*` even once.**
+`haus.*` even once.**
 
 Scoreboard, 2026-07-27: **all three now exist and pass.** `full`, `everyday` and
 `large-print` are data-only (`nix flake check` proves they touch nothing outside
-`nebelhaus.*`), and none needed a `system.defaults` escape hatch or a
+`haus.*`), and none needed a `system.defaults` escape hatch or a
 hand-written activation script — which was the whole point of not faking it.
 
 `presets/large-print.nix` is four options (`ui.scale`, `theme.contrast`,
@@ -4912,7 +4912,7 @@ both bigger than the change:
    stops, with the limit written into `ui.scale`'s own description. That's better
    than either a multiplier that clips or a refusal that leaves the bar alone, and
    it is the first place the readiness test's "expressible without reaching around
-   `nebelhaus.*`" ran into something macOS simply owns. The reason it took one
+   `haus.*`" ran into something macOS simply owns. The reason it took one
    pass rather than three: the band was probed before anything was designed
    against it. **Measure the limit before deciding the option's shape.**
 
@@ -4964,7 +4964,7 @@ doc (and three READMEs) said about "later ones win" was false:
   advertises, because the module system stops first, per field. The suggested fix
   (`lib.mkForce`) appeared in none of the docs.
 
-The consumer-side fix is one line (`nebelhaus.roster.zotero.key = lib.mkForce
+The consumer-side fix is one line (`haus.roster.zotero.key = lib.mkForce
 "y";`) and the pack-author-side guidance is "leave optional fields null — every
 field you set is one a consumer may have to force". Both are now written down.
 But note what remains unsolved: **a stranger's first real pack collides with a
@@ -5007,17 +5007,17 @@ reasoned about:
 IMPORT PATH, not of the file.** `checkRice` throws on a file that is a function,
 and the data-only rule is precisely "takes no arguments"; `mkDefault` is
 `lib.mkDefault`. So "ship packs at `mkDefault`" can only ever be done *to* a
-pack, at the seam that imports it, never *in* one. `nebelhaus.packs.writing`
+pack, at the seam that imports it, never *in* one. `haus.packs.writing`
 could carry it; a stranger's pack fetched as a gist and dropped straight into
 `extraModules` would not, and would behave differently from the identical file
 consumed through the flake — the worst kind of difference, because the file is
 byte-identical. Shipping option 1 therefore means shipping the seam as public
-API too (`nebelhaus.lib.pack ./their-pack.nix`, beside `checkRice`), and
+API too (`haus.lib.pack ./their-pack.nix`, beside `checkRice`), and
 `packs.<name>` stops being a path — today it is one, and
-`checkRice nebelhaus.packs.writing` works on it.
+`checkRice haus.packs.writing` works on it.
 
 **(b) The obvious implementation is the broken one, and it fails silently.**
-`mkDefault` on the whole `nebelhaus.roster` attrset is the one-line version of
+`mkDefault` on the whole `haus.roster` attrset is the one-line version of
 the same idea, and it *deletes three quarters of the pack*: `roster` is where
 the option boundary sits, so the priority attaches to the entire definition, and
 one normal-priority field anywhere in the host outranks all of it. The consumer
@@ -5047,7 +5047,7 @@ a pack can no longer *mean* a field, and a consumer who deliberately set the
 same letter the pack wanted is no longer told they agreed.
 
 **★ Shipped the same day — rice#222, and the seam turned out to be public API.**
-Option 1, per leaf, as `nebelhaus.lib.pack`: `packs.<name>` arrives pre-wrapped,
+Option 1, per leaf, as `haus.lib.pack`: `packs.<name>` arrives pre-wrapped,
 a vendored pack gets the same by being imported through it, and `packFiles.<name>`
 keeps the raw paths for tooling (`packs.<name>` was a path and is a module now —
 the one breaking change). `checkPack` joins `checkRice` for the narrower rule a
@@ -5104,10 +5104,10 @@ conflict is per option, not per file.
 **(b) ★ The error is better than this section said, and the fix made it worse.**
 Limit 3 was written as "the error they see is a nix conflict trace rather than
 anything this project wrote". Measured, with the rices imported **as paths** —
-which is exactly what `extraModules = [ nebelhaus.presets.everyday … ]` is:
+which is exactly what `extraModules = [ haus.presets.everyday … ]` is:
 
 ```
-error: The option `nebelhaus.sill.enable' has conflicting definition values:
+error: The option `haus.sill.enable' has conflicting definition values:
        - In `…/presets/minimal.nix': false
        - In `…/presets/everyday.nix': true
        Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
@@ -5115,10 +5115,10 @@ error: The option `nebelhaus.sill.enable' has conflicting definition values:
 
 ⚠️ **The option name in that block was corrected on the twenty-fourth pass, and
 the correction is a finding rather than a typo fix.** It read
-`nebelhaus.bar.enable`, which **never existed**: on 2026-08-05 the bar room was
+`haus.bar.enable`, which **never existed**: on 2026-08-05 the bar room was
 `sill`, and `modules/renamed.nix` — generated by enumerating the entire option
-tree at the `nebelhaus`→`haus` rename — maps `nebelhaus.sill.enable` →
-`haus.bar.enable` and holds no `nebelhaus.bar.*` leaf at all. So a fenced block
+tree at the `haus`→`haus` rename — maps `haus.sill.enable` →
+`haus.bar.enable` and holds no `haus.bar.*` leaf at all. So a fenced block
 introduced by the word *Measured* carried a name the measurement cannot have
 printed. Nothing the paragraph concludes changes; what changed is what the block
 is evidence OF. The mechanism is the one the naming banner credits at the top of
@@ -5332,7 +5332,7 @@ found so far came from BUILDING one.**
   What's left is breadth (§5.6's seven uncurated groups), ~~one schema
   migration (§5.4's `workspaces`, still the last unstarted Phase 3 item)~~,
   trust (§5.11) — and limit 3, which is the only one a stranger hits on day
-  one. ✅ **§5.4 shipped 2026-08-07 (nebelhaus#253)** — see that section; Phase
+  one. ✅ **§5.4 shipped 2026-08-07 (haus#253)** — see that section; Phase
   3 has no unstarted item left.
 
 **The next real finding is on a machine, not in this file.** Limit 3's option 1
@@ -5343,7 +5343,7 @@ reference rice — the mouse-first writer — is represented by a pack nobody wh
 writes for a living has installed.
 → ✅ **2026-08-07: run one rung up from the evaluator, and it held.** Not on
 paper any more, but not a stranger's machine either — the middle rung. A real
-`mkNebelhaus` build (home-manager and all, not `lib.evalModules` over the pure
+`mkHaus` build (home-manager and all, not `lib.evalModules` over the pure
 option surface) composing `presets.everyday` + `packs.writing` against a host
 that already owns Obsidian on its own letter produces a real `darwin-system`
 derivation, actually realised: host's key wins, the pack's other three apps
@@ -5376,15 +5376,15 @@ Per the workshop's routing table, this work is **not** one repo:
 
 | Work | Repo |
 |---|---|
-| every `nebelhaus.*` option, `developer.enable`, presets, packs, `haus` | `nebelhaus` |
+| every `haus.*` option, `developer.enable`, presets, packs, `haus` | `haus` |
 | theme flavors, light mode, high-contrast palette, port metadata, contrast CI | `nebelung` |
 | command packs, typed commands, per-item settings, palette-as-settings-app | `pounce` |
 | generated options reference, community rice gallery, the guides | `web` |
 
-⚠️ **Three PR prefixes, one repo.** `nebelhaus#N`, `rice#N` and `haus#N`
+⚠️ **Three PR prefixes, one repo.** `haus#N`, `rice#N` and `haus#N`
 throughout this file all mean the same repo — the layer, at
 `github.com/hausfold/haus` since §10 of the rename plan. The spelling records
-*when* the line was written, not a different repo: `nebelhaus#` is oldest,
+*when* the line was written, not a different repo: `haus#` is oldest,
 `rice#` is the middle period, `haus#` is what to write now. Only the link target
 is authoritative.
 
@@ -5436,7 +5436,7 @@ care when a full `nix eval` is off the table.
 **Doesn't work** (as the workshop CLAUDE.md says): a darwin evaluation, `bench
 try`, `nix flake check`, or nebelung's `nix build`. nixpkgs, nix-darwin,
 home-manager and catppuccin all resolve through the session's GitHub gate and
-only nebelhaus-org repos are in scope.
+only hausfold-org repos are in scope.
 
 **Does work, and was enough for real proofs:**
 
@@ -5497,11 +5497,11 @@ this family get taken while a table like this sits still:
 
 | Room | Candidate | Why |
 |---|---|---|
-| accessibility — vision | `eyes` | cats' defining sense; `nebelhaus-ears.png` already exists in bar |
+| accessibility — vision | `eyes` | cats' defining sense; `haus-ears.png` already exists in bar |
 | accessibility — motor | `paws` | |
 | accessibility — hearing | `ears` | |
 | keymap | `claws` | what the leader key is |
-| displays / multi-monitor | ~~`perch`~~ | taken — it's the notch file shelf now, and the room shipped as `nebelhaus.displays` anyway (§5.10) |
+| displays / multi-monitor | ~~`perch`~~ | taken — it's the notch file shelf now, and the room shipped as `haus.displays` anyway (§5.10) |
 | scenes | `moods` | the states the cat is in; `focus` becomes one |
 | dev pack extracted from terminal | `quarry` / `kit` | weakest of the set — probably just call it `developer` |
 

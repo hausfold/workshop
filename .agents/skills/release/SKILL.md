@@ -27,7 +27,7 @@ So this skill is about the two things `bench` deliberately doesn't decide:
 |---|---|---|---|
 | `pounce` | CalVer | `bench release pounce` | Homebrew tap |
 | `perch` | CalVer | `bench release perch` | Homebrew tap + the rice's flake pin |
-| `haus` | CalVer | `bench release haus` | `hausfold.co/nebelhaus.sh` |
+| `haus` | CalVer | `bench release haus` | `hausfold.co/hacker.sh` |
 | `holt` | **semver** | `bench release holt <X.Y.Z>` | npm, PyPI, crates.io, SwiftPM, the Go proxy |
 
 CalVer repos take **no** version argument — the date IS the version, and `bench` refuses an

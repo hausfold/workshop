@@ -15,12 +15,9 @@ closes that gap once a day: read what landed, decide what it broke or left unsai
 it in the right place, open a PR.
 
 **The site is the source of truth, and since 2026-08-14 that is `hausfold.co`.**
-`hausfold.co/content/docs/` (Fumadocs, two trees — `haus/` for the layer,
-`nebelhaus/` for the desktop) is where anything a *user* experiences gets
-documented. ⚠️ **The workshop's `web/src/content/docs/` is gone** — that tree was
-rebuilt page-by-page and deleted when nebelhaus.com became a 301 map (rename plan
-§5.2), so a path below that starts `web/…` is history, and `web/` now takes one
-kind of change only: a redirect row. READMEs,
+`hausfold.co/content/docs/` (Fumadocs) is where anything a *user* experiences
+gets documented. ⚠️ **The workshop's own docs tree is gone**, along with `web/`
+itself, so a path below that starts `web/…` is history. READMEs,
 agent instructions (`AGENTS.md`/`CLAUDE.md`) and in-repo docs serve contributors and
 agents. When the two disagree, the
 site wins and the repo doc gets corrected — never the reverse.
@@ -74,9 +71,10 @@ doc consequence — skip them fast and spend the budget on behavior changes.
 Every repo maps to a documentation surface. Follow the workshop's routing table, then:
 
 Doc paths below are relative to **`hausfold.co/content/docs/`** unless a repo is
-named. Two trees: `haus/` is the layer, `nebelhaus/` is the desktop, and a page
-about the machinery never goes in the second (that repo's `AGENTS.md` has the
-rule — if a page seems to want both, it is two pages).
+named. The trees are the layer (`haus/`) and the apps; a desktop is documented
+under `haus/desktops/`, because it is a set of values for the layer's options
+rather than a subject of its own. If a page seems to want two trees, it is two
+pages.
 
 | Changed… | Reconcile against |
 |---|---|
@@ -86,12 +84,11 @@ rule — if a page seems to want both, it is two pages).
 | `trill/` app behavior — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and `trill/index.mdx` on the site (it exists now — an incubator page that says what trill is, not what it does) |
 | `holt/` — the worktree substrate + its five SDKs | `holt/README.md`, `holt/SPEC.md`, `holt/docs/*`, `holt/sdk/*/README`, and `haus/rooms/ai.mdx` (the user-facing worktree story). ⚠️ An SDK surface change is also a **release** question — see `/release`. ⚠️ holt's `AGENTS.md` arrived only in [holt#31](https://github.com/hausfold/holt/pull/31), so anything older than that was written with no boundary doc in the repo. ⚠️ holt has **no docs tree and no page** on hausfold.co — only an outbound GitHub link from the landing page — so "the docs" for it are the repo's own |
 | `hausfold.co/` — the site itself (shell, routes, landing pages) | `hausfold.co`'s own `README.md`/`AGENTS.md`. ⚠️ The *docs* it serves are the row above and below this one, not this row. Never move anything from `hausfold/ops`' name register into it — that repo is private for a reason |
-| `haus/modules/*` (the layer + the desktop) | the matching **room**: `haus/rooms/{bar,development,windows,security,focus,apps,appearance,launcher,ai,displays,shelf,text-expansion}.mdx`, plus `haus/reference/options.mdx` and `haus/rooms/windows.mdx` (where `/docs/nebelhaus/keybindings` now 301s) |
+| `haus/modules/*` (the layer + the desktop) | the matching **room**: `haus/rooms/{bar,development,windows,security,focus,apps,appearance,launcher,ai,displays,shelf,text-expansion}.mdx`, plus `haus/reference/options.mdx` and `haus/rooms/windows.mdx` |
 | a new/renamed nix option | `haus/reference/options.mdx` — **always**; an option users can set and can't discover is a bug. It is **generated** in hausfold.co from haus's committed `docs/site-data/`, so the fix is re-running its generator, not writing prose |
-| a new/changed keybind | the **room that owns the key**: `haus/rooms/windows.mdx` for the window-manager binds (where `/docs/nebelhaus/keybindings` 301s), `haus/rooms/launcher.mdx` for ⌘Space, `haus/rooms/ai.mdx` for ⌘A. There is no standalone keybindings page any more. hausfold.co's `keybindings-drift` workflow snapshots `wmBindings`/`launchModeKeys`/`resizeModeKeys` only, so it catches the windows row and **not** the other two |
+| a new/changed keybind | the **room that owns the key**: `haus/rooms/windows.mdx` for the window-manager binds, `haus/rooms/launcher.mdx` for ⌘Space, `haus/rooms/ai.mdx` for ⌘A. There is no standalone keybindings page any more. hausfold.co's `keybindings-drift` workflow snapshots `wmBindings`/`launchModeKeys`/`resizeModeKeys` only, so it catches the windows row and **not** the other two |
 | `bench`, workshop `README.md` | `haus/internals/contributing.mdx`, `haus/internals/flakes.mdx`, workshop `README.md`/`AGENTS.md` |
 | `homebrew-tap`, release CI | `haus/install.mdx`, `haus/keeping-it-current.mdx` |
-| `web/` — nebelhaus.com | only ever a redirect row in `web/worker.js`, and only if a hausfold.co URL moved. There are no pages here to reconcile |
 | `org-profile` (the `hausfold/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against the docs index, `content/docs/index.mdx` (the old `start/the-family` page was retired, not ported) |
 | a shot/asset placement anywhere | `assets/SHOTLIST.md` in the workshop — it tracks which README each still has landed in, so a placement commit makes it stale |
 
@@ -101,21 +98,13 @@ repo with no bearing on the site can still have a stale README of its own, and t
 front-of-house repos (`org-profile`, `homebrew-tap`) are the easiest to overlook
 precisely because they don't feed the docs site.
 
-### The one word you must not sweep
-
-`nebelhaus` means five different things and the rename only moved some of them —
-`AGENTS.md`'s opening box is the rule, `notes/hausfold-rename.md` is the plan of record.
-A docs sweep is exactly where a well-meant find-replace does damage, so before you
-"correct" any hit:
+### The spellings to correct on sight
 
 | you see | it is | you |
 |---|---|---|
-| `nebelhaus.<option>` | the retired option namespace | **fix** → `haus.<option>` — but read the next row first if `<option>` is a room |
 | `haus.{sill,prowl,hearth,pounce,perch,hush,collar}.*` | a room under its old **code name** (haus#367, 2026-08-16) | **fix** → `haus.{bar,windows,terminal,launcher,shelf,focus,security.touchId}.*`. **No aliases** — the old spelling is an eval error, so this one is a break, not a style nit. `notes/rooms-desktops.md` has the table |
-| **nebelhaus** bare, about the desktop | ~~the rice~~ — the desktop is **`hacker`** since 2026-08-14 (decision 10, §11) | **fix** → `hacker`, unless the sentence is about the past. This row said "**leave**, forever" until the reversal |
-| `github.com/nebelhaus/*` | the dead org | **fix** → `hausfold/*` (the archived Messages client stays) |
-| `inputs.nebelhaus.url` in a **consumer's** flake | that machine's name for its haus input | **leave** — it is a 👤 file's choice, and `~/.config/nix` says `nebelhaus` while every `bootstrap.sh` install says `haus`. `bench` no longer mirrors either (it reads the name off the consumer's `flake.lock`), so there is nothing here to keep in step |
-| `nebelhaus.com`, `com.nebelhaus.*` | the domain / bundle ids | **leave** unless the section is about the migration |
+| a desktop called anything but `hacker`, `everyday`, `minimal` or `blank` | a pre-2026-08-14 name | **fix**, unless the sentence is about the past |
+| `inputs.<anything>.url` in a **consumer's** flake | that machine's name for its haus input | **leave** — it is a 👤 file's choice. `bench` reads the name off the consumer's `flake.lock`, so there is nothing here to keep in step |
 
 Same trap in the other direction: `./haus` is the **layer's repo** (`./hausfold` until
 2026-08-11, §10 — that directory no longer exists) and `./hausfold.co` is the
@@ -217,8 +206,7 @@ gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
 - Commit **only** doc files. If a fix needs a code change, don't make it — report it.
 - Branch per repo, never a cross-repo commit. Each repo owns its own boundary.
 - If the site changed, build it before pushing — a broken build is worse than a stale
-  page: `cd hausfold.co && npm run build`. (The workshop's `web/` has no build any
-  more; it is the 301 map.)
+  page: `cd hausfold.co && npm run build`.
 
 **The PR body carries the findings.** A scheduled run's chat output is read once and
 lost; the PR is where the reasoning has to live, so a reviewer can judge the diff without

@@ -24,7 +24,7 @@ same one-desktop model instead of making absence of a desktop a second mode.
 ```text
 haus foundation
       ↓
-one desktop (blank, nebelhaus, …)
+one desktop (blank, haus, …)
       ↓
 host overrides
       ↓
@@ -148,8 +148,8 @@ Two rules came out of it and are worth keeping:
   has one consumer, its host moved in the same sweep, and an alias set would be
   permanent furniture protecting nobody — while keeping the words in the tree,
   which was the point of the change. `modules/renamed.nix` is unaffected: its
-  left-hand sides are the frozen `nebelhaus.*` spellings, so
-  `nebelhaus.sill.position` still resolves, now to `haus.bar.position`.
+  left-hand sides are the frozen `haus.*` spellings, so
+  `haus.sill.position` still resolves, now to `haus.bar.position`.
 
 Development deliberately includes the terminal. A terminal stack with no
 development tools is not a distinct user intent in the current product, and
@@ -184,7 +184,7 @@ Launcher and Development additions should appear only when those rooms exist.
 ## What a desktop is
 
 A desktop is a complete answer to “what should this Mac feel like?” It chooses
-rooms and configures their exposed options. nebelhaus is the first desktop: its
+rooms and configures their exposed options. haus is the first desktop: its
 silver-grey, keyboard-first, developer-focused choices should live in a desktop
 definition rather than masquerading as generic module defaults.
 
@@ -228,7 +228,7 @@ open.
 
 ## The user journey
 
-1. Choose a desktop: nebelhaus, another published desktop, or Blank.
+1. Choose a desktop: haus, another published desktop, or Blank.
 2. Review the rooms it enables and the visible choices it makes.
 3. Add or remove rooms.
 4. Tune the options surfaced by those rooms.
@@ -301,16 +301,16 @@ the tree.
 
 | Step | Status | Work | Durable evidence | Exit gate |
 |---|---|---|---|---|
-| **0. Baseline** | done | Inventory current implementation modules, exported `darwinModules`, `haus.*` namespaces, enable switches, defaults and cross-room reads. Classify every public export, each namespace as room/shared/host, each leaf as desktop-safe/host-only, and each value as generic mechanism/nebelhaus opinion. | Commit `notes/rooms-inventory.md` in the workshop, including the bounded sources, commands and haus revision used to produce it. | The inventory accounts for every public module export and generated option group, and names every behavior that must remain identical during the refactor. Re-running its commands at the recorded haus revision reproduces its counts. |
+| **0. Baseline** | done | Inventory current implementation modules, exported `darwinModules`, `haus.*` namespaces, enable switches, defaults and cross-room reads. Classify every public export, each namespace as room/shared/host, each leaf as desktop-safe/host-only, and each value as generic mechanism/haus opinion. | Commit `notes/rooms-inventory.md` in the workshop, including the bounded sources, commands and haus revision used to produce it. | The inventory accounts for every public module export and generated option group, and names every behavior that must remain identical during the refactor. Re-running its commands at the recorded haus revision reproduces its counts. |
 | **1. Room registry** | done | Expand `haus/modules/options-groups.nix` into the single registry for public-export ownership, room/shared/host classification and per-option desktop safety, without moving or renaming options. Make the host template and docs renderer consume it. | The source registry, regenerated `haus/docs/site-data/groups.json`, and a flake check that fails on an unmapped `darwinModules` export, unclassified namespace, unsafe dynamic subtree or option with no desktop-safety decision. | Every public export, namespace and transitively reachable leaf is classified; current option addresses are unchanged; generated artifacts are current; counts come from the registry rather than prose. |
 | **2. AI proof** | done | Make AI the first declared cross-room capability. Move ownership out of `developer.agents` while preserving compatibility; expose contributions to Development, Bar and Launcher through explicit extension points. | A named haus flake check covering AI alone and AI with each receiving room. Pair old and new addresses in fixtures that compare behavioral projections, warnings and plain-host-override priority. | AI alone brings clients, Holt and lifecycle wiring; its optional integrations appear only with their receiving rooms; old and new addresses produce identical behavior and precedence, with the intended migration warning only. |
-| **3. Desktop seam** | done | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting nebelhaus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire nebelhaus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
-| **4. Carve out nebelhaus** | done | In one atomic change, neutralize generic room defaults, add the real nebelhaus desktop and add the built-in Blank desktop. Keep `mkNebelhaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing nebelhaus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
+| **3. Desktop seam** | done | Add exactly-one-desktop selection, source attribution, closed-schema validation, recursive desktop-safety enforcement and host-wins priority. Keep the full compatibility builder selecting haus implicitly. Preserve standalone `darwinModules` imports as Blank plus the explicitly imported room; they do not acquire haus opinions. Do not design remote acquisition here. | A named haus flake check with positive fixtures for one desktop, host override, every supported builder/module entry point and source diagnostics; negative fixtures for two desktops, module functions, `imports`, `_module`, extra top-level keys, `system.activationScripts`, unknown options, unsafe dynamic payloads and every class of host-only leaf. | One desktop is selected through a full builder; a plain host assignment overrides it; a second is rejected clearly; standalone room imports retain their current behavior without requiring a desktop selection; source filenames survive diagnostics; only the closed `{ haus = { … }; }` value reaches option evaluation. |
+| **4. Carve out haus** | done | In one atomic change, neutralize generic room defaults, add the real hacker desktop and add the built-in Blank desktop. Keep `mkHaus`, every supported builder/module entry point and old option addresses as compatibility surfaces. | Commit the **projection schema and comparator**, plus the complete non-sensitive example projection. For the real consumer, compare full projections only in an ephemeral directory and commit/report only the equality result—never values, counts, hashes, host paths or serialized output. Add a Blank fixture; run `nix flake check` and `bench try`. PR commands use placeholders/environment variables and redact local paths. | Existing haus example and real-consumer projections compare equal; Blank enables no optional rooms; every prior public entry point passes its compatibility fixture; no consumer-derived values or paths enter git, logs or the PR; there is no commit on `main` where existing installs silently lose a room. |
 | **5. Retire top-level fragments** | done | Move `large-print` under Appearance and `writing` under Apps. Keep temporary aliases where consumers need them; remove preset and pack from the top-level product vocabulary. | Compatibility fixtures evaluating old and new spellings to the same values, plus generated migration documentation. | The same configurations remain expressible, migration warnings name replacements, and no docs invite users to stack whole desktops. |
 | **6. Rebuild the docs journey** | done | Regenerate the reference from the registry and reorganize hausfold.co around Desktops first, then Rooms. Keep each desktop's own docs thin. | Committed site-data artifacts, `npm run build` in hausfold.co, docs/palette checks, and links or screenshots for the Desktops and Rooms navigation states. | The landing page, docs navigation, generated reference and compatibility docs agree on the model and current option surface. |
 
 Step 4 is deliberately indivisible at the behavior boundary. Neutral defaults,
-the nebelhaus values that replace them and the compatibility selection must land
+the haus values that replace them and the compatibility selection must land
 together even if preparatory refactors land earlier.
 
 ### Findings carried out of step 2
@@ -322,7 +322,7 @@ what a LATER step has to do.
   keeps `developer.enable` as its default, which is the exact "rooms do not
   silently enable each other" violation the model forbids. Step 2 could not fix
   it: a neutral default there is a behaviour change, and the value that replaces
-  it belongs to the nebelhaus desktop. It is step 4's, and it is the reason step
+  it belongs to the hacker desktop. It is step 4's, and it is the reason step
   4 is indivisible.
 - **[3] The AI room sits in the standalone `darwinModules` foundation.**
   `flake.nix`'s `standaloneModule` imports `modules/ai` beside `core`, `roster`
@@ -356,13 +356,13 @@ what a LATER step has to do.
   became `haus.ai.*` and `haus.developer.agents.enable` became `haus.ai.enable`;
   neither old spelling is aliased. The rice has one consumer and its host moved
   in the same change, so an alias set for a five-day-old spelling would be
-  permanent furniture bought to protect nobody. The `nebelhaus.*` aliases still
+  permanent furniture bought to protect nobody. The `haus.*` aliases still
   resolve — they were repointed at `haus.ai.*`, since an alias follows its option
   rather than being re-created at every address it passes through.
 
 ### Findings carried out of step 3
 
-The seam is built and empty: `mkNebelhaus` selects `desktops/nebelhaus.nix`, that
+The seam is built and empty: `mkHaus` selects `desktops/haus.nix`, that
 file sets nothing, and the example machine's derivation is byte-identical to the
 one before the change (`7q9wfryf…-darwin-system-26.11.57a3171.drv` on both). That
 equality is the point — step 4 is then a data change against a boundary that
@@ -406,7 +406,7 @@ already works.
 ### Findings carried out of step 4
 
 The step landed with the closure provably unchanged, and the interesting part
-is what the inventory's "54 nebelhaus opinions" turned out to be once each one
+is what the inventory's "54 haus opinions" turned out to be once each one
 was actually moved.
 
 - **[3] "Opinion" was two categories wearing one name, and only one of them
@@ -455,7 +455,7 @@ was actually moved.
   `modules/terminal/default.nix` around a one-line edit. Format the touched files
   with `nixfmt` directly, or the diff stops being reviewable.
 - **[1] The docs asserted layer-wide defaults in prose.** Three guides said a
-  room was "on by default" — true of nebelhaus, false of `haus` now. Fixed in
+  room was "on by default" — true of haus, false of `haus` now. Fixed in
   the same change; the generated options reference regenerates itself.
 
 ### Findings carried out of step 5
@@ -466,10 +466,10 @@ desktop.
 
 - **[3] `everyday` and `minimal` as desktops are not the machines the presets
   produced, and cannot be.** A preset was a LAYER: four lines on top of whichever
-  whole rice you had selected, so `presets.everyday` meant "nebelhaus, minus the
+  whole rice you had selected, so `presets.everyday` meant "haus, minus the
   developer tooling". A desktop is the complete selection, so the new
   `desktops/everyday.nix` has to state the ~10 values the preset silently
-  inherited from nebelhaus. One of them changes on purpose: the AI room is OFF
+  inherited from haus. One of them changes on purpose: the AI room is OFF
   there, because the preset never mentioned `ai.enable` and inherited a `true`
   that means coding agents on a machine that ships no coding tools. Reported
   rather than hidden — the compatibility ALIAS still produces the old machine
@@ -491,8 +491,8 @@ desktop.
 - **[2] The installer was writing the retired spelling into every new
   machine.** `bootstrap.sh` scaffolded `extraModules = [ presets.$NAME ]`, so a
   fresh install would have landed on a deprecation warning on its first rebuild.
-  It emits `desktop = nebelhaus.desktops.$NAME` now, `NEBELHAUS_DESKTOP` is the
-  knob, and `NEBELHAUS_PRESET=full` still maps to the nebelhaus desktop. Worth a
+  It emits `desktop = haus.desktops.$NAME` now, `HAUS_DESKTOP` is the
+  knob, and `HAUS_PRESET=full` still maps to the hacker desktop. Worth a
   standing habit: grep the installer whenever a public spelling changes.
 - **[2] `preset-composition` was a check about a property the model forbids.**
   Its whole subject was "which two presets stack", so it retired with them. Two
@@ -594,7 +594,7 @@ standalone change; none of them blocks another.
 - **[2] A desktop still outranks a pack the consumer composed themselves.**
   Verified in merged `flake.nix`: `desktopPriority = 900`, while `lib.pack`
   carries its file in at per-leaf `mkDefault` (1000). Step 3 left it alone as
-  unobservable and it still is, but only by luck — `desktops/nebelhaus.nix` sets
+  unobservable and it still is, but only by luck — `desktops/haus.nix` sets
   no `haus.roster`, so the first desktop that names an app silently beats a pack
   the host explicitly imported. Moving the pack seam to a priority between 100
   and 900 is one token; the fixture that can see the difference is the work.

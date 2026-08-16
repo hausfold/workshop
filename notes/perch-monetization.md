@@ -9,7 +9,7 @@ rides the same seam back. Perch is now the *whole* bet, not the warm-up:
 **[§5](#5-trill--why-it-isnt-the-bet) records why trill isn't monetized**, since
 that was the original flagship and the reasoning is worth not re-deriving.
 ⚠️ **"trill" in this file — not only in §5 — is the archived Messages client**
-(`nebelhaus/messages` since 2026-08-08). The notification compositor took the
+(`hausfold/messages` since 2026-08-08). The notification compositor took the
 name that day ([`hausfold-rename.md`](./hausfold-rename.md) §3.4); it is a
 different product and its monetization question is unasked.
 
@@ -33,7 +33,7 @@ itself carries the gate.**
 
 | Decision | Choice | Why |
 |---|---|---|
-| License | **FSL-1.1-Apache-2.0** (perch only) | Source stays on GitHub, competitors can't redistribute builds, each release auto-converts to Apache-2.0 after 2 years — the honest version of "stay largely OSS". MIT can't forbid ungated binary mirrors. nebelhaus / nebelung / pounce stay MIT. |
+| License | **FSL-1.1-Apache-2.0** (perch only) | Source stays on GitHub, competitors can't redistribute builds, each release auto-converts to Apache-2.0 after 2 years — the honest version of "stay largely OSS". MIT can't forbid ungated binary mirrors. haus / nebelung / pounce stay MIT. |
 | Model | One-time purchase, **1 year of updates**, license works forever on covered builds | The model every winner in the cohort converged on (CleanShot, MacWhisper, Dropover). ONCE's purer version is the documented failure; subscriptions need a service perch doesn't have. |
 | Update-year enforcement | **CalVer IS the entitlement** | A license covers builds dated ≤ purchase + 1 yr. The app compares its own `VERSION` date to the license date. No version bookkeeping, transparent to users, `bench release` unchanged. |
 | Gate shape | **Capacity cap, not a trial timer** — free tier is a working shelf capped at 3 tiles | Perch's value is habitual; a cap lets light use stay free forever (goodwill + funnel) and converts exactly the people who feel the value. Trial timers need tamper-resistant state, and the sandbox container is trivially resettable — a cap is stateless and honest. |
@@ -67,7 +67,7 @@ template under its own extension:
 - Private key: a Cloudflare Worker secret + one offline backup. Public key:
   a constant in the app. A keygen/sign script lives in `hausfold.co/scripts/`.
   ⚠️ This said `web/scripts/` when it was written; the workshop's `web/` became
-  nebelhaus.com's 301 map on 2026-08-14 and has no scripts dir. The Worker that
+  hausfold.co's 301 map on 2026-08-14 and has no scripts dir. The Worker that
   would sign a licence is hausfold.co's, so the script belongs beside it.
 
 ### 2.1 Why Paddle, and not the other four
@@ -100,8 +100,8 @@ installs a fair-source perch rather than an MIT one.
       (both identities) + haus-release[bot] — relicense is a commit, not a CLA hunt.
 - [x] `LICENSE` → FSL-1.1-ALv2 (text from fsl.software), README badge +
       "why fair source" paragraph.
-      ⚠️ **The docs-site half was missed for two days**: nebelhaus.com's
-      `start/the-family.md` still read *"All of nebelhaus is MIT-licensed"*
+      ⚠️ **The docs-site half was missed for two days**: hausfold.co's
+      `start/the-family.md` still read *"All of haus is MIT-licensed"*
       after org-profile#14 had already corrected the identical sentence in the
       GitHub footer. Fixed 2026-08-05. **A relicense is a claim to grep for,
       not a file to edit** — it appears wherever anyone once summarised the
@@ -158,8 +158,8 @@ deliberately INERT** *(~2–3 sessions; the big one)*
       this box is closed: `hi@` already routes and is already the contact on
       `/terms` and `/refunds`, so nothing has to be created before the first
       receipt. What's left is the promise, not the address.
-      *(Was `support@nebelhaus.com`, on the reasoning that people bought a
-      nebelhaus product. Reversed 2026-08-08 with [`go-to-market.md`](./go-to-market.md)
+      *(Was `support@hausfold.co`, on the reasoning that people bought a
+      haus product. Reversed 2026-08-08 with [`go-to-market.md`](./go-to-market.md)
       §6: they buy a hausfold product now, and hausfold is the name on the
       receipt they'll already have seen. Then briefly `support@hausfold.co` —
       settled to `hi@` 2026-08-09, [`hausfold-rename.md`](./hausfold-rename.md)
@@ -191,7 +191,7 @@ deliberately INERT** *(~2–3 sessions; the big one)*
 ## 5. Trill — why it isn't the bet
 
 > ⚠️ **"Trill" throughout this section is the archived Messages client**, now
-> `nebelhaus/messages`. The name was reused on 2026-08-08 by the notification
+> `hausfold/messages`. The name was reused on 2026-08-08 by the notification
 > compositor (`notes/hausfold-rename.md` §3.4), which is a different product
 > and has its own monetization question, unasked. Kept as written — this is a
 > historical record of a decision, not a description of anything live.
@@ -274,7 +274,7 @@ nothing now hands a tester an unmaintained app in the first place.
 - [x] The rice: **rice#212** made it opt-in, **rice#213** deleted the module and
       the flake input a day later. The sentence worth reusing is #213's — *a
       supported option nobody should turn on is a lie in the option reference.*
-- [x] Marketing copy: workshop#204 (nebelhaus.com + the family lists),
+- [x] Marketing copy: workshop#204 (hausfold.co + the family lists),
       org-profile#14 (the GitHub front page).
 - [x] `homebrew-tap`'s `Casks/trill.rb` — **tap#10** deprecated the cask,
       **tap#11** stopped naming the final version in prose. Existing installs

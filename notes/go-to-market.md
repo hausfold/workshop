@@ -15,9 +15,9 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 ## 1. The portfolio (as of 2026-08-04)
 
 > **★ Superseded in part, 2026-08-08 — read this first.** This file was written
-> when hausfold was an umbrella and nebelhaus was the brand. That is reversed:
+> when hausfold was an umbrella and haus was the brand. That is reversed:
 > **hausfold is the org, the maker and the seller; `haus` is the nix-darwin
-> layer it makes; nebelhaus is one rice built on that** — the developer-focused
+> layer it makes; haus is one rice built on that** — the developer-focused
 > one, and the first. *(The hausfold/haus split is decision 8, 2026-08-10; §6
 > has it in full.)* The plan and its
 > ordering are [`hausfold-rename.md`](./hausfold-rename.md); this file keeps the
@@ -31,11 +31,11 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **nebelung** | free | MIT | Taste door. Palette people meet the visual language before they meet Nix. |
 | **pounce** | free, **no paid tier ever** | MIT | Utility door. A native launcher installable without adopting anything. The site already promises "no paid tier" — that promise is load-bearing, don't reopen it. |
 | **holt** | free | MIT | Dev-tool door. The only piece whose audience isn't macOS ricers. |
-| **nebelhaus** (rice) | free | MIT | ~~The destination.~~ **One rice on `haus`** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
+| **haus** (rice) | free | MIT | ~~The destination.~~ **One rice on `haus`** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
 | **haus** (the layer) / **hausfold** (the house) | free | MIT | **The destination.** `haus` is the nix-darwin layer every rice sets options on; `hausfold` is the org it ships under and the name on the receipt. Was the umbrella; became the product on 2026-08-08; got the two-word split on 2026-08-10 (decision 8). |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
-| ~~**trill**~~ (the Messages client; the repo is `nebelhaus/messages` since 2026-08-08, and the *name* now belongs to the notification compositor — `hausfold-rename.md` §3.4) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
-| ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, nebelhaus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
+| ~~**trill**~~ (the Messages client; the repo is `hausfold/messages` since 2026-08-08, and the *name* now belongs to the notification compositor — `hausfold-rename.md` §3.4) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
+| ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, haus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
 perch's positioning, so it's now **five**, and one of them is paid:
@@ -43,16 +43,16 @@ perch's positioning, so it's now **five**, and one of them is paid:
 1. **nebelung** → taste (Catppuccin, theming communities)
 2. **pounce** → utility (r/MacApps, Mac utility enthusiasts)
 3. **holt** → developer pain (HN, agent-coding discourse, any-repo, any-OS-with-git)
-4. **nebelhaus** → the committed (NixOS Discourse, r/unixporn)
+4. **haus** → the committed (NixOS Discourse, r/unixporn)
 5. **perch** → the wallet (Mac press that covered NotchNook, r/MacApps round two)
 
-Doors 1–4 all terminate at **hausfold.co** (was nebelhaus.com, which 301s).
+Doors 1–4 all terminate at **hausfold.co** (was hausfold.co, which 301s).
 Door 5 terminates at a checkout.
 
 **The rename sharpens door 4 rather than blunting it.** A rice post lands better
 as "here's my desktop, and here's the platform it's a config of" than as "here's
 my desktop, which is also the product" — the second invites *use mine*, the first
-invites *build yours*. r/unixporn still meets nebelhaus; NixOS Discourse now
+invites *build yours*. r/unixporn still meets haus; NixOS Discourse now
 meets hausfold, which is the audience that actually wanted the platform framing.
 
 **Holt is probably the strongest cold-traffic door and the strategy hasn't
@@ -118,7 +118,7 @@ Everything the launch needs, and nothing else. Media policy is
 [`assets/SHOTLIST.md`](../assets/SHOTLIST.md) — docs stay text, media is
 marketing-only.
 
-- [ ] **The rice hero shot** — `nebelhaus/assets/hero.png` is still a
+- [ ] **The rice hero shot** — `haus/assets/hero.png` is still a
       placeholder, and for a rice that one clean desktop *is* the pitch. This is
       the single highest-leverage unfinished asset in the family.
 - [ ] **A 20-second silent workflow loop** — desktop → app hints → launch+tile →
@@ -141,11 +141,11 @@ took work — this is that copy).
 
 | line | where it lives | notes |
 |---|---|---|
-| **make a haus a home** | **unplaced, on purpose** (2026-08-11) | ⚠️ **A tagline, never a taxonomy.** It arrived as a proposal to rename `desktop(s)` → `home(s)` — the gallery at `/desktops`, decision 7. That rename is **rejected**: `home` collides with home-manager's live `home.*` namespace sitting right beside `haus.*`, with `home.file`, with `$HOME`/`~`, and with the site's own home page; `hausfold.co/homes` reads as real estate under a brand that already means *house*; and nobody searches for "home" when they mean a rice. The verb is the value — *make it yours* is exactly the `/desktops` pitch — so it survives as a sentence and `desktop` stays the noun. **It went onto nebelhaus.com's landing page and came straight back off**: `web/` is mid-move to hausfold.co (§5.1), so copy landed there now is copy the port has to carry, and this is a *platform* line with no reason to debut on the rice's site. Place it when the destination exists — the `/haus` hero is the obvious slot. |
-| An opinionated macOS, raised in the fog. | nebelhaus.com hero `<h1>` | The rice's line, not the platform's. Doesn't transfer to hausfold.co. |
-| One command. Your Mac, already sorted. | nebelhaus.com hero lede | Survives the port with the install one-liner. |
-| Four rooms, one house. | nebelhaus.com family section | The house metaphor the kicker above hangs off. |
-| The whole machine is the config. | nebelhaus.com closer | The most portable line on the page — it's a *platform* claim wearing a rice's clothes. Strong candidate for `/haus`. |
+| **make a haus a home** | **unplaced, on purpose** (2026-08-11) | ⚠️ **A tagline, never a taxonomy.** It arrived as a proposal to rename `desktop(s)` → `home(s)` — the gallery at `/desktops`, decision 7. That rename is **rejected**: `home` collides with home-manager's live `home.*` namespace sitting right beside `haus.*`, with `home.file`, with `$HOME`/`~`, and with the site's own home page; `hausfold.co/homes` reads as real estate under a brand that already means *house*; and nobody searches for "home" when they mean a rice. The verb is the value — *make it yours* is exactly the `/desktops` pitch — so it survives as a sentence and `desktop` stays the noun. **It went onto hausfold.co's landing page and came straight back off**: `web/` is mid-move to hausfold.co (§5.1), so copy landed there now is copy the port has to carry, and this is a *platform* line with no reason to debut on the rice's site. Place it when the destination exists — the `/haus` hero is the obvious slot. |
+| An opinionated macOS, raised in the fog. | hausfold.co hero `<h1>` | The rice's line, not the platform's. Doesn't transfer to hausfold.co. |
+| One command. Your Mac, already sorted. | hausfold.co hero lede | Survives the port with the install one-liner. |
+| Four rooms, one house. | hausfold.co family section | The house metaphor the kicker above hangs off. |
+| The whole machine is the config. | hausfold.co closer | The most portable line on the page — it's a *platform* claim wearing a rice's clothes. Strong candidate for `/haus`. |
 
 An unused idea kept on purpose: if `home` ever earns a place in the vocabulary,
 the split that survives the collisions is **a `desktop` is what you install, a
@@ -169,7 +169,7 @@ is in the guides and has to be disambiguated from home-manager on every page.
 > *Don't put it on hausfold.co* is **reversed**: the gallery is
 > **`hausfold.co/desktops`**. The "extra hop" argument below was right about hops
 > and wrong about which domain is home — hausfold.co *is* the destination now,
-> so `/desktops` is zero hops from the platform and nebelhaus.com is the one that
+> so `/desktops` is zero hops from the platform and hausfold.co is the one that
 > 301s. Everything else in this section survives intact.
 >
 > **Two amendments, both 2026-08-08, both after the page shipped.** The path was
@@ -204,7 +204,7 @@ is in the guides and has to be disambiguated from home-manager on every page.
 > `fragment-compat` intact. A `/desktops` entry is not either of those things.
 >
 > Events had already overtaken it: `/desktops/everyday` and `/desktops/minimal`
-> shipped 2026-08-14 beside `/desktops/nebelhaus`. **hausfold.co's `AGENTS.md`
+> shipped 2026-08-14 beside `/desktops/hacker`. **hausfold.co's `AGENTS.md`
 > closed the rule in place the same day** — it is the repo that carries it, since
 > adding a row *is* a site change — and its 🚨 is the sentence to keep: **that
 > closes this gate and nothing else.** The bar above it is untouched: a row must
@@ -232,7 +232,7 @@ Three reasons it isn't first:
 - **A gallery's value is the number of rices in it, and there is currently one.**
   Launching an empty store is worse than launching no store — it reads as
   abandoned, which is exactly the failure mode hausfold's `PRESENCE.md` warns
-  about for dormant channels. ⚠️ **Three since 2026-08-14** — `nebelhaus`,
+  about for dormant channels. ⚠️ **Three since 2026-08-14** — `haus`,
   `everyday`, `minimal` — and all three are ours, so the reason survives its
   number: the count that makes a gallery is *other people's* desktops, which is
   still zero. hausfold.co's closing line says exactly that out loud ("Three
@@ -249,7 +249,7 @@ Three reasons it isn't first:
   take rate. Perch is the decided revenue line; the gallery is retention and
   social proof, which is real value but not money.
 
-Where it belongs: ~~nebelhaus.com/rices~~ → **`hausfold.co/#desktops`** (its own
+Where it belongs: ~~hausfold.co/rices~~ → **`hausfold.co/#desktops`** (its own
 page from 2026-08-08 until 2026-08-12, when it became the landing page's first
 section and `/desktops` began 301ing there; `/desktops/<name>` stayed), submissions
 by PR to a `hausfold/rices` repo (CI validates that a submission only sets
@@ -273,7 +273,7 @@ cat") — same event, same mechanism, zero extra infrastructure.
 > not a product brand" — is reversed.** The struck text is kept below because the
 > *reasoning* still explains why the split was drawn, and one half of it survived.
 
-**hausfold is the platform, the org, and the seller. nebelhaus is one rice built
+**hausfold is the platform, the org, and the seller. haus is one rice built
 on it.**
 
 > **★ Refined 2026-08-10 — the layer is called `haus`.** Decision 8 in
@@ -290,25 +290,25 @@ on it.**
 
 The nix-darwin ricing platform is **haus**; the mac apps, the open-source tools
 and the entity on the receipt are hausfold; `haus.*` is the option namespace
-every rice sets, and nebelhaus is the developer-focused rice that ships first.
+every rice sets, and haus is the developer-focused rice that ships first.
 
 What actually changed, and what didn't:
 
-| | **nebelhaus** | **hausfold** |
+| | **haus** | **hausfold** |
 |---|---|---|
 | Was | the brand people love | the entity that sells |
 | **Is now** | **one rice, the first one, on a page inside `/desktops`** | **the platform people install, the org it ships from — and still the entity that sells** |
 | Customer sees it | when choosing a rice | constantly, and on the receipt |
 
 **Why the reversal, in one line:** the umbrella framing made the *platform*
-nameless. Every option was `nebelhaus.*`, so a stranger publishing a large-print
+nameless. Every option was `haus.*`, so a stranger publishing a large-print
 rice for their parent was publishing it into a namespace named after somebody
 else's desktop — which is the exact confusion `options-roadmap.md` exists to
 remove.
 
 Consequences, revised:
 
-- ~~**Product support stays `support@nebelhaus.com`.**~~ **Reversed** — people
+- ~~**Product support stays `support@hausfold.co`.**~~ **Reversed** — people
   now buy a *hausfold* product, so support moves to the hausfold.co domain. The
   original reasoning ("routing them to a name they've never seen is friction")
   is exactly why it moves: hausfold is the name they *will* have seen.

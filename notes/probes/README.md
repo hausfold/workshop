@@ -255,7 +255,7 @@ nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
 
 Evidence for [`../options-roadmap.md`](../options-roadmap.md) §5.2's two
 unmeasured claims — that every point-valued option is silently coupled to
-`nebelhaus.displays`, and the "honest scope" paragraph naming what `ui.scale`
+`haus.displays`, and the "honest scope" paragraph naming what `ui.scale`
 does and doesn't move. Both turned out to be one measurement apart:
 
 - **the point-valued surface is ONE option** (`fonts.mono.size`). Six numeric

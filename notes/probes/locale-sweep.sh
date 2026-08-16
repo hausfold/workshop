@@ -143,7 +143,7 @@ notifications=(
   ""                                                     # no post at all
   "AppleDatePreferencesChangedNotification"
   "AppleMeasurementSystemPreferencesChangedNotification"
-  "nebelhaus.totally.bogus.notification"                 # control
+  "haus.totally.bogus.notification"                 # control
 )
 for name in "${notifications[@]}"; do
   printf '\n  write at t=4s, then post: %s\n' "${name:-<nothing>}"

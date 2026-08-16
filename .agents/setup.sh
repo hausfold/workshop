@@ -2,7 +2,7 @@
 # .agents/setup.sh — the one session bootstrap, for every harness.
 #
 # Cloud agent sessions (Claude Code on the web, Codex cloud, an OpenCode
-# container, CI) boot a bare Linux box with no Nix. The whole nebelhaus stack is
+# container, CI) boot a bare Linux box with no Nix. The whole hausfold stack is
 # a flake, so without Nix the session can't regenerate a flake.lock, evaluate a
 # host, or run `bench` at all. This installs Determinate Nix once, puts it on
 # PATH for the rest of the session, and points Nix at the agent proxy's CA.

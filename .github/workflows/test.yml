@@ -1,10 +1,7 @@
-# Verify the workshop's two code artifacts on every push and PR:
-#   • web/worker.js  — nebelhaus.com's 301 map (Vitest unit suite)
-#   • bench          — the family CLI (bats unit suite + shellcheck)
+# Verify the workshop's one code artifact on every push and PR:
+#   • bench — the family CLI (bats unit suite + shellcheck)
 #
-# This is the gate the repo was missing: deploy-web.yml only deploys, so nothing
-# checked behavior before. Kept separate from deploy so a red test blocks a merge
-# without touching the deploy path.
+# This is the gate the repo was missing: nothing checked behavior before.
 name: Tests
 
 on:
@@ -13,22 +10,6 @@ on:
   pull_request:
 
 jobs:
-  web:
-    name: web/worker.js (vitest)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-      - run: npm ci
-      - run: npm test
-
   bench:
     name: bench (bats + shellcheck)
     runs-on: ubuntu-latest
