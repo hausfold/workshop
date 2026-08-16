@@ -101,7 +101,16 @@ export const REDIRECTS = {
   "/guides/sharing-a-rice": `${SITE}/docs/haus/desktops/creating/`,
   // ⚠️ These two are easy to swap. `ai-agent` was "Changing your Mac with an
   // agent" (rebuilds) and `claude-agents` was "Coding agents (holt)" (the room).
-  "/guides/ai-agent": `${SITE}/docs/haus/rooms/agent-rebuilds/`,
+  //
+  // 🚨 `ai-agent`'s destination is NOT under `rooms/`, and that asymmetry with
+  // every neighbour is the point. It pointed at `/docs/haus/rooms/agent-rebuilds/`
+  // until 2026-08-16, which hausfold.co 301s to `/docs/haus/agent-rebuilds/` —
+  // agent-rebuilds is a guide, not a room, and it left that tree when the rooms
+  // were renamed for what they do. Two hops is the thing this file exists to
+  // avoid (§5.2), and a chain degrades quietly: every URL still resolved, so
+  // nothing failed and nothing said so. Found by curling all 31 destinations,
+  // which is the only way this class of drift ever surfaces.
+  "/guides/ai-agent": `${SITE}/docs/haus/agent-rebuilds/`,
   "/guides/claude-agents": `${SITE}/docs/haus/rooms/ai/`,
   "/guides/adding-apps": `${SITE}/docs/haus/rooms/apps/`,
   "/guides/window-management": `${SITE}/docs/haus/rooms/windows/`,
