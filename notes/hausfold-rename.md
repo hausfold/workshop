@@ -4207,7 +4207,7 @@ that transfers.
   interesting part**: this bullet is the whole of the reminder, and a bullet in a
   closed section is read once. `bench status` says it out loud now — the edge
   reports `RENAMED: fetches hausfold/hausfold, which is hausfold/haus now`
-  (workshop#380) — because it had been printing `✓ current` for that edge every
+  (workshop#383) — because it had been printing `✓ current` for that edge every
   day, comparing the locked **rev** and never the locked **source**. The one-line
   fix is unchanged; what changed is that not doing it is now visible daily
   instead of filed.
@@ -4339,7 +4339,7 @@ none of this needs to be atomic:
   `OVERRIDABLE` list had to move in the same change or every
   `--override-input` would silently stop applying while still reporting success.
   Two things were wrong with that, both found by the twenty-fourth roadmap pass
-  (workshop#380): `OVERRIDABLE` holds **repo directory names** and
+  (workshop#383): `OVERRIDABLE` holds **repo directory names** and
   never held an input name — the coupled literals were `overrides()`'s five
   `--override-input nebelhaus/…` strings plus one `EDGES` row — and **`bench`
   now holds no spelling at all**: it reads the name out of
