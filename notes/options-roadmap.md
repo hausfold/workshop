@@ -196,7 +196,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   `modules/launcher`'s two static `./commands` halves from
 >   `config.haus.focus.scenes`, so a scene has a palette row and a cheatsheet
 >   line — the box's own precondition for the trigger daemon, which stays
->   deliberately behind it); §5.9's three (an open `bar.widgets` with
+>   deliberately behind it; hours after this block was first written, this half
+>   was **built and in review** — [haus#381](https://github.com/hausfold/haus/pull/381),
+>   opened 2026-08-16, NOT merged, recorded per the rule that only `mergedAt`
+>   moves a marker); §5.9's three (an open `bar.widgets` with
 >   `bar.items` as sugar; pounce command packs; commands declaring
 >   mutates/confirm/permissions); §5.1's `flavor = "custom"` + `theme.palette`;
 >   §5.2's `motion = "none"`; §5.3's app-side `sans` across pounce/perch/trill,
@@ -3755,7 +3758,12 @@ power source, display attach.
       be fed from `config.haus.focus.scenes` instead. Still modest — the names
       come from config, so nothing is imported from a derivation — and still the
       thing to do before the triggers, because an unreachable scene can't prove
-      itself useful, which is this box's own precondition.
+      itself useful, which is this box's own precondition. ◐ **The reachability
+      half is built and in review** (haus#381, opened 2026-08-16, not merged):
+      every scene generates a `Scene: <name>` palette command plus a shared
+      `Leave Scene`, and the cheatsheet's Palette Commands page grows a row per
+      scene, both fed from `config.haus.focus.scenes` exactly as the ⚠️ above
+      prescribed. The trigger daemon is what this box still holds.
 
 ### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
 `bar.items` is a closed submodule of 15 bools (13 when this was written — it
