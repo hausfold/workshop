@@ -156,6 +156,15 @@ Rules that follow from the shape:
 - **Skill names are globally unique across the family** — `haus`, `pounce`,
   `perch`, `trill`, `holt`, `nebelung`. They land in one shared
   `~/.claude/skills/`, next to whatever else the user installed.
+- **The description is ONE physical line.** A YAML folded scalar (`>-` and an
+  indented body) is valid YAML and every build guard here rejects it, on
+  purpose: the guards are `grep`, and a description that needs a parser is a
+  description that can silently stop being checked.
+- **Name the failure, not the feature, when the tool can't do the thing.** A
+  skill whose `description` advertises only what the tool does never loads on
+  the sentence it most needs to refuse. perch's is the case: it has no read
+  verb, so *"what's on my shelf?"* must be in the description or the paragraph
+  that says "don't invent `perch list`" never fires.
 - **No option or flag inventories in the hand-written half.** Anything that
   drifts gets *generated* (haus's `references/options.md` is the pattern:
   rendered from the module system, so it can't be wrong about the revision on
@@ -288,6 +297,7 @@ fallbacks, and they cost nothing:
   ai/SKILL.md              the source, ≤150 lines, committed
   <build>                  embeds ai/SKILL.md into the binary
   flake.nix                exposes packages.<system>.<tool>-skill
+                           whose output is $out/<tool>/SKILL.md
 <tool> --help              verbs, flags, exit codes
 <tool> <verb> --json       stable schema, stdout only
 <tool> skill               prints the embedded SKILL.md
@@ -297,11 +307,33 @@ fallbacks, and they cost nothing:
 Four files' worth of work per tool, and the one that takes thought is the
 `description`.
 
-haus is the one deliberate variant: its skill source is
-`modules/terminal/agents/SKILL.md` (a room's file, not a repo root's) and half
-its content is *generated* from the module system rather than written. That is
-the pattern the other five copy — hand-write only what can't drift, render the
-rest — not an exception to it.
+**The derivation's output is `$out/<tool>/SKILL.md`, not `$out/SKILL.md`** —
+one nesting level, named for the skill. It means a consumer links a directory
+whose name is already right, and it means the *tool* decides its skill's folder
+name rather than whoever installs it. That is a real choice and this is where it
+is made; it is not implied by anything else here.
+
+haus is the one variant, in two ways, both legacy rather than exemption: its
+skill source is `modules/terminal/agents/SKILL.md` (a room's file, not a repo
+root's) and its derivation is flat, `$out/SKILL.md`, because it predates this
+paragraph. Its *generated* half — a reference rendered from the module system
+rather than hand-written — is the part the other five copy.
+
+**Each repo's build files follow that repo's own convention**, so the
+derivation lives at `nix/skill.nix` in perch, trill, holt and nebelung, and at
+`pkgs/pounce-skill/default.nix` in pounce, which keeps its packages under
+`pkgs/<name>/`. Only the package *name* and the output *layout* are fixed.
+
+**A repo whose CI builds anything must build its skill package.** Every guard in
+that derivation exists because the failure it catches is invisible at
+runtime — a skill with broken frontmatter is installed, listed and never
+loaded. A guard that only runs on a developer's machine catches nothing.
+
+⚠️ **`holt` has a naming conflict to resolve before step 4.** Its `SPEC.md`
+§14.5 already reserves this capability as `holt docs agent [--format=md|json]`,
+with a `{version, body}` envelope, which is a different verb and a different
+output shape from `<tool> skill`. One of the two names has to go, and holt's
+came first. Decide it when step 4 starts, not by whichever gets implemented.
 
 ## 7. How we know it works
 
