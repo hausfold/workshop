@@ -3,8 +3,7 @@
 **The hausfold workshop** — the parent directory holding every repo in the
 **hausfold** family, plus the `bench` script that moves changes between them.
 This folder's own repo holds the README, this file, `bench` (plus `_bench`, its
-zsh completion), `web/` (one Cloudflare Worker — nebelhaus.com's 301 map to
-hausfold.co, since 2026-08-14), `notes/` — the plans of record this file points
+zsh completion), `notes/` — the plans of record this file points
 at throughout — plus `docs/` (`workflows.md`, the long-form version of the
 README's command table), `assets/`, `test/`, `.agents/` (the shared skills and
 the cross-harness map) and `LICENSE`; the subdirectories are independent git
@@ -19,49 +18,33 @@ repos.
 > `bench`'s own usage header (`bench:2-40`) and must follow it. Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — those two are single-line arrays, so `_bench`
 > seds their members out of the script at completion time. **Everything else in
-> it is a hand copy and can rot**: `pull`'s six non-flake names (`bench:1194`),
-> `release`'s four repos (the arms of `version_file`, `bench:1220-1223`), and the
+> it is a hand copy and can rot**: `pull`'s six non-flake names, `release`'s four
+> repos (the arms of `version_file`), and the
 > fallbacks beside both sed'd lists. Add a repo to `version_file` and the
 > completion silently omits it.
 
-> **Terminology update, decided 2026-08-13:** user-facing prose says
-> **desktop**, not "rice", for an installable `{ haus = { … }; }` configuration.
-> Existing "rice" spellings in this file and the rename plan are legacy wording;
-> preserve them only in historical quotations, URLs, filenames, code identifiers,
-> and records of the earlier decision. Do not introduce the term into new prose.
+> **Terminology:** user-facing prose says **desktop**, not "rice", for an
+> installable `{ haus = { … }; }` configuration. Existing "rice" spellings are
+> legacy wording; preserve them only in historical quotations, URLs, filenames
+> and code identifiers. Do not introduce the term into new prose.
 
-> 🚨 **`nebelhaus` means five different things and only some of them are being
-> renamed.** `notes/hausfold-rename.md` is the plan of record; §2's table is the
-> rule. In one line each:
->
-> | spelling | what it is | this rename |
-> |---|---|---|
-> | `haus.<option>` | the option namespace | ✅ **already renamed** (haus#261). `nebelhaus.*` still evaluates via `modules/renamed.nix`, with a warning — never write it. Options that later moved *within* `haus.*` (the `claude` room → `agents`, 2026-08-11) are aliased in `modules/moved.nix` instead; same warning, different file, and that one has no deletion condition. |
-> | **nebelhaus** bare | ~~one **desktop** built on `haus`~~ | 🔄 **renamed to `hacker`, 2026-08-14** (§11, decision 10) — this row said "**stays**, forever (§6)" and §11 is the reversal. A bare `nebelhaus` in prose now means the desktop *under its old name*, and belongs in a sentence about the past or nowhere. |
-> | `github.com/nebelhaus/*`, `GH_ORG` | the org and its repos | ✅ **already renamed** — every *family* repo is `github.com/hausfold/*` (§3, 2026-08-09). The archived Messages client stayed behind (§3.4), and the dead org is kept alive forever regardless: shipped copies of pounce and perch hit `api.github.com/repos/nebelhaus/<app>` for their update check and only a live org redirects them. |
-> | `nebelhaus.url` in a consumer's flake | the consumer's flake **input name** | **`~/.config/nix` still says `nebelhaus`; a fresh install says `haus`.** `bootstrap.sh` has scaffolded `inputs.haus.url` since 2026-08-15 ([haus#364](https://github.com/hausfold/haus/pull/364), `bootstrap.sh:603`), so the two spellings diverged the day §11.2 predicted and there is nothing left to keep in step: **`bench` holds no operative spelling** — it reads the name out of `$CONSUMER/flake.lock` (`lock_layer_input`), and the one literal left is an announced fallback for a consumer that has never been built. (This row was keyed on `--override-input nebelhaus/…` in `bench` until those literals went; grepping for them now finds nothing, which is the row's own moral.) ⚠️ Two corrections live here, both worth knowing before trusting a "coupled!" warning: this row said *"nothing scaffolds `haus` today (measured 2026-08-15)"* — false 68 minutes before it was written, measured against a stale local checkout — and it named `bench`'s `OVERRIDABLE` as the coupled line, which holds **repo directory names** and never held an input name (the literals were in `overrides()`). Renaming `inputs.nebelhaus` → `inputs.haus` is now an ordinary one-line edit to a 👤 file (§3.3's flake-input-paths box), and it is still a 👤 call. Nix does not hard-fail an override for an unknown input, so the failure mode it protects against — `bench try` reporting your branch while building the pinned desktop — is silent, which is why bench derives the name rather than trusting anyone's memory of it. |
-> | `nebelhaus.com` | the domain | **§5**, with the 301s |
->
-> **And since 2026-08-10, `haus` carries five senses of its own** (decision 8):
-> the option namespace `haus.*`, the CLI verb, **the layer itself**, the page
+> 🚨 **`haus` carries five senses** (decision 8, 2026-08-10): the option
+> namespace `haus.*`, the CLI verb, **the layer itself**, the page
 > `hausfold.co/haus`, and — since 2026-08-11 (**§10**) — **the repo and its
 > checkout**, `hausfold/haus` at `./haus`. The counterpart rule is the one to
 > hold on to: **`hausfold` is the org, the maker and the seller, and never the
 > layer** — which is exactly why the layer's repo stopped being spelled
-> `hausfold/hausfold`. Same discipline as below: read the hit. A bare
-> `hausfold` hit is now the **org, the brand, or a bundle id** and nothing
+> `hausfold/hausfold`. A bare
+> `hausfold` hit is the **org, the brand, or a bundle id** and nothing
 > else; `GH_ORG="hausfold"`, `com.hausfold.*` and `hausfold.co` all stand.
+> Grep the bare word separately from `haus.`: a desktop file's top-level key is
+> `{ haus = { … }; }`, with no dot for a regex to find.
 >
-> Plus `com.nebelhaus.*` / `org.nixos.pounce` bundle ids (**§4**), the state
-> dirs (`~/.local/state/nebelhaus` and its three siblings — this row said
-> "deliberately held — §2.2" until 2026-08-14, when **§11.3 moved all four to
-> `haus` and left a symlink behind**, which is what keeps an older perch's
-> install-marker contract working; the old paths still resolve, so a bare hit is
-> a *compat* path, not a live one), and
-> `~/.cache/claude-worktrees/` (historical, stays). **The word alone tells you
-> nothing — read the hit before you touch it**, and grep the bare word
-> separately: a desktop file's top-level key is `{ haus = { … }; }`, with no dot
-> for a regex to find.
+> The **desktop** the layer ships is **`hacker`** (renamed 2026-08-14, decision
+> 10). Its old name is gone from every repo as of 2026-08-16 — there is no
+> option alias, no second builder, no desktop key, no state-dir symlink, no
+> install URL and no redirect left under it. `~/.cache/claude-worktrees/` keeps
+> its historical path and is the only survivor.
 
 **This file is the one set of instructions, for every agent.** Claude Code,
 Codex, OpenCode, Cursor, Copilot — TUI or GUI — all read *this*, directly or
@@ -82,17 +65,16 @@ former, never the latter).
 | colors / palette / how a tool is themed | `./nebelung` |
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
-| the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — **the rooms are named for what they do since 2026-08-16**, and the eight code names they replaced are mapped in [`notes/rooms-desktops.md`](notes/rooms-desktops.md#the-names-2026-08-16) | `./haus` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/haus`; the repo is named for the layer, the org is what's in front of the slash — decision 8, applied to the slug by §10). **The directory was `./nebelhaus` until 2026-08-09 and `./hausfold` until 2026-08-11**; each time the repo moved, the checkout followed. The desktop it ships is **`hacker`** — renamed from `nebelhaus` on 2026-08-14 (§11); the directory is named for its repo, not for the desktop it carries. |
+| the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — **the rooms are named for what they do since 2026-08-16**, and the eight code names they replaced are mapped in [`notes/rooms-desktops.md`](notes/rooms-desktops.md#the-names-2026-08-16) | `./haus` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/haus`; the repo is named for the layer, the org is what's in front of the slash — decision 8, applied to the slug by §10). **The directory was `./hausfold` until 2026-08-11**; each time the repo moved, the checkout followed. The desktop it ships is **`hacker`**; the directory is named for its repo, not for the desktop it carries. |
 | the org's GitHub front page | `./org-profile` — the checkout of the `hausfold/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
-| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` — its own repo now ([hausfold/trill](https://github.com/hausfold/trill)), ejected from the incubator 2026-08-09. Called **flick** until 2026-08-08. **Deliberately not a family repo**: it is not in `bench`'s `FAMILY` and carries no lock edge (§9 of `notes/hausfold-rename.md` — that name must never appear there), so `bench status`/`ship` don't see it. It IS in `DOCS_REPOS`, `bench clone` and `bench pull` (like `hausfold.co`): docs coverage and lock coverage are different lists, and a repo the daily sweep can't open is one it reports clean forever. The rice will consume it as a leaf overlay, which is not the same thing as joining the ripple chain. |
+| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` — its own repo now ([hausfold/trill](https://github.com/hausfold/trill)), ejected from the incubator 2026-08-09. Called **flick** until 2026-08-08. **Deliberately not a family repo**: it is not in `bench`'s `FAMILY` and carries no lock edge, so `bench status`/`ship` don't see it. It IS in `DOCS_REPOS`, `bench clone` and `bench pull` (like `hausfold.co`): docs coverage and lock coverage are different lists, and a repo the daily sweep can't open is one it reports clean forever. The rice will consume it as a leaf overlay, which is not the same thing as joining the ripple chain. |
 | holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([haus#200](https://github.com/hausfold/haus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([haus#245](https://github.com/hausfold/haus/pull/245)) — there is no fallback to roll back to. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | **how an agent learns to drive one of our tools** — the `ai/SKILL.md` an end user's agent loads, the `<tool> skill` verb, `--json`/exit-code shape | the tool's OWN repo, to the standard in [`notes/agent-surface.md`](notes/agent-surface.md) — which lives here because it binds every repo. ⚠️ Not to be confused with a repo's `AGENTS.md`: that is for an agent working **on** the tool, from a checkout; a `SKILL.md` is for an agent **using** it, on a machine that has no checkout. The install side (which skills a machine gets) is `./haus`'s `haus.ai.skill` |
-| **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, since 2026-08-14, and **only there now**. It is `curl -fsSL https://hausfold.co/hacker.sh \| bash` (and `/nebelhaus.sh`, the desktop's pre-2026-08-14 name, keeps its own row forever); `nebelhaus.com/init.sh` is a 301 onto it ([§5.2](notes/hausfold-rename.md#52--the-move--and-the-salvage-list)), so there is no second copy of the logic to keep in step — verified on the zone 2026-08-14, after an orphaned route from the installer's first Worker turned out to have been shadowing that path since 2026-07-08 ([§5.3](notes/hausfold-rename.md#53--dns--verification)). A change to the *script* belongs in `./haus`'s `bootstrap.sh` and to neither site |
-| `nebelhaus.com` — any URL on it | `./web`, which is the **301 map** to hausfold.co and nothing else since 2026-08-14. One `worker.js`, one row per page the old site published, no build. Adding a redirect is the only kind of change it takes; the pages themselves are `./hausfold.co`'s. ⚠️ **The Astro/Starlight tree that used to be here is deleted** — don't go looking for a docs page in this repo, and don't re-add one |
-| the hausfold.co site | `./hausfold.co` — **its own repo**, [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Note the `.co`, and keep the name spelled in full.** Between 2026-08-09 and 2026-08-11 the layer sat at `./hausfold`, one dot away, and site work sent to the short name silently edited the desktop instead. §10 moved the layer to `./haus`, so the two no longer collide — the rule survives its trap. Split out of here 2026-08-06 as the private `hausfold/website`, then recreated public on 2026-08-08 because that repo's history couldn't be made safe ([§5.1](notes/hausfold-rename.md#51--decided-2026-08-08--one-site-repo-hausfoldhausfoldco)); `hausfold/website` is archived and stays private. **Next 16 + Fumadocs, statically exported onto a Cloudflare Worker**, deployed by CI on push to its `main` — it was hand-written HTML until the docs tree moved in (2026-08-14); the Worker (`worker.js`) is now the installer, download and release-metadata routes in front of the export. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY`. |
-| the hausfold **name register** — a handle, an account, a claimed namespace | [hausfold/ops](https://github.com/hausfold/ops), **private**, `PRESENCE.md`. Moved out of the site repo 2026-08-08 so the site repo could go public. ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**, because a list of what nobody has claimed hands it to whoever reads it first. That cuts both ways: *trademark* findings are public register records and are fine here (`notes/hausfold-rename.md` §0.2); *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand when you need it; the dir is `.gitignore`d so the clone doesn't dirty this tree. |
+| **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, since 2026-08-14, and **only there now**. It is `curl -fsSL https://hausfold.co/hacker.sh \| bash`, and there is no second copy of the logic to keep in step. A change to the *script* belongs in `./haus`'s `bootstrap.sh` and to neither site |
+| the hausfold.co site | `./hausfold.co` — **its own repo**, [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Note the `.co`, and keep the name spelled in full.** Between 2026-08-09 and 2026-08-11 the layer sat at `./hausfold`, one dot away, and site work sent to the short name silently edited the desktop instead. §10 moved the layer to `./haus`, so the two no longer collide — the rule survives its trap. Split out of here 2026-08-06 as the private `hausfold/website`, then recreated public on 2026-08-08 because that repo's history couldn't be made safe; `hausfold/website` is archived and stays private. **Next 16 + Fumadocs, statically exported onto a Cloudflare Worker**, deployed by CI on push to its `main` — it was hand-written HTML until the docs tree moved in (2026-08-14); the Worker (`worker.js`) is now the installer, download and release-metadata routes in front of the export. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY`. |
+| the hausfold **name register** — a handle, an account, a claimed namespace | [hausfold/ops](https://github.com/hausfold/ops), **private**, `PRESENCE.md`. Moved out of the site repo 2026-08-08 so the site repo could go public. ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**, because a list of what nobody has claimed hands it to whoever reads it first. That cuts both ways: *trademark* findings are public register records and are fine here; *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand when you need it; the dir is `.gitignore`d so the clone doesn't dirty this tree. |
 | pounce's Homebrew formula / perch's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
 | holt's Swift SDK | `./holt`'s `sdk/swift` — same as any other holt change. [`hausfold/holt-swift`](https://github.com/hausfold/holt-swift) is a **generated mirror** (`git subtree split --prefix=sdk/swift`) that exists only because Swift Package Manager needs `Package.swift` at a repo's root for a remote git dependency — holt's own root is Go+Nix. **A `sdk/swift` merge alone does not move the mirror.** Only a `v*` tag does: holt's `release.yml` runs `sdk/swift/sync-mirror.sh --tag <version>`, and mirroring + tagging IS the whole of "publishing" for SwiftPM (there's no registry to push to). To get an unreleased change in front of a consumer before then, run `sdk/swift/sync-mirror.sh` by hand from holt's `main` — it refuses any other branch. It is not cloned into this workshop and not part of `FAMILY`; never hand-edit it, changes there get overwritten on the next sync. |
 
@@ -303,7 +285,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `_bench`, `assets/`, `docs/`,
-`notes/`, `test/`, `web/`, and the harness dirs). The family
+`notes/`, `test/`, and the harness dirs). The family
 sub-repos — the `haus` layer (`haus/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
 `trill/`, `hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not here at all.** This is
 **NOT** a `.gitignore`
@@ -384,7 +366,7 @@ Each client fires it its own way — Claude Code's `SessionStart` hook in
 What a cloud session **can** do, and its hard limits (all found the hard way):
 
 - ✅ Edit modules, `nixfmt`, read/resolve the flakes.
-- ✅ Regenerate `flake.lock` entries for **nebelhaus-org inputs** (pounce,
+- ✅ Regenerate `flake.lock` entries for **hausfold-org inputs** (pounce,
   nebelung) — those repos are in the session's GitHub scope.
 - ⚠️ **Full `nix eval`/build won't run under the default org-scoped access.**
   A flake pulls nixpkgs / nix-darwin / home-manager / catppuccin from
@@ -446,7 +428,7 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   argument for the CalVer repos and refuses to run without one for holt.
   Deciding the bump means reading `git diff <last-tag>..main -- sdk/` against
   the published SDK surface — that judgement is what `/release` is for.
-- Don't cross-edit: a color hex in `nebelhaus`, or launchd logic in `pounce`,
+- Don't cross-edit: a color hex in `haus`, or launchd logic in `pounce`,
   is in the wrong repo even if it would work. Each repo's own agent instructions
   enforce its boundary — respect it from up here too.
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)

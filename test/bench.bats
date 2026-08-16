@@ -23,7 +23,7 @@ setup() {
   # A consumer fixture, so nothing here reads the machine's real ~/.config/nix —
   # layer_input() would, and on a dev Mac it would even answer correctly, which
   # is the kind of green that stops meaning anything on CI.
-  mkconsumer nebelhaus
+  mkconsumer mydesktop
 }
 
 teardown() {
@@ -176,9 +176,8 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 #
 # The local side is `repo_dir` ($ROOT/<name>); this is the remote side. They
 # agree for most of the family and deliberately don't for org-profile. The
-# `nebelhaus` arm that used to sit here retired with §3.3's step 4, and §10
-# renamed the layer's checkout again (./hausfold → ./haus) — these tests are
-# what stops either spelling coming back, in either direction.
+# layer's checkout has been renamed twice — these tests are what stops an old
+# spelling coming back, in either direction.
 
 @test "gh_repo resolves a family checkout to owner/repo" {
   run gh_repo nebelung
@@ -194,15 +193,14 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [ "$output" = "$GH_ORG/.github" ]
 }
 
-@test "gh_repo never emits the rice's pre-migration repo name" {
-  # `hausfold/nebelhaus` RESOLVES — GitHub redirects the pre-rename name — so
-  # nothing would fail until someone creates a real repo under it. §6 used to say
-  # that would happen (the rice kept the name); §11 dropped the name on
-  # 2026-08-14 and nothing is queued to claim the slug now. The assertion stays
-  # either way — leaning on a redirect is the bug, not leaning on a prediction.
+@test "gh_repo never emits the layer's pre-migration repo name" {
+  # `hausfold/hausfold` RESOLVES — GitHub redirects a pre-rename name — so
+  # nothing would fail until someone creates a real repo under the freed slug.
+  # Leaning on a redirect is the bug; nothing being queued to claim it is a
+  # prediction, not a guarantee.
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
     run gh_repo "$name"
-    [ "$output" != "$GH_ORG/nebelhaus" ]
+    [ "$output" != "$GH_ORG/hausfold" ]
   done
 }
 
@@ -232,22 +230,22 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 @test "overrides redirects every family input, honouring the active worktree" {
   WT_REPO="pounce" WT_PATH="/tmp/wt/pounce"
   run overrides
-  [[ "$output" == *"--override-input nebelhaus path:$ROOT/haus"* ]]
-  [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
-  [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/wt/pounce"* ]]
+  [[ "$output" == *"--override-input mydesktop path:$ROOT/haus"* ]]
+  [[ "$output" == *"--override-input mydesktop/nebelung path:$ROOT/nebelung"* ]]
+  [[ "$output" == *"--override-input mydesktop/pounce path:/tmp/wt/pounce"* ]]
 }
 
 # ── layer_input: the CONSUMER's name for the haus input, not ours ─────────────
 #
 # `--override-input <a-name-this-flake-doesn't-have>` is not an error in Nix, it
 # is a no-op — so getting this name wrong makes `bench try` announce your branch
-# and build the pinned layer. ~/.config/nix calls it `nebelhaus`; every machine
-# bootstrap.sh has scaffolded since 2026-08-15 calls it `haus`. These are what
-# stop either spelling being baked back in.
+# and build the pinned layer. The name belongs to the CONSUMER's flake, so the
+# fixture deliberately uses one bench would never guess. These are what stop a
+# literal being baked back in.
 
 @test "lock_layer_input reads the consumer's own name for the layer" {
   run lock_layer_input
-  [ "$output" = "nebelhaus" ]
+  [ "$output" = "mydesktop" ]
   mkconsumer haus
   run lock_layer_input
   [ "$output" = "haus" ]
@@ -260,11 +258,11 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   python3 - "$CONSUMER/flake.lock" <<'JSON'
 import json, sys
 lock = json.load(open(sys.argv[1]))
-lock["nodes"]["nebelhaus"]["original"] = {"type": "github", "owner": "hausfold", "repo": "hausfold"}
+lock["nodes"]["mydesktop"]["original"] = {"type": "github", "owner": "hausfold", "repo": "hausfold"}
 json.dump(lock, open(sys.argv[1], "w"))
 JSON
   run lock_layer_input
-  [ "$output" = "nebelhaus" ]
+  [ "$output" = "mydesktop" ]
 }
 
 @test "lock_layer_input is empty for a flake that doesn't take the layer" {
@@ -279,7 +277,7 @@ JSON
   run overrides
   [[ "$output" == *"--override-input haus path:$ROOT/haus"* ]]
   [[ "$output" == *"--override-input haus/pounce path:$ROOT/pounce"* ]]
-  [[ "$output" != *"nebelhaus"* ]]
+  [[ "$output" != *"mydesktop"* ]]
 }
 
 @test "resolve_layer_input assumes, out loud, when there is no lock to read" {
@@ -287,7 +285,7 @@ JSON
   run resolve_layer_input
   [ "$status" -eq 0 ]
   [[ "$output" == *"assuming"* ]]
-  [[ "$output" == *"nebelhaus"* ]]
+  [[ "$output" == *"haus"* ]]
 }
 
 @test "layer_input stays silent — every caller interpolates it inside \$( )" {
@@ -298,12 +296,12 @@ JSON
   rm -f "$CONSUMER/flake.lock"
   run layer_input
   [ "$status" -eq 0 ]
-  [ "$output" = "nebelhaus" ]
+  [ "$output" = "haus" ]
   echo '{ "root": "root", "nodes": { "root": { "inputs": {} } } }' >"$CONSUMER/flake.lock"
   LAYER_INPUT=""
   run layer_input
   [ "$status" -eq 0 ]
-  [ "$output" = "nebelhaus" ]
+  [ "$output" = "haus" ]
 }
 
 @test "every \$(overrides) caller resolves the input name in its own shell first" {
@@ -352,15 +350,15 @@ JSON
 }
 
 @test "locked_slug catches an input still fetched under a freed slug" {
-  run locked_slug consumer nebelhaus
+  run locked_slug consumer mydesktop
   [ "$output" = "hausfold/haus" ]
   python3 - "$CONSUMER/flake.lock" <<'JSON'
 import json, sys
 lock = json.load(open(sys.argv[1]))
-lock["nodes"]["nebelhaus"]["original"]["repo"] = "hausfold"   # the slug §10 freed
+lock["nodes"]["mydesktop"]["original"]["repo"] = "hausfold"   # the slug §10 freed
 json.dump(lock, open(sys.argv[1], "w"))
 JSON
-  run locked_slug consumer nebelhaus
+  run locked_slug consumer mydesktop
   [ "$output" = "hausfold/hausfold" ]
   [ "$output" != "$(gh_repo haus)" ]   # …which is what bench status reports on
 }
@@ -400,9 +398,9 @@ JSON
 @test "overrides points a batched repo at its integration tree, the rest at main" {
   BATCH_SRC[pounce]="/tmp/batch/pounce"
   run overrides
-  [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/batch/pounce"* ]]
-  [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
-  [[ "$output" == *"--override-input nebelhaus path:$ROOT/haus"* ]]
+  [[ "$output" == *"--override-input mydesktop/pounce path:/tmp/batch/pounce"* ]]
+  [[ "$output" == *"--override-input mydesktop/nebelung path:$ROOT/nebelung"* ]]
+  [[ "$output" == *"--override-input mydesktop path:$ROOT/haus"* ]]
 }
 
 # ── bench try lane: build a pane's worktree + every holt-child alongside it ────
@@ -436,9 +434,9 @@ JSON
   WT_REPO="pounce" WT_PATH="/tmp/wt/pounce"
   LANE_SRC[haus]="/tmp/lane/haus"
   run overrides
-  [[ "$output" == *"--override-input nebelhaus path:/tmp/lane/haus"* ]]
-  [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/wt/pounce"* ]]
-  [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
+  [[ "$output" == *"--override-input mydesktop path:/tmp/lane/haus"* ]]
+  [[ "$output" == *"--override-input mydesktop/pounce path:/tmp/wt/pounce"* ]]
+  [[ "$output" == *"--override-input mydesktop/nebelung path:$ROOT/nebelung"* ]]
 }
 
 mkregistry() { # mkregistry <file> <row>... — one "name main branch path parent agent" per row
@@ -694,13 +692,13 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   run render_run '{"status":"completed","conclusion":"success","jobs":[
     {"name":"build + publish release","status":"completed","conclusion":"success",
      "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:02:41Z"},
-    {"name":"bump nebelhaus/homebrew-tap","status":"completed","conclusion":"success",
+    {"name":"bump hausfold/homebrew-tap","status":"completed","conclusion":"success",
      "startedAt":"2026-08-02T10:02:41Z","completedAt":"2026-08-02T10:02:50Z"}]}'
   [ "$status" -eq 0 ]
   # Trailing empty field: a FINISHED job's duration is final, so it carries no
   # start epoch for the paint loop to keep counting from.
   [ "${lines[0]}" = "ok	build + publish release	2m 41s	" ]
-  [ "${lines[1]}" = "ok	bump nebelhaus/homebrew-tap	9s	" ]
+  [ "${lines[1]}" = "ok	bump hausfold/homebrew-tap	9s	" ]
   [ "${lines[2]}" = "RUN	completed	success" ]
 }
 
@@ -720,9 +718,9 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   # GitHub hands back a year-1 timestamp for a job that never began; without the
   # guard that subtraction renders as an absurd duration.
   run render_run '{"status":"in_progress","conclusion":null,"jobs":[
-    {"name":"bump nebelhaus/homebrew-tap","status":"queued","conclusion":null,
+    {"name":"bump hausfold/homebrew-tap","status":"queued","conclusion":null,
      "startedAt":"0001-01-01T00:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
-  [ "${lines[0]}" = "wait	bump nebelhaus/homebrew-tap	queued	" ]
+  [ "${lines[0]}" = "wait	bump hausfold/homebrew-tap	queued	" ]
   [ "${lines[1]}" = "RUN	in_progress	" ]
 }
 
@@ -730,10 +728,10 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   run render_run '{"status":"completed","conclusion":"failure","jobs":[
     {"name":"build + publish release","status":"completed","conclusion":"failure",
      "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:01:35Z"},
-    {"name":"bump nebelhaus/homebrew-tap","status":"completed","conclusion":"skipped",
+    {"name":"bump hausfold/homebrew-tap","status":"completed","conclusion":"skipped",
      "startedAt":"0001-01-01T00:00:00Z","completedAt":"0001-01-01T00:00:00Z"}]}'
   [ "${lines[0]}" = "fail	build + publish release	1m 35s	" ]
-  [ "${lines[1]}" = "skip	bump nebelhaus/homebrew-tap	skipped	" ]
+  [ "${lines[1]}" = "skip	bump hausfold/homebrew-tap	skipped	" ]
   [ "${lines[2]}" = "RUN	completed	failure" ]
 }
 

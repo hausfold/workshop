@@ -1,6 +1,6 @@
-# The nebelhaus desktop still — shot sheet
+# The hacker desktop still — shot sheet
 
-One frame, for `hausfold.co/desktops/` and `/desktops/nebelhaus/`. It replaces
+One frame, for `hausfold.co/desktops/` and `/desktops/hacker/`. It replaces
 the placeholder in `haus/assets/hero.png`, which is dense, dated and shows a
 GitHub profile as its second-largest object.
 
@@ -42,7 +42,7 @@ hero fails because it tried to be readable and became a wall.
 │  agent session, mid-turn         │  haus status                    │
 │                                  │    this machine: …              │
 │  › add obsidian to the roster    │    current generation           │
-│  ⏺ Read  hosts/mbp/default.nix   │    pinned nebelhaus rice        │
+│  ⏺ Read  hosts/mbp/default.nix   │    pinned hacker desktop        │
 │  ✳ Thinking…                     │    ✓ up to date with upstream   │
 │                                  ├─────────────────────────────────┤
 │         ╔═══════════════════════════════════════════╗              │
@@ -76,7 +76,7 @@ hero fails because it tried to be readable and became a wall.
 | Zen's chrome, fog-grey with a pink accent | **nebelung** reaches past the terminal |
 | the wallpaper band and seam | nebelung's atmosphere |
 
-That is nine of the eleven rooms the `/desktops/nebelhaus/` page lists. The
+That is nine of the eleven rooms the `/desktops/hacker/` page lists. The
 missing two — security (Touch ID) and secrets — are **invisible by nature**;
 they belong in the prose beside the picture, and the page already carries them.
 
@@ -160,7 +160,7 @@ how you delete "battery anxiety" without deleting the option.
 ### 2. Accent — leave it alone
 
 **Keep `theme.accent = "pink"`.** `hausfold.co` sets
-`--a-nebelhaus: var(--nebelung-pink)` — the page the shot lands on is already
+`--a-haus: var(--nebelung-pink)` — the page the shot lands on is already
 pink, and so are the ears in the logo. (`assets/SHOTLIST.md` used to say
 "default mauve"; that line was wrong and is corrected in the same change as
 this file.)
@@ -248,14 +248,14 @@ line. Make the edit, shoot, `git checkout` it after.
 
 ### Right tile — Zen
 
-One window, one tab, on **`nebelhaus.com/start/first-run/`**.
+One window, one tab, on **`hausfold.co/start/first-run/`**.
 
 The point is the *chrome*, not the page: Zen wearing fog-grey with a pink
 accent is what proves nebelung reaches past the terminal. Before shooting:
 empty bookmarks bar (or hidden), no second tab, no profile avatar, no
 extension icons, no notification dot.
 
-> Caveat, small: §5 of the rename will 301 `nebelhaus.com` to `hausfold.co`
+> Caveat, small: §5 of the rename will 301 `hausfold.co` to `hausfold.co`
 > path-for-path. When that lands the URL in the bar is a wrong-brand signal and
 > the shot wants a retake. At 600 px it is four illegible pixels, so this is not
 > a reason to delay.
@@ -295,7 +295,7 @@ Checked against what the current hero actually ships:
 - a battery percentage, an uptime, a "36 %"
 - the aiUsage pill, any `$0.20`, any token count
 - `Monogram`, the Elgato pill, the Harvest pill
-- `github.com/nebelhaus` — the org is **`hausfold`** now, and that string in a
+- `github.com/hausfold` — the org is **`hausfold`** now, and that string in a
   marketing shot is a bug
 - the word `wt` anywhere — **holt** is the live workflow
 - any notification banner; put Focus on before you shoot (it's on the bottom bar
@@ -312,7 +312,7 @@ The pounce panel closes when it loses focus, so the capture has to fire *while
 you're standing still*. Use the timer:
 
 ```sh
-screencapture -x -t png -T 10 ~/Desktop/nebelhaus-master.png
+screencapture -x -t png -T 10 ~/Desktop/hacker-master.png
 ```
 
 …then ⌘Space, type `86 f in c`, and don't move. `-x` mutes the shutter, and no
@@ -336,10 +336,10 @@ the perch ember lands in the shot).
 cd ~/Desktop
 
 # the site asset — ~2.6x for a 600px slot, which is plenty
-magick nebelhaus-master.png -resize 1600x1039 -quality 82 nebelhaus-desktop.webp
+magick hacker-master.png -resize 1600x1039 -quality 82 hacker-desktop.webp
 
 # sanity: under ~250 KB, and it must survive a 350px look
-identify -format '%wx%h %b\n' nebelhaus-desktop.webp
+identify -format '%wx%h %b\n' hacker-desktop.webp
 ```
 
 Then **look at it at 350 px wide** before accepting it. If the pounce card
@@ -367,7 +367,7 @@ one page and not the other seven breaks that as written; carding all eight to
 avoid it is a lot of surface for a picture nobody asked for.
 
 **Don't cut an og crop.** There is one export from this shoot
-(`nebelhaus-desktop.webp`) and it is the in-page hero. If this comes up again,
+(`hacker-desktop.webp`) and it is the in-page hero. If this comes up again,
 the answer is no unless the *tone* argument has changed, not the asset one.
 
 ---
@@ -381,7 +381,7 @@ grey box the page draws today.
 ```sh
 cd "$(holt child ~/code/workshop/hausfold.co)"
 mkdir -p public/media
-cp ~/Desktop/nebelhaus-desktop.webp public/media/
+cp ~/Desktop/hacker-desktop.webp public/media/
 git apply ~/code/workshop/assets/desktops-hero.patch
 ```
 
@@ -389,7 +389,7 @@ The patch path has to be absolute: a `holt child` lands under
 `~/.cache/claude-worktrees/hausfold.co/<name>`, nowhere near the workshop.
 
 > **The patch will rot, silently.** It carries blob hashes for
-> `desktops/index.html`, `desktops/nebelhaus/index.html` and `hausfold.css`,
+> `desktops/index.html`, `desktops/hacker/index.html` and `hausfold.css`,
 > and nothing in this repo checks it. It applied cleanly when written
 > (`git apply --check`, all three files). If any of those three has moved
 > since, `git apply` refuses — read it and make the three edits by hand; it's
@@ -401,8 +401,8 @@ The patch:
   it solid, drops the padding, and releases the forced aspect ratio so the
   picture sets its own height
 - swaps the `<span>[ shot not taken yet ]</span>` for an `<img>` in **both**
-  wide frames (`/desktops/` and `/desktops/nebelhaus/`)
-- leaves the two narrow frames on `/desktops/nebelhaus/` as placeholders
+  wide frames (`/desktops/` and `/desktops/hacker/`)
+- leaves the two narrow frames on `/desktops/hacker/` as placeholders
 
 **If your capture isn't 2294 × 1490, fix the `width`/`height` attributes.**
 They're what stops the page reflowing as the image loads; wrong numbers are
@@ -411,7 +411,7 @@ worse than none.
 Still to do by hand in that repo, because they are judgement calls:
 
 1. the **"Placeholder frames, never a stale screenshot"** bullet in
-   `AGENTS.md` — it still points at `nebelhaus/assets/hero.png` (the directory
+   `AGENTS.md` — it still points at `haus/assets/hero.png` (the directory
    is `haus/` since 2026-08-11) and still calls it a placeholder. Amend it
    to say the wide frames hold a real capture and the two narrow ones don't
    yet; the rule itself is unchanged and still correct.
@@ -427,7 +427,7 @@ in `AGENTS.md` stands as written.
 
 ## The two narrow frames
 
-`/desktops/nebelhaus/` also wants *pounce, mid-launch* and *the terminal — zsh,
+`/desktops/hacker/` also wants *pounce, mid-launch* and *the terminal — zsh,
 helix, lazygit*. Both come out of the same staging session, shot separately at
 window scope rather than cropped out of the master — a crop of a 600 px-wide
 composition is 300 px of mush.

@@ -1,8 +1,8 @@
-# scale-reach — what `nebelhaus.ui.scale` actually reaches, and where it stops.
+# scale-reach — what `haus.ui.scale` actually reaches, and where it stops.
 #
 # Evidence for options-roadmap.md §5.2. That section carries two claims nobody
 # had measured: (1) "any option whose unit is points is silently coupled to
-# `nebelhaus.displays`, because a display mode changes what a point means —
+# `haus.displays`, because a display mode changes what a point means —
 # worth auditing `fonts.*.size` and prowl's gaps for the same interaction", and
 # (2) an "honest scope" paragraph naming what `ui.scale` does and does not move.
 # §5.14 lists both as findings that ought to leave a CHECK behind rather than a
@@ -26,12 +26,12 @@
 #    options page renders, plus four internal mirrors it doesn't (`_roster` /
 #    `_launchers`) — and exactly one of the six is in points:
 #
-#      nebelhaus.fonts.mono.size            points     ← the only one
-#      nebelhaus.ui.scale                   multiplier
-#      nebelhaus.pounce.scale               multiplier
-#      nebelhaus.sill.battery.hideOver      percent
-#      nebelhaus.roster.<name>.order        ordering
-#      nebelhaus.roster.<name>.appStoreId   an id
+#      haus.fonts.mono.size            points     ← the only one
+#      haus.ui.scale                   multiplier
+#      haus.pounce.scale               multiplier
+#      haus.sill.battery.hideOver      percent
+#      haus.roster.<name>.order        ordering
+#      haus.roster.<name>.appStoreId   an id
 #      (plus the internal `_roster` / `_launchers` mirrors of the last two)
 #
 #    So §5.2's "audit `fonts.*.size` and prowl's gaps" was aimed one layer off:
@@ -94,7 +94,7 @@ let
   numeric = map (o: "${o.name} :: ${o.type}") (
     builtins.filter (
       o:
-      lib.hasPrefix "nebelhaus." o.name
+      lib.hasPrefix "haus." o.name
       && builtins.match ".*(integer|floating point|number).*" o.type != null
     ) surface
   );
@@ -104,11 +104,11 @@ let
     scale:
     let
       cfg =
-        (flake.mkNebelhaus {
+        (flake.mkHaus {
           system = "aarch64-darwin";
           username = "you";
           hostname = "example";
-          extraModules = [ { nebelhaus.ui.scale = scale; } ];
+          extraModules = [ { haus.ui.scale = scale; } ];
         }).config;
       hm = cfg.home-manager.users.you;
       text =
@@ -129,8 +129,8 @@ let
     {
       files = builtins.mapAttrs (target: _: text target) hm.home.file;
       values = {
-        "fonts.mono.size" = toString cfg.nebelhaus.fonts.mono.size;
-        "pounce.scale" = toString cfg.nebelhaus.pounce.scale;
+        "fonts.mono.size" = toString cfg.haus.fonts.mono.size;
+        "pounce.scale" = toString cfg.haus.pounce.scale;
         "dock.tilesize" =
           if cfg.system.defaults.dock.tilesize == null then
             "unset"

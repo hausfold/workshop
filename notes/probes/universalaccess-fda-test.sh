@@ -34,7 +34,7 @@ cleanup() {
       && printf '  restored.\n' \
       || printf '  RESTORE FAILED — snapshot kept at %s\n' "$snapshot"
     # Belt and braces: the key should be gone regardless of import semantics.
-    defaults delete com.apple.universalaccess nebelhausFdaProbe >/dev/null 2>&1
+    defaults delete com.apple.universalaccess hausFdaProbe >/dev/null 2>&1
     if defaults read com.apple.universalaccess reduceMotion >/dev/null 2>&1; then
       printf '  reduceMotion now: %s\n' "$(defaults read com.apple.universalaccess reduceMotion)"
     fi
@@ -83,10 +83,10 @@ restore_needed=1
 
 # ---- 2. does a write succeed? --------------------------------------------
 say "2. Q1 — does a write SUCCEED?"
-if out=$(defaults write com.apple.universalaccess nebelhausFdaProbe -int 42 2>&1); then
-  if [ "$(defaults read com.apple.universalaccess nebelhausFdaProbe 2>/dev/null)" = 42 ]; then
+if out=$(defaults write com.apple.universalaccess hausFdaProbe -int 42 2>&1); then
+  if [ "$(defaults read com.apple.universalaccess hausFdaProbe 2>/dev/null)" = 42 ]; then
     printf '   ✓ WRITE SUCCEEDED and read back.\n'
-    defaults delete com.apple.universalaccess nebelhausFdaProbe >/dev/null 2>&1
+    defaults delete com.apple.universalaccess hausFdaProbe >/dev/null 2>&1
   else
     printf '   ✗ write reported success but did not read back.\n'; exit 1
   fi
@@ -113,7 +113,7 @@ if printf '%s' "$after" | grep -q 'motion_reduced=true'; then
        conditional on the rebuild being invoked from an FDA-holding app.
      → Update notes/macos-settings-matrix.md; the five options move from
        "needs FDA / unproven" to "works, with an FDA caveat".
-     → Keep the nebelhaus warning (nebelhaus#89): the caveat is exactly what it
+     → Keep the haus warning (haus#89): the caveat is exactly what it
        documents, and the activation-abort blast radius is unchanged.
 EOF
 else

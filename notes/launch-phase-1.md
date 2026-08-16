@@ -29,19 +29,18 @@ Nothing below works if a tester hits a wall on step one.
       2-tile free tier (inert until the public key ships in Phase 2). Every
       tester now installs a fair-source perch, which was the whole point of
       doing this before the invites rather than after.
-      ⚠️ **One half was missed and is fixed here:** nebelhaus.com still said
-      *"All of nebelhaus is MIT-licensed"* on
+      ⚠️ **One half was missed and is fixed here:** hausfold.co still said
+      *"All of haus is MIT-licensed"* on
       [`start/the-family.md`](../web/src/content/docs/start/the-family.md).
       org-profile#14 corrected the same claim in the GitHub footer four days
       ago and the docs site was never grepped — the roadmap's rule again,
       **grep for the claim, not for the file.**
 - [x] ✅ **The trill question is settled — it was decided by removal, not by a
       note.** ("trill" here, and everywhere else in this file, is the **archived
-      Messages client**, `nebelhaus/messages` since 2026-08-08. The notification
+      Messages client**, `hausfold/messages` since 2026-08-08. The notification
       compositor took the name that day and the rice now declares a
       metadata-only `haus.roster.trill` float rule for it — a different app, and
-      no tester question of its own is answered here. See
-      [`hausfold-rename.md`](./hausfold-rename.md) §3.4.)
+      no tester question of its own is answered here.)
       rice#212 made it opt-in, rice#213 deleted the module and the flake
       input, homebrew-tap#10/#11 deprecated the cask, workshop#204 and
       org-profile#14 took it out of the family lists, and the repo is
@@ -55,7 +54,7 @@ Nothing below works if a tester hits a wall on step one.
       discrepancy" with no detail. The only `.bak` in the docs is the Codex
       OAuth token rewrite at `web/src/content/docs/guides/the-bar.mdx:128` —
       confirm the bar refresher actually writes that file, or fix the sentence.
-- [ ] **Capture the rice hero shot** (`nebelhaus/assets/hero.png`). Not a
+- [ ] **Capture the rice hero shot** (`haus/assets/hero.png`). Not a
       blocker for testers, but it's the asset every later phase waits on, and
       it's a single good desktop away from done.
 
@@ -94,7 +93,7 @@ don't ask at the time.
 Send individually. Never a broadcast — a broadcast gets promises, a personal ask
 gets reports.
 
-> Hey — I'm doing a quiet pre-launch inspection of nebelhaus, an opinionated,
+> Hey — I'm doing a quiet pre-launch inspection of haus, an opinionated,
 > reproducible macOS setup built around Nix, native tools, and a slightly
 > unreasonable amount of grey.
 >

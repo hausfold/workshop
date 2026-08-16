@@ -34,7 +34,7 @@
 #                                      collision; it outranks both packs
 #   leaf-mkDefault + host key = null   four apps, no letter claimed, no mkForce
 #
-# The middle row is the point. `mkDefault` on the whole `nebelhaus.roster`
+# The middle row is the point. `mkDefault` on the whole `haus.roster`
 # attrset attaches the priority AT the option boundary, so one normal-priority
 # field in the host outranks the pack's entire roster and three quarters of the
 # pack vanishes with no error. Wrap below the option leaf and you set a
@@ -60,34 +60,34 @@ let
     (lib.evalModules {
       specialArgs.lib = lib;
       modules = optionModules ++ mods;
-    }).config.nebelhaus.roster;
+    }).config.haus.roster;
 
   # The consumer: already has Obsidian, on their own letter, and expects the
   # pack's other three apps to arrive anyway. The likely case, not an exotic one
   # — a pack is worth publishing precisely when its apps are popular.
-  host.nebelhaus.roster.obsidian = {
+  host.haus.roster.obsidian = {
     key = "n";
     name = "Obsidian";
     cask = "obsidian";
   };
 
   # The consumer who wants the app installed but claims no letter for it.
-  hostNullKey.nebelhaus.roster.obsidian.key = null;
+  hostNullKey.haus.roster.obsidian.key = null;
 
   # ---- three ways to ship the same pack ------------------------------------
   packAsIs = packData;
 
   # (a) priority at the FAMILY level — the one-liner a seam would reach for.
-  packFamilyDefault.nebelhaus.roster = lib.mkDefault packData.nebelhaus.roster;
+  packFamilyDefault.haus.roster = lib.mkDefault packData.haus.roster;
 
   # (b) priority per LEAF — "mkDefault inside every pack", mechanised at the
   #     seam, with the pack file itself still data.
-  packLeafDefault.nebelhaus.roster = lib.mapAttrs (
+  packLeafDefault.haus.roster = lib.mapAttrs (
     _: entry: lib.mapAttrs (_: v: lib.mkDefault v) entry
-  ) packData.nebelhaus.roster;
+  ) packData.haus.roster;
 
   # A second pack that also names Obsidian, shipped the same way.
-  otherPackLeafDefault.nebelhaus.roster.obsidian = lib.mapAttrs (_: v: lib.mkDefault v) {
+  otherPackLeafDefault.haus.roster.obsidian = lib.mapAttrs (_: v: lib.mkDefault v) {
     key = "b";
     name = "Obsidian";
     cask = "obsidian";

@@ -1,6 +1,6 @@
 # Salvage from `web/public/`
 
-These are the images the old nebelhaus.com Astro site served, kept when that
+These are the images the old hausfold.co Astro site served, kept when that
 site became the 301 map (rename plan §5.2) and its `public/` tree was deleted.
 Nothing renders them today: **hausfold.co ships no images at all** — no
 `og:image`, deliberately (see its `src/app/layout.tsx`) — so this is a

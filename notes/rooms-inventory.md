@@ -25,7 +25,7 @@ The bounded surface contains:
 - 142 lexical `config.haus.<namespace>` matches in implementation Nix files;
 - 189 desktop-safe entries, 40 host-only entries and 8 recursively classified
   containers/dynamic entries under the baseline rules below;
-- 54 defaults that encode a nebelhaus opinion and 183 generic mechanism or
+- 54 defaults that encode a haus opinion and 183 generic mechanism or
   conservative defaults.
 
 “Entry” means one record in generated `options.json`. Parent container options
@@ -103,7 +103,7 @@ at this revision. `perch` is additionally named as a cherry-pickable module in
 `modules/default.nix` but is not exported at all.
 
 The standalone result above used the same platform, overlays, Home Manager
-module and special arguments as `mkNebelhaus`, but replaced `default` with one
+module and special arguments as `mkHaus`, but replaced `default` with one
 export at a time:
 
 ```sh
@@ -163,11 +163,11 @@ Other public composition surfaces that later steps must preserve are:
 
 | Surface | Current members/behavior |
 |---|---|
-| `mkNebelhaus` | imports overlays, Home Manager, `darwinModules.default`, the host, machine-written `packages/*.nix` and `settings/*.nix`, then `extraModules` |
+| `mkHaus` | imports overlays, Home Manager, `darwinModules.default`, the host, machine-written `packages/*.nix` and `settings/*.nix`, then `extraModules` |
 | `presets` | `everyday`, `full`, `large-print`, `minimal` as data-only paths |
 | `packs` / `packFiles` | wrapped `writing` module / unwrapped `writing` path |
 | `lib` | `checkRice`, `checkPack`, `pack`, `riceBody`, `riceNamespaces` |
-| namespace compatibility | `nebelhaus.*` leaves alias to `haus.*`; moved `haus.claude.*` leaves alias to `haus.agents.*`, both with warnings |
+| namespace compatibility | `haus.*` leaves alias to `haus.*`; moved `haus.claude.*` leaves alias to `haus.agents.*`, both with warnings |
 
 ### Complete implementation aggregate
 
@@ -197,7 +197,7 @@ implementation units:
 | `snippets` | espanso package/config for declared text expansions |
 
 This table is the behavioral projection boundary for the refactor. A behavior
-may move to a different room or extension point, but `mkNebelhaus` must still
+may move to a different room or extension point, but `mkHaus` must still
 produce it until the compatibility surface is deliberately retired.
 
 ## Namespace classification
@@ -341,9 +341,9 @@ jq '
 
 Defaults are classified independently from safety. A host-only leaf can still
 have a generic empty default; a desktop-safe leaf can still carry a strong
-nebelhaus opinion that Step 4 must move into the nebelhaus desktop.
+haus opinion that Step 4 must move into the hacker desktop.
 
-These 54 generated defaults encode nebelhaus opinion:
+These 54 generated defaults encode haus opinion:
 
 | Paths | Count | Opinion |
 |---|---:|---|
@@ -361,7 +361,7 @@ These 54 generated defaults encode nebelhaus opinion:
 | `bar.enable`, `bar.position`, `bar.clock.mode`, the five true `bar.items.*` leaves and five interactive/logo leaves | 13 | Bar selected, placed and curated |
 | `theme.{accent,contrast,flavor,ports.enable}` | 4 | Nebelung appearance and app theming |
 | `tour.enable` | 1 | first-run tutor selected |
-| `wallpaper.{style,size,depth,grain}`, three active `glow` values and all six `mark` values | 13 | generated nebelhaus desktop art |
+| `wallpaper.{style,size,depth,grain}`, three active `glow` values and all six `mark` values | 13 | generated hacker desktop art |
 
 All other 183 defaults are generic mechanism or conservative no-op values. That
 includes empty containers, nullable macOS settings, disabled optional features,
@@ -408,7 +408,7 @@ jq '
     or (.key == "haus.wallpaper.glow.strength")
     or (.key | startswith("haus.wallpaper.mark."));
   to_entries | {
-    nebelhaus_opinion: ([.[] | select(opinion)] | length),
+    haus_opinion: ([.[] | select(opinion)] | length),
     generic_mechanism: ([.[] | select(opinion | not)] | length),
     total: length
   }
@@ -421,29 +421,29 @@ The generated surface has these 25 `.enable` paths:
 
 | Path | Current default | Classification |
 |---|---|---|
-| `haus.apps.videoPlayer.enable` | `true` | nebelhaus opinion |
-| `haus.security.touchId.enable` | `true` | nebelhaus opinion |
-| `haus.developer.agents.enable` | `config.haus.developer.enable` | nebelhaus opinion; current AI coupling |
-| `haus.developer.enable` | `true` | nebelhaus opinion |
+| `haus.apps.videoPlayer.enable` | `true` | haus opinion |
+| `haus.security.touchId.enable` | `true` | haus opinion |
+| `haus.developer.agents.enable` | `config.haus.developer.enable` | haus opinion; current AI coupling |
+| `haus.developer.enable` | `true` | haus opinion |
 | `haus.developer.git.enable` | `config.haus.developer.enable` | Development mechanism |
 | `haus.developer.toolbelt.enable` | `config.haus.developer.enable` | Development mechanism |
 | `haus.terminal.ghDash.enable` | `false` | conservative mechanism |
-| `haus.focus.enable` | `true` | nebelhaus opinion |
+| `haus.focus.enable` | `true` | haus opinion |
 | `haus.focus.slack.enable` | `false` | conservative mechanism |
-| `haus.shelf.enable` | `true` | nebelhaus opinion |
+| `haus.shelf.enable` | `true` | haus opinion |
 | `haus.launcher.autoQuit.enable` | `false` | conservative mechanism |
-| `haus.launcher.enable` | `true` | nebelhaus opinion |
-| `haus.windows.enable` | `true` | nebelhaus opinion |
+| `haus.launcher.enable` | `true` | haus opinion |
+| `haus.windows.enable` | `true` | haus opinion |
 | `haus.roster.<name>.enable` | `true` | declared-entry mechanism |
 | `haus.security.firewall.enable` | `null` | unmanaged mechanism |
 | `haus.bar.bottom.enable` | `false` | conservative mechanism |
-| `haus.bar.enable` | `true` | nebelhaus opinion |
+| `haus.bar.enable` | `true` | haus opinion |
 | `haus.snippets.enable` | `false` | conservative mechanism |
-| `haus.theme.ports.enable` | `true` | nebelhaus opinion |
-| `haus.tour.enable` | `true` | nebelhaus opinion |
+| `haus.theme.ports.enable` | `true` | haus opinion |
+| `haus.tour.enable` | `true` | haus opinion |
 | `haus.wallpaper.debug.enable` | `false` | conservative mechanism |
-| `haus.wallpaper.glow.enable` | `true` | nebelhaus opinion |
-| `haus.wallpaper.mark.enable` | `true` | nebelhaus opinion |
+| `haus.wallpaper.glow.enable` | `true` | haus opinion |
+| `haus.wallpaper.mark.enable` | `true` | haus opinion |
 | `haus.zen.extensions.<name>.enable` | `true` | declared-entry mechanism, host-only subtree |
 | `haus.zen.tabBridge.enable` | `false` | conservative built-in integration |
 
@@ -506,11 +506,11 @@ Until the atomic Step 4 carve-out, refactors must preserve all of the following:
 
 1. Every generated option address, type, default, description, warning and
    merge priority represented by the 237-entry surface.
-2. `mkNebelhaus` composition, including host-written modules and the rule that
+2. `mkHaus` composition, including host-written modules and the rule that
    ordinary host assignments beat option defaults without `mkForce`.
 3. The complete implementation aggregate and every observable effect in its
    module table above.
-4. The `nebelhaus.*` and moved `haus.claude.*` compatibility aliases and their
+4. The `haus.*` and moved `haus.claude.*` compatibility aliases and their
    warnings.
 5. Preset/pack evaluation, pack per-leaf `mkDefault` behavior and the public
    helper functions.

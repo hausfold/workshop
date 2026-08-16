@@ -269,7 +269,7 @@ cat <<'EOF'
   wake for network    sudo pmset -a womp 1
 
   All of these are root-only CLI writes into a root-owned plist. A curated
-  `nebelhaus.power.*` would therefore be a `pmset` activation step of the rice's
+  `haus.power.*` would therefore be a `pmset` activation step of the rice's
   own — not a `system.defaults` group — which puts it in the same family as
   `security.firewall` (socketfilterfw) rather than the same family as
   hotCorners/screenshots/menuBar.

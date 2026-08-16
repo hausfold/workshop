@@ -30,8 +30,8 @@ after three lock files move behind it.
 
 Never walk that by hand. `./bench ship` does it in order; `./bench status`
 names every pin that's fallen behind. (Those are repo names. Your flake's INPUT
-name for the layer is your own — `inputs.haus` is what `bootstrap.sh` scaffolds,
-and older configs say `inputs.nebelhaus`. `bench` doesn't care which: it reads
+name for the layer is your own — `inputs.haus` is what `bootstrap.sh` scaffolds.
+`bench` doesn't care which you pick: it reads
 the name out of your `flake.lock`. That matters because Nix does **not** fail an
 override naming an input that isn't there, so a hardcoded guess would build the
 pinned layer while reporting your branch.)
@@ -84,11 +84,9 @@ your apps, your identity, your secrets — stays private, outside this directory
 and is restored from its own repo.
 
 This repo itself holds `bench` (and `_bench`, its zsh completion — symlink it
-into `~/.zsh-completions/` to get it on fpath), one set of agent instructions,
-and `web/` — the
-Cloudflare Worker behind [nebelhaus.com](https://nebelhaus.com), which is a 301
-map to [hausfold.co](https://hausfold.co) now that the docs, the product pages
-and the `curl | bash` one-liner all live there.
+into `~/.zsh-completions/` to get it on fpath) and one set of agent
+instructions. The docs, the product pages and the `curl | bash` one-liner all
+live at [hausfold.co](https://hausfold.co).
 
 ## the life of a change
 

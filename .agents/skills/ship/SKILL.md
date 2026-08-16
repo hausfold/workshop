@@ -17,9 +17,9 @@ description: >-
 The family's repos form a chain of pinned flake inputs
 (`nebelung → pounce → haus → ~/.config/nix`). A commit is invisible downstream until
 each downstream `flake.lock` is bumped — `bench ship` does that ripple. Never hand-walk it.
-Those are **repo** names: the layer's checkout and repo are `haus` since 2026-08-11,
-while the flake **input** it's pinned under is still spelled `nebelhaus` — renaming that
-input makes an override silently build the pinned rice while reporting your branch.
+Those are **repo** names: the flake **input** the layer is pinned under is the
+consumer's to choose, and renaming it without renaming every use makes an
+override silently build the pinned layer while reporting your branch.
 `bench` lives at the workshop root and is available as `bench`; run it from anywhere.
 
 End-state: the work is merged **through a PR**, the locks are rippled, every worktree this
@@ -96,7 +96,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 | Check | The failure it catches |
 |---|---|
 | **Routing** | the change is in the wrong repo — a color hex landing in `hausfold` (the rice) instead of `nebelung`, launchd logic in `pounce` instead of the rice, site copy in `hausfold` instead of `hausfold.co`. The workshop's routing table decides, and "it works here" is not a defence. |
-| **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `hausfold.co/content/docs/` (the SOT since 2026-08-14 — the workshop's `web/` tree is deleted), its `haus/reference/options.mdx`, `nebelhaus/keybindings.mdx`, or the repo's README. An option a user can set and can't discover is a bug. |
+| **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `hausfold.co/content/docs/` (the SOT since 2026-08-14), its `haus/reference/options.mdx`, `haus/rooms/windows.mdx`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(windows) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
 | **Raw worktree adds** | a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
@@ -185,7 +185,7 @@ holt reap      # removes every LANDED worktree across all repos: parked ones + c
 
 `holt reap` is idempotent: it only touches checkouts whose PR has merged, whose tree is
 clean, and that no live process is cwd'd into — so it can't drop live work *or* yank a
-sibling agent's checkout out from under its open pane (nebelhaus#137; before that fix it
+sibling agent's checkout out from under its open pane (haus#137; before that fix it
 could, and did). Anything it spares for occupancy is reported as `⏸ kept …`, so a quiet
 run is never a silent skip. Fall back to a targeted
 `git -C <child-repo-main-checkout> worktree remove <path>` only if you need to

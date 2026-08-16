@@ -7,22 +7,22 @@ index 3836d61..734ff03 100644
                Silver-grey, keyboard-first, reproducible.
              </p>
 -            <div class="shot shot--wide">
--              <span>the nebelhaus desktop — tiled, with the bar<br />[ shot not taken yet ]</span>
+-              <span>the hacker desktop — tiled, with the bar<br />[ shot not taken yet ]</span>
 +            <div class="shot shot--wide shot--filled">
 +              <img
-+                src="/media/nebelhaus-desktop.webp"
++                src="/media/hacker-desktop.webp"
 +                width="1600"
 +                height="1039"
-+                alt="The nebelhaus desktop: a bar along the top edge and a second along the bottom, a terminal and a browser tiled side by side between them, and the pounce launcher open across the seam answering a unit conversion."
++                alt="The hacker desktop: a bar along the top edge and a second along the bottom, a terminal and a browser tiled side by side between them, and the pounce launcher open across the seam answering a unit conversion."
 +                decoding="async"
 +              />
              </div>
              <p class="entry-line">
-               <a href="/desktops/nebelhaus">What's in it, and how to install it</a>
-diff --git a/public/desktops/nebelhaus/index.html b/public/desktops/nebelhaus/index.html
+               <a href="/desktops/hacker">What's in it, and how to install it</a>
+diff --git a/public/desktops/hacker/index.html b/public/desktops/hacker/index.html
 index 460cfef..ff4c053 100644
---- a/public/desktops/nebelhaus/index.html
-+++ b/public/desktops/nebelhaus/index.html
+--- a/public/desktops/hacker/index.html
++++ b/public/desktops/hacker/index.html
 @@ -100,8 +100,14 @@
        <section class="block">
          <h2>What it looks like</h2>
@@ -31,10 +31,10 @@ index 460cfef..ff4c053 100644
 -            <span>the desktop — tiled, with the bar<br />[ shot not taken yet ]</span>
 +          <div class="shot shot--wide shot--filled">
 +            <img
-+              src="/media/nebelhaus-desktop.webp"
++              src="/media/hacker-desktop.webp"
 +              width="1600"
 +              height="1039"
-+              alt="The nebelhaus desktop: a bar along the top edge and a second along the bottom, a terminal and a browser tiled side by side between them, and the pounce launcher open across the seam answering a unit conversion."
++              alt="The hacker desktop: a bar along the top edge and a second along the bottom, a terminal and a browser tiled side by side between them, and the pounce launcher open across the seam answering a unit conversion."
 +              decoding="async"
 +            />
            </div>
