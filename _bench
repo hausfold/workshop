@@ -24,7 +24,7 @@
 # `bench`, one per line, falling back to the literals given.
 #
 # The repo lists are READ OUT OF the script rather than copied here: FAMILY
-# (bench:87) and OVERRIDABLE (bench:110) are both single-line arrays, so one
+# (bench:116) and OVERRIDABLE (bench:139) are both single-line arrays, so one
 # sed keeps this file from going stale the day a repo joins or leaves the
 # family. The fallbacks are what you get if the checkout has moved.
 _bench_array() {
@@ -69,7 +69,7 @@ _bench() {
       # include the half-typed word, and `bench pull haus<TAB>` would then
       # strike `haus` off the list and silently insert the only survivor with
       # that prefix — `hausfold.co`. One dot apart, two different repos, and
-      # bench:1150-1157 spends a paragraph on exactly that collision.
+      # bench:1186-1193 spends a paragraph on exactly that collision.
       local -a typed=( $words[2,CURRENT-1] $words[CURRENT+1,-1] )
 
       case $words[1] in
@@ -93,7 +93,7 @@ _bench() {
           ;;
 
         try-batch)
-          # `switch` only in first position (cmd_try_batch, bench:934-937);
+          # `switch` only in first position (cmd_try_batch, bench:935-936);
           # everything after it is repos, and only OVERRIDABLE ones — bench
           # warns and skips anything else.
           local -a batchable=( $(_bench_array OVERRIDABLE nebelung pounce perch holt haus) )
@@ -110,7 +110,7 @@ _bench() {
           ;;
 
         pull)
-          # The pullable set is a superset of FAMILY (cmd_pull, bench:1158):
+          # The pullable set is a superset of FAMILY (cmd_pull, bench:1194):
           # workshop itself, plus the repos that aren't flake inputs. bench
           # warns on anything not in it.
           local -a pullable=(
@@ -123,7 +123,7 @@ _bench() {
           ;;
 
         release)
-          # Releasable = the repos version_file() knows (bench:1183-1188).
+          # Releasable = the repos version_file() knows (bench:1220-1223).
           #
           # The VERSION argument is deliberately NOT completed. For every repo
           # but holt the version is today's date and "typed by nobody"
@@ -136,7 +136,7 @@ _bench() {
             'haus:the nix-darwin layer + the nebelhaus desktop'
             'holt:agent worktrees (semver — pass X.Y.Z yourself)'
           )
-          # cmd_release's parser is position-AGNOSTIC (bench:1498-1504): it
+          # cmd_release's parser is position-AGNOSTIC (bench:1534-1540): it
           # walks the args, takes `--ship` wherever it lands, and calls the
           # first bare word the repo and the second the version. So gate on
           # what is already on the line, not on CURRENT — `bench release
@@ -159,7 +159,7 @@ _bench() {
           ;;
 
         docs-since)
-          # cmd_docs_since only ever looks at $1 (bench:1630), so --mark is
+          # cmd_docs_since only ever looks at $1 (bench:1667), so --mark is
           # meaningless anywhere but the first slot.
           local -a mark=( '--mark:record new watermarks at the commits it reports' )
           (( CURRENT == 2 )) && { _describe -t flags 'flag' mark && ret=0 }

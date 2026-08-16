@@ -11,6 +11,10 @@ setup() {
   # the same everywhere. (Without this, a global tag.gpgsign=true turns the
   # lightweight `git tag` calls below into "fatal: no tag message?" failures.)
   export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
+  # HAUS_HOST is host_name()'s escape hatch and short-circuits it before any
+  # nix lookup, so a developer who exports it would see the host_name test
+  # below fail for a reason that has nothing to do with the code.
+  unset HAUS_HOST
   # Source the library form; override ROOT so repo_dir() resolves into fixtures.
   HAUS_LIB=1 source "$HAUS"
   ROOT="$TMP/root"
@@ -329,6 +333,22 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   PATH="$TMP/mine"
   ensure_nix_path
   [ "$PATH" = "$TMP/mine" ]   # a caller's own nix is never shadowed or duplicated
+}
+
+@test "ensure_nix_path never appends a bindir PATH already carries" {
+  mkdir -p "$TMP/nixbin" "$TMP/other"
+  NIX_BINDIRS=("$TMP/nixbin")
+  PATH="$TMP/other:$TMP/nixbin"   # already there, but nix isn't in it yet
+  ensure_nix_path
+  [ "$PATH" = "$TMP/other:$TMP/nixbin" ]
+}
+
+@test "ensure_nix_path can't put the current directory on PATH via an empty one" {
+  mkdir -p "$TMP/nixbin"
+  NIX_BINDIRS=("$TMP/nixbin")
+  PATH=""                        # a leading colon would mean "." to the shell
+  ensure_nix_path
+  [ "$PATH" = "$TMP/nixbin" ]
 }
 
 @test "ensure_nix_path skips bindirs that don't exist on this machine" {

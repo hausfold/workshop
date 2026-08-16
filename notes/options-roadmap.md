@@ -161,7 +161,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > yesterday, in the confident voice of a file that exists. It is the worst of the
 > three sources precisely because it *looks* like the repo; memory at least knows
 > it is memory. The signal is one command and already exists: `bench status`
-> fetches before it compares `@{u}` (`bench:547`) and reports `↓ 1`. Two cheap
+> fetches before it compares `@{u}` (`bench:583`) and reports `↓ 1`. Two cheap
 > mitigations, both now written into §5.14: **fetch, or read GitHub** — this pass
 > switched to `gh api …/contents/…`, which cannot be stale — and **never let a
 > pass cite a path on disk it hasn't dated**.

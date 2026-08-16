@@ -75,8 +75,15 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh, which only a
 # login/interactive shell sources. A zellij `Run` keybind — ⌘B, which the
 # layer binds straight to `bench try lane switch` — execs this script from
-# the zellij *server's* environment, so it arrives without one. Same for a
-# launchd job or a bare agent shell.
+# the zellij *server's* environment, so it arrives without one. Same for any
+# other caller whose PATH still reaches /run/current-system/sw/bin — a bare
+# agent shell, say.
+#
+# It does NOT rescue a caller with launchd's stock
+# PATH=/usr/bin:/bin:/usr/sbin:/sbin: there `#!/usr/bin/env bash` resolves
+# macOS's bash 3.2 and the script dies at the first `declare -gA` (exit 2)
+# before this guard can run. Re-exec'ing under a newer bash is the fix for
+# that day; nothing needs it yet.
 #
 # The failure that exposed it was doubly confusing, which is why this guard
 # is here and not in the caller: `host_name`'s `nix eval` failed FIRST and
@@ -92,7 +99,10 @@ ensure_nix_path() {
   command -v nix >/dev/null 2>&1 && return 0
   for d in "${NIX_BINDIRS[@]}"; do
     case ":$PATH:" in *":$d:"*) continue ;; esac
-    [ -d "$d" ] && PATH="$PATH:$d"
+    # ${PATH:+…} so an empty PATH can't yield a LEADING colon — an empty field
+    # in PATH means "the current directory", which would put a checkout ahead
+    # of /usr/bin for every later lookup.
+    [ -d "$d" ] && PATH="${PATH:+$PATH:}$d"
   done
   export PATH
 }
