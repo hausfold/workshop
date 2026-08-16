@@ -1,18 +1,24 @@
 ---
 name: docs-sync
 description: >-
-  The daily docs sweep for the hausfold family: read every commit landed since the last
+  The rolling docs sweep for the hausfold family: read every commit landed since the last
   sweep, find what those commits made stale or left undocumented across the web docs (the
   SOT), READMEs, in-repo docs and code comments, and open a PR per repo with the fixes.
   Use when I say /docs-sync, "sync the docs", "docs audit", "are the docs stale", or when
-  the daily routine fires. Never lands on main unattended — one PR per affected repo.
+  the scheduled routine fires. Never lands on main unattended — one PR per affected repo.
 ---
 
 # Docs sync — reconcile the docs with what actually shipped
 
-Code moves daily across ten repos; the docs don't follow on their own. This sweep
-closes that gap once a day: read what landed, decide what it broke or left unsaid, fix
-it in the right place, open a PR.
+Code moves across ten repos all day; the docs don't follow on their own. This sweep
+closes that gap on a few-hour cadence: read what landed, decide what it broke or left
+unsaid, fix it in the right place, open a PR.
+
+**It runs often, so each run is small.** The watermark (Step 1) means a run only ever
+reads commits no run has read before — most fire on an empty range and cost nothing.
+That cadence is the point: a doc fix lands within hours of the change that broke it,
+while the commit is still legible. It also means **a run must not open its own PR when
+one is already open for that repo** — see Step 5.
 
 **The site is the source of truth, and since 2026-08-14 that is `hausfold.co`.**
 `hausfold.co/content/docs/` (Fumadocs) is where anything a *user* experiences
@@ -21,6 +27,34 @@ itself, so a path below that starts `web/…` is history. READMEs,
 agent instructions (`AGENTS.md`/`CLAUDE.md`) and in-repo docs serve contributors and
 agents. When the two disagree, the
 site wins and the repo doc gets corrected — never the reverse.
+
+## Step 0 — if you're in a cloud container, plant the other nine repos first
+
+Skip this entirely when you're on Julien's Mac — the checkouts are already there.
+
+The scheduled run boots a bare Linux container holding **only** the workshop. `bench
+docs-since` reads nine sibling checkouts beside it, and a repo it can't open is a blind
+spot it reports as clean, so plant them before anything else:
+
+```bash
+./.agents/setup.sh          # Determinate Nix + the proxy CA; no-ops if Nix exists
+./bench clone               # the nine siblings, at the dir names bench expects
+git config --global user.name  "docs-sync" 
+git config --global user.email "docs-sync@hausfold.co"
+```
+
+Two things about that layout are load-bearing and neither is guessable: the siblings go
+**beside** the workshop checkout, not inside it, and `org-profile`'s directory is
+`org-profile` while its remote is `hausfold/.github`. `bench clone` gets both right;
+a hand-rolled `git clone` gets the second one wrong.
+
+**Push access is per-repo and may not cover all ten.** Find out before you spend a run's
+budget writing docs you can't land — `git -C <repo> push --dry-run origin HEAD` says so
+in a second. A repo you can read but not push to is not a failed sweep: reconcile it
+anyway and carry its findings into the **workshop** PR under a `## Couldn't land` section,
+naming the repo, the files and the diff you would have pushed. Say it in the chat report
+too (Step 7) — a silently skipped repo looks exactly like a clean one, which is the
+failure mode this whole sweep exists to avoid.
 
 ## Step 1 — what landed?
 
@@ -178,12 +212,30 @@ generated reference. Match the file you're editing; when in doubt, read
 Prefer **editing an existing page over adding one**. A new page is justified only when a
 subject has no home at all; otherwise the site grows faster than anyone reads it.
 
-## Step 5 — land it, one PR per repo
+## Step 5 — land it, one *open* PR per repo
 
-Nothing lands on `main` unattended. For each repo you changed:
+Nothing lands on `main` unattended. And because this sweep fires several times a day,
+the first question for each repo is never "what do I call my branch" — it is **"is there
+already an open docs-sync PR here?"**:
 
 ```bash
-git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>
+gh pr list -R hausfold/<repo> --state open --search 'head:docs-sync- in:title docs: sync' \
+  --json number,headRefName,body
+```
+
+- **One is open → extend it.** Check that branch out, commit onto it, push. Then rewrite
+  the body to cover the *union* of every run that has touched it (`gh pr edit <n>
+  --body-file …`), because a reviewer reads the body once, at merge time — appending a
+  second "Corrected" list below the first makes them reconcile two half-stories.
+- **None is open → start one**, on `docs-sync-<YYYY-MM-DD>`. If that branch name already
+  exists because today's earlier PR merged, use `docs-sync-<YYYY-MM-DD>-2`.
+
+Six small PRs a day per repo is the failure mode this replaces: it buries the signal,
+and a reviewer who merges #3 while #4 is open gets a conflict for no reason. **One open
+PR per repo, growing through the day, is the shape.**
+
+```bash
+git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>   # or: checkout the open one
 git -C <repo> add <the doc files>
 git -C <repo> commit -m "docs: <what you reconciled>
 
@@ -213,7 +265,7 @@ lost; the PR is where the reasoning has to live, so a reviewer can judge the dif
 re-deriving it. Never use `--fill`. Write the body as:
 
 ```markdown
-Daily docs sweep — reconciled <N> commits landed since <date>.
+Docs sweep — reconciled <N> commits landed since <date>. (<M> sweep runs so far.)
 
 ## Corrected
 - `<file>` — was: <the wrong claim>. Now: <what shipped>. (<sha>)
@@ -227,7 +279,10 @@ Daily docs sweep — reconciled <N> commits landed since <date>.
 ## Needs code, not docs
 - <the smell>, at `<path>` — <why a doc can't fix it>.
 
-<!-- opened by the daily /docs-sync routine -->
+## Couldn't land
+- `<repo>` — <read fine, push refused>. The diff it wanted: <files + the correction>.
+
+<!-- opened by the /docs-sync routine -->
 ```
 
 Drop any section that's empty. **"Left alone" is the section a reviewer actually needs**
@@ -269,11 +324,18 @@ So push the advanced watermark to the workshop's `main` on its own:
 
 ```bash
 git -C <workshop> add .docs-sync.json
-git -C <workshop> commit -m "docs-sync: watermark <YYYY-MM-DD>
+git -C <workshop> commit -m "docs-sync: watermark <YYYY-MM-DD HH:MM>
 
 Docs-Sync: <YYYY-MM-DD>"
-git -C <workshop> push origin main
+git -C <workshop> pull --rebase origin main && git -C <workshop> push origin main
 ```
+
+The `--rebase` is not decoration at this cadence: `main` moves under a run that took
+twenty minutes, and a bare `push` then fails on a non-fast-forward *after* the PRs are
+already open — leaving the watermark behind and the next run re-reading everything you
+just reconciled. If the rebase conflicts (someone else advanced the watermark), take
+**their** `.docs-sync.json` and re-run `bench docs-since --mark` on top; the file is
+generated state, never a merge to resolve by hand.
 
 This is the one commit the sweep puts on `main` directly, and it's deliberate: it must
 advance even on a day that produced no PR, or those commits get re-read forever. It
