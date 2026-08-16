@@ -101,10 +101,42 @@ The intended user-facing rooms are:
 | **Text expansion** | snippets and their expansion engine |
 | **Security** | Touch ID, lock behavior, firewall and secret-provider policy |
 
-These are product groupings, not an instruction to rename every existing option
-immediately. Code may stay split into smaller modules where that keeps ownership
+These are product groupings, and since 2026-08-16 they are also the spellings
+(see below). Code may stay split into smaller modules where that keeps ownership
 clear. The generated catalogue maps those modules and namespaces into the room a
 person understands.
+
+### The names (2026-08-16)
+
+The rooms used to be spelled as house and cat words — a code name each, invented
+before the catalogue above existed. The catalogue made them redundant and then
+misleading: a person met **Bar** in the docs and typed `haus.sill` in their host
+file, and every renderer had to carry a translation nobody could infer. So the
+namespaces, the module directories and the `darwinModules` exports all moved to
+the room's own name:
+
+| was | is | note |
+|---|---|---|
+| `haus.hearth.*` | `haus.terminal.*` | the Development room's terminal half |
+| `haus.prowl.*` | `haus.windows.*` | |
+| `haus.sill.*` | `haus.bar.*` | `haus.menuBar.*` is untouched — that one is macOS's own bar |
+| `haus.pounce.*` | `haus.launcher.*` | **Pounce is still Pounce**: the app keeps its name, the room that installs it doesn't borrow it |
+| `haus.perch.*` | `haus.shelf.*` | same rule — **Perch is still Perch** |
+| `haus.hush.*` | `haus.focus.*` | |
+| `haus.collar.*` | `haus.security.touchId.*` | folded into the namespace the firewall already had, so the one Security room has one address |
+| `modules/den`, `darwinModules.den` | `modules/core`, `darwinModules.core` | never a namespace; the foundation, not a room |
+
+Two rules came out of it and are worth keeping:
+
+- **A room is named for what it does; a product is named for what it is.** The
+  app in the Launcher room is Pounce and always will be. The room is not.
+- **No aliases.** The old spellings are gone rather than deprecated, for the
+  reason the `agents` → `ai` move gives in `haus/modules/moved.nix`: the layer
+  has one consumer, its host moved in the same sweep, and an alias set would be
+  permanent furniture protecting nobody — while keeping the words in the tree,
+  which was the point of the change. `modules/renamed.nix` is unaffected: its
+  left-hand sides are the frozen `nebelhaus.*` spellings, so
+  `nebelhaus.sill.position` still resolves, now to `haus.bar.position`.
 
 Development deliberately includes the terminal. A terminal stack with no
 development tools is not a distinct user intent in the current product, and
@@ -132,8 +164,8 @@ room. A hard dependency must be declared and fail with a message naming both
 rooms.
 
 The AI room is the first architecture proof because its present behavior spans
-`developer.agents`, `agents.*`, den, hearth/zellij, Sill and Pounce. Turning AI
-on should bring the selected clients, Holt and lifecycle wiring. Its Sill,
+`developer.agents`, `agents.*`, core, terminal/zellij, Bar and Pounce. Turning AI
+on should bring the selected clients, Holt and lifecycle wiring. Its Bar,
 Launcher and Development additions should appear only when those rooms exist.
 
 ## What a desktop is
@@ -192,7 +224,7 @@ open.
 
 The UI and docs should eventually describe intent first and Nix second. “Add the
 AI room” is the user action; which modules install Holt, write Codex hooks and
-contribute a Sill pill is implementation detail.
+contribute a Bar pill is implementation detail.
 
 ## Site and docs
 
@@ -232,7 +264,7 @@ Internals
 ```
 
 Each room page follows one template: what it adds, enable it, configure it,
-works with, permissions and side effects, remove it, options. Theming, Hush,
+works with, permissions and side effects, remove it, options. Theming, Focus,
 Touch ID, coding agents, the bar, the shell and window-management guides become
 room pages rather than an undifferentiated Guides list.
 
@@ -280,17 +312,17 @@ what a LATER step has to do.
   it belongs to the nebelhaus desktop. It is step 4's, and it is the reason step
   4 is indivisible.
 - **[3] The AI room sits in the standalone `darwinModules` foundation.**
-  `flake.nix`'s `standaloneModule` imports `modules/ai` beside `den`, `roster`
-  and `workspaces`, because a partial that imported only `sill` would otherwise
+  `flake.nix`'s `standaloneModule` imports `modules/ai` beside `core`, `roster`
+  and `workspaces`, because a partial that imported only `bar` would otherwise
   draw its agents pill off an unwritten extension point. That is the behaviour
   those exports had before, so nothing regressed — but "Blank plus the
   explicitly imported room" (step 3) has to decide whether Blank carries the AI
   room, or whether an unwritten extension point is simply inert.
-- **[2] The AI room's payload still lives in `den` and `hearth`.** Only
+- **[2] The AI room's payload still lives in `core` and `terminal`.** Only
   ownership, the assertions and the contributions moved. `holt`, `agent-state`
-  and the statusline are still system packages written by `den`; the clients,
+  and the statusline are still system packages written by `core`; the clients,
   the instructions/skill files and the per-client hook wiring are still home
-  ones written by `hearth`. Both are now gated on `haus.ai.enable`. Moving a
+  ones written by `terminal`. Both are now gated on `haus.ai.enable`. Moving a
   package between a system and a home profile is an install change rather than a
   refactor, so it waits for step 4's projection comparator to prove it moved for
   free.
@@ -299,10 +331,10 @@ what a LATER step has to do.
   cooperations the model names — Windows' workspace pills, Focus's controls,
   Bar's reserved space from Windows — still read each other's config directly.
   Generalising is worth doing on the next room that needs it, not speculatively.
-- **[2] `sill`'s `hush` gate is the same shape and not yet on the seam.** The bar
-  already special-cases `hush` (`name != "hush" || config.haus.hush.enable`)
+- **[2] `bar`'s `focus` gate is the same shape and not yet on the seam.** The bar
+  already special-cases `focus` (`name != "focus" || config.haus.focus.enable`)
   beside the new `contributed` predicate. Two spellings of one idea; folding
-  `hush` in is a small, behaviour-preserving follow-up.
+  `focus` in is a small, behaviour-preserving follow-up.
 - **[1] `zscratch` left the agent switch.** It followed
   `developer.agents.enable` only because that is where the switch lived; nothing
   about a throwaway zellij session is about coding agents. It follows
@@ -378,7 +410,7 @@ was actually moved.
   each one is a room that would become BROKEN rather than unopinionated.**
   `fonts.mono.name` must stay a patched Nerd Font or starship, lsd, yazi and
   half the bar render tofu — which family is taste, being patched is a
-  requirement. `hearth.editor` is host-only (it is executed) AND the layer
+  requirement. `terminal.editor` is host-only (it is executed) AND the layer
   installs helix unconditionally, so `hx` is what the room ships; a
   desktop-safe enum was written and deleted, because every value in it except
   `hx` named an editor nothing installs. The zellij interaction pair is
@@ -400,14 +432,14 @@ was actually moved.
   now. Expect the same shape wherever a desktop names a LIST that a room's
   switch is supposed to empty.
 - **[2] A fixture can go vacuous the moment a default flips, and nothing says
-  so.** `test/desktops/valid-sample.nix` set `sill.enable = false` to prove a
+  so.** `test/desktops/valid-sample.nix` set `bar.enable = false` to prove a
   desktop outranked a `true` room default. Step 4 made `false` the default, so
   the row asserted nothing and would have passed with the desktop seam entirely
   disconnected. It is `true` now. Worth a sweep of the other fixtures whenever
   a default moves under them.
 - **[2] `nix fmt` reformats whole files, so it cannot be run casually on this
   repo mid-change.** It rewrote ~700 unrelated lines of
-  `modules/hearth/default.nix` around a one-line edit. Format the touched files
+  `modules/terminal/default.nix` around a one-line edit. Format the touched files
   with `nixfmt` directly, or the diff stops being reviewable.
 - **[1] The docs asserted layer-wide defaults in prose.** Three guides said a
   room was "on by default" — true of nebelhaus, false of `haus` now. Fixed in
@@ -541,7 +573,7 @@ standalone change; none of them blocks another.
   `haus.fonts.mono.name` and `.packageName` are `desktopSafe: true` in the
   merged registry, so a desktop CAN name a font family — the patched-Nerd-Font
   rule is a requirement at the option, not a trust boundary. The editor half is
-  untouched: `haus.hearth.editor` is `desktopSafe: false` because its value is
+  untouched: `haus.terminal.editor` is `desktopSafe: false` because its value is
   executed, and Development installs helix unconditionally, so no desktop can
   say "this Mac is a neovim Mac". The fix is a room-owned enum whose values name
   editors the room actually installs — a new option plus packages, not a safety
@@ -560,15 +592,15 @@ standalone change; none of them blocks another.
   display UUID is host-only and that attrsets carry per key — but exactly one of
   those two statements is generated, so they can now drift apart. Step 3
   predicted this against step 6; step 6 rendered rooms and left it standing.
-- **[2] The AI room's payload still lives in `den` and `hearth`.** `modules/ai`
+- **[2] The AI room's payload still lives in `core` and `terminal`.** `modules/ai`
   is still `default.nix` + `options.nix` — ownership, assertions and
   contributions only. Step 2 deferred the move until a comparator could prove it
   free; `desktop-projection` has existed since step 4, so `holt`, `agent-state`,
   the statusline and the client/hook files can now move under proof.
 - **[2] The bar spells one gate three ways.** `contributed`,
-  `name != "hush" || config.haus.hush.enable` in `bottomGroup`, and `topHush`
+  `name != "focus" || config.haus.focus.enable` in `bottomGroup`, and `topFocus`
   all answer "does this pill's source exist?" — checked, and there is no bug:
-  `topHush` covers the top bar that `bottomGroup`'s filter does not. The cost is
+  `topFocus` covers the top bar that `bottomGroup`'s filter does not. The cost is
   that the next contributed pill has to be remembered in two places.
 - **[2] Extension points are still only the three the AI room needed.** Windows'
   workspace pills, Focus's controls and Bar's reserved space from Windows still

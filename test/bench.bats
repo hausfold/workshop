@@ -126,7 +126,7 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 }
 
 # (hook_field + the worktree lifecycle moved to the standalone `wt` tool in
-# the rice (haus/modules/den) — bench no longer parses hook payloads.)
+# the rice (haus/modules/core) — bench no longer parses hook payloads.)
 
 # ── gh_repo: a checkout's directory name is not always its owner/repo ─────────
 #
