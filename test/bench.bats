@@ -15,6 +15,18 @@ setup() {
   HAUS_LIB=1 source "$HAUS"
   ROOT="$TMP/root"
   mkdir -p "$ROOT"
+  BATS_SAVED_PATH="$PATH"
+}
+
+teardown() {
+  # The ensure_nix_path tests below deliberately strip PATH down to a fixture
+  # dir, to hide `nix` from `command -v`. That mutation escapes the test body,
+  # and bats' own per-test cleanup shells out to `rm` — so on bats-core 1.10
+  # (Ubuntu CI) every test still printed `ok` while the RUN exited 1 with
+  # `bats-exec-test: line 205: rm: command not found`. Newer bats (nixpkgs, on
+  # macOS) papers over it, which is exactly why this was green locally and red
+  # on CI. Put PATH back before bats needs it.
+  PATH="$BATS_SAVED_PATH"
 }
 
 # ── locked_rev: parse a rev out of flake.lock, degrade to "?" on anything odd ──
