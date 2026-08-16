@@ -97,30 +97,24 @@ allows, and add a row.
 
 Nearly every repo carries this layer, one PR each: the layer (`haus`),
 `nebelung`, `pounce`, `perch`, `org-profile` (the `hausfold/.github` repo),
-`homebrew-tap`, `trill` (the notification compositor), and the consumer config
+`homebrew-tap`, `trill` (the notification compositor), `holt`, `hausfold.co`,
+and the consumer config
 (`~/.config/nix`). Each keeps its **own** rules — only the shape is shared. The
-differences worth knowing — including the two repos that are still gaps:
+differences worth knowing:
 
-- 🔧 **`holt` had none of it** ([holt#31](https://github.com/hausfold/holt/pull/31)
-  fixes this; the description below is what it was fixing) — no `AGENTS.md`, no `CLAUDE.md`, no
-  `.agents/`, no `.github/copilot-instructions.md`, just a `.claude/` holding a
-  permission allowlist. It ejected from the incubator on 2026-08-03 — the same
-  day this layer rolled out across the family — and was missed *during* that
-  rollout rather than predating it; nothing has gone back for it since. That is
-  a real gap, not a decision: it's the one family repo where an agent lands with no boundary
-  rules, and where `/ship`'s Step 2.5 assurance pass has no repo doc to read
-  (that step says what to substitute in the meantime). It's also the repo with
-  the sharpest boundary to state — five published SDKs sharing one semver, and a
-  "substrate, not orchestrator" rule that isn't written down anywhere it's
-  enforced.
-- 🔧 **`hausfold.co` had half of it**
-  ([hausfold.co#4](https://github.com/hausfold/hausfold.co/pull/4) fixes this) —
-  `AGENTS.md` + `CLAUDE.md` only, no
-  `GEMINI.md`, `opencode.json`, `.agents/` or `.github/copilot-instructions.md`.
-  It was recreated public on 2026-08-08 (§5.1) and carried its instructions
-  across, not its wiring. Copilot reviews that repo's PRs with no instructions at
-  all, which matters more there than most: it's the one repo whose pushes deploy
-  a public site.
+- ✅ **`holt` and `hausfold.co` were the two gaps, and both are closed.**
+  holt had none of the layer — no `AGENTS.md`, no `CLAUDE.md`, no `.agents/`, no
+  `.github/copilot-instructions.md`, just a `.claude/` permission allowlist —
+  because it ejected from the incubator on 2026-08-03, the same day the layer
+  rolled out, and was missed *during* that rollout rather than predating it
+  ([holt#31](https://github.com/hausfold/holt/pull/31)). hausfold.co had half of
+  it, `AGENTS.md` + `CLAUDE.md` only: recreated public on 2026-08-08 (§5.1), it
+  carried its instructions across but not its wiring
+  ([hausfold.co#4](https://github.com/hausfold/hausfold.co/pull/4)). Both now
+  carry the full set, verified on disk 2026-08-16. The reason they mattered is
+  worth keeping: holt is the repo with the sharpest boundary to state — five
+  published SDKs sharing one semver, and a "substrate, not orchestrator" rule —
+  and hausfold.co is the one repo whose pushes deploy a public site.
 
 - **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a
   flake, so there is nothing to bootstrap; their `.agents/README.md` records
@@ -138,12 +132,15 @@ differences worth knowing — including the two repos that are still gaps:
   single piece of the layer deliberately deferred, and it landed 2026-08-09 with
   the eject. Everything else was already whole, which is what made the eject a
   move rather than a rebuild.
-- **The rice ships this shape to users, too.** `haus.agents.skill` installs a
+- **haus ships this shape to users, too.** `haus.ai.skill` installs a
   `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather than a lone
   `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one layer out.
   Since 2026-08-11 it goes further and obeys the rule itself: the skill and
-  `haus.agents.instructions` are written once per client the machine installs,
-  each at the path that client reads. Both were `haus.claude.*` before that.
+  `haus.ai.instructions` are written once per client the machine installs,
+  each at the path that client reads. Both were `haus.claude.*` before that, and
+  `haus.agents.*` between 2026-08-11 and 2026-08-13 — that spelling has **no
+  alias** (`haus/modules/moved.nix:51-58`), so writing it is an eval error, not
+  a warning.
 
 Adding a new repo to the family? Copy the *pattern* from any of them, never the
 text: `git mv CLAUDE.md AGENTS.md`, leave a `CLAUDE.md` holding `@AGENTS.md` plus
