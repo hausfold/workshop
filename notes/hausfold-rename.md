@@ -174,7 +174,7 @@ this machine and on the live zone rather than read off a diff.
 
 | gate | measured |
 |---|---|
-| 1 · `rg -i nebelhaus` returns only §11.0's do-not-touch categories | ✅ haus 227 hits, of which `modules/renamed.nix` alone is 110; the rest are the dead org, the domain, historical PR refs, the compat aliases and the §11.3 symlink code itself |
+| 1 · `rg -i nebelhaus` returns only §11.0's do-not-touch categories | ✅ haus: 227 matching *lines* across 33 files (`rg -c` sums lines, not matches — 234 of those), of which `modules/renamed.nix` alone is 110; the rest are the dead org, the domain, historical PR refs, the compat aliases and the §11.3 symlink code itself |
 | 2 · builds | ✅ haus released `v2026.08.16` carrying the rename |
 | 3 · `hacker.sh` and `nebelhaus.sh` both serve the installer | ✅ both 200 |
 | 4 · `/desktops/hacker` 200, `/desktops/nebelhaus` 301s onto it | 🔄 **reworded — see below** |
@@ -195,7 +195,12 @@ half must stay half-done forever.** `worker.js`'s `DESKTOPS` pinned `hacker` at
 the string **`nebelhaus`**, because the Worker serves `bootstrap.sh` from the
 latest *release tag* and no release yet knew the new name. `v2026.08.16` is that
 release (`bootstrap.sh:367` accepts `hacker`; `:357` resolves `nebelhaus` to it),
-so the pin and its test flipped together.
+so the pin and its test flip together in **hausfold.co#62** — ⏳ open, not
+merged. Until it deploys, `hacker.sh` still serves a script pinned `nebelhaus`,
+which installs the same desktop (the alias) and is why nothing is broken in the
+meantime. Two more surfaces move with it: the hacker docs page, which still
+prints `nebelhaus.sh`, and haus#374, which does the same for the README and
+`bootstrap.sh`'s own header.
 
 ⚠️ **`/nebelhaus.sh` keeps the OLD pin, and §11.1 above is wrong about this.**
 It says the old row's pin should be "re-pointed to `hacker`", on the reasoning
@@ -237,9 +242,15 @@ of them whenever a page moves on the other side.
 
 **What is left in this document is 👤 and always was:** §0.5/§0.6's App Store
 audit, §4's TCC feel-test and attribution re-check, §5.3's `api.hausfold.co`
-route box, and §11.2's one coupled edit — `inputs.nebelhaus` → `inputs.haus` in
-`~/.config/nix/flake.nix` **together with** `bench`'s `OVERRIDABLE`, in one
-change or not at all.
+route box, and the two edits on `~/.config/nix/flake.nix:7` — `inputs.nebelhaus`
+→ `inputs.haus` (§11.2) and the `github:hausfold/hausfold` URL §10.1 freed
+(§10.4). ⚠️ **Neither is coupled to anything any more.** An earlier draft of this
+paragraph called the rename "one coupled edit, together with `bench`'s
+`OVERRIDABLE`" — workshop#383 established that `OVERRIDABLE` never held an input
+name and that `bench` now derives the spelling from `$CONSUMER/flake.lock`
+instead of holding one. §11.2 carries the correction; this line is only here
+because a stale "coupled!" warning is the kind that stops a one-line edit for a
+week.
 
 ### Handoff — 2026-08-15
 
@@ -4076,7 +4087,9 @@ green. Everything else is strictly sequential.
 this document.** Its gate ran green (two items reworded against a site that
 moved under them — see the 2026-08-16 handoff), and what remains is 👤 only:
 §0.5/§0.6's App Store audit, §4's TCC feel-test, §5.3's `api.hausfold.co` route,
-and §11.2's coupled `inputs.nebelhaus` → `inputs.haus` edit.
+and the two independent one-line edits on `~/.config/nix/flake.nix:7` — §11.2's
+`inputs.nebelhaus` → `inputs.haus` and §10.4's `github:hausfold/hausfold` URL.
+Neither is coupled to `bench` any more (workshop#383).
 
 **You were here (2026-08-14, night):** **§10 is closed** — its checkout step ran,
 its shim was retired (workshop#331), its lock and repo-description tails are
@@ -4498,9 +4511,11 @@ path, which §11.3 covers.
 2. `bench try` builds; `nix flake check` on the Mac (the reach checks are
    darwin-only and will not fire in CI).
 3. `curl -fsSL https://hausfold.co/hacker.sh | head` serves the installer, and
-   `hausfold.co/nebelhaus.sh` **still** does — same script. ⚠️ Not the same pin:
-   `hacker.sh` pins `hacker` (since `v2026.08.16`), `nebelhaus.sh` pins
-   `nebelhaus`, on purpose. See the 2026-08-16 handoff.
+   `hausfold.co/nebelhaus.sh` **still** does — same script. ⚠️ Not the same pin,
+   once **hausfold.co#62** deploys: `hacker.sh` pins `hacker` (safe from
+   `v2026.08.16` on), `nebelhaus.sh` keeps pinning `nebelhaus`, on purpose. Until
+   then both pin the old name and both install the same desktop. See the
+   2026-08-16 handoff.
 4. 🔄 **Reworded.** `/desktops/nebelhaus` 301s onto `/docs/haus/desktops/hacker/`
    and that destination is 200. There is **no `/desktops/hacker`** — hausfold.co#47
    retired that whole tree into the docs, and this line originally asked for a URL
