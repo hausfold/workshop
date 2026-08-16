@@ -9,15 +9,15 @@ Four command-line tools, two jobs — keeping them straight is half the battle:
 
 | tool | for | does | ships in |
 |------|-----|------|----------|
-| **`haus`** | *using* a nebelhaus machine | rebuild / update / rollback / doctor — drives **your Mac** | the rice (every install) |
-| **`holt`** | *any agent user* | agent worktrees for **any repo** — spawn, resume, park, reap, `holt child` | the rice (every install) |
+| **`haus`** | *using* a haus machine | rebuild / update / rollback / doctor — drives **your Mac** | haus (every install) |
+| **`holt`** | *any agent user* | agent worktrees for **any repo** — spawn, resume, park, reap, `holt child` | haus (every install) |
 | **`bench`** | *developing* the family | try / try-batch / ship / release / status — moves changes **across these repos** | the workshop (here) |
-| **`zscratch`** | *developing* the rice | feel-test a zellij edit with **no rebuild** | the rice |
+| **`zscratch`** | *developing* haus | feel-test a zellij edit with **no rebuild** | haus |
 
 `haus` and `bench` never overlap — named apart on purpose so they can't shadow
 each other (`haus` = your machine; `bench` = these repos). `holt` and `zscratch`
-are dev tools the rice puts on `PATH` regardless of whether you contribute.
-(`holt` has [its own repo](https://github.com/hausfold/holt); the rice takes it
+are dev tools haus puts on `PATH` regardless of whether you contribute.
+(`holt` has [its own repo](https://github.com/hausfold/holt); haus takes it
 as a flake input. Its bash predecessor `wt.sh` has been retired entirely — there
 is no fallback to roll back to.)
 
@@ -30,7 +30,7 @@ You only touch your machine (a new app, an alias):
 ./bench rebuild        # build first, switch second — a failed build never touches the system
 ```
 
-## Hacking on the rice / theme / pounce
+## Hacking on haus / theme / pounce
 
 The important one. You never need to push to "see" a change; `try` builds your
 real machine config against the **local checkouts**, uncommitted edits and all:
@@ -51,12 +51,12 @@ agents never yank the branch out from under each other, or you. The worktrees
 live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>` (the path
 name is historical; every client shares it).
 
-**Which client** is whatever `haus.agents.default` names — `claude`, `codex` or
+**Which client** is whatever `haus.ai.default` names — `claude`, `codex` or
 `opencode`. Claude Code makes its own worktree (`claude --worktree`, whose
 `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` delegate to
 `holt hook create` / `holt hook remove`); for Codex and OpenCode the keybind runs
 `holt new`, which produces the identical checkout from the outside. Either way
-the plumbing is `holt` — the standalone tool the rice ships on `PATH`, **not** a
+the plumbing is `holt` — the standalone tool haus ships on `PATH`, **not** a
 `bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
 `Ctrl Alt Shift a` spawns the one agent allowed to edit the checkout you're
 looking at.
@@ -125,6 +125,22 @@ wherever the source sits. Two things *are* different, and each has its own answe
   back to pinned; landing the branch via its PR + `bench ship` is the way to make
   what you're running reproducible.
 
+### …and a cross-repo lane, in one rebuild
+
+`bench try` substitutes the ONE repo your worktree belongs to. When a session has
+spawned children in other repos with `holt child` — a haus worktree plus its
+pounce and nebelung lanes, say — plain `try` builds your branch against the
+*pinned* copies of the rest, which is a green build of the wrong thing.
+
+```sh
+bench try lane            # override every repo this pane's lane touches
+bench try lane switch     # …and activate the whole lane together
+```
+
+It walks holt's registry transitively from the current worktree, so no PR has to
+exist first and no lock has to move. Same who-not-where activation gate as plain
+`try switch`.
+
 ## Batch-testing (test-then-merge)
 
 Activating a Mac is **serial** — one `darwin-rebuild switch` = one machine state
@@ -171,9 +187,9 @@ argument for these three, to make that unarguable.
 ./bench release pounce      # date-stamps pkgs/pounce/default.nix + tags v<date> —
                             # CI publishes the release + bumps the homebrew formula
 ./bench release perch       # date-stamps VERSION + tags v<date> — CI bumps the
-                            # homebrew cask AND the rice's flake pin (nix/release.nix)
+                            # homebrew cask AND haus's flake pin (nix/release.nix)
 ./bench release haus        # date-stamps VERSION + tags v<date> — this is what
-                            # hausfold.co/nebelhaus.sh serves to new installs
+                            # hausfold.co/hacker.sh serves to new installs
 ./bench release holt 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
                             # crates.io, SwiftPM, the Go proxy) share one number
 ```
@@ -191,16 +207,17 @@ commits `nix/release.nix` back to the repo, so returning early would leave your
 checkout behind origin and a `bench ship` that ripples a superseded rev. It
 fast-forwards for you when the run goes green.
 
-The rice one matters more than it looks: the install one-liner serves the
-**latest rice release**, so until you cut one, new users bootstrap from the
-previous tag no matter what's on `main`. Ship user-visible rice changes, then
-release. (The date-stamp moves the repo's HEAD, so `bench ship` once more
+The haus one matters more than it looks: the install one-liner serves the
+**latest haus release**, so until you cut one, new users bootstrap from the
+previous tag no matter what's on `main` — and if `main` has since renamed an
+option, the host file that tag scaffolds no longer evaluates against it. Ship
+user-visible haus changes, then release. (The date-stamp moves the repo's HEAD, so `bench ship` once more
 afterward to ripple that lock downstream — or `bench release <repo> --ship` to do
 both.)
 
 ## zscratch — iterating on zellij without a rebuild
 
-The rice's `modules/core` ships one more dev CLI worth knowing here. `zscratch`
+haus's `modules/core` ships one more dev CLI worth knowing here. `zscratch`
 feel-tests a zellij edit (`config.kdl`, a layout, a freshly-built plugin `.wasm`,
 or a candidate binary) in a throwaway session in its own Ghostty window, so you
 skip the `bench try switch` + `main`-session restart that would nuke every open
@@ -216,8 +233,8 @@ zscratch clean            # reap the throwaway session
 ```
 
 The real activation still happens once via `bench try switch`, at the end. Full
-flag set in the rice's `CLAUDE.md`
-([nebelhaus#69](https://github.com/hausfold/hausfold/pull/69)).
+flag set in haus's `AGENTS.md`
+([haus#69](https://github.com/hausfold/haus/pull/69)).
 
 ## Keeping the docs honest
 
@@ -242,8 +259,9 @@ Two things about its repo list are deliberate and get "tidied" wrong:
   are different questions. `bench clone`/`pull` plant and refresh both for the
   same reason; `try`/`try-batch`/`ship`/`status` still never walk them.
 - **A missing checkout and an unswept repo look identical in the output**, so
-  `docs-since` now warns loudly for both (`no checkout at …`, `no usable
-  watermark`). Those lines are holes in the sweep, not clean repos.
+  `docs-since` now warns loudly for both (`no checkout at …`, and either
+  `first sweep — no watermark, reading its FULL history` or `watermark … is gone
+  (rebased away?)`). Those lines are holes in the sweep, not clean repos.
 
 The sweep never lands on `main` — one PR per affected repo, each commit carrying
 a `Docs-Sync:` trailer so tomorrow's run doesn't read today's output as its input.
@@ -286,5 +304,5 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
    every `flake.lock`.
 8. **release** — `./bench release <repo>` stamps the version (today's date, or
    holt's hand-picked semver) and tags it; CI does the rest (pounce: GitHub
-   release + Homebrew formula; haus: the tag `init.sh` serves to new
-   installs; holt: five SDK registries). Always the user's call.
+   release + Homebrew formula; haus: the tag `hausfold.co/hacker.sh` serves to
+   new installs; holt: five SDK registries). Always the user's call.

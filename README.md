@@ -5,7 +5,7 @@
 
 <sub>**pre-release** · every path that could lose your work is either reversible by design or stops to ask you first. that's the intent, not a warranty — run it on a machine you can afford to rebuild, and tell us what breaks.</sub>
 
-Five of them are Nix flakes, each pinning the one before it. Split a desktop
+Five of them are Nix flakes, each pinning the ones upstream of it. Split a desktop
 across five repos and you buy yourself a daily annoyance: nothing you write is
 visible to its own neighbour until a lock file says so. `bench` is what makes
 that chain feel like one codebase — build your real Mac against your
@@ -18,6 +18,10 @@ nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your 
 theme        palette    layer    host file         darwin-rebuild
 ```
 
+That's the spine, not the whole graph: `perch` and `holt` are inputs of `haus`
+too, and `nebelung` is one a second time, directly rather than through pounce.
+Six edges in all — `bench`'s `EDGES` has the list.
+
 A flake input is not "whatever's on GitHub right now" — it's one exact commit,
 frozen in `flake.lock`. That's what makes a rebuild reproducible, and it's the
 catch: **committing changes nothing downstream. Pushing changes nothing
@@ -25,12 +29,12 @@ downstream.** A one-hex-digit colour tweak in nebelung reaches your Mac only
 after three lock files move behind it.
 
 Never walk that by hand. `./bench ship` does it in order; `./bench status`
-names every pin that's fallen behind. (Those are repo names. The consumer's flake INPUT is its own name for the
-same thing — it is spelled `nebelhaus` everywhere, in `~/.config/nix` and in
-what `bootstrap.sh` scaffolds for a new install alike. Moving it to `haus` is
-§11.2 of the rename note, and it means renaming `bench`'s `--override-input` in
-the same edit or every override silently stops applying while still reporting
-success.)
+names every pin that's fallen behind. (Those are repo names. Your flake's INPUT
+name for the layer is your own — `inputs.haus` is what `bootstrap.sh` scaffolds,
+and older configs say `inputs.nebelhaus`. `bench` doesn't care which: it reads
+the name out of your `flake.lock`. That matters because Nix does **not** fail an
+override naming an input that isn't there, so a hardcoded guess would build the
+pinned layer while reporting your branch.)
 
 ## start
 

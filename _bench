@@ -133,7 +133,7 @@ _bench() {
           local -a releasable=(
             'pounce:the palette app'
             'perch:the notch file shelf'
-            'haus:the nix-darwin layer + the nebelhaus desktop'
+            'haus:the nix-darwin layer + the hacker desktop'
             'holt:agent worktrees (semver — pass X.Y.Z yourself)'
           )
           # cmd_release's parser is position-AGNOSTIC (bench:1534-1540): it
