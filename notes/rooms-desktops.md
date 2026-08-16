@@ -126,6 +126,19 @@ the room's own name:
 | `haus.collar.*` | `haus.security.touchId.*` | folded into the namespace the firewall already had, so the one Security room has one address |
 | `modules/den`, `darwinModules.den` | `modules/core`, `darwinModules.core` | never a namespace; the foundation, not a room |
 
+Names a person actually types or sees moved with them — this half is the one a
+user feels, and it is not recoverable from the table above:
+
+| was | is |
+|---|---|
+| the `hush` CLI (`~/.local/bin/hush`, `hush doctor`) | `focus` |
+| `sillpop`, `sillvitals`, `sill-bottom` | `barpop`, `barvitals`, `bar-bottom` |
+| `~/.config/sketchybar/sill-bottomrc` | `…/bar-bottomrc` |
+| launchd `org.nixos.sill-bottom`, `org.nixos.hush-watcher` | `…bar-bottom`, `…focus-watcher` (both booted out once on the migrating rebuild) |
+| SketchyBar event `hush_change` | `focus_change` |
+| palette command **Toggle Hush** | **Toggle Focus** |
+| `HAUS_ROOMS=bar,windows,pounce` (the installer) | `HAUS_ROOMS=bar,windows,launcher` |
+
 Two rules came out of it and are worth keeping:
 
 - **A room is named for what it does; a product is named for what it is.** The

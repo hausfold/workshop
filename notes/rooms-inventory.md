@@ -92,7 +92,7 @@ jq -r '
 | `windows` | `modules/windows` | Windows | fails: `haus` option does not exist |
 | `bar` | `modules/bar` | Bar | fails: `haus` option does not exist |
 | `security` | `modules/security` | Security | fails: `config.haus` is missing |
-| `pounce` | `modules/launcher` | Launcher | fails: `haus` option does not exist |
+| `launcher` | `modules/launcher` | Launcher | fails: `haus` option does not exist |
 | `focus` | `modules/focus` | Focus | fails: `config.haus` is missing |
 | `secrets` | `modules/secrets` | Security | fails: `config.haus` is missing |
 
@@ -422,7 +422,7 @@ The generated surface has these 25 `.enable` paths:
 | Path | Current default | Classification |
 |---|---|---|
 | `haus.apps.videoPlayer.enable` | `true` | nebelhaus opinion |
-| `haus.security.enable` | `true` | nebelhaus opinion |
+| `haus.security.touchId.enable` | `true` | nebelhaus opinion |
 | `haus.developer.agents.enable` | `config.haus.developer.enable` | nebelhaus opinion; current AI coupling |
 | `haus.developer.enable` | `true` | nebelhaus opinion |
 | `haus.developer.git.enable` | `config.haus.developer.enable` | Development mechanism |

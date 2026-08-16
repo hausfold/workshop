@@ -127,7 +127,7 @@ marketing-only.
 - [ ] **The fog slider** — one interactive page, Catppuccin Mocha → nebelung on
       the same screenshot. This becomes nebelung's canonical share link.
 - [ ] **"Steal one room" cards** — one per room (core, windows, bar, terminal,
-      security, secrets, pounce): purpose, tiny shot, the minimal Nix import.
+      security, secrets, launcher): purpose, tiny shot, the minimal Nix import.
       Converts people who like the project but refuse all-or-nothing.
 - [ ] **A creator one-pager** — paragraph, three shots, video, install command,
       compatibility, license, contact. No press release.
