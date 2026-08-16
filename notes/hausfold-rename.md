@@ -165,7 +165,66 @@ One thing from §6 that survives and one that doesn't:
 - ❌ *"support stays support@nebelhaus.com, because people bought a nebelhaus
   product"* is now wrong: they buy a hausfold product. Support moves.
 
-### Current handoff — 2026-08-15
+### Current handoff — 2026-08-16
+
+**§11 is closed. Its gate was run, not built, and it passes — with one item
+reworded because the site moved under it.** The haus half the 2026-08-15 handoff
+left open landed as **hausfold/haus#364**, and the pieces below were measured on
+this machine and on the live zone rather than read off a diff.
+
+| gate | measured |
+|---|---|
+| 1 · `rg -i nebelhaus` returns only §11.0's do-not-touch categories | ✅ haus 227 hits, of which `modules/renamed.nix` alone is 110; the rest are the dead org, the domain, historical PR refs, the compat aliases and the §11.3 symlink code itself |
+| 2 · builds | ✅ haus released `v2026.08.16` carrying the rename |
+| 3 · `hacker.sh` and `nebelhaus.sh` both serve the installer | ✅ both 200 |
+| 4 · `/desktops/hacker` 200, `/desktops/nebelhaus` 301s onto it | 🔄 **reworded — see below** |
+| 5 · the three old state paths are symlinks | ✅ all four, in fact (`~/.local/state`, `~/.config`, `~/.cache`, `/Library/Application Support`), stamped 2026-08-16 04:17 |
+
+🔄 **Gate 4 was written against a page that no longer exists, and the honest
+version is stricter.** `/desktops/hacker` is a **404**, correctly:
+hausfold.co#47 retired the whole `/desktops/*` tree into the docs hours after
+§11 was written, so the live shape is `/desktops/nebelhaus` → **301** →
+`/docs/haus/desktops/hacker/`. There is no `/desktops/hacker` to serve and there
+should not be — it was never a published URL, and inventing one would add a
+second name for a page that already has a canonical one. **The rule the gate was
+reaching for is the one §11's own defect taught: curl the destination, don't
+derive it.**
+
+🚨 **The one thing §11 deliberately left half-done is now done, and its other
+half must stay half-done forever.** `worker.js`'s `DESKTOPS` pinned `hacker` at
+the string **`nebelhaus`**, because the Worker serves `bootstrap.sh` from the
+latest *release tag* and no release yet knew the new name. `v2026.08.16` is that
+release (`bootstrap.sh:367` accepts `hacker`; `:357` resolves `nebelhaus` to it),
+so the pin and its test flipped together.
+
+⚠️ **`/nebelhaus.sh` keeps the OLD pin, and §11.1 above is wrong about this.**
+It says the old row's pin should be "re-pointed to `hacker`", on the reasoning
+that leaving it would "200 at the Worker and then fail inside bootstrap". That
+premise died when bootstrap kept `nebelhaus` as an alias forever — and the
+inverse risk is real: `hausfold.co/nebelhaus.sh?ref=<pre-rename tag>` serves a
+script that knows `nebelhaus` and **rejects `hacker`**, and the old URL is
+precisely the one carrying old refs out of shell histories. A test now pins each
+side so neither can be swept into the other.
+
+Three stragglers went with it, all of the same shape — a surface still handing
+out the old name as the *current* one, which is how a rename un-renames itself:
+
+- `haus`'s `README.md` install table and `bootstrap.sh`'s own header comment
+  printed `hausfold.co/nebelhaus.sh` for the flagship desktop.
+- `hausfold.co`'s `content/docs/haus/desktops/hacker.mdx` — the hacker page —
+  did the same, in the code block a reader copies.
+- `bench:200`'s defensive comment justified its `gh_repo` arms with *"the rice
+  KEEPS the name nebelhaus (§6)"*. Decision 10 took that name too, which makes
+  `hausfold/nebelhaus` **freer**, not safer — the guard is right, its reason was
+  a year of reading away from being deleted as obsolete.
+
+**What is left in this document is 👤 and always was:** §0.5/§0.6's App Store
+audit, §4's TCC feel-test and attribution re-check, §5.3's `api.hausfold.co`
+route box, and §11.2's one coupled edit — `inputs.nebelhaus` → `inputs.haus` in
+`~/.config/nix/flake.nix` **together with** `bench`'s `OVERRIDABLE`, in one
+change or not at all.
+
+### Handoff — 2026-08-15
 
 **§5.3's last item was a *look*, it has been taken, and it found a live
 regression rather than a tidy sheet.** The handoff below closes with "§5.3 also
@@ -3996,7 +4055,13 @@ trust, not composition; see
 §4 and §5 are independent of each other and can run in either order once §3 is
 green. Everything else is strictly sequential.
 
-**You are here (2026-08-14, night):** **§10 is closed** — its checkout step ran,
+**You are here (2026-08-16): §11 is closed too, and with it the last 🤖 work in
+this document.** Its gate ran green (two items reworded against a site that
+moved under them — see the 2026-08-16 handoff), and what remains is 👤 only:
+§0.5/§0.6's App Store audit, §4's TCC feel-test, §5.3's `api.hausfold.co` route,
+and §11.2's coupled `inputs.nebelhaus` → `inputs.haus` edit.
+
+**You were here (2026-08-14, night):** **§10 is closed** — its checkout step ran,
 its shim was retired (workshop#331), its lock and repo-description tails are
 measured clean, and its gate re-runs green. 🔄 **And a §11 opened the same
 evening:** decision 10 drops the name `nebelhaus` — desktop → `hacker`,
@@ -4313,6 +4378,15 @@ that should ever 404."*
   URL keeps working and installs the same desktop under its new name. Leaving
   the pin as `"nebelhaus"` is the bug to avoid: it would 200 at the Worker and
   then fail inside bootstrap.
+
+  🔄 **Both halves of that bullet turned out differently, and the 2026-08-16
+  handoff is the record.** `hacker`'s pin could not be `"hacker"` on day one —
+  the Worker serves the latest *release tag*, and no release knew the name until
+  `v2026.08.16`; it shipped as `"nebelhaus"` with a comment naming the trigger,
+  and flipped when the trigger fired. And the `nebelhaus` row's pin **was not
+  re-pointed and must not be**: the failure this bullet predicted can't happen
+  (bootstrap keeps `nebelhaus` as an alias forever), while the opposite one can
+  — `?ref=<pre-rename tag>` serves a script that rejects `hacker`.
 - `src/app/desktops/nebelhaus/` → `hacker/`, plus a `_redirects` row, the
   catalogue row on `/`, and the sibling pages that name it.
 
@@ -4400,15 +4474,21 @@ everything else: a comment about the *layer* says `haus`, a comment about the
 *desktop* says `hacker`. The only runtime string among them is perch's marker
 path, which §11.3 covers.
 
-### §11's gate
+### §11's gate — ✅ green, measured 2026-08-16
 
 1. `rg -i nebelhaus` across every checkout returns **only** §11.0's
    do-not-touch categories.
 2. `bench try` builds; `nix flake check` on the Mac (the reach checks are
    darwin-only and will not fire in CI).
 3. `curl -fsSL https://hausfold.co/hacker.sh | head` serves the installer, and
-   `hausfold.co/nebelhaus.sh` **still** does — same script, `hacker` pinned.
-4. `/desktops/hacker` is 200 and `/desktops/nebelhaus` 301s onto it.
+   `hausfold.co/nebelhaus.sh` **still** does — same script. ⚠️ Not the same pin:
+   `hacker.sh` pins `hacker` (since `v2026.08.16`), `nebelhaus.sh` pins
+   `nebelhaus`, on purpose. See the 2026-08-16 handoff.
+4. 🔄 **Reworded.** `/desktops/nebelhaus` 301s onto `/docs/haus/desktops/hacker/`
+   and that destination is 200. There is **no `/desktops/hacker`** — hausfold.co#47
+   retired that whole tree into the docs, and this line originally asked for a URL
+   the site had already stopped publishing. Curl the destination; don't derive it
+   from the old path with the new name substituted in.
 5. On the machine, after activating: the three old state paths are symlinks, the
    tour stamp still reads, and perch still reports *"Installed by the desktop"*
    rather than offering to update itself.
