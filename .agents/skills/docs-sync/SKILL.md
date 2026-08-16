@@ -33,20 +33,26 @@ site wins and the repo doc gets corrected — never the reverse.
 Skip this entirely when you're on Julien's Mac — the checkouts are already there.
 
 The scheduled run boots a bare Linux container holding **only** the workshop. `bench
-docs-since` reads nine sibling checkouts beside it, and a repo it can't open is a blind
-spot it reports as clean, so plant them before anything else:
+docs-since` reads nine other checkouts, and a repo it can't open is a blind spot it
+reports as clean, so plant them before anything else:
 
 ```bash
-./.agents/setup.sh          # Determinate Nix + the proxy CA; no-ops if Nix exists
-./bench clone               # the nine siblings, at the dir names bench expects
-git config --global user.name  "docs-sync" 
+./.agents/setup.sh              # Determinate Nix + the proxy CA; no-ops if Nix exists
+command -v python3 gh || echo "MISSING — the watermark needs python3, Step 5 needs gh"
+./bench clone                   # the nine others, at the dir names bench expects
+git config --global user.name  "docs-sync"
 git config --global user.email "docs-sync@hausfold.co"
 ```
 
-Two things about that layout are load-bearing and neither is guessable: the siblings go
-**beside** the workshop checkout, not inside it, and `org-profile`'s directory is
-`org-profile` while its remote is `hausfold/.github`. `bench clone` gets both right;
-a hand-rolled `git clone` gets the second one wrong.
+Two things about that layout are load-bearing and neither is guessable. The nine live
+**inside** the workshop checkout, as gitignored subdirectories — `<workshop>/haus`,
+`<workshop>/nebelung`, … — not beside it (`repo_dir` is `$ROOT/<name>`, and `$ROOT` *is*
+the workshop). And `org-profile`'s directory is `org-profile` while its remote is
+`hausfold/.github`. `bench clone` gets both right; a hand-rolled `git clone` gets both
+wrong, and the reward is nine `⚠ no checkout at …` lines you can mistake for a quiet day.
+
+**Call it `./bench`, not `bench`.** On Julien's Mac a wrapper puts it on PATH; here
+nothing does, so every bare `bench` below is a `command not found` in a container.
 
 **Push access is per-repo and may not cover all ten.** Find out before you spend a run's
 budget writing docs you can't land — `git -C <repo> push --dry-run origin HEAD` says so
@@ -59,14 +65,14 @@ failure mode this whole sweep exists to avoid.
 ## Step 1 — what landed?
 
 ```bash
-bench docs-since
+./bench docs-since
 ```
 
 This prints, per repo, every commit past the last reconciled watermark plus the files
 each touched. It is watermark-based, not "since yesterday" — a sweep that didn't run for
 four days still picks up all four.
 
-`docs-since` walks **`DOCS_REPOS`** (`bench:1652`): the workshop, `FAMILY` (nebelung,
+`docs-since` walks **`DOCS_REPOS`** (`bench:1783`): the workshop, `FAMILY` (nebelung,
 pounce, perch, holt, haus), `org-profile`, `homebrew-tap`, and the two repos that
 carry docs without carrying a lock edge — **`trill`** and **`hausfold.co`**. That last
 pair is why this list is not `FAMILY` plus trimmings: docs coverage and lock coverage
@@ -219,38 +225,51 @@ the first question for each repo is never "what do I call my branch" — it is *
 already an open docs-sync PR here?"**:
 
 ```bash
-gh pr list -R hausfold/<repo> --state open --search 'head:docs-sync- in:title docs: sync' \
-  --json number,headRefName,body
+gh pr list -R hausfold/<repo> --state open \
+  --search 'head:docs-sync- in:title docs: sync' --json number,headRefName
 ```
-
-- **One is open → extend it.** Check that branch out, commit onto it, push. Then rewrite
-  the body to cover the *union* of every run that has touched it (`gh pr edit <n>
-  --body-file …`), because a reviewer reads the body once, at merge time — appending a
-  second "Corrected" list below the first makes them reconcile two half-stories.
-- **None is open → start one**, on `docs-sync-<YYYY-MM-DD>`. If that branch name already
-  exists because today's earlier PR merged, use `docs-sync-<YYYY-MM-DD>-2`.
 
 Six small PRs a day per repo is the failure mode this replaces: it buries the signal,
 and a reviewer who merges #3 while #4 is open gets a conflict for no reason. **One open
-PR per repo, growing through the day, is the shape.**
+PR per repo, growing through the day, is the shape.** So the answer picks the branch:
+
+**None open → start one.** Write the findings body to a scratch file first (template
+below):
 
 ```bash
-git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>   # or: checkout the open one
+git -C <repo> checkout main && git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>
 git -C <repo> add <the doc files>
 git -C <repo> commit -m "docs: <what you reconciled>
 
 Docs-Sync: <YYYY-MM-DD>"
 git -C <repo> push -u origin docs-sync-<YYYY-MM-DD>
-# write the findings body to a scratch file first (see the template below)
 gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
   --title "docs: sync <YYYY-MM-DD>" --body-file /tmp/docs-sync-<repo>.md
+```
+
+If that branch name is already taken because today's earlier PR merged, use
+`docs-sync-<YYYY-MM-DD>-2` — in the `checkout -b`, the `push -u` **and** the `--head`.
+
+**One open → extend it.** Same commit, but the body gets **rewritten**, not appended to:
+a reviewer reads it once, at merge time, and two stacked "Corrected" lists make them
+reconcile two half-stories. Read the old body, fold your findings into it, write the
+union to the scratch file:
+
+```bash
+git -C <repo> fetch origin <its headRefName>
+git -C <repo> checkout <its headRefName> && git -C <repo> pull --ff-only
+# …edit, add, commit with the Docs-Sync trailer, as above…
+git -C <repo> push origin <its headRefName>
+gh pr edit <n> -R hausfold/<repo> --body-file /tmp/docs-sync-<repo>.md
 ```
 
 - **A checkout's directory name is not its repo name.** `-R hausfold/<repo>` is right for
   every repo *except* `org-profile`, whose remote is **`hausfold/.github`** (the dir can't
   be named `.github` — it would be invisible and collide with the workshop's own CI dir).
-  `bench`'s `gh_repo()` is the only place that knows; when in doubt, drop the `-R` and let
-  `gh` read the checkout's own remote.
+  That applies to **every** `gh` call above, the `pr list` that opens the step included —
+  point it at `hausfold/org-profile` and it reports "no open PR" for a repo that has one,
+  so the sweep opens a second. `bench`'s `gh_repo()` is the only place that knows; when in
+  doubt, drop the `-R` and let `gh` read the checkout's own remote.
 - **Every commit gets the `Docs-Sync:` trailer.** Your PRs land on `main` like anything
   else, so without it the next sweep reads yesterday's output as today's input — every
   day, forever. `bench docs-since` filters on that trailer; a commit missing it will come
@@ -265,7 +284,8 @@ lost; the PR is where the reasoning has to live, so a reviewer can judge the dif
 re-deriving it. Never use `--fill`. Write the body as:
 
 ```markdown
-Docs sweep — reconciled <N> commits landed since <date>. (<M> sweep runs so far.)
+Docs sweep — reconciled <N> commits landed since <date>.
+Previous sweep: <the `last_run` in .docs-sync.json, before you re-marked it>.
 
 ## Corrected
 - `<file>` — was: <the wrong claim>. Now: <what shipped>. (<sha>)
@@ -295,12 +315,17 @@ docs", tagged with the repo they belong to. Don't open an empty PR.
 
 If nothing needed changing and there is nothing to report anywhere, open no PR.
 
+**"Don't open an empty PR" bows to `## Couldn't land`.** A push you were refused is a
+finding, not an absence of one — if that's all a run produced, the workshop PR carrying it
+is the whole point, and swallowing it to honour the no-empty-PR rule hides exactly the
+failure that rule was never about.
+
 ## Step 6 — mark the watermark
 
 **Only after the PRs are open**, and only then:
 
 ```bash
-bench docs-since --mark
+./bench docs-since --mark
 ```
 
 This records where the next sweep starts. Marking before landing loses the day's work
@@ -312,10 +337,15 @@ sweep ends sitting on its own `docs-sync-*` branch, and parking the watermark on
 right answer — the watermark tracks the source commits you've *read*, and those live on
 `main`. Your doc PR is this sweep's output, not its input.
 
-Then put each repo back on `main` so the next sweep starts from a clean tree:
+Then put **every** repo back on `main` — the workshop included, and that one is not
+housekeeping. `git push origin main` pushes the local ref *named* `main`, so a workshop
+still sitting on its own `docs-sync-*` branch commits the watermark to that branch and
+then pushes an unchanged `main`: the push succeeds, the watermark never moves, and the
+next run re-reads everything. Assert it, don't assume it:
 
 ```bash
 git -C <repo> checkout main
+git -C <workshop> rev-parse --abbrev-ref HEAD    # must print: main
 ```
 
 `.docs-sync.json` is **committed**, because the sweep normally runs as a scheduled routine
@@ -333,9 +363,20 @@ git -C <workshop> pull --rebase origin main && git -C <workshop> push origin mai
 The `--rebase` is not decoration at this cadence: `main` moves under a run that took
 twenty minutes, and a bare `push` then fails on a non-fast-forward *after* the PRs are
 already open — leaving the watermark behind and the next run re-reading everything you
-just reconciled. If the rebase conflicts (someone else advanced the watermark), take
-**their** `.docs-sync.json` and re-run `bench docs-since --mark` on top; the file is
-generated state, never a merge to resolve by hand.
+just reconciled.
+
+If the rebase conflicts, another run advanced the watermark while you worked. The file is
+generated state, never a merge to resolve by hand — take the upstream copy and re-mark on
+top of it. **Mind git's sense of the words here**, because it is backwards from the one
+you want: mid-rebase, `--ours` is `origin/main` and `--theirs` is the commit being
+replayed, so the intuitive `--theirs` hands you back your own file and clobbers the run
+you were trying to preserve.
+
+```bash
+git -C <workshop> checkout --ours .docs-sync.json   # --ours IS origin/main, in a rebase
+./bench docs-since --mark
+git -C <workshop> add .docs-sync.json && git -C <workshop> rebase --continue
+```
 
 This is the one commit the sweep puts on `main` directly, and it's deliberate: it must
 advance even on a day that produced no PR, or those commits get re-read forever. It
