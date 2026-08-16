@@ -8,10 +8,11 @@ between that and this standard, and §9 is the order it closes in.
 
 ## 0. The claim
 
-The family is already half AI-native and nobody wrote it down. Every tool is
-configured by a file rather than a settings window; pounce, perch, trill and
-holt each expose a CLI; holt already emits `--json`. What's missing is not
-capability — it's **discoverability and uniformity**. An agent sitting in front
+The family is already half AI-native and nobody wrote it down. Nearly every
+tool is configured by a file rather than a settings window (§8 names the one
+that isn't); pounce, perch, trill and holt each expose a CLI; holt already emits
+`--json`. What's missing is mostly not capability — it's **discoverability and
+uniformity**. An agent sitting in front
 of this machine cannot answer "put this in my shelf" unless somebody told it
 that `perch` exists, what its verbs are, and when *not* to reach for it.
 
@@ -164,11 +165,20 @@ Rules that follow from the shape:
 
 ### A5 — Config is a file, and the file has a schema
 
-Already true across the family and worth stating so it stays true: settings
-live in a file the agent can read, diff and edit — never only in a UI. Going
-further, each tool's config file gets a `$schema`-able description or a
-`<tool> config print --json` that shows the effective values including
-defaults, so an agent can tell *unset* from *set to the default*.
+Settings live in a file the agent can read, diff and edit — never only in a UI.
+Going further, each tool grows a `<tool> config print --json` showing the
+**effective** values including defaults, so an agent can tell *unset* from *set
+to the default*. pounce already has `config print`; that's the shape.
+
+This is *nearly* true across the family and it is worth being precise about
+where it isn't, because "settings live in a file" is the sentence this whole
+standard rests on. pounce (`config.json`), trill
+(`~/.config/trill/rules.json`) and holt (`~/.config/holt/config.toml`) check
+out. **perch does not:** its user-facing settings — `showOnAllDisplays`,
+`retentionDays`, `mobileEnabled`, `launchAtLogin` — live in `UserDefaults`
+(`Perch/App/AppSettings.swift`), which is exactly the click-only case this
+requirement forbids. Its `~/.config/perch/config.json` holds machine-written
+*theme* defaults only, and that file's own comment says so.
 
 ## 2. What we are deliberately NOT doing
 
@@ -209,31 +219,47 @@ Two gaps remain, and both are about **routing** rather than reference:
    through `sketchybar`. Nothing connects the room to the command.
 
 Close both with `references/rooms.md`, generated into the haus skill from
-`modules/options-groups.nix` — which already carries a per-room `blurb` read by
-the host template and hausfold.co. Add two fields to each record:
+`modules/options-groups.nix`, which already carries a blurb per room.
+
+⚠️ **That file has two records and both have a `focus`.** `groups` is
+per-**namespace** (`{ order; blurb; }`) and is what the host template and
+hausfold.co's option reference read. `rooms` is per-**room**
+(`{ title; order; blurb; }`) and is the one this wants — land the new fields on
+`groups` and you get a namespace list wearing a room's name.
 
 ```nix
+# in `rooms`, not `groups`
 focus = {
-  order = …;
-  blurb = "…";                              # exists
-  agent.cli  = "pounce focus on|off|status"; # NEW — the runtime verb, or null
-  agent.asks = [ "make my mac quiet" "turn on do not disturb" "hush" ];  # NEW
+  title = "Focus";
+  order = 90;
+  blurb = "One quiet switch: …";                                        # exists
+  agent.cli  = "pounce focus on|off|status";                            # NEW — the runtime verb, or null
+  agent.asks = [ "make my mac quiet" "turn on do not disturb" "hush" ]; # NEW
 };
 ```
 
 One more field, one more renderer, no new source of truth — and `room-registry`
-already fails the build when a room is missing from that file, so a new room
-cannot silently ship without its routing row.
+(haus's `flake.nix`) already fails the build on "a room with no title or no
+blurb", so a new room cannot silently ship without its routing row once `agent`
+joins that check.
 
 ## 4. Distribution
 
 **haus machines.** `haus.ai.skill` grows from "install the haus skill" to
 "install the haus skill **and one per hausfold tool this machine has**". haus
-already takes nebelung, pounce, perch, holt and trill as flake inputs, so each
-flake exposes its SKILL.md as a package output and haus copies the ones whose
-room is actually enabled. A machine with the shelf room off gets no perch
-skill — a skill for an app you don't have is worse than none, because the agent
+already takes nebelung, pounce, perch and holt as flake inputs, so each flake
+exposes its SKILL.md as a package output (`pkgs.<tool>-skill`) and haus copies
+the ones whose room is actually enabled — the shelf room off means no perch
+skill, because a skill for an app you don't have is worse than none: the agent
 will confidently offer it.
+
+⚠️ **trill is not one of those inputs, and that is deliberate** — it carries no
+lock edge and is not in `bench`'s `FAMILY` (the workshop's AGENTS.md, and §9 of
+`notes/hausfold-rename.md`). It has no room in `options-groups.nix` either, only
+a metadata-only `haus.roster.trill` entry. So trill's skill reaches a machine by
+`trill skill install` until the planned leaf overlay lands; when it does, its
+gate is the roster entry rather than a room switch. A step that assumes
+otherwise ships nothing for trill and reports success.
 
 Same install path as today: file-by-file into each client's own skills dir
 (`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`), so a host
@@ -271,6 +297,12 @@ fallbacks, and they cost nothing:
 Four files' worth of work per tool, and the one that takes thought is the
 `description`.
 
+haus is the one deliberate variant: its skill source is
+`modules/terminal/agents/SKILL.md` (a room's file, not a repo root's) and half
+its content is *generated* from the module system rather than written. That is
+the pattern the other five copy — hand-write only what can't drift, render the
+rest — not an exception to it.
+
 ## 7. How we know it works
 
 Not "the file exists". The acceptance test is behavioural, per tool, run in a
@@ -298,30 +330,45 @@ standard, however complete its SKILL.md is.
 
 | tool | A1 · CLI covers UI | A2 · JSON + exits | A3 · `skill` verb | A4 · SKILL.md | A5 · config file |
 |---|---|---|---|---|---|
-| **holt** | ✅ full lifecycle | ✅ `--json`, exit codes | ❌ | ❌ | ✅ |
-| **haus** | ✅ `set/get/options/status/plan/diff/doctor` | ⚠️ no `--json` | ❌ (skill exists, no verb) | ✅ generated | ✅ |
-| **pounce** | ⚠️ rich, but read verbs are TSV-only | ❌ no `--json` anywhere | ❌ | ❌ | ✅ `config.json` |
-| **trill** | ⚠️ `send`/`ping`/`doctor`; no read of what fired | ⚠️ `--json` on doctor only | ❌ | ❌ | ✅ `rules.json` |
-| **perch** | ❌ **`add` only** — cannot list or remove | ⚠️ `--json` on `add` | ❌ | ❌ | ✅ |
+| **holt** | ✅ full lifecycle | ✅ `list --json`, `watch --json` NDJSON, exits 0–5 | ❌ | ❌ | ✅ `config.toml` |
+| **haus** | ✅ `set/get/options/status/plan/diff/doctor` | ⚠️ no `--json` on any verb | ❌ (skill exists, no verb) | ✅ generated | ✅ host file |
+| **pounce** | ⚠️ rich (`run`, `drafts`, `focus`, `doctor`, `config print`), but `drafts list` is TSV-only | ❌ no `--json` anywhere | ❌ | ❌ | ✅ `config.json` |
+| **trill** | ⚠️ `send`/`ping`/`doctor`; no read of what fired | ⚠️ `--json` **output** on `doctor` only (`send --json` is an *input* format) | ❌ | ❌ | ✅ `rules.json` |
+| **perch** | ❌ **`add` only** — cannot list or remove | ⚠️ `--json` on `add` | ❌ | ❌ | ❌ **`UserDefaults`** |
 | **nebelung** | ❌ no CLI at all | ✅ palette is JSON | ❌ | ❌ | n/a |
 
 Reading the table: **A3/A4 is uniformly absent and uniformly cheap** — it is
-docs plus one verb, in six repos, and it is what the user actually feels. **A1
-is the expensive column and only perch and nebelung genuinely fail it**; perch's
-gap is the one that breaks a real sentence today ("what's on my shelf?").
+docs plus one verb, and it is what the user actually feels. **A1 is the
+expensive column and only perch and nebelung genuinely fail it**; perch's gap is
+the one that breaks a real sentence today ("what's on my shelf?"), and perch is
+also the one A5 failure.
+
+⚠️ **`perch add` has never shipped.** It landed in perch#63, after the
+`v2026.08.14-1` tag, so the released app — the one installed on this machine —
+has no `perch-cli` in its bundle at all, and `nix/package.nix` guards against
+exactly that by skipping `bin/perch` when the binary is missing. Perch's skill
+is therefore correct and inert until `bench release perch` runs. Nothing else in
+the table has this problem.
 
 ## 9. Order
 
 1. **This note**, and the `AGENTS.md` routing row that points here.
-2. **`ai/SKILL.md` in all six repos.** Docs only, no code, no release. Lands the
-   whole standalone *content* and is what haus needs in order to install
-   anything.
+2. **`ai/SKILL.md` in five repos** — perch, trill, pounce, holt, nebelung. haus
+   is the exception: its skill source already lives at
+   `modules/terminal/agents/SKILL.md` and is built by `skill.nix`, which is the
+   pattern the other five are copying. Docs plus a `nix/skill.nix` exposing
+   `pkgs.<tool>-skill`; no CLI change, no release. This is what haus needs in
+   order to install anything.
 3. **haus installs them** — `haus.ai.skill` extended, plus `references/rooms.md`
-   from `options-groups.nix`. After this, a haus user has the whole thing.
+   from `options-groups.nix`'s `rooms` record. After this, a haus user has the
+   whole thing (minus trill — see §4).
 4. **`<tool> skill` verb** in pounce, perch, trill, holt. Public CLI surface on
    released tools, so it rides a normal release, not a hotfix.
-5. **perch's read verbs** — `perch list`, `perch rm`, `--json` on both. The one
-   A1 gap worth a feature PR of its own.
+5. **perch's read verbs** — `perch list`, `perch rm`, `--json` on both, and its
+   settings out of `UserDefaults` into a file. The one repo failing two
+   requirements, and the only one where a released sentence is still broken.
+   **`bench release perch` is a prerequisite for any of perch's agent surface to
+   exist on a real machine** (see §8).
 6. **`--json` sweep** — pounce's read verbs, trill `list`, `haus get --json`.
 
 Steps 2 and 3 deliver the user-visible result; 4–6 are the long tail and can be
