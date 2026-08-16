@@ -218,6 +218,23 @@ out the old name as the *current* one, which is how a rename un-renames itself:
   `hausfold/nebelhaus` **freer**, not safer — the guard is right, its reason was
   a year of reading away from being deleted as obsolete.
 
+🚨 **Running gate 4 the honest way — curling all 31 destinations rather than
+reading them — found a fourth 301 chain, one day after the first three.**
+`nebelhaus.com/guides/ai-agent` pointed at `hausfold.co/docs/haus/rooms/agent-rebuilds/`,
+which is itself a **301** to `/docs/haus/agent-rebuilds/`: agent-rebuilds is a
+**guide, not a room**, and it left that tree when the rooms were renamed for what
+they do (haus#367, 2026-08-16). Re-pointed, and pinned by a test.
+
+⚠️ **The interesting part is why nothing caught it.** The 2026-08-15 defect was
+loud — three URLs landing on a 404. This one resolved perfectly: every hop
+returned a page, the suite stayed green, and the only symptom was the second hop
+§5.2 paid to remove. **A redirect map degrades into a redirect chain silently,
+and the only test that can see it is one that fetches.** `web/`'s suite still
+cannot — it proves the map is complete and points at hausfold.co, by
+construction, without a network. So the destinations are pinned by hand as they
+are found, and the standing instruction is the one this sweep followed: curl all
+of them whenever a page moves on the other side.
+
 **What is left in this document is 👤 and always was:** §0.5/§0.6's App Store
 audit, §4's TCC feel-test and attribution re-check, §5.3's `api.hausfold.co`
 route box, and §11.2's one coupled edit — `inputs.nebelhaus` → `inputs.haus` in

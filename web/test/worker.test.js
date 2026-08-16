@@ -97,6 +97,19 @@ describe('the map covers the old site, exactly', () => {
     );
   });
 
+  // The same class, found the same way and a day later — by curling all 31
+  // destinations rather than by reading. `agent-rebuilds` is a GUIDE, not a
+  // room, and it left `/docs/haus/rooms/` when the rooms were renamed for what
+  // they do (2026-08-16). Its old path still resolves, as a 301, so the chain
+  // this file exists to collapse had quietly grown back to two hops with
+  // nothing failing anywhere. This row is asymmetric with every neighbour on
+  // purpose; the pin is what stops it being "tidied" back under `rooms/`.
+  it('sends ai-agent to the guide, which is not under rooms/', () => {
+    expect(REDIRECTS['/guides/ai-agent']).toBe(
+      'https://hausfold.co/docs/haus/agent-rebuilds/',
+    );
+  });
+
   it('never points at /desktops/<name>, which hausfold.co does not serve', () => {
     // `/desktops` is a landing-page anchor there, and the per-desktop pages
     // under it are themselves 301s into `/docs/haus/desktops/`. Landing on one
