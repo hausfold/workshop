@@ -20,6 +20,10 @@ setup() {
   ROOT="$TMP/root"
   mkdir -p "$ROOT"
   BATS_SAVED_PATH="$PATH"
+  # A consumer fixture, so nothing here reads the machine's real ~/.config/nix —
+  # layer_input() would, and on a dev Mac it would even answer correctly, which
+  # is the kind of green that stops meaning anything on CI.
+  mkconsumer nebelhaus
 }
 
 teardown() {
@@ -31,6 +35,30 @@ teardown() {
   # macOS) papers over it, which is exactly why this was green locally and red
   # on CI. Put PATH back before bats needs it.
   PATH="$BATS_SAVED_PATH"
+}
+
+mkconsumer() { # mkconsumer <input-name> — a machine flake whose haus input is called <name>
+  CONSUMER="$TMP/consumer"
+  mkdir -p "$CONSUMER"
+  python3 - "$CONSUMER/flake.lock" "$1" <<'JSON'
+import json, sys
+name = sys.argv[2]
+json.dump({
+    "root": "root",
+    "nodes": {
+        "root": {"inputs": {name: name, "nixpkgs": "nixpkgs"}},
+        name: {
+            "inputs": {"pounce": "pounce", "nebelung": "nebelung", "nixpkgs": "nixpkgs"},
+            "original": {"type": "github", "owner": "hausfold", "repo": "haus"},
+            "locked": {"type": "github", "owner": "hausfold", "repo": "haus", "rev": "deadbee"},
+        },
+        "pounce": {"original": {"type": "github", "owner": "hausfold", "repo": "pounce"}},
+        "nebelung": {"original": {"type": "github", "owner": "hausfold", "repo": "nebelung"}},
+        "nixpkgs": {"original": {"type": "github", "owner": "NixOS", "repo": "nixpkgs"}},
+    },
+}, open(sys.argv[1], "w"))
+JSON
+  LAYER_INPUT=""   # drop any memo from a previous mkconsumer in the same test
 }
 
 # ── locked_rev: parse a rev out of flake.lock, degrade to "?" on anything odd ──
@@ -168,9 +196,10 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 
 @test "gh_repo never emits the rice's pre-migration repo name" {
   # `hausfold/nebelhaus` RESOLVES — GitHub redirects the pre-rename name — so
-  # nothing would fail until someone creates a real repo under it, which §6
-  # says will happen: the rice keeps the name. Leaning on that redirect is the
-  # bug this asserts against.
+  # nothing would fail until someone creates a real repo under it. §6 used to say
+  # that would happen (the rice kept the name); §11 dropped the name on
+  # 2026-08-14 and nothing is queued to claim the slug now. The assertion stays
+  # either way — leaning on a redirect is the bug, not leaning on a prediction.
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
     run gh_repo "$name"
     [ "$output" != "$GH_ORG/nebelhaus" ]
@@ -206,6 +235,121 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [[ "$output" == *"--override-input nebelhaus path:$ROOT/haus"* ]]
   [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
   [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/wt/pounce"* ]]
+}
+
+# ── layer_input: the CONSUMER's name for the haus input, not ours ─────────────
+#
+# `--override-input <a-name-this-flake-doesn't-have>` is not an error in Nix, it
+# is a no-op — so getting this name wrong makes `bench try` announce your branch
+# and build the pinned layer. ~/.config/nix calls it `nebelhaus`; every machine
+# bootstrap.sh has scaffolded since 2026-08-15 calls it `haus`. These are what
+# stop either spelling being baked back in.
+
+@test "lock_layer_input reads the consumer's own name for the layer" {
+  run lock_layer_input
+  [ "$output" = "nebelhaus" ]
+  mkconsumer haus
+  run lock_layer_input
+  [ "$output" = "haus" ]
+}
+
+@test "lock_layer_input identifies the layer by its inputs, not by its slug" {
+  # This machine's lock still records the slug §10 freed (hausfold/hausfold), so
+  # a slug match would fail on the only consumer that exists. The signature is
+  # the node's OWN inputs.
+  python3 - "$CONSUMER/flake.lock" <<'JSON'
+import json, sys
+lock = json.load(open(sys.argv[1]))
+lock["nodes"]["nebelhaus"]["original"] = {"type": "github", "owner": "hausfold", "repo": "hausfold"}
+json.dump(lock, open(sys.argv[1], "w"))
+JSON
+  run lock_layer_input
+  [ "$output" = "nebelhaus" ]
+}
+
+@test "lock_layer_input is empty for a flake that doesn't take the layer" {
+  echo '{ "root": "root", "nodes": { "root": { "inputs": { "nixpkgs": "nixpkgs" } }, "nixpkgs": {} } }' \
+    >"$CONSUMER/flake.lock"
+  run lock_layer_input
+  [ -z "$output" ]
+}
+
+@test "overrides uses the name the consumer gave the input" {
+  mkconsumer haus
+  run overrides
+  [[ "$output" == *"--override-input haus path:$ROOT/haus"* ]]
+  [[ "$output" == *"--override-input haus/pounce path:$ROOT/pounce"* ]]
+  [[ "$output" != *"nebelhaus"* ]]
+}
+
+@test "resolve_layer_input assumes, out loud, when there is no lock to read" {
+  rm -f "$CONSUMER/flake.lock"
+  run resolve_layer_input
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"assuming"* ]]
+  [[ "$output" == *"nebelhaus"* ]]
+}
+
+@test "resolve_layer_input dies on a readable lock with no layer in it" {
+  echo '{ "root": "root", "nodes": { "root": { "inputs": {} } } }' >"$CONSUMER/flake.lock"
+  run resolve_layer_input
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"no input carrying the haus layer"* ]]
+}
+
+@test "the consumer edge carries the sentinel, never a baked-in input name" {
+  local found=""
+  for edge in "${EDGES[@]}"; do
+    read -r holder input _ <<<"$edge"
+    [ "$holder" = "consumer" ] || continue
+    found=1
+    [ "$input" = "@layer" ]
+  done
+  [ -n "$found" ]
+}
+
+# ── locked_slug: a lock records a SOURCE as well as a rev ─────────────────────
+
+@test "locked_slug reports the owner/repo an input is fetched from" {
+  mkdir -p "$ROOT/haus"
+  cat >"$ROOT/haus/flake.lock" <<'JSON'
+{ "nodes": { "pounce": { "original": { "type": "github", "owner": "hausfold", "repo": "pounce" } } } }
+JSON
+  run locked_slug haus pounce
+  [ "$output" = "hausfold/pounce" ]
+}
+
+@test "locked_slug catches an input still fetched under a freed slug" {
+  run locked_slug consumer nebelhaus
+  [ "$output" = "hausfold/haus" ]
+  python3 - "$CONSUMER/flake.lock" <<'JSON'
+import json, sys
+lock = json.load(open(sys.argv[1]))
+lock["nodes"]["nebelhaus"]["original"]["repo"] = "hausfold"   # the slug §10 freed
+json.dump(lock, open(sys.argv[1], "w"))
+JSON
+  run locked_slug consumer nebelhaus
+  [ "$output" = "hausfold/hausfold" ]
+  [ "$output" != "$(gh_repo haus)" ]   # …which is what bench status reports on
+}
+
+@test "locked_slug stays silent for inputs with no slug to be wrong about" {
+  mkdir -p "$ROOT/haus"
+  cat >"$ROOT/haus/flake.lock" <<'JSON'
+{ "nodes": { "local": { "original": { "type": "path", "path": "/tmp/x" } },
+             "elsewhere": { "original": { "type": "gitlab", "owner": "hausfold", "repo": "pounce" } },
+             "bare":  { "original": { "type": "github", "owner": "hausfold" } } } }
+JSON
+  run locked_slug haus local
+  [ -z "$output" ]
+  # owner/repo on a NON-github forge is not a GitHub slug, and comparing it to
+  # one would cry wolf on every edge that legitimately lives somewhere else.
+  run locked_slug haus elsewhere
+  [ -z "$output" ]
+  run locked_slug haus bare
+  [ -z "$output" ]
+  run locked_slug haus nosuchinput
+  [ -z "$output" ]
 }
 
 # ── try-batch: a per-repo integration checkout wins over worktree + main ───────

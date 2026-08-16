@@ -236,11 +236,18 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 # mismatch, and a redirect is the wrong thing to lean on here. `hausfold/nebelhaus`
 # resolves today — GitHub keeps every pre-rename name pointed at `hausfold/haus`
 # — so a bare "$GH_ORG/$name" appears to work, right up until someone creates a
-# repo actually named `hausfold/nebelhaus`. That is not hypothetical: the rice
-# KEEPS the name nebelhaus (hausfold-rename.md §6), so that name is live and
-# spoken-for in this org. The day it becomes a real repo, every `gh pr list` and
-# `git clone` below silently retargets it, with no error anywhere. The same now
-# goes for the freed slug `hausfold/hausfold` (§10).
+# repo actually named `hausfold/nebelhaus`. The day it becomes a real repo, every
+# `gh pr list` and `git clone` below silently retargets it, with no error
+# anywhere. The same goes for the freed slug `hausfold/hausfold` (§10).
+#
+# ⚠️ The reason this used to give — "the rice KEEPS the name nebelhaus
+# (hausfold-rename.md §6), so that name is live and spoken-for" — was reversed by
+# §11 on 2026-08-14: the desktop is `hacker`, and nothing is queued to claim
+# either slug. The 🚨 outlived its premise, which is the ordinary way to read
+# that: a hazard whose ONE motivating example evaporates is still a hazard, and
+# both names now sit unowned in an org anyone in it can create a repo in.
+# `bench status` checks the other end of the same rope — see locked_slug, which
+# catches a flake.lock still FETCHING a repo under a name it has given up.
 gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
   case "$1" in
     # (The layer needs no arm: since §10 its checkout is ./haus and its repo is
@@ -264,6 +271,85 @@ try:
 except Exception:
     print("?")
 EOF
+}
+
+locked_slug() { # locked_slug <repo> <input> — the owner/repo that lock FETCHES <input> from
+  # A lock records the SOURCE as well as the rev, and nothing here ever looked at
+  # it. `original` (what the flake.nix url asks for) rather than `locked`: it is
+  # the one every future `nix flake update` re-resolves, so it's the one a
+  # rename strands. Empty for anything that isn't a github: input (a `path:`
+  # override, a plain git url) — those have no slug to be wrong about.
+  python3 - "$(repo_dir "$1")/flake.lock" "$2" <<'EOF'
+import json, sys
+try:
+    node = json.load(open(sys.argv[1]))["nodes"][sys.argv[2]]
+    src = node.get("original") or node.get("locked") or {}
+    if src.get("type") == "github" and src.get("owner") and src.get("repo"):
+        print("%s/%s" % (src["owner"], src["repo"]))
+except Exception:
+    pass
+EOF
+}
+
+# ── the consumer's name for the layer input ───────────────────────────────────
+#
+# bench overrides flake inputs BY NAME, and `--override-input <a-name-this-flake-
+# doesn't-have> …` is NOT an error in Nix — it is silently ignored. So a wrong
+# guess here makes `bench try` announce your branch and build the pinned layer,
+# which is the failure the 🚨 in overrides() has warned about for months. What
+# changed is that the guess stopped being safe: `~/.config/nix` calls the input
+# `nebelhaus` (frozen — hausfold-rename.md §11.2 is a 👤 call on a 👤 file), while
+# `bootstrap.sh` has scaffolded `inputs.haus.url` for every fresh install since
+# 2026-08-15 (haus#364). Two live spellings, and HAUS_CONSUMER can point at
+# either kind of machine. So read the name off the consumer instead of mirroring
+# one of them.
+#
+# Matched on the input's OWN inputs — a node carrying both `pounce` and
+# `nebelung` is the layer — not on its repo slug: this machine's lock still
+# records `hausfold/hausfold`, the slug §10 freed on 2026-08-11, so a slug match
+# would fail on the only consumer that exists today. `bench status` reports that
+# separately (locked_slug above); it is a different bug from this one.
+LAYER_INPUT=""            # memoized; resolve_layer_input fills it
+LAYER_INPUT_ASSUMED="nebelhaus"
+
+lock_layer_input() { # the input name, read out of $CONSUMER/flake.lock; empty if it can't tell
+  python3 - "$CONSUMER/flake.lock" <<'EOF'
+import json, sys
+try:
+    lock = json.load(open(sys.argv[1]))
+    nodes = lock["nodes"]
+    for name, key in nodes[lock.get("root", "root")]["inputs"].items():
+        if isinstance(key, list):
+            key = key[0]
+        if {"pounce", "nebelung"} <= set(nodes.get(key, {}).get("inputs", {})):
+            print(name)
+            break
+except Exception:
+    pass
+EOF
+}
+
+resolve_layer_input() { # call BEFORE anything that overrides — it can die, and overrides() can't
+  [ -n "$LAYER_INPUT" ] && return 0
+  LAYER_INPUT="$(lock_layer_input)"
+  [ -n "$LAYER_INPUT" ] && return 0
+  # No lock to read (a consumer that has never been built): assume, and say so.
+  # Silence here would be the exact silent no-op this function exists to end.
+  if [ ! -f "$CONSUMER/flake.lock" ]; then
+    LAYER_INPUT="$LAYER_INPUT_ASSUMED"
+    warn "no flake.lock in $CONSUMER — assuming it calls the haus input '$LAYER_INPUT'. If it doesn't, every override below is silently ignored and you'd be building the pinned layer."
+    return 0
+  fi
+  # A readable lock with no layer input in it: this is not a consumer of haus,
+  # so building `.#darwinConfigurations.*` from it would be nonsense anyway.
+  # Die here, in the parent shell — `die` inside overrides() would exit only its
+  # command substitution and hand `nix build` an empty override list.
+  die "$CONSUMER/flake.lock declares no input carrying the haus layer (no node whose own inputs include pounce + nebelung). Point HAUS_CONSUMER at a machine flake that takes haus as an input."
+}
+
+layer_input() { # the resolved name, for interpolation
+  [ -n "$LAYER_INPUT" ] || resolve_layer_input
+  printf '%s\n' "$LAYER_INPUT"
 }
 
 # rev_on_main <repo> <rev> — is <rev> an ancestor of that repo's main?
@@ -303,13 +389,19 @@ rev_on_main() {
 }
 
 # The lock edges of the family graph: "<consumer-repo> <input-name> <source-repo>"
+#
+# `@layer` is a sentinel, not a name: the consumer's spelling for the haus input
+# is whatever ITS flake says (see resolve_layer_input), so it is resolved where
+# the edge is read rather than baked in here. Baking it in is what made this row
+# a hand copy of one machine's flake.nix — the same class of mirror as the
+# pounce item grammar, one repo down.
 EDGES=(
   "pounce nebelung nebelung"
   "haus nebelung nebelung"
   "haus pounce pounce"
   "haus perch perch"
   "haus holt holt"
-  "consumer nebelhaus haus"
+  "consumer @layer haus"
 )
 
 host_name() { # the darwinConfiguration to build in the consumer flake
@@ -421,28 +513,33 @@ overrides() { # every family input redirected at the local checkouts
   # flake a login-session-built .app via the `prebuilt` input. Empty otherwise →
   # the flake wraps the release, unchanged.
   #
-  # 🚨 Every `nebelhaus` below is a FLAKE INPUT NAME, not a repo — it is what
-  # ~/.config/nix's flake calls its input (`inputs.nebelhaus.url`), and the rice
-  # keeps that name (hausfold-rename.md §6). Do NOT "finish the rename" here:
-  # renaming these addresses an input that doesn't exist, and every override
+  # 🚨 Every `$layer` below is a FLAKE INPUT NAME, not a repo — it is what the
+  # CONSUMER's flake calls its input, and it is not this repo's to rename.
+  # Renaming it addresses an input that doesn't exist, and every override
   # silently stops applying — with no error, because a `--override-input` for an
   # unknown input is not a hard failure. `bench try` would report that it built
-  # your branch while building the pinned rice.
+  # your branch while building the pinned layer.
+  #
+  # It used to be the literal `nebelhaus`, which was right for as long as there
+  # was one consumer. `bootstrap.sh` scaffolds `inputs.haus.url` since
+  # 2026-08-15, so there are two live spellings and the literal became a mirror
+  # of one machine — read off the lock now, see resolve_layer_input.
   #
   # The ONE token here that is a directory is `local_src`'s argument: §3.3's
   # step 4 moved it to `hausfold` and §10 moved it again to `haus`, each time in
-  # the commit that renamed the checkout. The `nebelhaus/…` input paths stayed
-  # exactly as they were through both, which is what makes this line the
-  # clearest illustration of the rule — the input name and the directory are
-  # different things and only one of them ever moves.
-  local perch_prebuilt=""
+  # the commit that renamed the checkout. The input paths stayed exactly as they
+  # were through both, which is what makes this line the clearest illustration
+  # of the rule — the input name and the directory are different things and only
+  # one of them ever moves.
+  local perch_prebuilt="" layer
+  layer="$(layer_input)"
   [ -n "$PERCH_DEV_APP_DIR" ] \
-    && perch_prebuilt=" --override-input nebelhaus/perch/prebuilt path:$PERCH_DEV_APP_DIR"
-  echo "--override-input nebelhaus path:$(local_src haus) \
-        --override-input nebelhaus/nebelung path:$(local_src nebelung) \
-        --override-input nebelhaus/pounce path:$(local_src pounce) \
-        --override-input nebelhaus/perch path:$(local_src perch)$perch_prebuilt \
-        --override-input nebelhaus/holt path:$(local_src holt)"
+    && perch_prebuilt=" --override-input $layer/perch/prebuilt path:$PERCH_DEV_APP_DIR"
+  echo "--override-input $layer path:$(local_src haus) \
+        --override-input $layer/nebelung path:$(local_src nebelung) \
+        --override-input $layer/pounce path:$(local_src pounce) \
+        --override-input $layer/perch path:$(local_src perch)$perch_prebuilt \
+        --override-input $layer/holt path:$(local_src holt)"
 }
 
 # perch is the one family repo Nix can't build from source: it's an Xcode project
@@ -652,10 +749,18 @@ cmd_status() {
 
   echo
   say "lock edges (is anyone consuming an old version of anyone?)"
-  local stale=0 offmain=0
+  local stale=0 offmain=0 renamed=0 assumed=0
+  # `status` reads, it doesn't build, so it resolves the consumer's input name
+  # WITHOUT resolve_layer_input's die: an unreadable consumer must not cost you
+  # the rest of the report (every other edge here is still true), and a `die`
+  # from inside the loop's command substitution would exit that subshell alone
+  # and print a headless row.
+  local layer; layer="$(lock_layer_input)"
+  [ -n "$layer" ] || { layer="$LAYER_INPUT_ASSUMED"; assumed=1; }
   for edge in "${EDGES[@]}"; do
     read -r holder input source <<<"$edge"
-    local want have label
+    [ "$input" = "@layer" ] && input="$layer"
+    local want have label slug want_slug
     want="$(head_rev "$source")"
     have="$(locked_rev "$holder" "$input")"
     label="$holder → $input"
@@ -679,7 +784,26 @@ cmd_status() {
         "$C_MUT" "${have:0:7}" "$C_OFF" "$C_OK" "${want:0:7}" "$C_OFF"
       stale=1
     fi
+    # The rev is only half of what a lock records, and nothing here ever compared
+    # the other half. An edge fetching a repo under a name it no longer has reads
+    # `current` and is green: `~/.config/nix` still asks for
+    # `github:hausfold/hausfold`, the slug §10 freed on 2026-08-11, and every
+    # update since has resolved through GitHub's rename redirect. That redirect is
+    # exactly what `gh_repo`'s 🚨 says a new repo can take away — and the freed
+    # slug is live HERE, in a lock, not just in the `gh` calls that comment is
+    # about. Printed UNDER the edge's own row: the rev and the source are two
+    # claims and both can be true at once.
+    slug="$(locked_slug "$holder" "$input")"
+    want_slug="$(gh_repo "$source")"
+    if [ -n "$slug" ] && [ "$slug" != "$want_slug" ]; then
+      printf '  %s⚠%s %-22s %sRENAMED%s: fetches %s%s%s, which is %s%s%s now — only GitHub'"'"'s redirect makes that resolve\n' \
+        "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
+        "$C_WARN" "$slug" "$C_OFF" "$C_OK" "$want_slug" "$C_OFF"
+      renamed=1
+    fi
   done
+  [ "$assumed" = 1 ] && hint "couldn't read a haus input out of $CONSUMER/flake.lock, so the row above assumes it's called '$LAYER_INPUT_ASSUMED'. bench overrides inputs by name and Nix ignores an unknown one silently, so if that's wrong, 'bench try' builds the pinned layer while announcing your branch."
+  [ "$renamed" = 1 ] && hint "RENAMED: fix the url in that flake.nix (the input's NAME is a separate question — renaming it needs bench's OVERRIDABLE in the same edit). Nothing is broken today; it breaks the day something else claims the old slug, and then it breaks as a fetch failure with no clue where the name came from."
   [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
   [ "$offmain" = 1 ] && hint "OFF-MAIN: that rev lives on an unmerged branch — it stops resolving the moment the branch is deleted on merge, and the downstream repo then can't fetch its input at all. Land the upstream PR, then \`bench ship\` re-pins at the merge commit. Shipping FIRST also works and is usually wrong: it repins to main and silently drops the unmerged work."
   echo
@@ -853,6 +977,7 @@ active_banner() { # the loud "you are running unpushed code" block, post-switch
 cmd_try() {
   local do_lane=""; [ "${1:-}" = "lane" ] && { do_lane=1; shift; }
   local do_switch=""; [ "${1:-}" = "switch" ] && do_switch=1
+  resolve_layer_input   # before anything slow, and in THIS shell — overrides() runs in a subshell
   detect_worktree
   [ -n "$do_lane" ] && detect_lane
 
@@ -945,6 +1070,7 @@ cmd_try_batch() {
   local do_switch=""
   if [ "${1:-}" = "switch" ]; then do_switch=1; shift; fi
   command -v gh >/dev/null 2>&1 || die "bench try-batch needs the gh CLI to find your open PRs."
+  resolve_layer_input   # same reason as cmd_try: overrides() can't die usefully from a subshell
 
   # Which repos to sweep: any overridable repos named as args, else all of them.
   # perch is overridable too — its PRs build a signed dev app injected into the
@@ -1113,6 +1239,7 @@ cmd_ship() {
     for edge in "${EDGES[@]}"; do
       read -r holder input source <<<"$edge"
       [ "$holder" = "$name" ] || continue
+      [ "$input" = "@layer" ] && input="$(layer_input)"   # `nix flake update` takes the NAME
       local want; want="$(head_rev "$source")"
       [ "$(locked_rev "$holder" "$input")" != "$want" ] || continue
       say "$name: updating lock for ${input}…"
