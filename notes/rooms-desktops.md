@@ -223,7 +223,8 @@ peer of room or desktop and does not appear in the top-level journey.
 Sources should remain inspectable, typed and pinnable so a later distribution
 workflow can identify whether it contains a desktop or executable room code,
 preserve its origin and revision, and apply the appropriate trust warning. That
-requirement is now met by a mechanism rather than left open — see
+requirement now has a design rather than an open question — nothing of it is
+built yet — see
 [Acquisition](#acquisition--how-a-desktop-or-room-reaches-a-machine) below,
 which supersedes this paragraph's deferral of acquisition commands, manifests
 and remote-source UX.
@@ -732,10 +733,20 @@ Verified against real Nix on 2026-08-16, not recalled:
 
 | source | input spelling | pins | selection line | notes |
 |---|---|---|---|---|
-| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | rev **and** narHash, plus `lastModified` | `desktop = haus.lib.desktop "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
-| **one file / a gist's raw URL** | `{ url = "file+https://…/writer.nix"; flake = false; }` | **narHash only — no revision** | `desktop = haus.lib.desktop inputs.writer;` | the store path *is* the file, so no path suffix. But there is no version to move between, so `haus update` on it silently follows whatever is at that URL now |
+| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | rev **and** narHash, plus `lastModified` | `desktop = "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
+| **one file / a gist's raw URL** | `{ url = "file+https://…/writer.nix"; flake = false; }` | **narHash only — no revision** | `desktop = inputs.writer;` | the store path *is* the file, so no path suffix. But there is no version to move between, so `haus update` on it silently follows whatever is at that URL now |
 | **a gist as a repo** | `{ url = "git+https://gist.github.com/ada/<id>"; flake = false; }` | rev (a gist is a git repo) | as the repo row | ⚠️ **unverified** — the mechanism is standard but I did not fetch one |
 | **vendored** (today's advice) | none — a path in your own config | nothing | `desktop = ./desktops/writer.nix;` | stays supported forever, and is the right answer when you intend to *edit* it. See the git gotcha below |
+
+**The selection line is a bare path, and that is not cosmetic.** `mkHaus`
+applies the seam itself — `riceLib.desktop desktop` — so its `desktop` argument
+takes the same shape `haus.desktops.<name>` has, a path. A pre-wrapped
+`haus.lib.desktop …` passed there is wrapped twice and throws at `import`, and
+`flake.nix` says why the wrapping lives at the seam rather than in the export:
+a pre-wrapped module “would look importable anywhere and quietly bypass the
+one-desktop assertion”. `haus.lib.desktop` is for the hand-composed case only,
+where it goes in `extraModules` beside `desktop = null;`. Whatever `haus add`
+writes, it writes the bare-path form.
 
 Two measured facts the design leans on:
 
@@ -800,8 +811,10 @@ path it just reads it. Then it prints, in order:
 5. what it does *not* set, so the reader knows what stays theirs.
 
 `haus show --json` for CI, per `notes/agent-surface.md`. That single command
-collapses the first two lines of the publish checklist in
-`desktops/sharing.mdx` and removes the need for a separate `haus check`.
+collapses the first line of the publish checklist in `desktops/sharing.mdx`
+(“`checkDesktop` prints `true`, and a real host evaluates”) and removes the
+need for a separate `haus check`. It does not touch the second line — “you have
+run it on a Mac” is not a thing a checker can assert.
 
 **`haus add`** does `show`, asks for confirmation, then writes the input, the
 selection line and the lock — and stops, printing `haus rebuild` as the next
