@@ -4203,7 +4203,14 @@ that transfers.
 - **`~/.config/nix/flake.nix:7`** — `inputs.nebelhaus.url = "github:hausfold/hausfold"`.
   A 👤 file outside the family. It resolves through the redirect, so this is
   hygiene; fix it at the next `haus rebuild` and the input *name* still stays
-  `nebelhaus`.
+  `nebelhaus`. ⚠️ **Still true on 2026-08-16, five days later, and that is the
+  interesting part**: this bullet is the whole of the reminder, and a bullet in a
+  closed section is read once. `bench status` says it out loud now — the edge
+  reports `RENAMED: fetches hausfold/hausfold, which is hausfold/haus now`
+  (workshop#383) — because it had been printing `✓ current` for that edge every
+  day, comparing the locked **rev** and never the locked **source**. The one-line
+  fix is unchanged; what changed is that not doing it is now visible daily
+  instead of filed.
 - ~~**`flake.lock`'s `original` field** across the family~~ ✅ **corrected by the
   ripple, as predicted** — measured 2026-08-14: `"repo": "hausfold"` appears in
   **zero** family locks (haus, pounce, perch, nebelung, holt). The one survivor
@@ -4326,11 +4333,30 @@ none of this needs to be atomic:
   spelling. They are the *installer's*, which is why they go to `haus` and not
   `hacker`: `NEBELHAUS_DESKTOP=minimal` is already a sentence that contradicts
   itself.
-- **`inputs.nebelhaus` in the consumer flake → `inputs.haus`.** 👤 file. ⚠️
-  §10.0's trap applies with full force and in both directions: `bench`'s
-  `OVERRIDABLE` list and the input name must move **in the same change**, or
-  every `--override-input` silently stops applying while still reporting
-  success. That is the one edit in §11 that cannot be half-done.
+- **`inputs.nebelhaus` in the consumer flake → `inputs.haus`.** 👤 file, and as
+  of 2026-08-16 an **ordinary one-line edit** — this bullet used to call it *the
+  one edit in §11 that cannot be half-done*, on the grounds that `bench`'s
+  `OVERRIDABLE` list had to move in the same change or every
+  `--override-input` would silently stop applying while still reporting success.
+  Two things were wrong with that, both found by the twenty-fourth roadmap pass
+  (workshop#383): `OVERRIDABLE` holds **repo directory names** and
+  never held an input name — the coupled literals were `overrides()`'s five
+  `--override-input nebelhaus/…` strings plus one `EDGES` row — and **`bench`
+  now holds no spelling at all**: it reads the name out of
+  `$CONSUMER/flake.lock`, matching the input node whose own inputs carry
+  `pounce` + `nebelung`. So the rename is uncoupled, and it had to be:
+  `bootstrap.sh` has scaffolded `inputs.haus.url` since haus#364 (2026-08-15),
+  so every machine installed by the one-liner already spells it the new way
+  while this one spells it the old way, and no single literal could be right for
+  both. ⚠️ §10.0's trap itself is untouched — an override for an input a flake
+  doesn't have is a **no-op, not an error** — which is exactly why the name is
+  derived now instead of remembered.
+- ⚠️ **The same line carries a second, unrelated leftover — the URL, not the
+  name** — and it is §10.4's open bullet, still open five days on: that flake
+  asks for `github:hausfold/hausfold`, the slug §10.1 freed, so every
+  `nix flake update` here resolves through the rename redirect. The two edits sit
+  on the same line and are otherwise independent; the URL one needs no
+  coordination with anything and `bench status` now nags about it (see §10.4).
 
 ### 11.3 The on-disk state → `haus`, by symlink
 

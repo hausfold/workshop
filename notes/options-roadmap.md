@@ -120,6 +120,187 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `mkNebelhaus`, `desktopFiles.nebelhaus` and the four state-dir symlinks are
 > deliberate compatibility seams, so nothing here is broken by the rename — it
 > is only mis-named. The body stays un-rewritten for the reason given above.
+>
+> ★ **Amended 2026-08-16 (haus#367): the rooms are named for what they do now,
+> and for the eight addresses that touches, applying the rule above is WORSE than
+> ignoring it.** `haus.sill`→`haus.bar`, `prowl`→`windows`, `hearth`→`terminal`,
+> `pounce`→`launcher`, `perch`→`shelf`, `hush`→`focus`,
+> `collar`→`security.touchId` ([`rooms-desktops.md`](./rooms-desktops.md#the-names-2026-08-16)),
+> **with no aliases** — the old `haus.*` spellings are gone, not deprecated.
+> `modules/renamed.nix` is untouched, and that is the whole point: its left-hand
+> sides are the frozen `nebelhaus.*` names, so the literal `nebelhaus.pounce.items`
+> printed below **still evaluates**, now onto `haus.launcher.items`, while the
+> banner's own instruction turns it into `haus.pounce.items`, which is an unknown
+> option and a hard eval failure. A translation rule aged into a trap: the
+> untranslated text is the one that works. Run over §1 onward,
+> `grep -oE '\b(nebelhaus|haus)\.(hearth|prowl|sill|pounce|perch|hush|collar|den)\b'`
+> returns **ten**: eight `nebelhaus.pounce`, which are addresses — read them as
+> `haus.launcher.*` — and two `nebelhaus.sill`, which are **not**: they sit
+> inside §6(b)'s quoted error transcript, where the whole point is what the
+> option was called on 2026-08-05, so they must not be translated at all. ⚠️
+> Those two were added by the very pass that wrote this paragraph, whose first
+> draft said "eight, all `nebelhaus.pounce`" and was falsified by its own commit
+> — caught by the assurance read. Every other `nebelhaus.<x>` below takes the
+> 2026-08-08 rule unchanged.
+>
+> The reason there are only eight is worth a sentence, because it inverts the
+> usual complaint about this file: **where §5 sketched a room that had a code
+> name, it wrote the room's own word, and the rename arrived at that word.**
+> §5.9 is `nebelhaus.bar.widgets` / `bar.items` against a tree that said `sill`,
+> and §5.8 is titled *Generalize `focus` into scenes* against a tree that said
+> `hush` — both live addresses since 2026-08-16. (The rest of §5's namespaces —
+> `keys`, `displays`, `lock`, `security.firewall`, `roster` — were never
+> code-named, so they were never a proposal about anything.) Two sketches is a
+> small sample and the point is not that this file predicted the rename; it is
+> that **for six weeks the document and the code used different words for the
+> same room and nobody experienced that as a contradiction**, because a sketch
+> reads as pseudocode. That is also how a doctored quote got in — see §6(b),
+> where the same word appears inside a fenced block presented as measured output.
+
+
+> **Status, 2026-08-16 (twenty-fourth pass) — the rooms were renamed eight days
+> after the desktop was, and the twenty-third pass's own "correction" turns out
+> to have replaced a true sentence with a false one, in the hour it was writing
+> down why that happens.**
+>
+> Landed since the last pass and read for this one: haus
+> [#366](https://github.com/hausfold/haus/pull/366) (the Vim keys go, workspaces
+> become a count, a throw can stay),
+> [#367](https://github.com/hausfold/haus/pull/367)/[#368](https://github.com/hausfold/haus/pull/368)
+> (every code-named room renamed to what it does),
+> [#369](https://github.com/hausfold/haus/pull/369) (`haus.launcher.fnKey`),
+> [#370](https://github.com/hausfold/haus/pull/370)–[#372](https://github.com/hausfold/haus/pull/372)
+> (bar dropdowns), [#373](https://github.com/hausfold/haus/pull/373) plus the
+> `ai/SKILL.md` sweep across pounce, perch, holt, trill and nebelung
+> ([`agent-surface.md`](./agent-surface.md), workshop#379). The room rename is
+> the event, and the naming banner above carries it. **Nothing in §5 changed
+> shape** — the rename configures nothing differently — so this pass is an audit
+> plus one workshop-side fix, and no rebuild is owed.
+>
+> ★ **First, and it is the one to carry: a correction can go BACKWARDS, and
+> "measured" is the word that makes it stick.** The twenty-third pass's headline
+> finding was *the local checkout is memory wearing the repo's clothes*. In the
+> PR immediately before the one that wrote that (workshop#375, merged 11:14 UTC),
+> the same session **replaced a true clause in `AGENTS.md` with a false one**:
+> the flake-input row had said *"§11.2 moves it to `haus` — new installs scaffold
+> that already"*, correct, written by workshop#372 at 10:06 UTC; #375 rewrote it
+> to *"⚠️ **not yet, and nothing scaffolds `haus` today**: `haus`'s
+> `bootstrap.sh` writes `inputs.nebelhaus.url` for a fresh install (measured
+> 2026-08-15)"*. [haus#364](https://github.com/hausfold/haus/pull/364) had
+> flipped that line to `inputs.haus.url` at **10:06:01 UTC**, sixty-eight minutes
+> earlier (`gh api repos/hausfold/haus/commits/9718fb3` shows the one-line patch;
+> `bootstrap.sh:603` on main says `inputs.haus.url` today). So the stale checkout
+> did not merely leave a claim un-updated — it **manufactured a fresh wrong one,
+> deleted a right one to make room, and dressed it in a ⚠️, a date and the word
+> *measured*.** Every rule this file has for spotting staleness keys on age; this
+> one was the newest sentence in the file and the only wrong one on the page.
+> The mitigation is not "fetch first" (that pass already knew): it is **date the
+> measurement against the repo's clock, not the calendar day** — "measured
+> 2026-08-15" and "measured at rev afc3b58" are different claims, and only the
+> second can be checked.
+>
+> ★ **Second, from re-reading the row that finding sits in: it named the wrong
+> file as the coupled one, and the coupling it was protecting is now gone.**
+> Both `AGENTS.md` and [`hausfold-rename.md`](./hausfold-rename.md) §11.2 said
+> renaming `inputs.nebelhaus` needs *"`bench`'s `OVERRIDABLE` in the same edit"*.
+> `OVERRIDABLE` holds **repo directory names** (`nebelung pounce perch holt
+> haus`) and never held an input name; the literals that actually
+> coupled were `overrides()`'s five `--override-input nebelhaus/…` strings and
+> one row of `EDGES`. A decision record that says *don't touch this, it's
+> coupled* has to name the line, or the next person greps the named file, finds
+> nothing to change, and concludes the warning is stale rather than misfiled.
+> Both are corrected, and the coupling is retired rather than re-documented:
+> **`bench` now reads the input's name off `$CONSUMER/flake.lock`** instead of
+> mirroring one machine's spelling (`lock_layer_input`, matched on the node whose
+> own inputs carry `pounce` + `nebelung`, so it survives the slug being renamed
+> under it). That was worth doing on its own account: a `--override-input` naming
+> an input the flake doesn't have is **not an error in Nix, it is a no-op**, so
+> the mirror's failure mode is `bench try` announcing your branch while building
+> the pinned layer — and since 2026-08-15 there are two live spellings, because
+> every machine `bootstrap.sh` scaffolds calls it `haus`. §11.2's *"the one edit
+> in §11 that cannot be half-done"* is now an ordinary one-line edit to a 👤 file.
+>
+> ★ **Third, found while writing that fix, and it is a five-day-old live one:
+> `~/.config/nix` fetches the layer from `github:hausfold/hausfold` — the slug
+> §10 freed on 2026-08-11 — and only GitHub's rename redirect makes it resolve.**
+> `bench status` printed that edge as `✓ current` every day since, because it
+> compares the locked **rev** and has never looked at the locked **source**.
+> `bench`'s own `gh_repo` carries a 🚨 about exactly this hazard ("a bare
+> `$GH_ORG/$name` appears to work, right up until someone creates a repo actually
+> named…") — written about `gh` calls, three functions above the lock reader
+> where the freed slug was already live. **The dimension a warning was written
+> about is not the dimension it covers**, which is the twenty-third pass's
+> mirror question (*which dimension of this copy did I decide was closed?*)
+> arriving as *which dimension of this warning did I decide was the only one?*
+> `bench status` reports it as `RENAMED` now, under the edge's own row, for every
+> edge — measured across all six, exactly one is wrong today and it is the one
+> nobody sweeps, because it lives in a 👤 file.
+>
+> ★ **Fourth, and it is the softest kind: §6(b)'s "measured" error transcript
+> names an option that never existed.** The block quotes
+> ``error: The option `nebelhaus.bar.enable' has conflicting definition values``
+> as the measurement that retracted this file's own claim about composition — and
+> on 2026-08-05 the bar room was `sill`, so the real error can only have said
+> `nebelhaus.sill.enable`. (`modules/renamed.nix` is generated by enumerating the
+> whole option tree at the `nebelhaus`→`haus` rename; it maps
+> `nebelhaus.sill.enable` → `haus.bar.enable` and contains no `nebelhaus.bar.*`
+> at all.) Nothing the block concludes is wrong — the error does name the option,
+> both files and the fix. What happened is that the transcriber **normalised the
+> quote into the document's own dialect**, the same dialect the banner above
+> credits for being six weeks early, and a paraphrase inherits the authority of a
+> paste the moment it sits inside a fenced block. ⚠️ **And it just became
+> uncatchable**: since haus#367 the string is a real option name, so nobody
+> reading this file tomorrow has any way to notice. Corrected in place at §6(b).
+>
+> Housekeeping: §5.5's shipped box claimed `windowNav` moves *"all fifteen
+> main-mode chords plus service-mode entry"* — after rice#210 retired `⌥⇥` and
+> #366 unbound `⌥hjkl`, and with the workspace digits living in launch mode, the
+> real number is **nine** (`grep -cE '\$\{m(s)? "' modules/windows/wm-bindings.nix`
+> → 8, plus `serviceEntry` in `modules/windows/default.nix:193`); amended there
+> with the count re-derived rather than adjusted. §5.9's opening count of
+> `bar.items` re-derived the same way and survived: 16 leaves,
+> one of them the deprecated `claudeUsage` alias, so **15 pills — the number the
+> box already says**, which is what a count claim looks like when it happens to
+> stay true, and it stays true only with its scope written down. Two rows added
+> to §5.14's shapes table.
+>
+> **Verified:** `shellcheck bench` clean (bare, as CI runs it) and the bats suite
+> green at **93 tests** (81 before — the base moved under this branch mid-review
+> when workshop#380 landed, so both numbers are re-derived from
+> `grep -cE '^@test '` rather than carried forward) under nixpkgs' bats 1.12 *and* a real bats
+> **1.10.0** tarball — CI's apt version, which doesn't subshell a test body, so a
+> suite can print all-`ok` and still exit non-zero there. Every new assertion was
+> mutation-checked: re-baking the literal `nebelhaus` into `overrides()` fails
+> exactly one test, re-baking it into `EDGES` fails exactly one, and dropping
+> `locked_slug`'s github-type guard fails the test that says a GitLab-hosted
+> input has no GitHub slug to be wrong about. The `RENAMED` row and the resolved
+> input name were both read off a live `./bench status` against the real
+> `~/.config/nix`, not a fixture. No `bench try`, no switch, no lock moves —
+> nothing this pass touched is in the flake.
+>
+> **The assurance pass re-derived every factual claim above and confirmed all
+> eleven of them, then found ten things anyway, three at 3/5** — and two of the
+> three are this pass repeating, inside its own diff, the shapes it had just
+> filed. **(i)** The `RENAMED` hint printed at the terminal repeated the false
+> coupling (*"renaming it needs bench's `OVERRIDABLE` in the same edit"*) that
+> finding two exists to retire — newly written, in the user-facing copy, one file
+> away from the correction. **(ii)** The banner paragraph above said the body
+> holds "eight hits, all `nebelhaus.pounce`", which this pass's own §6(b)
+> correction falsified in the same commit by adding two `nebelhaus.sill`; the
+> count is re-derived and scoped now, one paragraph after §5.9 preaches exactly
+> that. **(iii)** The PR number this work cites in three permanent places was
+> already taken by another open PR — a plan-of-record citation pointing at a
+> stranger's branch. Also fixed: `activate_built` reached `$(overrides)` with no
+> resolve in its own shell (`cmd_rebuild`'s path — benign today, a latent empty
+> `--override-input`), `layer_input` could splice a `warn` **into the value** in
+> `cmd_ship`'s `nix flake update "$input"` because `warn` prints on stdout while
+> only `die` redirects (so `layer_input` is silent by contract now, with a test),
+> and the `/docs-sync` skill carried a third copy of the corrected
+> table — the copy a scheduled sweep reads to decide what NOT to touch, which is
+> how a retired claim gets re-asserted by tooling. **A pass that files a shape
+> and then commits it is not embarrassing, it is the evidence the shape is real**
+> — and it is the second consecutive pass where the clean-context read was the
+> only thing between a finding and its own counter-example.
 
 
 > **Status, 2026-08-15 (twenty-third pass) — the desktop this whole document is
@@ -2803,8 +2984,22 @@ nebelhaus.keys = {
 - [x] `keys.{leader,palette,windowNav}` shipped, resolved once in
       `modules/lib/keys.nix`, with `"none"` a real value on all three. `windowNav`
       is a **modifier vocabulary** rather than a bind-per-action: what people need
-      to move is the modifier, not the letters, and one value moves all fifteen main-mode
-      chords plus service-mode entry. `bindings` (per-action overrides) is still
+      to move is the modifier, not the letters, and one value moves every chord
+      that carries it. ⚠️ **That count was fifteen main-mode chords plus
+      service-mode entry when this shipped and is NINE today** (twenty-fourth
+      pass, re-derived rather than adjusted: `grep -cE '\$\{m(s)? "'
+      modules/windows/wm-bindings.nix` → 8, plus `serviceEntry` at
+      `modules/windows/default.nix:193`). Four are main-mode — `<mod>/`,
+      `<mod>,`, `<mod>f`, `<mod>⇧⇥` — four are service mode's join-with arrows,
+      and one is service-mode entry. The other six didn't move to another
+      modifier, they **left**: `⌥⇥` retired (rice#210, the box four below),
+      `⌥hjkl` unbound with nothing in its place (haus#366 — no Vim direction is
+      bound by default anywhere in haus now), and the workspace digits became
+      leader actions in launch mode, which `windowNav` doesn't reach. The claim
+      the number was making still holds — one value still moves everything on
+      that modifier — but a *shrinking* surface makes "one value moves fifteen
+      chords" read as an argument that gets weaker every time the keymap gets
+      better, which is backwards. Count the chords it moves, or don't count. `bindings` (per-action overrides) is still
       open — it needs an action vocabulary first, and none of the motivating cases
       needed it.
       **Update 2026-07-30: half that vocabulary now exists, from pounce.** pounce#43
@@ -3223,6 +3418,12 @@ power source, display attach.
 ### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
 `bar.items` is a closed submodule of 15 bools (13 when this was written — it
 grows by one every time a pill lands, which is the argument this box makes).
+*(Re-derived on the twenty-fourth pass and the number survived, which is worth
+one line because it is the outcome nobody records: `jq -r 'keys[]'
+docs/site-data/options.json | grep -cE '^haus\.bar\.items\.'` says **16**, one of
+which is the deprecated `claudeUsage` alias for `aiUsage` — so 15 pills, as
+written. A count that stays true does so only with its scope attached; the same
+re-derivation on §5.5's line above found it six short.)*
 Pounce commands were
 script-discovery only with **no Nix option at all**; as of pounce#43 the
 *app* has the schema and the **rice** is what's missing — which flips this item
@@ -3757,6 +3958,8 @@ catch:
 | claim about a generated artifact, derived from its generator *(twenty-second pass — §5.3's `sans`)* | reading the artifact the check actually samples |
 | claim about a repo, read from the LOCAL CHECKOUT *(twenty-third pass — haus's checkout sat one merge behind while the audit ran)* | fetching first (`bench status` does), or reading GitHub |
 | a NEGATIVE claim ("X never happens") proved by a grep *(twenty-third pass — "`bench status` never fetches", from a pattern that couldn't match `git -C "$dir" fetch`)* | reading the file around the pattern, not the pattern's output |
+| a CORRECTION that goes backwards — a true clause replaced by a false one, wearing a ⚠️ and the word "measured" *(twenty-fourth pass — `AGENTS.md`'s flake-input row, 68 minutes after the repo falsified it)* | dating the measurement at a **rev**, not a calendar day; nothing else can distinguish the newest sentence from a checked one |
+| a "don't touch this, it's coupled" warning that names the **wrong line** *(twenty-fourth pass — `bench`'s `OVERRIDABLE`, which holds repo names and never held an input name)* | opening the file it names and finding the thing it says is there |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -4116,6 +4319,41 @@ be asked of anything: **which dimension of this copy did I decide was closed?** 
 the pounce mirror reasoned carefully about the six mode names it copies and never
 about the four prefixes it enumerates, which is the twenty-second pass's
 one-option blindness with a mirror in place of a check.
+
+**Twenty-fourth pass, 2026-08-16 — the previous pass's correction went backwards,
+and the mirror it was defending has been retired instead of re-documented.** The
+finding is at the top of this file; what belongs *here* is that it is the first
+entry on the shapes table whose failure is **younger than the pass that filed
+it**. Every other row degrades an entry over time, so every mitigation this
+section has is a way of asking *how old is this claim*. Row eleven can't be
+caught that way: the wrong sentence in `AGENTS.md` was written 68 minutes after
+the repo falsified it, by a session whose headline finding was that reading the
+local checkout is reading memory — it applied that lesson to the paragraph it
+was writing and not to the paragraph beside it. The cheap mitigation is one word
+of discipline: **a measurement is dated at a rev, not on a day.** "Measured
+2026-08-15" survives contact with a merge that happened at 10:06; "measured at
+`afc3b58`" is checkable by anyone, forever, and `bench status` already prints
+the rev of every edge it reads.
+
+The pass's other half is reason 1 again — *the work happens in four repos and
+the doc lives in a fifth* — arriving from the direction this section keeps
+recommending and one it hadn't: **stop mirroring the other side and read it.**
+`bench` held one machine's spelling of the layer's flake-input name in five
+`--override-input` literals plus a row of `EDGES`, and `bootstrap.sh` began
+scaffolding a *different* spelling on 2026-08-15, so the mirror had one live
+counter-example a day after the twenty-third pass ended. It reads the name off
+`$CONSUMER/flake.lock` now, and — the same reading, one field over — `bench
+status` compares each edge's locked **source** as well as its rev, which catches
+`~/.config/nix` still fetching the layer through the slug §10 freed five days
+ago. Both are **`bench status` warnings, not `nix flake check` checks**, so the
+ledger's headline number doesn't move: **fourteen ★ findings, seven checks, and
+three warnings** (this pair plus `OFF-MAIN`). What did gain a real tripwire is
+the workshop's own CI — twelve bats tests (`bats test/bench.bats`: 81 before, 93
+after), mutation-checked, that fail the moment either literal is baked back in.
+That is the
+first time this ledger has counted a check outside haus's flake, and it is worth
+noticing why it was possible: the workshop repo has a test suite because `bench`
+is a program. A document doesn't get one.
 
 ---
 
@@ -4586,11 +4824,28 @@ anything this project wrote". Measured, with the rices imported **as paths** —
 which is exactly what `extraModules = [ nebelhaus.presets.everyday … ]` is:
 
 ```
-error: The option `nebelhaus.bar.enable' has conflicting definition values:
+error: The option `nebelhaus.sill.enable' has conflicting definition values:
        - In `…/presets/minimal.nix': false
        - In `…/presets/everyday.nix': true
        Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
 ```
+
+⚠️ **The option name in that block was corrected on the twenty-fourth pass, and
+the correction is a finding rather than a typo fix.** It read
+`nebelhaus.bar.enable`, which **never existed**: on 2026-08-05 the bar room was
+`sill`, and `modules/renamed.nix` — generated by enumerating the entire option
+tree at the `nebelhaus`→`haus` rename — maps `nebelhaus.sill.enable` →
+`haus.bar.enable` and holds no `nebelhaus.bar.*` leaf at all. So a fenced block
+introduced by the word *Measured* carried a name the measurement cannot have
+printed. Nothing the paragraph concludes changes; what changed is what the block
+is evidence OF. The mechanism is the one the naming banner credits at the top of
+this file: §5 had been writing `bar` for that room since long before the code
+did, so transcribing a real error into the document's own dialect felt like
+tidying. ★ **A paraphrase inside a fenced block inherits the authority of a
+paste** — and this one became uncatchable on 2026-08-16, when haus#367 made the
+string a real option name. The table above it is mixed dialect for the same
+reason ("conflict on developer/pounce/bar/tour" — `pounce` was the live
+namespace then, `bar` was not), left as-is because it reads as prose.
 
 That names the option, both files and the fix. It is not friendly, but the
 premise for option 2 ("detect and translate") was that the consumer is told
