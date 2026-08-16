@@ -19,8 +19,8 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 > **hausfold is the org, the maker and the seller; `haus` is the nix-darwin
 > layer it makes; haus is one rice built on that** — the developer-focused
 > one, and the first. *(The hausfold/haus split is decision 8, 2026-08-10; §6
-> has it in full.)* The plan and its
-> ordering are [`hausfold-rename.md`](./hausfold-rename.md); this file keeps the
+> has it in full.)* The rename plan and its
+> ordering are done and its record is gone; this file keeps the
 > *funnel* thinking, which mostly survives, and each section below carries a
 > note where it doesn't. The three reversals: hausfold is a product surface now,
 > the whole family migrates to the `hausfold` org, and the gallery is
@@ -34,7 +34,7 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **haus** (rice) | free | MIT | ~~The destination.~~ **One rice on `haus`** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
 | **haus** (the layer) / **hausfold** (the house) | free | MIT | **The destination.** `haus` is the nix-darwin layer every rice sets options on; `hausfold` is the org it ships under and the name on the receipt. Was the umbrella; became the product on 2026-08-08; got the two-word split on 2026-08-10 (decision 8). |
 | **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
-| ~~**trill**~~ (the Messages client; the repo is `hausfold/messages` since 2026-08-08, and the *name* now belongs to the notification compositor — `hausfold-rename.md` §3.4) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
+| ~~**trill**~~ (the Messages client; the repo is `hausfold/messages` since 2026-08-08, and the *name* now belongs to the notification compositor) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
 | ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, haus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
@@ -135,8 +135,7 @@ marketing-only.
 ### 4.1 Copy bank — lines that are already good
 
 Keep them here so they survive the sessions that wrote them, and so the
-hausfold.co redesign has sentences to reach for (§5.1 of
-[`hausfold-rename.md`](./hausfold-rename.md) says the port keeps the copy that
+hausfold.co redesign has sentences to reach for (the port keeps the copy that
 took work — this is that copy).
 
 | line | where it lives | notes |
@@ -176,7 +175,7 @@ is in the guides and has to be disambiguated from home-manager on every page.
 > written here as `/market`; it is now **`/desktops`** — a session building the
 > page put four names to the user and was told `/desktops`, and when the two
 > collided the user amended the plan rather than the page
-> ([`hausfold-rename.md`](./hausfold-rename.md), decision 7). And the Limit 3
+>. And the Limit 3
 > gate binds the **second entry**, not the page: `/desktops` is live with a real
 > install command, which is safe only because rice-vs-rice needs two rices and
 > there is one. *Don't build it first* survives both — one rice, listed
@@ -276,9 +275,8 @@ cat") — same event, same mechanism, zero extra infrastructure.
 **hausfold is the platform, the org, and the seller. haus is one rice built
 on it.**
 
-> **★ Refined 2026-08-10 — the layer is called `haus`.** Decision 8 in
-> [`hausfold-rename.md`](./hausfold-rename.md) splits the two jobs this sentence
-> gives one word: **`haus`** is the nix-darwin layer a user installs and writes
+> **★ Refined 2026-08-10 — the layer is called `haus`.** Decision 8 splits the
+> two jobs this sentence gives one word: **`haus`** is the nix-darwin layer a user installs and writes
 > options for, **`hausfold`** is the org, the maker and the entity on the
 > receipt. It is not a fourth position — hausfold still *makes* the platform,
 > the org migration and the domain are untouched, and nothing in code moves.
@@ -313,20 +311,18 @@ Consequences, revised:
   original reasoning ("routing them to a name they've never seen is friction")
   is exactly why it moves: hausfold is the name they *will* have seen.
   [`perch-monetization.md` Phase 3](./perch-monetization.md#3-phases) updated.
-  **The address is `hi@hausfold.co`** — settled 2026-08-09, see
-  [`hausfold-rename.md`](./hausfold-rename.md) §5.4. This bullet said
+  **The address is `hi@hausfold.co`** — settled 2026-08-09. This bullet said
   `support@hausfold.co` for a day; that mailbox was never created and isn't
   going to be.
 - ~~**Nothing in the family migrates to the hausfold org.** Not the gallery, not
   holt, not a repo, ever.~~ **Reversed — everything migrates**, all ten repos.
-  See [`hausfold-rename.md`](./hausfold-rename.md) §3 for the order and the
-  redirect story. `PRESENCE.md`'s GitHub row and hausfold's `AGENTS.md` both
+  `PRESENCE.md`'s GitHub row and hausfold's `AGENTS.md` both
   carried this as a hard rule and are updated in the same change.
 - **Paddle will ask who the seller is, and "hausfold" is a name, not an
   entity.** ✅ **Unchanged, and now more load-bearing** — the name is on more
   surfaces than a receipt. No incorporation exists, and no trademark *filing*;
   the register **has** been searched (2026-08-10 — `hausfold` returns zero
-  records worldwide, [`hausfold-rename.md`](./hausfold-rename.md) §0.2), which
+  records worldwide), which
   is a screening, not a clearance opinion. Selling as an individual trading as
   hausfold is still the low-friction path,
   and it still belongs to the Paddle application rather than here.
@@ -370,9 +366,9 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6, and [`hausfold-rename.md`](./hausfold-rename.md). Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
+| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6. Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
 | 2 | Archive trill? | **Closed** — archived on GitHub, module and flake input deleted (rice#212/#213), taken out of every family list. [`perch-monetization.md`](./perch-monetization.md) §5.5. The launch-blocking version of this question is gone. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
-| 4 | `hausfold.com` — buy it or accept the `.co`? | **Closed 2026-08-08: accept the `.co`, because there is nothing to buy.** ~~Still cheap to reverse; still gets more expensive with brand value.~~ Checked the same day: the `.com` has been registered since 2025-04 and serves **HAUS FOLD**, an operating in-home laundry service in South Carolina. Not parked, not for sale. The `.co`-beside-someone-else's-`.com` tax is real and permanent — the name is the platform, the docs domain *and* the seller on a receipt — but it was never avoidable. Promotes the trademark question: same word, first in time, US commercial use, plausibly different Nice classes. ~~**Get a real USPTO search before filing, marketing spend, or incorporation.**~~ ✅ **Searched 2026-08-10** (USPTO + EUIPO + ~73 offices via TMview): `hausfold` returns **zero records worldwide**, and this business has **never filed** — a common-law user, not a registrant. The trigger now reads: get a clearance **opinion** before filing, marketing spend, or incorporation, since common-law rights survive an empty register. [`hausfold-rename.md`](./hausfold-rename.md) §0.2 and §0.4. |
-| 5 | Does the site repo go public? | **Closed 2026-08-08 — yes, but as a new repo.** `hausfold/website` was never flipped: it has pull requests, GitHub keeps `refs/pull/N/head` forever, and `git filter-repo` doesn't GC them — so a scrub-and-flip would have removed nothing that mattered. ~~Price: scrub the cached account blob before flipping.~~ That price didn't buy anything. The site is now **[`hausfold/hausfold.co`](https://github.com/hausfold/hausfold.co)**, public, one commit; `hausfold/website` is archived and **stays private permanently**. [`hausfold-rename.md`](./hausfold-rename.md) §5.1 has the reasoning; the specifics stay in the private repo, since this one is public. |
+| 4 | `hausfold.com` — buy it or accept the `.co`? | **Closed 2026-08-08: accept the `.co`, because there is nothing to buy.** ~~Still cheap to reverse; still gets more expensive with brand value.~~ Checked the same day: the `.com` has been registered since 2025-04 and serves **HAUS FOLD**, an operating in-home laundry service in South Carolina. Not parked, not for sale. The `.co`-beside-someone-else's-`.com` tax is real and permanent — the name is the platform, the docs domain *and* the seller on a receipt — but it was never avoidable. Promotes the trademark question: same word, first in time, US commercial use, plausibly different Nice classes. ~~**Get a real USPTO search before filing, marketing spend, or incorporation.**~~ ✅ **Searched 2026-08-10** (USPTO + EUIPO + ~73 offices via TMview): `hausfold` returns **zero records worldwide**, and this business has **never filed** — a common-law user, not a registrant. The trigger now reads: get a clearance **opinion** before filing, marketing spend, or incorporation, since common-law rights survive an empty register. |
+| 5 | Does the site repo go public? | **Closed 2026-08-08 — yes, but as a new repo.** `hausfold/website` was never flipped: it has pull requests, GitHub keeps `refs/pull/N/head` forever, and `git filter-repo` doesn't GC them — so a scrub-and-flip would have removed nothing that mattered. ~~Price: scrub the cached account blob before flipping.~~ That price didn't buy anything. The site is now **[`hausfold/hausfold.co`](https://github.com/hausfold/hausfold.co)**, public, one commit; `hausfold/website` is archived and **stays private permanently**. The specifics stay in the private repo, since this one is public. |
 | 6 | Where does `PRESENCE.md` live once the site repo is public? | **Closed 2026-08-08 — [`hausfold/ops`](https://github.com/hausfold/ops), private, created and populated.** Its eleven revisions were replayed rather than `git mv`'d, because a move leaves every past revision in the source repo's history. The rest of the ops surface goes there too — where credentials live (not the credentials), account facts, the annual re-check. ⚠️ The wrong answer, recorded so it isn't re-derived: **not** `notes/` in this repo — **the workshop is public**, so that move publishes the gap list rather than protecting it. |

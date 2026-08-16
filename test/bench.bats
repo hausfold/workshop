@@ -176,8 +176,8 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
 #
 # The local side is `repo_dir` ($ROOT/<name>); this is the remote side. They
 # agree for most of the family and deliberately don't for org-profile. The
-# The layer's checkout has been renamed twice — these tests are what stops an
-# old spelling coming back, in either direction.
+# layer's checkout has been renamed twice — these tests are what stops an old
+# spelling coming back, in either direction.
 
 @test "gh_repo resolves a family checkout to owner/repo" {
   run gh_repo nebelung

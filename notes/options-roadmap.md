@@ -19,8 +19,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > The platform is **`haus`** — its own name since 2026-08-10 (decision 8), and
 > also its CLI and its option namespace — shipped by the org **hausfold**,
 > and `haus` demoted to what this document has always been arguing it
-> should be: **one rice among many**, the developer-focused one. The plan is
-> [`hausfold-rename.md`](./hausfold-rename.md).
+> should be: **one rice among many**, the developer-focused one.
 >
 > **The body of this file is deliberately NOT rewritten.** §5.14 makes it a
 > historical record, and retroactively renaming options in dated findings would
@@ -33,7 +32,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > spelled differently each time — stays true *about that app*: rice#212 made it
 > opt-in, rice#213 deleted the module and the flake input. It is **not** true of
 > the name. The notification compositor took `trill` on 2026-08-08
-> ([`hausfold-rename.md`](./hausfold-rename.md) §3.4), and the rice's roster
+>, and the rice's roster
 > carries a `haus.roster.trill` entry for it (renamed from `haus.roster.flick`,
 > haus#264) — metadata-only, a `float` rule for its Settings/Inbox windows
 > in `modules/windows/default.nix`; the rice installs nothing and the app has no
@@ -116,9 +115,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `haus#NNN`) → `hausfold/haus`, unchanged as a citation; **the desktop**
 > ("a non-dev haus", "publish haus configs") → `hacker`; and **the org
 > or the domain** (`github.com/hausfold`, `hausfold.co`) → *stays*, forever.
-> The plan of record is [`hausfold-rename.md`](./hausfold-rename.md) **§11**;
-> `mkHaus`, `desktopFiles.haus` and the four state-dir symlinks are
-> deliberate compatibility seams, so nothing here is broken by the rename — it
+> `mkHaus`, `desktopFiles.haus` and the four state-dir symlinks were
+> deliberate compatibility seams at the time (all four are gone as of
+> 2026-08-16), so nothing here was broken by the rename — it
 > is only mis-named. The body stays un-rewritten for the reason given above.
 >
 > ★ **Amended 2026-08-16 (haus#367): the rooms are named for what they do now,
@@ -391,8 +390,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > ★ **Second, from re-reading the row that finding sits in: it named the wrong
 > file as the coupled one, and the coupling it was protecting is now gone.**
-> Both `AGENTS.md` and [`hausfold-rename.md`](./hausfold-rename.md) §11.2 said
-> renaming `inputs.haus` needs *"`bench`'s `OVERRIDABLE` in the same edit"*.
+> Both `AGENTS.md` and the rename record said
+> renaming the layer's flake input needs *"`bench`'s `OVERRIDABLE` in the same edit"*.
 > `OVERRIDABLE` holds **repo directory names** (`nebelung pounce perch holt
 > haus`) and never held an input name; the literals that actually
 > coupled were `overrides()`'s five `--override-input haus/…` strings and
@@ -628,8 +627,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > boxes amended — its address space is four prefixes now, not three. Two
 > rename-side corrections fell out of the assurance read and are fixed in the
 > same commit, both shape 2: `AGENTS.md` still called the four state dirs
-> "deliberately held" and `hausfold-rename.md` §2.2's do-not-sweep table still
-> agreed with it — left behind by the very commit (workshop#372) that amended
+> "deliberately held" and the rename record's do-not-sweep table still
+> agreed with it (that record is deleted as of 2026-08-16) — left behind by the very commit (workshop#372) that amended
 > the row four lines above, which is how a partial sweep fails. The
 > instructive part is *where* it was found: the pass quoted `AGENTS.md`
 > approvingly two lines below a line its own finding falsified — **a document you

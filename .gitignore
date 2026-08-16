@@ -21,10 +21,4 @@
 # `?? ops/` in this tree and a `git add -A` up here tries to add a nested repo.
 # That is exactly the trap #283 left behind with `messages/`; don't wait for it.
 /ops/
-/web/.wrangler/
 .DS_Store
-
-# vitest writes its cache to the REPO ROOT when run from here (web/.gitignore
-# only covers web/node_modules), and a tracked cache file makes this tree
-# permanently dirty — which `bench ship` refuses and `bench status` cries wolf on.
-/node_modules/

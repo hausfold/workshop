@@ -10,7 +10,7 @@ rides the same seam back. Perch is now the *whole* bet, not the warm-up:
 that was the original flagship and the reasoning is worth not re-deriving.
 ⚠️ **"trill" in this file — not only in §5 — is the archived Messages client**
 (`hausfold/messages` since 2026-08-08). The notification compositor took the
-name that day ([`hausfold-rename.md`](./hausfold-rename.md) §3.4); it is a
+name that day; it is a
 different product and its monetization question is unasked.
 
 This file owns **how perch charges**. *When* it launches relative to the free
@@ -162,8 +162,7 @@ deliberately INERT** *(~2–3 sessions; the big one)*
       haus product. Reversed 2026-08-08 with [`go-to-market.md`](./go-to-market.md)
       §6: they buy a hausfold product now, and hausfold is the name on the
       receipt they'll already have seen. Then briefly `support@hausfold.co` —
-      settled to `hi@` 2026-08-09, [`hausfold-rename.md`](./hausfold-rename.md)
-      §5.4.)*
+      settled to `hi@` 2026-08-09.)*
 
 **Phase 4 — launch** *(gated on me, like any release)*
 - [ ] First FSL + gated build ships via the normal `bench release perch`.
@@ -192,7 +191,7 @@ deliberately INERT** *(~2–3 sessions; the big one)*
 
 > ⚠️ **"Trill" throughout this section is the archived Messages client**, now
 > `hausfold/messages`. The name was reused on 2026-08-08 by the notification
-> compositor (`notes/hausfold-rename.md` §3.4), which is a different product
+> compositor, which is a different product
 > and has its own monetization question, unasked. Kept as written — this is a
 > historical record of a decision, not a description of anything live.
 

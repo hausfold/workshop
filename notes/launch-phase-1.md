@@ -40,8 +40,7 @@ Nothing below works if a tester hits a wall on step one.
       Messages client**, `hausfold/messages` since 2026-08-08. The notification
       compositor took the name that day and the rice now declares a
       metadata-only `haus.roster.trill` float rule for it — a different app, and
-      no tester question of its own is answered here. See
-      [`hausfold-rename.md`](./hausfold-rename.md) §3.4.)
+      no tester question of its own is answered here.)
       rice#212 made it opt-in, rice#213 deleted the module and the flake
       input, homebrew-tap#10/#11 deprecated the cask, workshop#204 and
       org-profile#14 took it out of the family lists, and the repo is

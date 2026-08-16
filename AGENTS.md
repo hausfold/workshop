@@ -285,7 +285,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/workshop/.git` (this repo), your tree holds ONLY the workshop's
 own files (`README.md`, `AGENTS.md`, `bench`, `_bench`, `assets/`, `docs/`,
-`notes/`, `test/`, `web/`, and the harness dirs). The family
+`notes/`, `test/`, and the harness dirs). The family
 sub-repos — the `haus` layer (`haus/`), `nebelung/`, `pounce/`, `perch/`, `holt/`,
 `trill/`, `hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not here at all.** This is
 **NOT** a `.gitignore`

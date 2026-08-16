@@ -1769,7 +1769,7 @@ cmd_release() {
 DOCS_STATE="$ROOT/.docs-sync.json"
 
 # Every repo whose commits can invalidate a doc — the flake family, plus the
-# workshop itself (bench/README/web live here), the two CI-owned leaves, and the
+# workshop itself (bench and the README live here), the two CI-owned leaves, and the
 # two repos that carry docs without carrying a lock edge.
 #
 # 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.

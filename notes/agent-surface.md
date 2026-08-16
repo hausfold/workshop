@@ -263,8 +263,8 @@ skill, because a skill for an app you don't have is worse than none: the agent
 will confidently offer it.
 
 ⚠️ **trill is not one of those inputs, and that is deliberate** — it carries no
-lock edge and is not in `bench`'s `FAMILY` (the workshop's AGENTS.md, and §9 of
-`notes/hausfold-rename.md`). It has no room in `options-groups.nix` either, only
+lock edge and is not in `bench`'s `FAMILY` (the workshop's AGENTS.md has the
+rule). It has no room in `options-groups.nix` either, only
 a metadata-only `haus.roster.trill` entry. So trill's skill reaches a machine by
 `trill skill install` until the planned leaf overlay lands; when it does, its
 gate is the roster entry rather than a room switch. A step that assumes
