@@ -158,10 +158,200 @@ already exist, and one it treated as a detail is the actual root blocker.
 > where the same word appears inside a fenced block presented as measured output.
 
 
+> **Status, 2026-08-16 (twenty-fifth pass) — the last Phase-5 item that needed
+> code is built, and the room rename that landed this morning had already
+> inverted the move it was built around.**
+>
+> Landed since the last pass and read for this one, in merge order:
+> [haus#374](https://github.com/hausfold/haus/pull/374) 16:36Z (the install
+> table hands out `hacker.sh` — ⚠️ **on `main`, not on the site**: the Worker
+> serves `bootstrap.sh` from the latest *release tag*, and #384 below is where
+> that is recorded — **a docs fix inside `bootstrap.sh` is a release, not a
+> merge**), [workshop#381](https://github.com/hausfold/workshop/pull/381) 16:40Z
+> (§11 closes; a fourth 301 chain found by curling),
+> [hausfold.co#63](https://github.com/hausfold/hausfold.co/pull/63) 17:02Z and
+> [workshop#382](https://github.com/hausfold/workshop/pull/382) 17:02Z (two
+> rebased branches landing what the rename sweeps missed — including
+> `docs/workflows.md` telling readers to set an option `moved.nix` deleted with
+> no alias, and a room page calling the **Development** room "Terminal", which is
+> a *namespace inside it*: the read-the-hit discipline this file's banner is
+> built on, recurring one repo over), and
+> [workshop#384](https://github.com/hausfold/workshop/pull/384) 17:08Z (§11's
+> last ⏳, and the 31-destination curl sweep re-run green).
+>
+> Nothing in that list moves a §5 item, so this is a **shipping pass**: §5.8's
+> declarative half is **built and in review**
+> ([haus#376](https://github.com/hausfold/haus/pull/376)), with the page a
+> stranger meets it on
+> ([hausfold.co#64](https://github.com/hausfold/hausfold.co/pull/64)). Neither
+> is merged — which is the difference §5.8's checkbox turns on, below.
+>
+> ⚠️ **That list read "exactly two" until the assurance pass fetched.** The
+> local `main` this pass audited against was two commits behind `origin/main`,
+> so #382, #384 and hausfold.co#63 were invisible — **§5.14's own row 9** (*a
+> claim about a repo, read from the LOCAL CHECKOUT*), recurring inside the pass
+> that cites it, two passes after the row was added for exactly this. The
+> mitigation was already written down, which is the uncomfortable part: this is
+> not a rule nobody had, it is a rule nobody ran. The one thing worth adding is
+> procedural — **the fetch belongs at the top of a pass, before the "landed
+> since" list is drafted**, not somewhere inside it.
+>
+> ★ **First, and it is the one to carry: a sketch borrowed a plain English word,
+> and then the codebase took that word for something it already had.** §5.8 has
+> proposed `nebelhaus.scenes.*` as a NEW namespace since July, with `focus.*`
+> demoted to an alias "so no host breaks" — written when this room was called
+> `hush` and `focus` was a free word the document had picked up.
+> [haus#367](https://github.com/hausfold/haus/pull/367) merged at 10:08 UTC
+> **today** and made it the room's actual name, and the sketch's central move
+> inverted in that minute: a `haus.scenes` room beside a `haus.focus` room is two
+> rooms for one job — the thing the room doctrine exists to forbid — and the
+> alias that was supposed to protect hosts would instead **retire a room name on
+> the day it was given**. Scenes ship inside the room instead, as
+> `haus.focus.scenes.<name>`, and no alias is needed because nothing moved.
+> **What makes it a ★ rather than a rewrite: none of the twelve shapes in
+> §5.14's table catch it** (twelve when this pass opened, **fourteen** when it
+> closed — it added two, and the second one is its own; both counts taken off
+> the table rather than carried forward). The entry didn't go stale, wasn't
+> falsified, doesn't disagree with its
+> marker, isn't about the wrong layer. It stayed literally true and quietly
+> started proposing something else, because the *tree* moved under a sentence
+> that didn't. The naming banner three paragraphs up even notices the
+> coincidence — it counts §5.8's `focus` and §5.9's `bar.widgets` as evidence
+> that "where §5 sketched a room that had a code name, it wrote the room's own
+> word" — and reads it as a happy accident rather than as a collision to check.
+> New row in §5.14's table, and the mitigation is one line: **read a sketch
+> against today's option tree, not against its own vocabulary.**
+>
+> ★ **Second: the plan of record for a room lived in a different repo from the
+> room, and the note sitting beside the code did not know it existed.** haus's
+> own `notes/focus-design.md` is that room's design record — it has a "v2
+> candidates (explicitly not v1)" list, and from the day it was written until
+> today that list named a timed focus and a windows binding and **not scenes**,
+> which is the only thing on
+> §5.8's line and the last Phase-5 item. A reader in the haus repo would have
+> concluded scenes were nobody's idea. This is §5.14's structural reason 1 (*the
+> work happens in four repos and the doc lives in a fifth*) at its most concrete,
+> and the fix is not a mechanism: **when a roadmap item names a room, the room's
+> own note is where it has to be written down.** Done in the same PR, with the
+> four design decisions and why each had a plausible other answer.
+>
+> ★ **Third, and it changes what to build next: §5.8's remaining box asks for the
+> wrong thing first.** The box says build the trigger engine only after one
+> hand-written scene proves useful — correct, and still open. What building it
+> exposed is that **a scene has no surface but the CLI**: quiet has a bar pill
+> and a palette row, while `focus scene recording` has a terminal and whatever
+> `keys.leaderExtras` chord a host writes. That is a reachability gap, not a
+> trigger gap, and much the cheaper of the two — no daemon, no new mechanism.
+> An unreachable scene can't prove itself useful, so the trigger box's own
+> precondition depends on closing this one first. Written into the box, with the
+> correction the assurance pass attached: `modules/launcher` builds both the
+> installed scripts and the cheatsheet rows from a **static** `./commands` dir,
+> and a comment beside the second says reading a generated command's header
+> would be IFD on every eval — so the staticness is the obstacle to work
+> around, not the reason it's easy.
+>
+> ⚠️ **Correction to the twenty-fourth pass's headline, which this pass copied
+> before checking it.** That block is titled *"the rooms were renamed eight days
+> after the desktop was"*. The desktop became `hacker` in
+> [haus#364](https://github.com/hausfold/haus/pull/364), merged 2026-08-15
+> 10:06 UTC (decision dated 2026-08-14); the rooms landed in haus#367, 2026-08-16
+> 10:08 UTC. **That is one day, not eight** (two if you count from decision 10's
+> own date, 2026-08-14). Eight days is
+> [nebelhaus#261](https://github.com/hausfold/haus/pull/261) `2026-08-08T22:43Z`
+> → #367 — the *namespace* rename, a different rename of a different thing, in
+> the header of the pass whose own subject was reading the hit rather than the
+> word. ⚠️ And "eight" there is the calendar subtraction: elapsed is **7d
+> 11h25m**, which matters only because it is the same rounding this paragraph
+> exists to refuse. The first
+> draft of §5.8's box above inherited the phrase verbatim, which is the more
+> useful half of this note: **a wrong interval propagates the way a wrong option
+> name can't, because nothing evaluates it.** Both are dated at a rev and a
+> timestamp now, per the twenty-fourth pass's own rule. ⚠️ A sibling in the same
+> block, flagged rather than corrected because its subject predates this file:
+> the naming banner's *"for six weeks the document and the code used different
+> words for the same room"* is measured from the same wrong end — **this file
+> dates itself 2026-07-25**, three weeks before the rename, and only the
+> "earlier brainstorm" it says it refines could reach six. Whoever knows when
+> that brainstorm first wrote `focus` should fix the number or drop it.
+>
+> Housekeeping: §5.8's header carries `◐` and its built-not-merged box is
+> written out; Phase 5's line moves from `[ ]` to `◐` and its closing sentence
+> (*"§5.8 is once again the only thing on this line needing code"*) is struck
+> rather than deleted, since it was true for two days. **Two** rows added to
+> §5.14's shapes table.
+>
+> **Verified:** `nix flake check` green in the haus lane at **24 checks** —
+> unchanged in number, since the new fixture rides the existing `desktop-seam`
+> rather than adding a check. `docs/site-data/` regenerated and committed
+> (`site-data-current` is what fails otherwise); a whole `darwin-system` drv
+> evaluated with two scenes declared, one of them naming an audio device, since
+> that is the only path that reaches `switchaudio-osx`; both new assertions
+> read back as messages rather than as a thrown eval (reserved name, malformed
+> name, and a well-formed one producing none). The engine was **run, not read**,
+> against a fake `$HOME`: `focus scene list / status / <unknown> / <name> / off`
+> — the unknown name exits 64 and prints the list, entering a second scene
+> leaves the first, the hook log holds exactly `on` then `off`, once, and
+> `~/.local/state/focus` is left with no scene files behind. Then the four-row
+> DND matrix, with `apply` swapped for a recorder so nothing pressed the real
+> hotkey: **already-quiet + `restorePreviousState = true` makes zero `apply`
+> calls** (which is the Slack-clobber fix, below), and `= false` makes exactly
+> one, on the way out. `shellcheck` clean at `-S warning`; the three remaining
+> infos are SC2016 on jq programs, one of them pre-existing. The docs site
+> builds (96 static pages). ⚠️ **Not verified, and it is the feel-test:** every
+> path that acts on this Mac — the real DND keypress, `preventSleep`'s
+> `caffeinate`, the audio switch, `apps.open` — was left unrun on purpose. No
+> `bench try`, no switch, no lock moves.
+>
+> **The assurance pass found two 3/5s, and they were the same mistake wearing
+> two faces: the exit read itself off the scene table.** A scene table is a file
+> that changes under a running scene — every rebuild rewrites it — so
+> **(i)** leaving a scene the host had deleted in between released the caffeinate
+> hold, printed success, and left the Mac quiet on the wrong microphone with
+> nothing remaining that knew to put either back; and **(ii)** entering a quiet
+> scene while *already* quiet re-ran the Slack leg, which stashes the
+> current — already quiet — status as the one to restore, so "heads down" became
+> the permanent Slack status at the next un-quiet. Both are fixed by writing what
+> the scene actually **took** on entry and reversing that alone, which is a
+> better rule than either bug: `restorePreviousState` now has exactly one job
+> (`false` ends quiet-off even if you were quiet before) and the hook edges pair.
+> ★ The generalisable half is worth more than the fixes: **a state machine whose
+> "undo" is computed from configuration has a half-life measured in rebuilds** —
+> this layer rewrites its own config several times a day, which makes
+> "read the table on exit" a materially worse idea here than in software that is
+> configured once. Six smaller findings landed too, of which the one to remember
+> is that `focus off` and `focus toggle` — the pill's path and the palette's —
+> knew nothing about scenes, so clicking the bell un-quieted while the hold and
+> the microphone stayed: **the pill lying is the exact failure this room's whole
+> state-reading design exists to prevent, arriving through the one door nobody
+> had shut.** Nothing ≥4/5 was found.
+>
+> **A second assurance pass read THIS file's diff, and it found the only 4/5 of
+> the day inside the note rather than inside the code: the box was ticked for a
+> PR that is open.** It also caught the stale-`main` list above, the
+> Phase-5 sentence its own §5.8 box contradicts, "eight days" left as a calendar
+> subtraction in the paragraph refusing calendar subtractions, a "six weeks" this
+> pass asked someone else to fix while asserting it in the sibling PR, an option
+> description promising a palette item that does not exist, and the `./commands`
+> reasoning that cited the fact arguing against it. Seven findings, three at
+> ≥3/5, all folded in. **Two passes, two repos, and each one's headline finding
+> was the author's own shape turned back on them** — the code pass found the
+> engine reading its undo out of config, and the notes pass found the note
+> claiming a state the repo could have denied in one API call. The cheap rule
+> from the second: **a PR number inside a `- [x]` is a promise; only `mergedAt`
+> keeps it.**
+
+
 > **Status, 2026-08-16 (twenty-fourth pass) — the rooms were renamed eight days
 > after the desktop was, and the twenty-third pass's own "correction" turns out
 > to have replaced a true sentence with a false one, in the hour it was writing
 > down why that happens.**
+>
+> ⚠️ **"eight days after the desktop was" is wrong, corrected by the
+> twenty-fifth pass (above).** haus#364 (the desktop → `hacker`) merged
+> 2026-08-15 10:06 UTC; haus#367 (the rooms) merged 2026-08-16 10:08 UTC — **one
+> day.** Eight days is nebelhaus#261 → #367, the *namespace* rename: a different
+> rename, of a different thing, in the header of the pass about reading the hit
+> rather than the word. The rest of the block is unamended.
 >
 > Landed since the last pass and read for this one: haus
 > [#366](https://github.com/hausfold/haus/pull/366) (the Vim keys go, workspaces
@@ -3391,7 +3581,7 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a nebelhaus rice for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `focus` into scenes · M · risk M
+### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is BUILT and in review (haus#376, opened 2026-08-16 — not merged, so the box below stays open); the trigger engine is deliberately still open, which is what this section's one box always said**
 `focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
@@ -3412,8 +3602,86 @@ Good scenes: meeting · recording · presentation · reading · travel · docked
 deep-work · away. Triggers worth having: Pounce command, time, Wi-Fi SSID,
 power source, display attach.
 
+- [ ] ◐ **The declarative half is BUILT — haus#376, opened 2026-08-16, green,
+      NOT MERGED.** ⚠️ This box stays open until it lands, and the reason is the
+      one §5.14 exists for, running the other way: this pass first wrote it as
+      `- [x] ✅ shipped`, and the assurance pass found `"state":"OPEN"`. The
+      table below collects ways a box goes stale *after* work ships; a box
+      ticked for work that has only been *written* is the same failure with the
+      clock reversed, and it is worse, because §5.14's own rule — *believe the
+      checkbox, then go check the repo* — sends the next reader to a `main`
+      where `haus.focus.scenes` does not exist. New row added there. Tick this
+      when haus#376 merges; everything below describes what that PR contains.
+      `haus.focus.scenes.<name>` takes the six fields sketched above under
+      exactly those names (`dnd` · `preventSleep` · `apps.open` ·
+      `audio.input` · `hooks` · `restorePreviousState`, plus a `description`
+      the CLI prints); `focus scene <name>` enters one, `focus scene off`
+      leaves it, `focus scene list` shows them. One at a time. The existing
+      surfaces — `focus on/off/toggle`, the bar pill, the palette command — run
+      the code they ran before, so this is additive rather than a rewrite of the
+      engine every one of them shares.
+      Four things about the shipped shape, three of which reverse a line above:
+      **(a) ★ the namespace moved, because the ROOM RENAME took the word this
+      sketch was borrowing.** The block above proposes `nebelhaus.scenes.*` as a
+      new namespace with `focus.*` demoted to an alias — written in July, when
+      the room was `hush` and `focus` was a free word this document had picked
+      up (the naming banner's own paragraph on §5.8 notices the coincidence and
+      reads it as a happy one). [haus#367](https://github.com/hausfold/haus/pull/367)
+      made it the room's actual name **this morning** (merged 10:08 UTC), and at
+      that moment the sketch's central move inverted: a `haus.scenes` room beside
+      a `haus.focus` room is **two rooms for one job**, which the room doctrine
+      ([`rooms-desktops.md`](rooms-desktops.md)) exists to forbid, and the alias
+      that was supposed to protect hosts would instead **retire a room name on
+      the day it was given**. So scenes ship *inside* the room, as
+      `haus.focus.scenes.<name>`, and no alias is needed because nothing moved.
+      The generalisable half is not about scenes: **a sketch that borrows a
+      plain English word is fine until the codebase adopts that word, and then
+      the sketch reads as a proposal about the thing now called that.** Nothing
+      in §5.14's table catches it — the entry didn't go stale, get falsified, or
+      disagree with its marker; the *tree* moved underneath a sentence that
+      stayed true and stopped meaning the same thing. New row added there.
+      **(b) `quiet` is reserved rather than declared.** The sketch says "`focus`
+      shipped as the built-in `quiet` scene"; what shipped is `focus scene
+      quiet` as an alias of `focus on`, with a module assertion refusing a
+      host-declared `scenes.quiet`. Quiet's state is read from the OS
+      (`Assertions.json`, or the signed pounce), not from a state file, so a
+      second thing called quiet would be one the pill and the palette could
+      never reach — the pill lying is this room's oldest failure mode and the
+      one its whole design note is organised around. `off`, `list` and `status`
+      are reserved beside it for a duller reason: they are the words after
+      `focus scene`, so a scene named for one would build, validate, appear in
+      `focus scene list` and never be enterable.
+      **(c) a scene is DATA read at runtime**, a JSON file the module writes,
+      not a generated shell fragment — otherwise every field is a place where a
+      desktop's string becomes code, the same reason `bar.media.icons` has a key
+      rule in the desktop walk. `scenes.<name>.hooks` is host-only for the
+      reason `focus.hooks` already was; everything else is desktop-safe behind a
+      new `scene-entries` validator, so a **published desktop may ship a
+      scene** — which is the only version of this item that serves §6's
+      readiness test rather than just Julien's Mac.
+      **(d) it left no scene behind.** The box below wants one hand-written
+      scene to prove useful before the daemon; a scene shipped in `hacker`
+      would be this file marking its own homework, so the layer ships the
+      mechanism and the proof is a host edit.
 - [ ] Only build the trigger engine *after* one hand-written scene proves useful —
-      the declarative half is cheap, the trigger daemon is not
+      the declarative half is cheap, the trigger daemon is not.
+      **Still open and still correct** — and now cheap to act on, since a scene
+      exists to trigger. The daemon is what remains: time, Wi-Fi SSID, power
+      source, display attach. ⚠️ One thing the build learned that this box
+      can't see: a scene has **no surface but the CLI**. Quiet has a pill and a
+      palette row; `focus scene recording` has a terminal and whatever
+      `keys.leaderExtras` chord a host writes. That is a *reachability* gap, not
+      a trigger gap, and it is the cheaper of the two — no daemon, no new
+      mechanism. ⚠️ But not as cheap as this box first said: `modules/launcher`
+      builds both the installed scripts (`cp ${./commands}/*.sh`) and the
+      cheatsheet rows (`readDir ./commands`, then `readFile` each header) from a
+      **static directory**, with a comment beside the second explaining that
+      reading a *generated* command's header would be IFD on every eval. So the
+      staticness is the obstacle, not the reason it's easy: both halves have to
+      be fed from `config.haus.focus.scenes` instead. Still modest — the names
+      come from config, so nothing is imported from a derivation — and still the
+      thing to do before the triggers, because an unreachable scene can't prove
+      itself useful, which is this box's own precondition.
 
 ### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
 `bar.items` is a closed submodule of 15 bools (13 when this was written — it
@@ -3960,6 +4228,8 @@ catch:
 | a NEGATIVE claim ("X never happens") proved by a grep *(twenty-third pass — "`bench status` never fetches", from a pattern that couldn't match `git -C "$dir" fetch`)* | reading the file around the pattern, not the pattern's output |
 | a CORRECTION that goes backwards — a true clause replaced by a false one, wearing a ⚠️ and the word "measured" *(twenty-fourth pass — `AGENTS.md`'s flake-input row, 68 minutes after the repo falsified it)* | dating the measurement at a **rev**, not a calendar day; nothing else can distinguish the newest sentence from a checked one |
 | a "don't touch this, it's coupled" warning that names the **wrong line** *(twenty-fourth pass — `bench`'s `OVERRIDABLE`, which holds repo names and never held an input name)* | opening the file it names and finding the thing it says is there |
+| a sketch borrows a plain English word, and the CODEBASE later adopts that word for something it already had *(twenty-fifth pass — §5.8 proposed a `scenes` namespace with `focus` demoted to an alias, three weeks before the room rename made `focus` a room's name)* | reading a sketch against today's option tree rather than against its own vocabulary — the entry never goes stale, never gets falsified, and never disagrees with its marker; it just quietly starts proposing something else |
+| a box ticked for work that is BUILT but not MERGED — the first shape with its clock reversed, and the worse one *(twenty-fifth pass, caught by its own assurance read: §5.8 was written `- [x] ✅ shipped` while haus#376 was `"state":"OPEN"`)* | reading the PR's **state**, not its diff. Rule 1 sends a reader to the repo to confirm a ticked box, and here the repo says no — so the box doesn't just mislead, it burns the check that was supposed to catch it. A PR number in a tick is a promise; only `mergedAt` keeps it |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -4548,15 +4818,28 @@ that visible, and turned up two things that were already broken:
       2026-08-14 (haus#353)** — and one of them was not rendering: the restart
       map's `logout` verb rendered to nothing, so core had to emit the line before
       `plan` could read one. §5.11 has no open box left.
-- [ ] §5.8 scenes · ~~§5.12 accessibility~~ — **§5.12 is closed as of
+- ◐ §5.8 scenes · ~~§5.12 accessibility~~ — **§5.8's declarative half is built
+      and in review (haus#376, 2026-08-16, not merged): `haus.focus.scenes.<name>`,
+      entered with `focus scene <name>`, desktop-safe except its hooks.** Two
+      things stay open behind it, in this order: a scene has **no surface but
+      the CLI** (found while building it, and the cheaper of the two), then the
+      trigger daemon §5.8's one box has said to defer since it was written.
+      **§5.12 is closed as of
       2026-08-14.** The doctor half was already in (rice#128); the designation,
       the option coverage and the guard landed in haus#356; the 👤 eye-check came
       back the same day and turned itself back into code (a `restart-map.nix`
       entry for `universalaccessd` plus the promotions it gates), which shipped
-      hours later in haus#360. **So §5.8 is once again the only thing on this
-      line needing code** — it was briefly not, because a "just needs a human to
-      look" item became work by being looked at, and then stopped being work by
-      being built the same day.
+      hours later in haus#360. ~~**So §5.8 is once again the only thing on this
+      line needing code**~~ — it was briefly not, because a "just needs a human
+      to look" item became work by being looked at, and then stopped being work
+      by being built the same day. **And on 2026-08-16 §5.8 stopped being that
+      too**, two days later: this line is `◐` rather than `[ ]` because the
+      declarative half is written and in review. ⚠️ The first draft of this
+      sentence went further and said Phase 5 *"now has no item whose next step is
+      write the thing"* — which the same pass's own §5.8 box contradicts, since
+      it recommends building the palette surface **before** the triggers. Phase 5
+      does still have code in front of it; what it no longer has is an item
+      nobody has started.
 - [x] §5.13 authorable tour steps — shipped in nebelhaus#156; documented in
       workshop#135/#137
 
