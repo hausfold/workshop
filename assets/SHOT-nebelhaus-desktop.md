@@ -36,7 +36,7 @@ hero fails because it tried to be readable and became a wall.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│ ▟▙ 1  ⌘ ghostty            ▁▁▁▁▁▁▁            ⏻ 21°  Thu  9:41 AM │  sill, menu bar
+│ ▟▙ 1  ⌘ ghostty            ▁▁▁▁▁▁▁            ⏻ 21°  Thu  9:41 AM │  bar, menu bar
 │                             ▝▘  ← perch: two pink pips             │  (notch centred)
 ├──────────────────────────────────┬─────────────────────────────────┤
 │  agent session, mid-turn         │  haus status                    │
@@ -57,7 +57,7 @@ hero fails because it tried to be readable and became a wall.
 │                                  │  -  accent = "mauve";           │
 │                                  │  +  accent = "pink";            │
 ├──────────────────────────────────┴─────────────────────────────────┤
-│  ▶ …            🌙 Focus            🐾 1                           │  sill, second bar
+│  ▶ …            🌙 Focus            🐾 1                           │  bar, second bar
 └────────────────────────────────────────────────────────────────────┘
         ↑ Ghostty · zellij, 60%          ↑ Zen, 40%
 ```
@@ -66,8 +66,8 @@ hero fails because it tried to be readable and became a wall.
 
 | in frame | proves |
 |---|---|
-| two bars, top and bottom | **sill** — and that a second bar is a supported thing, not a hack |
-| the 60/40 split with even gaps | **prowl** — a terminal and a *native app* under one tiler |
+| two bars, top and bottom | **bar** — and that a second bar is a supported thing, not a hack |
+| the 60/40 split with even gaps | **windows** — a terminal and a *native app* under one tiler |
 | the pounce card straddling the seam | **pounce** — system-wide, not a terminal toy |
 | the two pips under the notch | **perch** — the shelf is holding something |
 | `haus status` | **haus** + reproducibility, in four lines |
@@ -77,7 +77,7 @@ hero fails because it tried to be readable and became a wall.
 | the wallpaper band and seam | nebelung's atmosphere |
 
 That is nine of the eleven rooms the `/desktops/nebelhaus/` page lists. The
-missing two — collar (Touch ID) and secrets — are **invisible by nature**;
+missing two — security (Touch ID) and secrets — are **invisible by nature**;
 they belong in the prose beside the picture, and the page already carries them.
 
 ---
@@ -90,20 +90,20 @@ they belong in the prose beside the picture, and the page already carries them.
 haus set \
   displays          '{"internal":{"uiScale":"larger-text"}}' \
   theme.wallpaper   flow \
-  sill.items        '{"agents":true}' \
-  sill.bottom.items '{"media":true,"hush":true,"agents":true}'
+  bar.items        '{"agents":true}' \
+  bar.bottom.items '{"media":true,"focus":true,"agents":true}'
 ```
 
 Undo the whole thing afterwards with:
 
 ```sh
-haus reset displays theme.wallpaper sill.items sill.bottom.items
+haus reset displays theme.wallpaper bar.items bar.bottom.items
 ```
 
 > **`haus set` cannot address a sub-path of a submodule.** `haus set
-> sill.items.aiUsage false` and `haus set displays.internal.uiScale larger-text`
+> bar.items.aiUsage false` and `haus set displays.internal.uiScale larger-text`
 > both die with *"is not a settable option on this machine's pinned rice"* —
-> the module system doesn't expose `options.haus.sill.items.aiUsage`, so
+> the module system doesn't expose `options.haus.bar.items.aiUsage`, so
 > `settings_option_exists` rejects them. Hence the whole-attrset JSON above.
 > It's also why this is one call: `haus set` rebuilds once at the end, so four
 > calls would be four rebuilds.
@@ -117,7 +117,7 @@ which `haus.ui.scale` cannot touch (macOS has no system-wide UI scale).
 Look at it before adding anything else. If the terminal is still small in the
 frame, add `ui.scale '1.2'` as a fifth pair — but know that the two
 **multiply**, so 1.2 on an already-scaled display is a bigger jump than it
-looks. It also widens prowl's gaps (10/20 pt × scale), which is the only lever
+looks. It also widens the tiler's gaps (10/20 pt × scale), which is the only lever
 you have on how much wallpaper shows.
 
 > **Perch follows neither lever.** The shelf sizes itself from the screen, so a
@@ -134,27 +134,27 @@ band catches nothing; and with the second bar on, the wallpaper is a **frame,
 not a field**. Widening it means raising `ui.scale`, and past ~1.3 the tiles
 start to look cramped.
 
-**`sill.items '{"agents":true}'`** — an `mkForce` of the whole set, so every key
+**`bar.items '{"agents":true}'`** — an `mkForce` of the whole set, so every key
 you don't name falls back to its own default. That is exactly the bar a
 stranger gets on a fresh install: clock, weather, media, battery, wifi, plus
 the agents paw. It drops your aiUsage gauge, the Elgato pill and caffeinate in
 one stroke — no per-pill commands, nothing to remember to restore.
 
-**`sill.bottom.items`** — **this one is load-bearing, not tidiness.** A pill
-named in `bottom.items` is drawn on the bottom bar *whatever `sill.items` says
-about it* (`sill/default.nix` filters `bottomItems` from `cfg.bottom.items`
+**`bar.bottom.items`** — **this one is load-bearing, not tidiness.** A pill
+named in `bottom.items` is drawn on the bottom bar *whatever `bar.items` says
+about it* (`bar/default.nix` filters `bottomItems` from `cfg.bottom.items`
 alone). Your host names `aiUsage`, `elgato` and `caffeinate` down there, so
 without this pair the dollar figure you just removed from the menu bar is still
 sitting on the bottom one.
 
 The result: **menu bar** — workspaces · front app · weather · wifi · clock.
-**Second bar** — media · hush · agents. `sill.battery.hideOver = 80` stays as
+**Second bar** — media · focus · agents. `bar.battery.hideOver = 80` stays as
 your host sets it, so a plugged-in Mac draws no battery pill at all. That is
 how you delete "battery anxiety" without deleting the option.
 
 > **Check the second bar is actually on top.** SketchyBar draws *under* windows
 > by default, which is invisible for a menu-bar-edge bar and very visible for a
-> bottom one. prowl reserves the outer-bottom gap for it, so it should be clear
+> bottom one. windows reserves the outer-bottom gap for it, so it should be clear
 > — but confirm with your eyes before you shoot, not after.
 
 ### 2. Accent — leave it alone

@@ -154,7 +154,7 @@ hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
 # Every later eval needing that blob dies with the cryptic libgit2 message
 # "object not found - no match for id …" — nothing but clearing the cache fixes
 # it. The tarball-/fetcher-caches are pure and regenerable, so on that exact
-# signature we wipe them and retry once. Mirrors haus/modules/den/haus.sh.
+# signature we wipe them and retry once. Mirrors haus/modules/core/haus.sh.
 NIX_CACHE_CORRUPT_SIG='no match for id'
 
 nix_cache_wipe() { # drop the regenerable fetch caches for both the user and root nix stores
@@ -708,10 +708,10 @@ cmd_status() {
 # With `overrides` in play that second eval is the expensive one, since it walks
 # the local checkouts too.
 #
-# `haus-activate` (shipped by the layer — haus/modules/den) does only the
+# `haus-activate` (shipped by the layer — haus/modules/core) does only the
 # privileged half: set the system profile, then run that build's own
 # `darwin-rebuild activate`. Both routes go through a stable
-# /run/current-system path, never ./result or a store path: collar's
+# /run/current-system path, never ./result or a store path: security's
 # passwordless-sudo rule matches a literal path, because sudo ≥1.9.17 no longer
 # follows the command symlink.
 #

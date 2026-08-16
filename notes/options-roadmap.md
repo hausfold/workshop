@@ -36,7 +36,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ([`hausfold-rename.md`](./hausfold-rename.md) §3.4), and the rice's roster
 > carries a `haus.roster.trill` entry for it (renamed from `haus.roster.flick`,
 > nebelhaus#264) — metadata-only, a `float` rule for its Settings/Inbox windows
-> in `modules/prowl/default.nix`; the rice installs nothing and the app has no
+> in `modules/windows/default.nix`; the rice installs nothing and the app has no
 > repo yet. So a reader who greps this file for what the rice declares concludes
 > the opposite of what's live — read the app, not the word. §9's "names this
 > table can no longer have" is the one line here that is about the *name*, and it
@@ -174,7 +174,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > generator-not-artifact row, and rows nine and ten of §5.14's table.
 >
 > ★ **Third, the one that shipped code: the lock ripple carries the binary and
-> nothing carries the grammar it speaks.** `haus.pounce.items` validates its keys
+> nothing carries the grammar it speaks.** `haus.launcher.items` validates its keys
 > against a hand copy of pounce's `ItemTarget` grammar. pounce added a fourth
 > address prefix — `shortcut:<uuid>`, the Shortcuts library as launcher rows
 > ([pounce#80](https://github.com/hausfold/pounce/pull/80), merged 2026-08-14
@@ -240,9 +240,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > CI actually covers, and it went one stale before anyone noticed."* The
 > twenty-third pass's first instinct was to add one name and bump "ten" to
 > "eleven" — which would have been correct and would have left **four** existing
-> errors in place: the count was already one short, `sill-rc-executable` was
+> errors in place: the count was already one short, `bar-rc-executable` was
 > filed as darwin-only when it is portable, `desktop-projection` as portable when
-> it is darwin-gated, and `sill-plugins-executable` had never been listed at all.
+> it is darwin-gated, and `bar-plugins-executable` had never been listed at all.
 > Both lists are re-derived now from the one line that decides the split
 > (`optionalAttrs (hasSuffix "-darwin" system)`), and the portable half is a
 > table rather than a paragraph, because a paragraph is what made four errors
@@ -305,7 +305,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > and the distinction is the whole point of the ledger below: A REACH TABLE THAT
 > VARIES ONE OPTION IS BLIND TO ANYTHING BEHIND A SECOND ONE.** `font-reach`
 > evaluates two systems differing in `fonts.mono.name`; both leave
-> `sill.clock.monoFont` at its `true` default, so `clockLabelFont`'s other branch
+> `bar.clock.monoFont` at its `true` default, so `clockLabelFont`'s other branch
 > — the one holding the hardcoded family — was never evaluated **inside the one
 > check whose entire job is finding hardcoded families.** No smarter pattern
 > fixes that. The fix is a third pair of systems with the second key flipped, and
@@ -318,7 +318,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > reason §5.14 gave was that it is a design rule for options not yet written
 > rather than a property of one that exists. Careful about what that corrects:
 > the sixth pass logged an *instance* two sentences after writing the excuse
-> ("the terminal font can't clip" holds only while prowl tiles the window), and
+> ("the terminal font can't clip" holds only while windows tiles the window), and
 > there are four more scattered through §5. So instances were never scarce —
 > what had never happened is one of them becoming **a check**, which is the only
 > thing the ledger counts. **Nine ★ findings, still six checks**: the two numbers
@@ -334,7 +334,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > finding standing.** The write-up said the hardcode "sat in [the blind spot] for
 > months" — `git log -S` finds it landed the day before, in haus#330. And "six
 > pills set `label.font=` in the same generated file" counted the **source**: one
-> of the six writes a different file, three are opt-in `sill.items` the example
+> of the six writes a different file, three are opt-in `bar.items` the example
 > system never enables, and the survivor is `:Regular`, so the sampled file has
 > exactly **one** matching line. Both errors have the same shape and it is this
 > section's own: **a claim about a generated artifact, derived by reading the
@@ -387,14 +387,14 @@ already exist, and one it treated as a detail is the actual root blocker.
 > open item asked, since rice#243, *which surface would read `sans`* — the
 > answer, from an audit of every `font-family` the layer emits and every family
 > literal under `modules/`, is **one label**:
-> `modules/sill/default.nix:161`, `clockLabelFont = if cfg.clock.monoFont then
+> `modules/bar/default.nix:161`, `clockLabelFont = if cfg.clock.monoFont then
 > barFont else ".AppleSystemUIFont"`. Everything else the desktop draws — the
 > terminal, the whole bar, the wallpaper's debug band — is mono on purpose, and
 > the layer emits no third proportional string anywhere.
 >
 > ★ **The finding: a bool can be a family option with the value welded in, and
 > then it doesn't show up when you grep for the option you think is missing.**
-> `sill.clock.monoFont = false` IS `fonts.sans`, at one fixed value, filed under
+> `bar.clock.monoFont = false` IS `fonts.sans`, at one fixed value, filed under
 > the room that needed it — and its description sells it on *legibility* (a
 > dotted zero against an 8), which is §5.3's own opening argument. This document
 > tracked "sans doesn't exist" while a one-value version of it shipped and was
@@ -446,7 +446,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > files, all mono) plus a sweep of `modules/` for hardcoded family literals (two
 > hits: the clock's, and `sketchybar-app-font`, which is an icon font pinned on
 > purpose), read against `modules/appearance/options.nix:65-73`,
-> `modules/sill/options.nix:454-463` and `modules/pounce/default.nix:892`. Every
+> `modules/bar/options.nix:454-463` and `modules/launcher/default.nix:892`. Every
 > citation in this pass was re-checked against the files by the pre-PR assurance
 > subagent, which caught four of them wrong — including one that credited
 > `appearance/options.nix` with a measurement it never made. No
@@ -462,7 +462,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > line goes back to naming §5.8 alone. What shipped, beyond the one-word
 > promotion the box first predicted: a **fifth reachability class, `by-eye`**;
 > the restart-map entry (`com.apple.universalaccess` → `universalaccessd`) with
-> a **per-key** trigger in den rather than a per-family one; and a `keyTypes`
+> a **per-key** trigger in core rather than a per-family one; and a `keyTypes`
 > table, because `mouseDriverCursorSize` is the domain's first float and both
 > consumers had `-bool` baked in. `haus.accessibility` is seven options now,
 > still generated from the table.
@@ -494,7 +494,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > ★ **And the thing that fix had to say is stronger than "nobody needs it
 > today": a restart-map entry for an unconditionally-written domain cannot be
 > confirmed by watching a rebuild.** `com.apple.menuExtraClock` and
-> `com.apple.controlcenter` sit in den's `typedDomainsWritten` *unconditionally*
+> `com.apple.controlcenter` sit in core's `typedDomainsWritten` *unconditionally*
 > (only `com.apple.universalaccess` has a `restartDeclaredBy` gate), so
 > SystemUIServer and ControlCenter are killed on every rebuild of every machine
 > whether or not a clock option is set. The clock re-rendering is therefore
@@ -606,7 +606,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > Verified by running it: 22 `nix flake check` checks green, the host-template
 > settability step run locally, `bench try` against `mbp`, `haus doctor` run from
 > the branch, and — the check that matters — four synthetic configurations built
-> to four *distinct* store paths, each grepped for the announcement den renders:
+> to four *distinct* store paths, each grepped for the announcement core renders:
 > nothing declared → silence, `haus.accessibility.*` → `needs-full-disk-access`,
 > raw `system.defaults.universalaccess.*` → `aborts-without-full-disk-access`,
 > `com.apple.Accessibility` captured → `writes-but-does-nothing`. Distinct
@@ -682,7 +682,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > The other box was filed as "the data half is done and this is now a rendering
 > job." Half right. `plan_restarts` already read killalls, `activateSettings` and
 > the notification posts out of the built script — but the map's `logout`
-> sentinel was subtracted in den and then **vanished**, so there was nothing for
+> sentinel was subtracted in core and then **vanished**, so there was nothing for
 > a reader to find. ★ **A verb that renders to nothing is not a rendering
 > problem**, and this is the same silence §5.6 refuses to ship a settings *group*
 > into, left wide open to a domain arriving the other way, through `haus capture`
@@ -971,13 +971,13 @@ already exist, and one it treated as a detail is the actual root blocker.
 > than a file's contents", noticed and then not generalized.
 >
 > **★ Finding 2 — the tenth pass's own headline claim was half false, and
-> rice#255 corrected it.** That block says den's restart commands are
+> rice#255 corrected it.** That block says core's restart commands are
 > "read out of `config`, not hardcoded, so a future module gets this for free."
 > True of the **domains**, false of the **processes**: #249 then filtered the
 > map's values through `restartProcesses = [ "Finder" "ControlCenter"
 > "SystemUIServer" ]`, an allowlist that had to be edited in lockstep with the
 > map — so the day a domain's value named a process not on the list, the map
-> said "restart X" and den silently dropped it. That is precisely the
+> said "restart X" and core silently dropped it. That is precisely the
 > hand-maintained gap `restart-map.nix` exists to close, reintroduced one file
 > over, and #250's own comment had already noticed the smell ("`restartProcesses`
 > has carried ControlCenter unused since rice#249") without drawing the
@@ -992,7 +992,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > sells `theme.ports.handled` — rooms declaring what they already wire by hand —
 > as "the pattern to copy for any future generic-pass-plus-hand-tuned-exceptions
 > option." rice#255 found its failure mode: #251 made the gh-dash integration
-> opt-in (`hearth.ghDash.enable`, default false) but claimed the port as
+> opt-in (`terminal.ghDash.enable`, default false) but claimed the port as
 > `handled` unconditionally, so a machine with the integration **off** got no
 > theme (the roster pass had been told to skip it) *and* no `haus doctor` nudge
 > (it had been told a room handles it). A `handled` claim has to be gated on the
@@ -1013,7 +1013,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > stated blocker — "an activation-script `defaults delete -g` plus the restart
 > map, i.e. Phase 4" — cleared when rice#249 landed, and rice#252 has since put
 > **Switch to light mode** in the palette writing `theme.flavor = latte` alone
-> (`modules/pounce/commands/settings.sh:21`), so the asymmetry is now reachable
+> (`modules/launcher/commands/settings.sh:21`), so the asymmetry is now reachable
 > by one click from the non-technical user §5.7 exists for. Whether that box
 > gets escalated in prose or simply built is Julien's call, pending.
 >
@@ -1043,7 +1043,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > just the open checkboxes — the shift-throw binding namespace had to move off
 > the app entirely (a workspace's own `key`, not its one owning app's), which
 > the sketch above never mentioned and only surfaced from tracing every
-> consumer (prowl, sill, the doc generator, pounce's `add-app.sh`, the shipped
+> consumer (windows, bar, the doc generator, pounce's `add-app.sh`, the shipped
 > `packs/writing.nix` example) by hand.
 >
 > **`center` and `sticky` are checked off as verified-infeasible, not shipped.**
@@ -1174,14 +1174,14 @@ already exist, and one it treated as a detail is the actual root blocker.
 > built and generalized past the one hand-rolled fix it started from.**
 >
 > **What shipped ([nebelhaus#249](https://github.com/nebelhaus/nebelhaus/pull/249),
-> `modules/lib/restart-map.nix` + `modules/den/default.nix`).** The matrix's own finding — nix-darwin restarts
+> `modules/lib/restart-map.nix` + `modules/core/default.nix`).** The matrix's own finding — nix-darwin restarts
 > only Dock, and only when a `dock.*` option changed, so Finder/menu-bar/Control
 > Center writes silently wait for a logout — had exactly one fix in the repo
 > before this pass: rice#181's hardcoded `killall Finder`, called out in §5.2's
 > own text as "the first entry in §4's restart map, written by hand rather than
 > as the map." It's now a declared table: every plist domain the rice writes
 > maps to `killall <process>` / `activateSettings`-only / `none` / `logout`, and
-> den's postActivation generates its restart commands from that table against
+> core's postActivation generates its restart commands from that table against
 > whichever domains the built configuration actually has (typed domains the
 > rice always sets via `mkDefault`, plus whatever `CustomUserPreferences`
 > top-level keys any module or host contributed — read out of `config`, not
@@ -1293,7 +1293,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > this exact code: the bug was invisible in the diff, only visible in the
 > terminal. A second instance — `revert-settings`'s own `killall Dock/Finder`
 > and `activateSettings` calls, the same `[ cond ] && risky-command` shape —
-> was caught the other way, by re-reading the diff against `den/default.nix`'s
+> was caught the other way, by re-reading the diff against `core/default.nix`'s
 > own `|| true` convention for the identical calls, not by running it. Neither
 > method alone would have found both.
 >
@@ -1362,7 +1362,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > }` — real `darwin-system` derivation, actually realised, not a drvPath.
 > Result: **clean.** The host's key won (`"n"`), the pack's other three apps
 > (zotero/anki/calibre) and Obsidian's `cask`/`workspace` survived, `everyday`'s
-> own settings (`developer.enable = false`, `prowl.enable = false`) held, and
+> own settings (`developer.enable = false`, `windows.enable = false`) held, and
 > the built Brewfile lists all four casks. The contrast case — the same
 > composition through the **unwrapped** `flake.packFiles.writing` (what a
 > stranger gets from a gist, bypassing the `packs.writing` seam) — still
@@ -1424,8 +1424,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > its bar in a different family than its terminal**, and §5.3's own motivating
 > example (Atkinson Hyperlegible for a large-print rice) moved the terminal and
 > left the bar alone. Fixed in **rice#243**: `BAR_FONT` joins the generated
-> `sizes.sh` beside the `FS_*` sizes, every literal reads it, and sill stops
-> installing Hack — den already installs whatever family the rice names.
+> `sizes.sh` beside the `FS_*` sizes, every literal reads it, and bar stops
+> installing Hack — core already installs whatever family the rice names.
 > **★ The transferable half is what the check needed.** `font-reach` is the third
 > reach table, but the bug lived in the **static** rc and plugins — files that are
 > byte-identical whatever family the rice names, so *no number of evaluations can
@@ -1447,15 +1447,15 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **★ the point-valued SURFACE is one option.** Six numeric leaves in the 130 the
 > options page renders (plus four internal `_roster`/`_launchers` mirrors it
 > doesn't), and exactly one is in points (`fonts.mono.size`); the rest are
-> multipliers, ids, an ordering and a percent. Every other point-valued number in the rice — prowl's
+> multipliers, ids, an ordering and a percent. Every other point-valued number in the rice — the tiler's
 > gaps, the Dock tile, the bar's type, pounce's panel widths — is *internal to a
 > module*, so a rule written about the option surface governs a set of size one,
-> and §5.2's "audit `fonts.*.size` and prowl's gaps" was asking about something
+> and §5.2's "audit `fonts.*.size` and the tiler's gaps" was asking about something
 > that isn't an option.
-> **★ And that one cannot clip *while prowl tiles it*** — a bigger font on a
+> **★ And that one cannot clip *while windows tiles it*** — a bigger font on a
 > `larger-text` display buys fewer columns, never a window wider than the screen.
 > (Read off the code, not measured; the precondition is load-bearing, since a
-> floating window or a rice with `prowl.enable = false` has no such guarantee —
+> floating window or a rice with `windows.enable = false` has no such guarantee —
 > which is §5.6's own "what second key makes the first one a lie", one room over.) The sharper rule: **a point-valued number only meets
 > `displays` when something SIZES ITSELF from it**, which in this family is
 > pounce (clamped, pounce#53), perch (proportional to `screen.frame.width`, so
@@ -1503,7 +1503,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > That split is the readiness test's blind spot, named twice in §6, now visible in
 > the check list itself.
 > **And the audit (§5.14's rule, run first) turned up nothing** — rice#229–#237 are
-> hearth/den/pounce surfaces, and the option surface is unmoved. This time that
+> terminal/core/pounce surfaces, and the option surface is unmoved. This time that
 > was *measured* rather than asserted, and the measurement is better than a count:
 > `options-json` built from rice#228 and from HEAD is **the same store path**, so
 > the surface is identical rather than merely the same size. It holds **130**
@@ -1551,7 +1551,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > silently.** Adding `lib.compose` later is additive; removing it once a gallery
 > depends on ordering is not. (Repos re-read first, per §5.14: since
 > rice#222 nothing changed the option surface — 130 leaves, unmoved. rice#223–227
-> are hearth/den/pounce surfaces, and the one roadmap-adjacent commit is
+> are terminal/core/pounce surfaces, and the one roadmap-adjacent commit is
 > §5.7's — the rice now generates `~/.config/holt/config.toml` from
 > `nebelhaus.agents.default`, a third instance of the two-writers seam, correctly
 > labelled *edit that option, not here*.)
@@ -1591,7 +1591,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > never read the note explaining the first two.
 > **(b)** the mechanical audit this doc kept asking for was finally run, and the
 > answer was small: **three** typed leaves in 128, of which two were the known
-> package pair and the third (`hush.hooks`, a path) is *fine* — a rice can ship a
+> package pair and the third (`focus.hooks`, a path) is *fine* — a rice can ship a
 > script beside itself and say `./thing`, which stays data. The audit that
 > sounded like a project was a `jq` one-liner.
 > **(c)** the trust line got sharper by being written down: naming a package is
@@ -1627,7 +1627,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > > option definitions:
 > >
 > > **★ `everyday` shipped a tutor that drew nothing (rice#220).** §5.5's box said
-> > the tour *hangs* with `prowl.enable = false`. It doesn't any more — it draws
+> > the tour *hangs* with `windows.enable = false`. It doesn't any more — it draws
 > > **no pill at all**, while the preset still sets `tour.enable = true` and its
 > > own comments explain why a tutor is right for exactly that person. It passed
 > > `checkRice`, passed `nix flake check`, and taught nobody anything. **This is
@@ -1655,7 +1655,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > >
 > > **Smaller, all corrected below:** §5.1's OS-contrast box read `- [ ] ✅` —
 > > drift wearing a tick, with both options long since shipped (§5.14 now lists
-> > that as its own failure shape); `sill.items` is 15 bools, not 13;
+> > that as its own failure shape); `bar.items` is 15 bools, not 13;
 > > `large-print` is four options, not three; the surface is **130** leaves where
 > > §1 counted ~44, and four rooms — `agents`, `apps`, `perch`, `zen` — appear
 > > nowhere in this document.
@@ -1737,11 +1737,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 
 | Claim | Reality |
 |---|---|
-| "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](nebelhaus/modules/options.nix) — but 13 of those are the `sill.items` pill bools and 5 are `hush.slack.*`. The *shape* surface is more like 25. |
-| "rice sets ~19 macOS defaults" | ✅ 19 keys in [`den/default.nix:144-183`](nebelhaus/modules/den/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
-| "replace `prowl.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `nebelhaus.apps`; **rice#182 renamed it `nebelhaus.roster`** and grew it the multi-source install §5.4(a) asked for. `nebelhaus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
+| "~40 first-class options" | ✅ ~44 leaves in [`modules/options.nix`](nebelhaus/modules/options.nix) — but 13 of those are the `bar.items` pill bools and 5 are `focus.slack.*`. The *shape* surface is more like 25. |
+| "rice sets ~19 macOS defaults" | ✅ 19 keys in [`core/default.nix:144-183`](nebelhaus/modules/core/default.nix:144). nix-darwin types **193** (counted, see the matrix) — not "several hundred" as this doc first said. |
+| "replace `windows.apps` with a general app registry" | ⚠️ **Already done, and since superseded.** It was `nebelhaus.apps`; **rice#182 renamed it `nebelhaus.roster`** and grew it the multi-source install §5.4(a) asked for. `nebelhaus.apps` still exists but means something else now (the apps the rice picks for you). Read `apps` as `roster` everywhere below this line. |
 | "add `haus plan` / `capture` / `diff` / `undo`" | ✅ **Promoted, 2026-08-07 (ninth pass, §5.11).** `haus plan`/`capture`/`diff`/`revert-settings` (`undo`'s real name) are real subcommands now, built on a probe of activation-script output rather than a hand-maintained domain map. `bootstrap.sh` keeps its own copy of the capture logic (it runs before `haus` is on PATH). |
-| "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `den`+`theme`+`hearth`+`collar`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt` (now `holt`), `zscratch`, and a git-alias vocabulary. |
+| "minimal still imports the developer foundation" | ✅ **Confirmed, and it's the root blocker.** [`modules/default.nix`](nebelhaus/modules/default.nix) unconditionally imports `core`+`theme`+`terminal`+`security`+`secrets`+`snippets`. Turning off all three optional rooms still installs `bun`, `fnm`, `nixfmt`, `opencode`, `zellij`, `yazi`, `lazygit`, `delta`, `gh`, `jq`, `ttyd`, `wt` (now `holt`), `zscratch`, and a git-alias vocabulary. |
 
 **Two mechanisms already in the repo that the brainstorm missed, and that change the plan:**
 
@@ -1758,7 +1758,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 
 ## 2. The reframe
 
-The current options expose **implementation** (Pounce, Sill, AeroSpace, Homebrew).
+The current options expose **implementation** (Pounce, Bar, AeroSpace, Homebrew).
 Community rices want to express **intent**:
 
 - "Make everything easier to see."
@@ -1782,12 +1782,12 @@ These four are cheap now and expensive later.
 keep `modules/options.nix` as the cross-cutting/identity file. Purely
 mechanical, no behaviour change. **Do this first or everything else compounds.**
 
-- [x] `modules/{den,hearth,prowl,sill,pounce,hush,theme,trill,secrets,snippets}/options.nix`
+- [x] `modules/{core,terminal,windows,bar,pounce,focus,theme,trill,secrets,snippets}/options.nix`
       (the room list has moved since: `roster`, `displays`, `apps` and `perch`
       joined it, and `trill` is gone — rice#213 removed the module and its flake
       input, two days after rice#212 made it opt-in. The sentence to reuse: *a
       supported option nobody should turn on is a lie in the option reference.*)
-- [x] `modules/options.nix` keeps `apps` + `developer` (752 → 122 lines). `git`/`claude` went to hearth, which owns them.
+- [x] `modules/options.nix` keeps `apps` + `developer` (752 → 122 lines). `git`/`claude` went to terminal, which owns them.
 - [x] Verified as a pure move: the example host's derivation is byte-identical and all 39 leaf option paths are unchanged.
 
 ### 3.2 Make `developer` a real pack, not the foundation · ✅ **DONE** (nebelhaus#96)
@@ -1804,14 +1804,14 @@ nebelhaus.developer = {
 };
 ```
 
-- [x] Audited hearth and den; gated packages, `programs.*`, aliases, the fnm hook, Claude settings and nix-index
+- [x] Audited terminal and core; gated packages, `programs.*`, aliases, the fnm hook, Claude settings and nix-index
 - [x] Gated `home.packages` and `environment.systemPackages`
 - [x] `haus` / `awake` / `mas` / theme stay unconditional (they're the *product*)
 - [x] Proved by measurement: `developer.enable = false` drops 16 system + 17 home packages.
       **Not literally zero** — `gh`/`blueutil`/`switchaudio-osx` remain as pounce
       command-plugin deps, which is correct while pounce is on.
 
-**Non-obvious consequence:** with dev off, `hearth.editor = "hx"` is the wrong
+**Non-obvious consequence:** with dev off, `terminal.editor = "hx"` is the wrong
 default and Ghostty may not even be wanted. Decide what a non-dev nebelhaus
 *terminal story* is (probably: no terminal at all, and `haus` reached only via
 pounce).
@@ -1954,7 +1954,7 @@ nebelhaus.theme = {
       sections and only the rendered one holds Nebelung colours, so `features` must
       name the same flavor as the include's root or delta silently themes itself
       stock. Selection is factored into `modules/lib/nebelung.nix` (it had been
-      duplicated in hearth/sill/theme; a second axis would have made that six
+      duplicated in terminal/bar/theme; a second axis would have made that six
       blocks) and `nix flake check`'s new `theme-variants` pins the
       flavor/contrast → variant/subdir table as a golden file, because that rule
       mirrors nebelung's `variantDir` across a repo boundary and its failure mode is
@@ -2019,10 +2019,10 @@ nebelhaus.theme = {
       AAA-on-paper palettes routinely read as glare.
 - [x] ✅ **Latte felt on the real machine, 2026-07-28: reads great.** Flipped
       `theme.flavor = "latte"` on mbp with macOS appearance set to Light, one
-      `bench try switch`, and the whole hearth/sill/Zen surface came over — so light
+      `bench try switch`, and the whole terminal/bar/Zen surface came over — so light
       mode is a felt option now, not just a rendered one.
 - [ ] ◐ `scheme = "auto"` — **one consumer shipped it, and it wasn't the one this
-      box expected.** No sill-hosted watcher was needed: pounce#42 + rice#142 give the
+      box expected.** No bar-hosted watcher was needed: pounce#42 + rice#142 give the
       palette `theme`/`themeLight` and it picks per open, exposed as
       `nebelhaus.pounce.followSystemAppearance` (default **true**). Three things
       that generalise:
@@ -2146,7 +2146,7 @@ nebelhaus.theme = {
       → ★ **The pattern needs one condition, found the hard way (rice#255,
       2026-08-08).** A `handled` claim must be gated on the *same flag that does
       the wiring*. rice#251 made the gh-dash integration opt-in
-      (`hearth.ghDash.enable`, default false) while claiming its port as handled
+      (`terminal.ghDash.enable`, default false) while claiming its port as handled
       unconditionally, so a machine with the integration off got **no theme**
       (the generic roster pass had been told to skip it) **and no `haus doctor`
       nudge** (doctor had been told a room handles it) — an opt-in feature turned
@@ -2179,7 +2179,7 @@ nebelhaus.theme = {
       probably shouldn't."~~ ❌ **Reversed 2026-08-14 (haus#356, §5.12)** — it is
       a table now, and the evidence this rested on was the wrong evidence. Prose
       in one description genuinely *was* enough for one option; the cost only
-      appeared at six copies (den's warning, den's domain list, hearth's skill,
+      appeared at six copies (core's warning, core's domain list, terminal's skill,
       `haus rebuild`'s guard, `haus doctor`'s row, and the paragraph itself), and
       nothing about writing the second one tells you which of those two worlds
       you are in. **A fact stated twice is a style choice; the same fact stated
@@ -2200,9 +2200,9 @@ nebelhaus.ui = {
 };
 ```
 
-Fans out to: Dock icon size · Finder icon/sidebar size · Sill height/padding/
+Fans out to: Dock icon size · Finder icon/sidebar size · Bar height/padding/
 font/icon size · Pounce window width, row height, result count · Ghostty font
-size + line height · zellij bar density · prowl gaps and borders · wallpaper
+size + line height · zellij bar density · windows gaps and borders · wallpaper
 contrast.
 
 - [x] Every consumer reads `ui.*` through `mkDefault` so a host can still pin one
@@ -2210,7 +2210,7 @@ contrast.
       resolves `fonts.mono.size` to 27, and pinning the font size afterwards wins.
 - [x] ✅ **The sizing pass is done — the fan-out is FIVE targets now** (pounce#53
       + rice#175): terminal font size, **the whole command palette**, **the menu
-      bar's type**, Dock `tilesize`, prowl gaps. `density` and `motion` still
+      bar's type**, Dock `tilesize`, windows gaps. `density` and `motion` still
       don't exist.
       The palette was the higher-value of the two §5.2 gaps for exactly the reason
       this doc kept repeating — on a non-dev Mac it *is* how you launch things —
@@ -2238,7 +2238,7 @@ contrast.
       to the visible frame; the launcher shows fewer rows when the scaled ones stop
       fitting), but the general lesson belongs here: **any option whose unit is
       "points" is silently coupled to `displays`, because a display mode changes
-      what a point means.** Worth auditing `fonts.*.size` and prowl's gaps for the
+      what a point means.** Worth auditing `fonts.*.size` and the tiler's gaps for the
       same interaction, and worth a line in whatever guide covers `large-print`.
       → ★ **Audited 2026-08-06, and the sentence above is aimed one layer off**
       ([`probes/scale-reach.nix`](probes/scale-reach.nix)). The surface holds
@@ -2246,15 +2246,15 @@ contrast.
       internal `_roster`/`_launchers` mirrors that page never shows — and exactly
       one is in points**: `fonts.mono.size`. `ui.scale` and `pounce.scale` are multipliers,
       `roster.*.order` / `appStoreId` are an ordering and an id, and
-      `sill.battery.hideOver` is a percent. **Prowl's gaps are not an option at
+      `bar.battery.hideOver` is a percent. **The tiler's gaps are not an option at
       all** — they, the Dock tile, the bar's type and pounce's panel widths are
       internal numbers computed from `ui.scale` inside a module. So the rule as
       written governs a set of size one.
-      → ★ **And that one cannot clip *while prowl tiles it*.** A 27pt terminal
+      → ★ **And that one cannot clip *while windows tiles it*.** A 27pt terminal
       font on a `larger-text` display buys fewer columns, never a window wider
       than the screen — read off the code rather than measured, and the
-      precondition is the interesting part: a **floating** window (prowl's float
-      rules, a `zscratch` throwaway) or a rice with `prowl.enable = false` has no
+      precondition is the interesting part: a **floating** window (the tiler's float
+      rules, a `zscratch` throwaway) or a rice with `windows.enable = false` has no
       such guarantee. That is §5.6's "what second key or precondition makes the
       first one a lie", arriving in a room that isn't macOS settings. The failure the coupling actually
       produces needs something that **sizes itself** in points, and the family has
@@ -2262,7 +2262,7 @@ contrast.
       pounce#53), **perch** (`screen.frame.width * 0.42`, clamped 360–640 — so
       coupled to the display *by construction*, and blind to `ui.scale` entirely:
       a large-print Mac gets a normal-sized shelf, which is a real if small gap),
-      and **sill** (bounded by a band that is itself in points). The rule worth
+      and **bar** (bounded by a band that is itself in points). The rule worth
       carrying is the narrow one: *a point-valued number only meets `displays`
       when something sizes itself from it* — tiled and OS-managed surfaces absorb
       the change.
@@ -2282,13 +2282,13 @@ contrast.
       Finder reads its domain once at launch and nix-darwin restarts only Dock.
       That's the first entry in §4's restart map, written by hand rather than as
       the map.
-- [ ] `motion = "none"` is **ours to implement** — kill prowl's animations and
-      Sill's transitions directly. ~~The macOS reduce-motion knob is locked
+- [ ] `motion = "none"` is **ours to implement** — kill the tiler's animations and
+      Bar's transitions directly. ~~The macOS reduce-motion knob is locked
       (§4), so there is nothing to delegate to.~~ ❌ **The rationale is dead**
       (§5.12, 2026-08-14): the domain was never locked, only FDA-gated, and
       `haus.accessibility.reduceMotion` is a shipped option. So there IS
       something to delegate the OS half to — which changes what this box is
-      for rather than closing it: prowl's and sill's own animations are still
+      for rather than closing it: the tiler's and bar's own animations are still
       ours alone, and the token's job becomes *composing* the two (does
       `motion = "none"` set the macOS flag, or only say it pairs well with it?).
       Note the flag's blast radius before deciding — it is what every browser
@@ -2330,11 +2330,11 @@ contrast.
       So the box closes **answered rather than built** — which is the honest
       outcome for a `ui.*` item whose whole content turned out to be "this
       belongs in the other family."
-- [x] ✅ **Sill: the type scales to a CEILING and stops — a different shape of
+- [x] ✅ **Bar: the type scales to a CEILING and stops — a different shape of
       answer, and the more interesting one.** Everything else here was a multiplier
       a tool was missing; the bar is not that. `sketchybarrc` pins `height=36` with
       28pt pills because the native menu bar auto-reveals on hover even while
-      hidden and is only **32pt** on a notched display — den forces that reveal
+      hidden and is only **32pt** on a notched display — core forces that reveal
       opaque so it covers the bar exactly, and that only works while the pills stay
       inside the band. So the bar's height is macOS's, not ours.
       **Measured before deciding, which is what settled it:** safe-area inset
@@ -2345,7 +2345,7 @@ contrast.
       §5.10 concluded for text.
       So: height fixed, type follows `ui.scale` to **1.25×** (the 17pt icon font at
       21pt, ~3.5pt clearance in a 28pt pill) and then silently stops. Chosen over
-      "declare sill outside `ui.scale`" because a bar that quietly stops growing
+      "declare bar outside `ui.scale`" because a bar that quietly stops growing
       beats one that never grew — but the ceiling is stated in the option rather
       than discovered.
       Mechanically it was the cheap half: `sizes.sh` is the fourth generated
@@ -2360,7 +2360,7 @@ contrast.
       that the band was probed rather than reasoned about.
       → ✅ **And the ceiling is a check now (`scale-reach`, 2026-08-06):**
       `FS_ICON` reads `17.0 21.0 21.0 21.0` across four scales, so raising
-      `lib/bar.nix`'s ceiling — or losing it in a refactor — fails with three sill
+      `lib/bar.nix`'s ceiling — or losing it in a refactor — fails with three bar
       rows flipping from `ceiling` to `moves`. A stated ceiling is only the better
       answer while it *is* one, and nothing errors the day it stops being.
 - [x] ✅ **Honest scope line — and it's a GOLDEN TABLE now, `scale-reach`
@@ -2385,14 +2385,14 @@ contrast.
       as a new row rather than going unnoticed in a curated list — the failure
       `accent-reach`'s hand-listed surfaces still have.
       Mutation-checked both ways: raising `modules/lib/bar.nix`'s ceiling to 3.0
-      flips three sill rows to `moves`; pinning pounce's default at 1.0 flips its
+      flips three bar rows to `moves`; pinning pounce's default at 1.0 flips its
       two rows to `pinned`. Darwin-only, like `accent-reach` — it fingerprints a
       real evaluated system, so it fires on this machine or not at all.
 
 ### 5.3 `nebelhaus.fonts` · S · risk L · ◐ **`mono` shipped and its reach fixed (rice#243); the S-sized `sans` — one option, one label — shipped 2026-08-15 (haus#363). What stays open is the ·M app-side half across three repos, which needs a seam built before it needs a font. See the ship box and the open one after it; the header is the summary and the box decides (§5.14)**
 **Cheapest big win in the doc, and nobody has asked for it because it's
 invisible until you try to change it.** JetBrains Mono Nerd Font is hardcoded in
-[`den:125`](nebelhaus/modules/den/default.nix:125); Ghostty's size is hardcoded in hearth.
+[`core:125`](nebelhaus/modules/core/default.nix:125); Ghostty's size is hardcoded in terminal.
 
 ```nix
 nebelhaus.fonts = {
@@ -2442,7 +2442,7 @@ to the family the bar was already hardcoding.
       in the README rather than leaving as a vibe.
       **(b)** the mechanical audit is **run, and it's a `jq` one-liner**: three
       package/derivation/path-typed leaves out of 128, of which the two package
-      ones are now paired and the third (`hush.hooks`) is fine — `types.path`
+      ones are now paired and the third (`focus.hooks`) is fine — `types.path`
       accepts `./thing` beside the rice file, which is still data. The thing this
       doc kept describing as an audit to schedule was ten seconds of work.
       **(c)** it's a CHECK now, exactly as this box asked: `data-only-surface` in
@@ -2458,13 +2458,13 @@ to the family the bar was already hardcoding.
 - [x] ★ **The option reached ONE surface, and the bar drew in a different family
       — fixed 2026-08-06 (rice#243).** Measured the way §5.2's reach was: evaluate
       two rices differing only in `fonts.mono.name` and diff every file. Only
-      Ghostty's config moved. sill named `"Hack Nerd Font"` in its rc, four
+      Ghostty's config moved. bar named `"Hack Nerd Font"` in its rc, four
       plugins and six generated blocks, so **the stock rice already ran two type
       families**, and the example this section opens with — Atkinson Hyperlegible
       for a large-print machine — would have changed the terminal and left the bar
       in Hack. The fix is the one `sizes.sh` already demonstrated: `BAR_FONT`
-      beside the `FS_*` sizes, every literal reading it, and sill no longer
-      installing a font den doesn't. Three things worth carrying:
+      beside the `FS_*` sizes, every literal reading it, and bar no longer
+      installing a font core doesn't. Three things worth carrying:
       **(a)** the family is taken **verbatim**, `Mono` suffix and all — deriving
       the propositional variant by trimming `" Mono"` would silently invent a
       family for any name outside Nerd Font's convention (`Berkeley Mono` →
@@ -2483,14 +2483,14 @@ to the family the bar was already hardcoding.
       produced it is kept verbatim underneath, in a blockquote rather than a
       second checkbox — ⚠️ **read its line numbers and its quoted
       `clockLabelFont` as the PRE-haus#363 ones.** Four of its citations moved
-      when the option landed (`modules/sill/default.nix:161` → `:167`, and the
-      line no longer ends in a literal; `:168` → `:174`; `modules/den/options.nix:409`
-      → `:412`; and `sill.clock.monoFont`'s description gained "by default"),
+      when the option landed (`modules/bar/default.nix:161` → `:167`, and the
+      line no longer ends in a literal; `:168` → `:174`; `modules/core/options.nix:409`
+      → `:412`; and `bar.clock.monoFont`'s description gained "by default"),
       which is the ordinary cost of quoting a file by line — worth leaving
       visible rather than silently re-numbering, since the argument is about
       what was there.
       → **What shipping it actually changed, which is smaller than the option
-      and bigger than the label**: `sill.clock.monoFont` stopped being a family
+      and bigger than the label**: `bar.clock.monoFont` stopped being a family
       switch with its second value welded in. **What the machine DRAWS does not
       move** — the default is byte-for-byte the old literal — so the value is
       entirely that a second consumer is now a line rather than a design
@@ -2502,7 +2502,7 @@ to the family the bar was already hardcoding.
       → ★ **And the reason the welded family survived is not that nobody
       looked** — it is that `font-reach`, the check whose whole job is finding
       hardcoded families, evaluates two systems that both leave
-      `sill.clock.monoFont` at its default, so the branch holding the literal was
+      `bar.clock.monoFont` at its default, so the branch holding the literal was
       never taken in either. **A reach table that varies one option is blind to
       anything behind a second one.** Fixed in the same PR with a third pair of
       systems, which makes this the first instance of §5.14's oldest check
@@ -2517,21 +2517,21 @@ to the family the bar was already hardcoding.
 > written): exactly ONE surface would read it, and that surface is one
 > label.** The audit is the same shape as rice#243's, run over the whole
 > layer rather than one room: every `font-family` the layer emits
-> (`modules/den/options.nix:409`, `modules/wallpaper/package.nix:200`,
-> `modules/hearth/ghostty/config`) plus every hardcoded family literal under
+> (`modules/core/options.nix:409`, `modules/wallpaper/package.nix:200`,
+> `modules/terminal/ghostty/config`) plus every hardcoded family literal under
 > `modules/`. All of them are mono, and the wallpaper's only text is its
 > debug band. (Two families are hardcoded, not one — `sketchybar-app-font`
-> at `modules/sill/default.nix:168` is the other, pinned on purpose:
+> at `modules/bar/default.nix:168` is the other, pinned on purpose:
 > `font-reach`'s own comment calls it the row that must NOT follow the
 > desktop. It's an icon font, so it is not proportional type and not a
 > candidate reader.) The desktop's entire proportional-type surface is
-> `modules/sill/default.nix:161`:
+> `modules/bar/default.nix:161`:
 > `clockLabelFont = if cfg.clock.monoFont then barFont else ".AppleSystemUIFont"`.
-> → ★ **So `fonts.sans` already shipped. It is spelled `sill.clock.monoFont
+> → ★ **So `fonts.sans` already shipped. It is spelled `bar.clock.monoFont
 > = false`, it is a `bool`, it lives in another room, and its value is welded
 > in.** And its description argues for it on *legibility* — "macOS's system
 > UI font, whose zero has no dot and is easier to distinguish from an 8"
-> (`modules/sill/options.nix:454-463`) — which is this section's own opening
+> (`modules/bar/options.nix:454-463`) — which is this section's own opening
 > argument, arriving in a room that had one label to fix and fixed it. A
 > one-value family switch shipped while this box tracked "sans doesn't
 > exist"; both statements are true, and only one of them is useful.
@@ -2582,7 +2582,7 @@ to the family the bar was already hardcoding.
 > no `modules/trill`, so for it the seam doesn't exist yet and would have to
 > be built before a font could travel it. The layer
 > already hands pounce a typography key through its generated config —
-> `modules/pounce/default.nix:892`, `scale = config.haus.pounce.scale`, with
+> `modules/launcher/default.nix:892`, `scale = config.haus.launcher.scale`, with
 > the "an older pounce ignores the key rather than failing" tolerance
 > established there — so a `fontFamily` beside `scale` is the identical
 > shape. That makes a *real* `sans` a three-repo Swift item (·M, risk M),
@@ -2687,7 +2687,7 @@ proposed.** Julien is the only consumer of this rice — he asked explicitly for
 clean rename over a back-compat alias, so `roster.*.workspace` and
 `roster.*.barIcon` are **gone**, not deprecated. What shipped is otherwise the
 sketch's inversion: `nebelhaus.workspaces.<id>` owns `key`, `icon` and `apps`
-(the roster ids that live there); prowl and sill resolve an app's workspace
+(the roster ids that live there); windows and bar resolve an app's workspace
 through a new internal `nebelhaus._appWorkspace` lookup (roster id → workspace
 id) rather than reading a field off the app. `monitor` / `layout` from the
 sketch did **not** ship — nothing in this pass needed them, and per-workspace
@@ -2708,7 +2708,7 @@ Also finished the second, previously-unstarted box: `nebelhaus.roster.*.float`
 generalises the "float" half of window rules — the shape the three
 hand-hardcoded `aerospace.toml` rules (FaceTime, Flick, Ghostty) were asking to
 become. FaceTime and Flick are now ordinary `float = true` roster entries
-(`modules/prowl/default.nix` — the live entry is `haus.roster.trill`, Flick
+(`modules/windows/default.nix` — the live entry is `haus.roster.trill`, Flick
 having been renamed by nebelhaus#264; see the naming banner at the top); Ghostty's rule stays hand-written on purpose —
 it's genuinely bespoke (assign-once-at-startup vs. float-always-at-runtime),
 racing the same AX-title-lands-late problem `titleRegex`'s own docs warn about,
@@ -2813,7 +2813,7 @@ nebelhaus.keys = {
       `alias` / `hotkey` / `enabled`, with `hotkey` accepting **leader sequences**
       (`"opt+space e"`: whitespace separates steps, `+` separates modifiers, the
       Emacs/VS Code notation). So `bindings` should be designed as *two* namespaces,
-      not one: pounce items already have stable ids, prowl actions still don't.
+      not one: pounce items already have stable ids, windows actions still don't.
       Three constraints that came with it and would otherwise be discovered late:
       a second step is registered as an ordinary modifier-less global hotkey for
       ~2s rather than a CGEventTap, so **sequences need no Accessibility grant**
@@ -2822,14 +2822,14 @@ nebelhaus.keys = {
       that means "turn this off" has to say which of the two it does; and
       `pounce run <item-key>` exists as the escape hatch for keys another tool
       already owns, which is the honest answer for a rice whose leader is `"none"`.
-- [ ] ~~Split `prowl.enable` into `prowl.tiling.enable` / `prowl.launcher.enable` /
-      `prowl.capsRemap.enable`~~ — **superseded, not done.** `keys.leader = "none"`
+- [ ] ~~Split `windows.enable` into `windows.tiling.enable` / `windows.launcher.enable` /
+      `windows.capsRemap.enable`~~ — **superseded, not done.** `keys.leader = "none"`
       is capsRemap-off + launcher-off and `keys.windowNav = "none"` is
       tiling-chords-off, which covers every case that motivated the split, from the
       keymap side rather than by multiplying room switches. Revisit only if someone
       wants AeroSpace to *stop tiling* while keeping its launcher.
 - [x] Assertion on duplicate leader letters *and* cross-room conflicts. The
-      cross-room one was the real gap: `keys.leader` is prowl's AeroSpace chord and
+      cross-room one was the real gap: `keys.leader` is the tiler's AeroSpace chord and
       `keys.palette` is pounce's in-process hotkey, so **nothing compared them** and
       a clash is silent — whoever registers first wins. `leader = "alt-space"` with
       `palette = "alt-space"` is the reachable case; asserted, and pinned in
@@ -2855,8 +2855,8 @@ nebelhaus.keys = {
       (`roster.*.key`) are still assumed to be where QWERTY puts them, which is the
       next thing an international rice would hit.
 - [x] ★ **`everyday`'s tour — this box was wrong in BOTH directions, now closed
-      (rice#220).** It said the tour *hangs* at step 1 when `prowl.enable = false`.
-      It doesn't: #156's `tourWired` gates the pill on prowl-or-authored-steps, so
+      (rice#220).** It said the tour *hangs* at step 1 when `windows.enable = false`.
+      It doesn't: #156's `tourWired` gates the pill on windows-or-authored-steps, so
       nothing hangs. What it did instead was draw **nothing at all** — the
       generated `tour_item.sh` was its header comment and no item — while
       `everyday` still set `tour.enable = true` and its own comment block explained
@@ -2900,7 +2900,7 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 | **Power** | ✅ **`haus.power.*` — rice#267.** Sleep timers and Low Power Mode, per power source, as a `pmset` activation step — the `security.firewall` family rather than the `system.defaults` one. Deliberately NOT on nix-darwin's typed `power.sleep.*`: measured on 26.6.1, `systemsetup -setcomputersleep` wrote the AC profile while the machine was on battery, with its stderr discarded upstream (reported) |
 | **Security posture** | ◐ **`nebelhaus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
 | **Animations** | ✅ **`haus.animations` — rice#286.** Five keys across two already-verified domains: the Dock's `autohide-time-modifier` / `expose-animation-duration` / `launchanim` / `mineffect`, plus `NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`. Defaults to `"system"` = write nothing, same as every other row — it was drafted the other way round and reversed before merge; see the policy note below for what that cost would have been. Two firsts worth knowing: it's the only group with no per-key spike (there is no oracle for "did the Dock slide faster" — the keys are felt, not measured), and its NSGlobalDomain half is read by each app AT LAUNCH, so running apps keep animating until relaunched. What it deliberately is NOT is `universalaccess reduceMotion`: that flag is what every browser reads as `prefers-reduced-motion`, via the same `NSWorkspace` property `hausax` prints — so the negative claim is checkable (`hausax \| jq .reduceMotion` stays `false` — on a machine that hasn't also set `haus.accessibility.reduceMotion`, which is the option that DOES move it, added in §5.12) even though the positive ones aren't |
-| **Windows** | Stage Manager, native tiling, edge drag (must interlock with prowl) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
+| **Windows** | Stage Manager, native tiling, edge drag (must interlock with windows) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
 
 The first two shipped settled the group's **default policy**, which was the real
 open question and is worth stating once for every group after it: every leaf
@@ -3017,7 +3017,7 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   the parked one never would have.
   → ★ **And doing it turned up something stronger than "nobody needs the
   isolation today": the `SystemUIServer` entry is untestable in place.**
-  `com.apple.menuExtraClock` and `com.apple.controlcenter` are in den's
+  `com.apple.menuExtraClock` and `com.apple.controlcenter` are in core's
   `typedDomainsWritten` **unconditionally** (only `com.apple.universalaccess`
   has a `restartDeclaredBy` gate), so both processes are killed on every rebuild
   of every machine whether or not a clock option is set. No observation of a
@@ -3053,7 +3053,7 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   Full Disk Access: one table
   ([`modules/lib/reachability.nix`](https://github.com/hausfold/haus/blob/main/modules/lib/reachability.nix)),
   which *generates* the affected options rather than being checked against them,
-  and which den also renders into the built activation script for `haus plan`
+  and which core also renders into the built activation script for `haus plan`
   and `haus doctor` to read back. `restart-map.nix` could carry `logout` the same
   way — the missing piece was never the data, it was a description that can't
   drift from it. What §5.12 additionally proves is the failure mode to design
@@ -3196,8 +3196,8 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a nebelhaus rice for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `hush` into scenes · M · risk M
-`hush` is already a scene with one member: it has hooks, an external
+### 5.8 Generalize `focus` into scenes · M · risk M
+`focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
 
@@ -3210,7 +3210,7 @@ nebelhaus.scenes.recording = {
   restorePreviousState = true;
 };
 ```
-with `hush` shipped as the built-in `quiet` scene (keep `nebelhaus.hush.*` as
+with `focus` shipped as the built-in `quiet` scene (keep `nebelhaus.focus.*` as
 an alias so no host breaks).
 
 Good scenes: meeting · recording · presentation · reading · travel · docked ·
@@ -3220,8 +3220,8 @@ power source, display attach.
 - [ ] Only build the trigger engine *after* one hand-written scene proves useful —
       the declarative half is cheap, the trigger daemon is not
 
-### 5.9 Open up Sill widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
-`sill.items` is a closed submodule of 15 bools (13 when this was written — it
+### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
+`bar.items` is a closed submodule of 15 bools (13 when this was written — it
 grows by one every time a pill lands, which is the argument this box makes).
 Pounce commands were
 script-discovery only with **no Nix option at all**; as of pounce#43 the
@@ -3229,7 +3229,7 @@ script-discovery only with **no Nix option at all**; as of pounce#43 the
 from "design a surface" to "generate a file", the cheapest it will ever be.
 
 ```nix
-nebelhaus.sill.widgets.backup = {
+nebelhaus.bar.widgets.backup = {
   command = ./backup-status.sh; interval = 300;
   icon = "󰁯"; placement = "right"; permissions = [ "full-disk-access" ];
 };
@@ -3245,7 +3245,7 @@ Non-dev widget ideas the current set has no room for: Time Machine health ·
 mic/camera-in-use · VPN state · Bluetooth device battery · next reminder ·
 break timer · storage pressure · NAS reachability · world clocks.
 
-- [ ] `sill.items` becomes sugar over `sill.widgets` (bundled widgets pre-declared)
+- [ ] `bar.items` becomes sugar over `bar.widgets` (bundled widgets pre-declared)
 - [x] ✅ **Pounce's window sizing is an option now** (pounce#53 + rice#175).
       `windowMode` had been written straight into `config.json` with no option at
       all; it is `nebelhaus.pounce.windowMode` now, and it gained a sibling —
@@ -3259,7 +3259,7 @@ break timer · storage pressure · NAS reachability · world clocks.
       `shortcut:<uuid>` addresses a Shortcuts-library entry), each taking
       `enabled` / `alias` / `hotkey`. The
       design fork recorded there was *one schema now* vs *a key per stage*, resolved
-      to one **because these ripple into `nebelhaus/modules/pounce` either way** —
+      to one **because these ripple into `nebelhaus/modules/launcher` either way** —
       i.e. the rice-side option was a known consequence, not an afterthought.
 - [x] ✅ **rice side shipped — rice#149.** `nebelhaus.pounce.items` generates that
       map, keyed by the same `cmd:`/`app:`/`mode:` addresses, with `listed` /
@@ -3374,7 +3374,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       in two halves that landed a week apart. The restart half was already live
       (`plan_restarts` reads killalls, `activateSettings` and the notification
       posts straight out of the built script). **The half still missing was the
-      map's `logout` sentinel: it was subtracted in den and then vanished** — no
+      map's `logout` sentinel: it was subtracted in core and then vanished** — no
       signal at build, none in `plan`, nothing anywhere saying why a write landed
       and did nothing, which is precisely the silence §5.6 refuses to ship a
       settings *group* into while leaving the same silence open to a domain
@@ -3386,7 +3386,7 @@ Before strangers' configs run arbitrary `defaults write` and activation scripts:
       first one.
       *(The box as originally written, for the record: "**The data half is done
       and this is now a rendering job** — `modules/lib/restart-map.nix`
-      (rice#249) is the table, and `modules/den/default.nix` already derives
+      (rice#249) is the table, and `modules/core/default.nix` already derives
       `processesToRestart` from it against whichever domains the built
       configuration actually has. Nothing reads it back for the user: `haus plan`
       still previews packages and casks only … a plan that doesn't say 'this
@@ -3413,7 +3413,7 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       it mean anything" (`reachability` = open / needs-fda, `guardedBy` = which
       option route survives a refusal, and a per-key `effect` of
       effective / unconfirmed / gui-only / noop). Three consumers, no second copy:
-      den derives from it, den's activation script **announces the verdict**, and
+      core derives from it, core's activation script **announces the verdict**, and
       `haus plan` / `haus doctor` / `haus rebuild`'s guard grep that announcement
       out of the built script — §5.11's discipline, applied to a second table.
       ★ **The table doesn't just describe the option surface, it generates it.**
@@ -3423,7 +3423,7 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       refused the same way. The one thing left by hand is the description, which
       is the one thing a table can't hold. That is what a designation scheme buys
       over a comment — the six hand-copies of "this domain needs FDA" that existed
-      before (den's warning, den's domain list, hearth's skill section, the
+      before (core's warning, core's domain list, terminal's skill section, the
       guard, doctor's row, and the paragraph pasted into every description) are
       one fact now.
       → **It also went the other way, and that was the point.** The surface grew
@@ -3524,7 +3524,7 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       → ❌ **The route is not `CustomUserPreferences`, and typed-vs-untyped was
       the wrong axis to pick it on.** *None* of the four goes through
       `system.defaults` at all: the layer emits its own `defaults write` for the
-      whole domain, in `modules/den/default.nix`'s `nebelhausAccessibility`
+      whole domain, in `modules/core/default.nix`'s `nebelhausAccessibility`
       block. `CustomUserPreferences` would have funnelled through the identical
       nix-darwin generator as a typed option — an **unguarded** write inside a
       script running under `set -e` — so the untyped route carries exactly the
@@ -3612,12 +3612,12 @@ viable, but the caveat is load-bearing and has to be designed *into* it.
       → ✅ **That is what shipped, plus the half this box didn't see.** The map
       value is one verb for the whole domain, as guessed, and the comment says
       why. What the guess missed is that the *trigger* couldn't live in the map
-      at all: `com.apple.universalaccess` sits in den's `typedDomainsWritten`
+      at all: `com.apple.universalaccess` sits in core's `typedDomainsWritten`
       unconditionally so every lookup finds an answer, so a domain-level trigger
       would bounce `universalaccessd` on **every rebuild of every machine** —
       and `haus.appearance.largePrint` sets `increaseContrast`, so the
       option-family version would still bounce it on exactly the machines
-      likeliest to have VoiceOver or Zoom running. den's `restartDeclaredBy`
+      likeliest to have VoiceOver or Zoom running. core's `restartDeclaredBy`
       gates it on the three `by-eye` keys specifically, read out of the table.
       Third instance of the same rule, now well past coincidence: **"which
       restart" is data, "does this rebuild need one" often isn't** (the locale
@@ -3831,7 +3831,7 @@ contents — the same shape, noticed and then not generalized.
       roster, not against the synthetic one the checks use.
       *(One process note, for the next person who mutation-checks a `haus`
       module:
-      `nix fmt` on `modules/hearth/default.nix` rewrites 727 lines — the file is
+      `nix fmt` on `modules/terminal/default.nix` rewrites 727 lines — the file is
       not nixfmt-clean and the repo doesn't check it, so §8's "run the formatter"
       still means hand-matching the local style. And a `path:` flake override
       caches on the checkout's ROOT mtime: editing a file two directories down
@@ -3951,7 +3951,7 @@ first one a lie", which is the one candidate here that is a *design rule for
 options not yet written* rather than a property of one that exists — worth saying
 out loud, because that is why it has outlived every other candidate. This pass
 also hit a fresh instance of it outside macOS settings: "the terminal font can't
-clip" is true only *while prowl tiles the window* (§5.2), which is the same
+clip" is true only *while windows tiles the window* (§5.2), which is the same
 shape — a claim whose second precondition is the thing that makes it a lie.
 
 **A fifth shape, added as a row to the table above rather than kept beside it** —
@@ -3959,9 +3959,9 @@ a one-row table nobody consults is the same hazard the table exists to fix:
 *a claim that is true, but about the wrong layer.*
 
 §5.2 said "every point-valued option is silently coupled to `displays` — worth
-auditing `fonts.*.size` and prowl's gaps". Nothing in it is false; it is simply
+auditing `fonts.*.size` and the tiler's gaps". Nothing in it is false; it is simply
 about numbers *inside modules*, while the sentence is phrased as a rule about the
-option surface, where the set has one member and prowl's gaps aren't in it. **The
+option surface, where the set has one member and the tiler's gaps aren't in it. **The
 thing that exposed the mismatch was trying to turn the paragraph into a check** —
 you cannot write a golden table without deciding what its rows are, and the rows
 were not where the paragraph said. That is a second argument for §5.14's "leave a
@@ -4057,7 +4057,7 @@ every other candidate since the sixth pass, and the reason recorded here was
 that it is *a design rule for options not yet written* rather than a property of
 one that exists. True about the rule; false about its instances. `font-reach`
 had one sitting in it: the check varies `fonts.mono.name` across two systems
-that both leave `sill.clock.monoFont` at its default, so `clockLabelFont`'s
+that both leave `bar.clock.monoFont` at its default, so `clockLabelFont`'s
 second branch — the one holding a hardcoded family — was never evaluated *by the
 check whose entire job is finding hardcoded families* (§5.3, haus#363). The fix
 is a third pair of systems with the second key flipped, and it costs one PR.
@@ -4099,7 +4099,7 @@ upstream repo *emit* data (`options-json`, `wm-bindings-json`, `ports.meta.json`
 and that this one stayed prose on both sides. `pounce-item-grammar` takes the
 third door: **a flake input already IS the upstream repo, at the rev you ship**,
 so `${pounce}/pkgs/pounce/ItemSettings.swift` is readable in a `runCommand` with
-no cooperation from pounce at all. It diffs `modules/pounce/item-grammar.nix`
+no cooperation from pounce at all. It diffs `modules/launcher/item-grammar.nix`
 against `ItemTarget`'s mode list and its error text, and it is in the all-systems
 set — so unlike `accent-reach` it fires on CI as well as on this Mac. What it
 caught, retroactively, was a day-old drift: pounce#80 added `shortcut:<uuid>`,
@@ -4130,7 +4130,7 @@ one-option blindness with a mirror in place of a check.
 
 **Phase 0 — ship this week, no architecture required**
 - ◐ `nebelhaus.fonts` (§5.3) — nebelhaus#91. Turned up a real bug on the way:
-      sill named `Hack Nerd Font` in seven places and **nothing installed it**,
+      bar named `Hack Nerd Font` in seven places and **nothing installed it**,
       so every fresh install had been drawing tofu across the whole bar.
       Phase 0's part is done; §5.3 is `◐` because of the app-side `sans` box,
       which is not Phase-0-shaped work.
@@ -4218,7 +4218,7 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       §5.3's Phase-0 line as well — the phase list is a second checkbox surface
       and this is the drift its own preamble warns about.)*
 - [x] §5.2 `ui.scale` — shipped; the sizing pass closed it out at five targets
-      (`density`/`motion` still unbuilt). **Pounce and sill both reached**
+      (`density`/`motion` still unbuilt). **Pounce and bar both reached**
       (pounce#53 + rice#175): the palette and every panel behind it scale freely,
       the bar's type scales to the menu-bar band's ceiling and stops
 - [x] §5.1 theme: **contrast** (nebelung#11 + nebelhaus#103) and **flavor / light
@@ -4257,7 +4257,7 @@ that visible, and turned up two things that were already broken:
       modifier" on a rice that moved them.
 - [x] ⚠️ **The keybinding tripwire was BROKEN by #108** and nothing in the rice
       could have caught it: `web/scripts/check-rice-bindings.mjs` did
-      `nix eval --json --file modules/prowl/wm-bindings.nix`, which stopped working
+      `nix eval --json --file modules/windows/wm-bindings.nix`, which stopped working
       the moment that file became a function ("cannot convert a function to JSON").
       It runs on a weekly cron, so it would have surfaced as a mystery Monday
       failure in a different repo. Fixed by exposing `wm-bindings-json` from the
@@ -4284,7 +4284,7 @@ that visible, and turned up two things that were already broken:
       inside shipped groups are deferred on that same reason — `lock`'s login
       half and `security`'s guest-user/remote-login half.
 - ◐ §5.9 — **pounce's half arrived from the app side (pounce#43), the rice-side
-      item generator shipped in rice#149.** Three boxes remain: sill widgets,
+      item generator shipped in rice#149.** Three boxes remain: bar widgets,
       pounce command packs, and commands declaring what they do (mutates state?
       needs confirm? needs network or a permission?).
 - [x] the restart map (§4) — nix-darwin only restarts Dock, so this is ours.
@@ -4308,7 +4308,7 @@ that visible, and turned up two things that were already broken:
       through an `NSWorkspace` probe. ~~Two boxes remain inside §5.11, both `haus
       doctor`/`haus plan` rendering rather than new mechanism.~~ **Both closed
       2026-08-14 (haus#353)** — and one of them was not rendering: the restart
-      map's `logout` verb rendered to nothing, so den had to emit the line before
+      map's `logout` verb rendered to nothing, so core had to emit the line before
       `plan` could read one. §5.11 has no open box left.
 - [ ] §5.8 scenes · ~~§5.12 accessibility~~ — **§5.12 is closed as of
       2026-08-14.** The doctor half was already in (rice#128); the designation,
@@ -4337,7 +4337,7 @@ hand-written activation script — which was the whole point of not faking it.
 §5.10 landed) and it is a **layer, not a whole rice**: it
 describes seeing, not the person, so `[ everyday large-print ]` composes with
 nothing lost either way (measured: stock `1.0 / 19pt` → large-print `1.4 / 27pt /
-contrast high` → stacked, plus developer off, prowl off, pounce on). That layer
+contrast high` → stacked, plus developer off, windows off, pounce on). That layer
 shape needed no new mechanism, and it's a better answer than a monolithic preset:
 had large-print been forced to restate `everyday`, the surface still couldn't
 separate "a Mac for someone who doesn't write code" from "a Mac you can read".
@@ -4384,7 +4384,7 @@ both bigger than the change:
    rice vs the Mac — and `large-print` sets both, so a tool sized in points has to
    be told where the (now smaller) screen ends. Every point-valued option in the
    surface is coupled to `displays` this way; only pounce's is guarded so far.
-   `fonts.*.size` and prowl's gaps want the same audit.
+   `fonts.*.size` and the tiler's gaps want the same audit.
 2. **A stated ceiling is a legitimate third answer.** The bar can't scale
    proportionally — its height belongs to the macOS menu-bar band, which was
    *measured* to have no setting behind it — so it grows its type to 1.25× and
@@ -4404,7 +4404,7 @@ the remaining work sits changed shape:
 - Phase 3 is closer to done than the boxes said: §5.4's install half shipped as
   `roster`, leaving `workspaces` alone as the last Phase 3 item.
 - Phase 4 is emptier than it looks: §5.9's pounce half is fully landed on both
-  sides now, so what's left there is `sill.widgets` and command metadata.
+  sides now, so what's left there is `bar.widgets` and command metadata.
 - Phase 5's §5.12 has its doctor half, so the accessibility line item is now
   purely about the remaining unmeasured keys. **Built out since (haus#356,
   2026-08-14), down to those keys and nothing else**, and the sentence above was
@@ -4508,7 +4508,7 @@ composing into an outcome nobody chose.
 → The corollary generalises past packs: the leaf trick is safe for `roster`
 because it is `attrsOf submodule` the whole way down. It is **not** a general
 preset mechanism — an option whose value is a plain list or attrset
-(`hearth.obsidianVaults`, `theme.ports.handled`, `agents.clients`, and
+(`terminal.obsidianVaults`, `theme.ports.handled`, `agents.clients`, and
 `theme.palette` when §5.1 builds it) would end up with override markers buried
 *inside* its value, which is a type error rather than a priority.
 
@@ -4565,9 +4565,9 @@ over the pure-lib option surface. Seconds, no darwin system, Linux-CI-capable.
 
 | pair | overlap | disagree | verdict |
 |---|---|---|---|
-| `[ full minimal ]` | 5 | 4 | conflict on pounce/prowl/sill/tour — **`developer.enable` overlaps and does not collide** |
-| `[ everyday full ]` | 5 | 2 | conflict on `developer.enable`, `prowl.enable` only |
-| `[ everyday minimal ]` | 5 | 4 | conflict on developer/pounce/sill/tour — they **agree** prowl is off |
+| `[ full minimal ]` | 5 | 4 | conflict on pounce/windows/bar/tour — **`developer.enable` overlaps and does not collide** |
+| `[ everyday full ]` | 5 | 2 | conflict on `developer.enable`, `windows.enable` only |
+| `[ everyday minimal ]` | 5 | 4 | conflict on developer/pounce/bar/tour — they **agree** windows is off |
 | `[ everyday large-print ]` | 0 | 0 | composes |
 | `[ full large-print ]` | 0 | 0 | composes |
 | `[ large-print minimal ]` | 0 | 0 | composes |
@@ -4586,7 +4586,7 @@ anything this project wrote". Measured, with the rices imported **as paths** —
 which is exactly what `extraModules = [ nebelhaus.presets.everyday … ]` is:
 
 ```
-error: The option `nebelhaus.sill.enable' has conflicting definition values:
+error: The option `nebelhaus.bar.enable' has conflicting definition values:
        - In `…/presets/minimal.nix': false
        - In `…/presets/everyday.nix': true
        Use `lib.mkForce value` or `lib.mkDefault value` to change the priority…
@@ -4686,17 +4686,17 @@ exactly the shape §5.14 says a finding should not be left in. It is a golden
 table now, in `nix flake check`, pure lib beside `packs`:
 
 ```
-[ everyday full ] overlap 5 disagree 2 stops on developer.enable, prowl.enable
+[ everyday full ] overlap 5 disagree 2 stops on developer.enable, windows.enable
 [ everyday large-print ] overlap 0 disagree 0 composes
-[ everyday minimal ] overlap 5 disagree 4 stops on developer.enable, pounce.enable, sill.enable, tour.enable
+[ everyday minimal ] overlap 5 disagree 4 stops on developer.enable, pounce.enable, bar.enable, tour.enable
 [ full large-print ] overlap 0 disagree 0 composes
-[ full minimal ] overlap 5 disagree 4 stops on pounce.enable, prowl.enable, sill.enable, tour.enable
+[ full minimal ] overlap 5 disagree 4 stops on pounce.enable, windows.enable, bar.enable, tour.enable
 [ large-print minimal ] overlap 0 disagree 0 composes
 a host restating full's developer.enable composes
 a host contradicting full's developer.enable stops on developer.enable
 the same, with lib.mkForce composes, host wins (developer.enable = false)
-[ everyday minimal ] plus a plain host contradicting the prowl.enable they agree on
-    stops on developer.enable, pounce.enable, prowl.enable, sill.enable, tour.enable
+[ everyday minimal ] plus a plain host contradicting the windows.enable they agree on
+    stops on developer.enable, pounce.enable, windows.enable, bar.enable, tour.enable
 two rices, one tour step each: B, A (merged, no error)
 two rices, one app each: obsidian, zotero (merged, no error)
 ```
@@ -4951,21 +4951,21 @@ reformat commit — worth doing deliberately, not inside another change.)
 
 ## 9. Naming (optional, low stakes)
 
-The family speaks cat-and-house (`nebelung`, `pounce`, `prowl`, `sill`, `den`,
-`hearth`, `collar`, `hush`, `perch`, `haus`, `holt`). New rooms could keep it —
+The family speaks cat-and-house (`nebelung`, `pounce`, `windows`, `bar`, `core`,
+`terminal`, `security`, `focus`, `perch`, `haus`, `holt`). New rooms could keep it —
 minus two names this table can no longer have: **`perch` is a shipped product**
 (the notch file shelf), and `trill` left the rice entirely in rice#213. Names in
 this family get taken while a table like this sits still:
 
 | Room | Candidate | Why |
 |---|---|---|
-| accessibility — vision | `eyes` | cats' defining sense; `nebelhaus-ears.png` already exists in sill |
+| accessibility — vision | `eyes` | cats' defining sense; `nebelhaus-ears.png` already exists in bar |
 | accessibility — motor | `paws` | |
 | accessibility — hearing | `ears` | |
 | keymap | `claws` | what the leader key is |
 | displays / multi-monitor | ~~`perch`~~ | taken — it's the notch file shelf now, and the room shipped as `nebelhaus.displays` anyway (§5.10) |
-| scenes | `moods` | the states the cat is in; `hush` becomes one |
-| dev pack extracted from hearth | `quarry` / `kit` | weakest of the set — probably just call it `developer` |
+| scenes | `moods` | the states the cat is in; `focus` becomes one |
+| dev pack extracted from terminal | `quarry` / `kit` | weakest of the set — probably just call it `developer` |
 
 Not a blocker. `haus.accessibility.vision.*` is clearer to a stranger than
 `haus.eyes.*`, and strangers are the point. (Settled the other way in the end:

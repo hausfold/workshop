@@ -54,7 +54,7 @@ Nothing below works if a tester hits a wall on step one.
 - [ ] **Carry-over, unresolved:** an earlier session flagged a "`.bak`
       discrepancy" with no detail. The only `.bak` in the docs is the Codex
       OAuth token rewrite at `web/src/content/docs/guides/the-bar.mdx:128` —
-      confirm the sill refresher actually writes that file, or fix the sentence.
+      confirm the bar refresher actually writes that file, or fix the sentence.
 - [ ] **Capture the rice hero shot** (`nebelhaus/assets/hero.png`). Not a
       blocker for testers, but it's the asset every later phase waits on, and
       it's a single good desktop away from done.
@@ -70,7 +70,7 @@ taste, and taste isn't what this round buys.
 | 2 | Existing Nix user | Whole house, then migrate the host file to a second machine | Reproducibility is real, not local |
 | 3 | Technical Mac user, no Nix | Whole house, cold | The hard one. Every assumption you can't see |
 | 4 | Technical Mac user, no Nix | Whole house, then **deliberately break it and roll back** | `haus rollback` / `haus doctor` under a stranger's hands |
-| 5 | Mac user, no Nix | Import **only `prowl`** into their own config | The "steal one room" claim |
+| 5 | Mac user, no Nix | Import **only `windows`** into their own config | The "steal one room" claim |
 | 6 | Launcher/utility person | pounce via Homebrew, then author one command | The standalone door, and the funnel's core promise |
 | 7 | Theme person | Three nebelung ports | The taste door, and port instructions |
 | 8 | Any dev with a git repo | holt in a repo that isn't yours | The only door with no macOS prerequisite |

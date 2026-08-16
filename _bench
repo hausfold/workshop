@@ -8,8 +8,8 @@
 # subcommands it has to stay in step with.
 #
 # zsh only SEES this file if something puts its directory on fpath. Today
-# that's a symlink into ~/.zsh-completions, which haus's hearth room prepends
-# (haus `modules/hearth/default.nix`):
+# that's a symlink into ~/.zsh-completions, which haus's terminal room prepends
+# (haus `modules/terminal/default.nix`):
 #
 #     ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench
 #

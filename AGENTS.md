@@ -11,7 +11,7 @@ git repos.
 > **`_bench` gets onto fpath by symlink, not by Nix.** `bench` reaches PATH
 > through a wrapper in the private machine repo that `exec`s *this* checkout's
 > script, so the completion lives beside the script it describes and is wired up
-> with `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench` — haus's hearth
+> with `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench` — haus's terminal
 > room already prepends that dir. Nothing rebuilds when you edit either file;
 > `exec zsh` reloads the completion. Its subcommand descriptions paraphrase
 > `bench`'s own usage header (`bench:2-40`) and must follow it. Only `FAMILY` and
@@ -79,7 +79,7 @@ an `@AGENTS.md` import — put rules in the former, never the latter).
 | colors / palette / how a tool is themed | `./nebelung` |
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
-| the desktop: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./haus` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/haus`; the repo is named for the layer, the org is what's in front of the slash — decision 8, applied to the slug by §10). **The directory was `./nebelhaus` until 2026-08-09 and `./hausfold` until 2026-08-11**; each time the repo moved, the checkout followed. The desktop it ships is **`hacker`** — renamed from `nebelhaus` on 2026-08-14 (§11); the directory is named for its repo, not for the desktop it carries. |
+| the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — **the rooms are named for what they do since 2026-08-16**, and the eight code names they replaced are mapped in [`notes/rooms-desktops.md`](notes/rooms-desktops.md#the-names-2026-08-16) | `./haus` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/haus`; the repo is named for the layer, the org is what's in front of the slash — decision 8, applied to the slug by §10). **The directory was `./nebelhaus` until 2026-08-09 and `./hausfold` until 2026-08-11**; each time the repo moved, the checkout followed. The desktop it ships is **`hacker`** — renamed from `nebelhaus` on 2026-08-14 (§11); the directory is named for its repo, not for the desktop it carries. |
 | the org's GitHub front page | `./org-profile` — the checkout of the `hausfold/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` — its own repo now ([hausfold/trill](https://github.com/hausfold/trill)), ejected from the incubator 2026-08-09. Called **flick** until 2026-08-08. **Deliberately not a family repo**: it is not in `bench`'s `FAMILY` and carries no lock edge (§9 of `notes/hausfold-rename.md` — that name must never appear there), so `bench status`/`ship` don't see it. It IS in `DOCS_REPOS`, `bench clone` and `bench pull` (like `hausfold.co`): docs coverage and lock coverage are different lists, and a repo the daily sweep can't open is one it reports clean forever. The rice will consume it as a leaf overlay, which is not the same thing as joining the ripple chain. |
 | holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([nebelhaus#200](https://github.com/hausfold/hausfold/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([nebelhaus#245](https://github.com/hausfold/hausfold/pull/245)) — there is no fallback to roll back to. |
@@ -146,7 +146,7 @@ Never hand-walk that ripple; the tooling does it:
 - **`config.kdl` (keybinds, theme, options) hot-reloads — just `bench try
   switch`.** zellij watches its active config and applies most fields to the
   *running* server in about a second; tabs, panes and live agent sessions stay
-  put. This works only because hearth installs `~/.config/zellij/config.kdl` as
+  put. This works only because terminal installs `~/.config/zellij/config.kdl` as
   a real file with a live mtime rather than a home-manager symlink: zellij gates
   the reload on mtime, and every `/nix/store` file is stamped epoch 1, so a
   symlinked config makes each rebuild look *older* than what zellij already read
@@ -156,7 +156,7 @@ Never hand-walk that ripple; the tooling does it:
 - **Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that
   already exist do NOT hot-reload** — a running server caches plugin wasm in
   memory for its whole lifetime, so these need a fresh server. Use **`zscratch`**
-  — a rice dev CLI (`haus/modules/den`, next to `holt`, on PATH) that renders
+  — a rice dev CLI (`haus/modules/core`, next to `holt`, on PATH) that renders
   your candidate over a copy of the live `~/.config/zellij` into a temp
   `--config-dir` and boots a throwaway session in its own Ghostty window, so the
   working multiplexer is untouched (`zscratch --config`/`--layout`/`--theme
@@ -185,7 +185,7 @@ the workshop. Worktrees live OUTSIDE the repos so trees stay clean and `bench
 try`'s `path:` overrides never swallow them. (`Ctrl Alt Shift a` is the in-place
 variant: the one agent per tab allowed to edit the real checkout.)
 
-Its bash predecessor `wt.sh` (`haus/modules/den/wt.sh`) has been retired
+Its bash predecessor `wt.sh` (`haus/modules/core/wt.sh`) has been retired
 entirely — `holt` is the only worktree-lifecycle tool the family ships, and
 every caller (Claude Code's hooks, pounce's Spawn Agent, `bench status`) is
 already on it.

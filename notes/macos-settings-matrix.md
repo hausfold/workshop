@@ -296,8 +296,8 @@ line 877: (end of script)
 `defaults` exits **1**. So *whenever that write fails* — for any reason, FDA
 being the common one — `darwin-rebuild switch` **aborts at line 559 and skips
 the remaining 318 lines**, which include the `SLSMenuBarUseBlurredAppearance`
-write (Sill's opaque menu bar), the Dock restart, and **every launchd daemon and
-user-agent setup step** (`awake`, `aerospace`, `hush-watcher`, pounce,
+write (Bar's opaque menu bar), the Dock restart, and **every launchd daemon and
+user-agent setup step** (`awake`, `aerospace`, `focus-watcher`, pounce,
 sketchybar…).
 
 **This part survives the correction above** — it's the consequence of the write
@@ -340,7 +340,7 @@ why.
 | `NSGlobalDomain` | varies per key | 53 typed keys |
 | `com.apple.AppleMultitouchTrackpad` | none | 22 typed keys |
 | `com.apple.WindowManager` | logout | 12 typed keys |
-| `com.apple.controlcenter` | `killall ControlCenter` — **done since rice#250**, and unconditionally: the domain is in den's `typedDomainsWritten` whether or not a `haus.menuBar.controlCenter` key is set | ByHost domain |
+| `com.apple.controlcenter` | `killall ControlCenter` — **done since rice#250**, and unconditionally: the domain is in core's `typedDomainsWritten` whether or not a `haus.menuBar.controlCenter` key is set | ByHost domain |
 | `com.apple.universalaccess` | `killall universalaccessd` — **done since haus#360**, fired only for the three `by-eye` keys (the four oracle-backed ones need no restart) | FDA-gated; see the accessibility section above |
 
 **The animation keys are the one family in these domains shipped without a
@@ -769,7 +769,7 @@ see, and it is worth filing upstream.
    - display mode (`larger-text`) — ✅ proven reachable
    - `nebelhaus.fonts` sizes — ✅ fully ours
    - Dock `tilesize` / `largesize`, Finder icon size — ✅ typed and writable
-   - Sill height/padding, Pounce row height, Ghostty font size — ✅ fully ours
+   - Bar height/padding, Pounce row height, Ghostty font size — ✅ fully ours
    - a high-contrast **theme flavor** — ✅ fully ours (nebelung)
 
    Which is a strong argument for the roadmap's existing ranking: **§5.1 theme

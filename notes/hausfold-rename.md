@@ -3855,8 +3855,11 @@ Write these down or they get "fixed" by a later session:
   2026-08-10 the *layer* is called `haus` in user-facing copy too (decision 8),
   which makes verb, namespace and name one word on purpose. `hausfold` stays
   the org, the maker and the seller — do **not** sweep one into the other.
-- **`holt`, `pounce`, `perch`, `trill`, `prowl`, `sill`, `den`, `hearth`,
-  `collar`, `hush`** — all product/room names, all unchanged. ~~`flick`~~ is the
+- **`holt`, `pounce`, `perch`, `trill`** — all PRODUCT names, all unchanged.
+  (The ROOM names that used to sit in this list moved on 2026-08-16, to what
+  each room does — see `rooms-desktops.md`, "The names". `pounce` and `perch`
+  stay here because the apps kept their names; only the rooms installing them
+  were renamed.) ~~`flick`~~ is the
   one exception this list ever took: it became **`trill`** on 2026-08-08 (§3.4),
   reusing the name the archived Messages client gave up. Not part of the
   hausfold rename — an independent decision that happened to land in the same

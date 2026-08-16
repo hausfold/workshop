@@ -5,6 +5,13 @@ Step 0 baseline, 2026-08-13. This inventory describes `haus` at
 It is classification evidence for `notes/rooms-desktops.md`; it changes no
 runtime behavior.
 
+> **Names swept 2026-08-16.** Every module, export and namespace below is
+> spelled the way it is spelled TODAY. The revision this was measured at spells
+> eight of them differently — the mapping, and why the sweep happened, are in
+> [`rooms-desktops.md`](rooms-desktops.md#the-names-2026-08-16). Nothing else
+> moved: the counts, the classifications and the commands still reproduce at
+> that revision, one substitution away.
+
 ## Baseline result
 
 The bounded surface contains:
@@ -80,13 +87,13 @@ jq -r '
 | Export | Source | Product ownership | Current standalone result |
 |---|---|---|---|
 | `default` | `modules/` | compatibility aggregate: foundation plus every current implementation module | evaluates |
-| `den` | `modules/den` | foundation plus pieces now owned by Appearance, Development, Bar, Security and host policy | fails: `config.haus` is undeclared |
-| `hearth` | `modules/hearth` | Development, with AI and Appearance reads | fails: `haus` option does not exist |
-| `prowl` | `modules/prowl` | Windows | fails: `haus` option does not exist |
-| `sill` | `modules/sill` | Bar | fails: `haus` option does not exist |
-| `collar` | `modules/collar` | Security | fails: `config.haus` is missing |
-| `pounce` | `modules/pounce` | Launcher | fails: `haus` option does not exist |
-| `hush` | `modules/hush` | Focus | fails: `config.haus` is missing |
+| `core` | `modules/core` | foundation plus pieces now owned by Appearance, Development, Bar, Security and host policy | fails: `config.haus` is undeclared |
+| `terminal` | `modules/terminal` | Development, with AI and Appearance reads | fails: `haus` option does not exist |
+| `windows` | `modules/windows` | Windows | fails: `haus` option does not exist |
+| `bar` | `modules/bar` | Bar | fails: `haus` option does not exist |
+| `security` | `modules/security` | Security | fails: `config.haus` is missing |
+| `launcher` | `modules/launcher` | Launcher | fails: `haus` option does not exist |
+| `focus` | `modules/focus` | Focus | fails: `config.haus` is missing |
 | `secrets` | `modules/secrets` | Security | fails: `config.haus` is missing |
 
 The eight partial exports import implementation only. Their declarations live
@@ -172,20 +179,20 @@ implementation units:
 | `workspaces` | normalize named workspaces and app membership; enforce membership/key uniqueness |
 | `roster` | normalize and install roster entries; feed launchers, window rules, pills, theme ports and App Store policy |
 | `apps` | contribute the chosen video player and its file associations |
-| `den` | macOS defaults, system/Homebrew foundation, fonts, core packages, GC and the haus/awake/zscratch/statusline/activation CLIs |
+| `core` | macOS defaults, system/Homebrew foundation, fonts, core packages, GC and the haus/awake/zscratch/statusline/activation CLIs |
 | `displays` | resolve semantic display scale and apply it through `hausdisp` |
 | `theme` | resolve Nebelung flavor/contrast/accent and macOS appearance |
 | `theme/ports.nix` | deploy supported app themes for roster entries |
 | `wallpaper` | build, install and select the configured desktop picture |
-| `hearth` | terminal, shell, editor, Git, CLI toolbelt, language runtime and agent client wiring |
-| `hearth/zen.nix` | deploy Zen extension policy |
-| `hearth/zen-tabs` | build/deploy the optional Zen native tab bridge |
-| `prowl` | AeroSpace tiling, workspace routing, window navigation and leader bindings |
-| `sill` | top/bottom SketchyBar services, pills, popups, status hooks and first-run tour |
-| `collar` | Touch ID sudo and optional passwordless activation |
+| `terminal` | terminal, shell, editor, Git, CLI toolbelt, language runtime and agent client wiring |
+| `terminal/zen.nix` | deploy Zen extension policy |
+| `terminal/zen-tabs` | build/deploy the optional Zen native tab bridge |
+| `windows` | AeroSpace tiling, workspace routing, window navigation and leader bindings |
+| `bar` | top/bottom SketchyBar services, pills, popups, status hooks and first-run tour |
+| `security` | Touch ID sudo and optional passwordless activation |
 | `pounce` | Pounce app/daemon, stable signing copy, palette commands, hotkey and integrations |
 | `perch` | Perch app installation and appearance configuration |
-| `hush` | Focus toggle engine, Slack integration, hooks and optional bar updates |
+| `focus` | Focus toggle engine, Slack integration, hooks and optional bar updates |
 | `secrets` | secretspec package and host-selected provider config |
 | `snippets` | espanso package/config for declared text expansions |
 
@@ -208,15 +215,15 @@ counts partition the generated entries in that row.
 | `animations` | 1 | room | Appearance | 1 / 0 / 0 | 0 |
 | `appStore` | 1 | room | Apps | 1 / 0 / 0 | 0 |
 | `apps` | 2 | room | Apps | 2 / 0 / 0 | 2 |
-| `collar` | 2 | room | Security | 2 / 0 / 0 | 2 |
+| `security` | 2 | room | Security | 2 / 0 / 0 | 2 |
 | `developer` | 5 | room | Development | 5 / 0 / 0 | 3 |
 | `displays` | 2 | room | Displays | 1 / 0 / 1 | 0 |
 | `fonts` | 4 | room | Appearance | 3 / 1 / 0 | 2 |
 | `git` | 5 | host | host identity/work scope | 0 / 5 / 0 | 0 |
-| `hearth` | 7 | room | Development | 5 / 2 / 0 | 4 |
+| `terminal` | 7 | room | Development | 5 / 2 / 0 | 4 |
 | `homebrew` | 3 | room | Apps | 3 / 0 / 0 | 0 |
 | `hotCorners` | 4 | room | Windows | 4 / 0 / 0 | 0 |
-| `hush` | 7 | room | Focus | 5 / 2 / 0 | 1 |
+| `focus` | 7 | room | Focus | 5 / 2 / 0 | 1 |
 | `keys` | 7 | shared | keyboard extension surface | 5 / 1 / 1 | 3 |
 | `locale` | 6 | host | host locale | 0 / 6 / 0 | 0 |
 | `lock` | 2 | room | Security | 2 / 0 / 0 | 0 |
@@ -224,12 +231,12 @@ counts partition the generated entries in that row.
 | `perch` | 2 | room | Shelf | 2 / 0 / 0 | 1 |
 | `pounce` | 14 | room | Launcher | 12 / 1 / 1 | 2 |
 | `power` | 8 | host | host power policy | 0 / 8 / 0 | 0 |
-| `prowl` | 1 | room | Windows | 1 / 0 / 0 | 1 |
+| `windows` | 1 | room | Windows | 1 / 0 / 0 | 1 |
 | `roster` | 16 | shared | app/package roster | 13 / 2 / 1 | 0 |
 | `screenshots` | 5 | room | Appearance | 4 / 1 / 0 | 0 |
 | `secrets` | 1 | room | Security | 0 / 1 / 0 | 0 |
 | `security` | 5 | room | Security | 5 / 0 / 0 | 0 |
-| `sill` | 59 | room | Bar | 56 / 2 / 1 | 13 |
+| `bar` | 59 | room | Bar | 56 / 2 / 1 | 13 |
 | `snippets` | 4 | room | Text expansion | 3 / 0 / 1 | 0 |
 | `sound` | 5 | room | Appearance | 5 / 0 / 0 | 0 |
 | `theme` | 5 | room | Appearance | 5 / 0 / 0 | 4 |
@@ -259,14 +266,14 @@ namespace label.
 | `haus.locale.*` | 6 | person/host locale |
 | `haus.agents.instructions` | 1 | instruction injection reaches code-running agents |
 | `haus.fonts.mono.package` | 1 | evaluated package value; `packageName` is the safe data seam |
-| `haus.hearth.{editor,obsidianVaults}` | 2 | executed command and host-relative paths |
-| `haus.hush.{hooks,slack.tokenCommand}` | 2 | executed paths/commands |
+| `haus.terminal.{editor,obsidianVaults}` | 2 | executed command and host-relative paths |
+| `haus.focus.{hooks,slack.tokenCommand}` | 2 | executed paths/commands |
 | `haus.keys.leaderExtras.*.command` | 1 | executed command string |
-| `haus.pounce.signingIdentity` | 1 | host signing identity |
+| `haus.launcher.signingIdentity` | 1 | host signing identity |
 | `haus.roster.<name>.{installedBy,package}` | 2 | implementation-owned marker and evaluated package value |
 | `haus.screenshots.location` | 1 | personal filesystem location |
 | `haus.secrets.provider` | 1 | host secret-infrastructure choice |
-| `haus.sill.{calendar.me,elgato.host}` | 2 | personal identity and physical/network coordinate |
+| `haus.bar.{calendar.me,elgato.host}` | 2 | personal identity and physical/network coordinate |
 | `haus.zen.extensions` plus its five reachable child entries | 6 | downloads executable browser code; the container is transitively unsafe |
 | `haus.zen.extraPolicies` | 1 | unconstrained freeform attrset |
 
@@ -276,9 +283,9 @@ namespace label.
 |---|---|
 | `haus.displays` | validate selector keys recursively; `internal` and `main` are desktop-safe while a UUID is host-only |
 | `haus.keys.leaderExtras` | empty is safe; any valid entry reaches the host-only required `command` leaf |
-| `haus.pounce.items` | validate each launcher item against its closed submodule schema |
+| `haus.launcher.items` | validate each launcher item against its closed submodule schema |
 | `haus.roster` | arbitrary entry names are allowed, but every child is checked; `package` and `installedBy` remain host-only |
-| `haus.sill.media.icons` | validate arbitrary icon keys with string-only values |
+| `haus.bar.media.icons` | validate arbitrary icon keys with string-only values |
 | `haus.snippets.matches` | validate each match against its closed submodule schema |
 | `haus.tour.steps` | validate each tour step against its closed submodule schema |
 | `haus.workspaces` | validate arbitrary workspace names against their closed entry schema |
@@ -298,26 +305,26 @@ jq '
     or (.key | startswith("haus.locale."))
     or (.key == "haus.agents.instructions")
     or (.key == "haus.fonts.mono.package")
-    or (.key == "haus.hearth.editor")
-    or (.key == "haus.hearth.obsidianVaults")
-    or (.key == "haus.hush.hooks")
-    or (.key == "haus.hush.slack.tokenCommand")
+    or (.key == "haus.terminal.editor")
+    or (.key == "haus.terminal.obsidianVaults")
+    or (.key == "haus.focus.hooks")
+    or (.key == "haus.focus.slack.tokenCommand")
     or (.key == "haus.keys.leaderExtras.*.command")
-    or (.key == "haus.pounce.signingIdentity")
+    or (.key == "haus.launcher.signingIdentity")
     or (.key == "haus.roster.<name>.installedBy")
     or (.key == "haus.roster.<name>.package")
     or (.key == "haus.screenshots.location")
     or (.key == "haus.secrets.provider")
-    or (.key == "haus.sill.calendar.me")
-    or (.key == "haus.sill.elgato.host")
+    or (.key == "haus.bar.calendar.me")
+    or (.key == "haus.bar.elgato.host")
     or (.key | startswith("haus.zen.extensions"))
     or (.key == "haus.zen.extraPolicies");
   def recursive:
     (.key == "haus.displays")
     or (.key == "haus.keys.leaderExtras")
-    or (.key == "haus.pounce.items")
+    or (.key == "haus.launcher.items")
     or (.key == "haus.roster")
-    or (.key == "haus.sill.media.icons")
+    or (.key == "haus.bar.media.icons")
     or (.key == "haus.snippets.matches")
     or (.key == "haus.tour.steps")
     or (.key == "haus.workspaces");
@@ -342,16 +349,16 @@ These 54 generated defaults encode nebelhaus opinion:
 |---|---:|---|
 | `agents.{clients,default}` | 2 | chosen clients and primary client |
 | `apps.videoPlayer.*` | 2 | chosen app and file ownership |
-| `collar.*` | 2 | Touch ID/passwordless activation policy |
+| `security.*` | 2 | Touch ID/passwordless activation policy |
 | `developer.{enable,agents.enable,languages}` | 3 | developer-first machine, AI coupling and Node runtime |
 | `fonts.mono.{name,size}` | 2 | typeface and tuned size |
-| `hearth.{editor,floatBorder,rightClickFullscreen,zellijStartLocked}` | 4 | editor and terminal interaction model |
-| `hush.enable` | 1 | Focus room selected |
+| `terminal.{editor,floatBorder,rightClickFullscreen,zellijStartLocked}` | 4 | editor and terminal interaction model |
+| `focus.enable` | 1 | Focus room selected |
 | `keys.{leader,palette,windowNav}` | 3 | global remaps |
 | `perch.enable` | 1 | Shelf selected |
 | `pounce.{enable,windowMode}` | 2 | Launcher selected and compact presentation |
-| `prowl.enable` | 1 | Windows selected |
-| `sill.enable`, `sill.position`, `sill.clock.mode`, the five true `sill.items.*` leaves and five interactive/logo leaves | 13 | Bar selected, placed and curated |
+| `windows.enable` | 1 | Windows selected |
+| `bar.enable`, `bar.position`, `bar.clock.mode`, the five true `bar.items.*` leaves and five interactive/logo leaves | 13 | Bar selected, placed and curated |
 | `theme.{accent,contrast,flavor,ports.enable}` | 4 | Nebelung appearance and app theming |
 | `tour.enable` | 1 | first-run tutor selected |
 | `wallpaper.{style,size,depth,grain}`, three active `glow` values and all six `mark` values | 13 | generated nebelhaus desktop art |
@@ -369,28 +376,28 @@ jq '
   def opinion:
     (.key == "haus.agents.clients") or (.key == "haus.agents.default")
     or (.key | startswith("haus.apps.videoPlayer."))
-    or (.key | startswith("haus.collar."))
+    or (.key | startswith("haus.security."))
     or (.key == "haus.developer.enable")
     or (.key == "haus.developer.agents.enable")
     or (.key == "haus.developer.languages")
     or (.key == "haus.fonts.mono.name") or (.key == "haus.fonts.mono.size")
-    or (.key == "haus.hearth.editor") or (.key == "haus.hearth.floatBorder")
-    or (.key == "haus.hearth.rightClickFullscreen")
-    or (.key == "haus.hearth.zellijStartLocked")
-    or (.key == "haus.hush.enable")
+    or (.key == "haus.terminal.editor") or (.key == "haus.terminal.floatBorder")
+    or (.key == "haus.terminal.rightClickFullscreen")
+    or (.key == "haus.terminal.zellijStartLocked")
+    or (.key == "haus.focus.enable")
     or (.key == "haus.keys.leader") or (.key == "haus.keys.palette")
     or (.key == "haus.keys.windowNav")
-    or (.key == "haus.perch.enable")
-    or (.key == "haus.pounce.enable") or (.key == "haus.pounce.windowMode")
-    or (.key == "haus.prowl.enable")
-    or (.key == "haus.sill.enable") or (.key == "haus.sill.position")
-    or (.key == "haus.sill.clock.mode")
-    or (.key == "haus.sill.items.battery") or (.key == "haus.sill.items.clock")
-    or (.key == "haus.sill.items.media") or (.key == "haus.sill.items.weather")
-    or (.key == "haus.sill.items.wifi")
-    or (.key == "haus.sill.logo.gestures") or (.key == "haus.sill.logo.icon")
-    or (.key == "haus.sill.logo.size") or (.key == "haus.sill.logo.status")
-    or (.key == "haus.sill.logo.sweep")
+    or (.key == "haus.shelf.enable")
+    or (.key == "haus.launcher.enable") or (.key == "haus.launcher.windowMode")
+    or (.key == "haus.windows.enable")
+    or (.key == "haus.bar.enable") or (.key == "haus.bar.position")
+    or (.key == "haus.bar.clock.mode")
+    or (.key == "haus.bar.items.battery") or (.key == "haus.bar.items.clock")
+    or (.key == "haus.bar.items.media") or (.key == "haus.bar.items.weather")
+    or (.key == "haus.bar.items.wifi")
+    or (.key == "haus.bar.logo.gestures") or (.key == "haus.bar.logo.icon")
+    or (.key == "haus.bar.logo.size") or (.key == "haus.bar.logo.status")
+    or (.key == "haus.bar.logo.sweep")
     or (.key == "haus.theme.accent") or (.key == "haus.theme.contrast")
     or (.key == "haus.theme.flavor") or (.key == "haus.theme.ports.enable")
     or (.key == "haus.tour.enable")
@@ -415,22 +422,22 @@ The generated surface has these 25 `.enable` paths:
 | Path | Current default | Classification |
 |---|---|---|
 | `haus.apps.videoPlayer.enable` | `true` | nebelhaus opinion |
-| `haus.collar.enable` | `true` | nebelhaus opinion |
+| `haus.security.touchId.enable` | `true` | nebelhaus opinion |
 | `haus.developer.agents.enable` | `config.haus.developer.enable` | nebelhaus opinion; current AI coupling |
 | `haus.developer.enable` | `true` | nebelhaus opinion |
 | `haus.developer.git.enable` | `config.haus.developer.enable` | Development mechanism |
 | `haus.developer.toolbelt.enable` | `config.haus.developer.enable` | Development mechanism |
-| `haus.hearth.ghDash.enable` | `false` | conservative mechanism |
-| `haus.hush.enable` | `true` | nebelhaus opinion |
-| `haus.hush.slack.enable` | `false` | conservative mechanism |
-| `haus.perch.enable` | `true` | nebelhaus opinion |
-| `haus.pounce.autoQuit.enable` | `false` | conservative mechanism |
-| `haus.pounce.enable` | `true` | nebelhaus opinion |
-| `haus.prowl.enable` | `true` | nebelhaus opinion |
+| `haus.terminal.ghDash.enable` | `false` | conservative mechanism |
+| `haus.focus.enable` | `true` | nebelhaus opinion |
+| `haus.focus.slack.enable` | `false` | conservative mechanism |
+| `haus.shelf.enable` | `true` | nebelhaus opinion |
+| `haus.launcher.autoQuit.enable` | `false` | conservative mechanism |
+| `haus.launcher.enable` | `true` | nebelhaus opinion |
+| `haus.windows.enable` | `true` | nebelhaus opinion |
 | `haus.roster.<name>.enable` | `true` | declared-entry mechanism |
 | `haus.security.firewall.enable` | `null` | unmanaged mechanism |
-| `haus.sill.bottom.enable` | `false` | conservative mechanism |
-| `haus.sill.enable` | `true` | nebelhaus opinion |
+| `haus.bar.bottom.enable` | `false` | conservative mechanism |
+| `haus.bar.enable` | `true` | nebelhaus opinion |
 | `haus.snippets.enable` | `false` | conservative mechanism |
 | `haus.theme.ports.enable` | `true` | nebelhaus opinion |
 | `haus.tour.enable` | `true` | nebelhaus opinion |
@@ -454,19 +461,19 @@ literal spelling; the behavioral edges below are the executable subset.
 | Source | Referenced namespaces (lexical count) |
 |---|---|
 | `apps` | `apps(1)` |
-| `collar` | `collar(1)` |
-| `den` | `accessibility(1)`, `animations(1)`, `developer(1)`, `fonts(1)`, `homebrew(1)`, `hotCorners(2)`, `locale(1)`, `lock(1)`, `menuBar(2)`, `power(1)`, `screenshots(1)`, `security(1)`, `sill(2)`, `sound(1)`, `ui(4)` |
+| `security` | `security(1)` |
+| `core` | `accessibility(1)`, `animations(1)`, `developer(1)`, `fonts(1)`, `homebrew(1)`, `hotCorners(2)`, `locale(1)`, `lock(1)`, `menuBar(2)`, `power(1)`, `screenshots(1)`, `security(1)`, `bar(2)`, `sound(1)`, `ui(4)` |
 | `displays` | `displays(1)` |
-| `hearth` | `_appWorkspace(1)`, `_launchers(1)`, `agents(1)`, `developer(2)`, `fonts(3)`, `git(2)`, `hearth(1)`, `hush(1)`, `keys(3)`, `perch(1)`, `pounce(1)`, `prowl(1)`, `roster(1)`, `sill(1)`, `snippets(1)`, `theme(4)`, `ui(1)`, `zen(2)` |
-| `hush` | `hush(1)`, `sill(2)` |
-| `lib` | `fonts(1)`, `keys(1)`, `sill(1)`, `ui(2)` |
+| `terminal` | `_appWorkspace(1)`, `_launchers(1)`, `agents(1)`, `developer(2)`, `fonts(3)`, `git(2)`, `terminal(1)`, `focus(1)`, `keys(3)`, `perch(1)`, `pounce(1)`, `windows(1)`, `roster(1)`, `bar(1)`, `snippets(1)`, `theme(4)`, `ui(1)`, `zen(2)` |
+| `focus` | `focus(1)`, `bar(2)` |
+| `lib` | `fonts(1)`, `keys(1)`, `bar(1)`, `ui(2)` |
 | `options.nix` | `developer(8)` |
 | `perch` | `perch(2)`, `theme(2)` |
-| `pounce` | `_launchers(1)`, `agents(4)`, `developer(1)`, `hearth(2)`, `hush(2)`, `keys(2)`, `pounce(10)`, `theme(1)`, `ui(1)` |
-| `prowl` | `_appWorkspace(1)`, `_launchers(1)`, `_roster(1)`, `_workspaces(1)`, `keys(2)`, `prowl(1)`, `sill(1)`, `tour(1)`, `ui(1)` |
+| `pounce` | `_launchers(1)`, `agents(4)`, `developer(1)`, `terminal(2)`, `focus(2)`, `keys(2)`, `pounce(10)`, `theme(1)`, `ui(1)` |
+| `windows` | `_appWorkspace(1)`, `_launchers(1)`, `_roster(1)`, `_workspaces(1)`, `keys(2)`, `windows(1)`, `bar(1)`, `tour(1)`, `ui(1)` |
 | `roster` | `_appWorkspace(1)`, `appStore(1)`, `roster(1)` |
 | `secrets` | `secrets(1)` |
-| `sill` | `_appWorkspace(1)`, `_launchers(1)`, `_pounceCommands(1)`, `_workspaces(1)`, `fonts(1)`, `hush(2)`, `keys(1)`, `pounce(3)`, `prowl(2)`, `sill(8)`, `theme(1)`, `tour(2)`, `ui(1)` |
+| `bar` | `_appWorkspace(1)`, `_launchers(1)`, `_pounceCommands(1)`, `_workspaces(1)`, `fonts(1)`, `focus(2)`, `keys(1)`, `pounce(3)`, `windows(2)`, `bar(8)`, `theme(1)`, `tour(2)`, `ui(1)` |
 | `snippets` | `snippets(1)` |
 | `theme` | `theme(3)` |
 | `wallpaper` | `wallpaper(1)` |
@@ -476,19 +483,19 @@ The executable cross-room behavior that must survive extraction into extension
 points is:
 
 - Development currently turns its Git/toolbelt/language/AI subfeatures on and
-  Den/Hearth consume those decisions.
+  Core/Terminal consume those decisions.
 - AI currently contributes client packages, instruction/skill files, Holt
-  lifecycle wiring, Zellij bindings, Pounce commands and Sill agent/usage UI
-  through direct reads spread across Hearth, Pounce and Sill.
+  lifecycle wiring, Zellij bindings, Pounce commands and Bar agent/usage UI
+  through direct reads spread across Terminal, Pounce and Bar.
 - Windows, Bar and Launcher all consume the shared roster, workspaces and keymap.
 - Bar directly consumes Windows state, Launcher availability, Focus state,
   Appearance tokens/font/scale and Tour state.
 - Focus directly updates either Bar instance when present.
-- Launcher directly consumes AI, Focus, Development, Hearth and Appearance
+- Launcher directly consumes AI, Focus, Development, Terminal and Appearance
   state to filter commands and configure Pounce.
 - Shelf consumes Appearance flavor/contrast/accent.
 - Windows consumes Bar geometry/enablement, Tour state and UI scale.
-- Den hides the native menu bar when Bar is enabled and scales its own defaults
+- Core hides the native menu bar when Bar is enabled and scales its own defaults
   from `ui.scale`.
 - Apps and room modules contribute roster/install metadata; App Store policy is
   applied by the roster implementation.
