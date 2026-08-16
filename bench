@@ -347,8 +347,18 @@ resolve_layer_input() { # call BEFORE anything that overrides — it can die, an
   die "$CONSUMER/flake.lock declares no input carrying the haus layer (no node whose own inputs include pounce + nebelung). Point HAUS_CONSUMER at a machine flake that takes haus as an input."
 }
 
-layer_input() { # the resolved name, for interpolation
-  [ -n "$LAYER_INPUT" ] || resolve_layer_input
+layer_input() { # the resolved name, for interpolation — SILENT by contract
+  # Every caller is inside a `"$( … )"`, so this one may not talk: `warn` prints
+  # on stdout here (only `die` redirects), which would splice the warning text
+  # into the value and hand `nix flake update` a name with a ⚠ in it; and a `die`
+  # would kill the command substitution alone, leaving an empty name spliced into
+  # `--override-input`. Both are the silent no-op this whole seam exists to end,
+  # so the loud paths live in resolve_layer_input and every command that
+  # overrides calls it up front, in its own shell.
+  if [ -z "$LAYER_INPUT" ]; then
+    LAYER_INPUT="$(lock_layer_input)"
+    [ -n "$LAYER_INPUT" ] || LAYER_INPUT="$LAYER_INPUT_ASSUMED"
+  fi
   printf '%s\n' "$LAYER_INPUT"
 }
 
@@ -803,7 +813,7 @@ cmd_status() {
     fi
   done
   [ "$assumed" = 1 ] && hint "couldn't read a haus input out of $CONSUMER/flake.lock, so the row above assumes it's called '$LAYER_INPUT_ASSUMED'. bench overrides inputs by name and Nix ignores an unknown one silently, so if that's wrong, 'bench try' builds the pinned layer while announcing your branch."
-  [ "$renamed" = 1 ] && hint "RENAMED: fix the url in that flake.nix (the input's NAME is a separate question — renaming it needs bench's OVERRIDABLE in the same edit). Nothing is broken today; it breaks the day something else claims the old slug, and then it breaks as a fetch failure with no clue where the name came from."
+  [ "$renamed" = 1 ] && hint "RENAMED: fix the url in that flake.nix — one word, coupled to nothing (the input's NAME is a separate question, and bench derives that; see lock_layer_input). Nothing is broken today; it breaks the day something else claims the old slug, and then it breaks as a fetch failure with no clue where the name came from."
   [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
   [ "$offmain" = 1 ] && hint "OFF-MAIN: that rev lives on an unmerged branch — it stops resolving the moment the branch is deleted on merge, and the downstream repo then can't fetch its input at all. Land the upstream PR, then \`bench ship\` re-pins at the merge commit. Shipping FIRST also works and is usually wrong: it repins to main and silently drops the unmerged work."
   echo
@@ -889,6 +899,7 @@ cmd_status() {
 # including, notably, the very rebuild that installs it.
 activate_built() {
   local host="$1"
+  resolve_layer_input   # the third override site — cmd_rebuild reaches here too
   if [ -x /run/current-system/sw/bin/haus-activate ]; then
     sudo /run/current-system/sw/bin/haus-activate "$CONSUMER/result"
   else
@@ -1183,6 +1194,7 @@ cmd_try_batch() {
 }
 
 cmd_ship() {
+  resolve_layer_input   # the consumer hop bumps a lock BY INPUT NAME — say so here, not from the loop
   # Walk the chain upstream→downstream. For each repo: refuse dirty trees
   # (your commits are yours to write), bump any stale family locks, push.
   for name in "${FAMILY[@]}" consumer; do

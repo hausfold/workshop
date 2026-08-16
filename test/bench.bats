@@ -290,6 +290,38 @@ JSON
   [[ "$output" == *"nebelhaus"* ]]
 }
 
+@test "layer_input stays silent — every caller interpolates it inside \$( )" {
+  # `warn` prints on STDOUT here (only `die` redirects), so a chatty layer_input
+  # splices its own warning into the value: cmd_ship's `nix flake update
+  # "$input"` would be handed a name with a ⚠ in it. Loud belongs in
+  # resolve_layer_input, which runs in the command's own shell.
+  rm -f "$CONSUMER/flake.lock"
+  run layer_input
+  [ "$status" -eq 0 ]
+  [ "$output" = "nebelhaus" ]
+  echo '{ "root": "root", "nodes": { "root": { "inputs": {} } } }' >"$CONSUMER/flake.lock"
+  LAYER_INPUT=""
+  run layer_input
+  [ "$status" -eq 0 ]
+  [ "$output" = "nebelhaus" ]
+}
+
+@test "every \$(overrides) caller resolves the input name in its own shell first" {
+  # A die inside `$(overrides)` kills only that subshell and hands nix an empty
+  # `--override-input`, which is a no-op — the exact failure this seam ends. So
+  # the guard is structural: each caller of $(overrides) calls
+  # resolve_layer_input before it. This counts them rather than trusting memory.
+  local callers guards
+  callers="$(grep -v '^\s*#' "$HAUS" | grep -c '\$(overrides)')"
+  guards="$(grep -c '^\s*resolve_layer_input  ' "$HAUS")"   # the call sites, not the definition
+  # Three override sites (cmd_try, cmd_try_batch, activate_built), four guards —
+  # cmd_ship's is for `nix flake update "$input"`, which takes the name too. The
+  # equality that matters is the tripwire: a FOURTH override site trips this
+  # test, and whoever adds it has to come and read this comment.
+  [ "$callers" -eq 3 ]
+  [ "$guards" -ge "$callers" ]
+}
+
 @test "resolve_layer_input dies on a readable lock with no layer in it" {
   echo '{ "root": "root", "nodes": { "root": { "inputs": {} } } }' >"$CONSUMER/flake.lock"
   run resolve_layer_input

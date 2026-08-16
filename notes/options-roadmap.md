@@ -132,10 +132,16 @@ already exist, and one it treated as a detail is the actual root blocker.
 > printed below **still evaluates**, now onto `haus.launcher.items`, while the
 > banner's own instruction turns it into `haus.pounce.items`, which is an unknown
 > option and a hard eval failure. A translation rule aged into a trap: the
-> untranslated text is the one that works. The body holds eight such hits, all
-> `nebelhaus.pounce` (`grep -oE '\b(nebelhaus|haus)\.(hearth|prowl|sill|pounce|perch|hush|collar|den)\b'`
-> over §1 onward) — read them as `haus.launcher.*`, and read every OTHER
-> `nebelhaus.<x>` exactly as the 2026-08-08 rule says.
+> untranslated text is the one that works. Run over §1 onward,
+> `grep -oE '\b(nebelhaus|haus)\.(hearth|prowl|sill|pounce|perch|hush|collar|den)\b'`
+> returns **ten**: eight `nebelhaus.pounce`, which are addresses — read them as
+> `haus.launcher.*` — and two `nebelhaus.sill`, which are **not**: they sit
+> inside §6(b)'s quoted error transcript, where the whole point is what the
+> option was called on 2026-08-05, so they must not be translated at all. ⚠️
+> Those two were added by the very pass that wrote this paragraph, whose first
+> draft said "eight, all `nebelhaus.pounce`" and was falsified by its own commit
+> — caught by the assurance read. Every other `nebelhaus.<x>` below takes the
+> 2026-08-08 rule unchanged.
 >
 > The reason there are only eight is worth a sentence, because it inverts the
 > usual complaint about this file: **where §5 sketched a room that had a code
@@ -198,7 +204,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > Both `AGENTS.md` and [`hausfold-rename.md`](./hausfold-rename.md) §11.2 said
 > renaming `inputs.nebelhaus` needs *"`bench`'s `OVERRIDABLE` in the same edit"*.
 > `OVERRIDABLE` holds **repo directory names** (`nebelung pounce perch holt
-> haus`, `bench:110`) and never held an input name; the literals that actually
+> haus`) and never held an input name; the literals that actually
 > coupled were `overrides()`'s five `--override-input nebelhaus/…` strings and
 > one row of `EDGES`. A decision record that says *don't touch this, it's
 > coupled* has to name the line, or the next person greps the named file, finds
@@ -259,9 +265,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > to §5.14's shapes table.
 >
 > **Verified:** `shellcheck bench` clean (bare, as CI runs it) and the bats suite
-> green at **85 tests** under nixpkgs' bats 1.12 *and* a real bats **1.10.0**
-> tarball — CI's apt version, which doesn't subshell a test body, so a suite can
-> print all-`ok` and still exit non-zero there. Every new assertion was
+> green at **87 tests** (75 before) under nixpkgs' bats 1.12 *and* a real bats
+> **1.10.0** tarball — CI's apt version, which doesn't subshell a test body, so a
+> suite can print all-`ok` and still exit non-zero there. Every new assertion was
 > mutation-checked: re-baking the literal `nebelhaus` into `overrides()` fails
 > exactly one test, re-baking it into `EDGES` fails exactly one, and dropping
 > `locked_slug`'s github-type guard fails the test that says a GitLab-hosted
@@ -269,6 +275,30 @@ already exist, and one it treated as a detail is the actual root blocker.
 > input name were both read off a live `./bench status` against the real
 > `~/.config/nix`, not a fixture. No `bench try`, no switch, no lock moves —
 > nothing this pass touched is in the flake.
+>
+> **The assurance pass re-derived every factual claim above and confirmed all
+> eleven of them, then found ten things anyway, three at 3/5** — and two of the
+> three are this pass repeating, inside its own diff, the shapes it had just
+> filed. **(i)** The `RENAMED` hint printed at the terminal repeated the false
+> coupling (*"renaming it needs bench's `OVERRIDABLE` in the same edit"*) that
+> finding two exists to retire — newly written, in the user-facing copy, one file
+> away from the correction. **(ii)** The banner paragraph above said the body
+> holds "eight hits, all `nebelhaus.pounce`", which this pass's own §6(b)
+> correction falsified in the same commit by adding two `nebelhaus.sill`; the
+> count is re-derived and scoped now, one paragraph after §5.9 preaches exactly
+> that. **(iii)** The PR number this work cites in three permanent places was
+> already taken by another open PR — a plan-of-record citation pointing at a
+> stranger's branch. Also fixed: `activate_built` reached `$(overrides)` with no
+> resolve in its own shell (`cmd_rebuild`'s path — benign today, a latent empty
+> `--override-input`), `layer_input` could splice a `warn` **into the value** in
+> `cmd_ship`'s `nix flake update "$input"` because `warn` prints on stdout while
+> only `die` redirects (so `layer_input` is silent by contract now, with a test),
+> and the `/docs-sync` skill carried a third copy of the corrected
+> table — the copy a scheduled sweep reads to decide what NOT to touch, which is
+> how a retired claim gets re-asserted by tooling. **A pass that files a shape
+> and then commits it is not embarrassing, it is the evidence the shape is real**
+> — and it is the second consecutive pass where the clean-context read was the
+> only thing between a finding and its own counter-example.
 
 
 > **Status, 2026-08-15 (twenty-third pass) — the desktop this whole document is
@@ -4316,7 +4346,7 @@ status` compares each edge's locked **source** as well as its rev, which catches
 ago. Both are **`bench status` warnings, not `nix flake check` checks**, so the
 ledger's headline number doesn't move: **fourteen ★ findings, seven checks, and
 three warnings** (this pair plus `OFF-MAIN`). What did gain a real tripwire is
-the workshop's own CI — ten bats tests (`bats test/bench.bats`: 75 before, 85
+the workshop's own CI — twelve bats tests (`bats test/bench.bats`: 75 before, 87
 after), mutation-checked, that fail the moment either literal is baked back in. That is the
 first time this ledger has counted a check outside haus's flake, and it is worth
 noticing why it was possible: the workshop repo has a test suite because `bench`

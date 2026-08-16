@@ -110,14 +110,16 @@ A docs sweep is exactly where a well-meant find-replace does damage, so before y
 
 | you see | it is | you |
 |---|---|---|
-| `nebelhaus.<option>` | the retired option namespace | **fix** → `haus.<option>` |
-| **nebelhaus** bare, about the desktop | the rice — one rice on **haus**, the nix-darwin layer (`hausfold` is the org/maker/seller; decision 8, 2026-08-10) | **leave**, forever |
+| `nebelhaus.<option>` | the retired option namespace | **fix** → `haus.<option>` — but read the next row first if `<option>` is a room |
+| `haus.{sill,prowl,hearth,pounce,perch,hush,collar}.*` | a room under its old **code name** (haus#367, 2026-08-16) | **fix** → `haus.{bar,windows,terminal,launcher,shelf,focus,security.touchId}.*`. **No aliases** — the old spelling is an eval error, so this one is a break, not a style nit. `notes/rooms-desktops.md` has the table |
+| **nebelhaus** bare, about the desktop | ~~the rice~~ — the desktop is **`hacker`** since 2026-08-14 (decision 10, §11) | **fix** → `hacker`, unless the sentence is about the past. This row said "**leave**, forever" until the reversal |
 | `github.com/nebelhaus/*` | the dead org | **fix** → `hausfold/*` (the archived Messages client stays) |
-| `--override-input nebelhaus/…`, `nebelhaus.url` | a flake **input name** | **leave** — renaming it silently builds the pinned rice |
+| `inputs.nebelhaus.url` in a **consumer's** flake | that machine's name for its haus input | **leave** — it is a 👤 file's choice, and `~/.config/nix` says `nebelhaus` while every `bootstrap.sh` install says `haus`. `bench` no longer mirrors either (it reads the name off the consumer's `flake.lock`), so there is nothing here to keep in step |
 | `nebelhaus.com`, `com.nebelhaus.*` | the domain / bundle ids | **leave** unless the section is about the migration |
 
-Same trap in the other direction: `./hausfold` is the **rice repo** and `./hausfold.co`
-is the **company site**. A doc that sends site work to the short name edits the desktop,
+Same trap in the other direction: `./haus` is the **layer's repo** (`./hausfold` until
+2026-08-11, §10 — that directory no longer exists) and `./hausfold.co` is the
+**company site**. A doc that sends site work to a short name edits the wrong repo,
 and nothing errors.
 
 Grep before concluding something is undocumented — the feature may be described under a

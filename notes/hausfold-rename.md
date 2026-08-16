@@ -4339,7 +4339,7 @@ none of this needs to be atomic:
   `OVERRIDABLE` list had to move in the same change or every
   `--override-input` would silently stop applying while still reporting success.
   Two things were wrong with that, both found by the twenty-fourth roadmap pass
-  (workshop#380): `OVERRIDABLE` holds **repo directory names** (`bench:110`) and
+  (workshop#380): `OVERRIDABLE` holds **repo directory names** and
   never held an input name — the coupled literals were `overrides()`'s five
   `--override-input nebelhaus/…` strings plus one `EDGES` row — and **`bench`
   now holds no spelling at all**: it reads the name out of
