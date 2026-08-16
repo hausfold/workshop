@@ -265,7 +265,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > to §5.14's shapes table.
 >
 > **Verified:** `shellcheck bench` clean (bare, as CI runs it) and the bats suite
-> green at **87 tests** (75 before) under nixpkgs' bats 1.12 *and* a real bats
+> green at **93 tests** (81 before — the base moved under this branch mid-review
+> when workshop#380 landed, so both numbers are re-derived from
+> `grep -cE '^@test '` rather than carried forward) under nixpkgs' bats 1.12 *and* a real bats
 > **1.10.0** tarball — CI's apt version, which doesn't subshell a test body, so a
 > suite can print all-`ok` and still exit non-zero there. Every new assertion was
 > mutation-checked: re-baking the literal `nebelhaus` into `overrides()` fails
@@ -4346,8 +4348,9 @@ status` compares each edge's locked **source** as well as its rev, which catches
 ago. Both are **`bench status` warnings, not `nix flake check` checks**, so the
 ledger's headline number doesn't move: **fourteen ★ findings, seven checks, and
 three warnings** (this pair plus `OFF-MAIN`). What did gain a real tripwire is
-the workshop's own CI — twelve bats tests (`bats test/bench.bats`: 75 before, 87
-after), mutation-checked, that fail the moment either literal is baked back in. That is the
+the workshop's own CI — twelve bats tests (`bats test/bench.bats`: 81 before, 93
+after), mutation-checked, that fail the moment either literal is baked back in.
+That is the
 first time this ledger has counted a check outside haus's flake, and it is worth
 noticing why it was possible: the workshop repo has a test suite because `bench`
 is a program. A document doesn't get one.
