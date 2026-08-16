@@ -17,8 +17,8 @@ git repos.
 > `bench`'s own usage header (`bench:2-40`) and must follow it. Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — those two are single-line arrays, so `_bench`
 > seds their members out of the script at completion time. **Everything else in
-> it is a hand copy and can rot**: `pull`'s six non-flake names (`bench:1158`),
-> `release`'s four repos (the arms of `version_file`, `bench:1183-1188`), and the
+> it is a hand copy and can rot**: `pull`'s six non-flake names (`bench:1194`),
+> `release`'s four repos (the arms of `version_file`, `bench:1220-1223`), and the
 > fallbacks beside both sed'd lists. Add a repo to `version_file` and the
 > completion silently omits it.
 

@@ -74,7 +74,7 @@ _bench() {
 
       case $words[1] in
         try)
-          # Order is load-bearing (cmd_try, bench:808-809): `lane` is shifted
+          # Order is load-bearing (cmd_try, bench:844-845): `lane` is shifted
           # off FIRST and `switch` is only recognised after it, so `try lane
           # switch` is real and `try switch lane` silently parses as a bare
           # `try switch`. Offer them in the order the parser accepts them.
@@ -93,7 +93,7 @@ _bench() {
           ;;
 
         try-batch)
-          # `switch` only in first position (cmd_try_batch, bench:899-901);
+          # `switch` only in first position (cmd_try_batch, bench:934-937);
           # everything after it is repos, and only OVERRIDABLE ones — bench
           # warns and skips anything else.
           local -a batchable=( $(_bench_array OVERRIDABLE nebelung pounce perch holt haus) )
