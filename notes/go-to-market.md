@@ -223,6 +223,17 @@ is in the guides and has to be disambiguated from home-manager on every page.
 > `haus.lib.checkDesktop` / `haus.lib.desktopFailures` are public so an author
 > can self-test one, which is the piece that exists. That is the open item this
 > gate was standing in front of, and it is a different item.
+>
+> ★ **Designed 2026-08-16, still unbuilt:**
+> [`rooms-desktops.md` § Acquisition](./rooms-desktops.md#acquisition--how-a-desktop-or-room-reaches-a-machine).
+> The short version, because it changes what a `/desktops` row could point at:
+> a third-party desktop rides as a **non-flake input** (`flake = false`), so
+> `flake.lock` already carries the origin, the revision and — in the
+> `"flake": false` field itself — whether the source was data or code. No
+> manifest and no gallery API are needed for a row to point outside
+> `hausfold/haus`; what is still missing is the `haus show` / `haus add`
+> commands, and the "who vouched for it" half is unanswered and stays a
+> submissions-by-PR question.
 
 **Don't build it first**, ~~and don't put it on hausfold.co.~~
 
