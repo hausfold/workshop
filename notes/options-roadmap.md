@@ -157,6 +157,73 @@ already exist, and one it treated as a detail is the actual root blocker.
 > where the same word appears inside a fenced block presented as measured output.
 
 
+> **Status, 2026-08-16 (twenty-sixth pass) — scenes merged 38 seconds before
+> the pass that recorded them as "in review" did, so this pass's whole code
+> change is one checkbox; the rest is the honest inventory of what's left.**
+>
+> Fetch ran at the top of the pass, per the rule the twenty-fifth pass wrote
+> after tripping without it: local `main` = `origin/main` = `c987372`, so the
+> list below is read from the repos' clocks, not this checkout's. Landed since
+> workshop#385 (18:07:17Z), grouped by theme — the parentheticals carry the
+> clocks, and the groups interleave (the jcode PRs merged before the site
+> sweep's, not after):
+> [haus#376](https://github.com/hausfold/haus/pull/376) `mergedAt
+> 2026-08-16T18:06:39Z` and
+> [hausfold.co#64](https://github.com/hausfold/hausfold.co/pull/64) 18:07:04Z —
+> **both of which merged BEFORE #385 did**, 38 and 13 seconds respectively, so
+> the twenty-fifth pass's "neither is merged" was false by the time it landed
+> (⚠️ now flagged in place, below); then the word sweep — haus#377 (every
+> nebelhaus compat surface deleted), holt#39, nebelung#46, trill#5, perch#73
+> (18:18–18:19Z), and its site half, .github#21 / workshop#386 /
+> hausfold.co#65 (18:50–18:54Z), which #386 already normalized through this
+> file's own body; then jcode as the fourth AI client (holt#40, haus#378,
+> hausfold.co#66), haus#379 (the rooms.md guard tests wiring, not spelling) and
+> perch#74 (a sweep). **Only haus#376 moves a §5 item.** §5.8's first box flips
+> to `[x]` on its `mergedAt`, and the header plus Phase 5's line move in the
+> same edit, per §6's own convention. No new §5.14 row: a box born stale by 38
+> seconds is the twenty-fifth pass's ticked-while-open row with the clock run
+> the other way, and the mitigation is the same word — `mergedAt`.
+>
+> **What's left, in one place** — the question this file keeps making a reader
+> derive from four surfaces (§5 headers, §5 boxes, §6 phase lines, and the
+> `◐`s that `grep '\- \[ \]'` misses). Eleven open boxes — counted as the
+> literal `- [ ]` markers in §5, so §5.1's `scheme` box is one of them, §5.6's
+> three deferred halves share its single honest-docs box, and §5.8's
+> reachability gap lives *inside* the trigger box rather than beside it — in
+> three kinds:
+>
+> - **Code, in build order within each item:** §5.8's reachability gap (feed
+>   `modules/launcher`'s two static `./commands` halves from
+>   `config.haus.focus.scenes`, so a scene has a palette row and a cheatsheet
+>   line — the box's own precondition for the trigger daemon, which stays
+>   deliberately behind it); §5.9's three (an open `bar.widgets` with
+>   `bar.items` as sugar; pounce command packs; commands declaring
+>   mutates/confirm/permissions); §5.1's `flavor = "custom"` + `theme.palette`;
+>   §5.2's `motion = "none"`; §5.3's app-side `sans` across pounce/perch/trill,
+>   which needs its config seam before it needs a font. §5.1's `scheme =
+>   "auto"` stays `◐` on a design answer (per-tool rather than everywhere at
+>   once — its box says "rice-wide", in the old word), not on missing work —
+>   its box counts among the eleven, but re-opening it is a decision, not a
+>   backlog item.
+> - **Tests nobody has run, 👤:** §5.5's non-QWERTY claim (`windowNav =
+>   "ctrl-alt"` exists, untested on a real AZERTY/Dvorak), and §5.10/§5.13's
+>   docked multi-display validation, which gates any `profiles.docked` design.
+> - **Deferred on a reason, not forgotten:** §5.6's Windows row and the two
+>   halves inside shipped groups (`lock`'s login half, `security`'s
+>   guest/remote-login half) — all logout-only, so they wait on the restart
+>   map growing a `logout` story a user would accept, plus the honest-docs box
+>   that names that.
+>
+> **Verified,** all from the repos' side since a workshop worktree can't build
+> the layer: `haus.focus.scenes.<name>` and its six leaves read back from
+> `docs/site-data/options.json` **at haus `main`**; merge commit `3690be1` is
+> an ancestor of main (`compare … status: ahead`); the focus room's page
+> serves scenes on the live site (200, cache-busted). No rebuild is owed —
+> nothing in this pass changes the layer, and the feel-test the twenty-fifth
+> pass left open (the real DND keypress, `caffeinate`, the audio switch)
+> remains open and remains Julien's.
+
+
 > **Status, 2026-08-16 (twenty-fifth pass) — the last Phase-5 item that needed
 > code is built, and the room rename that landed this morning had already
 > inverted the move it was built around.**
@@ -184,6 +251,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > stranger meets it on
 > ([hausfold.co#64](https://github.com/hausfold/hausfold.co/pull/64)). Neither
 > is merged — which is the difference §5.8's checkbox turns on, below.
+> ⚠️ **False by 38 seconds by the time it landed:** haus#376 merged at
+> 18:06:39Z and hausfold.co#64 at 18:07:04Z, while this pass's own PR
+> (workshop#385) merged at 18:07:17Z. Corrected by the twenty-sixth pass
+> (above), which ticks the box on `mergedAt`.
 >
 > ⚠️ **That list read "exactly two" until the assurance pass fetched.** The
 > local `main` this pass audited against was two commits behind `origin/main`,
@@ -3580,7 +3651,7 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a hacker desktop for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is BUILT and in review (haus#376, opened 2026-08-16 — not merged, so the box below stays open); the trigger engine is deliberately still open, which is what this section's one box always said**
+### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`); what stays open is the reachability gap the build exposed, then the trigger engine this section's second box has always deferred**
 `focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
@@ -3601,16 +3672,20 @@ Good scenes: meeting · recording · presentation · reading · travel · docked
 deep-work · away. Triggers worth having: Pounce command, time, Wi-Fi SSID,
 power source, display attach.
 
-- [ ] ◐ **The declarative half is BUILT — haus#376, opened 2026-08-16, green,
-      NOT MERGED.** ⚠️ This box stays open until it lands, and the reason is the
-      one §5.14 exists for, running the other way: this pass first wrote it as
-      `- [x] ✅ shipped`, and the assurance pass found `"state":"OPEN"`. The
-      table below collects ways a box goes stale *after* work ships; a box
-      ticked for work that has only been *written* is the same failure with the
-      clock reversed, and it is worse, because §5.14's own rule — *believe the
-      checkbox, then go check the repo* — sends the next reader to a `main`
-      where `haus.focus.scenes` does not exist. New row added there. Tick this
-      when haus#376 merges; everything below describes what that PR contains.
+- [x] ✅ **The declarative half is MERGED — haus#376, `mergedAt
+      2026-08-16T18:06:39Z`, merge commit `3690be1`.** Verified against the
+      repo, not a checkout: `haus.focus.scenes.<name>` reads back off main's
+      own `docs/site-data/options.json` with exactly the six fields below, and
+      the room's page (hausfold.co#64, merged 18:07:04Z) serves scenes on the
+      live site. The tick's history stays, because it earned a rule: the
+      twenty-fifth pass first wrote this box `[x]` while the PR was open, its
+      assurance pass reverted it with `"state":"OPEN"` in hand and coined *a PR
+      number inside a `[x]` is a promise; only `mergedAt` keeps it* — and then
+      haus#376 merged **38 seconds before** the notes PR carrying the open box
+      did (18:06:39Z against workshop#385's 18:07:17Z), so the box was born
+      stale in the same minute its rule was written. That is not the rule
+      failing; it is why the rule keys on `mergedAt` rather than on any pass's
+      memory of state. Everything below describes what landed.
       `haus.focus.scenes.<name>` takes the six fields sketched above under
       exactly those names (`dnd` · `preventSleep` · `apps.open` ·
       `audio.input` · `hooks` · `restorePreviousState`, plus a `description`
@@ -4817,8 +4892,8 @@ that visible, and turned up two things that were already broken:
       2026-08-14 (haus#353)** — and one of them was not rendering: the restart
       map's `logout` verb rendered to nothing, so core had to emit the line before
       `plan` could read one. §5.11 has no open box left.
-- ◐ §5.8 scenes · ~~§5.12 accessibility~~ — **§5.8's declarative half is built
-      and in review (haus#376, 2026-08-16, not merged): `haus.focus.scenes.<name>`,
+- ◐ §5.8 scenes · ~~§5.12 accessibility~~ — **§5.8's declarative half is merged
+      (haus#376, `mergedAt 2026-08-16T18:06:39Z`): `haus.focus.scenes.<name>`,
       entered with `focus scene <name>`, desktop-safe except its hooks.** Two
       things stay open behind it, in this order: a scene has **no surface but
       the CLI** (found while building it, and the cheaper of the two), then the
@@ -4833,7 +4908,8 @@ that visible, and turned up two things that were already broken:
       to look" item became work by being looked at, and then stopped being work
       by being built the same day. **And on 2026-08-16 §5.8 stopped being that
       too**, two days later: this line is `◐` rather than `[ ]` because the
-      declarative half is written and in review. ⚠️ The first draft of this
+      declarative half is merged and the two follow-ups above are not
+      started. ⚠️ The first draft of this
       sentence went further and said Phase 5 *"now has no item whose next step is
       write the thing"* — which the same pass's own §5.8 box contradicts, since
       it recommends building the palette surface **before** the triggers. Phase 5
