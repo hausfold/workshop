@@ -594,13 +594,15 @@ standalone change; none of them blocks another.
   say "this Mac is a neovim Mac". The fix is a room-owned enum whose values name
   editors the room actually installs — a new option plus packages, not a safety
   flip on the existing one.
-- **[2] A desktop still outranks a pack the consumer composed themselves.**
-  Verified in merged `flake.nix`: `desktopPriority = 900`, while `lib.pack`
-  carries its file in at per-leaf `mkDefault` (1000). Step 3 left it alone as
-  unobservable and it still is, but only by luck — `desktops/haus.nix` sets
-  no `haus.roster`, so the first desktop that names an app silently beats a pack
-  the host explicitly imported. Moving the pack seam to a priority between 100
-  and 900 is one token; the fixture that can see the difference is the work.
+- **[2] ✅ A desktop still outranks a pack the consumer composed themselves —
+  fixed 2026-08-16.** Verified in merged `flake.nix`: `desktopPriority = 900`,
+  while `lib.pack` carried its file in at per-leaf `mkDefault` (1000). Step 3
+  left it alone as unobservable and it still was, but only by luck —
+  `desktops/hacker.nix` sets no `haus.roster`, so the first desktop that named
+  an app would silently have beaten a pack the host explicitly imported.
+  `packPriority = 500` and a `packCompose` rule that can see both rungs; the
+  detail is in [Acquisition](#open-decisions), which is the work that made it
+  reachable.
 - **[2] The generated reference names a validator; the key rule it enforces is
   hand-written prose somewhere else.** `groups.json` ships `haus.displays` as
   `{"desktopSafe": "recursive", "validator": "display-selectors"}`. A reader is
@@ -910,31 +912,66 @@ behaviour, findings reported rather than folded in, and the
 
 ### Open decisions
 
-- **[3] A desktop file can carry no metadata about itself, and `haus show` can
-  therefore only report what it *sets*, never who wrote it or what it was
-  tested against.** The closed schema admits exactly one top-level key, `haus`,
-  and every leaf under it must be a registry-classified option — which is what
-  makes the format trustworthy and also what makes it anonymous. Two answers.
-  **(a)** Accept it: metadata lives in the repo's README, `haus show` reports
-  origin from the lock and content from the file, and a raw single-file source
-  simply has no author. **(b)** Declare an inert, desktop-safe `haus.meta.*`
-  (`name`, `description`, `author`, `hausRev`) that configures nothing and
-  exists to be read. I would take **(a)** for now: (b) adds publisher-authored
-  strings that a trust surface then displays, which is the one input class this
-  design otherwise keeps out, and the same fields are already required prose in
-  the sharing checklist. Reversing costs a registry entry plus a `show`
-  renderer if the gallery later wants machine-readable rows — cheap, and much
-  cheaper than un-shipping a metadata namespace people have started filling in.
+- **[3] ✅ Decided 2026-08-16 — a desktop carries no metadata about itself, and
+  that is accepted rather than fixed.** The closed schema admits exactly one
+  top-level key, `haus`, and every leaf under it must be a registry-classified
+  option — which is what makes the format trustworthy and also what makes it
+  anonymous, so `haus show` can report what a desktop *sets* but never who
+  wrote it or what it was tested against. The rejected alternative was an
+  inert, desktop-safe `haus.meta.*` (`name`, `description`, `author`,
+  `hausRev`) that configures nothing and exists to be read; it was declined
+  because it adds publisher-authored strings that a trust surface then
+  displays, which is the one input class this design otherwise keeps out, and
+  because the same fields are already required prose in the sharing checklist.
+  **So metadata lives in the repo's README**, `haus show` reports origin from
+  the lock and content from the file, and a raw single-file source simply has
+  no author — which is a further reason to prefer the repo shape. Reopening
+  costs a registry entry plus a `show` renderer if the gallery later wants
+  machine-readable rows.
 - **[2] `add` is a vague verb next to Pounce's “Install App”.** It should print
   what it decided the subject was (“pinned the desktop `writer` from …”) rather
   than take a mandatory noun, but if a future `haus add <app>` is wanted, the
   noun becomes mandatory then and the desktop form keeps working.
-- **[2] The pack seam is still below the desktop in the priority ladder**, and
-  acquisition makes that observable for the first time: today no shipped
-  desktop sets `haus.roster`, so a desktop silently outranking a
-  consumer-composed pack is unreachable. A third-party desktop that names apps
-  reaches it immediately. Carried from step 3 and step 6's list, and it should
-  be fixed *before* step D, not after.
+- **[2] ✅ Fixed 2026-08-16 — the pack seam sat below the desktop, and
+  acquisition is what would have made it observable.** Carried unfixed since
+  step 3 as “unobservable, so leave it alone”: `lib.pack` lowered a
+  consumer-composed pack to `mkDefault` (1000), under the desktop's 900, so the
+  more general statement beat the more specific one. Nothing in haus could
+  reach it — no shipped desktop sets `haus.roster` — but
+  `haus.roster.<name>.key` is `desktopSafe: true`, so the first published
+  desktop that claims a leader letter would have silently overridden a pack the
+  consumer imported by hand. `lib.pack` carries its leaves at a named
+  `packPriority = 500` now, and the ladder reads as one question — **who is
+  speaking**: `haus set` 50, you 100, a third party you pointed at 500, the
+  desktop you chose 900, haus 1000.
+
+  Shipped as [haus#384](https://github.com/hausfold/haus/pull/384) with
+  [hausfold.co#67](https://github.com/hausfold/hausfold.co/pull/67) behind it —
+  `desktops/sharing.mdx` told a pack author their pack “doesn't compete with” a
+  desktop, which is exactly what changed.
+
+  Three things that fell out of doing it, all worth keeping:
+
+  - **The Apps room's own packs stay at `mkDefault`, and that asymmetry is the
+    point.** `haus.apps.packs.<name>.enable` is itself `desktopSafe`, so a
+    desktop may be the thing flipping the switch — and its own explicit
+    `roster` line should then beat the collection it turned on. `lib.pack`
+    carries a file *you* pointed at; `packs.<name>` carries haus's data behind
+    a switch. Same word, two provenances, two rungs.
+  - **The fixture needed no fixture file.** The desktop is synthesized inside
+    `packCompose` from the pack's own entry, through the same
+    `desktopLib.prioritize` that `lib.desktop` applies to a real one — which is
+    what let the rule land before a desktop that sets a roster exists. It is
+    proven both ways: at 1000 the check reports the desktop beating the pack,
+    at 50 it reports the host losing, and only the middle is green.
+  - **Moving a rung silently resolves every conflict that used to sit ON it.**
+    Five rooms set roster leaves at `mkDefault` (ghostty, pounce, duti, espanso,
+    iina). At 1000 a pack naming one of those ids with a different value was a
+    loud module-system conflict; at 500 the pack just wins. That agrees with the
+    ladder and is arguably the better behaviour — but it was not the change
+    anybody set out to make, and it is invisible in the diff. Expect it wherever
+    a priority moves *past* a rung rather than between two empty ones: write
+    down which collisions stopped being collisions.
 - **[2] Nothing in this design lets a desktop depend on a room that is not in
   haus.** A third-party desktop that enables a third-party room is the first
   case where the two classes have to arrive together, and the closed schema
