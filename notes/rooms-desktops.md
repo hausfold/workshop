@@ -218,13 +218,21 @@ One desktop per host removes desktop-versus-desktop precedence from the user
 model. Concerns previously called presets or layers become room-owned profiles
 when they remain useful: large print belongs to Appearance, for example. The
 Apps room may call a saved app collection a **pack**, but pack is no longer a
-peer of room or desktop and does not appear in the top-level journey.
+peer of room or desktop and does not appear in the top-level journey. Since
+2026-08-17 it is not a shareable format either: `haus.lib.pack` and its checkers
+are retired, so the collections behind `haus.apps.packs.<name>.enable` are
+haus's own data and a stranger's app collection is a **room**. There are exactly
+two things a person can publish, and [Acquisition](#two-classes-and-nix-already-spells-the-difference)
+is where that lands.
 
 Sources should remain inspectable, typed and pinnable so a later distribution
 workflow can identify whether it contains a desktop or executable room code,
-preserve its origin and revision, and apply the appropriate trust warning. This
-note deliberately leaves acquisition commands, manifests and remote-source UX
-open.
+preserve its origin and revision, and apply the appropriate trust warning. That
+requirement now has a design rather than an open question — nothing of it is
+built yet — see
+[Acquisition](#acquisition--how-a-desktop-or-room-reaches-a-machine) below,
+which supersedes this paragraph's deferral of acquisition commands, manifests
+and remote-source UX.
 
 ## The user journey
 
@@ -503,11 +511,14 @@ desktop.
   generalise before it is deleted.
 - **[2] Three shareable formats went to two, and the loose one is now the
   narrow one.** Step 3's finding asked whether a preset simply IS a desktop; the
-  answer is yes for the whole rices and no for the layer. What remains is a
+  answer is yes for the whole rices and no for the layer. What remained was a
   desktop (closed schema, registry-validated, one per host) and a pack (data,
-  `haus.roster` only, `checkRice`/`checkPack`). `checkRice` no longer guards
-  anything a person selects — only pack files — which is a smaller job than it
-  had and worth remembering when its message is next edited.
+  `haus.roster` only, `checkRice`/`checkPack`). ★ **And then two went to two
+  again, differently** (2026-08-17): the pack retired and the ROOM took its place
+  as the second format, because rooms were always shareable and three formats
+  over two trust classes was one too many. `checkRice` and `checkPack` went with
+  it — the observation below, that `checkRice` guarded only pack files, was the
+  early sign it had no job left.
 - **[1] The docs page is still at `/guides/sharing-a-rice/`.** Its content is
   one-desktop now, but renaming the file would break the URL, and the redirect
   belongs with step 6's navigation reorganisation rather than beside a content
@@ -591,13 +602,16 @@ standalone change; none of them blocks another.
   say "this Mac is a neovim Mac". The fix is a room-owned enum whose values name
   editors the room actually installs — a new option plus packages, not a safety
   flip on the existing one.
-- **[2] A desktop still outranks a pack the consumer composed themselves.**
-  Verified in merged `flake.nix`: `desktopPriority = 900`, while `lib.pack`
-  carries its file in at per-leaf `mkDefault` (1000). Step 3 left it alone as
-  unobservable and it still is, but only by luck — `desktops/haus.nix` sets
-  no `haus.roster`, so the first desktop that names an app silently beats a pack
-  the host explicitly imported. Moving the pack seam to a priority between 100
-  and 900 is one token; the fixture that can see the difference is the work.
+- **[2] ✅ A desktop still outranks a pack the consumer composed themselves —
+  closed 2026-08-17 by retiring the pack.** Verified in merged `flake.nix` at
+  the time: `desktopPriority = 900`, while `lib.pack` carried its file in at
+  per-leaf `mkDefault` (1000). Step 3 left it alone as unobservable and it still
+  was, but only by luck — `desktops/hacker.nix` sets no `haus.roster`, so the
+  first desktop that named an app would silently have beaten a pack the host
+  explicitly imported. It was briefly fixed with a `packPriority = 500` rung,
+  and then the rung went away with the format
+  ([haus#386](https://github.com/hausfold/haus/pull/386)). The full story is in
+  [Acquisition](#open-decisions).
 - **[2] The generated reference names a validator; the key rule it enforces is
   hand-written prose somewhere else.** `groups.json` ships `haus.displays` as
   `{"desktopSafe": "recursive", "validator": "display-selectors"}`. A reader is
@@ -664,3 +678,334 @@ not merely that a diff exists. A blocker names the failed gate and the evidence;
 it does not expand the step. Findings at impact 1–2 may be resolved in scope when
 reversible. Findings at 3–5 are reported with a recommendation before they
 change the architecture.
+
+## Acquisition — how a desktop or room reaches a machine
+
+Design of record, 2026-08-16, grounded in haus `387e8a2` and the consumer flake
+this machine actually runs. This is the item
+[`go-to-market.md` §5](./go-to-market.md#5-the-gallery--marketplace-question--answered)
+hands over when it says a third-party gallery entry now waits on “acquisition
+and trust, not composition”, and the item `options-roadmap.md`'s status prologue
+points at the same place. Nothing here is built.
+
+### The finding that decides the shape
+
+**A haus machine is already a flake, so the pin store already exists.** The
+consumer the bootstrap scaffolds — and the one on this Mac — is:
+
+```nix
+inputs.haus.url = "github:hausfold/haus";
+outputs = { haus, ... }: {
+  darwinConfigurations.mbp = haus.mkHaus {
+    username = "…"; hostname = "…"; host = ./hosts/mbp;
+    desktop = haus.desktops.hacker;      # written by bootstrap.sh when named
+  };
+};
+```
+
+`flake.lock` already records, per source: the origin as typed, the resolved
+revision, a content hash, and a fetch date. `nix flake update <name>` already
+updates exactly one of them. The store copy already makes a rebuild work
+offline. Every requirement the model states for a shareable source —
+inspectable, typed, pinnable, origin-preserving — is a property `flake.lock`
+has today, for free, on a file the consumer can read.
+
+So **acquisition invents no manifest, no second lockfile, no registry index and
+no fetcher.** `haus add` is a command that writes a flake input and a selection
+line. That is the whole mechanism, and the reason to prefer it over anything
+richer is not economy — it is that a second pin store can disagree with
+`flake.lock`, and the one that wins is the one nobody is reading.
+
+### Two classes, and Nix already spells the difference
+
+A desktop is data; a room is code. That distinction has to survive all the way
+into the machine's own files, or a person auditing their config a year later
+cannot tell which strangers they trusted with what. It does, without being
+invented:
+
+| | **desktop** | **room** |
+|---|---|---|
+| what it is | a closed `{ haus = { … }; }` value | a nix-darwin module |
+| how it arrives | a **non-flake** input (`flake = false`) | an ordinary flake input |
+| what evaluates | nothing from the source — Nix hands over a path | the source's own `outputs` function, then its module |
+| `flake.lock` records | `"flake": false` on the node | no such field |
+| checked before use | `haus.lib.checkDesktop` — closed schema, registry-validated, leaf by leaf | nothing; a module may do anything a module may do |
+| what it may do to the Mac | set desktop-safe `haus.*` leaves at priority 900 | install packages, write files, run activation scripts as root |
+| the prompt it earns | a **diff** of what your machine becomes | a **warning** about what code can do |
+
+`"flake": false` in the lock is not a convention we would be adopting — it is
+what Nix writes, and it is exactly the typed origin the model asked for. A
+person can answer “did I ever give a stranger code?” with `jq` over their own
+lock file.
+
+### The three source shapes, measured
+
+Verified against real Nix on 2026-08-16, not recalled:
+
+| source | input spelling | pins | selection line | notes |
+|---|---|---|---|---|
+| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | rev **and** narHash, plus `lastModified` | `desktop = "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
+| **one file / a gist's raw URL** | `{ url = "file+https://…/writer.nix"; flake = false; }` | **narHash only — no revision** | `desktop = inputs.writer;` | the store path *is* the file, so no path suffix. But there is no version to move between, so `haus update` on it silently follows whatever is at that URL now |
+| **a gist as a repo** | `{ url = "git+https://gist.github.com/ada/<id>"; flake = false; }` | rev (a gist is a git repo) | as the repo row | ⚠️ **unverified** — the mechanism is standard but I did not fetch one |
+| **vendored** (today's advice) | none — a path in your own config | nothing | `desktop = ./desktops/writer.nix;` | stays supported forever, and is the right answer when you intend to *edit* it. See the git gotcha below |
+
+**The selection line is a bare path, and that is not cosmetic.** `mkHaus`
+applies the seam itself — `riceLib.desktop desktop` — so its `desktop` argument
+takes the same shape `haus.desktops.<name>` has, a path. A pre-wrapped
+`haus.lib.desktop …` passed there is wrapped twice and throws at `import`, and
+`flake.nix` says why the wrapping lives at the seam rather than in the export:
+a pre-wrapped module “would look importable anywhere and quietly bypass the
+one-desktop assertion”. `haus.lib.desktop` is for the hand-composed case only,
+where it goes in `extraModules` beside `desktop = null;`. Whatever `haus add`
+writes, it writes the bare-path form.
+
+Two measured facts the design leans on:
+
+- **`checkDesktop` and `lib.desktop` accept a string store path and preserve
+  it.** `nix eval` on the flake with a `"/…/writer.nix"` string returned
+  `{"ok": true, "file": "/…/writer.nix"}` — so the `_file` a conflict message
+  names is still the real source, and a third-party desktop needs no new
+  evaluation machinery at all.
+- **A `file+https` input lands in the store as a regular file, not a
+  directory** (`.r--r--r-- root nixbld 1.5K …-source`), and `checkDesktop`
+  takes it directly.
+
+### What acquisition deliberately does not get
+
+- **No manifest.** Anything a manifest would carry (name, author, tested
+  revision, which file is the desktop) is either already in the lock or belongs
+  in a README a human reads. A manifest the tooling trusts is a second thing to
+  keep honest, and it is *publisher-authored*, so it is the one input a trust
+  boundary should not be reading facts from.
+- **No `haus search`, no index, no gallery API.** Discovery is
+  `hausfold.co/#desktops` and a GitHub topic. `go-to-market.md` §5's “don't
+  build the store first” argument is unchanged, and a search command whose
+  index ships inside the haus flake would tie every gallery addition to a haus
+  release.
+- **No new fetcher.** If Nix cannot fetch it, `haus add` cannot add it. That
+  keeps the offline story, the hash story and the proxy/CA story identical to
+  the one `nix flake update haus` already has.
+- **No composition.** One desktop per host is settled and is not reopened by
+  making desktops easier to obtain. `haus add` of a second desktop *replaces*
+  the selection line; it never stacks. The `haus._desktop.sources` assertion
+  stays the backstop for the hand-composed case.
+
+### The commands
+
+Four new verbs and one extension. Every one of them is bounded by two rules:
+**acquisition never activates**, and **anything the tool cannot verify, it
+prints instead of writing.**
+
+```text
+haus show <source|file>   inspect — fetch, validate, diff. Writes nothing.
+haus add <source>         pin + select. Edits flake.nix + flake.lock. No rebuild.
+haus desktop [name]       list what this machine has; switch between them.
+haus remove <name>        unpin + reselect explicitly. No rebuild.
+haus update [name]        existing command, now takes an input name.
+```
+
+**`haus show`** is the load-bearing one and the only one that is also useful to
+a *publisher*. Given a remote source it resolves and fetches it; given a local
+path it just reads it. Then it prints, in order:
+
+1. where it came from and what it locked to (origin as typed, resolved rev,
+   fetch date) — or, for a `file+https` source, that there is no revision;
+2. **the class**: “a desktop — data only, and haus checked it” or “a room —
+   this is code”;
+3. `checkDesktop`'s verdict, and on failure every diagnostic with its
+   filename, which is what makes this the publisher's pre-share check;
+4. **what your machine becomes**: rooms turned on and off relative to your
+   current config, machine-wide claims (global hotkeys, default browser,
+   wallpaper, Caps Lock), and every list-typed option it sets — because a host
+   naming that list replaces it whole, which is the one interaction a reader
+   cannot infer from either file alone;
+5. what it does *not* set, so the reader knows what stays theirs.
+
+`haus show --json` for CI, per `notes/agent-surface.md`. That single command
+collapses the first line of the publish checklist in `desktops/sharing.mdx`
+(“`checkDesktop` prints `true`, and a real host evaluates”) and removes the
+need for a separate `haus check`. It does not touch the second line — “you have
+run it on a Mac” is not a thing a checker can assert.
+
+**`haus add`** does `show`, asks for confirmation, then writes the input, the
+selection line and the lock — and stops, printing `haus rebuild` as the next
+step. Splitting acquisition from activation is what lets `show` be honest and
+what keeps `add` reversible with a text edit. `--print` emits the lines instead
+of writing them, `--as <name>` sets the input name, `--file <path>` picks the
+desktop when a repo holds several, `--vendor` copies the file into the
+consumer's config instead of pinning it.
+
+**`haus desktop`** with no argument lists the built-ins plus every desktop this
+machine has pinned, marking the selected one; with a name it rewrites the
+selection line. It is the cheapest form of “select” and “what do I have”, and
+it needs no network.
+
+**`haus remove <name>`** drops the input and relocks. See the rule below about
+what it must write in place of the selection.
+
+**`haus update <name>`** extends today's `cmd_update`, which reads
+`.nodes.haus` out of the lock and already knows the input name is the
+consumer's to choose, not ours.
+
+### The prompts, which are not the same prompt
+
+For a **desktop**, the schema has already proven the file cannot run code, so a
+danger warning would be theatre and would train people to click through the one
+that matters. The prompt is a *diff*: this is what turns on, this is what turns
+off, this is the hotkey it claims, this list of yours it replaces. haus already
+has `cmd_plan` and `cmd_diff` to build it from.
+
+For a **room**, nothing is checkable and the prompt should say so without
+hedging: this is code from `<origin>` at `<rev>`, it runs during activation as
+root, and haus cannot tell you what it does. It requires an explicit `--room`
+(never inferred from what the source contains, because inference is how a data
+prompt gets shown for a code source), and a typed confirmation rather than a
+y/n. Non-interactive use needs a per-name environment variable, so a piped
+installer can never accept a room on a person's behalf — the same reasoning as
+the `curl|bash` tty rules.
+
+**Rooms are in scope, not deferred** (👤, 2026-08-17 — this paragraph used to
+say phase 2, and it was wrong). Retiring the pack format is what settles it: a
+stranger's app collection is a room, so rooms are no longer the exotic case but
+the *only* way to share anything smaller than a machine. The room path is the
+same command with `flake = false` dropped, plus the code prompt above.
+
+What that makes load-bearing, and was not while rooms were deferred: **nothing
+arbitrates a top-level `haus.<name>.*` namespace.** Two third-party rooms
+claiming one collide as a raw module-system option-declaration error naming
+neither publisher — but the worse case is haus later shipping a room with that
+name and breaking a machine that was fine. haus's own `room-registry` check
+catches an unclassified namespace in *haus's* flake check, which never runs on
+the consumer. Needs an answer — a reserved prefix, or a claim check at `add`
+time — designed with the room half rather than after it. The extension-point
+mechanism is also still only the three points the AI room needed, a finding
+carried since step 2.
+
+### Rules that fall out, and the traps behind them
+
+- **`add` and `remove` never rebuild.** They print the command.
+- **`remove` must write an explicit replacement, never just delete the
+  selection line.** `mkHaus`'s `desktop` argument defaults to
+  `./desktops/hacker.nix`, so deleting the line does not return the machine to
+  neutral — it silently installs the opinionated developer desktop. `remove`
+  asks, and defaults to `blank`.
+- **A vendored file must be `git add`ed.** Nix cannot see untracked files in a
+  git-tracked flake, so `curl -O … && mv … ~/.config/nix/desktops/` — the exact
+  sequence `desktops/sharing.mdx` recommends today — produces “path does not
+  exist” at eval, on a file the person is looking at. `--vendor` stages it;
+  the docs page should say so regardless of whether `add` is built.
+- **Editing `flake.nix` is the one genuinely fragile part**, and it is the
+  first thing in haus that would edit a hand-written file rather than write a
+  generated one (`haus set` writes whole modules under `hosts/<h>/settings/`).
+  The rule: attempt the mechanical edit, verify by re-parsing the result, and
+  on any mismatch with the scaffolded shape restore and print the lines to
+  paste. A hand-reorganised consumer flake is normal and must degrade to
+  `--print`, not to a broken machine.
+- **Input names are the namespace, and `haus` is reserved.** Derive from the
+  repo name minus a `-desktop`/`-haus` suffix; on a collision, refuse and name
+  `--as`. There is no second registry to keep in step, and
+  `nix flake update <name>` already addresses exactly this namespace.
+- **Offline**: `show` and `add` need network and say so; everything after them
+  does not. A rebuild from a locked third-party desktop is as offline-capable
+  as a rebuild from haus itself.
+- **`haus update` on a `file+https` source silently follows head.** There is no
+  revision to compare, so the changelog half of `cmd_update` has nothing to
+  show and the pin moves on content hash alone. `show` and `add` both warn at
+  the point the source is chosen, which is the only point where switching to a
+  repo source is cheap.
+
+### Execution plan
+
+Same contract as the plan above: exit gate green before the next step changes
+behaviour, findings reported rather than folded in, and the
+[status report shape](#agent-status-report) while work is live.
+
+| Step | Work | Durable evidence | Exit gate |
+|---|---|---|---|
+| **A. Publisher-side inspection** | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. |
+| **B. Remote sources, read-only** | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each. | A person can fully evaluate a stranger's desktop without their config being touched. |
+| **C. The machine diff** | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
+| **D. `haus add` / `remove` / `desktop`** | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
+| **E. Namespace arbitration** | Decide and build what stops two third-party rooms — or a third-party room and a future haus one — from claiming the same top-level `haus.<name>.*`. A reserved prefix, or a claim check at `add` time. Sequenced before D's room half, not after it: it is a format decision, and formats are hard to change once anyone has published into them. | The rule, plus a check that fires on the CONSUMER's machine rather than only in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release. |
+| **F. Rooms in `haus add`** | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
+
+### Open decisions
+
+- **[3] ✅ Decided 2026-08-16 — a desktop carries no metadata about itself, and
+  that is accepted rather than fixed.** The closed schema admits exactly one
+  top-level key, `haus`, and every leaf under it must be a registry-classified
+  option — which is what makes the format trustworthy and also what makes it
+  anonymous, so `haus show` can report what a desktop *sets* but never who
+  wrote it or what it was tested against. The rejected alternative was an
+  inert, desktop-safe `haus.meta.*` (`name`, `description`, `author`,
+  `hausRev`) that configures nothing and exists to be read; it was declined
+  because it adds publisher-authored strings that a trust surface then
+  displays, which is the one input class this design otherwise keeps out, and
+  because the same fields are already required prose in the sharing checklist.
+  **So metadata lives in the repo's README**, `haus show` reports origin from
+  the lock and content from the file, and a raw single-file source simply has
+  no author — which is a further reason to prefer the repo shape. Reopening
+  costs a registry entry plus a `show` renderer if the gallery later wants
+  machine-readable rows.
+- **[2] `add` is a vague verb next to Pounce's “Install App”.** It should print
+  what it decided the subject was (“pinned the desktop `writer` from …”) rather
+  than take a mandatory noun, but if a future `haus add <app>` is wanted, the
+  noun becomes mandatory then and the desktop form keeps working.
+- **[3] ✅ Superseded 2026-08-17 — the pack seam is gone, not repositioned.**
+  This was a ladder bug: `lib.pack` lowered a consumer-composed pack to
+  `mkDefault` (1000), under the desktop's 900, so the more general statement
+  beat the more specific one. Unreachable in practice (no shipped desktop sets
+  `haus.roster`) but not by design — `haus.roster.<name>.key` is
+  `desktopSafe: true`, so the first published desktop claiming a leader letter
+  would have hit it. It was fixed with a `packPriority = 500` rung
+  ([haus#384](https://github.com/hausfold/haus/pull/384)), and then both that PR
+  and its docs companion were **closed** in favour of retiring the format —
+  👤's call, and the better one.
+
+  Why: **rooms are shareable too**, so three formats sat over two trust classes.
+  A pack was data that arrived beside rooms, earning its own prompt, its own
+  docs page and its own rung for no user — `riceLib.pack` had exactly one caller
+  in haus, feeding only the deprecated `haus.packs.writing` alias and the checks
+  that tested the format itself. Retired in
+  [haus#386](https://github.com/hausfold/haus/pull/386) with
+  [hausfold.co#68](https://github.com/hausfold/hausfold.co/pull/68).
+
+  Four things worth keeping out of doing it:
+
+  - **The trade is exactly one capability, and it is worth naming.** What a pack
+    had that neither survivor does is *many per host, provably data-only*. A
+    desktop is data but you get one; a room is many-per-host but it is code. So
+    a shared app list moves from “haus can prove this is inert” to “trust the
+    author”. A pack could not be re-expressed as a narrow desktop either —
+    mechanically it would pass (`checkPack` ⊂ `checkDesktop`, `roster` is
+    `desktopSafe: recursive`), but one-desktop-per-host closes it. Nothing used
+    the capability, so the trade is cheap; it is still a trade.
+  - **One rule survived its subject, and it could not become a check.** The
+    per-leaf priority rule is `packEntries`'s too, so it moved into
+    `app-collections`, run against the room's switch. But “a collection file
+    sets nothing outside `haus.roster`” could not: `packEntries` carries only
+    `roster` through, so a stray key is dropped with **no error**, and a check
+    has nothing to look at. It is an assertion inside `packEntries` — the only
+    code positioned to see it. A rule whose failure mode is silence belongs
+    where the silence happens, not in a check.
+  - **A check that guesses a filename is a check that reads the wrong file.**
+    The first draft derived the collection's path from its option name. That is
+    correct until a name and a filename diverge, at which point the check reads
+    a different file than the room installs, silently. `modules/apps/packs/`
+    is now a table both read, with an orphan rule on either side of it.
+  - **Retirement is not symmetric with deprecation, and the docs are the tell.**
+    `presets` got a warning-emitting shim for its migration window; `lib.pack`
+    was hard-removed with none. Defensible at zero consumers — but the published
+    docs still *taught* the removed helpers, so for as long as the two PRs sat
+    unmerged the honest statement was “nobody uses it and everybody is being
+    told to”. Retire the docs in the same breath as the API.
+- **[3] Nothing in this design lets a desktop depend on a room that is not in
+  haus, and retiring packs makes that bite sooner.** A third-party desktop that
+  enables a third-party room is the case where the two classes have to arrive
+  together, and the closed schema gives a desktop no way to say so — a desktop
+  may only set registry-classified `haus.*` leaves, and a stranger's room
+  declares a namespace the registry has never heard of. It used to be step E's
+  problem, i.e. nobody's. It is now the shape of "share a photography setup":
+  the room installs the apps, and the desktop that wants it cannot name it.
+  Belongs with step E's namespace work, since both answer "what is a
+  third-party namespace, and who vouches for it?".
