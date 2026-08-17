@@ -51,6 +51,16 @@ the workshop). And `org-profile`'s directory is `org-profile` while its remote i
 `hausfold/.github`. `bench clone` gets both right; a hand-rolled `git clone` gets both
 wrong, and the reward is nine `⚠ no checkout at …` lines you can mistake for a quiet day.
 
+> 🚨 **If the container pre-cloned the repos somewhere else, MOVE them into place —
+> don't symlink.** Some environments hand you the ten repos already cloned beside the
+> workshop rather than inside it, and a symlink is the obvious fix. It works for
+> `bench docs-since`, and it quietly breaks `git`: this repo's `.gitignore` spells the
+> nine as `/haus/`, `/perch/`, … **with trailing slashes**, which match a directory and
+> **not** a symlink to one. So the nine stop being ignored, and a `git add -A` up here
+> stages all nine as symlink blobs — committing paths that mean nothing on any other
+> machine. `mv` each one to `<workshop>/<name>` instead (or `./bench clone` into a fresh
+> container), and if you did symlink, check `git status` before you stage anything.
+
 **Call it `./bench`, not `bench`.** On Julien's Mac a wrapper puts it on PATH; here
 nothing does, so every bare `bench` below is a `command not found` in a container.
 
