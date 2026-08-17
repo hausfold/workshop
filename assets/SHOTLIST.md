@@ -21,13 +21,17 @@ If a shot isn't in the survivor table below, it isn't wired into anything.
 
 ## The survivor set (this is the whole list)
 
-Four assets carry the family. Each earns its slot by what it's worth to a
-stranger seeing it cold — the highest-reach, most-shareable moment of its repo.
+⚠️ **Since 2026-08-14, not one row below is wired into anything.** Four
+surfaces died in one day — pounce's README media, haus's README media, and the
+three `hausfold.co/desktops/<name>` pages — and rows 3 and 4 had already lost
+theirs. So the table is the standing slot list, what each asset would serve if
+it were shot and placed. Read it as the shape of the set, not as a description
+of what ships.
 
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
-| 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
-| 2 | **Desktop hero** | `haus/assets/hero.png` | haus README · `hausfold.co/desktops/` ×2 | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder. The staged replacement is speced in [`SHOT-hacker-desktop.md`](./SHOT-hacker-desktop.md) — scene, pre-capture checklist, export sizes and a ready-to-apply site patch.)* |
+| 1 | ~~**Pounce demo**~~ | ~~`pounce/assets/demo.webp`~~ — **deleted** | ~~pounce README~~ — **nothing, since 2026-08-14** | ⌘Space launcher in motion — the "wait, that's *native*?" clip, and still the most viral asset the family could shoot. The file went with the README's media in [pounce#78](https://github.com/hausfold/pounce/pull/78); that README carries no imagery now, and `pounce/assets/README.md` says so. Re-earning the slot means re-rendering the clip *and* a README that wants one. |
+| 2 | **Desktop hero** | `haus/assets/hero.png` — kept, unreferenced | ~~haus README · `hausfold.co/desktops/` ×2~~ — **nothing, since 2026-08-14** | For a desktop, the screenshot *is* the pitch — one clean tiled frame. Both surfaces went the same day: the haus README dropped its media and leads with words alone, and the three `hausfold.co/desktops/<name>` pages were deleted into `content/docs/haus/desktops/`, which carry **no frames on purpose**. *(The shipped file is still the old, dense placeholder; [`SHOT-hacker-desktop.md`](./SHOT-hacker-desktop.md) has the scene, the checklist and the export sizes. ⚠️ Read it for the crop only — its site patch targets files three renames and two deletions out of date, and `desktops-hero.patch` will not apply.)* |
 | 3 | ~~**OG social card**~~ | `assets/site/social/og.png` | ~~share-link thumbnail~~ — **nothing, since 2026-08-14** | It was wired into every Astro page's `og:image`; that site is deleted and hausfold.co ships **no** `og:image`, deliberately. The file is kept (evergreen wordmark), the slot is not. Re-earning it means hausfold.co deciding it wants social cards. |
 | 4 | **Landing reel** *(optional)* | *unshot* | the hausfold.co landing page | At most ONE muted ~30–60s stitch, poster = the desktop hero. A single film, never a menu of clips. ⚠️ Its old surface was hausfold.co's hero background, which no longer exists. |
 
@@ -58,7 +62,7 @@ nothing, owed to no one:
   moved out of `web/public/media/` in the same change)
 
 Nothing here is deleted — but nothing here is an obligation either. Don't reshoot
-to "fill in" the set; the set is the five above.
+to "fill in" the set; the set is the four above.
 
 ## If you ever shoot a new marketing asset
 
@@ -73,7 +77,7 @@ to "fill in" the set; the set is the five above.
 3. Add a row here and name the single surface it serves. If you can't name one, don't shoot it.
 
 **Staging still matters for the shots that survive** — consistency is what makes
-a rice read as *designed*, not *dumped*. Before capturing #1–#5:
+a desktop read as *designed*, not *dumped*. Before capturing #1–#4:
 
 - A Nebelung wallpaper on `base #202020`; accent **`pink`**, not the option's
   default mauve — `hausfold.co` sets `--a-haus: var(--nebelung-pink)` and
