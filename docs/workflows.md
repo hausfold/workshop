@@ -238,9 +238,9 @@ flag set in haus's `AGENTS.md`
 
 ## Keeping the docs honest
 
-Code moves daily; docs don't follow on their own. The **`/docs-sync`** sweep
+Code moves all day; docs don't follow on their own. The **`/docs-sync`** sweep
 ([`.agents/skills/docs-sync/SKILL.md`](../.agents/skills/docs-sync/SKILL.md))
-closes that gap once a day, and `bench` gives it its input:
+closes that gap every few hours, and `bench` gives it its input:
 
 ```sh
 ./bench docs-since          # every commit past each repo's watermark, per repo
@@ -248,9 +248,12 @@ closes that gap once a day, and `bench` gives it its input:
 ```
 
 It is **watermark-based, not "since yesterday"**: a sweep that slept for four
-days still picks up all four. The watermarks live in `.docs-sync.json`, which is
+days still picks up all four, and one that fires four times in a day reads each
+commit exactly once. The watermarks live in `.docs-sync.json`, which is
 committed on purpose — the sweep runs as a scheduled routine in a throwaway
 container, so anything it must remember between runs has to be in the repo.
+That frequency is also why the skill keeps **one open PR per repo** and pushes
+onto it rather than opening a fresh one each run.
 
 Two things about its repo list are deliberate and get "tidied" wrong:
 
