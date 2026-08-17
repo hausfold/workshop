@@ -43,16 +43,16 @@ hero fails because it tried to be readable and became a wall.
 ## The scene
 
 ```
-┌────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │ ▟▙ 1  ⌘ ghostty            ▁▁▁▁▁▁▁            ⏻ 21°  Thu  9:41 AM │  bar, menu bar
 │                             ▝▘  ← perch: two pink pips             │  (notch centred)
-├──────────────────────────────────┬───────────────────────────────┤
+├──────────────────────────────────┬─────────────────────────────────┤
 │  agent session, mid-turn         │  haus status                    │
 │                                  │    this machine: …              │
 │  › add obsidian to the roster    │    current generation           │
 │  ⏺ Read  hosts/mbp/default.nix   │    pinned hacker desktop        │
 │  ✳ Thinking…                     │    ✓ up to date with upstream   │
-│                                  ├───────────────────────────────┤
+│                                  ├─────────────────────────────────┤
 │         ╔═══════════════════════════════════════════╗              │
 │         ║  🔍  86 f in c                            ║              │  pounce,
 │         ║  ┌─────────────────────────────────────┐  ║              │  across
@@ -64,9 +64,9 @@ hero fails because it tried to be readable and became a wall.
 │  worktree-… · PR #— · claude     │  +   "obsidian"                 │
 │                                  │  -  accent = "mauve";           │
 │                                  │  +  accent = "pink";            │
-├──────────────────────────────────┴───────────────────────────────┤
+├──────────────────────────────────┴─────────────────────────────────┤
 │  ▶ …            🌙 Focus            🐾 1                           │  bar, second bar
-└─────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────────┘
         ↑ Ghostty · zellij, 60%          ↑ Zen, 40%
 ```
 
