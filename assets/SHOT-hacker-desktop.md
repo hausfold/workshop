@@ -1,8 +1,16 @@
 # The hacker desktop still — shot sheet
 
-One frame, for `hausfold.co/desktops/` and `/desktops/hacker/`. It replaces
-the placeholder in `haus/assets/hero.png`, which is dense, dated and shows a
-GitHub profile as its second-largest object.
+One frame, replacing the placeholder in `haus/assets/hero.png`, which is dense,
+dated and shows a GitHub profile as its second-largest object.
+
+> ⚠️ **Read this for the scene and the crop, not for where the frame goes.**
+> It was written for `hausfold.co/desktops/` and `/desktops/hacker/`, and
+> **both are deleted** — the desktop pages moved into
+> `content/docs/haus/desktops/` on 2026-08-14, and the docs carry no frames on
+> purpose. The site patch in `desktops-hero.patch` targets a file that no
+> longer exists, in a format the Next port replaced; don't try to apply it.
+> The one surface still open to this shot is the haus README, and `SHOTLIST.md`
+> is where its slot is tracked.
 
 **The message:** *this is not a dotfiles collection; it is an entire Mac that
 belongs together.* Everything below serves that one sentence. If an element in

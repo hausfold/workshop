@@ -26,8 +26,8 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
-| 1 | **Pounce demo** | `pounce/assets/demo.webp` | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. |
-| 2 | **Desktop hero** | `haus/assets/hero.png` | haus README · `hausfold.co/desktops/` ×2 | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder. The staged replacement is speced in [`SHOT-hacker-desktop.md`](./SHOT-hacker-desktop.md) — scene, pre-capture checklist, export sizes and a ready-to-apply site patch.)* |
+| 1 | **Pounce demo** | *unshot* (`pounce/assets/demo.webp` is the slot, and is empty) | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. ⚠️ **Nothing is wired**: that README is text + badges, and the file has never existed. |
+| 2 | **Desktop hero** | `haus/assets/hero.png` | haus README — **when it takes one; it carries no capture today** | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. *(The shipped file is still the old, dense placeholder, and nothing links it. The staged replacement is speced in [`SHOT-hacker-desktop.md`](./SHOT-hacker-desktop.md) — scene, pre-capture checklist, export sizes and a site patch that is now history, see below.)* ⚠️ **The `hausfold.co/desktops/` half of this slot is gone**: those three pages were deleted on 2026-08-14 into `content/docs/haus/desktops/`, and the docs deliberately carry no frames. |
 | 3 | ~~**OG social card**~~ | `assets/site/social/og.png` | ~~share-link thumbnail~~ — **nothing, since 2026-08-14** | It was wired into every Astro page's `og:image`; that site is deleted and hausfold.co ships **no** `og:image`, deliberately. The file is kept (evergreen wordmark), the slot is not. Re-earning it means hausfold.co deciding it wants social cards. |
 | 4 | **Landing reel** *(optional)* | *unshot* | the hausfold.co landing page | At most ONE muted ~30–60s stitch, poster = the desktop hero. A single film, never a menu of clips. ⚠️ Its old surface was hausfold.co's hero background, which no longer exists. |
 
@@ -58,11 +58,11 @@ nothing, owed to no one:
   moved out of `web/public/media/` in the same change)
 
 Nothing here is deleted — but nothing here is an obligation either. Don't reshoot
-to "fill in" the set; the set is the five above.
+to "fill in" the set; the set is the four above.
 
 ## If you ever shoot a new marketing asset
 
-1. It has to displace something, or it's a sixth hero — and there is no sixth.
+1. It has to displace something, or it's a fifth hero — and there is no fifth.
 2. Host it in the repo whose surface it serves — a README's hero lives beside
    that README, a site image lives in `hausfold.co`. ⚠️ **`web/public/media/<name>`
    was the answer here until 2026-08-14 and is now a permanent 404**: that site
@@ -73,7 +73,7 @@ to "fill in" the set; the set is the five above.
 3. Add a row here and name the single surface it serves. If you can't name one, don't shoot it.
 
 **Staging still matters for the shots that survive** — consistency is what makes
-a rice read as *designed*, not *dumped*. Before capturing #1–#5:
+a rice read as *designed*, not *dumped*. Before capturing #1, #2 or #4:
 
 - A Nebelung wallpaper on `base #202020`; accent **`pink`**, not the option's
   default mauve — `hausfold.co` sets `--a-haus: var(--nebelung-pink)` and
