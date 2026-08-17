@@ -218,7 +218,12 @@ One desktop per host removes desktop-versus-desktop precedence from the user
 model. Concerns previously called presets or layers become room-owned profiles
 when they remain useful: large print belongs to Appearance, for example. The
 Apps room may call a saved app collection a **pack**, but pack is no longer a
-peer of room or desktop and does not appear in the top-level journey.
+peer of room or desktop and does not appear in the top-level journey. Since
+2026-08-17 it is not a shareable format either: `haus.lib.pack` and its checkers
+are retired, so the collections behind `haus.apps.packs.<name>.enable` are
+haus's own data and a stranger's app collection is a **room**. There are exactly
+two things a person can publish, and [Acquisition](#two-classes-and-nix-already-spells-the-difference)
+is where that lands.
 
 Sources should remain inspectable, typed and pinnable so a later distribution
 workflow can identify whether it contains a desktop or executable room code,
@@ -506,11 +511,14 @@ desktop.
   generalise before it is deleted.
 - **[2] Three shareable formats went to two, and the loose one is now the
   narrow one.** Step 3's finding asked whether a preset simply IS a desktop; the
-  answer is yes for the whole rices and no for the layer. What remains is a
+  answer is yes for the whole rices and no for the layer. What remained was a
   desktop (closed schema, registry-validated, one per host) and a pack (data,
-  `haus.roster` only, `checkRice`/`checkPack`). `checkRice` no longer guards
-  anything a person selects — only pack files — which is a smaller job than it
-  had and worth remembering when its message is next edited.
+  `haus.roster` only, `checkRice`/`checkPack`). ★ **And then two went to two
+  again, differently** (2026-08-17): the pack retired and the ROOM took its place
+  as the second format, because rooms were always shareable and three formats
+  over two trust classes was one too many. `checkRice` and `checkPack` went with
+  it — the observation below, that `checkRice` guarded only pack files, was the
+  early sign it had no job left.
 - **[1] The docs page is still at `/guides/sharing-a-rice/`.** Its content is
   one-desktop now, but renaming the file would break the URL, and the redirect
   belongs with step 6's navigation reorganisation rather than beside a content
@@ -595,14 +603,15 @@ standalone change; none of them blocks another.
   editors the room actually installs — a new option plus packages, not a safety
   flip on the existing one.
 - **[2] ✅ A desktop still outranks a pack the consumer composed themselves —
-  fixed 2026-08-16.** Verified in merged `flake.nix`: `desktopPriority = 900`,
-  while `lib.pack` carried its file in at per-leaf `mkDefault` (1000). Step 3
-  left it alone as unobservable and it still was, but only by luck —
-  `desktops/hacker.nix` sets no `haus.roster`, so the first desktop that named
-  an app would silently have beaten a pack the host explicitly imported.
-  `packPriority = 500` and a `packCompose` rule that can see both rungs; the
-  detail is in [Acquisition](#open-decisions), which is the work that made it
-  reachable.
+  closed 2026-08-17 by retiring the pack.** Verified in merged `flake.nix` at
+  the time: `desktopPriority = 900`, while `lib.pack` carried its file in at
+  per-leaf `mkDefault` (1000). Step 3 left it alone as unobservable and it still
+  was, but only by luck — `desktops/hacker.nix` sets no `haus.roster`, so the
+  first desktop that named an app would silently have beaten a pack the host
+  explicitly imported. It was briefly fixed with a `packPriority = 500` rung,
+  and then the rung went away with the format
+  ([haus#386](https://github.com/hausfold/haus/pull/386)). The full story is in
+  [Acquisition](#open-decisions).
 - **[2] The generated reference names a validator; the key rule it enforces is
   hand-written prose somewhere else.** `groups.json` ships `haus.displays` as
   `{"desktopSafe": "recursive", "validator": "display-selectors"}`. A reader is
@@ -855,13 +864,22 @@ y/n. Non-interactive use needs a per-name environment variable, so a piped
 installer can never accept a room on a person's behalf — the same reasoning as
 the `curl|bash` tty rules.
 
-**Rooms are phase 2, and v1 should refuse them by name.** No third-party room
-exists, the extension-point mechanism is still only the three points the AI
-room needed (a finding carried since step 2 and still open), and two
-third-party rooms declaring the same `haus.<name>.*` namespace collide as a
-raw module-system option-declaration error naming neither publisher. Shipping
-the desktop half first costs nothing later: the room path is the *same* command
-with `flake = false` dropped.
+**Rooms are in scope, not deferred** (👤, 2026-08-17 — this paragraph used to
+say phase 2, and it was wrong). Retiring the pack format is what settles it: a
+stranger's app collection is a room, so rooms are no longer the exotic case but
+the *only* way to share anything smaller than a machine. The room path is the
+same command with `flake = false` dropped, plus the code prompt above.
+
+What that makes load-bearing, and was not while rooms were deferred: **nothing
+arbitrates a top-level `haus.<name>.*` namespace.** Two third-party rooms
+claiming one collide as a raw module-system option-declaration error naming
+neither publisher — but the worse case is haus later shipping a room with that
+name and breaking a machine that was fine. haus's own `room-registry` check
+catches an unclassified namespace in *haus's* flake check, which never runs on
+the consumer. Needs an answer — a reserved prefix, or a claim check at `add`
+time — designed with the room half rather than after it. The extension-point
+mechanism is also still only the three points the AI room needed, a finding
+carried since step 2.
 
 ### Rules that fall out, and the traps behind them
 
@@ -908,7 +926,8 @@ behaviour, findings reported rather than folded in, and the
 | **B. Remote sources, read-only** | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each. | A person can fully evaluate a stranger's desktop without their config being touched. |
 | **C. The machine diff** | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
 | **D. `haus add` / `remove` / `desktop`** | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
-| **E. Rooms** | The same command with the code prompt, `--room`, typed confirmation and the per-name environment variable. Gated on a real third-party room existing and on the namespace-collision message being worth reading. | — | Deliberately unscheduled. |
+| **E. Namespace arbitration** | Decide and build what stops two third-party rooms — or a third-party room and a future haus one — from claiming the same top-level `haus.<name>.*`. A reserved prefix, or a claim check at `add` time. Sequenced before D's room half, not after it: it is a format decision, and formats are hard to change once anyone has published into them. | The rule, plus a check that fires on the CONSUMER's machine rather than only in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release. |
+| **F. Rooms in `haus add`** | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
 
 ### Open decisions
 
@@ -932,47 +951,61 @@ behaviour, findings reported rather than folded in, and the
   what it decided the subject was (“pinned the desktop `writer` from …”) rather
   than take a mandatory noun, but if a future `haus add <app>` is wanted, the
   noun becomes mandatory then and the desktop form keeps working.
-- **[2] ✅ Fixed 2026-08-16 — the pack seam sat below the desktop, and
-  acquisition is what would have made it observable.** Carried unfixed since
-  step 3 as “unobservable, so leave it alone”: `lib.pack` lowered a
-  consumer-composed pack to `mkDefault` (1000), under the desktop's 900, so the
-  more general statement beat the more specific one. Nothing in haus could
-  reach it — no shipped desktop sets `haus.roster` — but
-  `haus.roster.<name>.key` is `desktopSafe: true`, so the first published
-  desktop that claims a leader letter would have silently overridden a pack the
-  consumer imported by hand. `lib.pack` carries its leaves at a named
-  `packPriority = 500` now, and the ladder reads as one question — **who is
-  speaking**: `haus set` 50, you 100, a third party you pointed at 500, the
-  desktop you chose 900, haus 1000.
+- **[3] ✅ Superseded 2026-08-17 — the pack seam is gone, not repositioned.**
+  This was a ladder bug: `lib.pack` lowered a consumer-composed pack to
+  `mkDefault` (1000), under the desktop's 900, so the more general statement
+  beat the more specific one. Unreachable in practice (no shipped desktop sets
+  `haus.roster`) but not by design — `haus.roster.<name>.key` is
+  `desktopSafe: true`, so the first published desktop claiming a leader letter
+  would have hit it. It was fixed with a `packPriority = 500` rung
+  ([haus#384](https://github.com/hausfold/haus/pull/384)), and then both that PR
+  and its docs companion were **closed** in favour of retiring the format —
+  👤's call, and the better one.
 
-  Shipped as [haus#384](https://github.com/hausfold/haus/pull/384) with
-  [hausfold.co#67](https://github.com/hausfold/hausfold.co/pull/67) behind it —
-  `desktops/sharing.mdx` told a pack author their pack “doesn't compete with” a
-  desktop, which is exactly what changed.
+  Why: **rooms are shareable too**, so three formats sat over two trust classes.
+  A pack was data that arrived beside rooms, earning its own prompt, its own
+  docs page and its own rung for no user — `riceLib.pack` had exactly one caller
+  in haus, feeding only the deprecated `haus.packs.writing` alias and the checks
+  that tested the format itself. Retired in
+  [haus#386](https://github.com/hausfold/haus/pull/386) with
+  [hausfold.co#68](https://github.com/hausfold/hausfold.co/pull/68).
 
-  Three things that fell out of doing it, all worth keeping:
+  Four things worth keeping out of doing it:
 
-  - **The Apps room's own packs stay at `mkDefault`, and that asymmetry is the
-    point.** `haus.apps.packs.<name>.enable` is itself `desktopSafe`, so a
-    desktop may be the thing flipping the switch — and its own explicit
-    `roster` line should then beat the collection it turned on. `lib.pack`
-    carries a file *you* pointed at; `packs.<name>` carries haus's data behind
-    a switch. Same word, two provenances, two rungs.
-  - **The fixture needed no fixture file.** The desktop is synthesized inside
-    `packCompose` from the pack's own entry, through the same
-    `desktopLib.prioritize` that `lib.desktop` applies to a real one — which is
-    what let the rule land before a desktop that sets a roster exists. It is
-    proven both ways: at 1000 the check reports the desktop beating the pack,
-    at 50 it reports the host losing, and only the middle is green.
-  - **Moving a rung silently resolves every conflict that used to sit ON it.**
-    Five rooms set roster leaves at `mkDefault` (ghostty, pounce, duti, espanso,
-    iina). At 1000 a pack naming one of those ids with a different value was a
-    loud module-system conflict; at 500 the pack just wins. That agrees with the
-    ladder and is arguably the better behaviour — but it was not the change
-    anybody set out to make, and it is invisible in the diff. Expect it wherever
-    a priority moves *past* a rung rather than between two empty ones: write
-    down which collisions stopped being collisions.
-- **[2] Nothing in this design lets a desktop depend on a room that is not in
-  haus.** A third-party desktop that enables a third-party room is the first
-  case where the two classes have to arrive together, and the closed schema
-  gives a desktop no way to say so. Not a problem until step E.
+  - **The trade is exactly one capability, and it is worth naming.** What a pack
+    had that neither survivor does is *many per host, provably data-only*. A
+    desktop is data but you get one; a room is many-per-host but it is code. So
+    a shared app list moves from “haus can prove this is inert” to “trust the
+    author”. A pack could not be re-expressed as a narrow desktop either —
+    mechanically it would pass (`checkPack` ⊂ `checkDesktop`, `roster` is
+    `desktopSafe: recursive`), but one-desktop-per-host closes it. Nothing used
+    the capability, so the trade is cheap; it is still a trade.
+  - **One rule survived its subject, and it could not become a check.** The
+    per-leaf priority rule is `packEntries`'s too, so it moved into
+    `app-collections`, run against the room's switch. But “a collection file
+    sets nothing outside `haus.roster`” could not: `packEntries` carries only
+    `roster` through, so a stray key is dropped with **no error**, and a check
+    has nothing to look at. It is an assertion inside `packEntries` — the only
+    code positioned to see it. A rule whose failure mode is silence belongs
+    where the silence happens, not in a check.
+  - **A check that guesses a filename is a check that reads the wrong file.**
+    The first draft derived the collection's path from its option name. That is
+    correct until a name and a filename diverge, at which point the check reads
+    a different file than the room installs, silently. `modules/apps/packs/`
+    is now a table both read, with an orphan rule on either side of it.
+  - **Retirement is not symmetric with deprecation, and the docs are the tell.**
+    `presets` got a warning-emitting shim for its migration window; `lib.pack`
+    was hard-removed with none. Defensible at zero consumers — but the published
+    docs still *taught* the removed helpers, so for as long as the two PRs sat
+    unmerged the honest statement was “nobody uses it and everybody is being
+    told to”. Retire the docs in the same breath as the API.
+- **[3] Nothing in this design lets a desktop depend on a room that is not in
+  haus, and retiring packs makes that bite sooner.** A third-party desktop that
+  enables a third-party room is the case where the two classes have to arrive
+  together, and the closed schema gives a desktop no way to say so — a desktop
+  may only set registry-classified `haus.*` leaves, and a stranger's room
+  declares a namespace the registry has never heard of. It used to be step E's
+  problem, i.e. nobody's. It is now the shape of "share a photography setup":
+  the room installs the apps, and the desktop that wants it cannot name it.
+  Belongs with step E's namespace work, since both answer "what is a
+  third-party namespace, and who vouches for it?".
