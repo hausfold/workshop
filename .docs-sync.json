@@ -1,29 +1,35 @@
 {
   "repos": {
     "workshop": {
-      "rev": "c6a421a2068886a27eb9f249bebb54bb341a348b"
+      "rev": "05699f71f64232671bd633fa0789358db87dc633"
     },
     "nebelung": {
-      "rev": "2110fac6b8f2ee087db3e13471ad3be0894dc311"
+      "rev": "d76f124f275ea4b5bd08e6fa7d9a33744b7dbc43"
     },
     "pounce": {
-      "rev": "12b670f9b6b5029b6edcf39fb1c0c64089960a11"
+      "rev": "807949fa4f6552ebea2cd34062e03f2b02e5d3c3"
     },
     "haus": {
-      "rev": "028722fa55d0215eb2fd9de4e91a7b1028c0621f"
+      "rev": "59d14c3e6fd73a70a54df997bbe1eb30e02c754c"
     },
     "org-profile": {
-      "rev": "5a11bbf0891547ccff9d141d1c5d4b38e352b5dc"
+      "rev": "de9b6aa2bd32337a7b3b102a6e2b01bed18c6145"
     },
     "homebrew-tap": {
-      "rev": "02b56ba6375d6f4641d27fcff4b4dcc160032966"
+      "rev": "7777eee9089f4a791a62ed846d273283f54c1f7f"
     },
     "perch": {
-      "rev": "67598e52ef0a840b5937c39eef35559a2879e9b1"
+      "rev": "97d637f2d353f932e7161993be8e4f724ebf39c8"
     },
     "holt": {
-      "rev": "2a1be5add6d75b737f711e807ed0e6261527886d"
+      "rev": "860379e0bce179229bd8288ceaaf132dc1ca43b4"
+    },
+    "trill": {
+      "rev": "df85af50f8b7e054d40cc25b7b74b980338a914e"
+    },
+    "hausfold.co": {
+      "rev": "e7a0673144e4cb1b2903a9aff792af6d4fedae7b"
     }
   },
-  "last_run": "2026-08-07T12:55:43+00:00"
+  "last_run": "2026-08-17T18:17:04+00:00"
 }
