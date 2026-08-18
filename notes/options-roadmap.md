@@ -196,7 +196,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   `modules/launcher`'s two static `./commands` halves from
 >   `config.haus.focus.scenes`, so a scene has a palette row and a cheatsheet
 >   line — the box's own precondition for the trigger daemon, which stays
->   deliberately behind it); §5.9's three (an open `bar.widgets` with
+>   deliberately behind it) — **done hours after this block was written**
+>   ([haus#381](https://github.com/hausfold/haus/pull/381), `mergedAt
+>   2026-08-16T20:10:48Z`), so what §5.8 still holds is the trigger daemon
+>   alone; §5.9's three (an open `bar.widgets` with
 >   `bar.items` as sugar; pounce command packs; commands declaring
 >   mutates/confirm/permissions); §5.1's `flavor = "custom"` + `theme.palette`;
 >   §5.2's `motion = "none"`; §5.3's app-side `sans` across pounce/perch/trill,
@@ -3651,7 +3654,7 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a hacker desktop for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`); what stays open is the reachability gap the build exposed, then the trigger engine this section's second box has always deferred**
+### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`) and so is the reachability gap it exposed (haus#381, `mergedAt 2026-08-16T20:10:48Z`); what stays open is the trigger engine this section's second box has always deferred**
 `focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
@@ -3755,7 +3758,16 @@ power source, display attach.
       be fed from `config.haus.focus.scenes` instead. Still modest — the names
       come from config, so nothing is imported from a derivation — and still the
       thing to do before the triggers, because an unreachable scene can't prove
-      itself useful, which is this box's own precondition.
+      itself useful, which is this box's own precondition. ✅ **Done**
+      ([haus#381](https://github.com/hausfold/haus/pull/381), `mergedAt
+      2026-08-16T20:10:48Z`): `modules/launcher/default.nix:224` reads
+      `config.haus.focus.scenes` instead of `./commands`, so every scene
+      generates a `Scene: <name>` palette command plus a shared `Leave Scene`,
+      and the cheatsheet's Palette Commands page grows a row per scene — both
+      halves fed from config exactly as the ⚠️ above prescribed, and with no
+      IFD, because the names come from the option rather than from a
+      derivation. The trigger daemon is the whole of what this box still
+      holds.
 
 ### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done**
 `bar.items` is a closed submodule of 15 bools (13 when this was written — it
