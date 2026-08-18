@@ -1241,12 +1241,41 @@ cmd_ship() {
       # `nix flake update` can resolve the input from the flake cache, see "no
       # change", and leave the lock on the old rev — exiting 0 the whole way.
       # Never take its word for it: read the lock back, and only then treat the
-      # hop as bumped. (--refresh bypasses that cache; it usually works and has
-      # once not, hence the second read rather than a second assumption.)
-      if [ "$(locked_rev "$holder" "$input")" != "$want" ]; then
-        warn "$name: lock for $input didn't move — retrying with --refresh"
-        (cd "$dir" && nix flake update "$input" --refresh)
+      # hop as bumped.
+      #
+      # --refresh bypasses NIX's cache, but that is only half the staleness:
+      # `github:owner/repo` with no ref resolves the default branch through
+      # api.github.com, whose answer is edge-cached for a few seconds. A hop that
+      # runs immediately after THIS SAME RUN pushed the upstream commit is
+      # therefore told, authoritatively, about the previous head — and a single
+      # --refresh retry fires inside that window and fails with it. The window
+      # closes on its own, so wait it out.
+      #
+      # Only when waiting can possibly help, though: if GitHub has never been
+      # shown $want (unpushed work, or a rev off the default branch), no number
+      # of refreshes will conjure it, and retrying just spends unauthenticated
+      # api.github.com budget — 60/hr per IP, shared by every edge in the run —
+      # to arrive at the same `die` three sleeps later. `origin/main` decides it,
+      # and is trustworthy here precisely because the push that opens the lag
+      # window happened in THIS process: the remote-tracking ref is as fresh as
+      # that push. Only a definite "origin/main does not contain it" cancels the
+      # backoff — a repo with no origin/main keeps it.
+      local tries=3 srcdir; srcdir="$(repo_dir "$source")"
+      if git -C "$srcdir" rev-parse --verify --quiet origin/main >/dev/null 2>&1 &&
+         ! git -C "$srcdir" merge-base --is-ancestor "$want" origin/main 2>/dev/null; then
+        tries=1
       fi
+      local try
+      for try in $(seq 1 "$tries"); do
+        [ "$(locked_rev "$holder" "$input")" != "$want" ] || break
+        warn "$name: lock for $input didn't move — retrying with --refresh (${try}/${tries})"
+        # Non-fatal on purpose: a 5xx or a rate-limit 403 IS the flaky window
+        # this loop exists for, and under `set -e` a bare failure here would
+        # abort mid-ripple — no stale-edge accounting, no `die`, some repos
+        # pushed and some not, and nothing said about why.
+        [ "$try" = 1 ] || sleep "${BENCH_LOCK_RETRY_SLEEP:-5}" || true
+        (cd "$dir" && nix flake update "$input" --refresh) || warn "$name: --refresh attempt $try failed"
+      done
       if [ "$(locked_rev "$holder" "$input")" = "$want" ]; then
         bumped+=("$input")
       else
