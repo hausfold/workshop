@@ -13,6 +13,13 @@ machine, not recalled from docs.**
 Every domain touched was exported first and byte-compared after. **Zero net
 change to this machine** (verified: `diff` of before/after is empty).
 
+> **Scope.** This file is about what a desktop can set *itself*, through
+> `defaults` and nix-darwin. The settings that no amount of local writing can
+> reach — TCC/permission grants, background-item allow-lists, notification
+> style — sit behind a user-approved MDM enrollment (reasoned from Apple's
+> docs, **not probed here**) and are covered separately in
+> [`mdm-permissions.md`](mdm-permissions.md).
+
 ---
 
 ## Headline: `universalaccess` works — but only from an FDA-holding app
