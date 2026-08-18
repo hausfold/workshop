@@ -4,12 +4,13 @@
 already runs an MDM — and that half is worth building.**
 
 - **Date:** 2026-08-18
-- **Status:** design note. §§1–5 are **reasoned from Apple's documented MDM/PPPC
+- **Status:** design note. §§2–5 are **reasoned from Apple's documented MDM/PPPC
   behaviour, not probed** — the MDM half can't be tested without an enrollment.
-  **§6 is probed**, to the standard of
+  **§1's delivery bullets, §6 and §7 are probed**, to the standard of
   [`macos-settings-matrix.md`](macos-settings-matrix.md): run on this machine
   2026-08-18, with each claim marked probed or reasoned. Read §6 before acting
-  on §5 — it is what says the org path is buildable.
+  on §5 — it is what says the org path is buildable — and §7 for the line
+  between a grant and a setting, which is where the only unclicked route lives.
 - **Prompted by:** wanting `haus.*` to declare an app's Accessibility / Full
   Disk Access grant the way it declares everything else, so a fresh install
   doesn't open with fifteen permission dialogs.
@@ -33,6 +34,15 @@ Two consequences that kill the obvious shortcuts:
 - `profiles install` from the CLI has been blocked since Big Sur, so even
   *unattended* installation of the ungated payloads isn't available. It's a
   double-click plus an approval, or nothing.
+- **Probed 2026-08-18: the UNGATED payloads really do apply from a
+  user-installed profile.** A managed-preferences payload set
+  `com.apple.universalaccess`'s `reduceTransparency` with no Full Disk Access
+  anywhere, confirmed against NSWorkspace. What it costs is that approval — and
+  the approval is **per profile VERSION**: an in-place update carrying the same
+  `PayloadIdentifier` and `PayloadUUID` with the version bumped prompted for the
+  entire flow a second time. So "a double-click plus an approval" is a recurring
+  cost rather than a one-time one, which is what rules profiles out for anything
+  a rebuild regenerates. §7 has the routes this leaves.
 
 There is no local escape hatch short of disabling SIP.
 
@@ -142,8 +152,9 @@ grants declarative in the same file as everything else, which is the actual
 haus argument. A genuine differentiator for a Nix desktop, and the piece fully
 inside our control.
 
-**Consumers — no sanctioned bypass exists,** and the ceiling is already most of
-the way built. `haus doctor` names each missing permission and deep-links its
+**Consumers — no sanctioned bypass exists *for grants*** (settings are a
+different question with a much better answer — §7), and the ceiling is already
+most of the way built. `haus doctor` names each missing permission and deep-links its
 pane; what's missing is only the first-run loop that polls until granted instead
 of printing a line and exiting. Unglamorous, and it has to survive Tahoe's
 re-prompt behaviour — but it's an extension of `plan_permissions` / `doctor`,
@@ -266,3 +277,52 @@ create.)
    split ([`rooms-desktops.md`](rooms-desktops.md)). It looks host-leaning — a
    designated code requirement is machine- and signing-identity shaped — but
    every top-level namespace needs that classification decided before it ships.
+
+---
+
+## 7. Grants are not settings — and the settings half has an escape
+
+**Probed 2026-08-18, from a spike in `haus` ([hausfold/haus#391], [#392]). Same
+standard as §6: everything below was run on this machine. The per-domain answers
+now live in haus's `modules/lib/reachability.nix`; the measurement discipline is
+[`macos-settings-matrix.md`](macos-settings-matrix.md).**
+
+[hausfold/haus#391]: https://github.com/hausfold/haus/pull/391
+[#392]: https://github.com/hausfold/haus/pull/392
+
+This note is about **grants** — TCC's answer to "may pounce drive the
+Accessibility API". A second thing wears the word *permission* and behaves
+nothing like it: **settings that live inside a TCC-protected preference
+domain**. `com.apple.universalaccess` is the one that matters, because every
+accessibility toggle haus ships is written there. §1's gate is real for grants
+and does not bind settings.
+
+Three routes to that domain, all measured the same day:
+
+| route | works? | what it costs |
+|---|---|---|
+| `defaults write` at the user level (what haus ships) | yes | Full Disk Access on the app running the rebuild — one grant per machine, then silent forever |
+| managed preferences in a profile | yes | an admin password in System Settings **per profile version** (§1) — so MDM, or a nag |
+| root write to `/Library/Preferences` — the any-user level | yes | root, which activation already has; a `universalaccessd` restart; and the user domain shadows it |
+
+The third row is what changes this note's conclusion.
+`/Library/Preferences/com.apple.universalaccess.plist` is root-owned rather than
+TCC-protected, and CFPreferences searches managed → current user → any-user, so
+a root write lands with **no grant anywhere, no profile, and nothing clicked**.
+Activation is already root. Reachability, in other words, is a property of
+*(domain, level)* rather than of the domain.
+
+So: for **settings**, a downloaded desktop can go all the way down today,
+without MDM and without a permission dialog. For **grants**, §1 and §6 stand
+unchanged — nothing short of a user-approved MDM hands pounce its Accessibility
+grant, and §6 is what says the org emitter is worth building. Keeping the two
+apart is the point of this section: `haus.permissions` (§5) is about grants and
+must not grow settings, and `haus.accessibility` is about settings and can never
+deliver a grant.
+
+Carried from the spike so the table isn't over-read: only `reduceTransparency`
+was measured at the any-user level, survival across a reboot is untested, and
+the shadowing is **silent** — the moment a person touches that switch in System
+Settings their user-domain value wins forever and the root-written value goes
+inert, with nothing anywhere to say so. That last one is a product decision
+rather than a bug, and it is why haus has not moved its writer to this route.
