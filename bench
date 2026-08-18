@@ -397,6 +397,10 @@ EDGES=(
   "consumer @layer haus"
 )
 
+# Seconds between the lock-bump retries in `cmd_ship` (see the backoff there).
+# Overridable so the test suite doesn't sit through three real sleeps.
+LOCK_RETRY_SLEEP="${BENCH_LOCK_RETRY_SLEEP:-5}"
+
 host_name() { # the darwinConfiguration to build in the consumer flake
   if [ -n "${HAUS_HOST:-}" ]; then echo "$HAUS_HOST"; return; fi
   # No nix means the `hostname -s` fallback below would hand every caller a
@@ -1241,12 +1245,23 @@ cmd_ship() {
       # `nix flake update` can resolve the input from the flake cache, see "no
       # change", and leave the lock on the old rev — exiting 0 the whole way.
       # Never take its word for it: read the lock back, and only then treat the
-      # hop as bumped. (--refresh bypasses that cache; it usually works and has
-      # once not, hence the second read rather than a second assumption.)
-      if [ "$(locked_rev "$holder" "$input")" != "$want" ]; then
-        warn "$name: lock for $input didn't move — retrying with --refresh"
+      # hop as bumped.
+      #
+      # --refresh bypasses NIX's cache, but that is only half the staleness:
+      # `github:owner/repo` with no ref resolves the default branch through
+      # api.github.com, whose answer is edge-cached for a few seconds. A hop that
+      # runs immediately after THIS SAME RUN pushed the upstream commit is
+      # therefore told, authoritatively, about the previous head — and a single
+      # --refresh retry fires inside that window and fails with it. The window
+      # closes on its own, so retry through it with a short backoff instead of
+      # ending the ripple on a stale edge the user then bumps by hand.
+      local try
+      for try in 1 2 3 4; do
+        [ "$(locked_rev "$holder" "$input")" != "$want" ] || break
+        [ "$try" = 1 ] || sleep "$LOCK_RETRY_SLEEP"
+        warn "$name: lock for $input didn't move — retrying with --refresh (${try}/4)"
         (cd "$dir" && nix flake update "$input" --refresh)
-      fi
+      done
       if [ "$(locked_rev "$holder" "$input")" = "$want" ]; then
         bumped+=("$input")
       else
