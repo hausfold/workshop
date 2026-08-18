@@ -45,24 +45,28 @@ real machine config against the **local checkouts**, uncommitted edits and all:
 
 ## Parallel agents
 
-`Super a` (⌘A) in any repo tab spawns an agent session in its **own git
+**⌘↵** over a Ghostty window spawns an agent lane in its **own git
 worktree** — own checkout, own `worktree-*` branch, branched from local HEAD — so
 agents never yank the branch out from under each other, or you. The worktrees
 live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>` (the path
-name is historical; every client shares it).
+name is historical; every client shares it). The chord is scoped to Ghostty, so
+⌘↵ still means *send* everywhere else — and a lane can't be started from a
+browser; the palette's **Spawn Agent** row is the answer there.
 
-**Which client** is whatever `haus.ai.default` names — `claude`, `codex` or
-`opencode`. Claude Code makes its own worktree (`claude --worktree`, whose
-`WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` delegate to
-`holt hook create` / `holt hook remove`); for Codex and OpenCode the keybind runs
-`holt new`, which produces the identical checkout from the outside. Either way
+**Which client** is whatever `haus.ai.default` names — `claude`, `codex`,
+`opencode` or `jcode`. **All four go through `holt new`**, including Claude:
+`claude --worktree` would run the client in the pane it was launched from and
+never ask holt's `[hooks] open`, which is the seam a lane's own window arrives
+through. The `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json`
+still delegate to `holt hook create` / `holt hook remove`, so a hand-run
+`--worktree` is registered too — it just isn't what the chord does. Either way
 the plumbing is `holt` — the standalone tool haus ships on `PATH`, **not** a
 `bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
 `Ctrl Alt Shift a` spawns the one agent allowed to edit the checkout you're
 looking at.
 
 ```sh
-# Super-a (⌘A) panes hack away on their own branches; meanwhile:
+# ⌘↵ lanes hack away on their own branches; meanwhile:
 ./bench status               # …also lists agent worktrees + unmerged worktree-* branches
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
@@ -277,7 +281,7 @@ reason.
 hack ──► test ──► assure ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
-1. **hack** — edit in place, or let `Super a` (⌘A) agents draft on `worktree-*`
+1. **hack** — edit in place, or let ⌘↵ agent lanes draft on `worktree-*`
    branches in parallel; the main checkouts never move.
 2. **test** — `./bench try` from wherever you are: it builds your real machine
    against the local checkouts (from inside an agent worktree, against *that*

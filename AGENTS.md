@@ -68,7 +68,7 @@ former, never the latter).
 | the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — **the rooms are named for what they do since 2026-08-16**, and the eight code names they replaced are mapped in [`notes/rooms-desktops.md`](notes/rooms-desktops.md#the-names-2026-08-16) | `./haus` — the repo that holds **`haus`**, the nix-darwin layer (`hausfold/haus`; the repo is named for the layer, the org is what's in front of the slash — decision 8, applied to the slug by §10). **The directory was `./hausfold` until 2026-08-11**; each time the repo moved, the checkout followed. The desktop it ships is **`hacker`**; the directory is named for its repo, not for the desktop it carries. |
 | the org's GitHub front page | `./org-profile` — the checkout of the `hausfold/.github` repo (`bench clone` maps the alias `org-profile` to it, which is why the dir isn't named `.github`; this repo's own `./.github` is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` — its own repo now ([hausfold/trill](https://github.com/hausfold/trill)), ejected from the incubator 2026-08-09. Called **flick** until 2026-08-08. **Deliberately not a family repo**: it is not in `bench`'s `FAMILY` and carries no lock edge, so `bench status`/`ship` don't see it. It IS in `DOCS_REPOS`, `bench clone` and `bench pull` (like `hausfold.co`): docs coverage and lock coverage are different lists, and a repo the docs sweep can't open is one it reports clean forever. The layer will consume it as a leaf overlay, which is not the same thing as joining the ripple chain. |
-| holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; ⌘A runs `holt new` ([haus#200](https://github.com/hausfold/haus/pull/200)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([haus#245](https://github.com/hausfold/haus/pull/245)) — there is no fallback to roll back to. |
+| holt — the worktree-lifecycle substrate (a Go rewrite of the rice's old bash `wt.sh`) | `./holt` — its own repo now ([hausfold/holt](https://github.com/hausfold/holt)), ejected from the incubator 2026-08-03 with all 79 acceptance tests green. The rice takes it as a flake input and ships it on PATH; the ⌘↵ lane chord runs `holt new` for **every** client ([haus#200](https://github.com/hausfold/haus/pull/200), unified by [haus#388](https://github.com/hausfold/haus/pull/388)) and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json` are repointed at `holt hook create` / `holt hook remove`, so **holt is the live path end to end**. `wt.sh` has since been retired entirely ([haus#245](https://github.com/hausfold/haus/pull/245)) — there is no fallback to roll back to. |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | **how an agent learns to drive one of our tools** — the `ai/SKILL.md` an end user's agent loads, the `<tool> skill` verb, `--json`/exit-code shape | the tool's OWN repo, to the standard in [`notes/agent-surface.md`](notes/agent-surface.md) — which lives here because it binds every repo. ⚠️ Not to be confused with a repo's `AGENTS.md`: that is for an agent working **on** the tool, from a checkout; a `SKILL.md` is for an agent **using** it, on a machine that has no checkout. The install side (which skills a machine gets) is `./haus`'s `haus.ai.skill` |
@@ -165,12 +165,15 @@ Never hand-walk that ripple; the tooling does it:
 
 ## Agent worktrees (parallel agent sessions)
 
-Agent panes spawned with `Super a` (⌘A) run whichever client
-`haus.ai.default` names — `claude`, `codex` or `opencode`. Claude Code
-is the only one that can make its own worktree (`claude --worktree`, its native
-flag, which fires the `WorktreeCreate` hook → **`holt hook create`**); for Codex
-and OpenCode the keybind runs **`holt new`** instead, producing the identical
-checkout from the outside. Either way the session gets its own checkout under
+Agent lanes spawned with **⌘↵** run whichever client
+`haus.ai.default` names — `claude`, `codex`, `opencode` or `jcode`. **Every
+client goes through `holt new`**, and that includes Claude: `claude --worktree`,
+its native flag, would run the client in the pane it was launched from and never
+ask holt's `[hooks] open`, which is the seam a lane's own window arrives through
+(haus#388). The `WorktreeCreate`/`WorktreeRemove` hooks → `holt hook create` /
+`holt hook remove` are still declared, so a hand-run `claude --worktree`
+still lands in the registry — it just isn't the path the chord takes. Either
+way the session gets its own checkout under
 `~/.cache/claude-worktrees/<repo>/<name>` (the path name is historical — every
 client shares it) on branch `worktree-<name>`, branched from the repo's **local
 HEAD**. The plumbing is `holt` — a standalone, repo-agnostic, client-agnostic Go
