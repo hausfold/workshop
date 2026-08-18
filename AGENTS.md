@@ -130,10 +130,12 @@ Never hand-walk that ripple; the tooling does it:
   upstream→downstream, running `nix flake update` + a lock-bump commit at each
   hop. It re-reads each lock afterwards and refuses to end on `shipped` if an
   edge didn't actually move, so a silent no-op ripple can't pass for a real one.
-  An edge that won't move gets four `--refresh` attempts, 5s apart: `github:`
+  An edge that won't move gets three `--refresh` attempts, 5s apart: `github:`
   with no ref resolves the default branch through api.github.com, whose answer
   is edge-cached for a few seconds, so the hop right after this same run pushed
-  the upstream commit is briefly told about the *previous* head.
+  the upstream commit is briefly told about the *previous* head. It waits only
+  when waiting can help — a rev that isn't on the upstream's `origin/main` at
+  all fails fast, as before.
 
 **Iterating on a zellij edit — two cases, and only one of them costs anything.**
 

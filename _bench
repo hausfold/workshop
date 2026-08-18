@@ -24,7 +24,7 @@
 # `bench`, one per line, falling back to the literals given.
 #
 # The repo lists are READ OUT OF the script rather than copied here: FAMILY
-# (bench:116) and OVERRIDABLE (bench:139) are both single-line arrays, so one
+# (bench:126) and OVERRIDABLE (bench:140) are both single-line arrays, so one
 # sed keeps this file from going stale the day a repo joins or leaves the
 # family. The fallbacks are what you get if the checkout has moved.
 _bench_array() {

@@ -397,10 +397,6 @@ EDGES=(
   "consumer @layer haus"
 )
 
-# Seconds between the lock-bump retries in `cmd_ship` (see the backoff there).
-# Overridable so the test suite doesn't sit through three real sleeps.
-LOCK_RETRY_SLEEP="${BENCH_LOCK_RETRY_SLEEP:-5}"
-
 host_name() { # the darwinConfiguration to build in the consumer flake
   if [ -n "${HAUS_HOST:-}" ]; then echo "$HAUS_HOST"; return; fi
   # No nix means the `hostname -s` fallback below would hand every caller a
@@ -1253,14 +1249,32 @@ cmd_ship() {
       # runs immediately after THIS SAME RUN pushed the upstream commit is
       # therefore told, authoritatively, about the previous head — and a single
       # --refresh retry fires inside that window and fails with it. The window
-      # closes on its own, so retry through it with a short backoff instead of
-      # ending the ripple on a stale edge the user then bumps by hand.
+      # closes on its own, so wait it out.
+      #
+      # Only when waiting can possibly help, though: if GitHub has never been
+      # shown $want (unpushed work, or a rev off the default branch), no number
+      # of refreshes will conjure it, and retrying just spends unauthenticated
+      # api.github.com budget — 60/hr per IP, shared by every edge in the run —
+      # to arrive at the same `die` three sleeps later. `origin/main` decides it,
+      # and is trustworthy here precisely because the push that opens the lag
+      # window happened in THIS process: the remote-tracking ref is as fresh as
+      # that push. Only a definite "origin/main does not contain it" cancels the
+      # backoff — a repo with no origin/main keeps it.
+      local tries=3 srcdir; srcdir="$(repo_dir "$source")"
+      if git -C "$srcdir" rev-parse --verify --quiet origin/main >/dev/null 2>&1 &&
+         ! git -C "$srcdir" merge-base --is-ancestor "$want" origin/main 2>/dev/null; then
+        tries=1
+      fi
       local try
-      for try in 1 2 3 4; do
+      for try in $(seq 1 "$tries"); do
         [ "$(locked_rev "$holder" "$input")" != "$want" ] || break
-        [ "$try" = 1 ] || sleep "$LOCK_RETRY_SLEEP"
-        warn "$name: lock for $input didn't move — retrying with --refresh (${try}/4)"
-        (cd "$dir" && nix flake update "$input" --refresh)
+        warn "$name: lock for $input didn't move — retrying with --refresh (${try}/${tries})"
+        # Non-fatal on purpose: a 5xx or a rate-limit 403 IS the flaky window
+        # this loop exists for, and under `set -e` a bare failure here would
+        # abort mid-ripple — no stale-edge accounting, no `die`, some repos
+        # pushed and some not, and nothing said about why.
+        [ "$try" = 1 ] || sleep "${BENCH_LOCK_RETRY_SLEEP:-5}" || true
+        (cd "$dir" && nix flake update "$input" --refresh) || warn "$name: --refresh attempt $try failed"
       done
       if [ "$(locked_rev "$holder" "$input")" = "$want" ]; then
         bumped+=("$input")
