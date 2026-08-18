@@ -4,10 +4,12 @@
 already runs an MDM — and that half is worth building.**
 
 - **Date:** 2026-08-18
-- **Status:** design note. **Reasoned from Apple's documented MDM/PPPC
-  behaviour, NOT probed on this machine** — unlike
-  [`macos-settings-matrix.md`](macos-settings-matrix.md), nothing here has been
-  run. §6 lists what a spike would have to settle before any of it is acted on.
+- **Status:** design note. §§1–5 are **reasoned from Apple's documented MDM/PPPC
+  behaviour, not probed** — the MDM half can't be tested without an enrollment.
+  **§6 is probed**, to the standard of
+  [`macos-settings-matrix.md`](macos-settings-matrix.md): run on this machine
+  2026-08-18, with each claim marked probed or reasoned. Read §6 before acting
+  on §5 — it is what says the org path is buildable.
 - **Prompted by:** wanting `haus.*` to declare an app's Accessibility / Full
   Disk Access grant the way it declares everything else, so a fresh install
   doesn't open with fifteen permission dialogs.
@@ -44,10 +46,11 @@ There is no local escape hatch short of disabling SIP.
 | `com.apple.system-extension-policy` | pre-approve a network/endpoint system extension |
 | `com.apple.syspolicy.kernel-extension-policy` | kext allow-list (legacy) |
 
-**The path-independence in row 1 is the real prize.** A PPPC grant keyed to a
-code requirement survives a `/nix/store` path change and a Homebrew version
-bump — both of which strand a hand-clicked TCC grant today, and both of which we
-have hit.
+**The path-independence in row 1 is the real prize** — a PPPC grant keyed to a
+code requirement should survive a `/nix/store` path change and a Homebrew
+version bump, both of which strand a hand-clicked grant today. **§6 probed this: it holds for
+pounce, perch and trill**, all of which run Developer-ID-signed bundles. It does
+not hold for a bare CLI out of the store — see §6.
 
 ### The carve-out that spoils it
 
@@ -127,7 +130,8 @@ emits one:
 
 ```nix
 # app names, not room names — PPPC keys on bundle id + designated code
-# requirement, and one room can install several apps
+# requirement, and one room can install several apps. §6 probed all three:
+# key on the SIGNED staged bundle, not the ad-hoc store build.
 haus.permissions.grant = [ "pounce" "perch" "trill" ];
 ```
 
@@ -145,25 +149,120 @@ of printing a line and exiting. Unglamorous, and it has to survive Tahoe's
 re-prompt behaviour — but it's an extension of `plan_permissions` / `doctor`,
 not a new subsystem.
 
-## 6. Unproven — what a spike would have to settle
+## 6. Probe results — 2026-08-18
 
-Nothing below has been run. In rough order of how much each would change the
-conclusion:
+`codesign -d -r-` against what is actually installed and running on this machine.
+Two questions were asked: does a PPPC grant survive a `/nix/store` path change,
+and do our designated requirements survive a `bench release`.
+
+### ✅ Probed — all three of our apps have stable, bundle-id-keyed DRs
+
+The TCC principal is whatever bundle actually runs, which for pounce is **not**
+the store copy:
+
+```
+$ ps -Ao args= | grep [p]ounce
+/Users/julienmartel/.local/state/pounce/Pounce.app/Contents/MacOS/pounce --daemon
+```
+
+That staged bundle is Developer ID signed, and its requirement names no hash and
+no path:
+
+```
+Identifier=com.hausfold.pounce   TeamIdentifier=88M28542LQ
+designated => identifier "com.hausfold.pounce" and anchor apple generic
+              and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */
+              and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */
+              and certificate leaf[subject.OU] = "88M28542LQ"
+```
+
+Perch (`com.hausfold.perch`) is the same shape, same team. **So both questions
+answer yes for our apps**: nothing in those requirements can be invalidated by a
+path change or a version bump. Only a bundle-id rename or a signing-identity
+change would move them.
+
+> ⚠️ **The trill build on this machine is stale — don't read its id as trill's.**
+> The newest `Trill.app` in the store is `trill-2026.08.03-1`, which predates
+> both the flick→trill rename and the org decision, and it signs as
+> `com.nebelhaus.trill`. The repo declares `com.hausfold.trill` throughout
+> today. haus has no trill flake input (by design — AGENTS.md keeps trill out of
+> the lock chain), so nothing here installs a current one. Probe a fresh build
+> before an emitter keys on trill at all.
+
+### ⚠️ Probed — the *store build* is ad-hoc, and would be unusable as a principal
+
+Worth recording because it is the artifact you'd reach for first, and it is a
+trap:
+
+```
+/nix/store/…-pounce-2026.08.17/Applications/Pounce.app
+  Signature=adhoc   Identifier=pounce   Info.plist=not bound   Sealed Resources=none
+  designated => cdhash H"b5efdad9557528234cfd05d02e201f367ddad655"
+```
+
+Note the signing identifier is **`pounce`**, not the `CFBundleIdentifier`
+`com.hausfold.pounce` — a linker-signed binary with no bound Info.plist. And the
+cdhash is not merely per-release but **per-build**: `pounce-2026.07.31-1` alone
+has five store paths with five distinct cdhashes. Four sampled releases, four
+unrelated hashes (`0ddbd893…`, `25680a45…`, `141fd4d1…`, `589fe3ca…`).
+
+Homebrew's sketchybar is the same shape — `cdhash H"92059d6d…" or cdhash
+H"cf2271af…"`, identifier `sketchybar-55554944914eef1d…`. That refines the
+folklore about grants dying on `brew upgrade`: the **cdhash** moved, not only
+the path, and there is no bundle-id-shaped key that could have named it anyway.
+
+### Reasoned, not probed — the bare-CLI case
+
+PPPC's `IdentifierType` is either `bundleID` or `path`; a requirement string
+can't reference a filesystem path, so a client with no bundle can only be keyed
+by absolute path. That would make any bare binary haus ships out of the store
+stale on every rebuild. **This is payload semantics, unreachable by `codesign`,
+and was not tested** — it needs a real profile to settle. It doesn't affect our
+three apps, which all have bundles.
+
+### What this does to §5
+
+The emitter is viable as proposed, for pounce, perch and trill alike — the
+staging that gives pounce a signed identity is already in place. Two things to
+carry into the design rather than discover later:
+
+- **Key on the signed bundle, not the store path.** The obvious `${pkgs.pounce}`
+  reference points at the ad-hoc build; the profile has to describe the staged
+  app. Getting this wrong produces a profile that looks right and matches
+  nothing.
+- **Don't key on trill from a local artifact.** The only builds on this machine
+  predate the rename; the repo is already on `com.hausfold.trill`, and haus
+  doesn't install trill at all. Read the id from the repo, not the store.
+
+There is a third option nobody should take: a loose `CodeRequirement` of just
+`identifier "com.hausfold.pounce"` with no certificate anchor, which survives
+everything because it constrains nothing. Anything that ad-hoc signs itself with
+that identifier would inherit Full Disk Access. (The store builds sign as
+`pounce` and so wouldn't match it — the hazard is generic, not one these builds
+create.)
+
+### Still unproven
 
 1. Does a device enroll at all against a topic whose push certificate you don't
    hold, and does `profiles status -type enrollment` then report *User
    Approved*? If enrollment itself fails, Path B is dead earlier than §4 says.
 2. Is the deny-only list for `kTCCServiceScreenCapture` / Camera / Microphone
-   still current on macOS 26? This is the single fact that most limits the
-   payoff of the org path too.
-3. Does a PPPC grant keyed to a code requirement actually survive a `/nix/store`
-   path change in practice — i.e. is the prize in §2 real?
-4. Do our apps' designated requirements stay stable across a `bench release`?
-   A DR that changes per build makes the emitted profile stale on every update.
-5. Where a `haus.permissions` namespace sits in the room / shared / host
+   still current on macOS 26?
+3. Whether live TCC state keys our apps by bundle id or by path. Not run here —
+   Claude Code has no Full Disk Access (it runs under `Claude.app`; Ghostty is
+   the identity that holds FDA on this machine, the same asymmetry
+   [`macos-settings-matrix.md`](macos-settings-matrix.md) records). Accessibility
+   and Full Disk Access rows live in the **system** DB, so from a Ghostty pane:
+
+   ```sh
+   sudo sqlite3 -readonly "/Library/Application Support/com.apple.TCC/TCC.db" \
+     "select service, client, client_type, auth_value from access
+      where client like '%hausfold%' or client like '/nix/store%';"
+   ```
+
+   `client_type` 0 = bundle id, 1 = absolute path. Use `-readonly` — a plain
+   `sqlite3` opens read-write and drops a journal beside a live TCC.db.
+4. Where a `haus.permissions` namespace sits in the room / shared / host
    split ([`rooms-desktops.md`](rooms-desktops.md)). It looks host-leaning — a
    designated code requirement is machine- and signing-identity shaped — but
    every top-level namespace needs that classification decided before it ships.
-
-Settle 2 and 3 before building the §5 emitter — they decide whether it's worth
-the option surface.
