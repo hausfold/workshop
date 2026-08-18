@@ -1,6 +1,6 @@
-# MDM-delivered permissions — can a room auto-grant TCC?
+# MDM-delivered permissions — can a desktop auto-grant TCC?
 
-**Short answer: no, not for a room someone downloads. Yes, for an org that
+**Short answer: no, not for a desktop someone downloads. Yes, for an org that
 already runs an MDM — and that half is worth building.**
 
 - **Date:** 2026-08-18
@@ -59,9 +59,14 @@ wrong by exactly this much.
 
 ## 3. Where haus is today
 
-Nothing. No profile plumbing anywhere in `modules/`. The only TCC-adjacent code
-in the whole layer is the Full Disk Access probe at `haus/modules/core/haus.sh:312`,
-which reads a byte of `TCC.db` to find out whether the rebuild has FDA.
+**No profile plumbing anywhere in `modules/`** — nothing writes, signs or
+installs a `.mobileconfig`. What does exist is the hand-grant side, all in
+`haus/modules/core/haus.sh`: `has_fda()` reads a byte of `TCC.db` to find out
+whether the rebuild itself holds Full Disk Access, `plan_permissions()` reports
+what a plan is about to need, and `haus doctor`'s Permissions section already
+deep-links the exact panes (`?Privacy_Accessibility`, `?Privacy_AllFiles`).
+
+So the consumer half of §5 is mostly built. The profile half is greenfield.
 
 ## 4. The two paths, and why only one is real
 
@@ -77,7 +82,7 @@ hosted vendor, that channel belongs to them.
 
 Not proposed for the family. Noted so the option is on the record.
 
-### Path B — ship the MDM inside the room (does not work)
+### Path B — ship the MDM inside the desktop (does not work)
 
 The idea: the installer stands up a local MDM on `127.0.0.1`, enrolls the
 machine into it, and delivers its own PPPC profiles. Most of it holds:
@@ -116,12 +121,14 @@ product foundation.)
 
 **Split the audience.**
 
-**Orgs — worth doing.** A business shipping a room to its own staff already runs
+**Orgs — worth doing.** A business shipping a desktop to its own staff already runs
 Jamf / Mosyle / Kandji. It doesn't need our MDM, it needs our *payload*. So haus
 emits one:
 
 ```nix
-haus.permissions.grant = [ "pounce" "prowl" "sill" ];
+# app names, not room names — PPPC keys on bundle id + designated code
+# requirement, and one room can install several apps
+haus.permissions.grant = [ "pounce" "perch" "trill" ];
 ```
 
 → a `.mobileconfig` carrying PPPC + `com.apple.servicemanagement`, keyed by each
@@ -131,11 +138,12 @@ grants declarative in the same file as everything else, which is the actual
 haus argument. A genuine differentiator for a Nix desktop, and the piece fully
 inside our control.
 
-**Consumers — no sanctioned bypass exists.** The ceiling is what every Mac app
-does: a first-run flow that opens the exact pane per permission
-(`x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility`)
-and polls until granted. Unglamorous, and it has to survive Tahoe's re-prompt
-behaviour.
+**Consumers — no sanctioned bypass exists,** and the ceiling is already most of
+the way built. `haus doctor` names each missing permission and deep-links its
+pane; what's missing is only the first-run loop that polls until granted instead
+of printing a line and exiting. Unglamorous, and it has to survive Tahoe's
+re-prompt behaviour — but it's an extension of `plan_permissions` / `doctor`,
+not a new subsystem.
 
 ## 6. Unproven — what a spike would have to settle
 
@@ -152,6 +160,10 @@ conclusion:
    path change in practice — i.e. is the prize in §2 real?
 4. Do our apps' designated requirements stay stable across a `bench release`?
    A DR that changes per build makes the emitted profile stale on every update.
+5. Where a `haus.permissions` namespace sits in the room / shared / host
+   split ([`rooms-desktops.md`](rooms-desktops.md)). It looks host-leaning — a
+   designated code requirement is machine- and signing-identity shaped — but
+   every top-level namespace needs that classification decided before it ships.
 
 Settle 2 and 3 before building the §5 emitter — they decide whether it's worth
 the option surface.
