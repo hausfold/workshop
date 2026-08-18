@@ -176,11 +176,18 @@ designated => identifier "com.hausfold.pounce" and anchor apple generic
               and certificate leaf[subject.OU] = "88M28542LQ"
 ```
 
-Perch (`com.hausfold.perch`) and trill (`com.nebelhaus.trill`) are the same
-shape, same team. **So both questions answer yes for our apps**: nothing in
-those requirements can be invalidated by a path change or a version bump. Only a
-bundle-id rename or a signing-identity change would move them — and trill's id
-is still on the legacy org, so an emitter keying on it inherits that rename.
+Perch (`com.hausfold.perch`) is the same shape, same team. **So both questions
+answer yes for our apps**: nothing in those requirements can be invalidated by a
+path change or a version bump. Only a bundle-id rename or a signing-identity
+change would move them.
+
+> ⚠️ **The trill build on this machine is stale — don't read its id as trill's.**
+> The newest `Trill.app` in the store is `trill-2026.08.03-1`, which predates
+> both the flick→trill rename and the org decision, and it signs as
+> `com.nebelhaus.trill`. The repo declares `com.hausfold.trill` throughout
+> today. haus has no trill flake input (by design — AGENTS.md keeps trill out of
+> the lock chain), so nothing here installs a current one. Probe a fresh build
+> before an emitter keys on trill at all.
 
 ### ⚠️ Probed — the *store build* is ad-hoc, and would be unusable as a principal
 
@@ -223,8 +230,9 @@ carry into the design rather than discover later:
   reference points at the ad-hoc build; the profile has to describe the staged
   app. Getting this wrong produces a profile that looks right and matches
   nothing.
-- **trill is `com.nebelhaus.trill`.** Emit the real string, and expect it to
-  move when the id is brought onto the current org.
+- **Don't key on trill from a local artifact.** The only builds on this machine
+  predate the rename; the repo is already on `com.hausfold.trill`, and haus
+  doesn't install trill at all. Read the id from the repo, not the store.
 
 There is a third option nobody should take: a loose `CodeRequirement` of just
 `identifier "com.hausfold.pounce"` with no certificate anchor, which survives
