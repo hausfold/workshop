@@ -231,8 +231,20 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `jq -r 'keys[]' docs/site-data/options.json | grep -cE '^haus\.bar\.items\.'`
 > = 17 keys → 16 pills once `claudeUsage`'s deprecated alias is dropped;
 > `grep -n checkRice flake.nix` at `6ba56c8` returns one hit and it is a comment
-> saying the function is gone; the check roster above is `flake.nix`'s own
-> `runCommand` names. No rebuild is owed — this pass changes no layer.
+> saying the function is gone. ⚠️ **And one caveat on the roster below, found by
+> this pass's assurance read: the seven are not `flake.nix`'s check list.**
+> `flake.nix` declares **25** `runCommand` checks at `origin/main`; the ledger
+> has always counted the subset that *encodes a ★ finding from this file*, which
+> is a judgement no grep makes — `room-registry`, `keymap`, `desktop-seam` and
+> the rest are perfectly good checks that no finding here asked for. So the
+> re-derivation is "look up each of the seven names in `flake.nix` and see
+> whether it still exists", which is what catches a rename; it is **not** a
+> re-derivation of *which* checks belong, and this ledger has no mechanical way
+> to do that. Recording it because the fifth pass's rule — quote the command
+> that produced a count — is unsatisfiable here, and saying so is better than
+> implying a command. Also: haus moved to `dc86913` (#400) while this pass was
+> being written, which changes nothing above. No rebuild is owed — this pass
+> changes no layer.
 
 
 > **Status, 2026-08-16 (twenty-sixth pass) — scenes merged 38 seconds before
@@ -4818,7 +4830,14 @@ outlived it. Re-derived from `flake.nix` at `6ba56c8` rather than from this
 section: `data-only-surface`, `accent-reach`, `app-collections`,
 `fragment-compat`, `scale-reach`, `font-reach`, `pounce-item-grammar` —
 **fifteen ★ findings, seven checks, three warnings**, the count unmoved and one
-name replaced. Two things worth carrying past the correction:
+name replaced. ⚠️ **"Re-derived from `flake.nix`" needs its scope, and the
+assurance read supplied it:** `flake.nix` declares 25 `runCommand` checks, and
+this ledger counts the subset that encodes a ★ finding *from this file* — a
+judgement, not a grep. So re-deriving catches a **rename** (look each of the
+seven up, see if it still exists) and cannot catch a *missing* row, because
+nothing mechanical knows which of the other eighteen a finding here asked for.
+That is the ledger's one structural hole and it has no fix; the honest form is
+to say which question the re-derivation answers. Two more things worth carrying:
 
 - **A rename that preserves the count is the worst kind for a ledger**, because
   the number a reader spot-checks stays right while the roster under it doesn't.
