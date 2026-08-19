@@ -671,8 +671,9 @@ them blocks another.
   did not.** Carried since step 2, which deferred it until a comparator could
   prove it free; `desktop-projection` has existed since step 4 and the proof is
   simply a derivation comparison — `nix eval` on the example host returns the
-  **byte-identical `cl4plcp1yxv…-darwin-system-26.11.57a3171.drv`** before and
-  after, and `desktop-projection` stays equal. Both halves went: the system
+  two profiles **set-identical** to `main` — 39 system packages and 97
+  home-file paths, evaluated on each branch and diffed — with the only
+  derivation delta being three input SOURCES, each a repointed comment. Both halves went: the system
   profile (`holt`, both statusline scripts, `agent-state`) out of `modules/core`,
   and the home one (the instructions preamble, the `haus` skill, `agents/`) out
   of `modules/terminal`. What terminal keeps is its own — the client packages a
