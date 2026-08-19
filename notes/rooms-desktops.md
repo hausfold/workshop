@@ -162,7 +162,7 @@ Three rules came out of it and are worth keeping:
   launchd label or bundle id, the Accessibility row in System Settings, a
   Homebrew formula, a flake input, a package name, or a link into that
   product's own docs tree. Applied 2026-08-19 across haus's descriptions and
-  `content/docs/haus/**` (workshop#401): pounce 69 → 19 occurrences in the
+  `content/docs/haus/**` (workshop#403): pounce 69 → 19 occurrences in the
   generated option reference, perch 20 → 6. The same sweep found two addresses
   the rename had missed — `darwinModules.pounce` and `pounce.items` — which is
   the argument for doing the copy at the same time as the code: stale prose is
