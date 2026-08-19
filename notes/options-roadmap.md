@@ -3500,7 +3500,7 @@ haus.keys = {
       authored user-facing TEXT needs the same seam.**
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
-### 5.6 Curate macOS settings into behaviour groups · M · risk M · ◐ **nine of ten groups shipped or part-shipped (rice#198, #250, #267, #286); every row is spiked except `animations`, which ships unspiked on purpose (below) — and the null-default policy now holds across all ten without exception. One row is unbuilt and stays that way on purpose: Windows, which is logout-only. Two half-groups are deferred on the same reason — `lock`'s login half and `security`'s guest/remote-login half**
+### 5.6 Curate macOS settings into behaviour groups · M · risk M · ✅ **all ten groups shipped (rice#198, #250, #267, #286; the last three — Windows, `lock`'s login half, `security`'s guest half — 2026-08-19). Every row is spiked except `animations`, which ships unspiked on purpose (below), and the null-default policy holds across all ten without exception. The three logout-only groups were unblocked by the third fact table, `modules/lib/login-map.nix`, not by anything changing about the domains. One key is still deliberately unbuilt and says so in its own box: remote login, which is not a `defaults` key at all**
 Do **not** mirror every nix-darwin default into `haus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
@@ -3508,14 +3508,14 @@ stays the escape hatch. Curate the groups where a *rice* has an opinion:
 |---|---|
 | **Hot corners** | ✅ **`haus.hotCorners.*` — rice#198.** Action by name, not the integer macOS stores |
 | **Screenshots** | ✅ **`haus.screenshots.*` — rice#198.** Folder, format, shadow, thumbnail, date |
-| **Lock / login / screensaver** | ◐ **`haus.lock.*` — rice#250.** The LOCK half only (`requirePassword`, `requirePasswordDelay`, `com.apple.screensaver`). The LOGIN half (guest account, login window text) is `com.apple.loginwindow` — read once at boot, no live-reload path, and killing `loginwindow` to force one would end the current session — so it stays out until this group has an honest way to say "takes effect at next login" instead of shipping a setting that silently doesn't apply. |
+| **Lock / login / screensaver** | ✅ **`haus.lock.*` — rice#250 (lock half) + 2026-08-19 (login half).** The lock half is `requirePassword` / `requirePasswordDelay` on `com.apple.screensaver`; the login half is `haus.lock.login.{showNameField,message,hideShutDown,hideRestart,hideSleep}` on `com.apple.loginwindow`. That domain is still read once at session creation with no live-reload path — nothing about it changed. What changed is that the wait is now stated AT THE OPTION, generated from `modules/lib/login-map.nix`, so it no longer "silently doesn't apply". |
 | **Menu bar & Control Center** | ✅ **`haus.menuBar.{clock,controlCenter}.*` — rice#250.** Clock format/seconds/date/day-of-week/analog (`com.apple.menuExtraClock`, restarts `SystemUIServer`) + which Control Center glyphs show (battery %, sound, bluetooth, AirDrop, display, Focus, Now Playing — `com.apple.controlcenter`, restarts `ControlCenter`, a whitelisted process since rice#249 that nothing had written into until now) |
 | **Sound** | ✅ **`haus.sound.*` — rice#267.** `alertVolume` (0–100, converted from the `e^(v/100−1)` macOS actually stores), `alertSound` (an enum over `/System/Library/Sounds`, because a bad path is silence not a fallback), `volumeFeedback`, `uiSounds`, `startupChime` (`nvram`, so it survives a reinstall). Live writes, no FDA, no restart. The volume curve is pinned by a `nix flake check` against numbers CoreAudio reported |
 | **Locale / input sources** | ✅ **`haus.locale.*` — rice#267.** `language`, `region`, `metric` (writes both unit keys), `temperature`, `hourFormat`, `inputSources` (exhaustive; via the TIS API). Needed restart-map's third verb, `notify:<name>` — this family has no daemon to kill, so a write reaches newly launched processes only until `AppleDatePreferencesChangedNotification` is posted. No `firstWeekday`: that key is stored and ignored |
 | **Power** | ✅ **`haus.power.*` — rice#267.** Sleep timers and Low Power Mode, per power source, as a `pmset` activation step — the `security.firewall` family rather than the `system.defaults` one. Deliberately NOT on nix-darwin's typed `power.sleep.*`: measured on 26.6.1, `systemsetup -setcomputersleep` wrote the AC profile while the machine was on battery, with its stderr discarded upstream (reported) |
-| **Security posture** | ◐ **`haus.security.firewall.*` — rice#250.** The firewall half (`networking.applicationFirewall`, a *different* mechanism entirely — nix-darwin runs `socketfilterfw` directly in its own activation script, no plist, no restart-map entry needed, no logout). Guest user and remote login are not built: guest user is the same `loginwindow` domain `lock` deferred above, and remote login has no nix-darwin option at all. |
+| **Security posture** | ✅ **`haus.security.firewall.*` — rice#250; `haus.security.guestAccount` — 2026-08-19.** The firewall half is `networking.applicationFirewall`, a *different* mechanism entirely (nix-darwin runs `socketfilterfw` directly in its own activation script — no plist, no restart-map entry, no logout). `guestAccount` rides the same `loginwindow` unblock as `lock`'s login half, and is the one key in the group that is a real boundary rather than a preference: fresh Macs ship Guest ON. **Remote login stays out, and the reason is now recorded in the option file rather than here**: it is not a `defaults` key at all (`systemsetup -setremotelogin`, needing a guarded activation step of its own and FDA), and opening an SSH port is a different class of decision — deliberately not smuggled in behind a logout-note PR. |
 | **Animations** | ✅ **`haus.animations` — rice#286.** Five keys across two already-verified domains: the Dock's `autohide-time-modifier` / `expose-animation-duration` / `launchanim` / `mineffect`, plus `NSGlobalDomain.NSAutomaticWindowAnimationsEnabled`. Defaults to `"system"` = write nothing, same as every other row — it was drafted the other way round and reversed before merge; see the policy note below for what that cost would have been. Two firsts worth knowing: it's the only group with no per-key spike (there is no oracle for "did the Dock slide faster" — the keys are felt, not measured), and its NSGlobalDomain half is read by each app AT LAUNCH, so running apps keep animating until relaunched. What it deliberately is NOT is `universalaccess reduceMotion`: that flag is what every browser reads as `prefers-reduced-motion`, via the same `NSWorkspace` property `hausax` prints — so the negative claim is checkable (`hausax \| jq .reduceMotion` stays `false` — on a machine that hasn't also set `haus.accessibility.reduceMotion`, which is the option that DOES move it, added in §5.12) even though the positive ones aren't |
-| **Windows** | Stage Manager, native tiling, edge drag (must interlock with windows) — `com.apple.WindowManager`, declared `"logout"` in restart-map.nix (rice#249), no live-reload path exists on macOS 26. Deliberately not built this pass: this is exactly the "curated group whose setting silently needs a logout" this section exists to avoid, and unlike `lock`/`loginwindow` there's no smaller live-effect half to ship instead — the whole domain is logout-only. |
+| **Windows** | ✅ **`haus.windows.{stageManager,nativeTiling,desktop}.*` — 2026-08-19.** Twelve keys on `com.apple.WindowManager`, still `"logout"` in restart-map.nix (rice#249) with no live-reload path on macOS 26 — the domain is unchanged and the whole of it is logout-only, which is exactly why it went last. It ships now because `login-map.nix` makes the wait something the option says rather than something you discover. Built in the **windows room, not core**: it is the one settings group that interlocks with what a room does, and it warns when AeroSpace and Stage Manager / edge-drag tiling are both on, naming both switches — the symptom ("windows won't stay where I put them") indicts neither on its own. |
 
 The first two shipped settled the group's **default policy**, which was the real
 open question and is worth stating once for every group after it: every leaf
@@ -3652,17 +3652,56 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
   `askForPasswordDelay` was deleted rather than left at 60 — a `defaults` write
   outlives the option that made it, so an eye-check that weakens a security
   setting has to clean up after itself by hand.
-- [ ] Give the login half of "Lock / login / screensaver" and Windows an honest
+- [x] Give the login half of "Lock / login / screensaver" and Windows an honest
   way to say "takes effect at next login" (the way `haus.accessibility`
   says "needs Full Disk Access") — that's what unblocks building them, not a
   fix to the domain itself, since neither has a live-reload path on macOS 26.
-  → **◐ Half of it exists since haus#353** (§5.11): activation announces every
+  → ✅ **Done 2026-08-19, and all three groups shipped in the same change** —
+  `modules/lib/login-map.nix`, the third table beside `restart-map.nix` and
+  `reachability.nix`, plus `haus.windows.{stageManager,nativeTiling,desktop}.*`,
+  `haus.lock.login.*` and `haus.security.guestAccount`. Building the mechanism
+  and the groups together was deliberate: a table with no consumer is a
+  proposal, and the previous bullet in this very box is what a follow-up with
+  no owner looks like.
+  → ★ **It is a RENDERER over restart-map, not a fourth list of domains.** The
+  domain-level fact ("`com.apple.WindowManager` waits for a logout") already
+  existed as the `logout` verb; copying it would have been the fourteenth
+  pass's "a table plus a filter over that table is two sources of truth wearing
+  one name". So `login-map.nix` READS that verb and adds only what a verb can't
+  carry — what the wait costs, in the words the person setting the option
+  needs. One fact, three renderings: the option's description, activation's
+  announcement, `haus plan`'s warning.
+  → ★ **The generalisable half is which direction the check runs.** The obvious
+  build is a table checked against the options; this one fails the build when a
+  domain becomes `logout` with NO sentence, and again when a sentence outlives
+  its domain's logout-only status. A third check (`login-note` in flake.nix)
+  covers the step neither table can see: whether the options actually
+  interpolate the paragraph, read off the EVALUATED option tree rather than the
+  source, so it passes whatever route the prose arrives by and fails only on a
+  person meeting the option and not being told. Confirmed red by deleting one
+  interpolation — an unfalsified check is a comment.
+  → ★ **And the gate matters as much as the message.** `logout` fires no
+  process, so an unconditional entry costs no Dock bounce — it costs the signal
+  itself. A "waits for a logout" line on every rebuild of every machine is one
+  people learn to skip, and then the rebuild that genuinely waits says nothing
+  anyone reads. `restartDeclaredBy` now covers both domains, read off the
+  resolved `system.defaults.<domain>` block so it stays true for a host writing
+  the domain directly. Restated for a verb that prints rather than kills:
+  **"which restart" is data; "does this rebuild need one" sometimes isn't** —
+  which is now the third time that sentence has earned its place.
+  → **◐ Half of it existed since haus#353** (§5.11) — the other half is the one
+  the entry above closed; both bullets below are kept as written, because how
+  the second half was *found* is the useful part: activation announces every
   logout-only domain the built configuration writes and `haus plan` reports it,
   so the *machine* now says "this waits for a logout". What's still missing is
   the half this box is really about — saying it at the **option**, in its
   description, before anyone builds anything. The FDA note it points at is a
   property of the option; this is a property of the rebuild. Building these two
   groups needs both.
+  → ✅ Both exist now. Worth noting what the finished thing did with this
+  framing: the two halves turned out to be one fact rendered twice, not two
+  facts, which is why `login-map.nix` reads the restart map instead of sitting
+  beside it.
   → ★ **And the other half now has a worked example to copy, from the analogy
   this box was already drawing.** §5.12 (haus#356) built exactly that shape for
   Full Disk Access: one table

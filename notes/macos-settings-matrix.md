@@ -346,7 +346,8 @@ why.
 | `com.apple.screencapture` | none | 7 typed keys, applies to next capture |
 | `NSGlobalDomain` | varies per key | 53 typed keys |
 | `com.apple.AppleMultitouchTrackpad` | none | 22 typed keys |
-| `com.apple.WindowManager` | logout | 12 typed keys |
+| `com.apple.WindowManager` | logout — **no live-reload path exists**, and since 2026-08-19 that is announced rather than merely true: `modules/lib/login-map.nix` renders the `logout` verb into each option's own description | 12 typed keys, all 12 now behind `haus.windows.{stageManager,nativeTiling,desktop}.*` |
+| `com.apple.loginwindow` | logout — and the one domain whose restart is *unavailable* rather than absent: `loginwindow` owns the session, so rereading it means logging the user out | 11 typed keys; 6 behind `haus.lock.login.*` + `haus.security.guestAccount` |
 | `com.apple.controlcenter` | `killall ControlCenter` — **done since rice#250**, and unconditionally: the domain is in core's `typedDomainsWritten` whether or not a `haus.menuBar.controlCenter` key is set | ByHost domain |
 | `com.apple.universalaccess` | `killall universalaccessd` — **done since haus#360**, fired only for the three `by-eye` keys (the four oracle-backed ones need no restart) | FDA-gated; see the accessibility section above |
 
