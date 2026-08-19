@@ -699,6 +699,20 @@ them blocks another.
     prose *inside the generated agent instructions*. Nix names the failure
     immediately, so this is a compile error rather than a silent one — but it is
     the reason to move a `let` cluster by evaluation rather than by eye.
+  - **The evidence was blind to the one thing that actually broke, and the
+    check meant to protect it was testing the wrong shape.** `modules/ai` named
+    `hostname` in its argument set for ONE row of prose — and it sits in
+    `standaloneModule`'s shared foundation, so that made `hostname` mandatory
+    for every `darwinModules.*` export: a consumer importing
+    `darwinModules.windows` got `attribute 'hostname' missing` from the tiling
+    module. Every proof above goes through a full builder, which always has a
+    `hostname`, so none of them could see it — and neither could
+    `standalone-modules`, whose whole job is the bare-import surface but which
+    evaluated through a helper that passes the builders' args. The assurance
+    subagent caught it (4/5); `terminal` and `launcher` turned out to have had
+    the same latent bug all along. **Behaviour-neutral for the consumer you
+    measured says nothing about the consumers you didn't** — and a check is only
+    worth its name if it is shaped like the caller it defends.
   - **A comment can move the derivation, and on this repo that is not noise.**
     Repointing two prose references from `terminal/agents/` to `ai/agents/`
     changed the system drv, because `host-template.jq` is an input SOURCE — its
