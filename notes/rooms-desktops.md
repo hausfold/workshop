@@ -619,6 +619,19 @@ steps that no step ever owned, **re-verified against merged `main` on
 looked at, rather than when it was written. Each is a standalone change; none of
 them blocks another.
 
+**Three more closed on 2026-08-19, in one pass, and the pass itself is the
+finding.** Two of the three ([haus#410](https://github.com/hausfold/haus/pull/410)
+with [hausfold.co#86](https://github.com/hausfold/hausfold.co/pull/86), and
+[haus#413](https://github.com/hausfold/haus/pull/413)) turned out to rest on a
+premise that was **false at the code** — the options reference did not name a
+validator, and the bar no longer spelled its gate three ways. Neither finding
+was wrong about what to build; both were wrong about the world they described,
+because they were written against a repo that then moved. A finding here has a
+half-life measured in weeks, so **re-read the code before acting on one, and
+treat its evidence as a hypothesis rather than a fact** — the three dates in
+each bullet below are there for exactly that. What survives re-reading is the
+*recommendation*; what rots is the *measurement*.
+
 - **[3] Nothing owned "may a desktop choose the editor?" — ANSWERED, 2026-08-14
   ([haus#347](https://github.com/hausfold/haus/pull/347),
   [hausfold.co#34](https://github.com/hausfold/hausfold.co/pull/34)).** Step 4
@@ -654,19 +667,45 @@ them blocks another.
   and then the rung went away with the format
   ([haus#386](https://github.com/hausfold/haus/pull/386)). The full story is in
   [Acquisition](#open-decisions).
-- **[2] The generated reference names a validator; the key rule it enforces is
-  hand-written prose somewhere else.** ✅ **Still open, re-checked 2026-08-19.**
-  `groups.json` ships `haus.displays` as
-  `{"desktopSafe": "recursive", "validator": "display-selectors"}` — the exact
-  string, unchanged. A reader is
-  not stranded — `/docs/haus/desktops/creating/` explains in words that a
-  display UUID is host-only and that attrsets carry per key (its `main`/UUID
-  paragraph is still there, still hand-written) — but exactly one of
-  those two statements is generated, so they can now drift apart. Step 3
-  predicted this against step 6; step 6 rendered rooms and left it standing. The
-  cheap fix is a `validators` table in the registry carrying one sentence per
-  validator, rendered where the validator is named — the same move step 6 made
-  for room titles, for the same reason.
+- **[2] ✅ Closed 2026-08-19 — the rule moved next to the name, and the finding
+  was wrong about where the name is rendered.**
+  [haus#410](https://github.com/hausfold/haus/pull/410) adds a `validators`
+  table to the registry carrying one sentence per validator, exactly the move
+  this finding predicted, with `room-registry` holding three lists in step:
+  what `recursive` NAMES, what `modules/lib/desktop.nix` IMPLEMENTS, and what
+  `validators` EXPLAINS. Only the third is a genuinely new failure mode — a
+  name nothing implements already fails closed at evaluation, but a validator
+  with no sentence renders as a bare word and nothing goes red.
+  [hausfold.co#86](https://github.com/hausfold/hausfold.co/pull/86) is the
+  other half, and it had to build the surface the finding assumed existed:
+  **the options reference did not name the validator, or state desktop-safety
+  at all.** `groups.json` shipped the classification and no renderer read it;
+  the only rendered site was the `# desktop data:` line in a generated host
+  file. So the site PR renders both — 43 host-only rows and 11 per-key ones out
+  of 305 — and `desktops/creating` points at it instead of being the only
+  statement.
+
+  Three things out of doing it:
+
+  - **A finding can be right about the fix and wrong about the world.** "The
+    generated reference names a validator" was the premise; it did not. Closing
+    it properly meant building the naming first, which is a bigger change than
+    the "cheap fix" line promised and a better one — the classification a
+    desktop author most needs was, until now, reachable only by `jq` over
+    `groups.json`.
+  - **A hardcoded reason is worse than none.** The site's first draft printed
+    one sentence under all 43 host-only rows ("names a person, a secret or a
+    piece of hardware"); it is false on about 30 of them — every
+    `haus.locale.*` and `haus.power.*` leaf, and the several that are host-only
+    for taking a `pkgs` value or a command the machine runs. The per-option
+    reason belongs in the registry beside `desktopSafe`, the way the validator
+    rule now sits beside its name. **That is the open follow-up**, and it is a
+    haus change.
+  - **Two diagnostics for one fact still beat one that is bent to serve both.**
+    `desktop.nix`'s `keySaid` messages are phrased to complete "…names a
+    physical display"; the registry's sentence describes the rule. The check
+    requires both to EXIST rather than to match, because folding them into one
+    string makes either the error or the sentence clumsy.
 - **[2] ✅ Closed 2026-08-19 — the AI room's payload moved, and the derivation
   did not.** Carried since step 2, which deferred it until a comparator could
   prove it free; `desktop-projection` has existed since step 4 and the proof is
@@ -722,9 +761,14 @@ them blocks another.
     found that adding an option is not a no-op here; the sharper form is that
     **any file the host template or the skill reads is behaviourally live, down
     to its comments.**
-- **[2] The bar spelled one gate three ways; it spells it twice now — shrunk,
-  not closed, by a change that was not about it (re-checked 2026-08-19 at haus
-  `6510aa6`).** The three sites this finding named — `contributed`, a
+- **[2] ✅ Closed 2026-08-19 — the bar's gate went from three sites to two and
+  then to a declared point.** The finding named three sites; a change that was
+  not about it had already folded them to two, and
+  [haus#413](https://github.com/hausfold/haus/pull/413) replaced both with
+  `_contrib.bar.focus`. The history is kept because each step taught something
+  different.
+
+  **The shrink, and why the finding's own evidence rotted.** The three sites this finding named — `contributed`, a
   `name != "focus" || config.haus.focus.enable` clause in `bottomGroup`, and
   `topFocus` — no longer exist as three. [haus#404](https://github.com/hausfold/haus/pull/404)
   opened the pill surface up as `haus.bar.widgets`, and in doing so folded the
@@ -740,24 +784,69 @@ them blocks another.
   duplication that no one set out to pay off — and a finding that names LINE
   NUMBERS as its evidence goes stale in the ordinary course of unrelated work,
   so the durable half of a re-check is the predicate's NAME, not its address.
-- **[2] Extension points are still only the ones a concrete room needed —
-  four now, not three (re-checked 2026-08-19).** The AI room's original three
-  (`_contrib.development.agents`, `_contrib.bar.agents`, `_contrib.launcher.agents`)
-  have been joined by `_contrib.windows.agents` and, from the other direction,
-  `_contrib.launcher.mouseChords` — Windows contributing INTO Launcher
-  (`modules/windows/default.nix:563`), which is the first use of the mechanism
-  by a room other than AI. That is the "generalise on the next room that needs
-  one" judgement working exactly as step 2 intended, so the finding is now a
-  status rather than a worry. What is still direct config-reading: Focus's
-  controls — Launcher's `scenes` binding and its two `focus.sh` guards
-  (`launcher/default.nix:260`, 328, 565) and Bar's two `focus.enable` reads
-  above — and Bar's reserved space from Windows (`windows/default.nix:333`
-  reads `config.haus.bar` whole). Those two are the remaining candidates, and
-  Focus is the one spelled twice above — one `_contrib.bar.focus` /
-  `_contrib.launcher.focus` pair would close both findings at once, and Focus
-  now has FIVE direct readers across two rooms rather than the two this bullet
-  used to name, which is the argument for doing it rather than a reason it got
-  worse.
+
+  **The close, and the three things doing it turned up.** haus#413 gives Bar
+  `_contrib.bar.focus` and Launcher `_contrib.launcher.focus`, and Focus writes
+  both — so the same change closes this finding and the direct-config-reading
+  half of the one below it, as predicted.
+
+  - **A refactor that is behaviour-neutral is worth proving that way.** The
+    example host's `drvPath` came out byte-identical to base with focus **on**
+    *and* with it **off**. Two directions, not the one the fixture happens to
+    enable — the on-path alone would have proved nothing about the gate.
+  - **Removing a read can reveal that nobody was watching the other end.**
+    Bar's gate comment has always said the bar drops a room-less pill and "the
+    source room warns by name"; only the AI room ever did. Focus had no
+    warning, and this change is what made the silent path reachable from
+    desktop data, because it advertises `widgets.focus.enable = true` as
+    something a desktop may write. The warning had to go OUTSIDE the room's own
+    `mkIf` — **a room that only speaks when it is on cannot tell you it is
+    off** — which is a shape worth reusing wherever one room's absence is
+    another room's dead feature.
+  - **An attrset option's KEYS may belong to a different file than its
+    declaration, and that is invisible from a full builder.** The first draft
+    of that warning read `config.haus.bar.widgets.focus.enable`. The bundled
+    pills are keys bar's *implementation* writes; a standalone
+    `darwinModules.focus` imports every room's `options.nix` and one room's
+    implementation, so it had the attrset and no `focus` key, and the read
+    threw `attribute 'focus' missing`. `standalone-modules` caught it — the
+    same check that missed the `hostname` bug in the AI move, and catches this
+    one because it has since been reshaped like the caller it defends. The
+    general form: **`config.<x>` existing as an option says nothing about
+    `config.<x>.<key>` existing on the machine you are on.**
+- **[2] Extension points are still only the ones a concrete room needed — six
+  now, and the Focus pair is the first the mechanism was reached for on
+  purpose (re-checked 2026-08-19).** The AI room's original three
+  (`_contrib.development.agents`, `_contrib.bar.agents`,
+  `_contrib.launcher.agents`) were joined by `_contrib.launcher.mouseChords` —
+  Windows contributing INTO Launcher (`modules/windows/default.nix:563`), the
+  first use by a room other than AI — and now by `_contrib.bar.focus` and
+  `_contrib.launcher.focus` ([haus#413](https://github.com/hausfold/haus/pull/413)),
+  the first in the RECEIVING direction from a non-AI room. ⚠️ An earlier
+  revision of this bullet counted `_contrib.windows.agents` as the fourth: it
+  does not exist and has not since the lane chord became pounce's own ⌘↵
+  (`modules/ai/default.nix` says so where it names the chord). The count was
+  wrong, not merely stale — a reminder that a number in this file is only as
+  good as the grep behind it.
+
+  So the "generalise on the next room that needs one" judgement has now
+  survived a room reaching for it rather than growing into it, which is the
+  stronger test. What is still direct config-reading, and each is named in a
+  comment at the site rather than left to be found:
+
+  - `page` reads `config.haus.windows.enable` in the same `contributed`
+    predicate the Focus pill just left. Windows declares no point pointing at
+    Bar yet, and it is the obvious next one.
+  - Bar's reserved space, the other way: `windows/default.nix:333` reads
+    `config.haus.bar` **whole**, which is the widest of the three.
+  - Focus's own reverse reach: the focus-watcher launchd agent reads
+    `config.haus.bar.enable` / `.bottom.enable` to decide which bars to poke,
+    twenty lines under the block that contributes to those same rooms. A room
+    asking "does a bar exist" is exactly the shape `_contrib` replaces.
+
+  All three are Windows↔Bar or room→Bar, so ONE point declared by Bar for "a
+  room that wants a pill drawn / a bar poked" probably closes the set. That is
+  the shape to reach for, not three more one-offs.
 - **[2] ✅ Closed 2026-08-19 — the org/layer split settled the landing-page
   order, and 👤 said so.** The finding asked whether the page should run hero →
   haus explanation → desktops, per step 6's plan. It is moot: the site separated
