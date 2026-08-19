@@ -82,7 +82,7 @@ This prints, per repo, every commit past the last reconciled watermark plus the 
 each touched. It is watermark-based, not "since yesterday" — a sweep that didn't run for
 four days still picks up all four.
 
-`docs-since` walks **`DOCS_REPOS`** (`bench:1783`): the workshop, `FAMILY` (nebelung,
+`docs-since` walks **`DOCS_REPOS`** (`bench:1812`): the workshop, `FAMILY` (nebelung,
 pounce, perch, holt, haus), `org-profile`, `homebrew-tap`, and the two repos that
 carry docs without carrying a lock edge — **`trill`** and **`hausfold.co`**. That last
 pair is why this list is not `FAMILY` plus trimmings: docs coverage and lock coverage
@@ -136,7 +136,7 @@ pages.
 | `hausfold.co/` — the site itself (shell, routes, landing pages) | `hausfold.co`'s own `README.md`/`AGENTS.md`. ⚠️ The *docs* it serves are the row above and below this one, not this row. Never move anything from `hausfold/ops`' name register into it — that repo is private for a reason |
 | `haus/modules/*` (the layer + the desktop) | the matching **room**: `haus/rooms/{bar,development,windows,security,focus,apps,appearance,launcher,ai,displays,shelf,text-expansion}.mdx`, plus `haus/reference/options.mdx` and `haus/rooms/windows.mdx` |
 | a new/renamed nix option | `haus/reference/options.mdx` — **always**; an option users can set and can't discover is a bug. It is **generated** in hausfold.co from haus's committed `docs/site-data/`, so the fix is re-running its generator, not writing prose |
-| a new/changed keybind | the **room that owns the key**: `haus/rooms/windows.mdx` for the window-manager binds, `haus/rooms/launcher.mdx` for ⌘Space, `haus/rooms/ai.mdx` for ⌘A. There is no standalone keybindings page any more. hausfold.co's `keybindings-drift` workflow snapshots `wmBindings`/`launchModeKeys`/`resizeModeKeys` only, so it catches the windows row and **not** the other two |
+| a new/changed keybind | the **room that owns the key**: `haus/rooms/windows.mdx` for the window-manager binds, `haus/rooms/launcher.mdx` for ⌘Space, `haus/rooms/ai.mdx` for the ⌘↵ lane chord. There is no standalone keybindings page any more. hausfold.co's `keybindings-drift` workflow snapshots `wmBindings`/`launchModeKeys`/`resizeModeKeys` only, so it catches the windows row and **not** the other two |
 | `bench`, workshop `README.md` | `haus/internals/contributing.mdx`, `haus/internals/flakes.mdx`, workshop `README.md`/`AGENTS.md` |
 | `homebrew-tap`, release CI | `haus/install.mdx`, `haus/keeping-it-current.mdx` |
 | `org-profile` (the `hausfold/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against the docs index, `content/docs/index.mdx` (the old `start/the-family` page was retired, not ported) |
