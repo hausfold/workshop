@@ -102,7 +102,7 @@ lands on `main`.
 ## more
 
 - [workflows](./docs/workflows.md) — daily driving, parallel agents, batch-testing, releasing
-- [the four CLIs](./docs/workflows.md#the-four-clis) — `haus` vs `bench` vs `holt` vs `zscratch`
+- [the three CLIs](./docs/workflows.md#the-three-clis) — `haus` vs `bench` vs `holt`
 - [AGENTS.md](./AGENTS.md) — where a change goes, and the one instruction file every agent reads
 
 ---

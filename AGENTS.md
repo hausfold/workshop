@@ -137,31 +137,22 @@ Never hand-walk that ripple; the tooling does it:
   when waiting can help — a rev that isn't on the upstream's `origin/main` at
   all fails fast, as before.
 
-**Iterating on a zellij edit — two cases, and only one of them costs anything.**
+**Iterating on a terminal edit costs nothing — just `bench try switch`.**
+Ghostty watches its own config and applies the new keybinds, theme and options to
+every running window in about a second; windows, sessions and live agents stay
+put. Even a window that DOES restart comes back to the same scrollback, because
+every window's shell lives in a `zmx` session that outlives it.
 
-- **`config.kdl` (keybinds, theme, options) hot-reloads — just `bench try
-  switch`.** zellij watches its active config and applies most fields to the
-  *running* server in about a second; tabs, panes and live agent sessions stay
-  put. This works only because terminal installs `~/.config/zellij/config.kdl` as
-  a real file with a live mtime rather than a home-manager symlink: zellij gates
-  the reload on mtime, and every `/nix/store` file is stamped epoch 1, so a
-  symlinked config makes each rebuild look *older* than what zellij already read
-  and nothing reloads. That stat is why rebuilds used to need `zellij
-  delete-all-sessions`, and why `Super r`/`zreload` existed at all (both now
-  removed).
-- **Plugin `.wasm`, a patched zellij binary, and layout changes to tabs that
-  already exist do NOT hot-reload** — a running server caches plugin wasm in
-  memory for its whole lifetime, so these need a fresh server. Use **`zscratch`**
-  — a rice dev CLI (`haus/modules/core`, next to `holt`, on PATH) that renders
-  your candidate over a copy of the live `~/.config/zellij` into a temp
-  `--config-dir` and boots a throwaway session in its own Ghostty window, so the
-  working multiplexer is untouched (`zscratch --config`/`--layout`/`--theme
-  FILE`, `--plugin tab-bar=WASM`, `--bin /path/to/zellij`; `zscratch clean` reaps
-  it). Feel it there; the real `bench try switch` happens once, at the end. It's
-  not a `bench` command — the full flag set + the permission-cache gotchas live
-  in the [rice's
-  AGENTS.md](https://github.com/hausfold/haus/blob/main/AGENTS.md) and the
-  `zscratch.sh` header ([haus#69](https://github.com/hausfold/haus/pull/69)).
+This used to be a two-case story with a dev CLI (`zscratch`) behind the second
+case, and both halves left with **zellij**, which haus removed on 2026-08-19
+(`haus/notes/zellij-exit.md` is the record). Worth knowing only so neither
+workaround comes back: a running zellij server cached plugin wasm in memory for
+its whole lifetime, so a plugin edit needed a fresh server — that is what
+`zscratch` was for; and zellij gated config reload on mtime while every
+`/nix/store` file is stamped epoch 1, so a home-manager symlink made each rebuild
+look *older* than what the server had read — that is why terminal installed
+`config.kdl` as a real file. Ghostty has no plugins and watches a store symlink
+happily.
 
 ## Agent worktrees (parallel agent sessions)
 

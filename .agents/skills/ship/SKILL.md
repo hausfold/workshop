@@ -9,7 +9,7 @@ description: >-
   `bench try switch`. Use when I say /ship, "ship it", "land this", or want to wrap up a
   change across the nebelung → pounce → haus → config chain. Worktree-aware: invoking
   /ship is the go-ahead to merge the PR and activate on main (by `cd`-ing there); `bench
-  release` stays gated. Never opens or closes a zellij pane.
+  release` stays gated. Never opens or closes a terminal window.
 ---
 
 # Ship (hausfold workshop): verify → PR → merge → clean up → ripple → activate
@@ -24,7 +24,7 @@ override silently build the pinned layer while reporting your branch.
 
 End-state: the work is merged **through a PR**, the locks are rippled, every worktree this
 session created (except the one I'm in) is reaped, and the change is activated on main. Then
-`/ship` stops and leaves me where I am — it never opens or closes a zellij pane.
+`/ship` stops and leaves me where I am — it never opens or closes a terminal window.
 
 ## Why a PR, and why /ship merges it
 
@@ -98,7 +98,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 | **Routing** | the change is in the wrong repo — a color hex landing in `hausfold` (the rice) instead of `nebelung`, launchd logic in `pounce` instead of the rice, site copy in `hausfold` instead of `hausfold.co`. The workshop's routing table decides, and "it works here" is not a defence. |
 | **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `hausfold.co/content/docs/` (the SOT since 2026-08-14), its `haus/reference/options.mdx`, `haus/rooms/windows.mdx`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
-| **Hotkey drift** | a new keybind colliding with an existing one across zellij / AeroSpace(windows) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
+| **Hotkey drift** | a new keybind colliding with an existing one across AeroSpace(windows) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
 | **Raw worktree adds** | a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
 | **Release blast radius** | the diff touches `homebrew-tap`, changes what `bench release` would stamp, moves a flake-input edge, or touches secrets / `~/.config/nix` identity. Any of those is ≥3/5 by definition and belongs in the PR body loudly. |
 | **PR body** | the What/Why/Verify/Watch-out blocks are actually filled in, and **Verify** is concrete and observable — a cold agent with only `gh pr view` must be able to run it. |
