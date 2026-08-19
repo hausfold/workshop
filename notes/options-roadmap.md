@@ -267,9 +267,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > (18:18–18:19Z), and its site half, .github#21 / workshop#386 /
 > hausfold.co#65 (18:50–18:54Z), which #386 already normalized through this
 > file's own body; then jcode as the fourth AI client (holt#40, haus#378,
-> hausfold.co#66 — ⚠️ **withdrawn 2026-08-19:** jcode is no longer a client the
-> family knows about; the option enum, its holt spec, the Homebrew install path
-> and every doc naming it were removed, leaving `claude`/`codex`/`opencode`),
+> hausfold.co#66 — ⚠️ **being withdrawn, 2026-08-19** (holt#47, haus#411,
+> hausfold.co#85, plus this repo's own PR — **all four in review as this was
+> written, none merged**; confirm on `mergedAt` before reading this as done):
+> the option enum, its holt spec, the Homebrew install path and every doc
+> naming it are removed there, leaving `claude`/`codex`/`opencode`),
 > haus#379 (the rooms.md guard tests wiring, not spelling) and
 > perch#74 (a sweep). **Only haus#376 moves a §5 item.** §5.8's first box flips
 > to `[x]` on its `mergedAt`, and the header plus Phase 5's line move in the
