@@ -722,28 +722,42 @@ them blocks another.
     found that adding an option is not a no-op here; the sharper form is that
     **any file the host template or the skill reads is behaviourally live, down
     to its comments.**
-- **[2] The bar spells one gate three ways.** ✅ **Still true, re-checked
-  2026-08-19**, at the same three sites: `contributed` (`default.nix:889`), the
-  `name != "focus" || config.haus.focus.enable` clause in `bottomGroup` (925),
-  and `topFocus` (943). No bug — `topFocus` covers the top bar that
-  `bottomGroup`'s filter does not. The cost is
-  that the next contributed pill has to be remembered in two places, and the bar
-  has gained pills since (`page`,
-  [haus#396](https://github.com/hausfold/haus/pull/396)) without anyone paying it,
-  because those came from the bar itself rather than from another room.
+- **[2] The bar spelled one gate three ways; it spells it twice now — shrunk,
+  not closed, by a change that was not about it (re-checked 2026-08-19 at haus
+  `6510aa6`).** The three sites this finding named — `contributed`, a
+  `name != "focus" || config.haus.focus.enable` clause in `bottomGroup`, and
+  `topFocus` — no longer exist as three. [haus#404](https://github.com/hausfold/haus/pull/404)
+  opened the pill surface up as `haus.bar.widgets`, and in doing so folded the
+  per-bar pair into one `contributed` predicate
+  (`modules/bar/default.nix:1035`), whose own comment records the collapse:
+  “Same gate, said once now instead of per bar.” What survives is a
+  different pair, one layer apart rather than one bar apart — `contributed`
+  (1041) decides whether a pill may be drawn at all, and `wanted` (1553), in the
+  block that pre-declares every bundled pill as a widget, decides whether the
+  sugar asks for it. Both read `config.haus.focus.enable` directly, because
+  Focus has no switch in `bar.items` and never did.
+  Two lessons, and the second is the one to keep: an open surface can absorb a
+  duplication that no one set out to pay off — and a finding that names LINE
+  NUMBERS as its evidence goes stale in the ordinary course of unrelated work,
+  so the durable half of a re-check is the predicate's NAME, not its address.
 - **[2] Extension points are still only the ones a concrete room needed —
   four now, not three (re-checked 2026-08-19).** The AI room's original three
   (`_contrib.development.agents`, `_contrib.bar.agents`, `_contrib.launcher.agents`)
   have been joined by `_contrib.windows.agents` and, from the other direction,
   `_contrib.launcher.mouseChords` — Windows contributing INTO Launcher
-  (`modules/windows/default.nix:489`), which is the first use of the mechanism
+  (`modules/windows/default.nix:563`), which is the first use of the mechanism
   by a room other than AI. That is the "generalise on the next room that needs
   one" judgement working exactly as step 2 intended, so the finding is now a
   status rather than a worry. What is still direct config-reading: Focus's
-  controls (`launcher/default.nix:244`, `bar/default.nix:925`) and Bar's
-  reserved space from Windows (`windows/default.nix:333` reads `config.haus.bar`
-  whole). Those two are the remaining candidates, and Focus is the one already
-  spelled three ways above — the same change fixes both findings.
+  controls — Launcher's `scenes` binding and its two `focus.sh` guards
+  (`launcher/default.nix:260`, 328, 565) and Bar's two `focus.enable` reads
+  above — and Bar's reserved space from Windows (`windows/default.nix:333`
+  reads `config.haus.bar` whole). Those two are the remaining candidates, and
+  Focus is the one spelled twice above — one `_contrib.bar.focus` /
+  `_contrib.launcher.focus` pair would close both findings at once, and Focus
+  now has FIVE direct readers across two rooms rather than the two this bullet
+  used to name, which is the argument for doing it rather than a reason it got
+  worse.
 - **[2] ✅ Closed 2026-08-19 — the org/layer split settled the landing-page
   order, and 👤 said so.** The finding asked whether the page should run hero →
   haus explanation → desktops, per step 6's plan. It is moot: the site separated
