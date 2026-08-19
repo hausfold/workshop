@@ -73,9 +73,9 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # Every build verb shells out to `nix`, but `nix` is NOT on the PATH a
 # non-login caller hands us: it's wired up by
 # /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh, which only a
-# login/interactive shell sources. A zellij `Run` keybind — ⌘B, which the
-# layer binds straight to `bench try lane switch` — execs this script from
-# the zellij *server's* environment, so it arrives without one. Same for any
+# login/interactive shell sources. The layer's ⌘B chord — a pounce hotkey that
+# runs `bench try lane switch` — execs this script from the pounce daemon's
+# environment, which launchd gave it, so it arrives without one. Same for any
 # other caller whose PATH still reaches /run/current-system/sw/bin — a bare
 # agent shell, say.
 #

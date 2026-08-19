@@ -3,20 +3,23 @@
 The long-form version of the README's command table — every flow, and why it's
 shaped the way it is.
 
-## The four CLIs
+## The three CLIs
 
-Four command-line tools, two jobs — keeping them straight is half the battle:
+Three command-line tools, two jobs — keeping them straight is half the battle:
 
 | tool | for | does | ships in |
 |------|-----|------|----------|
 | **`haus`** | *using* a haus machine | rebuild / update / rollback / doctor — drives **your Mac** | haus (every install) |
 | **`holt`** | *any agent user* | agent worktrees for **any repo** — spawn, resume, park, reap, `holt child` | haus (every install) |
 | **`bench`** | *developing* the family | try / try-batch / ship / release / status — moves changes **across these repos** | the workshop (here) |
-| **`zscratch`** | *developing* haus | feel-test a zellij edit with **no rebuild** | haus |
 
 `haus` and `bench` never overlap — named apart on purpose so they can't shadow
-each other (`haus` = your machine; `bench` = these repos). `holt` and `zscratch`
-are dev tools haus puts on `PATH` regardless of whether you contribute.
+each other (`haus` = your machine; `bench` = these repos). `holt` is a dev tool
+haus puts on `PATH` regardless of whether you contribute. (A fourth, `zscratch`,
+lived here until 2026-08-19: it feel-tested a zellij edit without a rebuild, and
+went with zellij — Ghostty hot-reloads its own config, so there is nothing left
+to scratch.)
+
 (`holt` has [its own repo](https://github.com/hausfold/holt); haus takes it
 as a flake input. Its bash predecessor `wt.sh` has been retired entirely — there
 is no fallback to roll back to.)
@@ -218,27 +221,6 @@ option, the host file that tag scaffolds no longer evaluates against it. Ship
 user-visible haus changes, then release. (The date-stamp moves the repo's HEAD, so `bench ship` once more
 afterward to ripple that lock downstream — or `bench release <repo> --ship` to do
 both.)
-
-## zscratch — iterating on zellij without a rebuild
-
-haus's `modules/core` ships one more dev CLI worth knowing here. `zscratch`
-feel-tests a zellij edit (`config.kdl`, a layout, a freshly-built plugin `.wasm`,
-or a candidate binary) in a throwaway session in its own Ghostty window, so you
-skip the `bench try switch` + `main`-session restart that would nuke every open
-tab.
-
-```sh
-zscratch --config FILE
-zscratch --layout FILE
-zscratch --theme FILE
-zscratch --plugin tab-bar=WASM
-zscratch --bin /path/to/zellij
-zscratch clean            # reap the throwaway session
-```
-
-The real activation still happens once via `bench try switch`, at the end. Full
-flag set in haus's `AGENTS.md`
-([haus#69](https://github.com/hausfold/haus/pull/69)).
 
 ## Keeping the docs honest
 
