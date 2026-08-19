@@ -2734,7 +2734,7 @@ haus.theme = {
       it's obviously needed — by then the copies exist and each is separately
       true and separately maintained.
 
-### 5.2 `haus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done**
+### 5.2 `haus.ui` — semantic scale tokens · M · risk M · ◐ **`scale` shipped, sizing pass done; `motion` shipped 2026-08-19 — as `haus.appearance.reduceMotion`, a bool in the Appearance room rather than a `ui.*` enum, for the reason its box gives. `density` is the last unbuilt member, and Finder's icon size the last unwired surface**
 The missing abstraction. One set of tokens, fanned out with `mkDefault` into
 every room, so a rice says "spacious" once instead of tuning nine numbers.
 
@@ -2828,7 +2828,7 @@ contrast.
       Finder reads its domain once at launch and nix-darwin restarts only Dock.
       That's the first entry in §4's restart map, written by hand rather than as
       the map.
-- [ ] `motion = "none"` is **ours to implement** — kill the tiler's animations and
+- [x] ✅ `motion = "none"` is **ours to implement** — kill the tiler's animations and
       Bar's transitions directly. ~~The macOS reduce-motion knob is locked
       (§4), so there is nothing to delegate to.~~ ❌ **The rationale is dead**
       (§5.12, 2026-08-14): the domain was never locked, only FDA-gated, and
@@ -2840,6 +2840,61 @@ contrast.
       Note the flag's blast radius before deciding — it is what every browser
       reads as `prefers-reduced-motion`, so a semantic token switching it on is
       a bigger promise than it looks.
+      → ✅ **Shipped 2026-08-19 as `haus.appearance.reduceMotion`, and the
+      NAME is the first answer.** Not a `ui.motion` enum: `full | reduced |
+      none` promises a middle rung, and the honest inventory of haus's own
+      motion is five hover-or-unasked movements with no ordering between them —
+      there is no "half a workspace pull". A bool in the room that already owns
+      `largePrint` says what it does, and sits beside the other whole-machine
+      profile rather than inside a token family whose other member is a
+      multiplier.
+      → ★ **The inventory is the work; the fan-out was the easy half.** Five
+      surfaces, and only two of them had an option to set — `bar.logo.sweep` and
+      `windows.mouseFollowsFocus`. Three had to be BUILT before the profile had
+      anything to name: `bar.media.marquee`, `bar.calendar.marquee`, and
+      `windows.gravity`. That ratio is the finding. A "compose the existing
+      dials" feature that turns out to be 3/5 new dials means the dials were
+      never the design — what was missing was anybody having asked "what does
+      this machine move that the user did not ask it to move", which is a
+      question no room asks about itself.
+      → ★ **The two most bothersome ones were the two nobody would have listed.**
+      The media DROPDOWN's title rows carry `scroll_texts=on` for as long as the
+      popup is open, which makes them the only unbounded motion on the bar — a
+      hover sweep at least ends by itself. And `gravity` is not an animation at
+      all, it is a whole display's worth of content replaced in a blink because
+      an app quit, which is exactly the shape of a vestibular trigger and was
+      filed in nobody's head as "motion". Enumerate by *what moves on screen*,
+      never by what the code calls an animation.
+      → ★ **The composition question this box asked has a general answer, and it
+      is about DEPENDENCE rather than about whether to set the flag.** It does
+      set `haus.accessibility.reduceMotion` — quietening five pills while Spaces
+      keep sliding answers the question halfway, and Apple's flag is the only
+      lever that reaches apps haus never heard of. What matters is the arrow:
+      the flag is FDA-gated, so a machine without the grant loses it with a
+      warning and every haus-owned leaf still applies. The tempting factoring —
+      have the bar READ `NSWorkspace.accessibilityDisplayShouldReduceMotion` and
+      follow it — would have been less code and would have made an accessibility
+      feature contingent on a TCC grant. That is §5.2's own `cursorScale` rule
+      (*a semantic token may only be derived from keys that are reachable
+      unconditionally*) arriving from the other direction: there it stopped a
+      token from PULLING an FDA key in, here it stops one from LEANING on it.
+      `haus.animations` is deliberately not set — `"fast"` speeds the Dock up
+      rather than removing motion, and coming back from it only stops writing.
+      → **The one deliberate asymmetry, and it is a room-boundary result.**
+      `windows.gravity` is windows's option implemented entirely by a bar item
+      (`front_app_switched` is the only cheap ⌘Q signal, and aerospace.toml has
+      no hook for it), so the rc gates the ITEM'S EXISTENCE on a generated
+      fragment rather than having the plugin exit early. An item subscribed to
+      every app switch on the machine should cost no process when off, not a
+      cheap one. A behaviour's option belongs to the room that OWNS the
+      behaviour, wherever the code that implements it had to land.
+      → **Whether a desktop should imply it: no, and the PR says why.** `hacker`
+      does not set it and neither does any shipped desktop. Two of the five
+      leaves (`mouseFollowsFocus`, the sweeps) are things a desktop chose ON as
+      character, and the flag's macOS half rewrites the web on a machine whose
+      owner asked for a look rather than for an accommodation. A desktop that
+      wants a still machine names the option, which is one line and legible in
+      the file — the whole point of the desktop being data.
 - [x] ~~`cursorScale`~~ ~~**cut** — `mouseDriverCursorSize` is in the locked
       `universalaccess` domain.~~ ❌ **Cut for a false reason** (§5.12,
       2026-08-14). The domain isn't locked, `mouseDriverCursorSize` is typed by
