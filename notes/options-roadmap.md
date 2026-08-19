@@ -157,6 +157,96 @@ already exist, and one it treated as a detail is the actual root blocker.
 > where the same word appears inside a fenced block presented as measured output.
 
 
+> **Status, 2026-08-19 (twenty-seventh pass) — no §5 box moved in three days,
+> and the two things that DID move are both shape 2: a format this file cites
+> six times was retired, and a check the ledger counts by name was renamed.**
+>
+> Fetched first, per the twenty-third pass's rule: workshop `main` =
+> `origin/main` = `021edb5`, haus = `6ba56c8`, and every claim below is dated at
+> a **rev**, not a day (twenty-fourth pass, row eleven). Landed in haus since
+> workshop#391: haus#386 (the app-pack format retired, `mergedAt
+> 2026-08-17T06:36:00Z`), #388/#389 (lanes are zmx windows), #390 (CI ceilings),
+> #391 and #392 (the FDA-escape spikes, 08-18T06:19:47Z / 06:52:54Z), #394–#397
+> (the lane chord, the `page` pill, the pointer zoom), #398 (caps → f), #399
+> (the zmx 0.7.0 parse, 08-19T05:49:24Z); plus pounce#89/#90, holt#43–#46,
+> hausfold.co#72–#78, and the workshop's own #392–#396 (the MDM note, and
+> `bench`'s cache-lag retry).
+>
+> **Nothing here closes a §5 box.** The eleven the last pass counted are still
+> eleven, and the three-way split it drew — code / 👤 tests / deferred on a
+> reason — survives unchanged. What this pass does is repair four claims the
+> repos falsified, all found by reading commit bodies rather than diffing the
+> checkbox list:
+>
+> - **The pack format is gone (haus#386).** `haus.lib.pack`, `checkPack`,
+>   `checkRice`, `riceBody` and `packFiles` came off the public surface, leaving
+>   exactly two shareable things — a **desktop** (data, closed schema,
+>   `lib.checkDesktop`) and a **room** (code, an ordinary module), one format per
+>   trust class. §3.3's last box cited `checkRice` as a shipped deliverable and
+>   now cites a function that does not exist; amended in place. The word `packs`
+>   survives *only* in its non-shareable sense —
+>   `haus.apps.packs.<name>.enable` and `modules/apps/packs/writing.nix` are
+>   untouched — so every "pack" below is a **collection inside the Apps room**,
+>   never a thing a stranger publishes. That is the §5.14 shape the banner was
+>   built for, arriving a third time: a surviving word whose sense moved.
+> - **The `packs` check is `app-collections` (same PR), and the ledger names it
+>   by the dead spelling** — the seventh pass's exact error, which the
+>   twenty-second pass caught by re-deriving the roster from `nix flake check`
+>   and which has now recurred within four passes. Re-derived again here from
+>   `flake.nix` at `6ba56c8`: `data-only-surface`, `accent-reach`,
+>   `app-collections`, `fragment-compat`, `scale-reach`, `font-reach`,
+>   `pounce-item-grammar` — **seven checks, unchanged in number**. It also
+>   changed platform: `app-collections` moved inside the darwin-only block, so
+>   the "runs on Linux CI" property `packs` had is gone. A rename that keeps
+>   the count and loses the platform is worse than one that loses both, because
+>   the number the ledger quotes stays right.
+> - **`pounce-item-grammar` took a fourth prefix and a fifth shape** —
+>   `setting:<pane>[?<anchor>]` (pounce#90 → haus#399) — and the check **could
+>   not report it**: pounce's error literal is built by `+` concatenation and
+>   wrapped once it grew a fourth shape, so the grep matched nothing, the diff
+>   came back empty, and the don't-delete-this-check guard spoke instead. The
+>   twenty-third pass filed this mirror as reason 1's answer; what it now also
+>   demonstrates is the failure mode of reading another repo's *source*: **a
+>   mirror that greps a literal is coupled to that literal's FORMATTING**, and a
+>   line wrap is not a semantic change on either side. The guard firing is the
+>   check working — it refused to go green empty — but it named the wrong
+>   problem, and the second cause hid the first for a day of red CI on main.
+> - **§5.9's re-derived pill count is 16, not 15** (haus#396's `page` pill,
+>   08-18T08:36:08Z). The twenty-fourth pass re-derived 15 and wrote "a count
+>   that stays true does so only with its scope attached"; two days later the
+>   scope held and the number didn't. Both are amended in place, with the
+>   `jq` re-run at `6ba56c8`. This is the box's own argument landing on it: the
+>   submodule grows by one every time a pill ships, which is why `bar.widgets`
+>   is the open box it is.
+>
+> **The one new candidate for a check**, phrased to be asked of any mirror:
+> *what in the upstream am I matching that isn't the thing I care about?*
+> `pounce-item-grammar` cares about a list of prefixes and matches a sentence's
+> punctuation. The generalisable fix already shipped inside it — flatten the
+> source first — but the question is the reusable half, and it is the sibling of
+> the twenty-third pass's "which dimension of this copy did I decide was
+> closed?".
+>
+> **Verified from the repos' side** (a workshop worktree can't build the layer):
+> `jq -r 'keys[]' docs/site-data/options.json | grep -cE '^haus\.bar\.items\.'`
+> = 17 keys → 16 pills once `claudeUsage`'s deprecated alias is dropped;
+> `grep -n checkRice flake.nix` at `6ba56c8` returns one hit and it is a comment
+> saying the function is gone. ⚠️ **And one caveat on the roster below, found by
+> this pass's assurance read: the seven are not `flake.nix`'s check list.**
+> `flake.nix` declares **25** `runCommand` checks at `origin/main`; the ledger
+> has always counted the subset that *encodes a ★ finding from this file*, which
+> is a judgement no grep makes — `room-registry`, `keymap`, `desktop-seam` and
+> the rest are perfectly good checks that no finding here asked for. So the
+> re-derivation is "look up each of the seven names in `flake.nix` and see
+> whether it still exists", which is what catches a rename; it is **not** a
+> re-derivation of *which* checks belong, and this ledger has no mechanical way
+> to do that. Recording it because the fifth pass's rule — quote the command
+> that produced a count — is unsatisfiable here, and saying so is better than
+> implying a command. Also: haus moved to `dc86913` (#400) while this pass was
+> being written, which changes nothing above. No rebuild is owed — this pass
+> changes no layer.
+
+
 > **Status, 2026-08-16 (twenty-sixth pass) — scenes merged 38 seconds before
 > the pass that recorded them as "in review" did, so this pass's whole code
 > change is one checkbox; the rest is the honest inventory of what's left.**
@@ -2272,6 +2362,18 @@ otherwise you'll build eight layers and discover the format can't express them.
 - [x] `nix flake check` runs `checkRice` over every preset **and** evaluates a real
       system with each — trust half and usefulness half
 - [x] `haus.lib.checkRice` exposed, with `presets/README.md` defining the format
+      ⚠️ **Both are gone as of haus#386 (`mergedAt 2026-08-17T06:36:00Z`), and
+      the box stays ticked because it records what shipped.** The preset dir
+      survives only as `compat/presets.nix` (a warning, byte-for-byte the old
+      values), and the *format* half was retired with the pack format beside it:
+      `haus.lib.pack`, `checkPack`, `checkRice`, `riceBody` and `packFiles` all
+      came off the public surface, leaving **two** shareable things, one per
+      trust class — a **desktop** (data, closed schema, validated leaf by leaf by
+      `lib.checkDesktop`, which haus can prove is inert) and a **room** (code, an
+      ordinary nix-darwin module, which haus can prove nothing about and says
+      so). So the self-test a stranger runs is `lib.checkDesktop ./my-desktop.nix`
+      now, and `checkRice` in the prose below means the thing that used to do
+      this job.
 
 ### 3.4 Generate the options reference · ✅ **DONE** (haus#93 + workshop#81)
 [`web/src/content/docs/reference/options.md`](web/src/content/docs/reference/options.md)
@@ -3778,6 +3880,14 @@ docs/site-data/options.json | grep -cE '^haus\.bar\.items\.'` says **16**, one o
 which is the deprecated `claudeUsage` alias for `aiUsage` — so 15 pills, as
 written. A count that stays true does so only with its scope attached; the same
 re-derivation on §5.5's line above found it six short.)*
+⚠️ **And it stopped being true two days later — 17 keys, 16 pills, at haus
+`6ba56c8`** (twenty-seventh pass). haus#396 added the `page` pill
+(`mergedAt 2026-08-18T08:36:08Z`). The scope sentence above held perfectly and
+the number still went stale, which is this box's own argument arriving as
+evidence: the closed submodule grows by one every time a pill ships, and a
+document quoting its size is signing up to re-derive it every pass. The header
+line's "15 bools (13 when this was written)" reads **16 (13 when this was
+written)** now, and will be wrong again.
 Pounce commands were
 script-discovery only with **no Nix option at all**; as of pounce#43 the
 *app* has the schema and the **rice** is what's missing — which flips this item
@@ -4316,6 +4426,7 @@ catch:
 | a "don't touch this, it's coupled" warning that names the **wrong line** *(twenty-fourth pass — `bench`'s `OVERRIDABLE`, which holds repo names and never held an input name)* | opening the file it names and finding the thing it says is there |
 | a sketch borrows a plain English word, and the CODEBASE later adopts that word for something it already had *(twenty-fifth pass — §5.8 proposed a `scenes` namespace with `focus` demoted to an alias, three weeks before the room rename made `focus` a room's name)* | reading a sketch against today's option tree rather than against its own vocabulary — the entry never goes stale, never gets falsified, and never disagrees with its marker; it just quietly starts proposing something else |
 | a box ticked for work that is BUILT but not MERGED — the first shape with its clock reversed, and the worse one *(twenty-fifth pass, caught by its own assurance read: §5.8 was written `- [x] ✅ shipped` while haus#376 was `"state":"OPEN"`)* | reading the PR's **state**, not its diff. Rule 1 sends a reader to the repo to confirm a ticked box, and here the repo says no — so the box doesn't just mislead, it burns the check that was supposed to catch it. A PR number in a tick is a promise; only `mergedAt` keeps it |
+| a claim naming a FUNCTION, a check or a format that the repo has since retired — the entry stays true about what shipped and false about what exists *(twenty-seventh pass — §3.3's `checkRice` box, and the ledger's `packs` row, both retired by haus#386)* | grepping the repo for the identifier, not for the sentence. A rename that preserves the count is the dangerous one: the number a reader spot-checks stays right while the roster under it rots |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -4710,6 +4821,50 @@ That is the
 first time this ledger has counted a check outside haus's flake, and it is worth
 noticing why it was possible: the workshop repo has a test suite because `bench`
 is a program. A document doesn't get one.
+
+**Twenty-seventh pass, 2026-08-19 — the ledger's roster went stale again, four
+passes after the last time, and the mechanism was the same one both times.**
+`packs` is `app-collections` since haus#386 (`mergedAt 2026-08-17T06:36:00Z`),
+which retired the format the check was named for and kept the rules that
+outlived it. Re-derived from `flake.nix` at `6ba56c8` rather than from this
+section: `data-only-surface`, `accent-reach`, `app-collections`,
+`fragment-compat`, `scale-reach`, `font-reach`, `pounce-item-grammar` —
+**fifteen ★ findings, seven checks, three warnings**, the count unmoved and one
+name replaced. ⚠️ **"Re-derived from `flake.nix`" needs its scope, and the
+assurance read supplied it:** `flake.nix` declares 25 `runCommand` checks, and
+this ledger counts the subset that encodes a ★ finding *from this file* — a
+judgement, not a grep. So re-deriving catches a **rename** (look each of the
+seven up, see if it still exists) and cannot catch a *missing* row, because
+nothing mechanical knows which of the other eighteen a finding here asked for.
+That is the ledger's one structural hole and it has no fix; the honest form is
+to say which question the re-derivation answers. Two more things worth carrying:
+
+- **A rename that preserves the count is the worst kind for a ledger**, because
+  the number a reader spot-checks stays right while the roster under it doesn't.
+  The seventh pass's dead `preset-composition` survived six passes; this one
+  survived two, and only because re-deriving from `nix flake check` is now the
+  written habit. The habit is the mitigation — there is no check that can check
+  a list of checks.
+- **The renamed check also changed platform**, and that is invisible in a
+  roster. `packs` was pure `lib` and ran on Linux CI; `app-collections` moved
+  inside `optionalAttrs (hasSuffix "-darwin")` and now fires on this Mac or not
+  at all. The ledger has counted `accent-reach`'s darwin-gating explicitly since
+  the fifth pass; the same asterisk belongs on this row, and nothing announced
+  it — the PR that moved it was about a format, not a platform.
+
+★ **The pass's own finding, and it is about the mirror this ledger added last:**
+`pounce-item-grammar` broke, on main, in the direction the twenty-third pass
+didn't consider. pounce#90 added a fifth shape (`setting:<pane>[?<anchor>]`),
+which grew pounce's error literal past one line — so Swift's `+` concatenation
+**wrapped it**, the check's `grep -o '(expected [^"]*)'` matched nothing on the
+raw file, and the diff that would have named the missing shape came back empty.
+The don't-delete-this-check guard fired instead, so CI was red with the wrong
+message while the real drift sat underneath (fixed in haus#399: flatten the
+source, then grep). Generalised: **a mirror that reads another repo's source is
+coupled to that source's FORMATTING, not just its content** — a line wrap is a
+semantic no-op on both sides and a total failure in between. The new candidate
+question, sibling to the twenty-third pass's: *what in the upstream am I
+matching that isn't the thing I care about?*
 
 ---
 
