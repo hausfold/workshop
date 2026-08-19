@@ -3,6 +3,13 @@
 Working vision, 2026-08-13. Current code is the source of truth for what exists;
 this note defines the product model the code and docs should converge on.
 
+> **Re-verified against merged `main` on 2026-08-19** (haus `6ba56c8`,
+> hausfold.co `e9b625f`). The model and both execution plans stand; what moved is
+> recorded inline — the counts (§[past step 6](#what-carries-past-step-6)), three
+> findings now **closed**, and one that got *bigger* rather than staler. The
+> Acquisition plan is still entirely unbuilt, and that was checked at the CLI's
+> own dispatch table rather than assumed.
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -587,10 +594,30 @@ twelve `"kind": "room"` plus one shared and one host — over 36 namespaces and
 reference agrees with haus rather than with a snapshot is what the `options
 drift` job guarantees from here on.
 
+**The shape of that gate held; two of its three numbers did not, and the
+difference between them is the point.** Re-measured on 2026-08-19 at haus
+`6ba56c8`: still **14 registry entries, still twelve rooms**, now **35
+namespaces** and **277 options**. So the count that a person meets is the one
+that stayed put, and the counts a host file spells are the ones that move every
+week — which is why step 6 was right to render both and right to generate them.
+Nothing in this note is expected to track the two moving numbers; they are
+recorded here once, with their revision, so the next reader compares against a
+dated measurement rather than against prose. The `options drift` job is what
+keeps the *site* honest, and it is doing it: the reference has been regenerated
+since ([hausfold.co#77](https://github.com/hausfold/hausfold.co/pull/77)).
+
+One row of that gate is worth restating because it reads as a contradiction:
+`/docs/haus/rooms/agent-rebuilds/` **301s to `/docs/haus/agent-rebuilds/`** now.
+The finding below predicted a guide sitting in the Rooms group; it was moved out
+instead of relabelled, so the Rooms prefix holds exactly the twelve rooms plus
+`rooms/creating` — and the sidebar's Rooms band is thirteen rows for that reason,
+not for the old one.
+
 The plan therefore has no step 7. What follows are the findings from earlier
-steps that no step ever owned, re-verified against merged `main` today so the
-next agent starts from the tree rather than from the prose. Each is a
-standalone change; none of them blocks another.
+steps that no step ever owned, **re-verified against merged `main` on
+2026-08-19** — the dates in each bullet say when a claim was last actually
+looked at, rather than when it was written. Each is a standalone change; none of
+them blocks another.
 
 - **[3] Nothing owned "may a desktop choose the editor?" — ANSWERED, 2026-08-14
   ([haus#347](https://github.com/hausfold/haus/pull/347),
@@ -628,33 +655,69 @@ standalone change; none of them blocks another.
   ([haus#386](https://github.com/hausfold/haus/pull/386)). The full story is in
   [Acquisition](#open-decisions).
 - **[2] The generated reference names a validator; the key rule it enforces is
-  hand-written prose somewhere else.** `groups.json` ships `haus.displays` as
-  `{"desktopSafe": "recursive", "validator": "display-selectors"}`. A reader is
+  hand-written prose somewhere else.** ✅ **Still open, re-checked 2026-08-19.**
+  `groups.json` ships `haus.displays` as
+  `{"desktopSafe": "recursive", "validator": "display-selectors"}` — the exact
+  string, unchanged. A reader is
   not stranded — `/docs/haus/desktops/creating/` explains in words that a
-  display UUID is host-only and that attrsets carry per key — but exactly one of
+  display UUID is host-only and that attrsets carry per key (its `main`/UUID
+  paragraph is still there, still hand-written) — but exactly one of
   those two statements is generated, so they can now drift apart. Step 3
-  predicted this against step 6; step 6 rendered rooms and left it standing.
-- **[2] The AI room's payload still lives in `core` and `terminal`.** `modules/ai`
-  is still `default.nix` + `options.nix` — ownership, assertions and
-  contributions only. Step 2 deferred the move until a comparator could prove it
-  free; `desktop-projection` has existed since step 4, so `holt`, `agent-state`,
-  the statusline and the client/hook files can now move under proof.
-- **[2] The bar spells one gate three ways.** `contributed`,
-  `name != "focus" || config.haus.focus.enable` in `bottomGroup`, and `topFocus`
-  all answer "does this pill's source exist?" — checked, and there is no bug:
-  `topFocus` covers the top bar that `bottomGroup`'s filter does not. The cost is
-  that the next contributed pill has to be remembered in two places.
-- **[2] Extension points are still only the three the AI room needed.** Windows'
-  workspace pills, Focus's controls and Bar's reserved space from Windows still
-  read each other's config directly. Worth generalising on the next room that
-  needs one, not speculatively — unchanged from step 2's judgement.
-- **[2] The landing page's section order is still 👤's call.** The page closes
-  with haus rather than explaining it second, and says why in a comment. The
-  model-agreement half of step 6 landed; only the ordering is open.
-- **[1] `/docs/haus/rooms/agent-rebuilds/` is in the Rooms group and is not a
-  room.** Twelve room pages plus one guide share the prefix. Harmless, and
-  exactly the kind of thing a catalogue-shaped navigation makes visible — step
-  6's own finding about missing pages, running the other way.
+  predicted this against step 6; step 6 rendered rooms and left it standing. The
+  cheap fix is a `validators` table in the registry carrying one sentence per
+  validator, rendered where the validator is named — the same move step 6 made
+  for room titles, for the same reason.
+- **[2] The AI room's payload still lives in `core` and `terminal`.** ✅ **Still
+  true, re-checked 2026-08-19 — and the deferral has now outlasted its own
+  reason twice.** `modules/ai` is still exactly `default.nix` + `options.nix`
+  (161 + 253 lines),
+  ownership, assertions and contributions only; its own header still says so in
+  a "what is deliberately NOT here yet" paragraph. `holt` is still installed by
+  `modules/core`, and the clients, hooks and `agent-state` are still `terminal`'s.
+  Step 2 deferred the move until a comparator could prove it
+  free; `desktop-projection` has existed since step 4. What is new is that
+  `terminal`'s agent payload has GROWN in the meantime — the lane stack
+  (`modules/terminal/lanes/`, `zmx`, `lane-open.sh` as holt's `open` seam) all
+  landed in `terminal` because that is where the agent code already was. So the
+  move gets more expensive every week it is not made, which is an argument for
+  doing it soon or for writing down that it is never happening.
+- **[2] The bar spells one gate three ways.** ✅ **Still true, re-checked
+  2026-08-19**, at the same three sites: `contributed` (`default.nix:889`), the
+  `name != "focus" || config.haus.focus.enable` clause in `bottomGroup` (925),
+  and `topFocus` (943). No bug — `topFocus` covers the top bar that
+  `bottomGroup`'s filter does not. The cost is
+  that the next contributed pill has to be remembered in two places, and the bar
+  has gained pills since (`page`,
+  [haus#396](https://github.com/hausfold/haus/pull/396)) without anyone paying it,
+  because those came from the bar itself rather than from another room.
+- **[2] Extension points are still only the ones a concrete room needed —
+  four now, not three (re-checked 2026-08-19).** The AI room's original three
+  (`_contrib.development.agents`, `_contrib.bar.agents`, `_contrib.launcher.agents`)
+  have been joined by `_contrib.windows.agents` and, from the other direction,
+  `_contrib.launcher.mouseChords` — Windows contributing INTO Launcher
+  (`modules/windows/default.nix:489`), which is the first use of the mechanism
+  by a room other than AI. That is the "generalise on the next room that needs
+  one" judgement working exactly as step 2 intended, so the finding is now a
+  status rather than a worry. What is still direct config-reading: Focus's
+  controls (`launcher/default.nix:244`, `bar/default.nix:925`) and Bar's
+  reserved space from Windows (`windows/default.nix:333` reads `config.haus.bar`
+  whole). Those two are the remaining candidates, and Focus is the one already
+  spelled three ways above — the same change fixes both findings.
+- **[2] The landing page's section order is still 👤's call — and the page it
+  was about has since been split in two (2026-08-19).** The site now separates
+  the org from the layer: `/` is hausfold (`src/app/page.tsx`, an index of what
+  the org publishes) and `/haus` is the layer (`src/app/haus/page.tsx`), which
+  is where the Rooms and Desktops sections moved word for word. On that page the
+  order is **Rooms, then Desktops, then One file** — so the step-6 plan's
+  "hero → haus explanation → desktops" is not merely unreordered, it is now a
+  question about a different page than the one the finding named. The comment
+  that argued the old ordering went with the split. Still 👤's call; worth
+  re-asking against the page that exists.
+- **[1] ✅ Closed 2026-08-19 — `/docs/haus/rooms/agent-rebuilds/` is no longer in
+  the Rooms group.** The guide moved to `/docs/haus/agent-rebuilds/` (in the
+  Start band, beside `install` and `keeping-it-current`), and the old URL 301s.
+  The Rooms prefix now holds the twelve rooms plus `rooms/creating`, which is a
+  room page in the sense that matters — it teaches you to write one.
 
 Two earlier findings are NOT in that list, and both deserve a sentence rather
 than a silent disappearance. Step 3's "Blank still has to decide about the AI
@@ -702,6 +765,21 @@ this machine actually runs. This is the item
 hands over when it says a third-party gallery entry now waits on “acquisition
 and trust, not composition”, and the item `options-roadmap.md`'s status prologue
 points at the same place. Nothing here is built.
+
+> **Still nothing, re-checked 2026-08-19 at haus `6ba56c8`.** Verified at the
+> CLI's own dispatch table rather than by grep: `modules/core/haus.sh`'s `case`
+> knows `rebuild update rollback generations status edit options set get unset
+> reset plan diff capture revert-settings doctor btm tour`, and none of `show`,
+> `add`, `remove` or `desktop`. `haus update` also still takes no input-name
+> argument (`update) cmd_update ;;`), so step D's one-line extension is unbuilt
+> too. Every number and mechanism in this section was measured against a haus
+> three days older than today's, and the parts that could have rotted did not:
+> `checkDesktop` is still the entry point (`flake.nix:241`), `desktopPriority`
+> is still 900 (226), and `lib.pack` is still gone with a comment at 203 saying
+> why. **One thing did move, in the design's favour:** `/docs/haus/rooms/creating/`
+> now exists and teaches a person to write a room, so the room half of step F
+> has published documentation to point at — and step E's namespace question is
+> now a hole in a page a stranger is being sent to, not a hypothetical.
 
 ### The finding that decides the shape
 
@@ -893,8 +971,19 @@ name and breaking a machine that was fine. haus's own `room-registry` check
 catches an unclassified namespace in *haus's* flake check, which never runs on
 the consumer. Needs an answer — a reserved prefix, or a claim check at `add`
 time — designed with the room half rather than after it. The extension-point
-mechanism is also still only the three points the AI room needed, a finding
-carried since step 2.
+mechanism has since grown a fourth point and its first non-AI user, which is
+progress on the *cooperation* half but none at all on this one.
+
+**And the gap is now published, which raises it (2026-08-19).**
+`/docs/haus/rooms/creating/` shipped, and it teaches the registry honestly —
+"an unclassified namespace or a leaf it doesn't mention is an error", the
+`roomOwners` table, the `nix flake check` that enforces both. Every one of
+those is a rule that runs in *haus's* tree. So a stranger following that page to
+write `haus.photography.*` gets no arbitration, no claim, and no warning that a
+future haus release could take the name — and the page cannot tell them
+otherwise until step E decides what the answer is. Sequencing was already
+"before D's room half"; the doc makes it "before anyone acts on the page we
+already published".
 
 ### Rules that fall out, and the traps behind them
 
