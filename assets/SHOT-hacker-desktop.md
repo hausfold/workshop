@@ -67,7 +67,7 @@ hero fails because it tried to be readable and became a wall.
 ├──────────────────────────────────┴─────────────────────────────────┤
 │  ▶ …            🌙 Focus            🐾 1                           │  bar, second bar
 └────────────────────────────────────────────────────────────────────┘
-        ↑ Ghostty · zellij, 60%          ↑ Zen, 40%
+        ↑ Ghostty, 60%                   ↑ Zen, 40%
 ```
 
 **What each object is doing for the pitch:**
@@ -80,7 +80,7 @@ hero fails because it tried to be readable and became a wall.
 | the two pips under the notch | **perch** — the shelf is holding something |
 | `haus status` | **haus** + reproducibility, in four lines |
 | the host-file diff | the whole thesis: *the machine is a file you edit* |
-| the agent pane + the worktree HUD row | the agent workflow, and the one thing no other rice has |
+| the agent window + the worktree HUD row | the agent workflow, and the one thing no other rice has |
 | Zen's chrome, fog-grey with a pink accent | **nebelung** reaches past the terminal |
 | the wallpaper band and seam | nebelung's atmosphere |
 
@@ -189,13 +189,22 @@ Nothing else needs faking. Don't touch the system clock.
 
 ---
 
-## Dressing each pane
+## Dressing each region
 
-### Left tile — Ghostty, zellij, exactly three panes
+### Left tile — Ghostty, exactly three regions
 
 Three. Not four. The current hero has five and reads as noise.
 
-**Pane 1 · left, full height (~55 % of the tile) — the agent, mid-turn.**
+> 🚨 **The staging is unsolved, because zellij is gone.** haus removed it on
+> 2026-08-19 (`haus/notes/zellij-exit.md`): every window is a Ghostty window
+> wrapping a `zmx` session, and there is no split-a-window-into-panes any more.
+> So the three regions below are still the right *content*, and "pane" is the
+> wrong noun for all three — the frame now has to come out of the tiler, which
+> is a scene decision (three tiled Ghostty windows inside the left 60 %? two,
+> with the diff moved?) rather than a detail to restore from `git log`. Settle
+> it before shooting; everything else on this page survives the change.
+
+**Region 1 · left, full height (~55 % of the tile) — the agent, mid-turn.**
 
 A real Claude Code session in a real `worktree-*` checkout. What should be on
 screen, top to bottom:
@@ -216,7 +225,7 @@ captures a second apart and pick the one where the spinner glyph is at its
 fullest (`✳`/`✶`, not `·`). This is the one thing in the shot worth
 re-rolling.
 
-**Pane 2 · right, upper (~45 % × 50 %) — `haus status`.**
+**Region 2 · right, upper (~45 % × 50 %) — `haus status`.**
 
 Run it, leave the output. It is naturally 8 lines and every one of them is on
 message: the machine, the generation, the pinned rice, and a green
@@ -225,9 +234,9 @@ message: the machine, the generation, the pinned rice, and a green
 > That green tick only prints when the pin equals `origin` **and** the machine
 > is online. A behind pin prints an amber *"a newer rice is available upstream
 > — haus update"* instead, which is a fine line in real life and the wrong note
-> in a hero. `haus update` first, then run `haus status` in the pane.
+> in a hero. `haus update` first, then run `haus status` there.
 
-**Pane 3 · right, lower — a host-file diff.**
+**Region 3 · right, lower — a host-file diff.**
 
 `cd ~/.config/nix && git diff` with a small **real, uncommitted** hunk staged by
 hand in `hosts/<host>/default.nix`:
