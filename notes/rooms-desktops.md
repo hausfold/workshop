@@ -667,20 +667,46 @@ them blocks another.
   cheap fix is a `validators` table in the registry carrying one sentence per
   validator, rendered where the validator is named — the same move step 6 made
   for room titles, for the same reason.
-- **[2] The AI room's payload still lives in `core` and `terminal`.** ✅ **Still
-  true, re-checked 2026-08-19 — and the deferral has now outlasted its own
-  reason twice.** `modules/ai` is still exactly `default.nix` + `options.nix`
-  (161 + 253 lines),
-  ownership, assertions and contributions only; its own header still says so in
-  a "what is deliberately NOT here yet" paragraph. `holt` is still installed by
-  `modules/core`, and the clients, hooks and `agent-state` are still `terminal`'s.
-  Step 2 deferred the move until a comparator could prove it
-  free; `desktop-projection` has existed since step 4. What is new is that
-  `terminal`'s agent payload has GROWN in the meantime — the lane stack
-  (`modules/terminal/lanes/`, `zmx`, `lane-open.sh` as holt's `open` seam) all
-  landed in `terminal` because that is where the agent code already was. So the
-  move gets more expensive every week it is not made, which is an argument for
-  doing it soon or for writing down that it is never happening.
+- **[2] ✅ Closed 2026-08-19 — the AI room's payload moved, and the derivation
+  did not.** Carried since step 2, which deferred it until a comparator could
+  prove it free; `desktop-projection` has existed since step 4 and the proof is
+  simply a derivation comparison — `nix eval` on the example host returns the
+  **byte-identical `cl4plcp1yxv…-darwin-system-26.11.57a3171.drv`** before and
+  after, and `desktop-projection` stays equal. Both halves went: the system
+  profile (`holt`, both statusline scripts, `agent-state`) out of `modules/core`,
+  and the home one (the instructions preamble, the `haus` skill, `agents/`) out
+  of `modules/terminal`. What terminal keeps is its own — the client packages a
+  pane needs on PATH, the dotfiles it themes, and the two activation blocks that
+  merge into a client's user-editable JSON.
+
+  Three things worth keeping out of doing it:
+
+  - **The reason it looked expensive was wrong, and one throwaway line proved
+    it.** The obstacle was assumed to be `home-manager.users.<name>`: terminal
+    owns that attrset, so a second module writing one user's profile sounded
+    like a merge waiting to happen. It is not — home-manager merges the two
+    `home.file` sets, and a collision on a path is an **error**, not a silent
+    last-wins, which is the property that makes the split safe rather than
+    merely possible. Measured with a probe `home.file` from `modules/ai` before
+    anything moved. The first draft of this move shipped a header comment
+    asserting the opposite; the probe is what caught it. **Measure the
+    constraint before designing around it** — this one had held the work for two
+    weeks and was never true.
+  - **The move is mechanical, and its risk is entirely in the `let`.** The three
+    blocks that moved (`agentHomes`, `holtGuidance`→`agentSkillFiles`, and
+    `onOff`→`thisMachine`) are a closed dependency set except for one string:
+    `laneChordProse`, which reads as terminal's because it names a keybind but is
+    prose *inside the generated agent instructions*. Nix names the failure
+    immediately, so this is a compile error rather than a silent one — but it is
+    the reason to move a `let` cluster by evaluation rather than by eye.
+  - **A comment can move the derivation, and on this repo that is not noise.**
+    Repointing two prose references from `terminal/agents/` to `ai/agents/`
+    changed the system drv, because `host-template.jq` is an input SOURCE — its
+    hash covers its comments. Reverting that one comment restored the baseline
+    exactly, which is how the "free" claim above was isolated. Step 5 already
+    found that adding an option is not a no-op here; the sharper form is that
+    **any file the host template or the skill reads is behaviourally live, down
+    to its comments.**
 - **[2] The bar spells one gate three ways.** ✅ **Still true, re-checked
   2026-08-19**, at the same three sites: `contributed` (`default.nix:889`), the
   `name != "focus" || config.haus.focus.enable` clause in `bottomGroup` (925),
@@ -703,16 +729,18 @@ them blocks another.
   reserved space from Windows (`windows/default.nix:333` reads `config.haus.bar`
   whole). Those two are the remaining candidates, and Focus is the one already
   spelled three ways above — the same change fixes both findings.
-- **[2] The landing page's section order is still 👤's call — and the page it
-  was about has since been split in two (2026-08-19).** The site now separates
-  the org from the layer: `/` is hausfold (`src/app/page.tsx`, an index of what
-  the org publishes) and `/haus` is the layer (`src/app/haus/page.tsx`), which
-  is where the Rooms and Desktops sections moved word for word. On that page the
-  order is **Rooms, then Desktops, then One file** — so the step-6 plan's
-  "hero → haus explanation → desktops" is not merely unreordered, it is now a
-  question about a different page than the one the finding named. The comment
-  that argued the old ordering went with the split. Still 👤's call; worth
-  re-asking against the page that exists.
+- **[2] ✅ Closed 2026-08-19 — the org/layer split settled the landing-page
+  order, and 👤 said so.** The finding asked whether the page should run hero →
+  haus explanation → desktops, per step 6's plan. It is moot: the site separated
+  the org from the layer, so `/` is hausfold (`src/app/page.tsx`, an index of
+  what the org publishes) and `/haus` is the layer (`src/app/haus/page.tsx`),
+  where the Rooms and Desktops sections moved word for word — Rooms, then
+  Desktops, then One file. The step-6 ordering was written for a page that
+  explained the layer *and* sold the org in one scroll; splitting them answered
+  the question the ordering was a compromise for. **No reorder is wanted.** The
+  general lesson is worth more than the row: a layout argument can be settled by
+  changing what the page is ABOUT rather than by resequencing it, and a finding
+  that survives long enough may be dissolved rather than resolved.
 - **[1] ✅ Closed 2026-08-19 — `/docs/haus/rooms/agent-rebuilds/` is no longer in
   the Rooms group.** The guide moved to `/docs/haus/agent-rebuilds/` (in the
   Start band, beside `install` and `keeping-it-current`), and the old URL 301s.
