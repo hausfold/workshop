@@ -157,7 +157,7 @@ happily.
 ## Agent worktrees (parallel agent sessions)
 
 Agent lanes spawned with **⌘↵** run whichever client
-`haus.ai.default` names — `claude`, `codex`, `opencode` or `jcode`. **Every
+`haus.ai.default` names — `claude`, `codex` or `opencode`. **Every
 client goes through `holt new`**, and that includes Claude: `claude --worktree`,
 its native flag, would run the client in the pane it was launched from and never
 ask holt's `[hooks] open`, which is the seam a lane's own window arrives through
