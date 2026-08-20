@@ -306,7 +306,7 @@ whether a fifteen-line consumer-side claim check can see any of it.
   get the generic fallback — the default written for consumers pinned to an
   older registry turns out to be the extension point.
 
-Also the one probe here that has RUN in a cloud container, which is a finding of
+Also the first probe here to have RUN in a cloud container, which is a finding of
 its own: `github:` inputs 403 there, but the git proxy serves anonymous reads,
 so nixpkgs' pure `lib/` is one sparse clone away. The header says how.
 
@@ -321,7 +321,7 @@ PROBE_REMOTE=git+https://github.com/hausfold/workshop \
 Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
 step B. Step A shipped a sandbox for reading a **local** desktop file; step B
 fetches one instead, and this measures what changes when the file arrives in the
-store rather than in `~/Downloads`. Twenty rows (twenty-one with `PROBE_REMOTE`), seconds, no Mac — it builds
+store rather than in `~/Downloads`. Twenty rows (twenty-two with `PROBE_REMOTE`), seconds, no Mac — it builds
 throwaway git repos under one `mktemp` dir and runs real `nix eval` and
 `nix flake lock` against them.
 
@@ -339,8 +339,8 @@ dangerous one:
   half that was load-bearing holds, and the half the note had been describing
   does not;
 - **the lock has never recorded a fetch date.** `lastModified` is the source's
-  own commit date — matched exactly against the fixture, and 366 seconds behind
-  the fetch on the remote node. The raw-URL shape's whole node is `narHash`,
+  own commit date — matched exactly against the fixture, and measurably older
+  than the fetch on the remote node. The raw-URL shape's whole node is `narHash`,
   `type`, `url`, so it carries no date on either reading;
 - **and the update line for that shape reads like a no-op**: one arrow, one URL,
   no left-hand side and no hash, printed while the content changed underneath;

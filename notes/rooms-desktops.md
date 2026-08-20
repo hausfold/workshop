@@ -1100,7 +1100,7 @@ on 2026-08-20 ([`probes/source-shapes.sh`](./probes/source-shapes.sh) §3–4):
 
 | source | input spelling | pins | selection line | notes |
 |---|---|---|---|---|
-| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | `rev`, `narHash`, `ref`, `revCount`, `lastModified` | `desktop = "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
+| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | `rev`, `narHash`, `lastModified` — and, on the `git+https:` spelling, `ref` and `revCount` too. ⚠️ **The `github:` node itself was not measurable** from the cloud container the 2026-08-20 pass ran in (api.github.com 403s); it carries `owner`/`repo` where the `git` node carries `ref`/`revCount` | `desktop = "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
 | **one file / a gist's raw URL** | `{ url = "file+https://…/writer.nix"; flake = false; }` | **`narHash` only — no revision and no date** | `desktop = inputs.writer;` | the store path *is* the file, so no path suffix. But there is no version to move between, so `haus update` on it silently follows whatever is at that URL now — and [prints a line that reads like a no-op](#the-revisionless-shape-is-worse-than-no-changelog) while doing it |
 | **a gist as a repo** | `{ url = "git+https://gist.github.com/ada/<id>"; flake = false; }` | rev (a gist is a git repo) | as the repo row | ⚠️ **partly verified since 2026-08-20**: a real remote `git+https://` source locks to a full `rev`/`revCount`/`ref` node, so the *mechanism* is measured. What is still unverified is gist hosting specifically |
 | **vendored** (today's advice) | none — a path in your own config | nothing | `desktop = ./desktops/writer.nix;` | stays supported forever, and is the right answer when you intend to *edit* it. See the git gotcha below |
@@ -1309,8 +1309,8 @@ Designed 2026-08-20 against **Nix 2.34.8** (Determinate 3.21.9), from a cloud
 container with no macOS and no haus checkout. Still nothing built. Every row
 below is a row of [`probes/source-shapes.sh`](./probes/source-shapes.sh), which
 builds throwaway git repos in a `mktemp` dir and runs real `nix eval` and `nix
-flake lock` against them — 20 rows in seconds, no Mac; `PROBE_REMOTE=` adds a
-twenty-first over a genuine remote source.
+flake lock` against them — 20 rows in seconds, no Mac; `PROBE_REMOTE=` adds two
+more over a genuine remote source.
 
 ⚠️ **It measures Nix, not haus.** `share/haus/desktop-check` is not reachable
 from the workshop, so these are claims about the *mechanism* `haus show` stands
@@ -1346,9 +1346,10 @@ that cannot be folded into one:
 This is a better story than step A's, not a compromise on it: reaching the
 network and running the file become separate acts, and neither can quietly do
 the other's job. It also answers B's exit gate structurally — **fetching needs
-no consumer flake at all** (measured: `fetchTree` returns a store path from a
-directory that is not a flake and not even a git repo), so "still writes nothing
-to the consumer" is a property of the mechanism rather than of care taken.
+no consumer flake at all** (measured: `fetchTree` returns a store path when it is
+run from a directory holding no `flake.nix` and no lock — nothing about the
+consumer is read to perform it), so "still writes nothing to the consumer" is a
+property of the mechanism rather than of care taken.
 
 One shape detail worth a comment at the call site, because the first person to
 read it will try to delete it: **both acts must be `--impure`.** `fetchTree` on
@@ -1406,8 +1407,11 @@ lock, the fourth is wrong:
 | `file` (raw URL) | `narHash`, `type`, `url` — **that is the whole node** |
 
 `lastModified` is the **source's** timestamp: it matched the fixture repo's
-committer date exactly, and the remote node came back 366 seconds *behind* the
-moment the fetch ran. Nothing in a lock file records when you pinned anything.
+committer date exactly — that equality is the pinned row, and it is the whole
+claim, since a value that IS the commit's date cannot also be a record of the
+fetch. The remote row asserts the weaker, non-racy form (the source's date
+predates the fetch) and prints the gap: 149 seconds on the run this was written
+from. Nothing in a lock file records when you pinned anything.
 
 Mostly that is harmless, and once it is not. For a repo source the date `show`
 can print answers "how stale is this thing" rather than "how old is my pin" — a

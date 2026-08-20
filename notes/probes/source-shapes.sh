@@ -17,9 +17,10 @@
 #      cannot read another store path, or anything outside the store.
 #   3. THE LOCK RECORDS A COMMIT DATE, NOT A FETCH DATE. `lastModified` is the
 #      source's own timestamp. Nothing in the lock says when you pinned it.
-#   4. THE RAW-URL SHAPE PINS NARHASH AND NOTHING ELSE — no rev, no
-#      lastModified — and `nix flake update` on it prints the same URL on both
-#      sides of the arrow while the content changes underneath.
+#   4. THE RAW-URL SHAPE PINS ONLY narHash — its whole lock node is
+#      narHash/type/url, so no rev and no lastModified — and `nix flake update`
+#      on it prints the same URL on both sides of the arrow while the content
+#      changes underneath.
 #   5. "FETCHING RUNS NO PUBLISHER CODE" IS A PROPERTY OF `flake = false`, not
 #      of fetching. A desktop locks inert; a ROOM is an ordinary flake input and
 #      locking one EVALUATES its flake.nix to find its own inputs. So pinning a
@@ -42,6 +43,13 @@
 # moves.
 
 set -uo pipefail   # deliberately NOT -e: half these commands are run to fail
+
+for dep in nix git jq; do
+  command -v "$dep" >/dev/null || { echo "source-shapes: needs $dep on PATH" >&2; exit 2; }
+done
+# Self-dating: sections 1, 2 and 6 are evaluator behaviour, so a result is only
+# readable next to the Nix that produced it.
+printf 'nix: %s\n' "$(nix --version)"
 
 lab=$(mktemp -d)
 trap 'rm -rf "$lab"' EXIT
@@ -138,27 +146,39 @@ cat > consumer/flake.nix <<EOF
 }
 EOF
 git init -q -b main consumer && git -C consumer add flake.nix
-now=$(date +%s)
 (cd consumer && nix flake lock >/dev/null 2>&1)
 commit_date=$(git -C writer-desktop log -1 --format=%ct)
 locked_date=$(jq -r '.nodes.repoLocal.locked.lastModified' consumer/flake.lock 2>/dev/null)
+# The equality IS the claim: lastModified is the source's own commit timestamp,
+# so it is not and cannot be a record of when the fetch happened. (An earlier
+# draft also asserted `locked_date != now`, which is racy against the probe's
+# own clock and proves nothing the row below doesn't — the honest measurement of
+# "the source is older than the fetch" is the remote row further down, over a
+# repo whose HEAD really is minutes or days old.)
 row "lastModified == the commit's date" "$commit_date" "$locked_date"
-row "lastModified != the fetch time" different \
-  "$([ "$locked_date" != "$now" ] && echo different || echo same)"
 row "the node is typed \`flake: false\`" false "$(jq -r '.nodes.repoLocal.flake' consumer/flake.lock 2>/dev/null)"
+row "git node's fields" "lastModified,narHash,ref,rev,revCount,type,url" \
+  "$(jq -r '.nodes.repoLocal.locked|keys|join(",")' consumer/flake.lock 2>/dev/null)"
 row "raw-URL node's fields" "narHash,type,url" \
   "$(jq -r '.nodes.rawFile.locked|keys|join(",")' consumer/flake.lock 2>/dev/null)"
 if [ -n "${PROBE_REMOTE:-}" ]; then
   row "remote node resolved a rev" yes \
     "$(jq -e -r '.nodes.repoRemote.locked.rev' consumer/flake.lock >/dev/null 2>&1 && echo yes || echo no)"
-  printf '     remote locked: %s\n' "$(jq -c '.nodes.repoRemote.locked' consumer/flake.lock 2>/dev/null)"
+  remote_date=$(jq -r '.nodes.repoRemote.locked.lastModified' consumer/flake.lock 2>/dev/null)
+  row "remote lastModified predates this fetch" yes \
+    "$([ -n "$remote_date" ] && [ "$remote_date" -lt "$(date +%s)" ] && echo yes || echo no)"
+  printf '     remote locked: %s\n     that is %ss before this fetch\n' \
+    "$(jq -c '.nodes.repoRemote.locked' consumer/flake.lock 2>/dev/null)" \
+    "$(( $(date +%s) - remote_date ))"
 fi
 
 say "5. Updating a raw-URL source shows the same URL on both sides"
 before=$(jq -r '.nodes.rawFile.locked.narHash' consumer/flake.lock 2>/dev/null)
 sed -i.bak 's/"mauve"/"teal"/' writer-desktop/writer.nix 2>/dev/null || \
   sed -i '' 's/"mauve"/"teal"/' writer-desktop/writer.nix
-update_line=$(cd consumer && nix flake update rawFile 2>&1 | grep -E '^\s*(→|->)' | head -1)
+# --refresh: without it the fetcher cache can serve the pre-edit copy under
+# tarball-ttl, and the row below fails for a reason unrelated to the claim.
+update_line=$(cd consumer && nix flake update rawFile --refresh 2>&1 | grep -E '^\s*(→|->)' | head -1)
 after=$(jq -r '.nodes.rawFile.locked.narHash' consumer/flake.lock 2>/dev/null)
 row "content moved (narHash changed)" changed \
   "$([ "$before" != "$after" ] && echo changed || echo same)"
