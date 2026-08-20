@@ -32,18 +32,21 @@
 #      stranger's desktop an injection surface in the reader's own evaluation.
 #   8. UNDER LAZY TREES A STORE PATH OUT OF AN EVALUATION IS A NAME, NOT A
 #      LOCATION. Three evaluations of one pinned input give three different
-#      `-source` paths, none of which exists on disk — and `builtins.readFile`
-#      on them works INSIDE the evaluation that produced them. So a diagnostic
-#      that prints one is telling a person to look somewhere they cannot go.
+#      `-source` paths and NONE of the three is on disk, while
+#      `builtins.readFile` on one works INSIDE the evaluation that produced it.
+#      So a diagnostic that prints one is telling a person to look somewhere
+#      they cannot go, under a different name each time.
 #
-#   ./notes/probes/machine-diff.sh                    # everything but §5 and §8
+#   ./notes/probes/machine-diff.sh                    # rows 1-7, on synthetic modules
 #   PROBE_CONSUMER=~/.config/nix PROBE_HOST=mbp \
-#     ./notes/probes/machine-diff.sh                  # + a real haus machine
+#     ./notes/probes/machine-diff.sh                  # + rows 5 and 8 on a real machine
 #
-# Sections 1–4 and 7 are the MODULE SYSTEM and need only nixpkgs' `lib`; 6 needs
-# a flake and builds two throwaway ones in a temp dir. All of that runs anywhere
-# nix does, cloud container included. Sections 5 and 8 need a real consumer with
-# haus as an input, so they are opt-in and skipped loudly.
+# Rows 1–4, 5 and 7 are the MODULE SYSTEM and need only nixpkgs' `lib`; 6 needs a
+# flake and builds two throwaway ones in a temp dir. All of that runs anywhere
+# nix does with flakes enabled, cloud container included. Row 5 is measured BOTH
+# ways — on a synthetic container by default, and against a real machine's own
+# `haus.roster.<app>.key` when a consumer is given — and row 8 needs the real
+# consumer, so it is opt-in and skipped loudly without one.
 #
 # `lib` comes from $PROBE_LIB, or from the copy every haus machine already has
 # in its system profile (modules/desktop-check.nix stages one for `haus show`).
@@ -64,10 +67,23 @@ done
 printf 'nix: %s\n' "$(nix --version)"
 
 lab="$(cd "$(mktemp -d)" && pwd -P)"   # physical, or restrict-eval and the
-trap 'rm -rf "$lab"' EXIT              # store comparisons below measure macOS
+                                       # store comparisons below measure macOS
+# `-e` is deliberately off up there, so an empty `lab` would turn every
+# `"$lab/x"` below into an absolute path and write the lab into `/`.
+[ -n "$lab" ] || { echo "machine-diff: could not make a temp dir" >&2; exit 2; }
+trap 'rm -rf "$lab"' EXIT
+
+# Rows 6 and 7 are `nix eval` over a flake. Without the experimental features
+# they fail into a 2>/dev/null and print a plausible-looking wrong answer, which
+# is the exact shape of failure the rest of this file is about.
+flakes=1
+nix flake metadata --help >/dev/null 2>&1 || flakes=""
 
 hdr() { printf '\n\033[1m── %s\033[0m\n' "$*"; }
 row() { printf '  %-34s %s\n' "$1" "$2"; }
+# `%-34s` pads by BYTES, so a label with a multi-byte character in it lands
+# short. The continuation rows are indented ASCII for exactly that reason —
+# a `…` prefix cost two columns and made the table look ragged.
 skip() { printf '  \033[38;5;179m⚠ skipped\033[0m — %s\n' "$*"; }
 
 LIB="${PROBE_LIB:-}"
@@ -83,6 +99,8 @@ if [ -z "$LIB" ] || [ ! -d "$LIB" ]; then
   skip "no nixpkgs lib — set PROBE_LIB (see the header)"
 else
   cat >"$lab/ladder.nix" <<'NIX'
+# Takes the lib directory as a STRING rather than a path literal, so a
+# $PROBE_LIB with a space in it is an argument rather than a parse error.
 libPath:
 let
   lib = import libPath;
@@ -110,6 +128,9 @@ let
       prio = o.highestPrio;
       value = o.value;
       files = o.files;
+      # The list `files` is derived from, read directly so the claim about
+      # losing definitions is about the thing it names.
+      defs = map (d: d.file) o.definitionsWithLocations;
     };
   # The sub-path a recursive container's leaf actually is. Walked by hand and
   # NOT with `getAttrFromPath`, which `abort`s on a missing key — and `abort` is
@@ -140,7 +161,7 @@ in
   dynamicKey = sub [ room desktop host ];
 }
 NIX
-  out="$(nix eval --impure --json --expr "import $lab/ladder.nix $LIB" 2>&1)"
+  out="$(nix eval --impure --json --expr "import \"$lab/ladder.nix\" \"$LIB\"" 2>&1)"
   if ! printf '%s' "$out" | jq -e . >/dev/null 2>&1; then
     printf '%s\n' "$out" | tail -5
   else
@@ -149,16 +170,19 @@ NIX
     row "a room's mkDefault" "highestPrio $(j .roomOnly.prio) · value $(j .roomOnly.value)"
     row "the desktop seam over it" "highestPrio $(j .roomThenDesktop.prio) · value $(j .roomThenDesktop.value)"
     row "a plain host line over both" "highestPrio $(j .hostWins.prio) · value $(j '.hostWins.value | join(",")')"
-    row "…the desktop's list entries" "$(j '.desktopList.value | join(",")') → $(j '.hostWins.value | join(",")')  (REPLACED, not merged)"
+    row "  its list entries" "$(j '.desktopList.value | join(",")') → $(j '.hostWins.value | join(",")')  (REPLACED, not merged)"
     row "two definitions, same priority" "$(j '.twoPlainLists.value | join(",")')  (that is when a list concatenates)"
-    row "who the winners' files are" "$(j '.hostWins.files | join(",")')  (losers are gone)"
+    row "definitionsWithLocations" "$(j '.hostWins.defs | join(",")')  ← losers are gone, not merely unranked"
     row "1500 rung's 'files'" "$(j '.declaredOnly.files | join(",")')  ← the DECLARATION, not a definition"
-    row "options.…bag.slack.key exists?" "$(j .dynamicKey.optionNode)  · config says $(j .dynamicKey.configValue)"
+    row "options.<bag>.slack.key node?" "$(j .dynamicKey.optionNode)  · config says $(j .dynamicKey.configValue)"
   fi
 fi
 
 # ---- 6: does asking a consumer cost it its lock? ------------------------------
 hdr "6 · what a read-only query writes"
+if [ -z "$flakes" ]; then
+  skip "this nix has no flake support — rows 6 and 7 measure a flake"
+else
 mkdir -p "$lab/dep" "$lab/consumer"
 cat >"$lab/dep/flake.nix" <<'NIX'
 {
@@ -189,16 +213,28 @@ case "$noupd" in
   *"not allowed"*) row "--no-update-lock-file" "refused: '…requires lock file changes but they're not allowed'" ;;
   *)               row "--no-update-lock-file" "answered: $noupd" ;;
 esac
+fi
 
 # ---- 7: what an --apply expression may reach ---------------------------------
 hdr "7 · the query has to be inlined"
+if [ -z "$flakes" ]; then
+  skip "this nix has no flake support — rows 6 and 7 measure a flake"
+else
 printf '_: 1\n' >"$lab/apply.nix"
 pure="$( cd "$lab/consumer" && nix eval --json .#value --apply "import $lab/apply.nix" 2>&1 )"
 case "$pure" in
   *"forbidden in pure evaluation mode"*) row "--apply 'import /abs/file'" "refused in pure mode" ;;
   *)                                      row "--apply 'import /abs/file'" "$(printf '%s' "$pure" | tail -1)" ;;
 esac
-row "…so the query is a string" "every path taken from a stranger's desktop is escaped, or it is Nix"
+# …and the consequence, measured rather than asserted: with the query inlined,
+# a path carrying a quote is not a string in it — it is Nix.
+hostile='haus.roster."; x = builtins.getEnv "HOME"; y = ".key'
+raw="$( cd "$lab/consumer" && nix eval --json .#value --apply "cfg: \"$hostile\"" 2>&1 )"
+case "$raw" in
+  *error*) row "  an unescaped path in one" "changes the expression: $(printf '%s' "$raw" | grep -m1 error: | cut -c1-46)" ;;
+  *)       row "  an unescaped path in one" "evaluated to $raw — the path became syntax" ;;
+esac
+fi
 
 # ---- 5, 8: a real machine ----------------------------------------------------
 hdr "5, 8 · a real consumer"
@@ -211,21 +247,33 @@ else
   [ -n "$H" ] || H="$(hostname -s)"
   cfg=".#darwinConfigurations.$H"
 
-  # 8a. the same pinned input, three times.
+  # 8a. the same pinned input, three times. Every row here is guarded on the
+  # eval having ANSWERED: a swallowed failure leaves `seen` empty, and then
+  # `sort -u | wc -l` says 1 and `[ -e "" ]` says "DOES NOT EXIST" — three
+  # confident rows that measured nothing, reading as support for the claim.
+  # Which is the failure this whole file is about, produced by the file itself.
   seen=""
+  got=0
   for _ in 1 2 3; do
     p="$( cd "$C" && nix eval --no-update-lock-file --raw "$cfg.config.haus._desktop.sources" \
             --apply 'x: if x == [ ] then "none" else builtins.head x' 2>/dev/null )"
+    [ -n "$p" ] || continue
+    got=$((got + 1))
     seen="$seen $p"
   done
-  n="$(printf '%s\n' $seen | sort -u | wc -l | tr -d ' ')"
-  row "3 evals of one pinned desktop" "$n distinct store path(s)"
-  last="$(printf '%s\n' $seen | tail -1)"
-  row "…and the last one on disk?" "$([ -e "$last" ] && echo 'exists' || echo 'DOES NOT EXIST')"
+  if [ "$got" -lt 3 ]; then
+    skip "$cfg did not evaluate ($got/3 answered) — is $H the right host name?"
+  else
+    n="$(printf '%s\n' $seen | sort -u | wc -l | tr -d ' ')"
+    row "3 evals of one pinned desktop" "$n distinct store path(s)"
+    onthem=0
+    for p in $seen; do [ -e "$p" ] && onthem=$((onthem + 1)); done
+    row "  and how many are on disk?" "$onthem of 3"
 
-  inside="$( cd "$C" && nix eval --no-update-lock-file --raw "$cfg.config.haus._desktop.sources" \
-      --apply 'x: if x == [ ] then "none" else builtins.substring 0 8 (builtins.readFile (builtins.head x))' 2>/dev/null )"
-  row "…readFile INSIDE that eval" "$([ -n "$inside" ] && echo 'works' || echo 'fails')"
+    inside="$( cd "$C" && nix eval --no-update-lock-file --raw "$cfg.config.haus._desktop.sources" \
+        --apply 'x: if x == [ ] then "none" else builtins.substring 0 8 (builtins.readFile (builtins.head x))' 2>/dev/null )"
+    row "  readFile INSIDE that eval" "$([ -n "$inside" ] && echo 'works' || echo 'fails')"
+  fi
 
   # 5. a flat leaf against a dynamic one, in one query.
   apply='cfg:

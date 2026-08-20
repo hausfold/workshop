@@ -374,9 +374,9 @@ risk.) The lab dir is resolved with `pwd -P` before anything is written into it.
 ## `machine-diff.sh` — what a consumer's own option tree can be asked
 
 ```sh
-./notes/probes/machine-diff.sh                                      # module system + Nix, anywhere
+./notes/probes/machine-diff.sh                                      # rows 1-7, on synthetic modules
 PROBE_CONSUMER=~/.config/nix PROBE_HOST=mbp \
-  ./notes/probes/machine-diff.sh                                    # + a real haus machine
+  ./notes/probes/machine-diff.sh                                    # + rows 5 and 8 on a real machine
 ```
 
 Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
@@ -384,8 +384,12 @@ step C. A and B read the stranger's **file**; C is the first step that has to
 look at the **reader's machine**, so the question is whether the module system
 answers a leaf-by-leaf question cheaply, honestly and without writing anything.
 Eight rows. `lib` comes from `$PROBE_LIB` or from the copy every haus machine
-already ships beside the desktop checker; sections 5 and 8 need a real consumer
-and skip loudly without one.
+already ships beside the desktop checker. Row 5 is measured both ways — on a
+synthetic container by default, and against a real machine's own
+`haus.roster.<app>.key` when a consumer is given; row 8 needs the real consumer
+and skips loudly without one, including when the consumer is there and its
+evaluation fails, which is the case a swallowed `2>/dev/null` would otherwise
+have rendered as three confident rows measuring nothing.
 
 - **`highestPrio` is the arbitration, and it is exposed.** One number per option
   — 100 a plain definition, 900 the desktop seam, 1000 a room's `mkDefault`,
@@ -403,8 +407,8 @@ and skip loudly without one.
 - **`files` at priority 1500 names the declaration, not a definition.** Read as
   "who set this", it accuses a module of setting an option nobody set;
 - **a dynamic `attrsOf` sub-path has no option node.** `haus.roster.slack.key`
-  is unreachable under `options` — measured against a real machine that has
-  exactly that key — so everything under a recursive container can be compared
+  is unreachable under `options` — measured on synthetic modules, and again
+  against a real machine that has exactly that key — so everything under a recursive container can be compared
   by value and never by priority;
 - **`nix eval` on a consumer flake writes its lock** when the lock needs changes.
   `--no-write-lock-file` computes one in memory and answers; `--no-update-lock-file`
@@ -414,8 +418,8 @@ and skip loudly without one.
   desktop an injection surface in the reader's own evaluation;
 - **under lazy trees a store path out of an evaluation is a name, not a
   location.** Three evaluations of one pinned input give three different
-  `…-source` paths, none of which exists on disk, while `builtins.readFile` on
-  them works *inside* the evaluation that produced them. Every diagnostic that
+  `…-source` paths and none of the three is on disk, while `builtins.readFile`
+  on one works *inside* the evaluation that produced it. Every diagnostic that
   prints such a path — the module system's duplicate-declaration throw, haus's
   own unclaimed-namespace warning — is telling a person to look somewhere they
   cannot go, twice by two different names.
