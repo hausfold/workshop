@@ -2,10 +2,10 @@
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
-(Five probes here aren't about macOS at all — `pack-priority.nix`,
-`preset-composition.nix`, `scale-reach.nix`, `namespace-collision.nix` and
-`source-shapes.sh`, at the bottom — but they earn the same shelf: a claim in a
-notes file, with the command that proves it beside it.)
+(Six probes here aren't about macOS at all — `pack-priority.nix`,
+`preset-composition.nix`, `scale-reach.nix`, `namespace-collision.nix`,
+`source-shapes.sh` and `machine-diff.sh`, at the bottom — but they earn the same
+shelf: a claim in a notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -369,3 +369,60 @@ way as "does not exist", and the guard's *outside-the-store* rows then failed
 refusal and got one for the wrong reason. (The `in store:` rows allow a
 `/nix/store` path, which no `/var` symlink touches, so they were never at
 risk.) The lab dir is resolved with `pwd -P` before anything is written into it.
+
+
+## `machine-diff.sh` — what a consumer's own option tree can be asked
+
+```sh
+./notes/probes/machine-diff.sh                                      # module system + Nix, anywhere
+PROBE_CONSUMER=~/.config/nix PROBE_HOST=mbp \
+  ./notes/probes/machine-diff.sh                                    # + a real haus machine
+```
+
+Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
+step C. A and B read the stranger's **file**; C is the first step that has to
+look at the **reader's machine**, so the question is whether the module system
+answers a leaf-by-leaf question cheaply, honestly and without writing anything.
+Eight rows. `lib` comes from `$PROBE_LIB` or from the copy every haus machine
+already ships beside the desktop checker; sections 5 and 8 need a real consumer
+and skip loudly without one.
+
+- **`highestPrio` is the arbitration, and it is exposed.** One number per option
+  — 100 a plain definition, 900 the desktop seam, 1000 a room's `mkDefault`,
+  1500 the declared default — so "will this desktop's value actually land here?"
+  is read off the module system rather than modelled by a command that would
+  then have to be kept in step with it;
+- **a list at a higher priority is replaced, not concatenated.** Lists merge
+  only among definitions at the *same* priority. A host naming a list the
+  desktop also names drops every one of the desktop's entries, with no error and
+  nothing in the merged value to show it happened;
+- **losing definitions are invisible.** `definitionsWithLocations` and `files`
+  carry only the winners, so what a leaf would revert to when a desktop *stops*
+  setting it cannot be read out of the current tree at all — the half of a
+  swap diff that nothing on the machine can answer;
+- **`files` at priority 1500 names the declaration, not a definition.** Read as
+  "who set this", it accuses a module of setting an option nobody set;
+- **a dynamic `attrsOf` sub-path has no option node.** `haus.roster.slack.key`
+  is unreachable under `options` — measured against a real machine that has
+  exactly that key — so everything under a recursive container can be compared
+  by value and never by priority;
+- **`nix eval` on a consumer flake writes its lock** when the lock needs changes.
+  `--no-write-lock-file` computes one in memory and answers; `--no-update-lock-file`
+  refuses. A command that promises to write nothing has to pick one on purpose;
+- **`--apply` may not `import` an absolute path in pure mode**, so the query is
+  an inlined string — which makes every option path taken out of a stranger's
+  desktop an injection surface in the reader's own evaluation;
+- **under lazy trees a store path out of an evaluation is a name, not a
+  location.** Three evaluations of one pinned input give three different
+  `…-source` paths, none of which exists on disk, while `builtins.readFile` on
+  them works *inside* the evaluation that produced them. Every diagnostic that
+  prints such a path — the module system's duplicate-declaration throw, haus's
+  own unclaimed-namespace warning — is telling a person to look somewhere they
+  cannot go, twice by two different names.
+
+⚠️ Rows 1–8 are the **module system and Nix**, not haus. Rerun on a Nix or
+nixpkgs bump; the lazy-trees row in particular is a property of Determinate
+Nix's defaults rather than of every Nix. One trap it hit while being written is
+worth keeping: `lib.getAttrFromPath` **`abort`s** on a missing attribute, and
+`abort` is not something `tryEval` catches — so the probe for "this attribute is
+absent" died of the absence it was measuring, and walks the tree by hand instead.
