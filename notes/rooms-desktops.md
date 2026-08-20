@@ -17,8 +17,12 @@ this note defines the product model the code and docs should converge on.
 > doing it — see
 > §[Step E](#step-e-designed--the-machine-claims-the-namespace-not-a-registry).
 > **Step A was built the same day** — `haus show`,
-> [haus#428](https://github.com/hausfold/haus/pull/428) — and everything else in
-> the Acquisition plan is still unbuilt, re-checked at the same dispatch table.
+> [haus#428](https://github.com/hausfold/haus/pull/428) — and **E0 was built
+> that afternoon**, [haus#429](https://github.com/hausfold/haus/pull/429) plus
+> [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107): the
+> reserved `haus.my.*` prefix, the promise as a check, and a warning naming an
+> unregistered `haus.<name>` and every file declaring under it. Everything else
+> in the Acquisition plan is still unbuilt, re-checked at the same dispatch table.
 > One of [step A's findings](#findings-carried-out-of-step-a) is a hole in the
 > section's trust story rather than in the command: reading a stranger's desktop
 > is itself an evaluation, so **the closed schema governs what a desktop can
@@ -1480,10 +1484,18 @@ execution rather than implying the rebuild is.
 ### Step E, designed — the machine claims the namespace, not a registry
 
 Designed 2026-08-20 against haus `ffcdb0a` (the `2026.08.20` tag) and
-hausfold.co `2e4cfd1`. Still nothing built. What changed is that the three
-failure modes are **measured** rather than assumed — and one of them turned out
-not to need acquisition at all, which moves the step rather than merely
-sharpening it.
+hausfold.co `2e4cfd1`. What changed is that the three failure modes are
+**measured** rather than assumed — and one of them turned out not to need
+acquisition at all, which moves the step rather than merely sharpening it.
+
+★ **E0 was built and merged the same day** — [haus#429](https://github.com/hausfold/haus/pull/429)
+(`mergedAt 2026-08-20T10:27:25Z`) and its docs half
+[hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107) (nine seconds
+later). The design below stands as written except where the build corrected it;
+what the build learned is in [Findings carried out of step E0](#findings-carried-out-of-step-e0).
+**E1 is still unbuilt**, and the sentence it needs to make true is the one E0
+could not: a machine running a legitimately published room has nothing recording
+where the room came from, so it warns.
 
 **How these were measured, because it decides how far to trust them.** From a
 cloud session with no macOS and no way to build a machine: nixpkgs' `lib/`
@@ -1696,6 +1708,57 @@ Two details the probe turned up:
   paths under the namespace it claimed.** Drop the rest at the merge. Otherwise
   Ada's room re-classifies `haus.security.*` and Carol's desktop writes it.
 
+#### Findings carried out of step E0
+
+Four, from building it. Two are about the design being underspecified in ways
+only a build could show; two are about the build itself, and both were caught by
+the pre-PR assurance read rather than by the author.
+
+- **"The assertion" and "it does not refuse" cannot both ship.** The design above
+  says *assertion* eleven times and then says, under what E does not get, that E0
+  "asserts and explains; it does not refuse". In nix-darwin an `assertion` is
+  fatal, so the two sentences describe different features. The exit gate is what
+  decided it — a person is *told*, and their machine still builds — so it is
+  `warnings`. Worth keeping as a shape: a design can carry a word from the probe
+  that measured it (`claimAssertion`) into a sentence about what to build, and
+  the word quietly becomes a requirement nobody chose.
+
+- **A message for the private case is wrong advice for the published one.** The
+  first build said "move it under `haus.my.`", which is right for a room somebody
+  wrote for themselves and wrong at every rebuild for a room somebody
+  *installed* — a published room is supposed to hold a plain `haus.<name>`, and
+  `desktops/sharing` says so. E0 has no claim table to tell them apart, so the
+  text names the shared risk and splits only on the remedy. The gate's "nobody
+  else is told anything" is therefore met for a stock machine and unmet for a
+  consumer of a published room; E1 is what closes it, which is a sharper reason
+  to build E1 than the one recorded above.
+
+- **A new `modules/lib/` import can break the CLI without touching it.** The
+  reserved prefix is defined once, in `modules/lib/namespaces.nix`, and
+  `desktop.nix` imports it rather than spelling `my` a second time — which is
+  right, and which broke `haus show`: `modules/desktop-check.nix` stages a
+  flake-less copy of the validator for the CLI and copies an explicit list of
+  files. `haus show` died with a missing path on any file with a bad option
+  path — exactly the file people run it on — and `test/haus-show.sh` would have
+  gone red on merge. **Any `lib/` file the validator imports has to be added to
+  that staging list**, and nothing in the repo says so at the import site.
+
+- **A pure-lib check declared below the `optionalAttrs` split runs on nobody's
+  CI**, while reading exactly like one that runs everywhere. `namespace-guard`
+  was written pure so it could run on the Linux runner, its comment said so, and
+  it was declared four lines into the darwin-only block. `check.yml`'s census —
+  which already carries a warning that it "rots in every direction" and had been
+  four wrong twice that week — is the only thing that catches this, and only if
+  whoever adds a check re-derives it. The failure is invisible in every other
+  direction: the check passes locally, passes on a Mac, and simply never runs.
+
+⚠️ **And what E0 did not measure, which the design asked for: eval cost on a
+real host.** The whole thing was built from a Linux container. The walk is
+scoped so a stock machine forces one namespace's subtree rather than all 311
+options, and nothing forces `default` or `example` (those doc-list attrs are
+lazy) — but that is reasoning, and the paragraph above that asks for the
+measurement is still asking.
+
 #### What E deliberately does not get
 
 - **No reserved-prefix rewrite of the model.** The prefix is for private and
@@ -1720,7 +1783,7 @@ behaviour, findings reported rather than folded in, and the
 | **B. Remote sources, read-only** | not started, [designed](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard, not by inspection of the script: the fetched source can reach nothing outside its own store path. |
 | **C. The machine diff** | not started | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
 | **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
-| **E0. The reserved prefix** | not started | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and every file declaring anything under it. Derives its namespace list the way `room-registry` does — `internal`/`visible`, not an `_`-prefix shorthand. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and two fixtures: a private module declaring an unregistered namespace, **and a stock haus machine, which must come back empty**. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw — and nobody else is told anything. |
+| **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
 | **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
 | **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. ⚠️ **The prompt comes before the LOCK, not before the rebuild** — [measured 2026-08-20](#and-step-f-cannot-borrow-it): dropping `flake = false` means locking the source evaluates the publisher's `flake.nix`, so pinning a room already runs its code and `show --room`'s skip-the-evaluation rule cannot extend to `add`. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. A fixture pinning the lock-time evaluation, so the prompt's placement cannot regress silently. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
 
