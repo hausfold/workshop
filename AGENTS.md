@@ -15,7 +15,7 @@ repos.
 > with `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench` — haus's terminal
 > room already prepends that dir. Nothing rebuilds when you edit either file;
 > `exec zsh` reloads the completion. Its subcommand descriptions paraphrase
-> `bench`'s own usage header (`bench:2-40`) and must follow it. Only `FAMILY` and
+> `bench`'s own usage header (`bench:2-46`) and must follow it. Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — those two are single-line arrays, so `_bench`
 > seds their members out of the script at completion time. **Everything else in
 > it is a hand copy and can rot**: `pull`'s six non-flake names, `release`'s four
@@ -127,6 +127,17 @@ Never hand-walk that ripple; the tooling does it:
   transitively — so a cross-repo lane (a parent worktree plus its children in
   other repos) builds and activates together in ONE rebuild, no PR needed.
   Same who-not-where activation gate as plain `try switch`.
+- `./bench overlap [--brief] [--path <f>]` — what the OTHER agent lanes on this
+  repo have already changed, and where their edits and yours land in the same
+  region of the same file. Nothing is claimed, locked or declared: lanes are
+  branches of one repo in one shared object store, so every fact a claims ledger
+  would ask an agent to *declare* is measured instead — offline, in milliseconds,
+  including the uncommitted work `git merge-tree` structurally cannot see. It is
+  the pre-emptive form of what `try-batch` discovers by merging the queue: run it
+  at lane start, before a big edit to a shared file, and before every `gh pr
+  create`. Advisory, refuses nothing; exit 0 clear · 3 same file · 4 same region.
+  The flow is [`.agents/skills/earshot/SKILL.md`](./.agents/skills/earshot/SKILL.md),
+  reachable as `/earshot`.
 - `./bench ship` — after commits exist: fast-forwards every checkout to origin
   first (a merged PR leaves the local main behind, and a lock bump computed from
   a stale HEAD pins the pre-merge rev while reporting success), then pushes
@@ -242,6 +253,14 @@ points outside your toplevel):
   (no worktree involved, so no gate): `cd "$main" &&
   bench try switch` (no pane spawned; see the ship skill's Step 7). `bench
   release` is always gated.
+- **Run `bench overlap` before every `gh pr create`, and once at lane start.**
+  Parallel lanes conflict by accident, not by malice, and the cheap moment to
+  find it is while your edit is still one rebase from clean. A `⚠` means you and
+  another lane are in the same *region* of the same file — move your edit, or put
+  the printed landing order in the PR body's **Watch out** block verbatim so the
+  review queue sees the collision as text instead of at merge time. A `·` (same
+  file, different regions) is normal here and needs nothing. Full flow:
+  [`.agents/skills/earshot/SKILL.md`](./.agents/skills/earshot/SKILL.md).
 - **Run the pre-PR assurance pass before `gh pr create` — every PR, not just
   `/ship`s.** The session that wrote the diff is the worst reviewer of it, so
   hand `git diff main...HEAD` to a **clean-context subagent** whose only inputs
@@ -463,7 +482,8 @@ it.
   → **test** (`bench try`, worktree-aware — and `bench try switch` from that same
   worktree when I want to *feel* one branch alone; that switch is mine to run)
   → **assure** (a clean-context subagent reads `git diff main...HEAD` against the
-  repo's own `AGENTS.md`; advisory, ship skill Step 2.5)
+  repo's own `AGENTS.md`; advisory, ship skill Step 2.5 — and `bench overlap`
+  reads the *other* lanes, which is the half the subagent can't see)
   → **PR** (the worktree agent pushes
   its branch and opens a PR against `main`) → **batch-test** (main checkout only:
   `bench try-batch` feels the whole review queue — every open PR — in ONE rebuild,

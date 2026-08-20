@@ -2,7 +2,8 @@
 name: ship
 description: >-
   Finish a piece of work in the hausfold family and land it: commit stragglers, verify
-  with `bench try`, run the pre-PR assurance pass (Step 2.5 — a clean-context subagent
+  with `bench try`, check the other lanes with `bench overlap` (Step 2.4), run the
+  pre-PR assurance pass (Step 2.5 — a clean-context subagent
   over `git diff main...HEAD`, which every PR in the family runs, not just /ship'd ones),
   open a PR and merge it, clean up every worktree the session spun up,
   ripple the flake locks with `bench ship`, then activate on the main checkout with
@@ -62,6 +63,32 @@ bench try            # build the machine against the LOCAL checkouts (worktree-a
 `bench try` overrides whichever repo your worktree belongs to with YOUR checkout, so it
 proves the branch before anyone merges. Read Nix errors bottom-up; don't proceed on a
 broken build.
+
+## Step 2.4 — check the other lanes (`bench overlap`)
+
+The assurance pass in Step 2.5 reads YOUR diff. This reads everybody else's — the
+half no reviewer of your branch can see, because it isn't in your branch.
+
+```bash
+bench overlap        # exit 0 clear · 3 same file, different regions · 4 same region
+```
+
+Parallel lanes are branches of one repo in one shared object store, so this is pure
+measurement: no claim, no lock, no ledger, and nothing for anyone to forget to
+register. It sees a sibling's **uncommitted** work too, which `git merge-tree` — and
+therefore `bench try-batch` — structurally cannot.
+
+- `⚠` (same region of the same file) — fix it *now*, while it's still one small
+  rebase. Move your edit, narrow it, or take the printed landing order.
+- `·` (same file, different regions) — normal here. Nothing to do.
+- `✗` (merge-tree already conflicts) — rebase onto main after the other branch
+  lands; never `git merge origin/main` into yours.
+
+Whatever survives goes into Step 3's **Watch out** block verbatim —
+`conflicts with #418 in AGENTS.md — land #418 first, then this rebases` — so the
+collision reaches the review queue as text rather than as a surprise at merge time.
+The full flow, including the house resolution for `flake.lock`, `AGENTS.md` and
+`notes/*.md`, is [`earshot/SKILL.md`](../earshot/SKILL.md).
 
 ## Step 2.5 — pre-PR assurance pass (a subagent that hasn't read this thread)
 
@@ -279,6 +306,7 @@ is the reliable copy.
 ## The whole lifecycle (for context)
 
 **hack** (agents draft on `worktree-*` branches) → **test** (`bench try`, worktree-aware) →
+**earshot** (Step 2.4 — `bench overlap`, what the OTHER lanes changed) →
 **assure** (Step 2.5 — clean-context subagent over `git diff main...HEAD`, advisory) →
 **PR** (push + `gh pr create`) → **merge** (/ship merges the PR — `gh pr merge`) →
 **try switch** (activate — from the main checkout, which now holds the merged work) →
