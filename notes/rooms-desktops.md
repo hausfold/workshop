@@ -1198,7 +1198,10 @@ consumer's to choose, not ours.
 
 For a **desktop**, the schema has already proven the file cannot run code, so a
 danger warning would be theatre and would train people to click through the one
-that matters. The prompt is a *diff*: this is what turns on, this is what turns
+that matters. (⚠️ The proof is about what the file DECLARES. Reading it is still
+an evaluation, and an evaluation can read files and fetch URLs — so every command
+here evaluates a stranger's source inside the sandbox step A built, and the
+absence of a warning is earned by that guard rather than by the schema alone.) The prompt is a *diff*: this is what turns on, this is what turns
 off, this is the hotkey it claims, this list of yours it replaces. haus already
 has `cmd_plan` and `cmd_diff` to build it from.
 
@@ -1527,6 +1530,35 @@ design above survived being built — no rule in it changed — and the interest
 part is what building the FIRST publisher-facing verb turned out to cost, since
 every other verb haus has drives the machine it is standing on.
 
+- **[4] "A desktop cannot run anything" is true of what it DECLARES and false
+  of what it costs to read.** The trust story in this section rests on the
+  closed schema: a desktop is data, `checkDesktop` proves it, and that is why
+  running a stranger's is reasonable. Inspecting one turns out to be the hole.
+  Reading a `.nix` means EVALUATING it, and Nix evaluation is not inert —
+  `builtins.readFile` and `builtins.fetchurl` run at eval time — so the first
+  cut of `haus show` read any file the user could read and could reach the
+  network, *during the very command they ran to decide whether to trust the
+  file*. Measured rather than reasoned about: a fixture whose accent was
+  `readFile ~/creds` had the secret read AND printed back in the report.
+
+  It closes with `restrict-eval`, `allowed-uris` empty, IFD off, `NIX_PATH`
+  cleared, and exactly two paths named — the checker's own directory and the
+  ONE file being read, not its parent, because a stranger's file in
+  `~/Downloads` must not be able to read the rest of it. `--room` skips the
+  evaluation altogether: you have said it is code, and evaluating it anyway to
+  say so is the one thing this command must not do. A blocked read is an error
+  naming what it reached for, so the attempt is visible instead of silent.
+
+  **This binds every remaining step, and it is why it is a 4 rather than a 3.**
+  B fetches a stranger's source and evaluates it; C evaluates it against your
+  machine; D writes it into your flake and hands it to a rebuild. Each of them
+  is a place where a file gets read before anyone has decided to trust it, and
+  each has to use the same guard — which now exists in one place, in the script,
+  rather than needing to be re-argued per step. The note already said the closed
+  schema "is not an escaping story"; the sharper form is that **the schema
+  governs what a desktop can declare, and the sandbox governs what reading one
+  can do.** Two different protections, and step A only had the first.
+
 - **[3] A checker that only exists inside a flake cannot be run by the person
   who needs it.** The rules were reachable exactly one way — `haus.lib.checkDesktop`,
   i.e. a flake evaluation — and `show`'s job is to answer from a shell, offline,
@@ -1591,11 +1623,15 @@ every other verb haus has drives the machine it is standing on.
 
 - **[2] This is haus's first `--json` verb, so it sets the envelope the sweep
   copies.** `notes/agent-surface.md`'s table still has haus at "no `--json` on
-  any verb"; it has one now. Two decisions in it are worth reusing. `checked` is
-  a FIELD rather than something a caller infers from an empty `failures` list —
-  a room and a clean desktop are otherwise indistinguishable in JSON, which is
-  the one confusion this command must never cause. And the class is reported
-  even when nothing was checked, rather than the command declining to answer.
+  any verb"; it has one now. Three decisions in it are worth reusing. `checked`
+  is a FIELD rather than something a caller infers from an empty `failures` list
+  — a room and a clean desktop are otherwise indistinguishable in JSON, which is
+  the one confusion this command must never cause. The class is reported even
+  when nothing was checked, rather than the command declining to answer. And
+  **`ok` is `null`, never `true`, whenever `checked` is false** — the first cut
+  had `ok: true` for a room and for a file that could not be parsed, which is
+  the same lie in a field an agent is being taught to read. *A boolean that has
+  to mean "passed" cannot also carry "not applicable".*
 
 - **[2] A guard written for "every verb drives this machine" is wrong the first
   time a verb doesn't.** `haus.sh` refuses to load at all without a consumer
@@ -1603,6 +1639,14 @@ every other verb haus has drives the machine it is standing on.
   for the nineteenth, whose audience includes a publisher's CI that has none.
   It is per-verb now. Worth expecting again at step D: `haus show` is the first
   command here with a reader outside this Mac, and it will not be the last.
+
+- **[1] `set -o pipefail` plus a deliberately-failing command is a silent
+  abort.** The diagnosis path re-runs the evaluation UNGUARDED to get Nix's own
+  sentence, so that command is *expected* to fail — and under `pipefail` its
+  non-zero status came back through the substitution and took the whole script
+  down with no output and the wrong exit code. Which is precisely the failure
+  this command exists to prevent, produced by the code that reports it. `|| true`
+  on anything you are running for its stderr.
 
 - **[1] `pkgs.path` carries no string context.** Staging nixpkgs' `lib` via
   `${pkgs.path}/lib` builds a derivation that MENTIONS a store path it does not
