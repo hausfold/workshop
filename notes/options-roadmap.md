@@ -173,6 +173,152 @@ already exist, and one it treated as a detail is the actual root blocker.
 > paragraph that no diff reads as a change to it.
 
 
+> **Status, 2026-08-20 (thirty-third pass) — twelve haus PRs in one day, more
+> than any pass here has reported, and the option surface moved by ZERO leaves.
+> The day's most stranger-visible new behaviour is declared on a surface this
+> document has never counted, and §5.9's FOURTH way for a row to be absent
+> merged 47 minutes after the pass that recorded the third.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
+> row eleven): workshop `main` = `origin/main` = `2657865`, haus = `73e7e9c`,
+> pounce = `0c0c3aa`, nebelung = `5d5d0a2`, perch = `cd520d2`, holt =
+> `eb4c438`, hausfold.co = `8f09436`. All seven moved since the thirty-second
+> pass and all seven are read here, so the shape it was burned on — a rev spent
+> on a negative claim, licensing not looking — is not available to this pass and
+> was not needed. Non-cloud, so every time below is a `mergedAt`.
+>
+> Landed since the thirty-second pass's revs: **eighteen haus commits** —
+> twelve PRs (#435–#446, 15:24:36Z → 21:34:15Z), four lock bumps and two
+> releases — **two pounce** (#93 at 16:00:30Z, #94), one nebelung (#47), two
+> perch (#80, #81) plus two release commits, one holt (#50) plus `0.3.0`,
+> **eight hausfold.co** (#111–#118), and seven workshop commits (#415–#420 and
+> the docs-sync watermark). **The count is 9 at `2657865`**, re-derived with the
+> command the last five passes ran (`sed -n '/^## 5\. The option families/,/^###
+> 5.14/p' notes/options-roadmap.md | grep -c '^- \[ \]'`). This pass amends
+> three boxes and §6(b), corrects the log pointer's entry count (one short since
+> the split, and one short again if incremented rather than counted), and opens
+> none; a pass after this one should find 9 and should not treat that as
+> drift.
+>
+> ★ **First: the number this file leads with saw none of it.**
+> `docs/site-data/options.json` at `73e7e9c` is **313 leaves in 35 namespaces**
+> — the same 313 as `9b64840`, key for key (`diff <(git show 9b64840:… | jq -r
+> 'keys[]') <(git show 73e7e9c:… | jq -r 'keys[]')` is empty), eighteen commits
+> and 2,411 inserted lines later. Four strings changed and nothing else, all of
+> them the Stylus retirement's blast radius: `theme.accent`, `zen.extensions`,
+> its example, and `zen.userStyles`. `bar.items` is 16 keys / 15 pills for the
+> fourth pass running. **A pass that measured only the option surface would have
+> reported the largest day this document has recorded as "nothing happened."**
+> What moved instead was the **command header** — `# pounce: key = value` at the
+> top of a command script — which gained `whenFile` (pounce#93) and `cheatWhen`
+> (haus#436) and is a declaration surface with its own grammar, its own three
+> parsers, and no options page. Seven keys over 23 commands today (`name`,
+> `icon`, `description` ×23; `cheat` ×7; `submenu` ×6; `whenFile` and
+> `cheatWhen` ×1). §5.9 has never counted it and the generated reference
+> structurally cannot show it: it is not `haus.*`, so `optionAttrSetToDocList`
+> never sees it, and the `data-only-surface` check that mechanises "an option
+> typed `package` is invisible to a data file" has no counterpart for "a
+> declaration that isn't an option at all".
+>
+> ★ **Second, §5.9's newest box moved under it within the hour: there is a
+> fourth way for a row to be absent, the header grammar it is written in has
+> three parsers that disagree about whitespace, and the two keys only haus reads
+> sit behind the strictest of them.** pounce#93 (16:00:30Z, 47 minutes after
+> the thirty-second pass merged at 15:13:03Z) adds `whenFile` to **both** pounce
+> parsers — a file whose first line is exactly `0` vetoes the row. haus#436
+> (16:09:22Z, **8 m 52 s** later, against 25 seconds for the #92/#427 pair) is
+> its first and only consumer: `launcher/commands/pages.sh` declares
+> `whenFile = ~/.local/state/haus/any-page` and `cheatWhen = while a page
+> exists`, and `windows/scripts/workspace-mru.sh` writes that one byte on every
+> workspace change. The header at `modules/launcher/default.nix:712` still
+> reads *the two ways an items entry fails silently* — untouched for the second
+> day running,
+> and this time it is not even wrong: `whenFile` is not an items entry. **The
+> frame aged, not the members.** The two shell-side columns below were RUN
+> (`builtins.match` per line as the module does it, and the awk on its own
+> input); the Swift column is read off `value(of:)` + `field()`, whose tolerance
+> is explicit in the code and was not executed here:
+>
+> | a header line spelled | `CommandRegistry.swift` | `pounce-palette`'s awk | haus's `commandField` |
+> |---|---|---|---|
+> | `# pounce: k = v` | `v` | `v` | `v` |
+> | `# pounce: k  = v` | `v` | `v` | **no match** |
+> | `# pounce: k= v` | `v` | `v` | **no match** |
+> | `#  pounce: k = v` | no match | no match | no match |
+> | `␣␣# pounce: k = v` | `v` | no match | no match |
+> | `# pounce: k = v␣` | `v` | `v␣` | `v␣` |
+>
+> Swift is the most tolerant and trims; the awk is next; haus's regex is
+> `"# pounce: ${field} = (.*)"`, one space either side, no leading anything.
+> ⚠️ **Row four said `v` in the Swift column until the assurance read ran that
+> column instead of reading it**: `value(of:)` drops leading whitespace and then
+> demands the literal `# pounce:`, so a second space after the `#` is read by
+> *nobody* — only the indented line is Swift-only. The hedge above named exactly
+> the column that was wrong and did not stop it being printed as a measurement,
+> which is §5.14's opening complaint arriving inside a table this pass built to
+> make a point about unchecked spellings. And
+> the split of *who reads what* runs the other way: pounce reads `name`,
+> `description`, `icon`, `submenu`, `whenFile`; haus reads `name`,
+> `description`, `cheat`, `cheatWhen` — so **the only two keys nobody but haus
+> parses are the two the strictest parser owns.** The two it shares fail loudly
+> there: a `description` haus cannot parse is `null` in a string concatenation,
+> and a `name` it cannot parse is `null` into `lib.splitString` unless the
+> command also declares `cheat`, which is that line's fallback — both stop the
+> rebuild. `cheat` and `cheatWhen` fail silently: the key box falls back to the
+> name's first word,
+> and the caption simply loses its ` · while a page exists`. That caption is the
+> one surface whose entire job is explaining a row that isn't there — so the
+> cheapest possible typo, a second space in a comment, disarms the explanation
+> for the newest way to make a row vanish, on a path where nothing throws and
+> the row still works. Same argument the box already makes: **the checkable half
+> has no repo boundary in it.** Neither has the second half — the state path is
+> a literal in two rooms (`pages.sh:6` and `workspace-mru.sh:71`), joined by a
+> prose cross-reference in each direction and by nothing mechanical.
+>
+> ★ **Third, the previous pass's distinction held on its first test, which is
+> the outcome that makes it worth keeping.** `whenFile` is *operative* — the
+> declaration IS the behaviour — and it arrived with its reader in its own PR:
+> `pounce doctor` names every command that declares one, the file it watches,
+> and whether that file is hiding the row right now. So the three *operative*
+> fields have three readers between them, and the two *descriptive*
+> instances (nebelung's ports, `bar.widgets.<name>.permissions`) still have one.
+> This box's own three questions — mutates? needs confirm? needs network? — are
+> descriptive and are still unbuilt at pounce `0c0c3aa`. The instance count that
+> bears on the box is unchanged at two, for the second pass running, while the
+> room around it gained two more fields.
+>
+> ⚠️ **Also amended, in §5.1: `scheme = "auto"` gained a second candidate by a
+> path being RETIRED.** haus#445 dropped the Stylus half of Zen's web theming,
+> so the palette reaches real websites through one compiled
+> `zen-userContent-<flavor>-<accent>.css` that Gecko reads once at startup —
+> pinned to `theme.flavor` and to the last launch. Nothing regressed (the
+> bundle it replaced was flavor-stamped too); what changed is that the fix
+> stopped being somebody else's extension setting and became two compiles under
+> a `@media (prefers-color-scheme: dark)` rule in a `runCommand` haus already
+> writes. Whether Zen honours that in a *user* sheet is the unmeasured half, and
+> it is the whole question. Written into the box.
+>
+> ⚠️ **And one sentence into §6(b), from somebody else's PR.** That paragraph's
+> standing conclusion — the consumer *"is told nearly everything"* — is a claim
+> about a printed message, and haus#435 measured what happens once the input has
+> a publisher: `toJSON` escapes quotes, backslashes and three whitespace
+> controls and nothing else, so `ESC` rode a desktop's own attribute names
+> through `jq -r` to a raw byte, and the class line prints before the values.
+> A stranger's file could repaint haus's verdict on itself. Stripped in that PR,
+> and the hole predated it. Recorded in full in
+> [`rooms-desktops.md`](./rooms-desktops.md)'s step-B findings; §6(b) gets the
+> qualifier only: re-telling a sibling note's finding is how a pair of notes
+> ends up with two copies that can then disagree.
+>
+> ⚠️ **For §5.14, from the tempo rather than from any one finding.** The
+> thirty-second pass merged at 15:13:03Z and its subject moved at 16:00:30Z; the
+> thirty-first pass's negative sentence was 66 minutes stale when it merged. Two
+> passes running, §5.9 has outrun the paragraph describing it inside the hour.
+> That is not a reason to check faster — nothing checks faster than 47 minutes —
+> it is a reason to keep the durable half in the **box** and the perishable half
+> in the pass, which is exactly the split this file already claims to run.
+
+
 > **Status, 2026-08-20 (thirty-second pass) — §5.9's last box predicted that
 > "the third instance will declare into the same void." The third instance
 > shipped four hours after that sentence merged, with three readers in two
@@ -446,166 +592,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > correction and this pass had not run on its own.
 
 
-> **Status, 2026-08-20 (thirtieth pass) — §5.9's count went DOWN for the first
-> time, and the correction that was supposed to raise it two days ago was never
-> made, so the sentence on the page is right today by accident. The
-> twenty-ninth pass's hand-written generated file held against the next copy of
-> it, which is the most this session can measure.**
->
-> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
-> row eleven): workshop `main` = `origin/main` = `a535fc1`, haus = `ffcdb0a`
-> (tagged `v2026.08.20`), hausfold.co = `2e4cfd1`. nebelung (`d76f124`,
-> 08-16) and pounce (`adf03c5`, `2026-08-19T04:33:25Z` — 08-18 only in the
-> author's timezone, which is what row eleven is about) have not moved since
-> the last pass, so neither of §5.9's two open boxes could have closed.
->
-> Landed in haus since `da94efd`: **four commits in 27 minutes**
-> (06:09:13Z → 06:36:37Z, the first landing 24 minutes after `da94efd`) — an
-> input bump (`59dca7a`, perch + holt), haus#422 (`206bc0e`), a whitespace-only
-> commit (`df8b269`) and the day's release
-> (`ffcdb0a`, `VERSION` alone). **No §5 box moved**, and the count is
-> unchanged at **8**, re-derived at `a535fc1` with the command the last two
-> passes ran: `sed -n '/^## 5\. The option families/,/^### 5.14/p'
-> notes/options-roadmap.md | grep -c '^- \[ \]'`.
->
-> Same cloud-session caveat as the twenty-eighth and twenty-ninth passes —
-> committer dates, not `mergedAt`, because only the workshop is an attached
-> repo. One thing worth writing into §8 rather than rediscovering: **`add_repo
-> hausfold/haus` does not attach it.** It answers `read_available` and explains
-> that the proxy already serves anonymous reads of a public repo, so nothing is
-> attached and the GitHub API tools stay closed — which is the half a pass
-> wants. From here you can read what a commit says and what its diff contains,
-> and you cannot read whether a check went green.
->
-> ★ **The finding, and it is the ledger's own subject caught in the act: a
-> correction that reports itself as applied.** The twenty-seventh pass found
-> §5.9's "closed submodule of 15 bools" stale (haus#396 added the `page` pill)
-> and wrote, in the paragraph directly beneath it, *The header line's "15 bools
-> (13 when this was written)" reads **16 (13 when this was written)** now.* It
-> does not. The line has said 15 since it was written, and `f449cc9`'s only hunk
-> in that region — `@@ -3778,6 +3880,14 @@` — **does not touch that line at
-> all**: its nearest context is the re-derivation parenthetical three lines
-> below, and the only `15 bools` anywhere in the diff is the quotation inside
-> the correction being added. The pass wrote what the line now reads without
-> reading it. Every shape in §5.14's table so far is an entry *decaying* while
-> nobody looks; this one is an edit that exists only in the prose announcing it,
-> and it is worse than the stale number it describes, because a reader who
-> checks the paragraph against the line sees them disagree and believes the
-> newer one. Caught by grepping the file for the string a correction quotes as
-> its **result** — the same act as reading the artifact rather than its
-> generator (twenty-second pass), pointed at this file instead of at a repo.
-> ⚠️ **Two hedges the assurance pass insisted on, both fair.** The sentence
-> parses two ways — *the line has been changed*, and *the right value is now 16*
-> stated without rewriting anything — and the finding survives either, because
-> no reader can tell which and the checkable half says 15. And `git log
-> -S'16 bools' -- notes/options-roadmap.md` was confirmation only **before this
-> commit**: the pass has now put that string in the file twice, so the check
-> that caught it no longer works from HEAD. A grep-shaped check spoiled by the
-> prose that cites it — the twenty-second pass's blind spot, arriving from
-> inside the document.
->
-> ★ **And then the number healed on its own, which is the part worth carrying.**
-> haus#422 removed `haus.bar.items.page` and `haus.bar.bottom.items.page`
-> (`206bc0e`, 06:09:31Z), so the same command the twenty-fourth, twenty-seventh
-> and twenty-eighth passes ran now says **16 keys, 15 pills** — the count the
-> page has carried all along. The unmade edit had a window of exactly **1 d 21 h
-> 33 m** in which it was right (haus#396 `mergedAt 2026-08-18T08:36:08Z` →
-> `206bc0e`), and applying it today would be applying a correction backwards.
-> **A stale number can come back**, and nothing in §5.14 expects that: every
-> mitigation in it assumes decay is monotonic and a re-derivation is a repair.
-> The measurement is over the life of the `haus.bar.items.*` namespace — the
-> committed artifact dates to 2026-08-09 (`33b5d63`) and the namespace to the
-> rooms rename: 16 from `653d834` (2026-08-16), 17 from haus#396 (`a49a48d`),
-> 16 again at `206bc0e`. Two days of drift is also two days in which nobody
-> read the page, which is the honest reading of why the unmade edit cost
-> nothing.
->
-> ⚠️ **The box's own argument is what actually broke, not the number.** The
-> sentence says the submodule "grows by one every time a pill lands", and this
-> is the first time it shrank — `page` was not deleted. It was promoted OUT of
-> the item list: a page is a property of the workspace you are on rather than a
-> movable readout, so it sits in the menu bar's left group and is gated by
-> `haus.windows.enable` through `$BAR_PAGES`, the way gravity already was. So
-> `bar.items` counts **placeable** pills, and a pill can leave it by becoming
-> more load-bearing rather than less. A count recruited as evidence for "this
-> submodule is closed and it keeps growing" turns out not to be a measure of the
-> bar's surface at all, which is the twenty-eighth pass's "the number has stopped
-> being the argument" arriving with a mechanism.
->
-> ★ **The twenty-ninth pass hand-wrote a generated file and a second, independent
-> copy of the same directory agrees with it — which is the most that can be
-> measured from here.** That pass regenerated `docs/site-data/` by hand and said
-> in as many words that `site-data-current` would accept or refuse it on its
-> own. haus#422 rewrote the same directory 24 minutes later — that *its* copy
-> came from the generator is the commit's shape and not something the repo
-> states — and the key-level diff between `da94efd` and `206bc0e` contains
-> **only** #422's own subject: two keys removed
-> (`bar.items.page`, `bar.bottom.items.page`), one added
-> (`terminal.restoreWindows`), and four descriptions changed
-> (`ai.default`, `ai.enable`, `bar.widgets.<name>.interval`, `keys.windowNav`),
-> each traceable to a hunk in that commit's own `modules/**/options.nix`.
-> Nothing else moved, so the hand-made copy carried no error for the second one
-> to absorb. **The generalisable half: hand-writing a generated artifact is safe
-> exactly when a check builds the generator somewhere you don't control** —
-> `site-data-current` is one of the twelve portable checks haus's `check.yml`
-> runs `nix flake check` over on a Linux runner, so a refusal would have arrived
-> from GitHub rather than from either author. A hand-made generated file with no
-> such check is not a guess with a check behind it; it is just a guess.
->
-> ★ **§8's formatting trap grew its first recorded instance, from the pass that
-> followed §8's advice.** `df8b269` — *"`nix fmt` had never run on #422 or #423.
-> focus's whole `lib.mkIf cfg.enable` body sat two columns short; terminal's
-> `replaceStrings` call had been hand-wrapped across three lines where the
-> formatter wants one."* §8 tells a cloud session to match the surrounding style
-> by hand precisely because running the formatter would bury the change, and the
-> twenty-ninth pass did exactly that and produced **one of the two** files
-> `df8b269` swept — `modules/focus/default.nix`; the other is haus#422's own
-> `replaceStrings` rewrap — at the cost of a follow-up commit half an hour
-> later. The advice protects the **diff** and does not protect the **file**, and
-> the difference had never been written down. §8 gains
-> the fix, which is one command and a separate commit; the reasoning about *why
-> §8's own recipe cannot catch this* is in §8, marked as reasoning.
->
-> ★ **The workshop was the last repo in the family still documenting a chord
-> that no longer exists, and this pass fixed it here.** haus#422 retired ⌃⌥⇧A —
-> the resident in-place agent — along with the palette's **Agent Here** row and
-> `modules/launcher/commands/agent-here.sh`; `c` in the window's own shell is
-> the same act, one keystroke shorter, and follows `haus.ai.default`
-> identically. hausfold.co#94 took it out of three — two room pages and the
-> generated reference — **18 minutes later**. The workshop's own `AGENTS.md`
-> still described it twice, and `docs/workflows.md` once, 45 minutes later —
-> fixed in this commit.
-> ⚠️ **The mechanism this paragraph first offered was false, and the assurance
-> pass killed it.** It read *"the site is swept on a schedule (`/docs-sync`) and
-> `AGENTS.md` is swept by nobody"* — but `/docs-sync` names agent instructions in
-> its scope (`.agents/skills/docs-sync/SKILL.md`, and its reconcile table lists
-> the workshop's own `AGENTS.md` as a target), so the file is swept on exactly
-> the cadence the site is. What 45 minutes measures is a **targeted PR beating a
-> sweep**, not an unswept file: someone edited the site because they were
-> changing the site, and the workshop waits for a routine. A negative claim
-> asserted without running the check, in the pass that added a ledger row about
-> exactly that.
-> The same commit amends the `zmx` sentence beside it, which survived #422 by
-> luck: a restarted window comes back to its scrollback because of a restore
-> path that shipped in that same `206bc0e` and is an option
-> (`haus.terminal.restoreWindows`), not because a new window happens to land on
-> a parked session — which is the bug #422 fixed.
->
-> ★ **One cross-repo ordering rule, learned in hausfold.co#98 and belonging in
-> §7.** That PR is the docs half of §5.8's daemon and it deliberately did NOT
-> regenerate `options.mdx`: the site's `options-drift` check renders the page
-> against **haus's default branch**, so a render carrying options that exist
-> only on a haus PR branch fails the site's CI until that PR lands. §7 already
-> records the mirror image from the code side (a haus change consuming a new
-> nebelung output can't carry its own lock bump); this is the same constraint on
-> a generated *document*, and the answer is the same shape — describe the
-> feature in the PR, let the regeneration job own the artifact — which ran on
-> demand here rather than on its Monday cron, 22 minutes after haus#423.
-
-
 > **The passes before this one are in
-> [`options-roadmap-log.md`](options-roadmap-log.md)** — twenty-nine dated
-> entries, 2026-08-20 back to 2026-08-02, split out on 2026-08-20 when the
+> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-one** dated
+> entries, 2026-08-20 back to 2026-08-02: the thirty numbered passes plus a
+> second, unnumbered 2026-08-04 block that predates the numbering (which is why
+> "twenty-nine" was one short on the day of the split, and is corrected here
+> rather than incremented). Split out on 2026-08-20 when the
 > preamble reached 2,393 lines and outweighed every other file in `notes/`.
 > The three most recent stay above. Nothing moved but the text: no entry was
 > edited, merged or dropped.
@@ -995,6 +987,30 @@ haus.theme = {
       **Decide before building:** whether `scheme = "auto"` is a rice-wide option at
       all, or just the name for "every appearance-capable tool follows the system",
       which is what shipping it per-tool has quietly made it.
+      ⚠️ **Amended 2026-08-20 (thirty-third pass): there is a second candidate
+      now, and it arrived by a room being retired rather than built.** haus#445
+      dropped the Stylus half of Zen's web theming, so the palette reaches real
+      websites through `haus.zen.userStyles` alone — compiled by
+      `modules/terminal/default.nix` into a single
+      `zen-userContent-<flavor>-<accent>.css` and installed into the profile's
+      `chrome/`. That is a *file* picked at build time, and Gecko reads it once
+      at startup, so the web half is pinned twice over: to `theme.flavor`, and
+      to when the browser last launched. Nothing regressed — the Stylus bundle
+      it replaced was flavor-stamped too, and the PR's own list of what the
+      click bought and the sheet gives up (per-site toggles, self-updating
+      styles, adding a style without a rebuild) is accurate as far as it goes.
+      What changed is the SHAPE of the remaining fix. Under an extension it
+      would have meant handing a second bundle to somebody else's settings;
+      under a compiled sheet it is two compiles concatenated under
+      `@media (prefers-color-scheme: dark)`, in the `runCommand` haus already
+      writes, with no watcher and no second option — which would make the web
+      the cheapest instance of (a) in this section rather than an exception to
+      it. **Unmeasured, and it is the whole question:** whether Zen honours
+      `prefers-color-scheme` from macOS appearance inside a *user* sheet
+      (Firefox has `layout.css.prefers-color-scheme.content-override`,
+      default follow-system; not run here). Ghostty is still the other
+      candidate and is still a two-line change. Two candidates, both cheap, and
+      the decision this box asks for is unchanged by either.
 - [x] `theme.ports.enable` — **roster apps theme themselves, from metadata**
       (rice#136 + nebelung#17/#18/#19). Nebelung went 21 → 53 ports and now ships
       `ports.meta.json` describing each one: `dest`, `install`
@@ -2689,6 +2705,20 @@ break timer · storage pressure · NAS reachability · world clocks.
       supply is the cheapest filling for the reader-shaped hole: `pounce doctor`
       is now a surface where a per-item declaration is explained to a person,
       and it is the one place that could read all three fields at once.
+      ⚠️ **Amended 2026-08-20 (thirty-third pass): the fourth field landed the
+      same day and the split held.** `whenFile` — pounce#93 at 16:00:30Z, a
+      command header key rather than an `items` leaf — is *operative*, and it
+      arrived with its reader inside its own PR: `pounce doctor` names every
+      command that declares one, the file it watches, and whether that file is
+      hiding the row right now. So the operative fields are three, with three
+      readers between them, and the descriptive pair still has one. The three
+      questions this box asks — mutates? needs confirm? needs network? — are
+      descriptive and are still unbuilt at pounce `0c0c3aa`: the instance count
+      that bears on the box is **two** for the second pass running, while the
+      room around it gained two more fields. The one thing that changed for
+      whoever builds this: the reader no longer has to be invented. `pounce
+      doctor` reads three per-item declarations already, so a fourth is a line
+      in a report that exists.
 - [ ] **A `workspaces` entry naming a page nothing produces fails silently, and
       the check for it needs no repo boundary.** `modules/launcher/default.nix`
       carries a section header — `---- validation: the two ways an items entry
@@ -2734,6 +2764,38 @@ break timer · storage pressure · NAS reachability · world clocks.
       by lanes, so it cannot be enumerated at eval, and pounce fails open by
       design, so
       refusing a build over it would be stricter than the behaviour it guards.
+      ⚠️ **Amended 2026-08-20 (thirty-third pass): there is a FOURTH way, the
+      header is untouched again, and this time the header is not wrong — its
+      frame is.** pounce#93 (16:00:30Z) gave a command a `whenFile`: while that
+      file's first line is exactly `0`, the row is not listed. haus#436
+      (16:09:22Z) is its only consumer — `commands/pages.sh` declares `whenFile
+      = ~/.local/state/haus/any-page` plus a haus-only `cheatWhen = while a page
+      exists`, and `windows/scripts/workspace-mru.sh` writes that byte on every
+      workspace change. `whenFile` is **not an items entry**, so *the two ways
+      an items entry fails silently* is still true and still incomplete about
+      the thing a person actually experiences, which is a row that is not there.
+      **Two checkable halves, neither with a repo boundary in it:**
+      **(1)** the state path is a literal in two rooms — `pages.sh:6` and
+      `workspace-mru.sh:71` — joined by a prose cross-reference each way and by
+      nothing mechanical; a rename in either room hides the row forever or shows
+      it forever, silently, and both files are haus's.
+      **(2)** the header grammar has **three** parsers that disagree about
+      whitespace, and the two keys only haus reads sit behind the strictest.
+      Measured (the Nix and awk columns run, the Swift one read off
+      `value(of:)` + `field()`): `# pounce: k  = v` and `# pounce: k= v` are
+      read by both pounce parsers and missed by haus's
+      `"# pounce: ${field} = (.*)"`; an INDENTED header line is read only by
+      Swift, while a second space after the `#` is read by nobody — `value(of:)`
+      drops leading whitespace and then wants the literal `# pounce:`; a
+      trailing space survives into haus's value and is trimmed by Swift. haus's two private keys are `cheat` and `cheatWhen`, and
+      they are the ones that degrade quietly — the key box falls back to the
+      name's first word, the caption loses its ` · while a page exists` — while
+      the two keys haus shares with pounce (`name`, `description`) stop the
+      rebuild instead. So the cheapest typo available, one extra space in a
+      comment, disarms the caption whose whole job is explaining an absent row,
+      for the newest way of making one absent. The fix is one regex or one
+      shared parser, and it is smaller than the check this box already asks
+      for.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
@@ -4261,6 +4323,19 @@ namespace then, `bar` was not), left as-is because it reads as prose.
 That names the option, both files and the fix. It is not friendly, but the
 premise for option 2 ("detect and translate") was that the consumer is told
 nothing — and they are told nearly everything.
+⚠️ **And that whole argument is about a printed message, which stops being ours
+the moment the input has a publisher.** haus#435 (2026-08-20) measured it while
+building `haus show <src>`: `toJSON` escapes quotes, backslashes and three
+whitespace controls and nothing else, so `ESC` survives a stranger's desktop —
+its values *and its attribute names* — through `jq -r` and back to a raw byte,
+and the class line prints before the values, so a file that can move the cursor
+can repaint *"not a desktop"* as *"a desktop — data only, and haus checked it."*
+Stripped in that PR; the hole predated it, and what changed was that the input
+acquired an author. Recorded where it belongs, in
+[`rooms-desktops.md`](./rooms-desktops.md)'s step-B findings, not re-told here.
+The claim above survives — the consumer IS told nearly everything — with the
+qualifier this section never carried: *told*, in a terminal, by a renderer that
+has to own every byte it prints.
 → **But a seam that TRANSFORMS a rice erases the filename.** `lib.pack` builds a
 new attrset out of the pack's data, so its definitions have no file, and the one
 case rice#222 deliberately left loud — two packs naming one app — reports
