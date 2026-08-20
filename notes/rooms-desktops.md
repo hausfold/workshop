@@ -1336,13 +1336,20 @@ live exposure somewhere other than where this section had been looking for it.
   And when nothing moved, Nix prints **no update line at all** — so "identical
   to what it prints when nothing moved", which this note said until now, was
   never right either. The probe's row only grepped for a line starting with the
-  arrow, so it saw the second half of a two-line block and reported the first as
-  missing; the note then wrote down what the probe could see. That is the
-  failure mode of a measured claim rather than an argument for going back to
-  recalled ones: **a probe that greps one line out of a multi-line block
-  measures the grep.** The user-facing conclusion is unchanged and slightly
+  arrow, so it saw the last line of a three-line block and reported the side it
+  had not asked for as missing; the note then wrote down what the probe could
+  see. That is the failure mode of a measured claim rather than an argument for
+  going back to recalled ones: **a probe that greps one line out of a multi-line
+  block measures the grep.** The user-facing conclusion is unchanged and slightly
   sharper — an arrow with the same string on both ends is a stronger "nothing
   happened" signal than a line with one end missing.
+
+  ✅ **The probe caught up the same day.** It reads the whole block now, and
+  carries the two rows this claim always needed beside it: a `git` node's two
+  ends **differ** (so the two-sided form really is informative everywhere else),
+  and a second update with nothing moved underneath prints **no line at all**
+  (so silence, not sameness, is what a true no-op looks like). Six rows where
+  there were two, and nothing left in the tree saying the old thing.
 
 ### Step B, designed — fetch and read are two acts, and the guard covers one
 
@@ -1363,7 +1370,7 @@ container with no macOS and no haus checkout — nothing built at the time of
 writing; the banner above is what happened next. Every row
 below is a row of [`probes/source-shapes.sh`](./probes/source-shapes.sh), which
 builds throwaway git repos in a `mktemp` dir and runs real `nix eval` and `nix
-flake lock` against them — 20 rows in seconds, no Mac; `PROBE_REMOTE=` adds two
+flake lock` against them — 24 rows in seconds, no Mac; `PROBE_REMOTE=` adds two
 more over a genuine remote source.
 
 ⚠️ **It measures Nix, not haus.** `share/haus/desktop-check` is not reachable
@@ -1485,10 +1492,18 @@ shapes — the typed origin the model asked for is still there for free.)
 #### The revisionless shape is worse than "no changelog"
 
 Measured, and it belongs beside [the rule it sharpens](#rules-that-fall-out-and-the-traps-behind-them):
-`nix flake update` on a `file` node prints one arrow, one URL, no left-hand side
-and no hash, while the content underneath changes. It is not a missing
-changelog — it is a line that reads as *confirmation nothing moved*, to anyone
-who knows the two-sided form from every other input.
+`nix flake update` on a `file` node prints an arrow with the same URL on both
+ends, no rev and no date, while the content underneath changes. It is not a
+missing changelog — it is a line that reads as *confirmation nothing moved*, to
+anyone who knows the two-sided form from every other input, where the two ends
+differ.
+
+> This section said "one arrow, one URL, no left-hand side" until 2026-08-20,
+> because the probe's row grepped the arrow line out of a three-line block.
+> [The re-measurement](#rules-that-fall-out-and-the-traps-behind-them) has the
+> real output and the lesson; the probe now reads the whole block, checks both
+> ends against each other, and pins the two contrasts that make the claim mean
+> something — a `git` node's ends differ, and a genuine no-op prints nothing.
 
 #### …and step F cannot borrow it
 
