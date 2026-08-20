@@ -3,16 +3,25 @@
 Working doc, written 2026-08-04 from the launch-strategy research. It owns
 **which audience each piece is for, and in what order any of it goes public.**
 
-> ⚠️ **The monetization half of this document is dead, 2026-08-15.** It was
-> written around a paid, fair-source perch — `$19` one-time, an FSL relicense,
-> a capped free tier — and **perch is free of charge and MIT**, retroactively.
-> The FSL experiment covered `v2026.08.04` through `v2026.08.14-1` and was
-> reversed; the licence subsystem, the capacity cap and the purchase strip were
-> never shipped to anyone (the production key was never minted). The companion
-> `perch-monetization.md`, which owned that plan, is **deleted** — perch's own
-> `README.md` licence section is the record of what happened. Rows and phases
-> below that assumed a paid perch are corrected in place; **"selling perch stays
-> possible later"** is the whole of what survives.
+> ⚠️ **The monetization half of this document is dead, in two steps.**
+>
+> **2026-08-15 — perch went free and MIT**, retroactively. It was written around
+> a paid, fair-source perch: `$19` one-time, an FSL relicense covering
+> `v2026.08.04` through `v2026.08.14-1`, a two-tile free tier. The licence
+> subsystem *did* ship — it was in every build from `v2026.08.04` — but inert:
+> the production key was never minted, so `canSell` was false, the cap never
+> switched on and the License pane never appeared. perch#67 reversed it.
+> `notes/perch-monetization.md`, which owned that plan, is **deleted**; perch's
+> `README.md` licence section is the record.
+>
+> **2026-08-16 — `hausfold` sells nothing, ever.** perch#67 left selling open
+> ("selling perch stays possible later"); the next day closed it. `/terms` and
+> `/refunds` were retired on the strength of it and now 301 to `/#made`, and
+> `hausfold.co`'s own `AGENTS.md` carries it as a standing rule: **no page
+> names a price and no page ever will.** So this is not a paused revenue plan
+> or an open question — **there is no seller and no receipt.** Rows and phases
+> below are corrected to that; anything still framed as "if it is ever sold"
+> is a bug in this file, not an option being held open.
 
 **The one principle: every door is free, and the family's job is to put a
 stranger in front of the house at zero risk.** There is no revenue line yet, so
@@ -40,10 +49,10 @@ nothing here trades reach for conversion.
 | **pounce** | free, **no paid tier ever** | MIT | Utility door. A native launcher installable without adopting anything. The site already promises "no paid tier" — that promise is load-bearing, don't reopen it. |
 | **holt** | free | MIT | Dev-tool door. The only piece whose audience isn't macOS ricers. |
 | **haus** (rice) | free | MIT | ~~The destination.~~ **One rice on `haus`** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
-| **haus** (the layer) / **hausfold** (the house) | free | MIT | **The destination.** `haus` is the nix-darwin layer every rice sets options on; `hausfold` is the org it ships under and the name on the receipt. Was the umbrella; became the product on 2026-08-08; got the two-word split on 2026-08-10 (decision 8). |
-| **perch** | free | MIT | Shelf door. Was the only revenue line — `$19` one-time on an FSL relicense — until 2026-08-15, when perch went free and MIT retroactively. No paid tier, no licence file, no tile cap. |
+| **haus** (the layer) / **hausfold** (the house) | free | MIT | **The destination.** `haus` is the nix-darwin layer every rice sets options on; `hausfold` is the org it ships under. (It was *and the name on the receipt* until 2026-08-16 — there is no receipt; hausfold sells nothing.) Was the umbrella; became the product on 2026-08-08; got the two-word split on 2026-08-10 (decision 8). |
+| **perch** | free | MIT | Shelf door. Was the only revenue line — `$19` one-time on an FSL relicense — until 2026-08-15, when perch went free and MIT retroactively; the family stopped selling anything at all the day after. No paid tier, no licence file, no tile cap. |
 | ~~**trill**~~ (the Messages client; the repo is `hausfold/messages` since 2026-08-08, and the *name* now belongs to the notification compositor) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note. rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
-| ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, haus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
+| ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, haus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform, and was also the seller until 2026-08-16 settled that it sells nothing. The two roles turned out not to conflict — and then there was only one of them. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
 perch's positioning, so it's now **five**, all of them free:
@@ -71,8 +80,9 @@ a footnote of the rice.
 
 ## 2. Order of operations
 
-The two plans in flight compete for the same window if you let them. This is the
-resolution:
+One plan, in one order. (This section resolved *two* — a launch sequence and a
+perch monetization sequence competing for the same window — until the second
+one ceased to exist.)
 
 ```
 House inspection (private testers)   ← notes/launch-phase-1.md
@@ -91,10 +101,30 @@ that followed it (licence layer / Paddle / storefront, then a paid launch) are
 **not scheduled**. Nothing in the launch order competes for a window any more:
 the free launches are the whole sequence.
 
-**If perch is ever sold, the one finding worth keeping** is that a paid launch
-should not be launch day — at launch day there is no social proof, no press
-contact who has used it, and no answer to "who else paid for this", so selling
-into that costs more than waiting six weeks.
+**The one finding worth keeping out of all of it, and it isn't about money.**
+A launch has nothing to convert *with* on day one: no social proof, no press
+contact who has used the thing, no answer to "who else uses this". That was
+written about asking for $19 and it is just as true of asking for a install, a
+star, or a tester slot — which is why the house inspection comes before the
+free launches rather than after them.
+
+**The two findings that outlived their own document**, from the deleted
+`perch-monetization.md` §5, kept here because neither is about pricing:
+
+- **Add a column to the next family eval: *what does this depend on that I
+  don't control?*** The old eval ranked by market size. Ranking by controllable
+  surface **inverts** the order — and the second ranking is the one that
+  predicts whether one person can finish the work. (Worst score in the family
+  was the Messages client: Apple's private `chat.db` schema, three TCC
+  permissions, AppleScript, and a third party's beta API. Best was perch:
+  self-contained, no permissions, no network beyond its own release check.)
+- **A dependency ceiling is a product ceiling.** The Messages client's native
+  path is structurally read-and-send and nothing else — no tapbacks, no
+  threaded replies, no upstream mark-read, no edits, ever, because AppleScript
+  is the only send surface Messages.app exposes. That wall, not the market, is
+  why it was archived. Its Beeper adapter is **frozen, not deleted**: the code
+  ships and stays inert (no token ⇒ the provider is never constructed), because
+  reversing a decision is cheaper than rebuilding an adapter.
 
 ## 3. Channels, and the rules that actually bite
 
@@ -287,6 +317,14 @@ cat") — same event, same mechanism, zero extra infrastructure.
 **hausfold is the platform, the org, and the seller. haus is one rice built
 on it.**
 
+> ⚠️ **The "seller" third of that sentence is void, 2026-08-16 — hausfold
+> sells nothing, ever.** The rest of §6 stands as written and is left as
+> written: it is the record of the 2026-08-08 reversal and the 2026-08-10
+> refinement, and every "receipt", "terms" and "entity that sells" below is a
+> dated claim from before selling was closed, not a live one. `hausfold.co`'s
+> `AGENTS.md` is the authority; `/terms` and `/refunds` are retired and 301 to
+> `/#made`.
+
 > **★ Refined 2026-08-10 — the layer is called `haus`.** Decision 8 splits the
 > two jobs this sentence gives one word: **`haus`** is the nix-darwin layer a user installs and writes
 > options for, **`hausfold`** is the org, the maker and the entity on the
@@ -307,8 +345,8 @@ What actually changed, and what didn't:
 | | **haus** | **hausfold** |
 |---|---|---|
 | Was | the brand people love | the entity that sells |
-| **Is now** | **one rice, the first one, on a page inside `/desktops`** | **the platform people install, the org it ships from — and still the entity that sells** |
-| Customer sees it | when choosing a rice | constantly, and on the receipt |
+| **Is now** | **one rice, the first one, on a page inside `/desktops`** | **the platform people install, and the org it ships from.** It was *and still the entity that sells* until 2026-08-16 settled that it sells nothing, ever |
+| Reader sees it | when choosing a rice | constantly. Not on a receipt — there are none |
 
 **Why the reversal, in one line:** the umbrella framing made the *platform*
 nameless. Every option was `haus.*`, so a stranger publishing a large-print
@@ -334,16 +372,22 @@ Consequences, revised:
   them whether or not anything is ever sold. No incorporation exists, and no
   trademark *filing*; the register **has** been searched (2026-08-10 —
   `hausfold` returns zero records worldwide), which is a screening, not a
-  clearance opinion. Nothing forces the question now that perch is free, so it
-  stays open rather than pending: whoever reopens selling picks up an
-  individual-trading-as at that point, or incorporates.
+  clearance opinion. **The question is closed rather than open**: 2026-08-16
+  settled that hausfold sells nothing, ever, so there is no seller to be an
+  entity. What survives is the trademark half — common-law rights survive an
+  empty register, and the name is on the docs domain and the org whether or not
+  money moves.
 - **It is not the gallery** → **it hosts the gallery**, at `/desktops` (§5).
   The 2026-08-06 amendment that made hausfold.co a real page rather than a
   placeholder was the first step of this reversal; this finishes it.
 
 One known exposure, now larger: **`hausfold.com` isn't held**, and the name is
 about to be the platform, the docs domain, *and* the seller spoken aloud in
-receipts and terms. Accepted as `.co` on 2026-08-08 — see §9.
+receipts and terms. Accepted as `.co` on 2026-08-08 — see §9. ⚠️ **The
+receipts-and-terms third of that exposure is gone since 2026-08-16** — nothing
+is sold, so the name is spoken in docs and an org slug and nowhere else. The
+`.com` collision is unchanged; the *stakes* of it are lower than this sentence
+says.
 
 ## 7. Measurement without adding telemetry
 
@@ -377,7 +421,7 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6. Successor question unchanged, and no longer forced by anything on the calendar: if the family ever sells, does the seller incorporate, or sell as an individual trading as hausfold? |
+| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6. Successor question **closed 2026-08-16: hausfold sells nothing, ever**, so there is no seller to incorporate. What remains is a trademark question, not a corporate one — see §6. |
 | 2 | Archive trill? | **Closed** — archived on GitHub, module and flake input deleted (rice#212/#213), taken out of every family list. The launch-blocking version of this question is gone. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
 | 4 | `hausfold.com` — buy it or accept the `.co`? | **Closed 2026-08-08: accept the `.co`, because there is nothing to buy.** ~~Still cheap to reverse; still gets more expensive with brand value.~~ Checked the same day: the `.com` has been registered since 2025-04 and serves **HAUS FOLD**, an operating in-home laundry service in South Carolina. Not parked, not for sale. The `.co`-beside-someone-else's-`.com` tax is real and permanent — the name is the platform, the docs domain *and* the seller on a receipt — but it was never avoidable. Promotes the trademark question: same word, first in time, US commercial use, plausibly different Nice classes. ~~**Get a real USPTO search before filing, marketing spend, or incorporation.**~~ ✅ **Searched 2026-08-10** (USPTO + EUIPO + ~73 offices via TMview): `hausfold` returns **zero records worldwide**, and this business has **never filed** — a common-law user, not a registrant. The trigger now reads: get a clearance **opinion** before filing, marketing spend, or incorporation, since common-law rights survive an empty register. |
