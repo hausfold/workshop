@@ -144,7 +144,12 @@ Never hand-walk that ripple; the tooling does it:
 Ghostty watches its own config and applies the new keybinds, theme and options to
 every running window in about a second; windows, sessions and live agents stay
 put. Even a window that DOES restart comes back to the same scrollback, because
-every window's shell lives in a `zmx` session that outlives it.
+every window's shell lives in a `zmx` session that outlives it — and, since
+haus#422, because the FIRST window of a fresh Ghostty reopens one window per
+parked session (`haus.terminal.restoreWindows`, on by default). ⌘N is always a
+new shell now, never a parked one adopted by accident, and the automatic
+restore stays quiet while anything is still attached — a lane, typically —
+where the palette's **Restore Terminal Windows** is the answer.
 
 This used to be a two-case story with a dev CLI (`zscratch`) behind the second
 case, and both halves left with **zellij**, which haus removed on 2026-08-19
@@ -175,8 +180,11 @@ tool with [its own repo](https://github.com/hausfold/holt), which the **rice**
 takes as a flake input and ships on PATH. It isn't part of `bench`, because the
 rice already ships the agent keybinds — and not every machine running `holt` has
 the workshop. Worktrees live OUTSIDE the repos so trees stay clean and `bench
-try`'s `path:` overrides never swallow them. (`Ctrl Alt Shift a` is the in-place
-variant: the one agent per tab allowed to edit the real checkout.)
+try`'s `path:` overrides never swallow them. (The in-place variant — the one
+agent per tab allowed to edit the real checkout — is `c` in a window's own
+shell, which runs whatever `haus.ai.default` names. It was the ⌃⌥⇧A chord until
+haus#422 retired it, along with the palette's **Agent Here** row: `c` is the
+same act one keystroke shorter.)
 
 Its bash predecessor `wt.sh` (`haus/modules/core/wt.sh`) has been retired
 entirely — `holt` is the only worktree-lifecycle tool the family ships, and
@@ -447,7 +455,7 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   `gh pr merge`; either way, never a direct push or local `git merge` into `main`)
   → **try switch** (on main, now that it holds the work) → **ship** → **release** (tagged repos
   only; CI does the rest). A single in-place agent editing the *main* checkout
-  directly (the `Ctrl Alt Shift a` mode, or a plain non-worktree session) can
+  directly (the in-place `c` mode, or a plain non-worktree session) can
   still drive a small fix straight through **ship** — the PR rule exists to keep
   *parallel* branches from clobbering each other, not to gate a lone editor on
   main; features pause for the user before ship; **release** always waits for
