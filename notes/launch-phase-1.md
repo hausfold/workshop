@@ -5,7 +5,7 @@ The private tester round that gates every public launch in
 
 **What this round is testing: not whether people like it — where the
 instructions stop making sense on a Mac you don't own.** Everything downstream
-(the Show HN, the Discourse thread, perch's price) assumes a stranger can get
+(the Show HN, the Discourse thread, every free launch) assumes a stranger can get
 from `curl` to a working desktop unattended. Nobody has ever proven that.
 
 **Size, honestly calibrated.** The research plan said 16 testers / 8 whole-house
@@ -21,20 +21,24 @@ expected, take the extras — but don't let the number gate the launch.
 
 Nothing below works if a tester hits a wall on step one.
 
-- [x] **A documented exit path exists** — `web/src/content/docs/guides/leaving.mdx`
-      is live. Re-read it as a stranger before the invites go out; "how do I
+- [x] **A documented exit path exists** — `hausfold.co`'s
+      `content/docs/haus/leaving.mdx` is live (it was
+      `web/src/content/docs/guides/leaving.mdx` when this was ticked; the docs
+      tree moved into the site repo on 2026-08-14). Re-read it as a stranger before the invites go out; "how do I
       undo this" is the first question a cautious tester asks.
-- [x] ✅ **perch Phase 0 (FSL relicense) is done** — perch#26 relicensed
-      MIT → FSL-1.1-ALv2 and perch#27 landed the offline-Ed25519 layer with a
-      2-tile free tier (inert until the public key ships in Phase 2). Every
-      tester now installs a fair-source perch, which was the whole point of
-      doing this before the invites rather than after.
-      ⚠️ **One half was missed and is fixed here:** hausfold.co still said
-      *"All of haus is MIT-licensed"* on
-      [`start/the-family.md`](../web/src/content/docs/start/the-family.md).
-      org-profile#14 corrected the same claim in the GitHub footer four days
-      ago and the docs site was never grepped — the roadmap's rule again,
-      **grep for the claim, not for the file.**
+- [x] ~~**perch Phase 0 (FSL relicense) is done**~~ — **reversed 2026-08-15,
+      and there is no Phase 0 any more.** perch#26 relicensed MIT →
+      FSL-1.1-ALv2 and perch#27 landed the offline-Ed25519 layer with a 2-tile
+      free tier; it stayed inert (the production key was never minted) and
+      perch went back to free + MIT, retroactively over `v2026.08.04` through
+      `v2026.08.14-1`. **Testers install an MIT perch, and no licence question
+      reaches them at all** — which is a simpler answer than this box was
+      after. The paid plan this gated is gone with `notes/perch-monetization.md`.
+      **The finding underneath it survives, and is the reason to keep the box:**
+      hausfold.co still said *"All of haus is MIT-licensed"* while the repo
+      said otherwise, four days after org-profile#14 corrected the identical
+      claim in the GitHub footer — because the docs site was never grepped.
+      **Grep for the claim, not for the file.**
 - [x] ✅ **The trill question is settled — it was decided by removal, not by a
       note.** ("trill" here, and everywhere else in this file, is the **archived
       Messages client**, `hausfold/messages` since 2026-08-08. The notification
@@ -46,14 +50,15 @@ Nothing below works if a tester hits a wall on step one.
       org-profile#14 took it out of the family lists, and the repo is
       **archived on GitHub**. So no tester is handed it at all, which is a
       better answer than the "no longer maintained, and why" note this box
-      asked for. ([§5.5](./perch-monetization.md#55-open-archive-trill), all
-      five of its boxes now ticked.)
+      asked for.
       The sentence worth keeping, from rice#213: *a supported option nobody
       should turn on is a lie in the option reference.*
-- [ ] **Carry-over, unresolved:** an earlier session flagged a "`.bak`
-      discrepancy" with no detail. The only `.bak` in the docs is the Codex
-      OAuth token rewrite at `web/src/content/docs/guides/the-bar.mdx:128` —
-      confirm the bar refresher actually writes that file, or fix the sentence.
+- [x] ~~**Carry-over, unresolved:** an earlier session flagged a "`.bak`
+      discrepancy" with no detail.~~ **Closed 2026-08-20 — the sentence it was
+      about no longer exists.** The `.bak` claim lived at
+      `web/src/content/docs/guides/the-bar.mdx:128`; that whole tree was
+      replaced by `hausfold.co/content/docs/` on 2026-08-14, and `.bak` appears
+      nowhere in the current docs. Nothing to confirm and nothing to fix.
 - [ ] **Capture the rice hero shot** (`haus/assets/hero.png`). Not a
       blocker for testers, but it's the asset every later phase waits on, and
       it's a single good desktop away from done.
@@ -151,7 +156,7 @@ Dates assume a 2026-08-05 start; slide the whole block if it slips.
 
 | Days | |
 |---|---|
-| **Aug 5–6** | Clear §0. Perch Phase 0 lands, trill decided. |
+| **Aug 5–6** | Clear §0. Perch Phase 0 lands, trill decided. *(Phase 0 was the FSL relicense — landed, then reversed on 2026-08-15; see §0.)* |
 | **Aug 7–8** | Send 8 invites. Aim to place missions 3, 6, 8 first — the cold Mac user, the launcher, the dev. |
 | **Aug 9–13** | Testers run. You do not help. Triage each report same-day into S1/S2/S3. |
 | **Aug 14–16** | Fix every S1. Write the docs for the top five S2s. |
