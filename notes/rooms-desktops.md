@@ -4,11 +4,11 @@ Working vision, 2026-08-13. Current code is the source of truth for what exists;
 this note defines the product model the code and docs should converge on.
 
 > **Re-verified against merged `main` on 2026-08-19** (haus `6ba56c8`,
-> hausfold.co `e9b625f`). The model and both execution plans stand; what moved is
-> recorded inline — the counts (§[past step 6](#what-carries-past-step-6)), three
-> findings now **closed**, and one that got *bigger* rather than staler. The
-> Acquisition plan is still entirely unbuilt, and that was checked at the CLI's
-> own dispatch table rather than assumed.
+> hausfold.co `e9b625f`), and the extension-points finding again on 2026-08-20
+> (haus `26422b7`). The model and both execution plans stand; what moved is
+> recorded inline — the counts (§[past step 6](#what-carries-past-step-6)), the
+> findings now **closed**, one that got *bigger* rather than staler, and one
+> whose recommendation was **withdrawn** on re-reading rather than confirmed.
 
 > **2026-08-20 — step E is designed** (haus `ffcdb0a`, hausfold.co `2e4cfd1`),
 > and it is the first thing in this note argued from Nix that was actually
@@ -16,8 +16,14 @@ this note defines the product model the code and docs should converge on.
 > system's collision behaviour, probed directly. Two long-standing claims died
 > doing it — see
 > §[Step E](#step-e-designed--the-machine-claims-the-namespace-not-a-registry).
-> Everything else in the Acquisition plan is still unbuilt, re-checked at the
-> same dispatch table.
+> **Step A was built the same day** — `haus show`,
+> [haus#428](https://github.com/hausfold/haus/pull/428) — and everything else in
+> the Acquisition plan is still unbuilt, re-checked at the same dispatch table.
+> One of [step A's findings](#findings-carried-out-of-step-a) is a hole in the
+> section's trust story rather than in the command: reading a stranger's desktop
+> is itself an evaluation, so **the closed schema governs what a desktop can
+> declare, and a sandbox governs what reading one can do** — two protections,
+> and every step from B on needs the second.
 
 ## The model
 
@@ -876,22 +882,50 @@ each bullet below are there for exactly that. What survives re-reading is the
 
   So the "generalise on the next room that needs one" judgement has now
   survived a room reaching for it rather than growing into it, which is the
-  stronger test. What is still direct config-reading, and each is named in a
-  comment at the site rather than left to be found:
+  stronger test.
 
-  - `page` reads `config.haus.windows.enable` in the same `contributed`
-    predicate the Focus pill just left. Windows declares no point pointing at
-    Bar yet, and it is the obvious next one.
-  - Bar's reserved space, the other way: `windows/default.nix:333` reads
-    `config.haus.bar` **whole**, which is the widest of the three.
-  - Focus's own reverse reach: the focus-watcher launchd agent reads
-    `config.haus.bar.enable` / `.bottom.enable` to decide which bars to poke,
-    twenty lines under the block that contributes to those same rooms. A room
-    asking "does a bar exist" is exactly the shape `_contrib` replaces.
+  ⭐ **Re-read at 26422b7 on 2026-08-20, and the survivors turned out to be
+  three DIFFERENT shapes — only one of which `_contrib` fits.** The
+  recommendation this bullet carried — "ONE point declared by Bar for a room
+  that wants a pill drawn or a bar poked" — is withdrawn. It was built on the
+  three reads being one idea, and reading them again says they are not:
 
-  All three are Windows↔Bar or room→Bar, so ONE point declared by Bar for "a
-  room that wants a pill drawn / a bar poked" probably closes the set. That is
-  the shape to reach for, not three more one-offs.
+  - **A query, not a contribution.** Bar asks Windows "is there a tiler?" —
+    twice, in one generated file: `BAR_GRAVITY` and `BAR_PAGES` in
+    `windowsConfigSh` (`modules/bar/default.nix:1117`). The bullet used to
+    place this read in the `contributed` predicate, and that is no longer
+    where it lives: [haus#422](https://github.com/hausfold/haus/pull/422) took
+    `page` out of the widget table entirely — a page is a property of the
+    WORKSPACE you are on, so its readout moved beside the workspace pills in
+    the hand-written left group. Second time this bullet's evidence has rotted
+    under unrelated work, in the same place, which is the argument for naming
+    a mechanism rather than a site.
+  - **Not a reach at all, on inspection.** `windows/default.nix:333` passes
+    `config.haus.bar` whole — into `modules/lib/gaps.nix`, a shared arithmetic
+    file that takes the bar's position and height as ARGUMENTS. And it has two
+    callers: `wallpaper/default.nix` passes the same `bar` down to
+    `render.nix`, so the debug band lands under the tiled window rather than
+    beside it. That is the same shape as `lib/bar.nix` and `lib/keys.nix` — a
+    surface both rooms consume, with one owner of the numbers — and it is
+    working. Replacing it with an extension point would put a seam where the
+    invariant is "these two must agree".
+  - **A query again.** Focus's watcher reads `config.haus.bar.enable` /
+    `.bottom.enable` to decide which bars to poke, twenty lines under the block
+    that contributes to those same rooms.
+
+  `_contrib` carries a PAYLOAD from a source room to a receiving room's
+  declared point; the receiver owns the point, the source owns the feature.
+  Two of the three above carry nothing and have no source — they ask whether
+  a room EXISTS, which is a question about the machine rather than an offer to
+  another room. So the thing they want is not a fourth, fifth and sixth
+  `_contrib` point but a room publishing its own SHAPE: one read-only fact per
+  room (is it on, which edges does it occupy) that any other room may read
+  without knowing that room's option surface. Whether that is worth building
+  at all is a fair question — `config.haus.<room>.enable` is already that fact,
+  spelled with no ceremony — and the honest reading is that the direct read is
+  fine for a query and `_contrib` is right for a contribution. The mistake was
+  filing all three under one heading. **[2] stands; the recommendation is now
+  "leave the queries alone", not "declare one more point".**
 - **[2] ✅ Closed 2026-08-19 — the org/layer split settled the landing-page
   order, and 👤 said so.** The finding asked whether the page should run hero →
   haus explanation → desktops, per step 6's plan. It is moot: the site separated
@@ -955,7 +989,7 @@ this machine actually runs. This is the item
 [`go-to-market.md` §5](./go-to-market.md#5-the-gallery--marketplace-question--answered)
 hands over when it says a third-party gallery entry now waits on “acquisition
 and trust, not composition”, and the item `options-roadmap.md`'s status prologue
-points at the same place. Nothing here is built.
+points at the same place.
 
 > **Still nothing, re-checked 2026-08-19 at haus `6ba56c8`.** Verified at the
 > CLI's own dispatch table rather than by grep: `modules/core/haus.sh`'s `case`
@@ -982,6 +1016,19 @@ points at the same place. Nothing here is built.
 > in [step E's design](#step-e-designed--the-machine-claims-the-namespace-not-a-registry),
 > and so is this note's long-standing account of what a namespace collision
 > actually does.
+>
+> **And then step A was built, the same day** —
+> [haus#428](https://github.com/hausfold/haus/pull/428) with
+> [hausfold.co#104](https://github.com/hausfold/hausfold.co/pull/104), open at
+> the time of writing. Both paragraphs above are true of haus's `main`, which is
+> the revision immediately before it: `haus show <file>` reads a local desktop
+> or room file and reports what it is. B through F are still nothing, and the
+> design below is unchanged by building A — `haus.sh`'s dispatch knows `show`
+> beside the eighteen verbs it had, and still none of `add`, `remove` or
+> `desktop`. What building it turned up is
+> [Findings carried out of step A](#findings-carried-out-of-step-a); one of them
+> is a hole in this section's trust story rather than in the command, so read
+> that one before B.
 
 ### The finding that decides the shape
 
@@ -1115,6 +1162,11 @@ path it just reads it. Then it prints, in order:
    naming that list replaces it whole, which is the one interaction a reader
    cannot infer from either file alone;
 5. what it does *not* set, so the reader knows what stays theirs.
+
+**Built, as of 2026-08-20: 2, 3 and 5, plus the local-file half of 1** (a local
+file has no origin and no revision, and `show` says so rather than leaving the
+line out). 4 is step C and the remote half of 1 is step B; both slots are marked
+in the script so a later step extends the frame rather than reinventing it.
 
 `haus show --json` for CI, per `notes/agent-surface.md`. That single command
 collapses the first line of the publish checklist in `desktops/sharing.mdx`
@@ -1458,15 +1510,113 @@ Same contract as the plan above: exit gate green before the next step changes
 behaviour, findings reported rather than folded in, and the
 [status report shape](#agent-status-report) while work is live.
 
-| Step | Work | Durable evidence | Exit gate |
-|---|---|---|---|
-| **A. Publisher-side inspection** | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. |
-| **B. Remote sources, read-only** | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each. | A person can fully evaluate a stranger's desktop without their config being touched. |
-| **C. The machine diff** | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
-| **D. `haus add` / `remove` / `desktop`** | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
-| **E0. The reserved prefix** | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and every file declaring anything under it. Derives its namespace list the way `room-registry` does — `internal`/`visible`, not an `_`-prefix shorthand. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and two fixtures: a private module declaring an unregistered namespace, **and a stock haus machine, which must come back empty**. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw — and nobody else is told anything. |
-| **E1. The claim table** | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
-| **F. Rooms in `haus add`** | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
+| Step | Status | Work | Durable evidence | Exit gate |
+|---|---|---|---|---|
+| **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. |
+| **B. Remote sources, read-only** | not started | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each. | A person can fully evaluate a stranger's desktop without their config being touched. |
+| **C. The machine diff** | not started | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
+| **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
+| **E0. The reserved prefix** | not started | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and every file declaring anything under it. Derives its namespace list the way `room-registry` does — `internal`/`visible`, not an `_`-prefix shorthand. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and two fixtures: a private module declaring an unregistered namespace, **and a stock haus machine, which must come back empty**. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw — and nobody else is told anything. |
+| **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
+| **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
+
+### Findings carried out of step A
+
+`haus show` shipped on 2026-08-20 (haus PR pending at time of writing). The
+design above survived being built — no rule in it changed — and the interesting
+part is what building the FIRST publisher-facing verb turned out to cost, since
+every other verb haus has drives the machine it is standing on.
+
+- **[3] A checker that only exists inside a flake cannot be run by the person
+  who needs it.** The rules were reachable exactly one way — `haus.lib.checkDesktop`,
+  i.e. a flake evaluation — and `show`'s job is to answer from a shell, offline,
+  about a path that is outside every flake. Resolving the consumer's lock on each
+  invocation to answer a question that is pure lib is the wrong shape, so the
+  same two files (`modules/lib/desktop.nix` and the registry) are staged into
+  `share/haus/desktop-check` with nixpkgs' `lib` beside them and an
+  argument-free entry point. Two properties make that a copy rather than a
+  second implementation: the SOURCE files are the ones the flake evaluates, so
+  no rule can drift between the seam and the CLI; and the staged copy is built
+  from the revision the machine PINNED, which is `host-template.nix`'s argument
+  pointed the other way — a checker describing options your pin doesn't have is
+  a failed publish for the least experienced person we have.
+
+  The same fact splits the evidence in two, and this is the durable half:
+  **the command's own suite cannot be a flake check**, because the script shells
+  out to `nix eval` and no derivation may. So `desktop-show` (a check, portable,
+  runs on Linux CI) pins the READING — the class, the counts, which room each
+  leaf files under, over all 29 desktop fixtures — and `test/haus-show.sh` pins
+  the exit codes, flags and JSON envelope against the built wrapper, from CI's
+  eval job where a real nix exists. Expect that split for every verb that
+  wraps an evaluation.
+
+- **[3] The no-inference rule is ASYMMETRIC, and saying so is what lets `show`
+  work without a flag.** This section says the class must never be inferred,
+  "because inference is how a data prompt gets shown for a code source". That
+  is true in one direction only. Inferring CODE from content can only ever be
+  over-cautious: a module function is reported as a room, unasked, and the worst
+  case is a warning over something harmless. Inferring DATA must never be an
+  inference at all — `failures == [ ]` is a proof, and it is the checker's. So
+  the rule as built is: **`show` may report a room; only the checker may
+  certify a desktop.**
+
+  Two things fall out. An attrset carrying `imports` is NOT quietly
+  reclassified as code — it is a desktop that failed, and its diagnostic names
+  the rule, which is the better answer for the case it usually is (a typo in a
+  desktop). And the command needs an exit code of its own for the gap:
+  **3, "it is code and you did not say `--room`"**. A publisher's CI must go red
+  the day their desktop file becomes a function, and "nothing was checked" is
+  not a pass. `--room` makes that 0; nothing about the file's contents ever
+  does.
+
+- **[2] `builtins.tryEval` does not catch a type error, and reading a
+  stranger's file is exactly where you find out.** The first draft forced the
+  imported value with `builtins.attrNames`, inside a `tryEval`, to make a broken
+  file fail with the filename rather than as a raw trace somewhere downstream.
+  `tryEval` catches `throw` and `assert`; `attrNames` on a list is neither, and
+  it took the whole evaluation down — caught by `test/desktops/non-attrset.nix`,
+  a fixture that exists for a different rule entirely. The shape that works:
+  force with `deepSeq` (which raises no type errors of its own, so a `throw`
+  buried in a value IS caught) and test a value's type before touching a key.
+
+- **[2] The registry keys its namespaces BARE and its option paths PREFIXED,
+  and mixing the two fails silently in the worst direction.** `registry.namespaces`
+  is keyed `bar`; every option under it is `haus.bar.*`. Matching leaves against
+  the unprefixed keys matched nothing at all — so every leaf resolved to no
+  room, and the report rendered as a desktop setting nine options across zero
+  rooms. Plausible-looking output, no error, and the only thing that caught it
+  was a golden table whose expected value was non-empty. **A lookup that can
+  return "no match" for every input needs a fixture that expects a match**, not
+  one that expects the absence of a failure.
+
+- **[2] This is haus's first `--json` verb, so it sets the envelope the sweep
+  copies.** `notes/agent-surface.md`'s table still has haus at "no `--json` on
+  any verb"; it has one now. Two decisions in it are worth reusing. `checked` is
+  a FIELD rather than something a caller infers from an empty `failures` list —
+  a room and a clean desktop are otherwise indistinguishable in JSON, which is
+  the one confusion this command must never cause. And the class is reported
+  even when nothing was checked, rather than the command declining to answer.
+
+- **[2] A guard written for "every verb drives this machine" is wrong the first
+  time a verb doesn't.** `haus.sh` refuses to load at all without a consumer
+  flake at `~/.config/nix` — correct for eighteen verbs and exactly backwards
+  for the nineteenth, whose audience includes a publisher's CI that has none.
+  It is per-verb now. Worth expecting again at step D: `haus show` is the first
+  command here with a reader outside this Mac, and it will not be the last.
+
+- **[1] `pkgs.path` carries no string context.** Staging nixpkgs' `lib` via
+  `${pkgs.path}/lib` builds a derivation that MENTIONS a store path it does not
+  depend on, which Nix warns about and a garbage collector is free to make true.
+  `builtins.path` copies the subtree in under its own name with real context,
+  and copies only `lib` (2 MB) rather than rooting the whole nixpkgs source in
+  the system closure.
+
+  ⚠️ Unrelated, found while verifying: **`nix flake check` is red on haus
+  `main`** at 26422b7 — [haus#422](https://github.com/hausfold/haus/pull/422)
+  added a generated home file that scales, and `scale-reach` enumerates every
+  such file, so it needed a row it never got. It merged red because the reach
+  checks are darwin-only and CI is ubuntu. Fixed in the same branch as a
+  separate commit rather than folded in.
 
 ### Open decisions
 
