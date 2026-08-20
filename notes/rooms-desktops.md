@@ -1177,8 +1177,8 @@ already published".
   git-tracked flake, so `curl -O … && mv … ~/.config/nix/desktops/` — the exact
   sequence `desktops/sharing.mdx` recommends today — produces “path does not
   exist” at eval, on a file the person is looking at. `--vendor` stages it;
-  the docs page should say so regardless of whether `add` is built. ⏳ **The
-  docs half is in flight, 2026-08-20** —
+  the docs page should say so regardless of whether `add` is built. ✅ **The
+  docs half closed 2026-08-20** —
   [hausfold.co#96](https://github.com/hausfold/hausfold.co/pull/96) puts the
   `git add` on all three pages that tell someone to vendor a file. Two things
   found doing it: the recipe failed one line EARLIER still (`bootstrap.sh`
