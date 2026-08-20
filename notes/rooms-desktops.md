@@ -716,8 +716,25 @@ each bullet below are there for exactly that. What survives re-reading is the
     `haus.locale.*` and `haus.power.*` leaf, and the several that are host-only
     for taking a `pkgs` value or a command the machine runs. The per-option
     reason belongs in the registry beside `desktopSafe`, the way the validator
-    rule now sits beside its name. **That is the open follow-up**, and it is a
-    haus change.
+    rule now sits beside its name. ✅ **Closed 2026-08-20** —
+    [haus#420](https://github.com/hausfold/haus/pull/420) with
+    [hausfold.co#95](https://github.com/hausfold/hausfold.co/pull/95): `hostOnly`
+    maps each path to a reason key, `hostOnlyReasons` gives each key one
+    sentence (twelve over the 43 rows), `room-registry` fails on a row with no
+    reason or a sentence nothing names, and all three renderers of the
+    classification say the same thing — the generated host file, the options
+    reference, and `checkDesktop`'s diagnostic, which had been telling a desktop
+    author that a font package "belongs to a person or a machine".
+
+    **The sweep is where the bug was, and the reason table is what exposed it.**
+    `git` looked homogeneous enough to tag whole, so all five `haus.git.*`
+    leaves got "it names you rather than a machine" — including
+    `git.shellAliases`, an attrset of shell command strings that names nobody.
+    Writing a reason down is what made the wrong one legible; the pre-PR
+    assurance pass caught it, and `locale` and `power` are the two namespaces
+    where the whole-namespace sweep is actually true. The check can see a
+    MISSING reason and never a wrong one, which is the residue to remember when
+    a leaf is added to a swept namespace.
   - **Two diagnostics for one fact still beat one that is bent to serve both.**
     `desktop.nix`'s `keySaid` messages are phrased to complete "…names a
     physical display"; the registry's sentence describes the rule. The check
@@ -1160,7 +1177,16 @@ already published".
   git-tracked flake, so `curl -O … && mv … ~/.config/nix/desktops/` — the exact
   sequence `desktops/sharing.mdx` recommends today — produces “path does not
   exist” at eval, on a file the person is looking at. `--vendor` stages it;
-  the docs page should say so regardless of whether `add` is built.
+  the docs page should say so regardless of whether `add` is built. ✅ **The
+  docs half closed 2026-08-20** —
+  [hausfold.co#96](https://github.com/hausfold/hausfold.co/pull/96) puts the
+  `git add` on all three pages that tell someone to vendor a file. Two things
+  found doing it: the recipe failed one line EARLIER still (`bootstrap.sh`
+  creates `hosts/<hostname>` and never `desktops/`, so the `mv` has no target),
+  and **`checkDesktop` cannot catch this** — it reads the path it is handed, so
+  it passes on the very file the rebuild cannot see. That last one is the
+  argument for `haus show` doing the check from the machine's point of view
+  rather than the file's.
 - **Editing `flake.nix` is the one genuinely fragile part**, and it is the
   first thing in haus that would edit a hand-written file rather than write a
   generated one (`haus set` writes whole modules under `hosts/<h>/settings/`).
