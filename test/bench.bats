@@ -465,6 +465,41 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [[ "$output" != *"/tmp/wt/perch"* ]]
 }
 
+@test "wt_branch names a branch, a detached tree, and a checkout that's gone" {
+  # The regression: `set -euo pipefail` + a bare assignment from a git that
+  # exits 128 (a worktree dir deleted without a prune — a pane killed without
+  # the remove hook) aborted the WHOLE status run, silently, before the lock
+  # and release sections. And a detached tree exits 0 printing nothing, so an
+  # `|| echo` fallback can't cover it — the column came out blank.
+  mkmain haus
+  git -C "$ROOT/haus" worktree add -q -b worktree-blue "$TMP/wt-blue"
+  run wt_branch "$TMP/wt-blue"
+  [ "$status" -eq 0 ]
+  [ "$output" = "worktree-blue" ]
+
+  git -C "$ROOT/haus" worktree add -q --detach "$TMP/wt-det"
+  run wt_branch "$TMP/wt-det"
+  [ "$status" -eq 0 ]
+  [ "$output" = "(detached)" ]
+
+  rm -rf "$TMP/wt-gone"
+  run wt_branch "$TMP/wt-gone"
+  [ "$status" -eq 0 ]
+  [ "$output" = "?" ]
+}
+
+@test "path_is_lane matches a registry row that stored the resolved path" {
+  # holt records the checkout it created; `git worktree list` prints the path
+  # git resolved. On macOS those differ whenever a symlink is in the way
+  # (/tmp → /private/tmp), so the lookup falls back to the physical path.
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkdir -p "$TMP/lane"
+  local phys; phys="$(cd "$TMP/lane" && pwd -P)"
+  mkregistry "$WT_REGISTRY" "lane $ROOT/haus worktree-lane $phys $ROOT/haus claude"
+  run path_is_lane "$TMP/lane"
+  [ "$status" -eq 0 ]
+}
+
 @test "path_is_lane is false when there's no registry at all" {
   WT_REGISTRY="$TMP/no-such-registry.tsv"
   run path_is_lane /tmp/wt/haus

@@ -641,9 +641,21 @@ branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
 # permanently out of sync when they in fact agreed.
 path_is_lane() { # path_is_lane <checkout> — does holt's registry know this tree?
   [ -f "$WT_REGISTRY" ] || return 1
-  local phys; phys="$(cd "$1" 2>/dev/null && pwd -P)"
+  # `|| true`: the cd fails for a checkout that's already gone, and under
+  # `set -e` a bare failing assignment would take the whole run with it.
+  local phys; phys="$(cd "$1" 2>/dev/null && pwd -P || true)"
   awk -F'\t' -v a="$1" -v b="${phys:-$1}" \
     '$4 == a || $4 == b { found = 1; exit } END { exit !found }' "$WT_REGISTRY"
+}
+wt_branch() { # wt_branch <checkout> — the branch to show for a listed worktree
+  # Two different unknowns, and both used to render blank. `git worktree list`
+  # keeps emitting a path whose dir was deleted without a prune (a pane killed
+  # without the remove hook — the very case this table exists to report), and
+  # git then exits 128 → '?'. A live but detached tree exits 0 printing
+  # NOTHING, so a `|| echo` fallback never fires for it → '(detached)'.
+  local b
+  b="$(git -C "$1" branch --show-current 2>/dev/null)" || { echo '?'; return; }
+  if [ -n "$b" ]; then echo "$b"; else echo '(detached)'; fi
 }
 
 status_running() { # the receipt a `try switch` left — FIRST section, because it
@@ -719,10 +731,7 @@ cmd_status() {
     local wt branch dirty
     while IFS= read -r wt; do
       [ -n "$wt" ] || continue
-      # --show-current prints nothing (and exits 0) on a detached HEAD, so the
-      # `|| echo` fallback never fires and the column came out blank.
-      branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
-      [ -n "$branch" ] || branch='(detached)'
+      branch="$(wt_branch "$wt")"
       local dcol; dcol="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && printf '%s' "$C_WARN" || printf '%s' "$C_MUT")"
       dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
       local repo_c dirty_c row lane=0
