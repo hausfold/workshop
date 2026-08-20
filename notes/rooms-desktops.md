@@ -146,10 +146,27 @@ user feels, and it is not recoverable from the table above:
 | palette command **Toggle Hush** | **Toggle Focus** |
 | `HAUS_ROOMS=bar,windows,pounce` (the installer) | `HAUS_ROOMS=bar,windows,launcher` |
 
-Two rules came out of it and are worth keeping:
+Three rules came out of it and are worth keeping:
 
 - **A room is named for what it does; a product is named for what it is.** The
   app in the Launcher room is Pounce and always will be. The room is not.
+- **The room leads the copy; the product trails it.** The rename moved the
+  addresses in one sweep and left the *prose* behind — for three days haus's
+  own option descriptions said "pounce" where they meant the palette, at
+  roughly twice the rate the same descriptions said "AeroSpace". The standard
+  is the one windows and bar already set: name the app **once**, on the room's
+  own `enable` option and on the room's own docs page, and after that use the
+  room noun. The product name survives only where it is the literal thing a
+  person types, clicks or grants — a CLI verb (`pounce doctor`, `perch add`),
+  a path (`/Applications/Perch.app`, `~/.config/{pounce,perch}/themes/`), a
+  launchd label or bundle id, the Accessibility row in System Settings, a
+  Homebrew formula, a flake input, a package name, or a link into that
+  product's own docs tree. Applied 2026-08-19 across haus's descriptions and
+  `content/docs/haus/**` (workshop#403): pounce 69 → 19 occurrences in the
+  generated option reference, perch 20 → 6. The same sweep found two addresses
+  the rename had missed — `darwinModules.pounce` and `pounce.items` — which is
+  the argument for doing the copy at the same time as the code: stale prose is
+  where stale addresses hide.
 - **No aliases.** The old spellings are gone rather than deprecated, for the
   reason the `agents` → `ai` move gives in `haus/modules/moved.nix`: the layer
   has one consumer, its host moved in the same sweep, and an alias set would be
