@@ -187,11 +187,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > earlier pass, which is this pass's second finding.
 >
 > Landed since the thirty-first pass's revs: **ten haus PRs** (#425–#434,
-> 07:55:17Z → 14:23:31Z), their **nine site mirrors** (hausfold.co #101–#110),
-> **one pounce** (#92, 08:15:24Z), **two holt** (#48, #49) and three workshop
-> notes commits that are this file's own neighbours — #412, #413 and #414, steps
-> A, B and E0 of [`rooms-desktops.md`](./rooms-desktops.md). Across ten haus PRs
-> the option surface gained **exactly two leaves**, diffed key-for-key between
+> 07:55:17Z → 14:23:31Z), their **nine site mirrors** (hausfold.co #101 and
+> #103–#110 — #102 IS `a231642`, and #101 merged seven minutes after it),
+> **one pounce** (#92, 08:15:24Z), **two holt** (#48, #49) and four workshop
+> notes commits — #411, the thirty-first pass itself, plus #412, #413 and #414,
+> steps A, B and E0 of [`rooms-desktops.md`](./rooms-desktops.md). Across ten
+> haus PRs the option surface gained **exactly two leaves**, diffed between
 > `4e2dd61` and `9b64840`: `haus.launcher.items.<name>.workspaces` and
 > `.bundleIds` — both in §5.9's room, which is where this pass ends up. 313
 > options and 35 namespaces (311 and 35 last pass). `bar.items` re-derived at
@@ -214,10 +215,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > later**. It arrived with three readers in two repos: pounce filters the rows
 > at summon time, `pounce doctor` names every scoped item and which rows the
 > current page leaves out, and haus's cheatsheet card appends `· on T` to a
-> scoped row's caption. Falsified prediction, unclosed box — which is only a
-> contradiction until the two kinds are pulled apart. **Descriptive**
-> declarations (nebelung's ports, `bar.widgets.<name>.permissions`) state a
-> property; a reader is optional, which is why one of the two hasn't got one.
+> scoped row's caption (`workspaces` only — the caption has never read
+> `bundleIds`). A third instance that declares into no void at all, and a box
+> that stays open — which is only a contradiction until the two kinds are
+> pulled apart. **Descriptive** declarations (nebelung's ports,
+> `bar.widgets.<name>.permissions`) state a property; a reader is optional,
+> which is why one of the two hasn't got one.
 > **Operative** ones (`workspaces`, `bundleIds`) ARE the behaviour; a reader
 > cannot be missing, because a missing reader means the field does nothing. The
 > void is a hazard of the descriptive kind alone, this box's three questions are
@@ -232,9 +235,14 @@ already exist, and one it treated as a detail is the actual root blocker.
 > pass lists five fetched revs and then adds *"nebelung (`d76f124`) and pounce
 > (`adf03c5`) have not moved since the twenty-ninth pass, so neither of §5.9's
 > two open boxes could have closed."* The five are mutually consistent with one
-> read at ≈07:45Z, when `adf03c5` was still pounce's head — nothing there was
-> careless. That block merged at 09:21:21Z, **66 minutes** after pounce#92, and
-> by then the sentence was wrong about the repo and wrong about the section.
+> read **between 07:37:15Z and 07:42:57Z** — the window opens with
+> hausfold.co#102 producing `a231642` and closes with holt#48 leaving `fadebfa`
+> — and `adf03c5` was pounce's head across all of it, so nothing there was
+> careless. (This paragraph's first draft said "≈07:45Z", by which two of the
+> five had already moved: a paragraph arguing *date it at a rev* carrying a
+> falsified wall clock, caught by the assurance read.) That block merged at
+> 09:21:21Z, **66 minutes** after pounce#92, and by then the sentence was wrong
+> about the repo and wrong about the section.
 > The asymmetry survives the excuse: a rev cited positively stays true forever,
 > because it is a fact about that rev, and row eleven's "date it at a rev" is a
 > complete defence. A rev spent on a negative claim has no such anchor — *"could
@@ -244,23 +252,29 @@ already exist, and one it treated as a detail is the actual root blocker.
 > section that sentence excused itself from checking is the one that had moved,
 > an hour earlier, with the PR its own last box predicted.
 >
-> ★ **Third, and it is the previous pass's ledger row recurring one day later in
-> somebody else's code.** `modules/launcher/default.nix` carries the header
-> `---- validation: the two ways an items entry fails silently ----`, over the
-> two checks §5.9(b) is about. haus#427 added a third way twenty lines above it
-> and did not touch the header: `workspaces = [ "Q" ]` is an error nowhere — the
-> row is simply never listed. Every member still true, the list no longer
+> ★ **Third, and it is the previous pass's ledger row recurring in somebody
+> else's code — an hour BEFORE that row was written.**
+> `modules/launcher/default.nix` carries the header `---- validation: the two
+> ways an items entry fails silently ----` (written 2026-07-30 by rice#149 —
+> the same PR §5.14's opening incident is about), over
+> the two checks §5.9(b) is about. haus#427 added a third way twenty lines above
+> it at 08:15:49Z and did not touch the header — 66 minutes before the ledger
+> row about exactly that shape merged in workshop#411. `workspaces = [ "Q" ]` is
+> an error nowhere: haus writes it, and where the recency file is readable the
+> row is never listed, while on a machine that has none pounce fails open and
+> lists it everywhere. Every member of the header still true, the list no longer
 > complete. Two things make it a box rather than a bug report. It is uncaught
-> because haus **declined** to mirror pounce's matching grammar, which is the
-> twenty-third pass's lesson applied and paid off unplanned: haus#427 wrote the
-> new field 1 h 16 m before the lock moved to a pounce that knew it (`3b75c7a`,
-> 09:32Z), and nothing broke, because `ItemSettings.parse` ignores fields it
-> doesn't know. **A mirror that enumerates breaks on the app's next addition; a
-> mirror that only writes degrades.** And the checkable half was never pounce's
-> grammar: the base segment of a `workspaces` entry checks against
-> `haus._workspaces` + `haus._numberedWorkspaces`, which haus normalizes itself
-> and three rooms already read — no repo boundary, and the identical warning
-> (`unknownMembers`) is already in that same file.
+> because haus did **not** mirror pounce's matching grammar — nothing records
+> that as a decision, but it is the twenty-third pass's lesson holding either
+> way, and it paid off unplanned: haus#427 wrote the new field 1 h 16 m before
+> the lock moved to a pounce that knew it (`3b75c7a`, 09:32Z), and nothing
+> broke, because `ItemSettings.parse` ignores fields it doesn't know. **A mirror
+> that enumerates breaks on the app's next addition; a mirror that only writes
+> degrades.** And the checkable half was never pounce's grammar: the base
+> segment of a `workspaces` entry checks against `haus._workspaces` +
+> `haus._numberedWorkspaces`, which haus normalizes itself and three rooms
+> already read — no repo boundary, and the identical warning (`unknownMembers`)
+> is already in `modules/workspaces/default.nix`.
 
 
 > **Status, 2026-08-20 (thirty-first pass) — §6(f)'s surviving scope is an
@@ -5040,8 +5054,9 @@ break timer · storage pressure · NAS reachability · world clocks.
       08:15:49Z. It shipped with three readers in two repos — pounce filters the
       rows at summon time, `pounce doctor` names every scoped item and which
       rows the current page leaves out, and haus's own cheatsheet card appends
-      `· on T` to a scoped row's caption, "because the palette can't explain an
-      absent row; this can."
+      `· on T` to a scoped row's caption — `workspaces` only; that caption has
+      never read `bundleIds` — because, in the PR's own words, "The palette
+      can't explain an absent row; this can."
       **The two kinds this box had been adding together:** *descriptive* —
       nebelung's port metadata and `bar.widgets.<name>.permissions`, which state
       a property of the thing, where a reader is optional and one of the two
@@ -5063,14 +5078,19 @@ break timer · storage pressure · NAS reachability · world clocks.
       fails silently ----` — over the two checks (b) above is about: a key that
       names nothing, and a hotkey already claimed. haus#427 added a **third**
       way twenty lines above that header and did not touch it. `workspaces =
-      [ "Q" ]` is an error nowhere: haus writes it, pounce matches nothing, the
-      row is never listed, and the only surface that mentions it is `pounce
-      doctor`, which you run after you have already noticed. Every member of
-      that enumeration is still true and the list is no longer complete —
-      §5.14's newest row, in a comment, in the module the pass that wrote the
-      row was reading.
-      **Why it is uncaught is a decision, and the decision was right.** haus
-      declined to mirror pounce's matching grammar: the option is `listOf str`
+      [ "Q" ]` is an error nowhere: haus writes it, and on a machine that can
+      answer "which page am I on" the row is never listed, while on one that
+      cannot — no tiler, no recency file — pounce fails OPEN and lists it
+      everywhere. Two opposite silences from one typo. The only surfaces that
+      mention it at all are `pounce doctor`, which you run after you have
+      already noticed, and the cheatsheet caption, which renders `· on Q` as
+      confidently as it renders `· on T`. Every member of that enumeration is
+      still true and the list is no longer complete — §5.14's newest row, in a
+      comment, in the module the pass that wrote the row was reading, added
+      **66 minutes before that row merged**.
+      **Why it is uncaught looks like the right call, though nothing records
+      it as a call.** haus did not mirror pounce's matching grammar — haus#427's
+      commit message never mentions the question — and the option is `listOf str`
       with no validator, which is the twenty-third pass's lesson applied — the
       `shortcut:` disaster happened because haus held a closed ENUMERATION of
       pounce's prefixes and the app added one. It paid off unplanned here.
@@ -5091,10 +5111,11 @@ break timer · storage pressure · NAS reachability · world clocks.
       The precedent is in that same file and is the identical shape:
       `unknownMembers` warns when `haus.workspaces` names a roster app id that
       doesn't exist, on its own stated grounds that "the ONE thing that's
-      supposed to happen just never fires, with nothing to say why." A
-      **warning**, not an assertion, for the two reasons the field's own
-      description gives: the page suffix (`T/haus`) is created at runtime by
-      lanes and cannot be enumerated, and pounce fails open by design, so
+      supposed to happen … just never fires, with nothing to say why." A
+      **warning**, not an assertion, for two reasons the field's own description
+      supplies without drawing: the page suffix (`T/haus`) is created at runtime
+      by lanes, so it cannot be enumerated at eval, and pounce fails open by
+      design, so
       refusing a build over it would be stricter than the behaviour it guards.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
@@ -5576,7 +5597,7 @@ catch:
 | an IMPOSSIBILITY claim that is really a description of how the incumbent works — one premise stays true, a second is falsified by the same change, and the conclusion they carried is gone *(twenty-eighth pass — §5.1's "real sites are Stylus's job", retired by a build-time LESS compile in haus#416)* | asking what it would cost to do the thing ourselves, instead of asking why the existing route can't be reached. Every other row here describes an entry that *decays*; this one is wrong on the day it is written, and reads as a scoping decision rather than as a mistake, which is why nothing re-examines it |
 | a CORRECTION that reports itself as APPLIED — the paragraph says what the line "now reads" and the line was never touched; it need not even be deliberate, since *"reads 16 now"* parses equally as *the value is now 16*, and no reader can tell which *(thirtieth pass — §5.9's `15 bools`, quoted inside the correction while the line itself stays outside the hunk)* | grepping the file for the string the correction quotes as its **result** — once, before your own prose adds a copy of it. Every other row here is an entry decaying while nobody looks; this one is an edit that exists only in the prose announcing it, and it beats the staleness it describes, because a reader who notices the two disagree believes the newer sentence. Its sibling hazard is that a stale value can HEAL — haus#422 made §5.9's un-updated number right again — so a re-derivation is not always a repair, and neither is applying a correction you find unapplied |
 | an ENUMERATION written when a fix NARROWED an open limit — every member of it is still true and the list is no longer complete *(thirty-first pass — §6(f)'s "survives exactly where the model still allows two of something", drawn at the definition layer while the module system also merges declarations)* | asking what the seam actually BOUNDS, not spot-checking the members. Every other row here is an entry that decayed or an edit that never happened; this one is an entry that was improved — a limit got a seam, a pass wrote down what the seam left standing, and an enumeration is a stronger claim than the open sentence it replaced. It survives every check aimed at its members, because the error is the boundary they were drawn inside |
-| a rev that is true when MEASURED and false when PUBLISHED, spent on a NEGATIVE claim — the positive revs beside it age harmlessly *(thirty-second pass — the thirty-first's "pounce has not moved … so neither of §5.9's two open boxes could have closed", 66 minutes after pounce#92)* | writing the claim so a rev can bound it. This is row eleven's fix meeting the one clause it cannot reach: "haus was at `4e2dd61`" stays true forever, because it is a fact about a rev, while "neither box could have closed" is a statement about a section's future with no rev to attach and one job — to license not looking. The honest form says less and cannot go stale: *no box had closed as of `<rev>`*. It costs most where it is spent, because the section a pass excuses itself from checking is the section the excuse is about |
+| a rev that is true when MEASURED and false when PUBLISHED, spent on a NEGATIVE claim — the positive revs beside it age harmlessly *(thirty-second pass — the thirty-first's "nebelung … and pounce … have not moved since the twenty-ninth pass, so neither of §5.9's two open boxes could have closed", 66 minutes after pounce#92)* | writing the claim so a rev can bound it. This is row eleven's fix meeting the one clause it cannot reach: "haus was at `4e2dd61`" stays true forever, because it is a fact about a rev, while "neither box could have closed" is a statement about a section's future with no rev to attach and one job — to license not looking. The honest form says less and cannot go stale: *no box had closed as of `<rev>`*. It costs most where it is spent, because the section a pass excuses itself from checking is the section the excuse is about |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
