@@ -2,9 +2,10 @@
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
-(Three probes here aren't about macOS at all — `pack-priority.nix`,
-`preset-composition.nix` and `scale-reach.nix`, at the bottom — but they earn the
-same shelf: a claim in a notes file, with the command that proves it beside it.)
+(Four probes here aren't about macOS at all — `pack-priority.nix`,
+`preset-composition.nix`, `scale-reach.nix` and `namespace-collision.nix`, at the
+bottom — but they earn the same shelf: a claim in a notes file, with the command
+that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -274,3 +275,37 @@ does and doesn't move. Both turned out to be one measurement apart:
 ✅ The pinnable subset shipped the same day as the rice's `scale-reach` check —
 four scales, `moves` / `ceiling` / `pinned`, darwin-guarded beside `accent-reach`.
 This file keeps the census and the resolved values.
+
+## `namespace-collision.nix` — who owns `haus.<name>`
+
+```sh
+nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix
+nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix \
+  --arg haus ~/code/workshop/haus
+```
+
+Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
+step E — namespace arbitration. It measures three things the note had been
+asserting: what the module system does when two rooms claim one namespace, what
+haus's real desktop validator says to a desktop naming a stranger's room, and
+whether a fifteen-line consumer-side claim check can see any of it.
+
+- **the loud collision is the lucky one.** Two fully-described declarations of
+  one leaf throw, naming two store paths and no publisher; one *bare*
+  `mkOption`, or two rooms owning different leaves under the same namespace,
+  **merge silently** — and the second of those is what two independently written
+  rooms actually look like. One room ends up steering the other's switch with
+  nothing on the machine saying so;
+- **`_file` cannot name a publisher**, because an input's origin is gone by the
+  time it's a file in the store. Only `flake.lock` still knows, which is what
+  puts the naming job in `haus add` rather than in the module system;
+- **the desktop half needs no new machinery.** `modules/lib/desktop.nix` is
+  already parameterised on `registry`, so a room shipping its own registry
+  fragment is a merge at the call site. A fragment may reuse one of haus's
+  thirteen `hostOnlyReasons` keys and inherit its sentence, or name its own and
+  get the generic fallback — the default written for consumers pinned to an
+  older registry turns out to be the extension point.
+
+Also the one probe here that has RUN in a cloud container, which is a finding of
+its own: `github:` inputs 403 there, but the git proxy serves anonymous reads,
+so nixpkgs' pure `lib/` is one sparse clone away. The header says how.
