@@ -465,6 +465,125 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [[ "$output" != *"/tmp/wt/perch"* ]]
 }
 
+@test "wt_branch names a branch, a detached tree, and a checkout that's gone" {
+  # The regression: `set -euo pipefail` + a bare assignment from a git that
+  # exits 128 (a worktree dir deleted without a prune — a pane killed without
+  # the remove hook) aborted the WHOLE status run, silently, before the lock
+  # and release sections. And a detached tree exits 0 printing nothing, so an
+  # `|| echo` fallback can't cover it — the column came out blank.
+  mkmain haus
+  git -C "$ROOT/haus" worktree add -q -b worktree-blue "$TMP/wt-blue"
+  run wt_branch "$TMP/wt-blue"
+  [ "$status" -eq 0 ]
+  [ "$output" = "worktree-blue" ]
+
+  git -C "$ROOT/haus" worktree add -q --detach "$TMP/wt-det"
+  run wt_branch "$TMP/wt-det"
+  [ "$status" -eq 0 ]
+  [ "$output" = "(detached)" ]
+
+  rm -rf "$TMP/wt-gone"
+  run wt_branch "$TMP/wt-gone"
+  [ "$status" -eq 0 ]
+  [ "$output" = "?" ]
+}
+
+@test "lane_table renders a live lane, a parked one, and a stale branch" {
+  # The render loop itself: two defects (a tilde-mangled path fed back to git,
+  # so every lane read clean; an unclamped parked branch shearing the table)
+  # both survived a green suite of helper-only tests.
+  mkmain haus
+  WT_REGISTRY="$TMP/registry.tsv"
+  git -C "$ROOT/haus" worktree add -q -b worktree-live "$TMP/live"
+  echo scratch >"$TMP/live/uncommitted"
+  # a branch with an unmerged commit, no checkout and no registry row: a corpse
+  git -C "$ROOT/haus" worktree add -q -b worktree-dead "$TMP/dead"
+  git -C "$TMP/dead" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two
+  git -C "$ROOT/haus" worktree remove --force "$TMP/dead"
+  mkregistry "$WT_REGISTRY" \
+    "live $ROOT/haus worktree-live $TMP/live $ROOT/haus claude" \
+    "gone $ROOT/haus worktree-gone $TMP/no-such-checkout $ROOT/haus claude" \
+    "alien /Users/someone/other worktree-alien /wt/alien /Users/someone/other claude"
+
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-live"* ]]
+  [[ "$output" == *"dirty"* ]]                       # the checkout really is dirty
+  [[ "$output" == *"(parked — 'holt gone' to resume"* ]]
+  [[ "$output" == *"worktree-dead"* && "$output" == *"stale branch"* ]]
+  [[ "$output" == *"holt reap"* ]]                   # a live lane exists to reap
+  [[ "$output" != *"alien"* ]]                       # somebody else's repo
+}
+
+@test "lane_table prints nothing at all when there are no lanes and no corpses" {
+  mkmain haus
+  WT_REGISTRY="$TMP/no-such-registry.tsv"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "lane_table clamps a long branch on a parked row too" {
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "gone $ROOT/haus worktree-gone-with-a-very-long-lane-name-indeed $TMP/nope $ROOT/haus claude"
+  run lane_table
+  [[ "$output" == *"worktree-gone-with-a-very-long-…"* ]]
+}
+
+@test "lane_rows keeps hausfold + host-config lanes and drops everyone else's" {
+  # bench lists holt's registry, not `git worktree list` — git's answer includes
+  # hand-made trees holt never made and `holt reap` will never sweep, which is
+  # what made the two tools look permanently out of sync. The registry is
+  # machine-wide, so a lane in an unrelated repo is filtered out here.
+  WT_REGISTRY="$TMP/registry.tsv"
+  CONSUMER="$TMP/hostcfg"
+  mkregistry "$WT_REGISTRY" \
+    "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude" \
+    "site $ROOT/hausfold.co worktree-site /wt/site $ROOT/hausfold.co codex" \
+    "shop $ROOT worktree-shop /wt/shop $ROOT claude" \
+    "host $TMP/hostcfg worktree-host /wt/host $TMP/hostcfg claude" \
+    "alien /Users/someone/work/other worktree-alien /wt/alien /Users/someone/work/other claude"
+  run lane_rows
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-lane1"* ]]   # a family repo
+  [[ "$output" == *"worktree-site"* ]]    # hausfold, not family, still ours
+  [[ "$output" == *"worktree-shop"* ]]    # the workshop itself
+  [[ "$output" == *"worktree-host"* ]]    # ~/.config/nix
+  [[ "$output" != *"worktree-alien"* ]]   # somebody else's repo
+  [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" = 4 ]
+}
+
+@test "lane_rows emits repo, branch, checkout and lane name, tab separated" {
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude"
+  run lane_rows
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s' "$ROOT/haus" worktree-lane1 /wt/haus lane1)" ]
+}
+
+@test "lane_rows says nothing when holt has never written a registry" {
+  WT_REGISTRY="$TMP/no-such-registry.tsv"
+  run lane_rows
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "lane_label names the workshop and the host config, not their basenames" {
+  CONSUMER="$TMP/hostcfg"
+  run lane_label "$ROOT"; [ "$output" = workshop ]
+  run lane_label "$TMP/hostcfg"; [ "$output" = consumer ]
+  run lane_label "$ROOT/hausfold.co"; [ "$output" = hausfold.co ]
+}
+
+@test "dirty_cell is six COLUMNS wide either way" {
+  # `·` is two BYTES and one column, so printf '%-6s' pads it to six bytes —
+  # five columns — and shears every column to its right.
+  run dirty_cell dirty
+  [ "$output" = "dirty " ]
+  run dirty_cell '·'
+  [ "$output" = "·     " ]
+}
+
 @test "detect_lane populates LANE_SRC for every holt child, mapped to its family repo" {
   mkmain pounce
   # detect_lane's self-lookup is `git rev-parse --show-toplevel` (no -C), which

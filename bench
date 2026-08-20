@@ -611,10 +611,6 @@ commits_since() { # commits_since <repo> <tag> — user-facing commits on HEAD t
 }
 
 # Agent worktree bookkeeping, shared by status + ship.
-list_worktrees() { # list_worktrees <repo> — linked worktree paths, one per line
-  git -C "$(repo_dir "$1")" worktree list --porcelain 2>/dev/null \
-    | awk '$1 == "worktree" { print $2 }' | tail -n +2
-}
 unmerged_agent_branches() { # worktree-* branches not merged into the current HEAD
   git -C "$(repo_dir "$1")" branch --list 'worktree-*' --no-merged HEAD \
     --format='%(refname:short)' 2>/dev/null
@@ -631,6 +627,107 @@ branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
   [ -f "$WT_REGISTRY" ] || return 1
   awk -F'\t' -v r="$(repo_dir "$1")" -v b="$2" \
     '$2 == r && $3 == b { found = 1; exit } END { exit !found }' "$WT_REGISTRY"
+}
+# What `bench status` lists is holt's registry, NOT `git worktree list`. git
+# answers "what trees exist", which is a different question from "what agent
+# lanes exist": a hand-made `git worktree add` (a /tmp checkout, a before/after
+# compare tree) is in git's list and in no registry, and `holt reap` will never
+# sweep it. Printing those as lanes, under a hint telling you to reap them, is
+# what made bench and holt look permanently out of sync when they in fact
+# agreed about every real lane. holt is the source of truth; bench only filters
+# it down to the repos this machine's stack is built from — anything under the
+# workshop dir (family or not: trill, hausfold.co, the workshop itself) plus
+# the host config. holt's registry is machine-wide, so a lane in someone
+# else's repo is correctly none of bench's business.
+lane_rows() { # lane_rows — repo \t branch \t checkout \t lane-name, one per lane
+  [ -f "$WT_REGISTRY" ] || return 0
+  awk -F'\t' -v ws="$ROOT" -v under="$ROOT/" -v consumer="$CONSUMER" '
+    NF >= 4 && ($2 == ws || $2 == consumer || index($2, under) == 1) {
+      print $2 "\t" $3 "\t" $4 "\t" $1
+    }' "$WT_REGISTRY"
+}
+dirty_cell() { # dirty_cell <dirty|·> — a six-COLUMN cell; printf pads by bytes,
+               # and `·` is two bytes wide but one column, so %-6s comes up short.
+  case "$1" in
+    dirty) printf 'dirty ' ;;
+    *)     printf '·     ' ;;
+  esac
+}
+lane_label() { # lane_label <repo-dir> — the name this table calls that repo
+  case "$1" in
+    "$CONSUMER") echo consumer ;;   # ~/.config/nix, outside the workshop dir
+    "$ROOT")     echo workshop ;;   # the workshop IS ROOT
+    *)           basename "$1" ;;
+  esac
+}
+lane_table() { # lane_table — the agent-lanes section of `bench status`, or
+               # nothing at all when this machine has no lanes and no corpses.
+  # The rows are holt's registry (lane_rows), never `git worktree list`. Live
+  # lanes print first, then stale branches, then parked lanes — a registry row
+  # whose checkout holt removed, which is a resumable session, not a leak.
+  local wt_lines="" parked_lines="" any_stale=0 any_lane=0
+  local repo branch wt lane_name
+  while IFS=$'\t' read -r repo branch wt lane_name; do
+    [ -n "$repo" ] || continue
+    local label repo_c; label="$(lane_label "$repo")"; printf -v repo_c '%-12s' "$label"
+    # Lane names are long by design (they carry a uniquifying suffix), so clamp
+    # like status_running does — one name must not shear the whole table.
+    [ "${#branch}" -gt 32 ] && branch="${branch:0:31}…"
+    if [ -d "$wt" ]; then
+      any_lane=1
+      branch="$(wt_branch "$wt")"
+      [ "${#branch}" -gt 32 ] && branch="${branch:0:31}…"
+      local dirty dcol dirty_c where
+      dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
+      dcol="$C_MUT"; [ "$dirty" = dirty ] && dcol="$C_WARN"
+      dirty_c="$(dirty_cell "$dirty")"
+      # Abbreviate for the COLUMN only — every git call above wants the real
+      # path, and bash doesn't expand a tilde living inside a variable.
+      where="$wt"; case "$wt" in "$HOME"/*) where="~${wt#"$HOME"}" ;; esac
+      wt_lines+="$(printf '  %s%s%s %-32s %s%s%s %s%s%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
+        "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$where" "$C_OFF")"$'\n'
+    else
+      parked_lines+="$(printf '  %s%s%s %-32s %s%s%s %s(parked — '"'"'holt %s'"'"' to resume, or open a PR / delete)%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
+        "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$lane_name" "$C_OFF")"$'\n'
+    fi
+  done <<<"$(lane_rows)"
+  local name b
+  for name in "${FAMILY[@]}"; do
+    for b in $(unmerged_agent_branches "$name"); do
+      # A worktree-* branch with no checkout AND no registry row: not a lane
+      # holt can resume — a corpse whose PR squash-merged or was closed.
+      git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b" && continue
+      branch_is_parked "$name" "$b" && continue
+      any_stale=1
+      local repo_c; printf -v repo_c '%-12s' "$name"
+      [ "${#b}" -gt 32 ] && b="${b:0:31}…"
+      wt_lines+="$(printf '  %s%s%s %-32s %s%s%s %s(stale branch — no checkout, no registry row; open a PR or delete)%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$b" \
+        "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$C_OFF")"$'\n'
+    done
+  done
+  [ -n "$wt_lines$parked_lines" ] || return 0
+  echo
+  say "agent lanes (holt's registry — isolated checkouts; open a PR to land, never push to main)"
+  printf '  %s%-12s %-32s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
+  printf '%s%s' "$wt_lines" "$parked_lines"
+  # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
+  [ "$any_lane" = 1 ] && printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `holt reap`%s\n' "$C_MUT" "$C_OFF"
+  # shellcheck disable=SC2016
+  [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
+  return 0
+}
+wt_branch() { # wt_branch <checkout> — the branch to show for a lane's checkout
+  # The registry records the branch holt made, but the tree can have moved on
+  # (or been parked and rebuilt), so ask git and keep the registry as the
+  # fallback. Two different unknowns, and both used to render blank: a checkout
+  # whose dir is gone makes git exit 128 → '?', while a live but DETACHED tree
+  # exits 0 printing NOTHING, so an `|| echo` fallback never fires for it.
+  local b
+  b="$(git -C "$1" branch --show-current 2>/dev/null)" || { echo '?'; return; }
+  if [ -n "$b" ]; then echo "$b"; else echo '(detached)'; fi
 }
 
 status_running() { # the receipt a `try switch` left — FIRST section, because it
@@ -698,46 +795,7 @@ cmd_status() {
   [ "$any_ahead"  = 1 ] && hint "↑ unpushed: bench ship (pushes, then ripples the locks downstream)"
   [ "$any_behind" = 1 ] && hint "↓ behind origin: bench pull <repo> (or bare bench pull for all)"
 
-  # Agent worktrees + their branches — only speak up if any exist.
-  local wt_lines="" any_stale=0
-  for name in "${FAMILY[@]}"; do
-    local wt branch dirty
-    while IFS= read -r wt; do
-      [ -n "$wt" ] || continue
-      branch="$(git -C "$wt" branch --show-current 2>/dev/null || echo '?')"
-      local dcol; dcol="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && printf '%s' "$C_WARN" || printf '%s' "$C_MUT")"
-      dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
-      local repo_c dirty_c; printf -v repo_c '%-12s' "$name"; printf -v dirty_c '%-6s' "$dirty"
-      wt_lines+="$(printf '  %s%s%s %-24s %s%s%s %s%s%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
-        "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$wt" "$C_OFF")"$'\n'
-    done <<<"$(list_worktrees "$name")"
-    local b
-    for b in $(unmerged_agent_branches "$name"); do
-      # branches whose worktree is gone but whose commits aren't merged yet
-      if ! git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b"; then
-        local repo_c note; printf -v repo_c '%-12s' "$name"
-        if branch_is_parked "$name" "$b"; then
-          note="(parked — 'holt ${b#worktree-}' to resume, or open a PR / delete)"
-        else
-          any_stale=1
-          note="(stale branch — no checkout, no registry row; open a PR or delete)"
-        fi
-        wt_lines+="$(printf '  %s%s%s %-24s %s·      %s%s%s%s' \
-          "$C_REPO" "$repo_c" "$C_OFF" "$b" "$C_MUT" "$C_OFF" "$C_MUT" "$note" "$C_OFF")"$'\n'
-      fi
-    done
-  done
-  if [ -n "$wt_lines" ]; then
-    echo
-    say "agent worktrees (isolated Claude checkouts; open a PR to land — never push to main)"
-    printf '  %s%-12s %-24s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
-    printf '%s' "$wt_lines"
-    # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
-    printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `holt reap`%s\n' "$C_MUT" "$C_OFF"
-    # shellcheck disable=SC2016
-    [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
-  fi
+  lane_table
 
   echo
   say "lock edges (is anyone consuming an old version of anyone?)"

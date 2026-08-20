@@ -92,7 +92,10 @@ Never hand-walk that ripple; the tooling does it:
 - `./bench status` — leads with **what this machine is actually running**
   (the pinned build, or the local branches a `try switch` put on it), then
   every stale lock edge, dirty/unpushed repo, and agent worktree / unmerged
-  `worktree-*` branch. It also flags an **OFF-MAIN** edge — a lock pinned at a
+  `worktree-*` branch. The lane table **is** holt's registry (never `git
+  worktree list`), filtered to repos under the workshop dir plus the host
+  config — so a hand-run `git worktree add`, which `holt reap` will never
+  sweep, isn't in it at all. It also flags an **OFF-MAIN** edge — a lock pinned at a
   rev that isn't on that repo's `main`, which a hand-run `nix flake update`
   inside a PR produces and `bench ship` cannot. That pin resolves until the
   branch is deleted on merge, and then the downstream repo can't fetch its

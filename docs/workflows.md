@@ -70,7 +70,7 @@ looking at.
 
 ```sh
 # ⌘↵ lanes hack away on their own branches; meanwhile:
-./bench status               # …also lists agent worktrees + unmerged worktree-* branches
+./bench status               # …also lists agent lanes + unmerged worktree-* branches
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
 # an agent lands work by opening a PR — never by pushing to or merging into main:
@@ -92,6 +92,17 @@ holt reship [name]    # a session that kept committing after its PR merged: push
                       # the branch and open the follow-up PR (shown as live+N)
 holt reap             # sweep every LANDED worktree; keeps dirty/unmerged/occupied ones
 ```
+
+`bench status`'s lane table **is** holt's registry, filtered — not `git worktree
+list`. git's answer is "what trees exist", which includes hand-made ones (a
+scratch checkout for a before/after compare, a `/tmp` tree) that holt never made
+and `holt reap` will never sweep; listing those as lanes is what used to make
+the two tools look permanently out of sync. bench keeps the rows whose repo sits
+under the workshop dir — family or not, so `trill`, `hausfold.co` and the
+workshop itself all count — plus the host config (`~/.config/nix`, shown as
+`consumer`). A lane in an unrelated repo on the same machine is holt's business,
+not bench's. Use `holt child` for cross-repo work and it lands in that table;
+a raw `git worktree add` is invisible to both bench and the bar.
 
 Never `git stash` in these repos: the stash stack lives in the shared `.git`
 dir, so every worktree *and* the main checkout pop the same one, and parallel
