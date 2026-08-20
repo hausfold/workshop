@@ -173,6 +173,96 @@ already exist, and one it treated as a detail is the actual root blocker.
 > paragraph that no diff reads as a change to it.
 
 
+> **Status, 2026-08-20 (thirty-second pass) — §5.9's last box predicted that
+> "the third instance will declare into the same void." The third instance
+> shipped four hours after that sentence merged, with three readers in two
+> repos, and it still does not discharge the box, because the box has been
+> counting the wrong thing. First non-cloud pass in five, so every time below is
+> a `mergedAt` rather than a committer date.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
+> row eleven): workshop `main` = `origin/main` = `c8fe4d8`, haus = `9b64840`,
+> hausfold.co = `83a91c0`, pounce = `10fd02f`, holt = `564b5e6`, perch =
+> `f907516`, nebelung = `d76f124`. All seven read here; none carried from an
+> earlier pass, which is this pass's second finding.
+>
+> Landed since the thirty-first pass's revs: **ten haus PRs** (#425–#434,
+> 07:55:17Z → 14:23:31Z), their **nine site mirrors** (hausfold.co #101–#110),
+> **one pounce** (#92, 08:15:24Z), **two holt** (#48, #49) and three workshop
+> notes commits that are this file's own neighbours — #412, #413 and #414, steps
+> A, B and E0 of [`rooms-desktops.md`](./rooms-desktops.md). Across ten haus PRs
+> the option surface gained **exactly two leaves**, diffed key-for-key between
+> `4e2dd61` and `9b64840`: `haus.launcher.items.<name>.workspaces` and
+> `.bundleIds` — both in §5.9's room, which is where this pass ends up. 313
+> options and 35 namespaces (311 and 35 last pass). `bar.items` re-derived at
+> `9b64840` is **16 keys, 15 pills**, unchanged since the thirtieth pass, so the
+> header line's `15 bools` is right and stays untouched for the third pass
+> running.
+>
+> **The count is 8 at `c8fe4d8`**, re-derived with the command the last four
+> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`) — **and this pass adds the
+> ninth**, in §5.9, from the third finding below. A pass after this one should
+> find 9 and should not treat that as drift.
+>
+> ★ **The finding: §5.9's last box got its third instance and it doesn't count,
+> because that box has been enumerating declarations when the hazard belongs to
+> one kind of them.** The prediction merged in workshop#406 at 04:08:32Z
+> (twenty-eighth pass). pounce#92 merged at 08:15:24Z — `items` gains
+> `workspaces` and `bundleIds`, two per-item predicates deciding where a row is
+> LISTED — and haus#427 mirrored both into `haus.launcher.items` **25 seconds
+> later**. It arrived with three readers in two repos: pounce filters the rows
+> at summon time, `pounce doctor` names every scoped item and which rows the
+> current page leaves out, and haus's cheatsheet card appends `· on T` to a
+> scoped row's caption. Falsified prediction, unclosed box — which is only a
+> contradiction until the two kinds are pulled apart. **Descriptive**
+> declarations (nebelung's ports, `bar.widgets.<name>.permissions`) state a
+> property; a reader is optional, which is why one of the two hasn't got one.
+> **Operative** ones (`workspaces`, `bundleIds`) ARE the behaviour; a reader
+> cannot be missing, because a missing reader means the field does nothing. The
+> void is a hazard of the descriptive kind alone, this box's three questions are
+> all descriptive, and all three are still unbuilt at pounce `10fd02f`. The
+> instance count that bears on the box is still two, with one reader between
+> them. Written into the box, with what #92 does supply: `pounce doctor` is now
+> a place where a per-item declaration gets explained to a person, and the one
+> surface that could read all three fields at once.
+>
+> ★ **Second, and it is for §5.14: a rev can be true when measured and false
+> when published, and it is the NEGATIVE clause that pays.** The thirty-first
+> pass lists five fetched revs and then adds *"nebelung (`d76f124`) and pounce
+> (`adf03c5`) have not moved since the twenty-ninth pass, so neither of §5.9's
+> two open boxes could have closed."* The five are mutually consistent with one
+> read at ≈07:45Z, when `adf03c5` was still pounce's head — nothing there was
+> careless. That block merged at 09:21:21Z, **66 minutes** after pounce#92, and
+> by then the sentence was wrong about the repo and wrong about the section.
+> The asymmetry survives the excuse: a rev cited positively stays true forever,
+> because it is a fact about that rev, and row eleven's "date it at a rev" is a
+> complete defence. A rev spent on a negative claim has no such anchor — *"could
+> have closed"* is about a section's future, and its only job is to license not
+> looking. The honest form is *"no box had closed as of `<rev>`"*, which says
+> less and cannot go stale. And it costs most exactly where it is spent: the one
+> section that sentence excused itself from checking is the one that had moved,
+> an hour earlier, with the PR its own last box predicted.
+>
+> ★ **Third, and it is the previous pass's ledger row recurring one day later in
+> somebody else's code.** `modules/launcher/default.nix` carries the header
+> `---- validation: the two ways an items entry fails silently ----`, over the
+> two checks §5.9(b) is about. haus#427 added a third way twenty lines above it
+> and did not touch the header: `workspaces = [ "Q" ]` is an error nowhere — the
+> row is simply never listed. Every member still true, the list no longer
+> complete. Two things make it a box rather than a bug report. It is uncaught
+> because haus **declined** to mirror pounce's matching grammar, which is the
+> twenty-third pass's lesson applied and paid off unplanned: haus#427 wrote the
+> new field 1 h 16 m before the lock moved to a pounce that knew it (`3b75c7a`,
+> 09:32Z), and nothing broke, because `ItemSettings.parse` ignores fields it
+> doesn't know. **A mirror that enumerates breaks on the app's next addition; a
+> mirror that only writes degrades.** And the checkable half was never pounce's
+> grammar: the base segment of a `workspaces` entry checks against
+> `haus._workspaces` + `haus._numberedWorkspaces`, which haus normalizes itself
+> and three rooms already read — no repo boundary, and the identical warning
+> (`unknownMembers`) is already in that same file.
+
+
 > **Status, 2026-08-20 (thirty-first pass) — §6(f)'s surviving scope is an
 > ENUMERATION, and it has a third member that needs no strangers at all. Every
 > member of it is still true, which is why spot-checking it passes. Measured
@@ -4719,7 +4809,7 @@ power source, display attach.
       can't reach nixpkgs (§8), so `site-data-current` is the check that decides
       whether that guess was right.
 
-### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done, and now the bar's — `haus.bar.widgets` shipped 2026-08-19 (haus#404, `0dec9e8`), field-for-field off the sketch below. What stays open is the two pounce boxes: command packs, and commands declaring what they do**
+### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done, and now the bar's — `haus.bar.widgets` shipped 2026-08-19 (haus#404, `0dec9e8`), field-for-field off the sketch below. What stays open is THREE boxes in this room, not the two this header said until the thirty-second pass: command packs, commands declaring what they do, and — new on 2026-08-20 — the silent failure haus#427's `workspaces` predicate added twenty lines above the comment enumerating "the two ways an items entry fails silently"**
 `bar.items` is a closed submodule of 15 bools (13 when this was written — it
 grows by one every time a pill lands, which is the argument this box makes).
 *(Re-derived on the twenty-fourth pass and the number survived, which is worth
@@ -4938,6 +5028,74 @@ break timer · storage pressure · NAS reachability · world clocks.
       question, the reader is**, and whoever builds the pounce half should build
       one reader for both surfaces, or the third instance will declare into the
       same void.
+      ⚠️ **Amended 2026-08-20 (thirty-second pass): the third instance
+      arrived four hours after that sentence merged, it did NOT declare into a
+      void, and the box is still open — because this list has been counting
+      declarations when the hazard belongs to one kind of them.** The chain, all
+      `mergedAt`: the prediction merged in workshop#406 at 04:08:32Z;
+      [pounce#92](https://github.com/hausfold/pounce/pull/92) at 08:15:24Z gave
+      `items` two per-item predicates, `workspaces` and `bundleIds`, deciding
+      where a row is LISTED; [haus#427](https://github.com/hausfold/haus/pull/427)
+      mirrored both into `haus.launcher.items` **25 seconds later**, at
+      08:15:49Z. It shipped with three readers in two repos — pounce filters the
+      rows at summon time, `pounce doctor` names every scoped item and which
+      rows the current page leaves out, and haus's own cheatsheet card appends
+      `· on T` to a scoped row's caption, "because the palette can't explain an
+      absent row; this can."
+      **The two kinds this box had been adding together:** *descriptive* —
+      nebelung's port metadata and `bar.widgets.<name>.permissions`, which state
+      a property of the thing, where a reader is optional and one of the two
+      hasn't got one; and *operative* — `workspaces` / `bundleIds`, where the
+      declaration IS the behaviour, so a reader cannot be missing, because a
+      missing reader means the field does nothing and the feature was never
+      built. The void is a hazard of the descriptive kind alone. This box's own
+      three questions — mutates? needs confirm? needs network? — are all
+      descriptive, and all still unbuilt (checked at pounce `10fd02f`: no
+      `mutates`, no `needsConfirm`, one unrelated comment). So the instances
+      that bear on this box are still **two**, with one reader between them, and
+      the prediction stands unfalsified rather than confirmed. What #92 does
+      supply is the cheapest filling for the reader-shaped hole: `pounce doctor`
+      is now a surface where a per-item declaration is explained to a person,
+      and it is the one place that could read all three fields at once.
+- [ ] **A `workspaces` entry naming a page nothing produces fails silently, and
+      the check for it needs no repo boundary.** `modules/launcher/default.nix`
+      carries a section header — `---- validation: the two ways an items entry
+      fails silently ----` — over the two checks (b) above is about: a key that
+      names nothing, and a hotkey already claimed. haus#427 added a **third**
+      way twenty lines above that header and did not touch it. `workspaces =
+      [ "Q" ]` is an error nowhere: haus writes it, pounce matches nothing, the
+      row is never listed, and the only surface that mentions it is `pounce
+      doctor`, which you run after you have already noticed. Every member of
+      that enumeration is still true and the list is no longer complete —
+      §5.14's newest row, in a comment, in the module the pass that wrote the
+      row was reading.
+      **Why it is uncaught is a decision, and the decision was right.** haus
+      declined to mirror pounce's matching grammar: the option is `listOf str`
+      with no validator, which is the twenty-third pass's lesson applied — the
+      `shortcut:` disaster happened because haus held a closed ENUMERATION of
+      pounce's prefixes and the app added one. It paid off unplanned here.
+      haus#427 shipped at 08:15:49Z writing a field the LOCKED pounce
+      (`adf03c5`) had never heard of, and the lock did not move to `10fd02f`
+      until `3b75c7a` at 09:32Z — **1 h 16 m** of generated config carrying an
+      unknown key, harmless because `ItemSettings.parse` reads the fields it
+      knows and ignores the rest, the same tolerance haus's command headers
+      already rely on ("pounce ignores header fields it doesn't know"). **A
+      mirror that enumerates breaks on the app's next addition; a mirror that
+      only writes degrades.**
+      **But the checkable half was never pounce's grammar.** `haus.workspaces`
+      and `haus.windows.numberedWorkspaces` are this layer's own declarations,
+      already normalized into `haus._workspaces` and `haus._numberedWorkspaces`
+      by `modules/workspaces/default.nix` — ungated, and read by three rooms —
+      so the BASE segment of a `workspaces` entry (everything before the first
+      `/`) checks against a list haus itself owns, with no repo boundary in it.
+      The precedent is in that same file and is the identical shape:
+      `unknownMembers` warns when `haus.workspaces` names a roster app id that
+      doesn't exist, on its own stated grounds that "the ONE thing that's
+      supposed to happen just never fires, with nothing to say why." A
+      **warning**, not an assertion, for the two reasons the field's own
+      description gives: the page suffix (`T/haus`) is created at runtime by
+      lanes and cannot be enumerated, and pounce fails open by design, so
+      refusing a build over it would be stricter than the behaviour it guards.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
@@ -5418,6 +5576,7 @@ catch:
 | an IMPOSSIBILITY claim that is really a description of how the incumbent works — one premise stays true, a second is falsified by the same change, and the conclusion they carried is gone *(twenty-eighth pass — §5.1's "real sites are Stylus's job", retired by a build-time LESS compile in haus#416)* | asking what it would cost to do the thing ourselves, instead of asking why the existing route can't be reached. Every other row here describes an entry that *decays*; this one is wrong on the day it is written, and reads as a scoping decision rather than as a mistake, which is why nothing re-examines it |
 | a CORRECTION that reports itself as APPLIED — the paragraph says what the line "now reads" and the line was never touched; it need not even be deliberate, since *"reads 16 now"* parses equally as *the value is now 16*, and no reader can tell which *(thirtieth pass — §5.9's `15 bools`, quoted inside the correction while the line itself stays outside the hunk)* | grepping the file for the string the correction quotes as its **result** — once, before your own prose adds a copy of it. Every other row here is an entry decaying while nobody looks; this one is an edit that exists only in the prose announcing it, and it beats the staleness it describes, because a reader who notices the two disagree believes the newer sentence. Its sibling hazard is that a stale value can HEAL — haus#422 made §5.9's un-updated number right again — so a re-derivation is not always a repair, and neither is applying a correction you find unapplied |
 | an ENUMERATION written when a fix NARROWED an open limit — every member of it is still true and the list is no longer complete *(thirty-first pass — §6(f)'s "survives exactly where the model still allows two of something", drawn at the definition layer while the module system also merges declarations)* | asking what the seam actually BOUNDS, not spot-checking the members. Every other row here is an entry that decayed or an edit that never happened; this one is an entry that was improved — a limit got a seam, a pass wrote down what the seam left standing, and an enumeration is a stronger claim than the open sentence it replaced. It survives every check aimed at its members, because the error is the boundary they were drawn inside |
+| a rev that is true when MEASURED and false when PUBLISHED, spent on a NEGATIVE claim — the positive revs beside it age harmlessly *(thirty-second pass — the thirty-first's "pounce has not moved … so neither of §5.9's two open boxes could have closed", 66 minutes after pounce#92)* | writing the claim so a rev can bound it. This is row eleven's fix meeting the one clause it cannot reach: "haus was at `4e2dd61`" stays true forever, because it is a fact about a rev, while "neither box could have closed" is a statement about a section's future with no rev to attach and one job — to license not looking. The honest form says less and cannot go stale: *no box had closed as of `<rev>`*. It costs most where it is spent, because the section a pass excuses itself from checking is the section the excuse is about |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
