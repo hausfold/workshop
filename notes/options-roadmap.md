@@ -151,11 +151,82 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `keys`, `displays`, `lock`, `security.firewall`, `roster` — were never
 > code-named, so they were never a proposal about anything.) Two sketches is a
 > small sample and the point is not that this file predicted the rename; it is
-> that **for six weeks the document and the code used different words for the
-> same room and nobody experienced that as a contradiction**, because a sketch
-> reads as pseudocode. That is also how a doctored quote got in — see §6(b),
+> that **the document and the code used different words for the same room, for
+> long enough that nobody experienced it as a contradiction**, because a sketch
+> reads as pseudocode. ⚠️ **That sentence said "for six weeks" until 2026-08-20,
+> and the number is dropped rather than corrected** — it was measured from the
+> wrong end (this file dates itself 2026-07-25, three weeks before the rename)
+> and only the "earlier brainstorm" it refines could reach six, whose own date
+> nobody has. An interval no one can re-derive is worth less than the claim
+> without it; see the twenty-fifth pass's flag, below. That is also how a doctored quote got in — see §6(b),
 > where the same word appears inside a fenced block presented as measured output.
 
+
+> **Status, 2026-08-20 (twenty-ninth pass) — a shipping pass, not an audit: the
+> last Phase-5 item that needed code is built and in review, and this file
+> dropped a number rather than fix it.**
+>
+> Two things asked for, both done, and neither is a §5 box moving.
+>
+> **First, the naming banner's "for six weeks" is gone** — dropped, not
+> corrected, four passes after the twenty-fifth flagged it. The reason it could
+> never be fixed is the useful half: the interval was measured from the wrong
+> end (this file dates itself 2026-07-25, three weeks before the rename) and its
+> right end lives in the "earlier brainstorm" this document refines, which is
+> not in the repo and whose first `focus` nobody has. **An interval no one can
+> re-derive is worth less than the claim without it.** The banner now makes the
+> claim with no number and says in place that it used to carry one; §6(b)'s
+> dependent clause ("the dialect the banner credits for being six weeks early")
+> was re-pointed at what the banner actually credits. Deleting the number
+> silently was the other option and it is the shape this ledger exists to catch.
+>
+> **Second, §5.8's trigger daemon is BUILT** — `haus.focus.scenes.<name>.when`
+> plus `focus auto`, on haus's `worktree-focus-triggers`, with its docs half on
+> hausfold.co's branch of the same name.
+> The box stays `- [ ]` and the count below is unchanged at **9**, because
+> neither PR is merged: the twenty-fifth pass's rule (*a PR number inside a
+> `[x]` is a promise; only `mergedAt` keeps it*) is the one rule in this file
+> that was written by tripping over it, and a shipping pass is exactly when it
+> is tempting to break. Re-derived, same command as last pass:
+> `sed -n '/^## 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md
+> | grep -c '^- \[ \]'` — **9**, unchanged from `5421e3d`.
+>
+> ★ **The finding is about the sketch this file has carried since July, and it
+> is a good outcome rather than a drift one: the four triggers it named — time,
+> Wi-Fi SSID, power source, display attach — all shipped, and the fifth item on
+> that list was never a trigger at all.** "Pounce command" sat in the same
+> sentence as the other four from the first draft, and building the daemon is
+> what showed it is a different kind of thing: a palette row that enters a scene
+> is a PERSON pressing something, and it has existed since haus#381 without
+> anyone counting it. A list that mixes *conditions the machine can observe*
+> with *ways a human can ask* reads as one list for a year and then costs a
+> design conversation on the day someone implements it. **§5.14's shapes are all
+> about a claim going stale; this is a claim that was never one claim.**
+>
+> ⚠️ **And one correction this pass owes §5.8's own sketch:** the section
+> proposed the daemon as the thing standing between the room and "done", with
+> the reachability gap as a detour. Backwards, and the four days between them
+> prove it — a scene with no way in but a CLI is what surfaced
+> `apps.closeOnExit` (haus#408) and the palette rows (haus#381), because nothing
+> fires a trigger by hand often enough to notice that leaving a scene left OBS
+> running. The deferral was right for a reason its own box never states: **the
+> precondition wasn't "is a scene useful", it was "has anyone used one enough to
+> find the bugs".**
+>
+> **Verified, and the split matters more than usual because this pass wrote
+> code from a cloud container:** `test/focus-auto.sh` runs the real engine
+> (built by the same substitutions `default.nix` makes, not a copy) against
+> stubbed probes and a fake clock — 53 assertions, green, covering the edge
+> story in both directions, manual override of both kinds, a one-tick handover,
+> the midnight wrap, all three probed facts, the `system_profiler` fallback, a
+> scene deleted mid-flight, and a regression test that fails without the fix it
+> guards. `shellcheck --severity=warning` clean at 0.11.0; CI gains the lint and
+> the suite. **Not verified, and named in the PR rather than buried:** nothing
+> ran on a Mac — the four probe reads are exactly what `focus auto --probe`
+> checks in one command — no Nix evaluated anything (§8's ceiling, unchanged),
+> and `docs/site-data/` was regenerated **by hand**, which `site-data-current`
+> will either accept or refuse on its own. A hand-made generated file is a guess
+> with a check behind it, which is the only reason it was worth making.
 
 > **Status, 2026-08-20 (twenty-eighth pass) — §5.9's oldest unbuilt box closed,
 > and the layer shipped it with its five field names unchanged off this file's
@@ -602,6 +673,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > dates itself 2026-07-25**, three weeks before the rename, and only the
 > "earlier brainstorm" it says it refines could reach six. Whoever knows when
 > that brainstorm first wrote `focus` should fix the number or drop it.
+> → ✅ **Dropped 2026-08-20**, four passes later, because nobody does: the
+> brainstorm this file refines is not in the repo and its first `focus` is
+> unrecoverable, so there is no end to measure from. The banner now makes the
+> claim without an interval and says in place that it used to carry one — the
+> alternative, deleting the number silently, is the shape this ledger exists to
+> catch.
 >
 > Housekeeping: §5.8's header carries `◐` and its built-not-merged box is
 > written out; Phase 5's line moves from `[ ]` to `◐` and its closing sentence
@@ -766,8 +843,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > at all.) Nothing the block concludes is wrong — the error does name the option,
 > both files and the fix. What happened is that the transcriber **normalised the
 > quote into the document's own dialect**, the same dialect the banner above
-> credits for being six weeks early, and a paraphrase inherits the authority of a
-> paste the moment it sits inside a fenced block. ⚠️ **And it just became
+> credits for landing on the room's eventual word, and a paraphrase inherits the
+> authority of a paste the moment it sits inside a fenced block. ⚠️ **And it just became
 > uncatchable**: since haus#367 the string is a real option name, so nobody
 > reading this file tomorrow has any way to notice. Corrected in place at §6(b).
 >
@@ -4063,7 +4140,7 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a hacker desktop for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`) and so is the reachability gap it exposed (haus#381, `mergedAt 2026-08-16T20:10:48Z`); what stays open is the trigger engine this section's second box has always deferred**
+### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`) and so is the reachability gap it exposed (haus#381, `mergedAt 2026-08-16T20:10:48Z`); the trigger daemon — the last thing this section holds — is BUILT, on haus's `worktree-focus-triggers` (the PR link lands in the box below), and that box stays `- [ ]` until `mergedAt` says otherwise**
 `focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
@@ -4221,6 +4298,41 @@ power source, display attach.
       twenty-seventh pass's `pounce-item-grammar` finding in a place with no
       guard to fire; the durable citation is the identifier
       (`_contrib.launcher.focus`), never the line.
+      ◐ **Built 2026-08-20 on haus's `worktree-focus-triggers`, with its docs
+      half on hausfold.co's branch of the same name.** The box is deliberately
+      still `- [ ]`, and cites branches because the PRs were not open when this
+      was written — a rev is checkable and a number I don't have yet is not.
+      This file's
+      own rule is that *a PR number inside a `[x]` is a promise and only
+      `mergedAt` keeps it* (the twenty-fifth pass, which tripped on exactly
+      this), and neither PR is merged as this is written. What shipped, against
+      the four triggers this box has named since July: `scenes.<name>.when` with
+      `time` · `days` · `wifi` · `power` · `displays`, ANDed, and `focus auto`
+      as one launchd tick every `haus.focus.triggers.interval` (30s). The Pounce
+      command from the original list is **not** a fifth member and never was one
+      — a palette row that enters a scene has existed since haus#381, so
+      "trigger" there only ever meant "a person pressed something".
+      ★ **The finding is that the daemon's whole design is one promise —
+      it never overrides a state you chose — and that promise is what picks
+      every mechanism.** Entry is EDGE-triggered because level-triggering is
+      unusable rather than merely different: leave an auto-entered scene at
+      09:10 and a level daemon returns it at 09:10:30, forever, with no way to
+      refuse short of a rebuild. Entry happens only from a neutral Mac, and the
+      edge is spent whether or not it was acted on, so the daemon can't pounce
+      half an hour later when you go neutral. And it leaves only what it
+      entered — which is the scene engine's own *reverse only the levers you
+      pulled* rule (§5.8's own (c), and the assurance finding behind it) holding
+      one level up, unchanged. **A rule discovered for one layer paid for the
+      layer above it**, which is the opposite of how this document usually finds
+      out that two layers disagree.
+      ⚠️ Two things it can't see from here, both stated in the PR rather than
+      hidden: **nothing in it has run on a Mac** — the decisions are covered by
+      53 assertions in `test/focus-auto.sh` over stubbed probes, and the four
+      real reads (`pmset`, `networksetup`, `hausdisp`/`system_profiler`) are
+      what `focus auto --probe` exists to check in one command — and
+      `docs/site-data/` was regenerated **by hand**, because a cloud session
+      can't reach nixpkgs (§8), so `site-data-current` is the check that decides
+      whether that guess was right.
 
 ### 5.9 Open up Bar widgets and Pounce commands · M · risk M · ◐ **pounce's half done, and now the bar's — `haus.bar.widgets` shipped 2026-08-19 (haus#404, `0dec9e8`), field-for-field off the sketch below. What stays open is the two pounce boxes: command packs, and commands declaring what they do**
 `bar.items` is a closed submodule of 15 bools (13 when this was written — it
@@ -5603,7 +5715,10 @@ that visible, and turned up two things that were already broken:
       by being built the same day. **And on 2026-08-16 §5.8 stopped being that
       too**, two days later: this line is `◐` rather than `[ ]` because the
       declarative half is merged and the two follow-ups above are not
-      started. ⚠️ The first draft of this
+      started. **Both are since: the reachability gap merged (haus#381) and the
+      trigger daemon is built (haus's `worktree-focus-triggers`).** When that
+      merges, this line and §5.8's box move together — and Phase 5 has nothing
+      left needing code. ⚠️ The first draft of this
       sentence went further and said Phase 5 *"now has no item whose next step is
       write the thing"* — which the same pass's own §5.8 box contradicts, since
       it recommends building the palette surface **before** the triggers. Phase 5
