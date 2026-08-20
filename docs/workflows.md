@@ -15,14 +15,9 @@ Three command-line tools, two jobs — keeping them straight is half the battle:
 
 `haus` and `bench` never overlap — named apart on purpose so they can't shadow
 each other (`haus` = your machine; `bench` = these repos). `holt` is a dev tool
-haus puts on `PATH` regardless of whether you contribute. (A fourth, `zscratch`,
-lived here until 2026-08-19: it feel-tested a zellij edit without a rebuild, and
-went with zellij — Ghostty hot-reloads its own config, so there is nothing left
-to scratch.)
-
-(`holt` has [its own repo](https://github.com/hausfold/holt); haus takes it
-as a flake input. Its bash predecessor `wt.sh` has been retired entirely — there
-is no fallback to roll back to.)
+haus puts on `PATH` regardless of whether you contribute, and has
+[its own repo](https://github.com/hausfold/holt); haus takes it as a flake
+input.
 
 ## Daily driving
 
