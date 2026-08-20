@@ -158,9 +158,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 
 
 > **Status, 2026-08-20 (twenty-eighth pass) — §5.9's oldest unbuilt box closed,
-> and the layer shipped it field-for-field off this file's own July sketch. Two
-> other entries were falsified the same night, and the pass's own finding is the
-> twenty-seventh's, one day later and inside a single repo.**
+> and the layer shipped it with its five field names unchanged off this file's
+> own July sketch. Three other claims were falsified — one of them written
+> three days earlier — and the pass's own finding is the twenty-seventh's, a
+> day later and inside a single repo.**
 >
 > Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
 > row eleven): workshop `main` = `origin/main` = `1960252`, haus = `148c303`.
@@ -172,7 +173,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > twenty-fourth pass's rule arriving as a constraint rather than a discipline.
 >
 > Landed in haus since `dc86913` (#400, 2026-08-19T06:00:30Z) — seventeen PRs
-> in twenty-one hours, plus three flake-input bumps:
+> in twenty-one hours (21 h 16 m, `dc86913`→`148c303`), plus four
+> flake-input bumps:
 > #401 (zellij gone), #402 (the AI room owns its payload), **#403 and #405,
 > which are already recorded here** — ticked on 2026-08-19 by two single-purpose
 > notes commits (`0257e30` §5.2's motion, `77f23ed` §5.6's tenth group), not by
@@ -180,8 +182,19 @@ already exist, and one it treated as a detail is the actual root blocker.
 > #414 (the third naming rule, whose record is [`rooms-desktops.md`](rooms-desktops.md)),
 > #408 and #413 (focus, below), #410 (the free-key validator's diagnostic),
 > #411 (jcode dropped), #415 (a lane stops needing the tiler), #416 (below),
-> #417 (below). Plus holt#43–#47, hausfold.co#72–#92, perch#77–#79, and
-> pounce#89/#90, which the last pass already read.
+> #417 (below).
+>
+> Elsewhere in the family, and split by whether this file has actually read it,
+> because the first draft of this line waved the lot past as already-read:
+> **read by the last pass** — pounce#89/#90, holt#43–#46, hausfold.co#72–#78.
+> **New since `f449cc9` (2026-08-19T06:19:48Z) and read here** — holt#47
+> (`f48d8fc`), perch#78/#79, and **fourteen** hausfold.co PRs, #79–#92, five of
+> which are the documentation half of exactly what this pass audits: #83
+> (writing your own pill), #84 (`apps.closeOnExit`), #86 (what a shared desktop
+> may do with each option, which renders `widget-entries`' rule sentence), #91
+> (lanes without the windows room) and #92 (the Zen callout carrying both
+> routes). Waving a docs repo past as already-read is how docs drift survives an
+> audit, so the split stays in the format.
 >
 > **One §5 box closes.** [haus#404](https://github.com/hausfold/haus/pull/404)
 > (`0dec9e8`, 2026-08-19T08:34:54Z) makes `haus.bar.items` sugar over an open
@@ -207,7 +220,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   2026-08-19T09:50:02Z) added `apps.closeOnExit`; eight leaves with
 >   `description`, re-derived from `options.json` at `148c303` rather than read
 >   off the commit.
-> - **§5.8's reachability ✅, four days old.** It cites
+> - **§5.8's reachability ✅, three days old** (haus#381 `mergedAt
+>   2026-08-16T20:10:48Z` → haus#413 `82894a4` 2026-08-20T00:22:41Z = 3 d 4 h;
+>   it reads as "four days" only if you count calendar dates, which row eleven
+>   is about). It cites
 >   `modules/launcher/default.nix:224` reading `config.haus.focus.scenes`;
 >   [haus#413](https://github.com/hausfold/haus/pull/413) (`82894a4`,
 >   2026-08-20T00:22:41Z) made Focus *contribute* the pill and the palette rows
@@ -217,7 +233,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 >   in prose is a mirror of another file's formatting** — last pass's finding,
 >   in prose, where no guard can fire.
 >
-> **The pass's own finding, and it is that same coupling costing CI two hours:**
+> **The pass's own finding, and it is that same coupling costing CI just under
+> three hours:**
 > haus#410 reworded the free-key validator's diagnostic and the golden table in
 > `flake.nix` kept the old wording, so `desktop-seam` was red on main from
 > `8a6b9d6` (2026-08-20T00:21:37Z) until #417 re-synced it by hand at `148c303`
@@ -235,12 +252,25 @@ already exist, and one it treated as a detail is the actual root blocker.
 > room dependency is one fewer thing a `writer` desktop has to inherit to get an
 > unrelated feature.
 >
-> **What's left, in one place — ten literal `- [ ]` markers in §5, down from
-> the eleven the twenty-sixth pass counted.** Both counts include the
-> `- [ ] ✅` that sits *inside* §5.1's prose as a quotation and is not a box, so
-> **nine are markers on their own line and eight of those are live** — one is
-> superseded rather than open. The twenty-sixth pass's three-way split survives,
-> and one of its three buckets has emptied:
+> **What's left, in one place — nine open boxes across §5.1–§5.13, down from
+> twelve, and eight of the nine are live** (the ninth is struck through as
+> superseded). Basis, because the last two attempts at this number had none:
+> markers at the start of a line, between `## 5.` and `### 5.14` —
+> `sed -n '/^## 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md
+> | grep -c '^- \[ \]'` — **9** at `5421e3d` against **12** at `05699f7`, the
+> twenty-sixth pass's own commit. Three closed in between, all three recorded in
+> this file: `0257e30` (§5.2's `motion`), `77f23ed` (§5.6's tenth group) and
+> haus#404 above.
+> ⚠️ **That pass's "eleven" was an enumeration, not a count**, and it said
+> "counted as the literal `- [ ]` markers in §5" — a literal count of its own
+> file gives 12, 13 or 17 depending on whether prose quotations and §5.14 are
+> in, and none of them is eleven. So the honest delta is 12 → 9, not 11 → 10,
+> and reporting it the second way would have made three closed boxes look like
+> one. The fifth pass's rule — *quote the command that produced a count* — has
+> been in this file since 2026-08-06 and this is the first time it has been
+> turned on one of these passes' own headline numbers.
+> The twenty-sixth pass's three-way split survives, and one of its three buckets
+> has emptied:
 >
 > - **Code:** §5.9's two remaining boxes, both pounce's — command packs, and
 >   command metadata, where the schema question is now answered twice over and
@@ -274,7 +304,10 @@ already exist, and one it treated as a detail is the actual root blocker.
 > layer), all at haus `148c303`:
 > `jq -r 'keys[]' docs/site-data/options.json | grep -cE '^haus\.bar\.items\.'`
 > = 17 → 16 pills once `claudeUsage`'s deprecated alias is dropped, unchanged
-> from last pass; the same query for `^haus\.bar\.widgets` = 7 leaves;
+> from last pass; the same query for `^haus\.bar\.widgets` = 7 keys, which is
+> **six leaves under one container** and not the "seven new leaves" #404's own
+> body claims — the difference between a key list and a leaf count, which is
+> the fifth pass's rule applied to a number this file was about to inherit;
 > `^haus\.focus\.scenes\.<name>\.` = 8; and each of the ledger's seven check
 > names looked up in `flake.nix` — all seven present, none renamed, in a file
 > that now declares 26 `runCommand` checks rather than 25
@@ -2682,7 +2715,10 @@ haus.theme = {
       true** (rice#208's second half + rice#211 + nebelung#22). Switching to
       sapphire left github.com and youtube.com mauve: the rice places Zen's
       `userChrome`/`userContent` per accent, but `userContent` only styles
-      `about:` pages. Real sites are **Stylus's** job, and its Catppuccin-derived
+      `about:` pages **⟨as placed — see the 2026-08-20 amendment below: haus#416
+      appends compiled `@-moz-document` sections to that same file, so this
+      clause is true only of a machine that leaves `haus.zen.userStyles` at its
+      default `[ ]`⟩**. Real sites are **Stylus's** job, and its Catppuccin-derived
       styles carry their own accent var in the extension's storage, which no file
       the rice writes can reach. Fixed by declaring the extension and stamping a
       bundle (`haus.zen.extensions.stylus`) — which then also gave
@@ -2701,7 +2737,12 @@ haus.theme = {
       accent var in the extension's storage, which no file the rice writes can
       reach — is still true *of Stylus*; what fell is the sentence it was there
       to support, **"Real sites are Stylus's job"**, because ruling out one
-      route is not ruling out the space.
+      route is not ruling out the space. ⚠️ The box's *other* premise did not
+      survive: "`userContent` only styles `about:` pages" was falsified outright
+      by the same PR, and is scoped in place above rather than left standing
+      fourteen lines from the sentence that contradicts it — found by this
+      pass's assurance read, which is the second time that step has caught this
+      file asserting and denying one thing in a single box.
       → ★ **The generalisable half: an impossibility claim that is really a
       description of how the incumbent works.** The reason the accent stopped at
       `about:` pages was that Catppuccin's userstyles are LESS which **Stylus
@@ -4158,8 +4199,9 @@ power source, display attach.
       IFD, because the names come from the option rather than from a
       derivation. The trigger daemon is the whole of what this box still
       holds.
-      ⚠️ **And that ✅ is false about its mechanism four days later, which is
-      worth more than the correction.** Since
+      ⚠️ **And that ✅ is false about its mechanism three days and four hours
+      later — `mergedAt 2026-08-16T20:10:48Z` against `82894a4`
+      2026-08-20T00:22:41Z — which is worth more than the correction.** Since
       [haus#413](https://github.com/hausfold/haus/pull/413) (`82894a4`,
       2026-08-20T00:22:41Z) the launcher does **not** read
       `config.haus.focus.scenes`: Focus *contributes* two declared points —
@@ -4202,8 +4244,8 @@ pills — and the number has stopped being the argument.** Same command, same
 scope, and this time it survived, which matters less than what happened
 underneath it: `bar.items` is **sugar** since haus#404, so the closed submodule
 still lists sixteen bools and is no longer the only door — `bar.widgets.<name>`
-takes a seventeenth from any rice, and from a desktop for everything except the
-`command`. The count will keep needing re-derivation and will stop being
+takes a seventeenth from any **host**, and from a shared **desktop** for
+everything except the `command`, which stays host-only. The count will keep needing re-derivation and will stop being
 evidence of anything; a number that outlives the claim it was recruited for is
 the cheapest thing in this file to keep and the easiest to keep believing.
 Pounce commands were
@@ -4243,14 +4285,26 @@ break timer · storage pressure · NAS reachability · world clocks.
       `claudeUsage` alias, a moved focus pill — generating byte-identical
       SketchyBar files apart from header comments.
       Four things worth carrying:
-      **(a) the July sketch above shipped field-for-field.** Those five names
-      are the ones in the block, unchanged, down to `placement = "right"` being
-      a real value of a real enum. That is the naming banner's observation about
-      this section arriving as evidence: **where this file sketched in a room's
-      own vocabulary it aged well**, and where it borrowed a plain English word
+      **(a) the July sketch above shipped field-for-field — the FIELD NAMES,
+      and not one of the values.** Those five names are the ones in the block,
+      unchanged. That is the naming banner's observation about this section
+      arriving as evidence: **where this file sketched in a room's own
+      vocabulary it aged well**, and where it borrowed a plain English word
       (§5.8's `scenes`) the tree took the word and the sketch quietly started
-      proposing something else. Sketches are cheap; the vocabulary they're
-      written in is what decides whether they survive contact.
+      proposing something else.
+      ⚠️ **And the first draft of this paragraph over-claimed by one word,
+      caught by the assurance read: `placement = "right"` is a real value of a
+      real enum and it does not mean what the sketch meant.** Per the shipped
+      option's own text, `"menu-bar"` is the top bar and where every pill goes
+      unless something says otherwise; a bare `"right"` is the **bottom** bar's
+      right group, the spelling `haus.bar.bottom.items` uses, and it needs
+      `haus.bar.bottom.enable` — which #404 asserts on, so the sketch's `backup`
+      pill copied out of this file lands on a bar the reader may not have
+      turned on. The sketch's own shape, in other words: a name survives a
+      three-week gap and a **value** doesn't, because a value is only meaningful
+      against an enum that didn't exist when it was written. Sketches are cheap;
+      the vocabulary they're written in decides whether they survive contact,
+      and their example values don't survive at all.
       **(b) the desktop seam splits the open form down the middle.**
       `widgets.<name>.command` is **host-only** — a desktop that can add a timer
       running arbitrary shell is no longer a file you can read to know what it
@@ -4275,8 +4329,9 @@ break timer · storage pressure · NAS reachability · world clocks.
       **(d) one promise was removed rather than kept**, which is the honest half:
       the first draft's prose named `haus doctor` and a generated
       `widgets_config.sh` as today's reader of `permissions`. Neither exists, so
-      the commit says the field is a declaration and nothing more. See the third
-      box below — same shape, and it has a sibling now.
+      the commit says the field is a declaration and nothing more. See the
+      `Commands declare:` box — the last one in this section — which is the same
+      shape and has a sibling now.
 - [x] ✅ **Pounce's window sizing is an option now** (pounce#53 + rice#175).
       `windowMode` had been written straight into `config.json` with no option at
       all; it is `haus.pounce.windowMode` now, and it gained a sibling —
@@ -4336,11 +4391,21 @@ break timer · storage pressure · NAS reachability · world clocks.
       command, the consumer reads it.
       ⚠️ **Amended 2026-08-20: it landed a second time, in a third room, and the
       half that didn't come with it is the second clause of that sentence.**
-      `haus.bar.widgets.<name>.permissions` (haus#404, `0dec9e8`) enumerates the
-      eleven macOS grants a pill may ask for — accessibility, automation,
-      calendar, contacts, full-disk-access, location, microphone, network,
-      photos, reminders, screen-recording — and the layer requests none of them,
-      nothing reads the list, and the option's own text says so out loud. So the
+      `haus.bar.widgets.<name>.permissions` (haus#404, `0dec9e8`) enumerates
+      eleven values — accessibility, automation, calendar, contacts,
+      full-disk-access, location, microphone, network, photos, reminders,
+      screen-recording — of which **ten are macOS grants**: the option's own text
+      says `network` "is not a macOS grant at all, and is here because 'this
+      pill talks to the internet' is the property people actually want to see on
+      a widget they didn't write". The layer requests none of them, nothing
+      reads the list, and the description says that out loud too. ★ **And it
+      says it by quoting this box.** Its closing line — *"the declaration lives
+      with the thing, the consumer reads it"* — is the sentence three lines
+      above, arriving in a generated options page by way of a PR, which is the
+      friendliest version of reason 1 this file has recorded: the prose crossed
+      the repo boundary even though nothing mechanical could carry it. What
+      didn't cross is that the second clause is true of nebelung's ports and not
+      yet of this field. So the
       shape exists twice and only nebelung's ports have a consumer. That is not
       a complaint about #404: a widget you didn't write can be read for what it
       reaches for, which earns the field on its own, and naming a reader that
@@ -4808,7 +4873,7 @@ catch:
 | a sketch borrows a plain English word, and the CODEBASE later adopts that word for something it already had *(twenty-fifth pass — §5.8 proposed a `scenes` namespace with `focus` demoted to an alias, three weeks before the room rename made `focus` a room's name)* | reading a sketch against today's option tree rather than against its own vocabulary — the entry never goes stale, never gets falsified, and never disagrees with its marker; it just quietly starts proposing something else |
 | a box ticked for work that is BUILT but not MERGED — the first shape with its clock reversed, and the worse one *(twenty-fifth pass, caught by its own assurance read: §5.8 was written `- [x] ✅ shipped` while haus#376 was `"state":"OPEN"`)* | reading the PR's **state**, not its diff. Rule 1 sends a reader to the repo to confirm a ticked box, and here the repo says no — so the box doesn't just mislead, it burns the check that was supposed to catch it. A PR number in a tick is a promise; only `mergedAt` keeps it |
 | a claim naming a FUNCTION, a check or a format that the repo has since retired — the entry stays true about what shipped and false about what exists *(twenty-seventh pass — §3.3's `checkRice` box, and the ledger's `packs` row, both retired by haus#386)* | grepping the repo for the identifier, not for the sentence. A rename that preserves the count is the dangerous one: the number a reader spot-checks stays right while the roster under it rots |
-| an IMPOSSIBILITY claim that is really a description of how the incumbent works — the premise stays true and the conclusion it carries is false *(twenty-eighth pass — §5.1's "real sites are Stylus's job", retired by a build-time LESS compile in haus#416)* | asking what it would cost to do the thing ourselves, instead of asking why the existing route can't be reached. Every other row here describes an entry that *decays*; this one is wrong on the day it is written, and reads as a scoping decision rather than as a mistake, which is why nothing re-examines it |
+| an IMPOSSIBILITY claim that is really a description of how the incumbent works — one premise stays true, a second is falsified by the same change, and the conclusion they carried is gone *(twenty-eighth pass — §5.1's "real sites are Stylus's job", retired by a build-time LESS compile in haus#416)* | asking what it would cost to do the thing ourselves, instead of asking why the existing route can't be reached. Every other row here describes an entry that *decays*; this one is wrong on the day it is written, and reads as a scoping decision rather than as a mistake, which is why nothing re-examines it |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -5255,18 +5320,26 @@ than from this section: `data-only-surface`, `accent-reach`, `app-collections`,
 `fragment-compat`, `scale-reach`, `font-reach`, `pounce-item-grammar` — all
 seven present, none renamed, in a file that now declares **26** `runCommand`
 checks — `git show 148c303:flake.nix | grep -c runCommand`, the same command
-returning 25 at `6ba56c8`, the rev the last pass read. **Fifteen ★ findings,
-seven checks, three warnings — every number unmoved**, and the honest reason is
-that neither ★ below left a tripwire behind: one is a shapes-table row about
-this document's own prose, the other is a candidate nobody has swept. This
-section's second half says a finding that generalises should leave a check, not
-a paragraph; two paragraphs is what this pass has. The
+returning 25 at `6ba56c8`, the rev the last pass read. **Seven checks and three
+warnings, both unmoved, and the ★ count is left where the last pass put it at
+fifteen rather than advanced**, which needs saying plainly: this pass produced
+four ★ paragraphs (§5.1's impossibility shape, §5.9's borrowed sentence, §5.8's
+`file:line` mirror, and the candidate below) and **not one of them left a
+tripwire behind**, so counting them would inflate the only number here that is
+supposed to mean "something can break if this stops being true". The count has
+never had a written rule for what qualifies — the twenty-sixth→twenty-seventh
+step moved it 14 → 15 for a single ★ that also shipped nothing — so read
+"fifteen" as *the last figure derived under the old habit*, and read the seven
+and the three as the numbers that are actually checkable. This section's second
+half says a finding that generalises should leave a check, not a paragraph;
+four paragraphs is what this pass has. The
 re-derivation answers the same narrow question it did last pass and no wider one
 — *does each of these seven still exist* — and the ledger's structural hole is
 unchanged: nothing mechanical knows which of the other nineteen a finding here
 asked for.
 
-★ **`desktop-seam` was red on main for about three hours for the same reason
+★ **`desktop-seam` was red on main for just under three hours (2 h 55 m,
+`8a6b9d6`→`148c303`) for the same reason
 `pounce-item-grammar` was red for a day, and the two are one shape.**
 [haus#410](https://github.com/hausfold/haus/pull/410) (`8a6b9d6`,
 2026-08-20T00:21:37Z) taught the free-key validator to reject tabs and reworded
@@ -5461,17 +5534,27 @@ that visible, and turned up two things that were already broken:
 
 **Phase 4 — the non-dev Mac**
 - [x] §5.7 `haus set` — done 2026-08-07; see the twelfth-pass status note.
-- ◐ §5.6 curated settings groups — **nine of the table's ten rows now carry a
-      shipped marker:** hot corners + screenshots (rice#198), then `lock` (lock
-      half only), `menuBar.{clock,controlCenter}` and `security.firewall`
-      (rice#250), then `sound`, `locale` and `power` (rice#267), then the tenth
-      group (rice#286). *(This line read "eight of nine" until the seventeenth
-      pass; §5.6's own header had said ten since #286 landed — the phase list
-      drifting from the section again, which is the fourteenth pass's finding
-      recurring in the same place it was first found.)* The one row
-      left is **deferred on a reason**: Windows is logout-only. Two *halves*
-      inside shipped groups are deferred on that same reason — `lock`'s login
-      half and `security`'s guest-user/remote-login half.
+- [x] §5.6 curated settings groups — **all ten rows carry a shipped marker**:
+      hot corners + screenshots (rice#198), then `lock` (lock half only),
+      `menuBar.{clock,controlCenter}` and `security.firewall` (rice#250), then
+      `sound`, `locale` and `power` (rice#267), then the tenth group (rice#286),
+      then **Windows, `lock`'s login half and `security`'s guest half**
+      (haus#405, 2026-08-19T07:31:33Z), which were the three deferred on one
+      shared reason — their domains are logout-only — and shipped on a third
+      fact table, `modules/lib/login-map.nix`, that renders the wait into each
+      option's own description. Nothing is deferred here any more; what stays
+      deliberately unbuilt is not a row but a key, remote login, which is not a
+      `defaults` key at all. *(This line read "eight of nine" until the
+      seventeenth pass and "nine of ten … the one row left is deferred" until
+      2026-08-20, both times while §5.6's own header already said otherwise —
+      **the same line, drifting from the same section, for the third time**, and
+      the fourteenth pass's finding was first found here. `77f23ed` ticked the
+      section header and the box and did not touch this line; the twenty-eighth
+      pass's assurance read is what caught it. That the same sentence rots three
+      times says the mitigation — *when you tick a box, read the phase line that
+      names it* — is a habit nobody can be relied on to keep, which is an
+      argument for §5.14's other rule: the phase list is a second checkbox
+      surface and it is the one with no reader.)*
 - ◐ §5.9 — **pounce's half arrived from the app side (pounce#43), the rice-side
       item generator shipped in rice#149, and the bar half shipped 2026-08-19
       (`haus.bar.widgets`, haus#404).** **Two** boxes remain, both pounce's:
@@ -5615,8 +5698,8 @@ the remaining work sits changed shape:
   *(Emptier again, 2026-08-20: `bar.widgets` shipped in haus#404, so Phase 4
   holds pounce command packs and command metadata — and the metadata half now
   exists twice as a **declaration with no reader**, in nebelung's ports and in
-  the bar's new `widgets.<name>.permissions`. See §5.9's third box: what's left
-  to build there is the consumer, not the schema.)*
+  the bar's new `widgets.<name>.permissions`. See §5.9's last box, `Commands
+  declare:` — what's left to build there is the consumer, not the schema.)*
 - Phase 5's §5.12 has its doctor half, so the accessibility line item is now
   purely about the remaining unmeasured keys. **Built out since (haus#356,
   2026-08-14), down to those keys and nothing else**, and the sentence above was
