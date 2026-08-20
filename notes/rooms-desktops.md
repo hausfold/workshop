@@ -52,6 +52,28 @@ this note defines the product model the code and docs should converge on.
 > §[its findings](#findings-carried-out-of-step-b) and
 > [`probes/source-shapes.sh`](./probes/source-shapes.sh).
 
+> **2026-08-20, later still — step C is designed, and running the command it
+> extends found that `haus show` had never worked on a machine.** The design is
+> the third thing here argued from a probe rather than from memory
+> ([`probes/machine-diff.sh`](./probes/machine-diff.sh)), and it is the cheapest
+> of the three: the module system already exposes the whole arbitration as one
+> number per option, so the diff reads it instead of modelling it, and the
+> stranger contributes only the option NAMES to the reader's own evaluation —
+> never their file, never their values. What it cost was three claims and one
+> live bug: a `nix eval` on a consumer flake **writes that consumer's lock**, a
+> store path printed out of an evaluation is **a name rather than a location**
+> under lazy trees (three evals, three names, none on disk), and the checker path
+> `haus show` has shipped with since step A resolved through two symlinks into a
+> `restrict-eval` refusal on **every single invocation on a Mac** — invisible
+> because the suite runs the packaged wrapper, whose checker is a store path with
+> no symlink in it. See
+> §[Step C](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room),
+> §[what running it first found](#findings-that-arrived-before-the-step-did) and
+> §[what building it found](#findings-carried-out-of-step-c). Both halves are
+> built: [haus#447](https://github.com/hausfold/haus/pull/447) and
+> [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), which
+> leaves **D, E1 and F** as the unbuilt ones.
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -1201,13 +1223,18 @@ path it just reads it. Then it prints, in order:
    cannot infer from either file alone;
 5. what it does *not* set, so the reader knows what stays theirs.
 
-**Built, as of 2026-08-20: 1, 2, 3 and 5.** 1 arrived in two halves — the
+**Built, as of 2026-08-20: all five.** 1 arrived in two halves — the
 local-file half with step A (a local file has no origin and no revision, and
 `show` says so rather than leaving the line out) and the remote half with step
 B, which also split the one date into two, since [the source's is not the
 fetch's](#what-the-lock-records-and-the-one-word-this-note-had-wrong) and only
-one of them is recorded anywhere. 4 is step C, and its slot is marked in the
-script so it extends the frame rather than reinventing it.
+one of them is recorded anywhere. 4 arrived with
+[step C](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room)
+the same evening, and it is narrower than this list implies: "machine-wide
+claims" is not a category the registry has, so what the diff says per leaf is
+whether the value LANDS — and the loud line is the one naming the leaves that
+do not, because a host line outranks any desktop and nothing else on the machine
+says so.
 
 `haus show --json` for CI, per `notes/agent-surface.md`. That single command
 collapses the first line of the publish checklist in `desktops/sharing.mdx`
@@ -1550,6 +1577,271 @@ execution rather than implying the rebuild is.
   no-inference rule all survive; what B adds is a fetch phase in front of the
   read step A already built, and a store path where a local path used to be.
 
+### Step C, designed — the machine answers, and the stranger's file is not in the room
+
+> ✅ **Built the same day** — [haus#447](https://github.com/hausfold/haus/pull/447)
+> with [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120). No
+> rule below changed; what the build added is one distinction this design had
+> collapsed and three findings about the tests, in
+> §[its findings](#findings-carried-out-of-step-c).
+
+Designed 2026-08-20 against haus `bfc6e98` and the consumer this Mac runs, and
+measured rather than recalled: every row below is a row of
+[`probes/machine-diff.sh`](./probes/machine-diff.sh)'s output, plus a live
+prototype of the query run against `~/.config/nix`. Three claims died doing it —
+one of them a shipped command that has never worked, found by running the thing
+this step extends before extending it.
+
+[B's prediction about C](#what-b-settles-about-c-and-d) holds exactly: three
+acts, and the stranger participates in one. What the measurement adds is that
+the third act is *cheap* and that the module system will answer the question
+directly instead of being modelled.
+
+#### The query, and why the stranger is not in it
+
+`show` already ends holding the candidate's leaves as **data** — a list of
+option paths and JSON values, produced by the guarded read. Step C adds one more
+evaluation, of the reader's **own** flake, which the candidate's file is no part
+of:
+
+```text
+act 1  fetch          the source, unguarded, running nothing
+act 2  read           it under the guard → { path, value } per leaf
+act 3  ask the machine   one `nix eval` over the consumer's darwinConfiguration,
+                         asking what it currently says about THOSE PATHS
+```
+
+Act 3 never imports the candidate. What crosses from the stranger into the
+reader's evaluation is a **list of option names** — not their file, not their
+values, not a module. That is a narrower airlock than the JSON round-trip this
+note had been imagining, and it is narrow enough to state in one line: *the
+stranger contributes only the questions, never the answers.*
+
+⚠️ **Names are still input.** The query cannot be a file — measured: a `--apply`
+expression may not `import` an absolute path in pure evaluation mode — so it is
+an inlined string, and every path in it is a place a `"` or a `${` becomes Nix.
+`haus show` already escapes exactly this way for the subject path; the same
+helper covers this, and the checker's own pass is the second belt (a **failing**
+desktop gets no diff at all, because its leaf names are not names the registry
+has vouched for).
+
+#### `highestPrio` is the arbitration, and it is one number per leaf
+
+The ladder `flake.nix` documents — 100 the host, 900 the desktop seam, 1000 a
+room's `mkDefault`, 1500 the declared default — is not something the command has
+to re-derive. Every option node carries `highestPrio`, and it is the whole
+answer:
+
+| what the machine says | what it means for the candidate |
+|---|---|
+| `highestPrio < 900` | **it never lands.** Something on this machine — your host line, an `extraModules` — outranks any desktop. The value in the file is decoration here |
+| `highestPrio == 900` | the desktop you have now sets it, and the candidate **replaces** that value |
+| `highestPrio > 900` | nothing outranks a desktop, so the candidate's value **lands** over a room's default or the declared one |
+
+That is the row this section has wanted since it was written, and it is worth
+being blunt about how visible it is on a real machine: on this one, three of
+`hacker`'s twenty-three leaves — `haus.theme.accent`, `haus.ai.default`,
+`haus.ai.clients` — come back at **100**. A stranger's desktop setting an accent
+would change nothing here and say nothing about it. The diff's most useful line
+is the one about the leaves that do *not* move.
+
+**And the list rule falls out of the same number** rather than needing its own
+mechanism. Lists merge only among definitions at the *same* priority — measured
+both ways: a host's plain `[ "host" ]` over a desktop's `mkOverride 900
+[ "desktop" ]` evaluates to `[ "host" ]`, while two plain definitions concatenate
+to `[ "host2" "host" ]`. So "a host naming that list replaces it whole" is
+`highestPrio < 900` on a `listOf`, and the warning the note asked for is a
+rendering decision, not a second analysis.
+
+#### What the option tree will not tell you, and what to say instead
+
+Three limits, all measured, and each one is a sentence the report owes rather
+than a hole to paper over.
+
+- **Losing definitions are invisible.** `definitionsWithLocations` and `files`
+  carry only the winners, so a leaf the *current* desktop sets and the candidate
+  does not cannot be shown reverting to anything: the room's `mkDefault`
+  underneath it is not in the tree. The honest report names the leaf, its value
+  today, and says it goes back to whatever haus decides — and does not guess a
+  number. (The candidate's own set is known, and so is the current desktop's:
+  `config.haus._desktop.sources` is in the same evaluation, and importing it
+  there costs 0.12s and no trust, since it is already the file this machine
+  rebuilds from.)
+- **`files` at 1500 names the declaration, not a definition.** Rendered as "your
+  host sets this", it would accuse `modules/appearance/options.nix` of setting an
+  option nobody set. `files` is only a who-set-it answer when `highestPrio < 1500`.
+- **A dynamic `attrsOf` sub-path has no option node at all.** `haus.roster.slack.key`
+  is unreachable under `options` — measured on a machine that has that exact key
+  defined. So every leaf under one of the registry's eleven **recursive**
+  containers (`roster`, `workspaces`, `launcher.items`, `focus.scenes`,
+  `bar.widgets`, …) can be compared **by value** and never by priority. The
+  registry already marks them, so the split is read off the same table the
+  checker uses rather than discovered per path — and the report says which half
+  of it a line is in, because "we cannot tell you who wins here" is information
+  and silence is not.
+
+#### A read-only query is not automatically a read-only command
+
+**`nix eval` on a consumer flake writes its `flake.lock`** the moment the lock
+needs changes — measured: delete the lock, evaluate one attribute, and a 6 KB
+lock file appears. Step B's exit gate `cksum`ed the config directory around a
+`show` run and could not have caught it, because that run never evaluated the
+consumer's flake. C is the first act that does.
+
+`--no-update-lock-file` is the right one and `--no-write-lock-file` is the
+plausible wrong one. Both leave the directory untouched; they differ in what
+they do with a lock that is incomplete. `--no-write-lock-file` **resolves the
+missing inputs in memory and answers anyway** — which means the diff describes a
+machine the reader has not got, computed against pins nobody chose, possibly
+after a fetch. `--no-update-lock-file` **refuses**, naming the lock. For a
+command whose entire output is "what your machine becomes", being told *your
+lock is not the one your machine would rebuild from* is the answer, and inventing
+a pin to avoid saying so is the failure. Same instinct as `tarball-ttl 0` in
+step B: the one command that reports provenance cannot quietly improve it.
+
+#### What C deliberately does not get
+
+- **It is not `haus plan`.** This is a **leaf-level** diff, and consequences are
+  not leaves: turning `haus.bar.enable` off changes packages, files, services and
+  launch agents that nothing here enumerates. `haus plan` already answers that
+  and needs a **build** to do it. So C reports what the candidate *sets* against
+  what your machine *says*, points at `haus plan` for the rest, and never implies
+  it has run one. The exit gate is "step D's prompt has real content", not "the
+  reader can skip the rebuild preview".
+- **No second evaluation of the merged machine.** `extendModules` exists on a
+  darwinConfiguration and would give a genuinely merged "after" — but it cannot
+  remove the desktop already in the module list, so it buys fidelity on the half
+  `highestPrio` already answers exactly and nothing on the half that is actually
+  hard. Rejected for cost that buys the wrong half.
+- **No cost worth optimising.** The whole query — 23 leaves, values, types,
+  priorities and definers, plus importing the current desktop — runs in **0.13s**
+  on this machine, warm. It is a rounding error against the fetch, and there is
+  no case for caching it.
+
+#### Findings that arrived before the step did
+
+Two, both from running the shipped command against a real machine rather than
+reading it, and neither is about step C's design.
+
+- **🚨 [4] `haus show` has never worked on a machine.** Every invocation, local
+  source and remote alike, since it shipped:
+
+  ```text
+  ✗ /tmp/writer.nix could not be evaluated. Nix says:
+    access to absolute path '/private/var/run/current-system/sw/share/haus/
+    desktop-check/read.nix' is forbidden in restricted mode
+  ```
+
+  `CHECK` defaults to `/run/current-system/sw/share/haus/desktop-check`, which is
+  two symlinks from where the checker is — `/run` → `private/var/run`, then
+  `sw/…/desktop-check` → the store. `restrict-eval` judges the path Nix
+  **resolved**, so `-I "$CHECK"` allowed the logical spelling while the
+  interpolated `${CHECK}/read.nix` resolved to `/private/var/run/…` and was
+  refused. Step B applied `pwd -P` to the *subject* for exactly this reason, with
+  a comment explaining the macOS symlink, and never to the tool's own path.
+
+  What makes it a 4 rather than a 3 is why it was invisible. The suite is
+  thorough — 464 lines, exit codes, JSON envelope, a hostile fixture, a
+  writes-nothing check — and it runs the **packaged wrapper**, whose checker is a
+  store path with no symlink in it. So the tested configuration and the shipped
+  configuration differed in the one property under test, and every green run was
+  green about something else. **A guard configured from a path needs a fixture
+  whose path is shaped like the real one**, which here means one deliberate
+  symlink; that is the regression test now, and it is portable, because a symlink
+  is a thing every platform has. Fixed in the same session it was found — [haus#447](https://github.com/hausfold/haus/pull/447), the first commit of two, kept separate so it can be taken without the feature.
+
+  It also says something about the exit gates in the table above. B's read
+  "proven by the guard rather than by inspection of the script" — and it was, on
+  a store path handed to the suite. Nobody ran `haus show` on the Mac it had just
+  been installed on. **The cheapest possible check on a shipped verb is running
+  it the way a person would**, and this section had gone two steps without it.
+
+- **[3] Under lazy trees a store path out of an evaluation is a name, not a
+  location.** Three evaluations of one pinned input, on a clean tree, returned
+  **three different** `…-source` paths, and the last one **does not exist on
+  disk**; `builtins.readFile` on it works fine *inside* the evaluation that
+  produced it. (Determinate Nix 3.15.1 / Nix 2.33.0, `lazy-trees = true`.)
+
+  Step C dodges it by doing its reading inside the eval that produced the path,
+  which is why the current-desktop half of the diff costs nothing. **Two shipped
+  diagnostics do not dodge it.** E0's warning names the file declaring an
+  unclaimed namespace, and the module system's duplicate-declaration throw names
+  two store paths — and this note has been treating that as *unhelpful* ("`_file`
+  cannot name a publisher") when on this Nix it is worse: the path cannot be
+  opened, and two runs name the same file differently, which reads as two
+  different rooms. The E design's conclusion is unchanged and its reason is
+  stronger — **any diagnostic that has to name who to blame must be written by
+  the thing holding the lock** — but the interim message should say *the file
+  your input `<name>` shipped* rather than handing over a path, and E1's claim
+  table is what makes that sentence possible. Carried into E1 rather than fixed
+  here.
+
+#### Findings carried out of step C
+
+`haus show`'s machine half shipped on 2026-08-20, the same day it was designed
+([haus#447](https://github.com/hausfold/haus/pull/447) with
+[hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120)). The design
+survived being built — no rule in it changed, `highestPrio` is the arbitration,
+the airlock is names-only, and the whole command runs in 0.4s including the
+read. What building it added is one distinction the design had collapsed, and
+three findings about the *tests* rather than the command, which is where a step
+whose subject is "the reader's own machine" was always going to find them.
+
+- **[2] "No option node" and "no such option" are different answers, and one bit
+  cannot carry both.** The first build reported every unrankable leaf the same
+  way, so a desktop shipping `haus.focus.scenes.presenting.preventSleep` to a
+  machine with no scene called `presenting` was told *this machine's haus has
+  never heard of it* — which is false, sends the reader to `haus update` for a
+  version gap that does not exist, and reads as a broken desktop rather than a
+  new entry in a container the machine knows perfectly well. The fix is to walk
+  UP: the longest prefix of the path that is an option is what the machine
+  actually knows about, and naming it (`inside haus.focus.scenes`) is both the
+  correct answer and a better one. General form worth keeping: **an absent path
+  has at least two causes, and a lookup that returns a boolean has already
+  picked the wrong one.**
+
+- **[2] TAB is an IFS *whitespace* character, so an empty field silently shifts
+  every later one left.** The report's rows are tab-separated and read with
+  `IFS=$'\t' read -r a b c d e`; a leaf with no type — which is every leaf
+  inside a container — collapsed its two adjacent tabs into one, handed the
+  container's name to `$type`, and rendered as `(inside )`. Not a crash and not
+  a wrong value: a blank where a name goes, in the one line that exists to
+  explain why a verdict is missing. Every field gets a non-empty placeholder
+  now. The trap is old and this note's family has hit it before; what is new is
+  where it bites — **a renderer that adds an optional field breaks the parsing
+  of the fields after it**, so the hole opens at the moment a column becomes
+  nullable rather than when it is read.
+
+- **[2] A suite that reads the developer's own machine is green in two places
+  for two different reasons.** `show` now compares against
+  `${HAUS_CONSUMER:-$HOME/.config/nix}`, and nothing in the suite said
+  otherwise — so every assertion in it depended on whatever haus config the
+  person running it happened to have. On a Mac it compared against a real
+  machine; on CI, which has none, it compared against nothing and skipped the
+  whole section; both printed `ok`. The suite exports `HAUS_CONSUMER` at a
+  directory that does not exist, up front, and the step C section points it at a
+  stand-in it builds. This is the same shape as the step A bug found the same
+  day — **the tested configuration and the shipped one differing in the property
+  under test** — arriving by a completely different route, which is twice in one
+  session and worth treating as a class rather than two incidents.
+
+- **[2] The test double IS the query's contract, and writing it down is what
+  makes it one.** Step C's tests do not build a nix-darwin system: they build a
+  flake whose `darwinConfigurations.testbox` is a plain `lib.evalModules` result
+  with a `pkgs.lib` bolted on. That is not a shortcut around a slow test — it is
+  the honest statement of what the query needs, which is **four attributes**:
+  `pkgs.lib`, `options`, `config`, and `config.haus._desktop.sources`. Every
+  verdict becomes assertable on the Linux runner, offline, in about a second,
+  including the two the real machine cannot produce (a leaf your haus has never
+  heard of needs a checker NEWER than your pin; a host-outranks-desktop leaf
+  needs a host that sets one). What it cannot catch is nix-darwin changing the
+  shape of those four — so the double buys coverage and the Mac run buys
+  truth, and the step needed both.
+
+- **[1] `leaf$(plural "$n")` spells "leafes".** The report's one irregular
+  plural, in the count line of five sections. A `leaves()` helper beside
+  `plural()`, which is less clever and correct.
+
 ### Step E, designed — the machine claims the namespace, not a registry
 
 Designed 2026-08-20 against haus `ffcdb0a` (the `2026.08.20` tag) and
@@ -1848,9 +2140,9 @@ behaviour, findings reported rather than folded in, and the
 
 | Step | Status | Work | Durable evidence | Exit gate |
 |---|---|---|---|---|
-| **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. |
+| **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. ⚠️ **Met for a publisher's CI and not, until 2026-08-20, for anyone on a Mac** — the command [failed on every input there](#findings-that-arrived-before-the-step-did) from the day it shipped, and the gate's own wording is why nobody looked: it names the audience that runs the packaged wrapper. Fixed in [haus#447](https://github.com/hausfold/haus/pull/447). |
 | **B. Remote sources, read-only** | **done** — [haus#435](https://github.com/hausfold/haus/pull/435) + [hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111), [designed here](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one), [findings](#findings-carried-out-of-step-b) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | Met. A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard rather than by inspection of the script (the fetched source can reach nothing outside its own store path), and proven for the *config* by running the whole command from inside a directory that has a consumer flake and cksum-ing it either side. Two things the gate did not ask for and the build owes anyway: `show` fetches a **tree** and never locks one, so the inertness covers a room too; and Nix's error text is a rendering path a remote party can write into. |
-| **C. The machine diff** | not started | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
+| **C. The machine diff** | **done** — [haus#447](https://github.com/hausfold/haus/pull/447) + [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), [designed here](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room), [findings](#findings-carried-out-of-step-c) | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. One further evaluation — of the READER's flake, which the candidate's file is no part of — asking what the machine currently says about the paths the guarded read produced. `highestPrio` per leaf is the arbitration (100 your host · 900 the desktop you have · >900 nothing outranks a desktop), so the list-replacement rule is the same number rather than a second analysis. `--no-update-lock-file`, because [`nix eval` writes a lock](#a-read-only-query-is-not-automatically-a-read-only-command) and a diff computed against pins nobody chose is worse than a refusal. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list — plus a fixture for each of the three limits the option tree has ([losers invisible, `files` at 1500, a dynamic `attrsOf` sub-path](#what-the-option-tree-will-not-tell-you-and-what-to-say-instead)), since each is a sentence the report owes rather than a case it can skip. The mechanism half is measured in [`probes/machine-diff.sh`](./probes/machine-diff.sh). | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. ⚠️ And one the gate did not ask for and B's did not either: **the command is run the way a person runs it, on the machine it was installed on** — the omission that [hid a total failure of `haus show` for two steps](#findings-that-arrived-before-the-step-did). |
 | **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
 | **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
 | **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
@@ -2165,6 +2457,13 @@ clearest argument for that pass this note has yet produced.
   to write what a command *does* and let the absence of a feature be silent:
   "takes a local path" needed no expiry date, and "remote sources come later"
   did.
+
+- **⚠️ And the whole command was broken on a machine the entire time, which
+  none of the findings above could see.** Every run above was the packaged
+  wrapper or the script with `HAUS_DESKTOP_CHECK` pointed at a store path; the
+  DEFAULT path goes through `/run`, resolves elsewhere, and `restrict-eval`
+  refused it. Found the next day, by
+  [running `haus show` on this Mac before extending it](#findings-that-arrived-before-the-step-did), and fixed in [haus#447](https://github.com/hausfold/haus/pull/447).
 
 - **[1] The suite that proves a network feature runs offline.** `git+file://`
   and `file+file://` are the same two fetchers `github:` and `file+https://`
