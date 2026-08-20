@@ -21,22 +21,36 @@ this note defines the product model the code and docs should converge on.
 > that afternoon**, [haus#429](https://github.com/hausfold/haus/pull/429) plus
 > [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107): the
 > reserved `haus.my.*` prefix, the promise as a check, and a warning naming an
-> unregistered `haus.<name>` and every file declaring under it. Everything else
-> in the Acquisition plan is still unbuilt, re-checked at the same dispatch table.
+> unregistered `haus.<name>` and every file declaring under it. **Step B landed
+> that evening** — [haus#435](https://github.com/hausfold/haus/pull/435) — so
+> `haus show` now takes a source as well as a file, with
+> [hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111) beside it.
+> C, D, E1 and F are still unbuilt, re-checked at the same dispatch table.
 > One of [step A's findings](#findings-carried-out-of-step-a) is a hole in the
 > section's trust story rather than in the command: reading a stranger's desktop
 > is itself an evaluation, so **the closed schema governs what a desktop can
 > declare, and a sandbox governs what reading one can do** — two protections,
-> and every step from B on needs the second.
+> and every step from B on needs the second. Step B found the
+> [third](#findings-carried-out-of-step-b): the moment a command fetches, a
+> remote party's bytes reach what it prints, and neither of the first two is
+> looking at that.
 
-> **2026-08-20, later — step B is designed**, against Nix 2.34.8 in a cloud
-> container with no Mac and no haus checkout. Second thing in this note argued
-> from a probe rather than from memory, and it cost three claims: the sandbox
-> step A built **cannot fetch**, it does **not keep its per-file precision** on
-> anything fetched, and `flake.lock` has **never recorded a fetch date** — a
-> phrase this note has carried since 2026-08-16. See
-> §[Step B](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one)
-> and [`probes/source-shapes.sh`](./probes/source-shapes.sh).
+> **2026-08-20, later — step B is designed, and then built.** The design ran
+> against Nix 2.34.8 in a cloud container with no Mac and no haus checkout —
+> second thing in this note argued from a probe rather than from memory, and it
+> cost three claims: the sandbox step A built **cannot fetch**, it does **not
+> keep its per-file precision** on anything fetched, and `flake.lock` has
+> **never recorded a fetch date** — a phrase this note had carried since
+> 2026-08-16. The build then held every rule of it and moved one the other way:
+> the act that runs no publisher code is **fetching**, not `flake = false`, so
+> `show --room` is inert at a remote source too. It also found the surface this
+> section had no name for — **a stranger's bytes reach what the command
+> prints**, through Nix's error text and through the desktop's own values alike
+> — which is a third protection beside the schema and the sandbox, and one every
+> later step inherits. See
+> §[Step B](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one),
+> §[its findings](#findings-carried-out-of-step-b) and
+> [`probes/source-shapes.sh`](./probes/source-shapes.sh).
 
 ## The model
 
@@ -1187,10 +1201,13 @@ path it just reads it. Then it prints, in order:
    cannot infer from either file alone;
 5. what it does *not* set, so the reader knows what stays theirs.
 
-**Built, as of 2026-08-20: 2, 3 and 5, plus the local-file half of 1** (a local
-file has no origin and no revision, and `show` says so rather than leaving the
-line out). 4 is step C and the remote half of 1 is step B; both slots are marked
-in the script so a later step extends the frame rather than reinventing it.
+**Built, as of 2026-08-20: 1, 2, 3 and 5.** 1 arrived in two halves — the
+local-file half with step A (a local file has no origin and no revision, and
+`show` says so rather than leaving the line out) and the remote half with step
+B, which also split the one date into two, since [the source's is not the
+fetch's](#what-the-lock-records-and-the-one-word-this-note-had-wrong) and only
+one of them is recorded anywhere. 4 is step C, and its slot is marked in the
+script so it extends the frame rather than reinventing it.
 
 `haus show --json` for CI, per `notes/agent-surface.md`. That single command
 collapses the first line of the publish checklist in `desktops/sharing.mdx`
@@ -1300,17 +1317,50 @@ live exposure somewhere other than where this section had been looking for it.
   the point the source is chosen, which is the only point where switching to a
   repo source is cheap. ⭐ **Measured 2026-08-20, and it is worse than
   "nothing to show":** Nix's own update line for a `file` node is one arrow,
-  one URL, no left-hand side and no hash — *identical* to what it prints when
-  nothing moved, while the content underneath has changed. The warning this
+  one URL and no hash, while the content underneath has changed. The warning this
   shape earns is therefore not "there is no changelog" but "**your update line
   will look like a no-op**", and `cmd_update` should print the narHash pair
   itself for a `file` node, since it is the only field that moves and Nix will
   not show it.
 
+  ⭐ **Re-measured 2026-08-20 on Nix 2.33.0, and the shape is one notch
+  different from what the probe reported.** There IS a left-hand side; both
+  sides are the same URL, byte for byte:
+
+  ```text
+  • Updated input 'rawFile':
+      'file:///…/writer.nix'
+    → 'file:///…/writer.nix'
+  ```
+
+  And when nothing moved, Nix prints **no update line at all** — so "identical
+  to what it prints when nothing moved", which this note said until now, was
+  never right either. The probe's row only grepped for a line starting with the
+  arrow, so it saw the second half of a two-line block and reported the first as
+  missing; the note then wrote down what the probe could see. That is the
+  failure mode of a measured claim rather than an argument for going back to
+  recalled ones: **a probe that greps one line out of a multi-line block
+  measures the grep.** The user-facing conclusion is unchanged and slightly
+  sharper — an arrow with the same string on both ends is a stronger "nothing
+  happened" signal than a line with one end missing.
+
 ### Step B, designed — fetch and read are two acts, and the guard covers one
 
+> ✅ **Built the same day** — [haus#435](https://github.com/hausfold/haus/pull/435).
+> The design survived intact and the command is the shape below: fetch outside
+> the guard, read inside it, report the source's date as the source's and stamp
+> the fetch. What the build added is
+> [its own findings](#findings-carried-out-of-step-b), two of which matter here:
+> a *correction upward* — the inert act is fetching rather than `flake = false`,
+> so `show --room` stays honest at a remote source too — and a surface this
+> section had no name for. A stranger's bytes reach the report, through Nix's
+> error text **and** through the desktop's own values, which carry `ESC` past
+> `toJSON` untouched. The second one had been there since step A and only became
+> dangerous when the input started arriving from a stranger.
+
 Designed 2026-08-20 against **Nix 2.34.8** (Determinate 3.21.9), from a cloud
-container with no macOS and no haus checkout. Still nothing built. Every row
+container with no macOS and no haus checkout — nothing built at the time of
+writing; the banner above is what happened next. Every row
 below is a row of [`probes/source-shapes.sh`](./probes/source-shapes.sh), which
 builds throwaway git repos in a `mktemp` dir and runs real `nix eval` and `nix
 flake lock` against them — 20 rows in seconds, no Mac; `PROBE_REMOTE=` adds two
@@ -1320,7 +1370,11 @@ more over a genuine remote source.
 from the workshop, so these are claims about the *mechanism* `haus show` stands
 on, not about the command. Nothing here claims a rebuild outcome, and nothing
 here was read off haus's own script. Rerun it on a Nix bump: the granularity
-rows are evaluator behaviour, which is exactly what a release moves.
+rows are evaluator behaviour, which is exactly what a release moves. (The
+command that now stands on it was built and tested against **Nix 2.33.0** on
+macOS, i.e. an *older* evaluator on a different platform, and every row that
+matters to it reproduced — so these claims have now held across two Nixes and
+two OSes rather than one of each.)
 
 #### The guard cannot fetch, and the fetch cannot be guarded
 
@@ -1780,7 +1834,7 @@ behaviour, findings reported rather than folded in, and the
 | Step | Status | Work | Durable evidence | Exit gate |
 |---|---|---|---|---|
 | **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. |
-| **B. Remote sources, read-only** | not started, [designed](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard, not by inspection of the script: the fetched source can reach nothing outside its own store path. |
+| **B. Remote sources, read-only** | **done** — [haus#435](https://github.com/hausfold/haus/pull/435) + [hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111), [designed here](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one), [findings](#findings-carried-out-of-step-b) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | Met. A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard rather than by inspection of the script (the fetched source can reach nothing outside its own store path), and proven for the *config* by running the whole command from inside a directory that has a consumer flake and cksum-ing it either side. Two things the gate did not ask for and the build owes anyway: `show` fetches a **tree** and never locks one, so the inertness covers a room too; and Nix's error text is a rendering path a remote party can write into. |
 | **C. The machine diff** | not started | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
 | **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
 | **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
@@ -1827,7 +1881,10 @@ every other verb haus has drives the machine it is standing on.
   rather than needing to be re-argued per step. The note already said the closed
   schema "is not an escaping story"; the sharper form is that **the schema
   governs what a desktop can declare, and the sandbox governs what reading one
-  can do.** Two different protections, and step A only had the first.
+  can do.** Two different protections, and step A only had the first. (Step B
+  added a [third](#findings-carried-out-of-step-b) — what a remote party can get
+  *printed* — which neither of these two covers and which only appears once a
+  command talks to a network.)
 
 - **[3] A checker that only exists inside a flake cannot be run by the person
   who needs it.** The rules were reachable exactly one way — `haus.lib.checkDesktop`,
@@ -1931,6 +1988,179 @@ every other verb haus has drives the machine it is standing on.
   such file, so it needed a row it never got. It merged red because the reach
   checks are darwin-only and CI is ubuntu. Fixed in the same branch as a
   separate commit rather than folded in.
+
+### Findings carried out of step B
+
+`haus show <source>` shipped on 2026-08-20, the same day the step was designed
+([haus#435](https://github.com/hausfold/haus/pull/435)). The design was argued
+from a probe rather than from memory and it shows: **no rule in it changed**,
+and every row it had flagged as evaluator behaviour reproduced on an *older* Nix
+(2.33.0) on macOS where the probe had run 2.34.8 on Linux — the guard refusing a
+fetch by URI, the store-path granularity in both directions, and locking-vs-
+fetching. What building it added is a correction, two holes and a handful of
+rules. The holes are both about the *report* rather than the mechanism, which is
+the half a probe cannot see — and the second of them was found by the pre-PR
+assurance pass rather than by building or measuring anything, which is the
+clearest argument for that pass this note has yet produced.
+
+- **[3] The inert act is FETCHING, not `flake = false` — and correcting that
+  makes `show --room` honest at a distance.** The design's first act reads "no
+  publisher code runs *for a desktop*", with a warning that this is a property
+  of `flake = false` rather than of fetching. Measured at the command, against a
+  repo whose `flake.nix` throws from `inputs`: `builtins.fetchTree` over it
+  returns a store path having evaluated nothing, while `nix flake lock` over the
+  same source fires the throw. Both halves of the probe were right; the sentence
+  joining them was not. `flake = false` matters because it is what makes a
+  **lock** a pure fetch — and `show` does not lock. It fetches a tree.
+
+  So the guarantee is broader than the design claimed, in the one direction a
+  trust story is allowed to be surprising: `haus show --room github:ada/photo`
+  fetches, reports origin, revision and date, and prints the code warning with
+  *nothing of the publisher's evaluated* — not even their `flake.nix`. Step A's
+  rule ("you have said it is code, and evaluating it anyway to say so is the one
+  thing this command must not do") survives the trip to a remote source intact,
+  which it would not have if `show` had been built on `nix flake lock`.
+  [Step F](#and-step-f-cannot-borrow-it) is unaffected and its reasoning is
+  unchanged: `add --room` locks, and locking evaluates. The command says so in
+  the room report — *fetched, not locked* — because "we did not run it" and "we
+  will not run it when you add it" are different promises and only the first one
+  is being made.
+
+- **[3] A failed fetch lets a stranger choose the sentence haus prints.** Step A
+  reports Nix's own words on a failure by taking the last non-blank line of
+  stderr, which is right for a parse error and wrong for a fetch: Nix prints its
+  message and then appends the **server's response body** underneath it. A 404
+  from GitHub therefore came back as `Nix says: }` — the closing brace of an
+  error document. The fix is to take the last `error:` line instead, which is
+  the message on every path this command has (a blocked read, a type error, a
+  missing input, a syntax error, an HTTP failure).
+
+  The half that makes it a 3 is the second one: the response body is **cut off
+  first**, because otherwise a server that writes `error: …` into its own body
+  chooses the line haus renders. That is small in itself and it names something
+  this section had not: **the closed schema governs what a desktop declares, the
+  sandbox governs what reading one may do, and neither governs what a remote
+  party can get printed.** Step A already split one protection into two; this is
+  the third surface, it appears the moment a command talks to a network, and it
+  belongs to every step from here on — C renders more, D renders a confirmation
+  prompt someone is about to answer.
+
+- **[2] "Which file?" has no safe default, and `--file` is refused rather than
+  resolved — for the opposite of the usual reason.** A `file+` source's store
+  path *is* the file; a repo's is a tree, and something has to say which `.nix`
+  in it is the desktop. The rule built: root-level `.nix` files (minus
+  `flake.nix`) plus a conventional `desktops/`, exactly one candidate used and
+  **named in the report**, anything else refused with the list and `--file`.
+  Picking among a publisher's desktops is the one guess here with a wrong
+  answer.
+
+  `--file` then rejects a leading `/` and any `..` component. Not because the
+  sandbox would let such a path through — because the sandbox **allows the path
+  it is handed**. An escaping `--file` does not sneak past the guard; it asks to
+  have the escape allowed. Every guard in this design is configured from
+  arguments, so that inversion is worth carrying: validate what you are about to
+  put *into* a sandbox, not only what comes out of it.
+
+- **[2] A bare `https://` URL is a tarball to Nix, and the failure names
+  nothing.** `haus show https://example.org/writer.nix` fetches it as an archive
+  and dies with `Failed to open archive (Unrecognized archive format)`, which
+  says nothing about the missing prefix. It is refused with all three real
+  spellings (`file+`, `git+`, `tarball+`) rather than rewritten, and the reason
+  is a step-D reason: **the string typed here is the string `haus add` writes
+  into `flake.nix`**, so guessing it would put an origin in someone's lock that
+  nobody chose.
+
+- **[2] The schema version did not move, and that is a rule rather than a
+  shrug.** `--json` grew a top-level `origin`. A version bump is owed when an
+  **existing input's answer changes**; `origin` is `null` for every input
+  `schemaVersion: 1` could accept, and non-null only for sources that used to be
+  an error. No reader breaks, so no reader is made to update. Worth stating
+  because this envelope is the one the rest of the `--json` sweep copies, and
+  "we added a field, bump it" is the reflex that makes a version number
+  meaningless.
+
+- **[1] A report over a fetched tree cannot attribute a value to a file.** The
+  design predicted this from the granularity measurement and left it as advice;
+  the build has to render it. A fetched desktop may read the siblings its
+  publisher shipped, so the reader comparing `haus show` against the one file
+  they are looking at on GitHub is comparing against the wrong thing. The report
+  says so in one line, and the `tree` field is printed beside the origin so
+  there is somewhere to look. It is also the first place `show` prints a store
+  path at a person, which is a wart worth accepting rather than hiding: it is
+  the only honest answer to "what exactly did you read?"
+
+- **[1] Two shapes, and neither has every field.** `github:` resolves without a
+  `revCount` where `git+file:` has one, so every read of the fetch result is
+  `t.<field> or null` and the report asks what a shape *can* answer rather than
+  assuming a schema. The date pair is the visible half: a repo gets `changed`
+  (the source's own commit date, labelled as the source's) and `fetched`
+  (stamped from the clock, because
+  [nothing in a lock records it](#what-the-lock-records-and-the-one-word-this-note-had-wrong)),
+  and a raw URL gets only the second one with the warning that its `haus update`
+  line will read as a no-op.
+
+- **[4] The report is a surface, and it was the unguarded one.** Found by the
+  pre-PR assurance pass, not by building it, which is the whole argument for
+  running one. `lib.generators.toPretty` goes through `builtins.toJSON`, which
+  escapes quotes, backslashes and the three whitespace controls and **nothing
+  else** — so `ESC` survives a desktop's own values *and its own attribute
+  names* all the way to `jq -r`, which decodes it back to a raw byte. And `sets`
+  is printed **after** the class line and after the list of broken rules. So a
+  desktop that can move the cursor can repaint *"not a desktop — it breaks the
+  rules below"* as *"a desktop — data only, and haus checked it"*. Measured, with
+  `od -c` on the bytes rather than by reading the code.
+
+  The exit code stayed honest throughout, which is exactly what makes it bad: a
+  publisher's CI could not be fooled, and the person the command was written for
+  could. It closes by stripping C0 controls (tab excepted, being the field
+  separator) **in the render helpers** rather than at each call site, because a
+  rule that has to be remembered per call is a rule with a hole in it; `--json`
+  needs none of it, since jq re-escapes controls on the way out.
+
+  Two things this says beyond the fix. It is the **same third protection** the
+  fetch-error finding above names, arriving by a completely different route — so
+  that surface is not a quirk of talking to a network, it is what happens
+  whenever untrusted text reaches a renderer, and this one was there in step A.
+  And the reason it *bites* now is not the code: step A's input was a file
+  someone handed you, and B's arrives from a stranger. **A hole can be created
+  by changing where the input comes from, without touching the line that has
+  it.** Worth carrying into C and D, which render strictly more.
+
+- **[3] A provenance report may not read from a cache.** Also from the assurance
+  pass. Nix's `tarball-ttl` defaults to an hour, so `builtins.fetchTree
+  "github:ada/x"` resolves from cache for an hour after any first look —
+  measured at 0.05s cached against 0.43s with the TTL at zero. A consumer
+  running `show` minutes after a publisher pushes a fix was therefore told the
+  **previous** rev and the **previous** `changed` date, underneath a `fetched`
+  line stamped from the clock in the freshest language the report has. Every
+  other verb in haus can afford a cache; the one whose entire output is "where
+  did this come from and how old is it" cannot, so the fetch pins
+  `tarball-ttl 0`. The general form: **a cache is only invisible until something
+  reports a timestamp.**
+
+- **[1] A docs sentence that names a future step is a dated cheque.** The
+  reference page said, in step A's own words, "It takes a local path today;
+  remote sources come with `haus add`" — accurate when written, false the
+  evening step B landed, and attached to the wrong verb besides (they came with
+  `show`, not `add`). It is the cheapest kind of drift to produce and the
+  hardest to notice, because nothing regenerates that page and nothing checks
+  it. Fixed in the same change
+  ([hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111)), and the
+  habit it argues for is
+  to write what a command *does* and let the absence of a feature be silent:
+  "takes a local path" needed no expiry date, and "remote sources come later"
+  did.
+
+- **[1] The suite that proves a network feature runs offline.** `git+file://`
+  and `file+file://` are the same two fetchers `github:` and `file+https://`
+  resolve to, pointed at throwaway repos in a `mktemp` dir — so CI exercises the
+  real fetch path with no network dependency to make it flaky for a reason that
+  has nothing to do with haus. Step A's split holds: `desktop-show` still pins
+  the reading inside a derivation, and everything about fetching lives in
+  `test/haus-show.sh`, which shells out to `nix` and therefore cannot. B's own
+  exit gate is measured there rather than asserted — the whole command runs from
+  inside a directory holding a consumer `flake.nix`, and the directory is
+  `cksum`ed either side.
 
 ### Open decisions
 
