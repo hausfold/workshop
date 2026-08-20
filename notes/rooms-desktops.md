@@ -716,7 +716,7 @@ each bullet below are there for exactly that. What survives re-reading is the
     `haus.locale.*` and `haus.power.*` leaf, and the several that are host-only
     for taking a `pkgs` value or a command the machine runs. The per-option
     reason belongs in the registry beside `desktopSafe`, the way the validator
-    rule now sits beside its name. ⏳ **In flight, 2026-08-20** —
+    rule now sits beside its name. ✅ **Closed 2026-08-20** —
     [haus#420](https://github.com/hausfold/haus/pull/420) with
     [hausfold.co#95](https://github.com/hausfold/hausfold.co/pull/95): `hostOnly`
     maps each path to a reason key, `hostOnlyReasons` gives each key one
