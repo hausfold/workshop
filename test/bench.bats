@@ -488,36 +488,57 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$output" = "?" ]
 }
 
-@test "path_is_lane matches a registry row that stored the resolved path" {
-  # holt records the checkout it created; `git worktree list` prints the path
-  # git resolved. On macOS those differ whenever a symlink is in the way
-  # (/tmp → /private/tmp), so the lookup falls back to the physical path.
+@test "lane_rows keeps hausfold + host-config lanes and drops everyone else's" {
+  # bench lists holt's registry, not `git worktree list` — git's answer includes
+  # hand-made trees holt never made and `holt reap` will never sweep, which is
+  # what made the two tools look permanently out of sync. The registry is
+  # machine-wide, so a lane in an unrelated repo is filtered out here.
   WT_REGISTRY="$TMP/registry.tsv"
-  mkdir -p "$TMP/lane"
-  local phys; phys="$(cd "$TMP/lane" && pwd -P)"
-  mkregistry "$WT_REGISTRY" "lane $ROOT/haus worktree-lane $phys $ROOT/haus claude"
-  run path_is_lane "$TMP/lane"
-  [ "$status" -eq 0 ]
-}
-
-@test "path_is_lane is false when there's no registry at all" {
-  WT_REGISTRY="$TMP/no-such-registry.tsv"
-  run path_is_lane /tmp/wt/haus
-  [ "$status" -ne 0 ]
-}
-
-@test "path_is_lane separates a registered lane from a hand-made worktree" {
-  # The bug this guards: `git worktree list` also returns scratch trees nobody
-  # registered (a compare checkout, a /tmp detached tree). bench used to print
-  # those as agent lanes and tell you to `holt reap` them — holt never will,
-  # because they have no registry row, so the two tools looked out of sync.
-  WT_REGISTRY="$TMP/registry.tsv"
+  CONSUMER="$TMP/hostcfg"
   mkregistry "$WT_REGISTRY" \
-    "lane $ROOT/haus worktree-lane /tmp/wt/haus $ROOT/haus claude"
-  run path_is_lane /tmp/wt/haus
+    "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude" \
+    "site $ROOT/hausfold.co worktree-site /wt/site $ROOT/hausfold.co codex" \
+    "shop $ROOT worktree-shop /wt/shop $ROOT claude" \
+    "host $TMP/hostcfg worktree-host /wt/host $TMP/hostcfg claude" \
+    "alien /Users/someone/work/other worktree-alien /wt/alien /Users/someone/work/other claude"
+  run lane_rows
   [ "$status" -eq 0 ]
-  run path_is_lane /tmp/hauscmp/base
-  [ "$status" -ne 0 ]
+  [[ "$output" == *"worktree-lane1"* ]]   # a family repo
+  [[ "$output" == *"worktree-site"* ]]    # hausfold, not family, still ours
+  [[ "$output" == *"worktree-shop"* ]]    # the workshop itself
+  [[ "$output" == *"worktree-host"* ]]    # ~/.config/nix
+  [[ "$output" != *"worktree-alien"* ]]   # somebody else's repo
+  [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" = 4 ]
+}
+
+@test "lane_rows emits repo, branch, checkout and lane name, tab separated" {
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude"
+  run lane_rows
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s' "$ROOT/haus" worktree-lane1 /wt/haus lane1)" ]
+}
+
+@test "lane_rows says nothing when holt has never written a registry" {
+  WT_REGISTRY="$TMP/no-such-registry.tsv"
+  run lane_rows
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "lane_label names the workshop and the host config, not their basenames" {
+  CONSUMER="$TMP/hostcfg"
+  run lane_label "$ROOT"; [ "$output" = workshop ]
+  run lane_label "$TMP/hostcfg"; [ "$output" = consumer ]
+  run lane_label "$ROOT/hausfold.co"; [ "$output" = hausfold.co ]
+}
+
+@test "dirty_cell is six COLUMNS wide either way" {
+  # `·` is two BYTES and one column, so printf '%-6s' pads it to six bytes —
+  # five columns — and shears every column to its right.
+  run dirty_cell dirty
+  [ "$output" = "dirty " ]
+  run dirty_cell '·'
+  [ "$output" = "·     " ]
 }
 
 @test "detect_lane populates LANE_SRC for every holt child, mapped to its family repo" {

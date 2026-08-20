@@ -93,13 +93,16 @@ holt reship [name]    # a session that kept committing after its PR merged: push
 holt reap             # sweep every LANDED worktree; keeps dirty/unmerged/occupied ones
 ```
 
-`bench status` and `holt` answer different questions, and the difference shows:
-bench lists what **git** knows (`git worktree list`), holt lists what **its
-registry** knows. A tree nobody registered — a hand-run `git worktree add`, a
-scratch checkout for a before/after compare — is git's, not holt's, so bench
-prints it marked **◇** and `holt reap` will never sweep it. Remove one with
-`git -C <repo> worktree remove <path>`; use `holt child` in the first place and
-it's a real lane instead (registered, reapable, visible in the bar).
+`bench status`'s lane table **is** holt's registry, filtered — not `git worktree
+list`. git's answer is "what trees exist", which includes hand-made ones (a
+scratch checkout for a before/after compare, a `/tmp` tree) that holt never made
+and `holt reap` will never sweep; listing those as lanes is what used to make
+the two tools look permanently out of sync. bench keeps the rows whose repo sits
+under the workshop dir — family or not, so `trill`, `hausfold.co` and the
+workshop itself all count — plus the host config (`~/.config/nix`, shown as
+`consumer`). A lane in an unrelated repo on the same machine is holt's business,
+not bench's. Use `holt child` for cross-repo work and it lands in that table;
+a raw `git worktree add` is invisible to both bench and the bar.
 
 Never `git stash` in these repos: the stash stack lives in the shared `.git`
 dir, so every worktree *and* the main checkout pop the same one, and parallel
