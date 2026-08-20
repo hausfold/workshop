@@ -170,18 +170,20 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **Status, 2026-08-20 (thirtieth pass) — §5.9's count went DOWN for the first
 > time, and the correction that was supposed to raise it two days ago was never
 > made, so the sentence on the page is right today by accident. The
-> twenty-ninth pass's hand-written generated file held, and that is measured
-> rather than hoped.**
+> twenty-ninth pass's hand-written generated file held against the next copy of
+> it, which is the most this session can measure.**
 >
 > Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
 > row eleven): workshop `main` = `origin/main` = `a535fc1`, haus = `ffcdb0a`
 > (tagged `v2026.08.20`), hausfold.co = `2e4cfd1`. nebelung (`d76f124`,
-> 08-16) and pounce (`adf03c5`, 08-18) have not moved since the last pass, so
-> neither of §5.9's two open boxes could have closed.
+> 08-16) and pounce (`adf03c5`, `2026-08-19T04:33:25Z` — 08-18 only in the
+> author's timezone, which is what row eleven is about) have not moved since
+> the last pass, so neither of §5.9's two open boxes could have closed.
 >
-> Landed in haus since `da94efd`: **four commits in 51 minutes**
-> (05:45:03Z → 06:36:37Z) — an input bump (`59dca7a`, perch + holt), haus#422
-> (`206bc0e`), a whitespace-only commit (`df8b269`) and the day's release
+> Landed in haus since `da94efd`: **four commits in 27 minutes**
+> (06:09:13Z → 06:36:37Z, the first landing 24 minutes after `da94efd`) — an
+> input bump (`59dca7a`, perch + holt), haus#422 (`206bc0e`), a whitespace-only
+> commit (`df8b269`) and the day's release
 > (`ffcdb0a`, `VERSION` alone). **No §5 box moved**, and the count is
 > unchanged at **8**, re-derived at `a535fc1` with the command the last two
 > passes ran: `sed -n '/^## 5\. The option families/,/^### 5.14/p'
@@ -201,17 +203,27 @@ already exist, and one it treated as a detail is the actual root blocker.
 > §5.9's "closed submodule of 15 bools" stale (haus#396 added the `page` pill)
 > and wrote, in the paragraph directly beneath it, *The header line's "15 bools
 > (13 when this was written)" reads **16 (13 when this was written)** now.* It
-> does not. The line has said 15 since it was written, `git log -S'16 bools' --
-> notes/options-roadmap.md` finds no commit, and `f449cc9`'s diff shows the
-> quoted sentence sitting in the hunk as **context** — the pass added its
-> correction and never touched the thing it was correcting. Every shape in
-> §5.14's table so far is an entry *decaying* while nobody looks; this one is an
-> edit that exists only in the prose announcing it, and it is worse than the
-> stale number it describes, because a reader who checks the paragraph against
-> the line sees them disagree and believes the newer one. Caught by grepping the
-> file for the string a correction quotes as its **result** — the same act as
-> reading the artifact rather than its generator (twenty-second pass), pointed at
-> this file instead of at a repo.
+> does not. The line has said 15 since it was written, and `f449cc9`'s only hunk
+> in that region — `@@ -3778,6 +3880,14 @@` — **does not touch that line at
+> all**: its nearest context is the re-derivation parenthetical three lines
+> below, and the only `15 bools` anywhere in the diff is the quotation inside
+> the correction being added. The pass wrote what the line now reads without
+> reading it. Every shape in §5.14's table so far is an entry *decaying* while
+> nobody looks; this one is an edit that exists only in the prose announcing it,
+> and it is worse than the stale number it describes, because a reader who
+> checks the paragraph against the line sees them disagree and believes the
+> newer one. Caught by grepping the file for the string a correction quotes as
+> its **result** — the same act as reading the artifact rather than its
+> generator (twenty-second pass), pointed at this file instead of at a repo.
+> ⚠️ **Two hedges the assurance pass insisted on, both fair.** The sentence
+> parses two ways — *the line has been changed*, and *the right value is now 16*
+> stated without rewriting anything — and the finding survives either, because
+> no reader can tell which and the checkable half says 15. And `git log
+> -S'16 bools' -- notes/options-roadmap.md` was confirmation only **before this
+> commit**: the pass has now put that string in the file twice, so the check
+> that caught it no longer works from HEAD. A grep-shaped check spoiled by the
+> prose that cites it — the twenty-second pass's blind spot, arriving from
+> inside the document.
 >
 > ★ **And then the number healed on its own, which is the part worth carrying.**
 > haus#422 removed `haus.bar.items.page` and `haus.bar.bottom.items.page`
@@ -222,11 +234,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `206bc0e`), and applying it today would be applying a correction backwards.
 > **A stale number can come back**, and nothing in §5.14 expects that: every
 > mitigation in it assumes decay is monotonic and a re-derivation is a repair.
-> The measurement is over the whole life of the committed artifact
-> (`docs/site-data/options.json`): 16 from 2026-08-16 (`653d834`), 17 from
-> haus#396 (`a49a48d`), 16 again at `206bc0e`. Two days of drift is also two
-> days in which nobody read the page, which is the honest reading of why the
-> unmade edit cost nothing.
+> The measurement is over the life of the `haus.bar.items.*` namespace — the
+> committed artifact dates to 2026-08-09 (`33b5d63`) and the namespace to the
+> rooms rename: 16 from `653d834` (2026-08-16), 17 from haus#396 (`a49a48d`),
+> 16 again at `206bc0e`. Two days of drift is also two days in which nobody
+> read the page, which is the honest reading of why the unmade edit cost
+> nothing.
 >
 > ⚠️ **The box's own argument is what actually broke, not the number.** The
 > sentence says the submodule "grows by one every time a pill lands", and this
@@ -240,23 +253,25 @@ already exist, and one it treated as a detail is the actual root blocker.
 > bar's surface at all, which is the twenty-eighth pass's "the number has stopped
 > being the argument" arriving with a mechanism.
 >
-> ★ **The twenty-ninth pass hand-wrote a generated file and the machine agreed —
-> measured by diff, because the green tick is unreadable from here.** That pass
-> regenerated `docs/site-data/` by hand and said in as many words that
-> `site-data-current` would accept or refuse it on its own. haus#422 regenerated
-> the same directory 24 minutes later, and the key-level diff between `da94efd`
-> and `206bc0e` contains **only** #422's own subject: two keys removed
+> ★ **The twenty-ninth pass hand-wrote a generated file and a second, independent
+> copy of the same directory agrees with it — which is the most that can be
+> measured from here.** That pass regenerated `docs/site-data/` by hand and said
+> in as many words that `site-data-current` would accept or refuse it on its
+> own. haus#422 rewrote the same directory 24 minutes later — that *its* copy
+> came from the generator is the commit's shape and not something the repo
+> states — and the key-level diff between `da94efd` and `206bc0e` contains
+> **only** #422's own subject: two keys removed
 > (`bar.items.page`, `bar.bottom.items.page`), one added
 > (`terminal.restoreWindows`), and four descriptions changed
 > (`ai.default`, `ai.enable`, `bar.widgets.<name>.interval`, `keys.windowNav`),
-> each traceable to a hunk in that commit's own `modules/*/options.nix`. Nothing
-> else moved, so the hand-made copy carried no error for the regeneration to
-> absorb. **The generalisable half: hand-writing a generated artifact is safe
+> each traceable to a hunk in that commit's own `modules/**/options.nix`.
+> Nothing else moved, so the hand-made copy carried no error for the second one
+> to absorb. **The generalisable half: hand-writing a generated artifact is safe
 > exactly when a check builds the generator somewhere you don't control** —
 > `site-data-current` is one of the twelve portable checks haus's `check.yml`
-> runs `nix flake check` over on a Linux runner, so the refusal would have
-> arrived from GitHub rather than from the author. A hand-made generated file
-> with no such check is not a guess with a check behind it; it is just a guess.
+> runs `nix flake check` over on a Linux runner, so a refusal would have arrived
+> from GitHub rather than from either author. A hand-made generated file with no
+> such check is not a guess with a check behind it; it is just a guess.
 >
 > ★ **§8's formatting trap grew its first recorded instance, from the pass that
 > followed §8's advice.** `df8b269` — *"`nix fmt` had never run on #422 or #423.
@@ -264,9 +279,11 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `replaceStrings` call had been hand-wrapped across three lines where the
 > formatter wants one."* §8 tells a cloud session to match the surrounding style
 > by hand precisely because running the formatter would bury the change, and the
-> twenty-ninth pass did exactly that and produced two drifted files that cost a
-> follow-up commit the next hour. The advice protects the **diff** and does not
-> protect the **file**, and the difference had never been written down. §8 gains
+> twenty-ninth pass did exactly that and produced **one of the two** files
+> `df8b269` swept — `modules/focus/default.nix`; the other is haus#422's own
+> `replaceStrings` rewrap — at the cost of a follow-up commit half an hour
+> later. The advice protects the **diff** and does not protect the **file**, and
+> the difference had never been written down. §8 gains
 > the fix, which is one command and a separate commit; the reasoning about *why
 > §8's own recipe cannot catch this* is in §8, marked as reasoning.
 >
@@ -275,27 +292,36 @@ already exist, and one it treated as a detail is the actual root blocker.
 > the resident in-place agent — along with the palette's **Agent Here** row and
 > `modules/launcher/commands/agent-here.sh`; `c` in the window's own shell is
 > the same act, one keystroke shorter, and follows `haus.ai.default`
-> identically. hausfold.co#94 took it out of two pages **18 minutes later**. The
-> workshop's own `AGENTS.md` still described it twice, and `docs/workflows.md`
-> once, an hour later — fixed in this commit. §5.14's reason 1 says the work
-> happens in four repos and the doc lives in a fifth; this is that with the
-> repos swapped, and it has a mechanism: **the site is swept on a schedule
-> (`/docs-sync`) and `AGENTS.md` is swept by nobody**, because the file only
-> ever has one reader and that reader arrives believing it. The same commit
-> amends the `zmx` sentence beside it, which survived #422 by luck: a restarted
-> window comes back to its scrollback because of a restore path that shipped
-> yesterday and is an option (`haus.terminal.restoreWindows`), not because a new
-> window happens to land on a parked session — which is the bug #422 fixed.
+> identically. hausfold.co#94 took it out of three — two room pages and the
+> generated reference — **18 minutes later**. The workshop's own `AGENTS.md`
+> still described it twice, and `docs/workflows.md` once, 45 minutes later —
+> fixed in this commit.
+> ⚠️ **The mechanism this paragraph first offered was false, and the assurance
+> pass killed it.** It read *"the site is swept on a schedule (`/docs-sync`) and
+> `AGENTS.md` is swept by nobody"* — but `/docs-sync` names agent instructions in
+> its scope (`.agents/skills/docs-sync/SKILL.md`, and its reconcile table lists
+> the workshop's own `AGENTS.md` as a target), so the file is swept on exactly
+> the cadence the site is. What 45 minutes measures is a **targeted PR beating a
+> sweep**, not an unswept file: someone edited the site because they were
+> changing the site, and the workshop waits for a routine. A negative claim
+> asserted without running the check, in the pass that added a ledger row about
+> exactly that.
+> The same commit amends the `zmx` sentence beside it, which survived #422 by
+> luck: a restarted window comes back to its scrollback because of a restore
+> path that shipped in that same `206bc0e` and is an option
+> (`haus.terminal.restoreWindows`), not because a new window happens to land on
+> a parked session — which is the bug #422 fixed.
 >
 > ★ **One cross-repo ordering rule, learned in hausfold.co#98 and belonging in
 > §7.** That PR is the docs half of §5.8's daemon and it deliberately did NOT
 > regenerate `options.mdx`: the site's `options-drift` check renders the page
 > against **haus's default branch**, so a render carrying options that exist
 > only on a haus PR branch fails the site's CI until that PR lands. §7 already
-> records the mirror image from the code side (a rice change consuming a new
+> records the mirror image from the code side (a haus change consuming a new
 > nebelung output can't carry its own lock bump); this is the same constraint on
 > a generated *document*, and the answer is the same shape — describe the
-> feature in the PR, let the scheduled regeneration own the artifact.
+> feature in the PR, let the regeneration job own the artifact — which ran on
+> demand here rather than on its Monday cron, 22 minutes after haus#423.
 
 > **Status, 2026-08-20 (twenty-ninth pass) — a shipping pass, not an audit: the
 > last Phase-5 item that needed code is built, merged before the pass landed,
@@ -4554,14 +4580,18 @@ item list into the menu bar's left group, gated by `haus.windows.enable` through
 workspace you are on rather than a readout you place. So this submodule counts
 **placeable** pills, and the sentence above — *"it grows by one every time a pill
 lands, which is the argument this box makes"* — is falsified in the one
-direction the box never considered. Over the whole life of the committed
-artifact: 16 from 2026-08-16 (`653d834`), 17 from haus#396 (`a49a48d`), 16
-again at `206bc0e`.
+direction the box never considered. Over the life of the `haus.bar.items.*`
+namespace — the artifact itself dates to 2026-08-09 (`33b5d63`), the namespace
+to the rooms rename: 16 from `653d834` (2026-08-16), 17 from haus#396
+(`a49a48d`), 16 again at `206bc0e`.
 **And the correction above never happened.** "The header line's *15 bools (13
 when this was written)* reads **16** now" is a sentence about an edit that was
-not made: the line still says 15, `git log -S'16 bools'` finds no commit, and
-`f449cc9`'s diff carries that sentence into the correction as unchanged
-**context**. It is left at 15 deliberately, because haus#422 made 15 true again —
+not made: the line still says 15, and `f449cc9`'s only hunk in this region
+(`@@ -3778,6 +3880,14 @@`) never touches it — the nearest context line is the
+re-derivation parenthetical above, and the diff's only `15 bools` is the
+quotation inside the correction being added. (`git log -S'16 bools'` confirmed
+it too, and stopped being able to the moment this paragraph was committed.)
+It is left at 15 deliberately, because haus#422 made 15 true again —
 the unmade edit had a correctness window of **1 d 21 h 33 m** and applying it
 today would run the correction backwards. The shape is in §5.14's table now; the
 local lesson is smaller and worth having beside the number it damaged: **when a
@@ -5193,7 +5223,7 @@ catch:
 | a box ticked for work that is BUILT but not MERGED — the first shape with its clock reversed, and the worse one *(twenty-fifth pass, caught by its own assurance read: §5.8 was written `- [x] ✅ shipped` while haus#376 was `"state":"OPEN"`)* | reading the PR's **state**, not its diff. Rule 1 sends a reader to the repo to confirm a ticked box, and here the repo says no — so the box doesn't just mislead, it burns the check that was supposed to catch it. A PR number in a tick is a promise; only `mergedAt` keeps it |
 | a claim naming a FUNCTION, a check or a format that the repo has since retired — the entry stays true about what shipped and false about what exists *(twenty-seventh pass — §3.3's `checkRice` box, and the ledger's `packs` row, both retired by haus#386)* | grepping the repo for the identifier, not for the sentence. A rename that preserves the count is the dangerous one: the number a reader spot-checks stays right while the roster under it rots |
 | an IMPOSSIBILITY claim that is really a description of how the incumbent works — one premise stays true, a second is falsified by the same change, and the conclusion they carried is gone *(twenty-eighth pass — §5.1's "real sites are Stylus's job", retired by a build-time LESS compile in haus#416)* | asking what it would cost to do the thing ourselves, instead of asking why the existing route can't be reached. Every other row here describes an entry that *decays*; this one is wrong on the day it is written, and reads as a scoping decision rather than as a mistake, which is why nothing re-examines it |
-| a CORRECTION that reports itself as APPLIED — the paragraph says what the line "now reads" and the line was never touched *(thirtieth pass — §5.9's `15 bools`, quoted as unchanged context in the very diff that corrected it)* | grepping the file for the string the correction quotes as its **result**. Every other row here is an entry decaying while nobody looks; this one is an edit that exists only in the prose announcing it, and it beats the staleness it describes, because a reader who notices the two disagree believes the newer sentence. Its sibling hazard is that a stale value can HEAL — haus#422 made §5.9's un-updated number right again — so a re-derivation is not always a repair, and neither is applying a correction you find unapplied |
+| a CORRECTION that reports itself as APPLIED — the paragraph says what the line "now reads" and the line was never touched; it need not even be deliberate, since *"reads 16 now"* parses equally as *the value is now 16*, and no reader can tell which *(thirtieth pass — §5.9's `15 bools`, quoted inside the correction while the line itself stays outside the hunk)* | grepping the file for the string the correction quotes as its **result** — once, before your own prose adds a copy of it. Every other row here is an entry decaying while nobody looks; this one is an edit that exists only in the prose announcing it, and it beats the staleness it describes, because a reader who notices the two disagree believes the newer sentence. Its sibling hazard is that a stale value can HEAL — haus#422 made §5.9's un-updated number right again — so a re-derivation is not always a repair, and neither is applying a correction you find unapplied |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -6530,11 +6560,14 @@ regenerate `content/docs/haus/reference/options.mdx`, because the site's
 `options-drift` check renders that page against **haus's default branch**: a
 render carrying options that exist only on a haus PR branch fails the site's own
 CI until the upstream PR lands. So a docs PR written alongside an unmerged
-feature can carry the words and cannot carry the artifact, and the scheduled
-regeneration owns the page the moment the feature is on `main` (hausfold.co#99,
-22 minutes after haus#423; the prose half, #98, went in at 17). The rule of thumb: **a hand-written page may
-describe an unlanded upstream; a generated one may not, and the check that
-enforces it is what makes the split safe rather than a nuisance.**
+feature can carry the words and cannot carry the artifact, and the regeneration
+job owns the page the moment the feature is on `main` — hausfold.co#99, 22
+minutes after haus#423, with the prose half (#98) in at 17. That run was the
+`workflow_dispatch` arm rather than the schedule (`options-drift`'s cron is
+Mondays; this was a Thursday), opened by `github-actions[bot]`. The rule of
+thumb: **a hand-written page may describe an unlanded upstream; a generated one
+may not, and the check that enforces it is what makes the split safe rather than
+a nuisance.**
 
 ---
 
@@ -6578,7 +6611,8 @@ only hausfold-org repos are in scope.
   would have come from GitHub rather than from the author. **Hand-writing a
   generated file with no such check is not a guess with a check behind it, it is
   just a guess** — and the same holds where the check exists but is
-  darwin-guarded, which is most of them.
+  darwin-guarded, which is half of them: `check.yml`'s census names twelve
+  portable checks and twelve darwin-only ones.
 - **nebelung end to end.** `node --test` runs natively, and `whiskers` builds from
   crates.io (`index.crates.io` bypasses the proxy). Version 2.9.0 reproduces the
   committed `dist/` byte-for-byte, which is what makes "the latte variants are a
@@ -6629,7 +6663,10 @@ reformat commit — worth doing deliberately, not inside another change.)
 followed it.** haus's `df8b269`: *"`nix fmt` had never run on #422 or #423.
 focus's whole `lib.mkIf cfg.enable` body sat two columns short; terminal's
 `replaceStrings` call had been hand-wrapped across three lines where the
-formatter wants one."* Whitespace-only, proven rather than asserted — `nix flake
+formatter wants one."* One file from each PR, and only `modules/focus/default.nix`
+is the cloud pass's — the `replaceStrings` wrap is haus#422's, written on a Mac
+that could have run the formatter and didn't, which is the wider version of the
+same gap. Whitespace-only, proven rather than asserted — `nix flake
 check` resolved every check to its previously-built derivation — and the six
 files that were already unformatted were left alone, because this repo isn't
 fmt-clean and CI doesn't check it. The lesson is not "run the formatter after
