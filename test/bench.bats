@@ -20,6 +20,10 @@ setup() {
   ROOT="$TMP/root"
   mkdir -p "$ROOT"
   BATS_SAVED_PATH="$PATH"
+  # Same reason: the overlap tests `cd` into a per-test fixture, and on bats
+  # 1.10 that cd outlives the test body — leaving bats' own cleanup standing in
+  # a directory it is about to delete.
+  BATS_SAVED_PWD="$PWD"
   # A consumer fixture, so nothing here reads the machine's real ~/.config/nix —
   # layer_input() would, and on a dev Mac it would even answer correctly, which
   # is the kind of green that stops meaning anything on CI.
@@ -35,6 +39,7 @@ teardown() {
   # macOS) papers over it, which is exactly why this was green locally and red
   # on CI. Put PATH back before bats needs it.
   PATH="$BATS_SAVED_PATH"
+  cd "$BATS_SAVED_PWD" || true
 }
 
 mkconsumer() { # mkconsumer <input-name> — a machine flake whose haus input is called <name>
@@ -1173,4 +1178,297 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   run status_running
   [[ "$output" == *"…"* ]]
   [[ "$output" != *"worktree-an-absurdly-long-agent-branch-name"* ]]
+}
+
+# ── bench overlap (earshot) ──────────────────────────────────────────────────
+# The design claim these protect: nothing is declared anywhere. Every fact comes
+# out of the shared object store, so the tests are all "put real trees on disk
+# and ask", never "write a fixture ledger and trust it".
+
+setline() { # setline <file> <n> <text> — portable in-place line edit (no sed -i:
+            # BSD wants an argument, GNU refuses one, and CI is the other OS).
+  awk -v n="$2" -v t="$3" 'NR == n { print t; next } { print }' "$1" > "$1.tmp"
+  mv "$1.tmp" "$1"
+}
+
+mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
+              # rival (committed, line 10), and a base editing line 10.
+  # pwd -P, not $TMP: on macOS /tmp is a symlink into /private/tmp, and git
+  # answers --show-toplevel with the physical path — so a fixture built under
+  # the symlinked one would never match its own registry rows.
+  mkdir -p "$TMP/ov"
+  OV="$(cd "$TMP/ov" && pwd -P)"
+  git init -q -b main "$OV/repo"
+  git -C "$OV/repo" config user.email t@example.com
+  git -C "$OV/repo" config user.name tester
+  seq 1 60 > "$OV/repo/doc.md"
+  echo untouched > "$OV/repo/other.md"
+  git -C "$OV/repo" add -A
+  git -C "$OV/repo" commit -qm base
+  local l
+  for l in snug far rival; do
+    git -C "$OV/repo" worktree add -q -b "worktree-$l" "$OV/lanes/$l" main
+  done
+  # snug: UNCOMMITTED — the half merge-tree structurally cannot see
+  setline "$OV/lanes/snug/doc.md" 12 12-snug
+  # far: committed, same file, 38 lines away
+  setline "$OV/lanes/far/doc.md" 50 50-far
+  git -C "$OV/lanes/far" commit -qam "far: the bottom of doc"
+  # rival: committed, two lines from snug
+  setline "$OV/lanes/rival/doc.md" 10 10-rival
+  git -C "$OV/lanes/rival" commit -qam "rival: the top of doc"
+  WT_REGISTRY="$TMP/ov-registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "snug $OV/repo worktree-snug $OV/lanes/snug $OV/repo claude" \
+    "far $OV/repo worktree-far $OV/lanes/far $OV/repo claude" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude"
+}
+
+@test "hunk_ranges reports the BASE side, so both lanes speak one coordinate system" {
+  # -a,b is the ancestor's numbering; +c,d is the lane's own, and two lanes'
+  # own numbers drift apart with every insertion above the hunk.
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -10,4 +14,9 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t10\t13')" ]
+}
+
+@test "hunk_ranges treats a countless hunk header as exactly one line" {
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -10 +10 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t10\t10')" ]
+}
+
+@test "hunk_ranges gives a pure insertion the seam it was inserted into" {
+  # "-7,0" touches nothing of the base, but two lanes inserting there still
+  # collide — so it claims the join between 7 and 8 rather than nothing at all.
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -7,0 +8,3 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t7\t8')" ]
+}
+
+@test "hunk_ranges lets an added file claim everything — add/add always conflicts" {
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- /dev/null" "+++ b/f" "@@ -0,0 +1,3 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=2147483647; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t0\t2147483647')" ]
+}
+
+@test "hunk_ranges lets a deleted file claim everything — delete/edit always conflicts" {
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ /dev/null" "@@ -1,3 +0,0 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=2147483647; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t0\t2147483647')" ]
+}
+
+@test "hunk_ranges keeps a path that has a space in it" {
+  # The path is read with substr, not $2 — awk's fields would shear it in half
+  # and the file would silently never match anyone else's.
+  run bash -c 'printf "%s\n" "diff --git a/my file.md b/my file.md" "--- a/my file.md" "+++ b/my file.md" "@@ -4,2 +4,2 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'my file.md\t4\t5')" ]
+}
+
+@test "range_compare calls two edits within the fuzz the same region" {
+  run bash -c "printf '%s\n' \$'A\tdoc.md\t10\t10' \$'B\tdoc.md\t12\t12' | { $(declare -f range_compare); EARSHOT_FUZZ=3; EARSHOT_HUGE=2147483647; range_compare; }"
+  [ "$output" = "$(printf 'hunk\tdoc.md\tL10-12')" ]
+}
+
+@test "range_compare calls two edits beyond the fuzz the same file only" {
+  # The whole point: co-editing a long shared file is normal here and must not
+  # cry wolf. A warning you learn to ignore is worse than no warning.
+  run bash -c "printf '%s\n' \$'A\tdoc.md\t10\t10' \$'B\tdoc.md\t50\t50' | { $(declare -f range_compare); EARSHOT_FUZZ=3; EARSHOT_HUGE=2147483647; range_compare; }"
+  [ "$output" = "$(printf 'file\tdoc.md\t-')" ]
+}
+
+@test "range_compare says nothing when the two sides share no file at all" {
+  run bash -c "printf '%s\n' \$'A\ta.md\t1\t1' \$'B\tb.md\t1\t1' | { $(declare -f range_compare); EARSHOT_FUZZ=3; EARSHOT_HUGE=2147483647; range_compare; }"
+  [ -z "$output" ]
+}
+
+@test "range_compare doesn't misread side B when side A is empty" {
+  # awk's usual two-file NR==FNR idiom reads the second file's FIRST record as
+  # the first file's whenever the first file is empty — and "this lane has
+  # changed nothing yet" is an ordinary state here, not an edge case. Hence the
+  # side tag. Without it this test reports doc.md overlapping itself.
+  run bash -c "printf '%s\n' \$'B\tdoc.md\t10\t10' | { $(declare -f range_compare); EARSHOT_FUZZ=3; EARSHOT_HUGE=2147483647; range_compare; }"
+  [ -z "$output" ]
+}
+
+@test "earshot_side reads a live lane's checkout and a parked lane's branch" {
+  mkdir -p "$TMP/live/.git"
+  run earshot_side "$TMP/live" worktree-x "$TMP/main"
+  [ "$output" = "$(printf '%s\t' "$TMP/live")" ]
+  run earshot_side "$TMP/gone" worktree-x "$TMP/main"
+  [ "$output" = "$(printf '%s\tworktree-x' "$TMP/main")" ]
+}
+
+@test "earshot_lanes takes only the lanes of the repo asked about" {
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "mine $ROOT/haus worktree-mine /wt/mine $ROOT/haus claude" \
+    "other $ROOT/pounce worktree-other /wt/other $ROOT/pounce claude"
+  run earshot_lanes "$ROOT/haus"
+  [ "$output" = "$(printf 'mine\tworktree-mine\t/wt/mine')" ]
+}
+
+@test "earshot_order sends the pushed branch first" {
+  mkoverlap
+  git -C "$OV/repo" update-ref refs/remotes/origin/worktree-rival worktree-rival
+  run earshot_order "$OV/repo" worktree-snug 1 worktree-rival 1 rival snug
+  [[ "$output" == "rival lands first (already pushed)"* ]]
+}
+
+@test "earshot_order rebases the smaller branch when neither is pushed" {
+  mkoverlap
+  run earshot_order "$OV/repo" worktree-snug 1 worktree-rival 9 rival snug
+  [[ "$output" == "rival lands first (bigger: 9 files vs 1)"* ]]
+}
+
+@test "earshot_order breaks a tie the same way from both sides" {
+  # Both agents must reach the same answer without talking to each other, so
+  # the tiebreak has to be a fact of the repo, not a view from one lane.
+  mkoverlap
+  run earshot_order "$OV/repo" worktree-snug 1 worktree-rival 1 rival snug
+  local from_snug="$output"
+  run earshot_order "$OV/repo" worktree-rival 1 worktree-snug 1 snug rival
+  [[ "$from_snug" == rival* ]]     # "rival" sorts before "snug"
+  [[ "$output" == rival* ]]
+}
+
+@test "cmd_overlap sees a sibling's UNCOMMITTED edit, which merge-tree cannot" {
+  # This is the whole reason the hunk index exists beside merge-tree: a lane
+  # spends most of its life with its work still in the working tree.
+  mkoverlap
+  cd "$OV/lanes/rival"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"snug"* ]]
+  [[ "$output" == *"doc.md"* ]]
+  [[ "$output" == *"L10-12"* ]]
+}
+
+@test "cmd_overlap is quiet about a lane at the other end of the same file" {
+  mkoverlap
+  cd "$OV/lanes/far"
+  run cmd_overlap
+  [ "$status" -eq 3 ]                       # same file, different regions
+  [[ "$output" == *"elsewhere in the file"* ]]
+  [[ "$output" != *"⚠"* ]]
+}
+
+@test "cmd_overlap reports a lane with no commits as uncommitted, not as the base" {
+  # `git log -1 <branch>` on a commitless lane answers with the shared ancestor,
+  # which would quote the repo's own history back as the neighbour's plan.
+  mkoverlap
+  cd "$OV/lanes/rival"
+  run cmd_overlap
+  [[ "$output" == *"uncommitted work only"* ]]
+  [[ "$output" != *"“base”"* ]]
+}
+
+@test "cmd_overlap treats two lanes creating the same new file as a collision" {
+  mkoverlap
+  echo hello > "$OV/lanes/snug/brand-new.md"
+  echo goodbye > "$OV/lanes/far/brand-new.md"
+  cd "$OV/lanes/far"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"brand-new.md"* ]]
+  [[ "$output" == *"the whole file"* ]]
+}
+
+@test "cmd_overlap --path answers with silence when that file is clear" {
+  # The hook-shaped form. Anything that prints on a clear file gets muted.
+  mkoverlap
+  cd "$OV/lanes/rival"
+  run cmd_overlap --path other.md
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "cmd_overlap --path takes an absolute path as readily as a relative one" {
+  mkoverlap
+  cd "$OV/lanes/rival"
+  run cmd_overlap --path "$OV/lanes/rival/doc.md"
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"snug"* ]]
+}
+
+@test "cmd_overlap says so plainly when this repo has no other lanes" {
+  mkoverlap
+  WT_REGISTRY="$TMP/empty.tsv"
+  : > "$WT_REGISTRY"
+  cd "$OV/lanes/rival"
+  run cmd_overlap
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no other lanes"* ]]
+}
+
+@test "cmd_overlap ignores a registry row whose branch is gone — a corpse, not a lane" {
+  mkoverlap
+  git -C "$OV/repo" worktree remove --force "$OV/lanes/snug"
+  git -C "$OV/repo" branch -qD worktree-snug
+  cd "$OV/lanes/rival"
+  run cmd_overlap
+  [ "$status" -eq 3 ]                       # far is still there, quietly
+  [[ "$output" != *"snug"* ]]
+  [[ "$output" == *"1 other lane"* ]]
+}
+
+@test "cmd_overlap from the MAIN checkout reports lane against lane instead" {
+  mkoverlap
+  cd "$OV/repo"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"↔"* ]]
+  [[ "$output" == *"snug"* ]]
+  [[ "$output" == *"rival"* ]]
+}
+
+@test "cmd_overlap refuses an argument it doesn't know rather than guessing" {
+  run cmd_overlap --wat
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"unknown argument"* ]]
+}
+
+@test "hunk_ranges doesn't read an added '++ ' line as a file header" {
+  # A line whose own text starts with "++ " arrives in the diff as "+++ ", and
+  # reading it as a header files every LATER hunk under a garbage path — the
+  # file drops out of the comparison silently, which is the worst way to fail.
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -2,2 +2,2 @@" "+++ still content" "@@ -10,1 +10,1 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t2\t3\nf\t10\t10')" ]
+}
+
+@test "hunk_ranges doesn't read a removed '-- ' line as a file header either" {
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -2,2 +2,2 @@" "--- /dev/null" "@@ -10,1 +10,1 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t2\t3\nf\t10\t10')" ]
+}
+
+@test "cmd_overlap measures against origin/main, not the local main behind it" {
+  # A sibling landing its PR moves the REMOTE ref; the local main doesn't hear
+  # about it until someone pulls. Reading local main would blind the check to
+  # the one event it exists to catch.
+  mkoverlap
+  git -C "$OV/repo" worktree add -q -b tmp-origin "$OV/lanes/tmporigin" main
+  setline "$OV/lanes/tmporigin/doc.md" 10 10-landed-elsewhere
+  git -C "$OV/lanes/tmporigin" commit -qam "a sibling PR that already merged"
+  git -C "$OV/repo" update-ref refs/remotes/origin/main tmp-origin
+  git -C "$OV/repo" worktree remove --force "$OV/lanes/tmporigin"
+  git -C "$OV/repo" branch -qD tmp-origin
+  cd "$OV/lanes/rival"                       # rival edits line 10 too
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"origin/main"* ]]
+  [[ "$output" == *"merge-tree already conflicts"* ]]
+}
+
+@test "cmd_overlap --path is silent from the main checkout too" {
+  # --path is the hook-shaped form wherever it runs from; a summary line on a
+  # clear file is exactly what makes a hook get muted.
+  mkoverlap
+  cd "$OV/repo"
+  run cmd_overlap --path other.md
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "cmd_overlap --path from the main checkout still names a real collision" {
+  mkoverlap
+  cd "$OV/repo"
+  run cmd_overlap --path doc.md
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"↔"* ]]
+  [[ "$output" != *"🌫"* ]]                  # findings only, no header
 }

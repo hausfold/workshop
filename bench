@@ -29,6 +29,10 @@
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull [repo…]  fast-forward every repo, or just the named ones
 #   bench clone     fetch any family repo missing from this directory
+#   bench overlap [--brief] [--path <file>]   what the OTHER agent lanes on this
+#                  repo have already changed, and where their changes and yours
+#                  land in the same region of the same file — measured from the
+#                  shared object store, not declared by anyone. Advisory.
 #   bench docs-since   commits in every repo since the docs were last
 #                  reconciled (--mark records new watermarks) — the input
 #                  to the daily /docs-sync sweep
@@ -2028,6 +2032,435 @@ cmd_clone() {
   done
 }
 
+# ── bench overlap: what the other lanes on this repo are already inside ──────
+# Parallel agent lanes are branches of ONE repo in ONE shared object store, all
+# on this machine. That makes coordination unnecessary: every fact a claims
+# ledger would ask an agent to *declare* — which files, which regions, whose
+# work is where — can just be *measured*, offline, in milliseconds. Nobody has
+# to register anything, nobody can forget to, and a lane whose agent never runs
+# this costs its siblings nothing. There is no lock, no claim and no state file
+# here on purpose: the only thing `overlap` writes is its own output.
+#
+# Two signals, deliberately different in what they can see:
+#
+#   • the hunk index — every lane's changed line ranges since the common
+#     ancestor, INCLUDING uncommitted and untracked work. Broad and early.
+#     This is the half `git merge-tree` structurally cannot see, and it is
+#     where a lane spends most of its life.
+#   • merge-tree — a real three-way merge of the two branches, no working tree
+#     touched. Exact, but committed work only.
+#
+# Overlap is only ever defined WITHIN one repo — a `holt child` lane on another
+# repo has its own object store and cannot textually collide with this one — so
+# the same-repo filter is the whole scoping rule and needs no flag.
+#
+# Advisory, never a gate. It refuses nothing and blocks nothing; it reports, and
+# the exit code says how loudly (0 clear · 3 same file · 4 same region).
+
+# git's own default context. Two edits within this many lines of each other are
+# what `git merge` will present as one conflicted hunk, so it is the right fuzz
+# for "are we in the same room", not a tuned magic number.
+EARSHOT_FUZZ=3
+EARSHOT_HUGE=2147483647   # the range a whole-file add/delete claims
+
+# hunk_ranges — a `git diff -U0` stream on stdin → one `path \t start \t end`
+# per hunk, in the BASE file's coordinates.
+#
+# Base-side, not new-side, on purpose: two lanes that branched from the same
+# commit have diverging line numbers in their own trees (every insertion shifts
+# everything below it), so their new-side numbers aren't comparable at all. The
+# ancestor's numbering is the one coordinate system both sides share, and both
+# diffs report it for free in the `-a,b` half of each hunk header.
+#
+# A whole-file add or delete claims the entire range: add/add and delete/edit
+# always conflict, whatever the line numbers say.
+hunk_ranges() {
+  awk -v huge="$EARSHOT_HUGE" '
+    /^diff --git / { path = ""; whole = 0; inhunk = 0; next }
+    # The ---/+++ headers are only headers BEFORE the first @@ of a file. Inside
+    # a hunk, an added line whose own text starts with "++ " arrives as "+++ ",
+    # and reading that as a file header files every later hunk under a garbage
+    # path — the file silently drops out of the comparison. (A removed "-- "
+    # line is the same trap on the other side.)
+    # substr($0,5), not $2 — a path with a space in it would shear on fields.
+    /^--- / { if (inhunk) next; s = substr($0, 5); if (s == "/dev/null") whole = 1; else if (path == "") path = substr(s, 3); next }
+    /^\+\+\+ / { if (inhunk) next; s = substr($0, 5); if (s == "/dev/null") whole = 1; else path = substr(s, 3); next }
+    /^@@ / {
+      inhunk = 1
+      if (path == "") next
+      if (whole) { print path "\t0\t" huge; next }
+      # $2 is the old-side spec: "-a,b", or "-a" when the count is 1.
+      n = split(substr($2, 2), r, ",")
+      start = r[1] + 0
+      len = (n > 1 ? r[2] + 0 : 1)
+      # A pure insertion is "-a,0": nothing of the base was touched, but the
+      # seam between a and a+1 is still a place two lanes can collide.
+      if (len == 0) print path "\t" start "\t" (start + 1)
+      else print path "\t" start "\t" (start + len - 1)
+    }
+  '
+}
+
+side_ranges() { # side_ranges <dir> <base> [ref] — everything this side changed
+  local dir="$1" base="$2" ref="${3:-}"
+  if [ -n "$ref" ]; then
+    # A parked lane has no checkout left, so read its branch out of the shared
+    # object store instead. Committed work only — that's all a branch has.
+    git -C "$dir" diff -U0 --no-color --no-ext-diff --no-renames "$base" "$ref" 2>/dev/null | hunk_ranges
+    return
+  fi
+  # `git diff <base>` with no second rev compares the base to the WORKING TREE,
+  # so one call covers committed and uncommitted together.
+  git -C "$dir" diff -U0 --no-color --no-ext-diff --no-renames "$base" 2>/dev/null | hunk_ranges
+  # Untracked files are invisible to `git diff` and to `merge-tree` alike, but
+  # two lanes creating the same new file is a real add/add conflict — and the
+  # one this whole tool would otherwise be blindest to, because a brand-new
+  # file is exactly what an agent writes without checking first.
+  git -C "$dir" ls-files --others --exclude-standard 2>/dev/null \
+    | while IFS= read -r f; do printf '%s\t0\t%s\n' "$f" "$EARSHOT_HUGE"; done
+}
+
+# range_compare — a tagged stream on stdin (`A|B \t path \t start \t end`) →
+# one finding per shared file: `hunk|file \t path \t detail`.
+#
+# One stream with a side tag, rather than awk's usual two-file NR==FNR idiom,
+# because NR==FNR misreads the second file's first record as the first file's
+# whenever the first file is empty — and "this lane has changed nothing yet" is
+# a completely ordinary state here, not an edge case.
+range_compare() {
+  awk -F'\t' -v fuzz="$EARSHOT_FUZZ" -v huge="$EARSHOT_HUGE" '
+    $1 == "A" { an[$2]++; as[$2, an[$2]] = $3; ae[$2, an[$2]] = $4; next }
+    $1 == "B" { bn[$2]++; bs[$2, bn[$2]] = $3; be[$2, bn[$2]] = $4; next }
+    END {
+      for (p in bn) {
+        if (!(p in an)) continue
+        hot = 0; lo = huge; hi = -1
+        for (i = 1; i <= an[p]; i++) for (j = 1; j <= bn[p]; j++) {
+          if (as[p,i] - fuzz <= be[p,j] && bs[p,j] - fuzz <= ae[p,i]) {
+            hot = 1
+            l = (as[p,i] < bs[p,j] ? as[p,i] : bs[p,j])
+            h = (ae[p,i] > be[p,j] ? ae[p,i] : be[p,j])
+            if (l < lo) lo = l
+            if (h > hi) hi = h
+          }
+        }
+        if (!hot) print "file\t" p "\t-"
+        else if (hi >= huge) print "hunk\t" p "\tthe whole file"
+        else print "hunk\t" p "\tL" lo "-" hi
+      }
+    }
+  ' | LC_ALL=C sort -k1,1r -k2,2   # -r so hunk (loud) sorts above file (quiet)
+}
+
+earshot_pair() { # earshot_pair <main> <a-dir> <a-ref> <a-rev> <b-dir> <b-ref> <b-rev> [path]
+                 # findings between two sides, or nothing at all.
+  local main="$1" adir="$2" aref="$3" arev="$4" bdir="$5" bref="$6" brev="$7" only="${8:-}"
+  local base
+  # The merge base is both the coordinate system for the ranges and the point a
+  # real merge would three-way from. No base (unrelated histories) → no answer.
+  base="$(git -C "$main" merge-base "$arev" "$brev" 2>/dev/null)" || return 0
+  [ -n "$base" ] || return 0
+  { side_ranges "$adir" "$base" "$aref" | sed 's/^/A\t/'
+    side_ranges "$bdir" "$base" "$bref" | sed 's/^/B\t/'
+  } | { if [ -n "$only" ]; then grep -F "	$only	" || true; else cat; fi } | range_compare
+}
+
+earshot_lanes() { # earshot_lanes <main-checkout> — name \t branch \t checkout, deduped
+  [ -f "$WT_REGISTRY" ] || return 0
+  awk -F'\t' -v m="$1" 'NF >= 4 && $2 == m { print $1 "\t" $3 "\t" $4 }' "$WT_REGISTRY" \
+    | LC_ALL=C sort -u
+}
+
+earshot_side() { # earshot_side <checkout> <branch> <main> — "dir \t ref" for a lane
+  # A live lane is read from its checkout (which carries its uncommitted work);
+  # a parked one has no checkout left, so read its branch from the shared store.
+  if [ -e "$1/.git" ]; then printf '%s\t\n' "$1"; else printf '%s\t%s\n' "$3" "$2"; fi
+}
+
+earshot_pushed() { # earshot_pushed <main> <branch>
+  git -C "$1" rev-parse --verify --quiet "refs/remotes/origin/$2" >/dev/null 2>&1
+}
+
+earshot_size() { # earshot_size <dir> <base> [ref] — files changed on that side
+  local dir="$1" base="$2" ref="${3:-}"
+  { if [ -n "$ref" ]; then git -C "$dir" diff --name-only "$base" "$ref" 2>/dev/null
+    else git -C "$dir" diff --name-only "$base" 2>/dev/null
+         git -C "$dir" ls-files --others --exclude-standard 2>/dev/null
+    fi
+  } | LC_ALL=C sort -u | grep -c . || true
+}
+
+# earshot_order — who lands first. Not a rule anyone enforces; a default, so two
+# agents that both read it reach the same answer without talking to each other.
+# The tiebreak is deliberately observable from either side: pushed-ness and
+# diffstat are facts in the shared repo, not opinions either lane has to publish.
+earshot_order() { # earshot_order <main> <mine-branch> <mine-size> <theirs-branch> <theirs-size> <theirs-lane> <my-lane>
+  local main="$1" mb="$2" ms="$3" tb="$4" ts="$5" them="$6" me="$7"
+  local mp=0 tp=0
+  if earshot_pushed "$main" "$mb"; then mp=1; fi
+  if earshot_pushed "$main" "$tb"; then tp=1; fi
+  if [ "$tp" = 1 ] && [ "$mp" = 0 ]; then
+    echo "$them lands first (already pushed) — then $me rebases onto main"
+  elif [ "$mp" = 1 ] && [ "$tp" = 0 ]; then
+    echo "$me lands first (already pushed) — then $them rebases onto main"
+  elif [ "$ms" -lt "$ts" ]; then
+    echo "$them lands first (bigger: $ts files vs $ms) — the smaller branch rebases"
+  elif [ "$ts" -lt "$ms" ]; then
+    echo "$me lands first (bigger: $ms files vs $ts) — the smaller branch rebases"
+  elif [ "$me" \< "$them" ]; then
+    echo "$me lands first (same size — alphabetical, so both sides pick the same one)"
+  else
+    echo "$them lands first (same size — alphabetical, so both sides pick the same one)"
+  fi
+}
+
+earshot_conflicts() { # earshot_conflicts <main> <a-rev> <b-rev> — merge-tree's verdict
+  # A real three-way merge with no working tree in sight. Exit 1 means conflicts,
+  # and the conflicted paths are the lines between the tree OID and the blank
+  # line. Committed work only — the hunk index above covers the rest.
+  local out rc=0
+  out="$(git -C "$1" merge-tree --write-tree --name-only "$2" "$3" 2>/dev/null)" || rc=$?
+  [ "$rc" = 1 ] || return 0
+  printf '%s\n' "$out" | awk 'NR == 1 { next } /^$/ { exit } { print }'
+}
+
+# Lane names carry a uniquifying suffix and are long by design; one of them must
+# not shear the whole table (the same clamp status_running uses).
+earshot_clamp() {
+  local s="$1" w="$2"
+  if [ "${#s}" -gt "$w" ]; then s="${s:0:$((w - 1))}…"; fi
+  printf '%s' "$s"
+}
+
+cmd_overlap() {
+  local brief=0 only=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --brief) brief=1 ;;
+      --path)  shift; only="${1:-}"; [ -n "$only" ] || die "bench overlap --path wants a file path." ;;
+      -h|--help)
+        printf '%s\n' \
+          'bench overlap [--brief] [--path <file>]' \
+          '' \
+          '  What the other agent lanes on THIS repo have already changed, and where' \
+          '  their changes and yours land in the same file — measured, never declared.' \
+          '' \
+          '  --brief        one line per lane; no intent, no nomination, no verdict' \
+          '  --path <file>  only that file, and print nothing at all when it is clear' \
+          '' \
+          '  From the main checkout it reports lane-vs-lane pairs instead.' \
+          '  Exit: 0 clear · 3 same file, different regions · 4 same region'
+        return 0 ;;
+      *) die "bench overlap: unknown argument '$1' (try --brief or --path <file>)." ;;
+    esac
+    shift
+  done
+
+  local top common main_dir
+  top="$(git rev-parse --show-toplevel 2>/dev/null)" \
+    || die "bench overlap: run it inside a git checkout."
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" \
+    || die "bench overlap: can't find this checkout's git dir."
+  main_dir="$(dirname "$common")"
+  # --path takes whatever you would type; the index is repo-relative.
+  if [ -n "$only" ]; then only="${only#"$top"/}"; fi
+
+  local rows repo_label
+  rows="$(earshot_lanes "$main_dir")"
+  repo_label="$(lane_label "$main_dir")"
+
+  # Standing in the MAIN checkout rather than a lane: there is no "you" to
+  # compare against, so answer the other useful question — which lanes collide
+  # with EACH OTHER. That is the verdict `bench try-batch` reaches by merging
+  # the whole open-PR queue, minus the PRs, the merges and the rebuild.
+  if [ "$top" = "$main_dir" ]; then
+    earshot_matrix "$main_dir" "$rows" "$repo_label" "$only" "$brief" || return $?
+    return 0
+  fi
+
+  local my_branch my_head my_lane
+  my_branch="$(git -C "$top" rev-parse --abbrev-ref HEAD)"
+  my_head="$(git -C "$top" rev-parse HEAD)"
+  my_lane="$(printf '%s\n' "$rows" | awk -F'\t' -v p="$top" '$3 == p { print $1; exit }')"
+  [ -n "$my_lane" ] || my_lane="${my_branch#worktree-}"
+
+  local n_other=0 loud=0 quiet=0 body="" verdict=""
+  local lane branch path side sdir sref findings level file detail
+  while IFS=$'\t' read -r lane branch path; do
+    [ -n "$lane" ] || continue
+    [ "$path" != "$top" ] || continue
+    [ "$branch" != "$my_branch" ] || continue
+    # A registry row whose branch is gone is a corpse, not a lane.
+    git -C "$main_dir" rev-parse --verify --quiet "$branch" >/dev/null 2>&1 || continue
+    n_other=$((n_other + 1))
+
+    side="$(earshot_side "$path" "$branch" "$main_dir")"
+    sdir="${side%%$'\t'*}"; sref="${side#*$'\t'}"
+    findings="$(earshot_pair "$main_dir" "$top" "" "$my_head" "$sdir" "$sref" "$branch" "$only")"
+
+    if [ -z "$findings" ]; then
+      if [ "$brief" = 1 ] && [ -z "$only" ]; then
+        body+="$(printf '  %s·%s  %-18s %snothing shared%s' \
+          "$C_MUT" "$C_OFF" "$(earshot_clamp "$lane" 18)" "$C_MUT" "$C_OFF")"$'\n'
+      fi
+      continue
+    fi
+
+    local lane_loud=0
+    while IFS=$'\t' read -r level file detail; do
+      [ -n "$file" ] || continue
+      if [ "$level" = hunk ]; then
+        lane_loud=1; loud=$((loud + 1))
+        body+="$(printf '  %s⚠%s  %-18s %s%s%s  %s%s%s' \
+          "$C_WARN" "$C_OFF" "$(earshot_clamp "$lane" 18)" \
+          "$C_WARN" "$file" "$C_OFF" "$C_MUT" "$detail" "$C_OFF")"$'\n'
+      else
+        quiet=$((quiet + 1))
+        body+="$(printf '  %s·%s  %-18s %s%s — elsewhere in the file%s' \
+          "$C_MUT" "$C_OFF" "$(earshot_clamp "$lane" 18)" "$C_MUT" "$file" "$C_OFF")"$'\n'
+      fi
+    done <<<"$findings"
+
+    # Intent comes free: our commit subjects already say what a lane is doing,
+    # so there is no "what are you working on" field for anyone to keep current
+    # — and none to go stale the moment someone forgets it.
+    if [ "$lane_loud" = 1 ] && [ "$brief" != 1 ]; then
+      local subject base tip ms ts
+      base="$(git -C "$main_dir" merge-base "$my_head" "$branch" 2>/dev/null)" || base=""
+      tip="$(git -C "$main_dir" rev-parse "$branch" 2>/dev/null)" || tip=""
+      # A lane with no commits past the base has no intent to read — its last
+      # commit is the ancestor's, and printing that quotes the shared history
+      # back at you as if it were the neighbour's plan.
+      if [ -n "$tip" ] && [ "$tip" != "$base" ]; then
+        subject="$(git -C "$main_dir" log -1 --format=%s "$branch" 2>/dev/null)" || subject=""
+        if [ -n "$subject" ]; then
+          body+="$(printf '     %s“%s”%s' "$C_MUT" "$subject" "$C_OFF")"$'\n'
+        fi
+      else
+        body+="$(printf '     %s(uncommitted work only — no commits yet)%s' "$C_MUT" "$C_OFF")"$'\n'
+      fi
+      if [ -n "$base" ]; then
+        ms="$(earshot_size "$top" "$base" "")"
+        ts="$(earshot_size "$sdir" "$base" "$sref")"
+        body+="$(printf '     %s↳ %s%s' "$C_MUT" \
+          "$(earshot_order "$main_dir" "$my_branch" "$ms" "$branch" "$ts" "$lane" "$my_lane")" "$C_OFF")"$'\n'
+      fi
+    fi
+
+    # The exact half, reported apart and never folded into the index: a lane can
+    # be loud above and still merge cleanly (both sides converged on the same
+    # text), or quiet above and conflict anyway (a rename the index doesn't
+    # follow). Two signals disagreeing is information; averaging them isn't.
+    local mt; mt="$(earshot_conflicts "$main_dir" "$my_head" "$branch")"
+    if [ -n "$mt" ]; then
+      verdict+="$(printf '  %s✗%s  %-18s %s' "$C_ERR" "$C_OFF" \
+        "$(earshot_clamp "$lane" 18)" "$(printf '%s' "$mt" | tr '\n' ' ')")"$'\n'
+    fi
+  done <<<"$rows"
+
+  # main moves under you while you work, and a sibling landing its PR is the
+  # commonest way a lane acquires a conflict it did nothing to earn. Cheapest
+  # check here, and the one that pays for the whole command on its own.
+  local mainref="" r
+  # origin/main FIRST: a sibling landing its PR moves the remote ref, and the
+  # local `main` doesn't hear about it until someone runs `bench pull` — which
+  # is exactly the conflict this check exists to see coming.
+  for r in origin/main main; do
+    if git -C "$main_dir" rev-parse --verify --quiet "$r" >/dev/null 2>&1; then mainref="$r"; break; fi
+  done
+  local mt_main=""
+  if [ -n "$mainref" ]; then mt_main="$(earshot_conflicts "$main_dir" "$my_head" "$mainref")"; fi
+  if [ -n "$mt_main" ]; then
+    verdict+="$(printf '  %s✗%s  %-18s %s' "$C_ERR" "$C_OFF" \
+      "$(earshot_clamp "$mainref" 18)" "$(printf '%s' "$mt_main" | tr '\n' ' ')")"$'\n'
+  fi
+
+  local rc=0
+  if [ "$quiet" -gt 0 ]; then rc=3; fi
+  if [ "$loud" -gt 0 ] || [ -n "$verdict" ]; then rc=4; fi
+
+  # --path is the hook-shaped form: when the file is clear, the answer is
+  # silence. Anything that prints on a clear file gets muted within a day.
+  if [ -n "$only" ]; then
+    if [ -z "$body$verdict" ]; then return 0; fi
+    printf '%s' "$body"
+    if [ -n "$verdict" ]; then printf '%s' "$verdict"; fi
+    return "$rc"
+  fi
+
+  if [ "$n_other" = 0 ]; then
+    say "earshot — no other lanes on $repo_label; nothing to bump into"
+    return 0
+  fi
+  if [ "$loud" = 0 ] && [ "$quiet" = 0 ]; then
+    say "earshot — $n_other other lane(s) on $repo_label, none in your files"
+  else
+    say "earshot — $n_other other lane(s) on $repo_label; $loud in your way, $quiet nearby"
+  fi
+  printf '%s' "$body"
+  if [ -n "$verdict" ]; then
+    printf '\n'
+    warn "merge-tree already conflicts (committed work only):"
+    printf '%s' "$verdict"
+    hint "rebase onto main once the other branch lands — never merge main into yours"
+  elif [ "$brief" != 1 ]; then
+    local against="every lane"
+    if [ -n "$mainref" ]; then against="every lane and $mainref"; fi
+    printf '  %smerge-tree: clean against %s%s\n' "$C_MUT" "$against" "$C_OFF"
+  fi
+  return "$rc"
+}
+
+earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> <brief> — lane vs lane
+  local main="$1" rows="$2" label="$3" only="$4" brief="$5"
+  local names=() branches=() paths=()
+  local lane branch path
+  while IFS=$'\t' read -r lane branch path; do
+    [ -n "$lane" ] || continue
+    git -C "$main" rev-parse --verify --quiet "$branch" >/dev/null 2>&1 || continue
+    names+=("$lane"); branches+=("$branch"); paths+=("$path")
+  done <<<"$rows"
+
+  local n=${#names[@]} i j rc=0 body=""
+  if [ "$n" -lt 2 ]; then
+    # --path is the hook-shaped form wherever it is run from: silence is the
+    # answer when nothing is wrong, here as much as inside a lane.
+    if [ -z "$only" ]; then say "earshot — $label has fewer than two lanes; nothing can collide"; fi
+    return 0
+  fi
+  for ((i = 0; i < n; i++)); do
+    for ((j = i + 1; j < n; j++)); do
+      local a b adir aref bdir bref findings level file detail mark note
+      a="$(earshot_side "${paths[$i]}" "${branches[$i]}" "$main")"; adir="${a%%$'\t'*}"; aref="${a#*$'\t'}"
+      b="$(earshot_side "${paths[$j]}" "${branches[$j]}" "$main")"; bdir="${b%%$'\t'*}"; bref="${b#*$'\t'}"
+      findings="$(earshot_pair "$main" "$adir" "$aref" "${branches[$i]}" "$bdir" "$bref" "${branches[$j]}" "$only")"
+      [ -n "$findings" ] || continue
+      while IFS=$'\t' read -r level file detail; do
+        [ -n "$file" ] || continue
+        if [ "$level" = hunk ]; then
+          mark="${C_WARN}⚠${C_OFF}"; note="$detail"; rc=4
+        else
+          mark="${C_MUT}·${C_OFF}"; note="elsewhere in the file"
+          if [ "$rc" != 4 ]; then rc=3; fi
+        fi
+        body+="$(printf '  %s  %-18s %s %-18s %s%s — %s%s' "$mark" \
+          "$(earshot_clamp "${names[$i]}" 18)" "${C_MUT}↔${C_OFF}" "$(earshot_clamp "${names[$j]}" 18)" \
+          "$C_MUT" "$file" "$note" "$C_OFF")"$'\n'
+      done <<<"$findings"
+    done
+  done
+  if [ -z "$body" ]; then
+    if [ -z "$only" ]; then say "earshot — $n lanes on $label, no two of them in the same file"; fi
+    return 0
+  fi
+  if [ -z "$only" ]; then say "earshot — $n lanes on $label, pairs that share a file"; fi
+  printf '%s' "$body"
+  if [ -z "$only" ] && [ "$brief" != 1 ]; then
+    hint "the ⚠ pairs are the ones try-batch would drop — land one, rebase the other"
+  fi
+  return "$rc"
+}
+
 # When sourced with HAUS_LIB=1 (the bats test harness), stop here: the caller
 # just wants the functions above, not to dispatch a command.
 if [ "${HAUS_LIB:-}" != "1" ]; then
@@ -2040,7 +2473,8 @@ case "${1:-status}" in
   pull)    shift; cmd_pull "$@" ;;
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
+  overlap) shift; cmd_overlap "$@" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,46p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi

@@ -17,7 +17,7 @@
 # and this is read by zsh, not Nix. `exec zsh` reloads it.
 #
 # The subcommand descriptions are one-line paraphrases of bench's OWN usage
-# header (bench:2-40) — the same text `bench <garbage>` prints. That header is
+# header (bench:2-46) — the same text `bench <garbage>` prints. That header is
 # the source; when it changes, this follows.
 
 # _bench_array <NAME> [fallback…] — the elements of a single-line bash array in
@@ -51,6 +51,7 @@ _bench() {
     'rebuild:a plain, pinned rebuild of your machine (the normal day)'
     'pull:fast-forward every repo, or just the named ones'
     'clone:fetch any family repo missing from this directory'
+    'overlap:what the OTHER agent lanes on this repo have already changed'
     'docs-since:commits in every repo since the docs were last reconciled'
     'release:stamp the version and tag it, then WATCH the CI run to the end'
   )
@@ -107,6 +108,20 @@ _bench() {
           # "(eval):1: bad substitution" over your completion list.
           (( CURRENT == 2 )) && { _describe -t modes 'try-batch mode' bmode && ret=0 }
           _describe -t repos 'overridable repo' left && ret=0
+          ;;
+
+        overlap)
+          # Flags only — cmd_overlap takes no repo argument, because overlap is
+          # only ever defined inside ONE repo (the one you are standing in).
+          local -a oflags=(
+            '--brief:one line per lane — the lane-start version'
+            '--path:only that file; prints nothing at all when it is clear'
+          )
+          if [[ $words[CURRENT-1] == --path ]]; then
+            _files && ret=0
+          else
+            _describe -t flags 'overlap flag' oflags && ret=0
+          fi
           ;;
 
         pull)

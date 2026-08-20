@@ -109,6 +109,43 @@ Never `git stash` in these repos: the stash stack lives in the shared `.git`
 dir, so every worktree *and* the main checkout pop the same one, and parallel
 agents routinely pop each other's entries. `holt park` is per-branch, so it can't.
 
+### Lanes noticing each other (`bench overlap`)
+
+Lanes conflict by accident: two of them append to `AGENTS.md`, or rewrite the same
+paragraph of a note, and nobody finds out until a PR won't merge. `bench overlap`
+finds it early, and does it **without any coordination at all** — no claims file, no
+lock, no registry to keep current. Lanes are branches of one repo in one shared
+object store, so every fact a claims ledger would ask an agent to *declare* is just
+measured instead, offline, in milliseconds.
+
+```sh
+./bench overlap                  # who is in your files, and where — from inside a lane
+./bench overlap --brief          # one line per lane; run it when a lane starts
+./bench overlap --path AGENTS.md # just that file; prints NOTHING when it's clear
+./bench overlap                  # from the MAIN checkout: every pair of lanes that share a file
+```
+
+Two signals, on purpose:
+
+- **the hunk index** — every lane's changed line ranges since the common ancestor,
+  in the *ancestor's* coordinates (the one numbering two diverging trees share),
+  including **uncommitted and untracked** work. `⚠` means the same region, within
+  git's own 3-line context; `·` means the same file, somewhere else in it. Co-editing
+  a long shared file is normal here, and a tool that shouted about it would be muted
+  inside a day.
+- **`git merge-tree`** — a real three-way merge of the two branches, no working tree
+  touched. Exact, but committed work only. Reported apart from the index, never folded
+  into it: the two disagreeing is information.
+
+Exit codes are `0` clear · `3` same file · `4` same region, and it refuses nothing —
+it reports. The `↳` line names which branch should land first, reading only facts both
+lanes can see (who has pushed, whose diff is bigger), so two agents reach the same
+answer without talking to each other. Put that line in the PR body's **Watch out**
+block and the collision reaches the review queue as text.
+
+It is the pre-emptive form of what `bench try-batch` discovers below by merging the
+whole open-PR queue — same verdict, minus the PRs, the merges and the rebuild.
+
 ## Feel-testing one branch, alone
 
 `bench try switch` works **from inside an agent worktree**, and that's the point:
