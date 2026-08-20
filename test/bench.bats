@@ -488,6 +488,49 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$output" = "?" ]
 }
 
+@test "lane_table renders a live lane, a parked one, and a stale branch" {
+  # The render loop itself: two defects (a tilde-mangled path fed back to git,
+  # so every lane read clean; an unclamped parked branch shearing the table)
+  # both survived a green suite of helper-only tests.
+  mkmain haus
+  WT_REGISTRY="$TMP/registry.tsv"
+  git -C "$ROOT/haus" worktree add -q -b worktree-live "$TMP/live"
+  echo scratch >"$TMP/live/uncommitted"
+  # a branch with an unmerged commit, no checkout and no registry row: a corpse
+  git -C "$ROOT/haus" worktree add -q -b worktree-dead "$TMP/dead"
+  git -C "$TMP/dead" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two
+  git -C "$ROOT/haus" worktree remove --force "$TMP/dead"
+  mkregistry "$WT_REGISTRY" \
+    "live $ROOT/haus worktree-live $TMP/live $ROOT/haus claude" \
+    "gone $ROOT/haus worktree-gone $TMP/no-such-checkout $ROOT/haus claude" \
+    "alien /Users/someone/other worktree-alien /wt/alien /Users/someone/other claude"
+
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-live"* ]]
+  [[ "$output" == *"dirty"* ]]                       # the checkout really is dirty
+  [[ "$output" == *"(parked — 'holt gone' to resume"* ]]
+  [[ "$output" == *"worktree-dead"* && "$output" == *"stale branch"* ]]
+  [[ "$output" == *"holt reap"* ]]                   # a live lane exists to reap
+  [[ "$output" != *"alien"* ]]                       # somebody else's repo
+}
+
+@test "lane_table prints nothing at all when there are no lanes and no corpses" {
+  mkmain haus
+  WT_REGISTRY="$TMP/no-such-registry.tsv"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "lane_table clamps a long branch on a parked row too" {
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "gone $ROOT/haus worktree-gone-with-a-very-long-lane-name-indeed $TMP/nope $ROOT/haus claude"
+  run lane_table
+  [[ "$output" == *"worktree-gone-with-a-very-long-…"* ]]
+}
+
 @test "lane_rows keeps hausfold + host-config lanes and drops everyone else's" {
   # bench lists holt's registry, not `git worktree list` — git's answer includes
   # hand-made trees holt never made and `holt reap` will never sweep, which is

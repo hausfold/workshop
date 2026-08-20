@@ -70,7 +70,7 @@ looking at.
 
 ```sh
 # ⌘↵ lanes hack away on their own branches; meanwhile:
-./bench status               # …also lists agent worktrees + unmerged worktree-* branches
+./bench status               # …also lists agent lanes + unmerged worktree-* branches
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
 # an agent lands work by opening a PR — never by pushing to or merging into main:
