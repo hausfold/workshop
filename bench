@@ -2076,11 +2076,17 @@ EARSHOT_HUGE=2147483647   # the range a whole-file add/delete claims
 # always conflict, whatever the line numbers say.
 hunk_ranges() {
   awk -v huge="$EARSHOT_HUGE" '
-    /^diff --git / { path = ""; whole = 0; next }
+    /^diff --git / { path = ""; whole = 0; inhunk = 0; next }
+    # The ---/+++ headers are only headers BEFORE the first @@ of a file. Inside
+    # a hunk, an added line whose own text starts with "++ " arrives as "+++ ",
+    # and reading that as a file header files every later hunk under a garbage
+    # path — the file silently drops out of the comparison. (A removed "-- "
+    # line is the same trap on the other side.)
     # substr($0,5), not $2 — a path with a space in it would shear on fields.
-    /^--- / { s = substr($0, 5); if (s == "/dev/null") whole = 1; else if (path == "") path = substr(s, 3); next }
-    /^\+\+\+ / { s = substr($0, 5); if (s == "/dev/null") whole = 1; else path = substr(s, 3); next }
+    /^--- / { if (inhunk) next; s = substr($0, 5); if (s == "/dev/null") whole = 1; else if (path == "") path = substr(s, 3); next }
+    /^\+\+\+ / { if (inhunk) next; s = substr($0, 5); if (s == "/dev/null") whole = 1; else path = substr(s, 3); next }
     /^@@ / {
+      inhunk = 1
       if (path == "") next
       if (whole) { print path "\t0\t" huge; next }
       # $2 is the old-side spec: "-a,b", or "-a" when the count is 1.
@@ -2268,7 +2274,7 @@ cmd_overlap() {
   # with EACH OTHER. That is the verdict `bench try-batch` reaches by merging
   # the whole open-PR queue, minus the PRs, the merges and the rebuild.
   if [ "$top" = "$main_dir" ]; then
-    earshot_matrix "$main_dir" "$rows" "$repo_label" "$only" || return $?
+    earshot_matrix "$main_dir" "$rows" "$repo_label" "$only" "$brief" || return $?
     return 0
   fi
 
@@ -2356,7 +2362,10 @@ cmd_overlap() {
   # commonest way a lane acquires a conflict it did nothing to earn. Cheapest
   # check here, and the one that pays for the whole command on its own.
   local mainref="" r
-  for r in main origin/main; do
+  # origin/main FIRST: a sibling landing its PR moves the remote ref, and the
+  # local `main` doesn't hear about it until someone runs `bench pull` — which
+  # is exactly the conflict this check exists to see coming.
+  for r in origin/main main; do
     if git -C "$main_dir" rev-parse --verify --quiet "$r" >/dev/null 2>&1; then mainref="$r"; break; fi
   done
   local mt_main=""
@@ -2402,8 +2411,8 @@ cmd_overlap() {
   return "$rc"
 }
 
-earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> — lane against lane
-  local main="$1" rows="$2" label="$3" only="$4"
+earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> <brief> — lane vs lane
+  local main="$1" rows="$2" label="$3" only="$4" brief="$5"
   local names=() branches=() paths=()
   local lane branch path
   while IFS=$'\t' read -r lane branch path; do
@@ -2414,7 +2423,9 @@ earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> — lane agains
 
   local n=${#names[@]} i j rc=0 body=""
   if [ "$n" -lt 2 ]; then
-    say "earshot — $label has fewer than two lanes; nothing can collide"
+    # --path is the hook-shaped form wherever it is run from: silence is the
+    # answer when nothing is wrong, here as much as inside a lane.
+    if [ -z "$only" ]; then say "earshot — $label has fewer than two lanes; nothing can collide"; fi
     return 0
   fi
   for ((i = 0; i < n; i++)); do
@@ -2439,12 +2450,14 @@ earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> — lane agains
     done
   done
   if [ -z "$body" ]; then
-    say "earshot — $n lanes on $label, no two of them in the same file"
+    if [ -z "$only" ]; then say "earshot — $n lanes on $label, no two of them in the same file"; fi
     return 0
   fi
-  say "earshot — $n lanes on $label, pairs that share a file"
+  if [ -z "$only" ]; then say "earshot — $n lanes on $label, pairs that share a file"; fi
   printf '%s' "$body"
-  hint "the ⚠ pairs are the ones try-batch would drop — land one, rebase the other"
+  if [ -z "$only" ] && [ "$brief" != 1 ]; then
+    hint "the ⚠ pairs are the ones try-batch would drop — land one, rebase the other"
+  fi
   return "$rc"
 }
 

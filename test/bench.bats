@@ -1422,3 +1422,53 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
   [ "$status" -eq 1 ]
   [[ "$output" == *"unknown argument"* ]]
 }
+
+@test "hunk_ranges doesn't read an added '++ ' line as a file header" {
+  # A line whose own text starts with "++ " arrives in the diff as "+++ ", and
+  # reading it as a header files every LATER hunk under a garbage path — the
+  # file drops out of the comparison silently, which is the worst way to fail.
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -2,2 +2,2 @@" "+++ still content" "@@ -10,1 +10,1 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t2\t3\nf\t10\t10')" ]
+}
+
+@test "hunk_ranges doesn't read a removed '-- ' line as a file header either" {
+  run bash -c 'printf "%s\n" "diff --git a/f b/f" "--- a/f" "+++ b/f" "@@ -2,2 +2,2 @@" "--- /dev/null" "@@ -10,1 +10,1 @@" | { '"$(declare -f hunk_ranges)"'; EARSHOT_HUGE=9; hunk_ranges; }'
+  [ "$output" = "$(printf 'f\t2\t3\nf\t10\t10')" ]
+}
+
+@test "cmd_overlap measures against origin/main, not the local main behind it" {
+  # A sibling landing its PR moves the REMOTE ref; the local main doesn't hear
+  # about it until someone pulls. Reading local main would blind the check to
+  # the one event it exists to catch.
+  mkoverlap
+  git -C "$OV/repo" worktree add -q -b tmp-origin "$OV/lanes/tmporigin" main
+  setline "$OV/lanes/tmporigin/doc.md" 10 10-landed-elsewhere
+  git -C "$OV/lanes/tmporigin" commit -qam "a sibling PR that already merged"
+  git -C "$OV/repo" update-ref refs/remotes/origin/main tmp-origin
+  git -C "$OV/repo" worktree remove --force "$OV/lanes/tmporigin"
+  git -C "$OV/repo" branch -qD tmp-origin
+  cd "$OV/lanes/rival"                       # rival edits line 10 too
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"origin/main"* ]]
+  [[ "$output" == *"merge-tree already conflicts"* ]]
+}
+
+@test "cmd_overlap --path is silent from the main checkout too" {
+  # --path is the hook-shaped form wherever it runs from; a summary line on a
+  # clear file is exactly what makes a hook get muted.
+  mkoverlap
+  cd "$OV/repo"
+  run cmd_overlap --path other.md
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "cmd_overlap --path from the main checkout still names a real collision" {
+  mkoverlap
+  cd "$OV/repo"
+  run cmd_overlap --path doc.md
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"↔"* ]]
+  [[ "$output" != *"🌫"* ]]                  # findings only, no header
+}

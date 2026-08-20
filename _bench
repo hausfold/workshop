@@ -51,8 +51,8 @@ _bench() {
     'rebuild:a plain, pinned rebuild of your machine (the normal day)'
     'pull:fast-forward every repo, or just the named ones'
     'clone:fetch any family repo missing from this directory'
-    'docs-since:commits in every repo since the docs were last reconciled'
     'overlap:what the OTHER agent lanes on this repo have already changed'
+    'docs-since:commits in every repo since the docs were last reconciled'
     'release:stamp the version and tag it, then WATCH the CI run to the end'
   )
 
