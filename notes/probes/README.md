@@ -321,7 +321,7 @@ PROBE_REMOTE=git+https://github.com/hausfold/workshop \
 Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
 step B. Step A shipped a sandbox for reading a **local** desktop file; step B
 fetches one instead, and this measures what changes when the file arrives in the
-store rather than in `~/Downloads`. Eighteen rows (nineteen with `PROBE_REMOTE`), seconds, no Mac — it builds
+store rather than in `~/Downloads`. Twenty rows (twenty-one with `PROBE_REMOTE`), seconds, no Mac — it builds
 throwaway git repos under one `mktemp` dir and runs real `nix eval` and
 `nix flake lock` against them.
 
@@ -343,7 +343,12 @@ dangerous one:
   the fetch on the remote node. The raw-URL shape's whole node is `narHash`,
   `type`, `url`, so it carries no date on either reading;
 - **and the update line for that shape reads like a no-op**: one arrow, one URL,
-  no left-hand side and no hash, printed while the content changed underneath.
+  no left-hand side and no hash, printed while the content changed underneath;
+- **"fetching runs no publisher code" is a property of `flake = false`, not of
+  fetching.** A desktop locks inert; a *room* is an ordinary flake input, and
+  locking one evaluates its `flake.nix` to find its own inputs — measured with a
+  room whose `inputs` attrset throws. So pinning a room already runs its code,
+  and step F's code prompt is owed before the lock, not before the rebuild.
 
 ⚠️ It measures **Nix, not haus** — `share/haus/desktop-check` isn't reachable
 from the workshop, so these are claims about the mechanism `haus show` stands on.

@@ -1309,8 +1309,8 @@ Designed 2026-08-20 against **Nix 2.34.8** (Determinate 3.21.9), from a cloud
 container with no macOS and no haus checkout. Still nothing built. Every row
 below is a row of [`probes/source-shapes.sh`](./probes/source-shapes.sh), which
 builds throwaway git repos in a `mktemp` dir and runs real `nix eval` and `nix
-flake lock` against them — 18 rows in seconds, no Mac; `PROBE_REMOTE=` adds a
-nineteenth over a genuine remote source.
+flake lock` against them — 20 rows in seconds, no Mac; `PROBE_REMOTE=` adds a
+twenty-first over a genuine remote source.
 
 ⚠️ **It measures Nix, not haus.** `share/haus/desktop-check` is not reachable
 from the workshop, so these are claims about the *mechanism* `haus show` stands
@@ -1333,10 +1333,12 @@ error: access to URI 'git+file:///…?ref=main' is forbidden in restricted mode
 guard working rather than failing, and it means `haus show <source>` is two acts
 that cannot be folded into one:
 
-1. **fetch** — unguarded, network, and **no publisher code runs**. A fetch is a
-   `git clone` or an HTTP GET; nothing in the source is evaluated to perform it.
-   The expression that does it must therefore be a literal `fetchTree` over the
-   URL the user typed and must import nothing.
+1. **fetch** — unguarded, network, and **no publisher code runs** *for a
+   desktop*. A fetch is a `git clone` or an HTTP GET; nothing in a
+   `flake = false` source is evaluated to perform it. The expression that does
+   it must therefore be a literal `fetchTree` over the URL the user typed and
+   must import nothing. (⚠️ This is a property of `flake = false`, **not of
+   fetching** — see [step F](#and-step-f-cannot-borrow-it) below.)
 2. **read** — guarded exactly as step A reads a local file, with the fetched
    store path as the allowed path. No network is needed and `allowed-uris` stays
    empty, because there is nothing left to fetch.
@@ -1425,6 +1427,34 @@ Measured, and it belongs beside [the rule it sharpens](#rules-that-fall-out-and-
 and no hash, while the content underneath changes. It is not a missing
 changelog — it is a line that reads as *confirmation nothing moved*, to anyone
 who knows the two-sided form from every other input.
+
+#### …and step F cannot borrow it
+
+The two-act split above rests on a fetch being inert, and that is true of a
+desktop because a desktop is `flake = false`. A **room** is an ordinary flake
+input, and locking one **evaluates the publisher's `flake.nix`** to discover its
+own inputs. Measured, with a room whose `inputs` attrset throws:
+
+| the same source, pinned as | `nix flake lock` |
+|---|---|
+| a room (an ordinary flake input) | **evaluated it** — the throw fires at lock time |
+| a desktop (`flake = false`) | **inert** — locks clean, the file never read |
+
+So for a room there is no unguarded-but-harmless fetch phase to hide behind:
+**pinning a room is already running its code.** Two things follow for step F,
+and neither is in its row yet.
+
+The code prompt — "this is code from `<origin>` at `<rev>`, haus cannot tell you
+what it does" — is owed **before the lock**, not merely before the rebuild. A
+design that fetches first and prompts second is fine for a desktop and is
+already too late for a room.
+
+And `--room` skipping the evaluation, which is [step A's rule](#findings-carried-out-of-step-a)
+("you have said it is code, and evaluating it anyway to say so is the one thing
+this command must not do"), cannot extend to `haus add --room`: adding it means
+locking it, and locking it evaluates it. `show --room` can stay honest; `add
+--room` cannot, so its prompt has to say that pinning is itself the first
+execution rather than implying the rebuild is.
 
 #### What B settles about C and D
 
@@ -1688,7 +1718,7 @@ behaviour, findings reported rather than folded in, and the
 | **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
 | **E0. The reserved prefix** | not started | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and every file declaring anything under it. Derives its namespace list the way `room-registry` does — `internal`/`visible`, not an `_`-prefix shorthand. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and two fixtures: a private module declaring an unregistered namespace, **and a stock haus machine, which must come back empty**. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw — and nobody else is told anything. |
 | **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
-| **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
+| **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. ⚠️ **The prompt comes before the LOCK, not before the rebuild** — [measured 2026-08-20](#and-step-f-cannot-borrow-it): dropping `flake = false` means locking the source evaluates the publisher's `flake.nix`, so pinning a room already runs its code and `show --room`'s skip-the-evaluation rule cannot extend to `add`. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. A fixture pinning the lock-time evaluation, so the prompt's placement cannot regress silently. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
 
 ### Findings carried out of step A
 
@@ -1711,7 +1741,13 @@ every other verb haus has drives the machine it is standing on.
   It closes with `restrict-eval`, `allowed-uris` empty, IFD off, `NIX_PATH`
   cleared, and exactly two paths named — the checker's own directory and the
   ONE file being read, not its parent, because a stranger's file in
-  `~/Downloads` must not be able to read the rest of it. `--room` skips the
+  `~/Downloads` must not be able to read the rest of it. (⚠️ **That last
+  property is local-only**, measured 2026-08-20: `restrict-eval`'s unit is the
+  store path, so naming a file that arrived by *fetch* allows its whole source
+  tree — see
+  [step B](#the-guards-granularity-changes-in-the-store). Step A's own case is
+  a local path, so the finding is right about what it built and narrower than
+  it reads.) `--room` skips the
   evaluation altogether: you have said it is code, and evaluating it anyway to
   say so is the one thing this command must not do. A blocked read is an error
   naming what it reached for, so the attempt is visible instead of silent.

@@ -5,7 +5,7 @@
 # sandbox for reading a LOCAL file (restrict-eval, empty allowed-uris, IFD off,
 # NIX_PATH cleared, two paths named). Step B fetches instead, and this measures
 # what changes when the file it reads arrives in the store rather than in
-# ~/Downloads. Four things the note had been asserting or had not asked:
+# ~/Downloads. Five things the note had been asserting or had not asked:
 #
 #   1. FETCHING CANNOT HAPPEN INSIDE THE GUARD. `builtins.fetchTree` under
 #      `allowed-uris = ""` is refused by URI, so `show` is two acts: fetch
@@ -20,6 +20,11 @@
 #   4. THE RAW-URL SHAPE PINS NARHASH AND NOTHING ELSE — no rev, no
 #      lastModified — and `nix flake update` on it prints the same URL on both
 #      sides of the arrow while the content changes underneath.
+#   5. "FETCHING RUNS NO PUBLISHER CODE" IS A PROPERTY OF `flake = false`, not
+#      of fetching. A desktop locks inert; a ROOM is an ordinary flake input and
+#      locking one EVALUATES its flake.nix to find its own inputs. So pinning a
+#      room is already running its code, and step F's prompt is owed before the
+#      lock rather than before the rebuild.
 #
 #   ./notes/probes/source-shapes.sh              # local fixtures only, no network
 #   PROBE_REMOTE=git+https://github.com/hausfold/workshop \
@@ -32,8 +37,9 @@
 #
 # ⚠️ It measures NIX, not haus. haus's own `share/haus/desktop-check` is not
 # reachable from the workshop, so the rows below are about the mechanism `haus
-# show` sits on rather than about the command. Rerun on a Nix bump: rows 1 and 2
-# are evaluator behaviour and are exactly the kind of thing a release moves.
+# show` sits on rather than about the command. Rerun on a Nix bump: sections 1,
+# 2 and 6 are evaluator behaviour and are exactly the kind of thing a release
+# moves.
 
 set -uo pipefail   # deliberately NOT -e: half these commands are run to fail
 
@@ -159,6 +165,33 @@ row "content moved (narHash changed)" changed \
 row "update line distinguishes old from new" no \
   "$(echo "$update_line" | grep -qE '(→|->).*(→|->)' && echo yes || echo no)"
 printf '     nix said: %s\n' "${update_line:-<nothing>}"
+
+say "6. 'Fetching runs no publisher code' is a property of flake=false, not of fetching"
+# The desktop shapes above are all `flake = false`, where a lock is a pure fetch.
+# A ROOM (step F) is an ordinary flake input, and locking one EVALUATES its
+# flake.nix to discover its own inputs — so the code prompt a room earns is owed
+# before the lock, not merely before the rebuild.
+mkdir -p room
+cat > room/flake.nix <<'EOF'
+{
+  inputs = { nixpkgs.url = builtins.throw "PUBLISHER-CODE-RAN-AT-LOCK-TIME"; };
+  outputs = { ... }: { };
+}
+EOF
+git init -q -b main room
+git -C room add -A
+git -C room -c user.email=probe@local -c user.name=probe commit -qm room
+for kind in flake nonflake; do
+  d="consumer-$kind"; mkdir -p "$d"
+  if [ "$kind" = flake ]; then spec="{ url = \"git+file://$lab/room?ref=main\"; }"
+  else spec="{ url = \"git+file://$lab/room?ref=main\"; flake = false; }"; fi
+  printf '{\n  inputs.theRoom = %s;\n  outputs = { ... }: { };\n}\n' "$spec" > "$d/flake.nix"
+  git init -q -b main "$d"; git -C "$d" add flake.nix
+  out=$(cd "$d" && nix flake lock 2>&1)
+  case "$out" in *PUBLISHER-CODE-RAN-AT-LOCK-TIME*) v=evaluated ;; *) v=inert ;; esac
+  if [ "$kind" = flake ]; then row "a room (flake input): locking it" evaluated "$v"
+  else row "a desktop (flake = false): locking it" inert "$v"; fi
+done
 
 say "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]
