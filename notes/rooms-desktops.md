@@ -729,7 +729,9 @@ each bullet below are there for exactly that. What survives re-reading is the
     [haus#420](https://github.com/hausfold/haus/pull/420) with
     [hausfold.co#95](https://github.com/hausfold/hausfold.co/pull/95): `hostOnly`
     maps each path to a reason key, `hostOnlyReasons` gives each key one
-    sentence (twelve over the 43 rows), `room-registry` fails on a row with no
+    sentence (twelve over 43 rows as it shipped; **thirteen over 44 at
+    `ffcdb0a`** — the table grows with the surface, which is the point of it),
+    `room-registry` fails on a row with no
     reason or a sentence nothing names, and all three renderers of the
     classification say the same thing — the generated host file, the options
     reference, and `checkDesktop`'s diagnostic, which had been telling a desktop
@@ -1235,14 +1237,22 @@ sparse-cloned, haus's own `modules/lib/desktop.nix` and
 and the registry is data — so this is haus's **real** validator over its real
 registry, not a model of it. What is *not* measured here is anything needing a
 darwin system, which is why nothing below claims a rebuild outcome.
-(Incidentally: `github:` inputs 403 in a cloud session, as
-[AGENTS.md](../AGENTS.md) warns, but `git+https://github.com/…` fetches fine —
-which is what made a third-party `lib` reachable at all.)
+What made `lib` reachable is a `--depth 1 --sparse` clone of nixpkgs' `lib/`
+directory, 15 MB and seconds, handed to the probe as an argument — not the
+flake, which still resolves `github:NixOS/nixpkgs` and still 403s exactly as
+[AGENTS.md](../AGENTS.md) warns. Separately worth knowing, and not in that
+warning: `git+https://github.com/…` **does** resolve in a cloud container, so
+the
+403 is api.github.com rather than GitHub. That belongs in AGENTS.md's cloud
+bullet, which currently reads as though nothing third-party is fetchable at all.
 
-All of it is re-runnable, and every claim below is one row of its output:
-[`probes/namespace-collision.nix`](./probes/namespace-collision.nix). Re-run it
-before acting on any of this; the measurements have the half-life this note
-keeps recording, and the probe is what makes checking cheaper than trusting.
+All of it is re-runnable, and every row of the design below is a row of its
+output: [`probes/namespace-collision.nix`](./probes/namespace-collision.nix).
+Re-run it before acting on any of this; the measurements have the half-life this
+note keeps recording, and the probe is what makes checking cheaper than
+trusting. (The one claim quoted here that its JSON does *not* carry is the
+duplicate-declaration message — `tryEval` catches the throw and Nix hands a
+catcher no message. The probe header says how to read it.)
 
 #### Three collision cases, and the note had the wrong one
 
@@ -1342,14 +1352,34 @@ haus: the namespace `haus.photography` is declared by
 /nix/store/aaa…-source/photography.nix but no input claimed it.
 ```
 
-It reads `builtins.attrNames options.haus` — the **merged** option tree, so it
-sees every module the machine actually has, including a private one — subtracts
-the registry's 35 and the `_`-prefixed internals, and subtracts the claim table.
-Roughly fifteen lines, and it is the first check in haus that fires where the
-damage is. Three cases fall out of one mechanism:
+It reads the **merged** option tree, so it sees every module the machine
+actually has, including a private one, and subtracts the registry's 35 and the
+claim table. It is the first check in haus that fires where the damage is.
 
-- **an unclaimed namespace** (the private-room case) → named, with the file, and
-  fixed by moving to the reserved prefix or by writing the claim;
+🚨 **And the first draft of it accused a stock machine.** Deriving the namespace
+list as "`attrNames options.haus`, minus the `_`-prefixed internals" reads like
+the rule `room-registry` uses. It is not: `room-registry` filters on
+`internal`/`visible`, and `mkRenamedOptionModule` leaves a hidden
+`haus.claude.*` behind (`modules/moved.nix`), so the shorthand reports an
+unclaimed namespace on a machine that has installed nothing from anyone — and
+cannot even name the file, because the leaves it would name are invisible.
+Measured both ways (`stockMachineNaive` vs `stockMachine`, `[ ]` once it
+derives the surface the way haus already does). **A check that fires on a stock
+machine is worse than no check**, and the general form is the one to keep:
+*reuse the surface derivation, never a paraphrase of it* — the paraphrase was
+three words shorter and wrong.
+
+The file it names comes from walking **every leaf** under the namespace, not
+from `<ns>.enable.declarations`: only 9 of haus's 35 namespaces have an
+`enable` leaf at all, so keying on it would name a file for a quarter of them
+and print `?` for the rest. That walk is also exactly what E1 needs for
+co-ownership, so the two checks are one traversal.
+
+Three cases fall out of that one mechanism:
+
+- **an unclaimed namespace** (the private-room case) → named, with every file
+  that declares under it, and fixed by moving to the reserved prefix or by
+  writing the claim;
 - **two claimed rooms, one namespace** → refused at `add`, by origin, before
   either is ever evaluated;
 - **haus ships the name later** → the namespace is now in the registry *and* in
@@ -1383,6 +1413,8 @@ without a fragment:  haus.photography is not a haus option
 with one:            haus.photography.hook is host-only, so a shared desktop
                      may not set it. It is a shell command this machine runs,
                      and a desktop is a file you can read to know what it does.
+                     A leaf carrying a command is exactly what stops that
+                     being true.
 ```
 
 `modules/lib/desktop.nix` is already parameterised on `registry`, so this is a
@@ -1432,7 +1464,7 @@ behaviour, findings reported rather than folded in, and the
 | **B. Remote sources, read-only** | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each. | A person can fully evaluate a stranger's desktop without their config being touched. |
 | **C. The machine diff** | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
 | **D. `haus add` / `remove` / `desktop`** | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
-| **E0. The reserved prefix** | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and its declaring file. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and a fixture with a private module declaring an unregistered namespace. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw. |
+| **E0. The reserved prefix** | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and every file declaring anything under it. Derives its namespace list the way `room-registry` does — `internal`/`visible`, not an `_`-prefix shorthand. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and two fixtures: a private module declaring an unregistered namespace, **and a stock haus machine, which must come back empty**. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw — and nobody else is told anything. |
 | **E1. The claim table** | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
 | **F. Rooms in `haus add`** | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
 

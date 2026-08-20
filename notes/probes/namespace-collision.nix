@@ -31,7 +31,10 @@
 #
 # ---- what it found, 2026-08-20 (haus ffcdb0a) --------------------------------
 #
-#   sameLeafBothDescribed    THROWS. "The option `haus.photography.enable' in
+#   sameLeafBothDescribed    THROWS — reported here as `false`, because `evalOK`
+#                            catches it with `tryEval` and Nix gives no message
+#                            to a catcher. Drop the `tryEval` to read it:
+#                            "The option `haus.photography.enable' in
 #                            `/nix/store/aaa…-source/photography.nix' is already
 #                            declared in `/nix/store/bbb…-source/…'" — two store
 #                            paths, so it names two FILES and no publisher.
@@ -42,10 +45,22 @@
 #                            look like. Ben's `config.haus.photography.enable`
 #                            lands on Ada's option, Ada's room reads it, and
 #                            `enable.declarations` still names only Ada.
-#   claimAssertion           the ~15-line consumer-side check works: it reads the
-#                            MERGED `options.haus`, subtracts the registry and
-#                            the `_`-internals, and names the unclaimed
-#                            namespace WITH its declaring file.
+#   claimAssertion           the consumer-side check works: it reads the MERGED
+#                            `options.haus`, subtracts the registry and the
+#                            claim table, and names the unclaimed namespace WITH
+#                            every file declaring anything under it.
+#   stockMachine             `[ ]` — haus and nothing else, no false positive.
+#   stockMachineNaive        the SAME check deriving its namespace list from
+#                            "attrNames minus `_`-prefixed" instead of from the
+#                            surface: "haus: the namespace `haus.claude` is
+#                            declared by ? but no input claimed it." A
+#                            `mkRenamedOptionModule` shim (modules/moved.nix)
+#                            leaves a hidden namespace behind, so the shorthand
+#                            accuses a machine that installed nothing from
+#                            anyone — and cannot even name a file, because the
+#                            leaves it would name are invisible. Kept as a row
+#                            because the shorthand READS like the rule
+#                            `room-registry` uses and is not it.
 #   desktopWithoutFragment   "haus.photography is not a haus option" — a
 #                            third-party desktop cannot name a third-party room.
 #   desktopWithFragment      "…is host-only, so a shared desktop may not set it.
@@ -138,8 +153,50 @@ let
   # reads the MERGED option tree, which is the property that makes it see a
   # module haus has never heard of — including a private one, with no `haus add`
   # anywhere in the story.
+  #
+  # 🚨 It derives the surface the way `room-registry` already does — dropping
+  # `internal`/`invisible` leaves — and NOT by the "`_`-prefixed names" shorthand
+  # that reads like the same rule. It isn't: `mkRenamedOptionModule` leaves a
+  # hidden `haus.claude.*` behind (modules/moved.nix), so the shorthand reports
+  # an unclaimed namespace on a machine that installed nothing. See
+  # `stockMachineNaive` below, which is that bug, kept as a row.
   known = builtins.attrNames registry.namespaces;
+  surfaceOf =
+    hausOptions:
+    let
+      leaves = builtins.filter (o: !(o.internal or false) && (o.visible or true)) (
+        lib'.optionAttrSetToDocList (lib'.filterAttrs (n: _: !(lib'.hasPrefix "_" n)) hausOptions)
+      );
+      nsOf = o: builtins.elemAt (lib'.splitString "." o.name) 1;
+    in
+    {
+      namespaces = lib'.unique (map nsOf leaves);
+      # Every file declaring anything under one namespace. A namespace-level
+      # walk, not `<ns>.enable.declarations`: only 9 of haus's 35 namespaces
+      # have an `enable` leaf at all, so keying on it names a file for a quarter
+      # of them and prints "?" for the rest. It is also the same walk E1 needs
+      # for co-ownership — two store roots here is one room steering another's.
+      filesFor = ns: lib'.unique (builtins.concatMap (o: o.declarations or [ ]) (
+        builtins.filter (o: nsOf o == ns) leaves
+      ));
+    };
+  unclaimedIn =
+    { hausOptions, claimed, naive ? false }:
+    let
+      surface = surfaceOf hausOptions;
+      namespaces =
+        if naive then
+          builtins.filter (n: !(lib'.hasPrefix "_" n)) (builtins.attrNames hausOptions)
+        else
+          surface.namespaces;
+    in
+    map (ns: {
+      namespace = ns;
+      declaredBy = surface.filesFor ns;
+    }) (builtins.filter (ns: !(builtins.elem ns known) && !(builtins.hasAttr ns claimed)) namespaces);
+
   claimCheck =
+    naive:
     { config, options, ... }:
     {
       _file = "/nix/store/hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh-source/modules/core/default.nix";
@@ -152,22 +209,26 @@ let
         type = lib'.types.listOf lib'.types.attrs;
         default = [ ];
       };
-      config.assertions = map (ns: {
+      config.assertions = map (u: {
         assertion = false;
         message =
-          "haus: the namespace `haus.${ns}` is declared by "
-          + builtins.concatStringsSep " and " (options.haus.${ns}.enable.declarations or [ "?" ])
+          "haus: the namespace `haus.${u.namespace}` is declared by "
+          + (
+            if u.declaredBy == [ ] then "?" else builtins.concatStringsSep " and " u.declaredBy
+          )
           + " but no input claimed it.";
       }) (
-        builtins.filter (
-          ns:
-          !(builtins.elem ns known)
-          && !(builtins.hasAttr ns config.haus._rooms.claimed)
-          && !(lib'.hasPrefix "_" ns)
-        ) (builtins.attrNames options.haus)
+        unclaimedIn {
+          inherit naive;
+          hausOptions = options.haus;
+          claimed = config.haus._rooms.claimed;
+        }
       );
     };
-  claimed = lib'.evalModules { modules = [ claimCheck ada ]; };
+  messagesOf = mods: map (a: a.message) (lib'.evalModules { modules = mods; }).config.assertions;
+
+  # A machine with haus and nothing else: every module haus actually ships.
+  stock = import (haus + "/modules/options-modules.nix");
 
   # ---- the desktop half ------------------------------------------------------
   # A stranger's desktop that wants a stranger's room. `desktop.nix` is already
@@ -231,7 +292,14 @@ in
     catalogDeclaredBy = coOwned.options.haus.photography.catalog.declarations;
   };
 
-  claimAssertion = map (a: a.message) claimed.config.assertions;
+  # A stranger's room on a machine, seen by the check.
+  claimAssertion = messagesOf [ (claimCheck false) ada ];
+  # The same check over haus and NOTHING else. This is the row that matters:
+  # a check that fires on a stock machine is worse than no check.
+  stockMachine = messagesOf ([ (claimCheck false) ] ++ stock);
+  # …and the same again with the "`_`-prefixed names" shorthand, which is the
+  # bug. Kept so the difference between the two derivations stays measured.
+  stockMachineNaive = messagesOf ([ (claimCheck true) ] ++ stock);
 
   desktopWithoutFragment = desktopLib.failures {
     source = "writer.nix";
