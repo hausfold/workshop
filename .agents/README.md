@@ -95,52 +95,26 @@ allows, and add a row.
 
 ## The rest of the family
 
-Nearly every repo carries this layer, one PR each: the layer (`haus`),
-`nebelung`, `pounce`, `perch`, `org-profile` (the `hausfold/.github` repo),
-`homebrew-tap`, `trill` (the notification compositor), `holt`, `hausfold.co`,
-and the consumer config
-(`~/.config/nix`). Each keeps its **own** rules — only the shape is shared. The
-differences worth knowing:
-
-- ✅ **`holt` and `hausfold.co` were the two gaps, and both are closed.**
-  holt had none of the layer — no `AGENTS.md`, no `CLAUDE.md`, no `.agents/`, no
-  `.github/copilot-instructions.md`, just a `.claude/` permission allowlist —
-  because it ejected from the incubator on 2026-08-03, the same day the layer
-  rolled out, and was missed *during* that rollout rather than predating it
-  ([holt#31](https://github.com/hausfold/holt/pull/31)). hausfold.co had half of
-  it, `AGENTS.md` + `CLAUDE.md` only: recreated public on 2026-08-08 (§5.1), it
-  carried its instructions across but not its wiring
-  ([hausfold.co#4](https://github.com/hausfold/hausfold.co/pull/4)). Both now
-  carry the full set, verified on disk 2026-08-16. The reason they mattered is
-  worth keeping: holt is the repo with the sharpest boundary to state — five
-  published SDKs sharing one semver, and a "substrate, not orchestrator" rule —
-  and hausfold.co is the one repo whose pushes deploy a public site.
+Every repo carries this layer: `haus`, `nebelung`, `pounce`, `perch`, `holt`,
+`trill`, `hausfold.co`, `org-profile` (the `hausfold/.github` repo),
+`homebrew-tap`, and the consumer config (`~/.config/nix`). Each keeps its
+**own** rules — only the shape is shared. The differences worth knowing:
 
 - **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a
   flake, so there is nothing to bootstrap; their `.agents/README.md` records
   that as a decision rather than leaving a gap-shaped silence. Every other repo
   carries the same script, adapted only in its opening comment.
-- **`~/.config/nix` also moved a flow**, not just instructions:
-  `.claude/commands/rebuild.md` → `.agents/skills/rebuild/SKILL.md`, symlinked
-  into `.claude/skills/` and `.opencode/skills/` exactly as `ship` and
-  `docs-sync` are here. Its `.claude/settings.local.json` stays put — a
-  pre-approved tool-call allowlist is machine-local permission state, not a
-  project rule.
-- **`trill` grew its `.github/copilot-instructions.md` at eject, not before.**
-  While it incubated there was no `hausfold/trill` for Copilot to read one from,
-  and `incubator/trill/.github/` is not a path GitHub resolves — so it was the
-  single piece of the layer deliberately deferred, and it landed 2026-08-09 with
-  the eject. Everything else was already whole, which is what made the eject a
-  move rather than a rebuild.
+- **`~/.config/nix` also carries a flow**, not just instructions:
+  `.agents/skills/rebuild/SKILL.md`, symlinked into `.claude/skills/` and
+  `.opencode/skills/` exactly as `ship` and `docs-sync` are here. Its
+  `.claude/settings.local.json` stays put — a pre-approved tool-call allowlist
+  is machine-local permission state, not a project rule.
 - **haus ships this shape to users, too.** `haus.ai.skill` installs a
   `consumer-AGENTS.md` + `consumer-CLAUDE.md` starter pair rather than a lone
-  `CLAUDE.md`, and `haus doctor` checks for the pair — same rule, one layer out.
-  Since 2026-08-11 it goes further and obeys the rule itself: the skill and
-  `haus.ai.instructions` are written once per client the machine installs,
-  each at the path that client reads. Both were `haus.claude.*` before that, and
-  `haus.agents.*` between 2026-08-11 and 2026-08-13 — that spelling has **no
-  alias** (`haus/modules/moved.nix:51-58`), so writing it is an eval error, not
-  a warning.
+  `CLAUDE.md`, and `haus doctor` checks for the pair. It obeys the rule itself:
+  the skill and `haus.ai.instructions` are written once per client the machine
+  installs, each at the path that client reads. ⚠️ `haus.agents.*` has **no
+  alias** (`haus/modules/moved.nix`), so writing it is an eval error.
 
 Adding a new repo to the family? Copy the *pattern* from any of them, never the
 text: `git mv CLAUDE.md AGENTS.md`, leave a `CLAUDE.md` holding `@AGENTS.md` plus
