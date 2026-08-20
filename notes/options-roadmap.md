@@ -168,8 +168,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 
 
 > **Status, 2026-08-20 (twenty-ninth pass) — a shipping pass, not an audit: the
-> last Phase-5 item that needed code is built and in review, and this file
-> dropped a number rather than fix it.**
+> last Phase-5 item that needed code is built, merged before the pass landed,
+> and this file dropped a number rather than fix it.**
 >
 > Two things asked for, both done, and neither is a §5 box moving.
 >
@@ -193,7 +193,15 @@ already exist, and one it treated as a detail is the actual root blocker.
 > neither PR is merged: the twenty-fifth pass's rule (*a PR number inside a
 > `[x]` is a promise; only `mergedAt` keeps it*) is the one rule in this file
 > that was written by tripping over it, and a shipping pass is exactly when it
-> is tempting to break. Re-derived, same command as last pass:
+> is tempting to break.
+> ⚠️ **haus#423 merged at `2026-08-20T05:45:03Z` (`da94efd`), six minutes after
+> this paragraph was written**, so the box is ticked, the header and Phase 5's
+> line moved with it, and the count is **8**. The paragraph stands as written
+> because it was true when written and the rule it names is what decided when to
+> change it — which is the whole difference between this and the twenty-fifth
+> pass's ticked-while-open box. Re-derived, not adjusted:
+> `sed -n '/^## 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md
+> | grep -c '^- \[ \]'` — **8**. Re-derived, same command as last pass:
 > `sed -n '/^## 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md
 > | grep -c '^- \[ \]'` — **9**, unchanged from `020b1ce`.
 > ⚠️ **That rev is not the one the twenty-eighth pass quoted.** It cites
@@ -4182,7 +4190,7 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a hacker desktop for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`) and so is the reachability gap it exposed (haus#381, `mergedAt 2026-08-16T20:10:48Z`); the trigger daemon — the last thing this section holds — is BUILT and IN REVIEW as [haus#423](https://github.com/hausfold/haus/pull/423), and that box stays `- [ ]` until `mergedAt` says otherwise**
+### 5.8 Generalize `focus` into scenes · M · risk M · ✅ **CLOSED 2026-08-20.** The declarative half merged in haus#376 (`mergedAt 2026-08-16T18:06:39Z`), the reachability gap it exposed in haus#381 (20:10:48Z), and the trigger daemon this section deferred from its first draft in [haus#423](https://github.com/hausfold/haus/pull/423) (`mergedAt 2026-08-20T05:45:03Z`, `da94efd`) — `scenes.<name>.when` plus `focus auto`. Nothing here is open
 `focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
@@ -4294,7 +4302,7 @@ power source, display attach.
       answered. **A room whose whole surface is a verb has to answer to that
       verb in a shell**, and nothing in this box's design half would ever have
       caught that it didn't.
-- [ ] Only build the trigger engine *after* one hand-written scene proves useful —
+- [x] Only build the trigger engine *after* one hand-written scene proves useful —
       the declarative half is cheap, the trigger daemon is not.
       **Still open and still correct** — and now cheap to act on, since a scene
       exists to trigger. The daemon is what remains: time, Wi-Fi SSID, power
@@ -4344,10 +4352,11 @@ power source, display attach.
       twenty-seventh pass's `pounce-item-grammar` finding in a place with no
       guard to fire; the durable citation is the identifier
       (`_contrib.launcher.focus`), never the line.
-      ◐ **Built 2026-08-20 — [haus#423](https://github.com/hausfold/haus/pull/423),
-      with its docs half at
-      [hausfold.co#98](https://github.com/hausfold/hausfold.co/pull/98).** The
-      box is deliberately still `- [ ]`. This file's
+      ✅ **MERGED — [haus#423](https://github.com/hausfold/haus/pull/423),
+      `mergedAt 2026-08-20T05:45:03Z`, merge commit `da94efd`**, with its docs
+      half at [hausfold.co#98](https://github.com/hausfold/hausfold.co/pull/98).
+      **§5.8 has no open box left, and neither does Phase 5.** The tick waited
+      for that timestamp and nothing else, which is this file's
       own rule is that *a PR number inside a `[x]` is a promise and only
       `mergedAt` keeps it* (the twenty-fifth pass, which tripped on exactly
       this), and neither PR is merged as this is written. What shipped, against
@@ -5743,7 +5752,7 @@ that visible, and turned up two things that were already broken:
       2026-08-14 (haus#353)** — and one of them was not rendering: the restart
       map's `logout` verb rendered to nothing, so core had to emit the line before
       `plan` could read one. §5.11 has no open box left.
-- ◐ §5.8 scenes · ~~§5.12 accessibility~~ — **§5.8's declarative half is merged
+- [x] §5.8 scenes · ~~§5.12 accessibility~~ — **§5.8's declarative half is merged
       (haus#376, `mergedAt 2026-08-16T18:06:39Z`): `haus.focus.scenes.<name>`,
       entered with `focus scene <name>`, desktop-safe except its hooks.** Two
       things stay open behind it, in this order: a scene has **no surface but
@@ -5761,9 +5770,10 @@ that visible, and turned up two things that were already broken:
       too**, two days later: this line is `◐` rather than `[ ]` because the
       declarative half is merged and the two follow-ups above are not
       started. **Both are since: the reachability gap merged (haus#381) and the
-      trigger daemon is built and in review (haus#423).** When that merges,
-      this line and §5.8's box move together — and Phase 5 has nothing left
-      needing code. ⚠️ The first draft of this
+      trigger daemon merged as haus#423, `mergedAt 2026-08-20T05:45:03Z`.** So
+      this line is `[x]` as of that timestamp, moved in the same edit as §5.8's
+      box per the convention at the top of this section — **and Phase 5 has
+      nothing left needing code.** ⚠️ The first draft of this
       sentence went further and said Phase 5 *"now has no item whose next step is
       write the thing"* — which the same pass's own §5.8 box contradicts, since
       it recommends building the palette surface **before** the triggers. Phase 5
