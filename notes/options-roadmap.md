@@ -153,13 +153,18 @@ already exist, and one it treated as a detail is the actual root blocker.
 > small sample and the point is not that this file predicted the rename; it is
 > that **the document and the code used different words for the same room, for
 > long enough that nobody experienced it as a contradiction**, because a sketch
-> reads as pseudocode. ⚠️ **That sentence said "for six weeks" until 2026-08-20,
-> and the number is dropped rather than corrected** — it was measured from the
-> wrong end (this file dates itself 2026-07-25, three weeks before the rename)
-> and only the "earlier brainstorm" it refines could reach six, whose own date
-> nobody has. An interval no one can re-derive is worth less than the claim
-> without it; see the twenty-fifth pass's flag, below. That is also how a doctored quote got in — see §6(b),
+> reads as pseudocode. That is also how a doctored quote got in — see §6(b),
 > where the same word appears inside a fenced block presented as measured output.
+>
+> ⚠️ **The sentence above said "for six weeks" until 2026-08-20, and the number
+> is dropped rather than corrected** — it was measured from the wrong end (this
+> file dates itself 2026-07-25, three weeks before the rename) and only the
+> "earlier brainstorm" it refines could reach six, whose own date nobody has. An
+> interval no one can re-derive is worth less than the claim without it; see the
+> twenty-fifth pass's flag, below. ⚠️ The note sits *after* the §6(b) sentence
+> rather than before it, because its first draft cut the antecedent of "That" in
+> half — an insertion that changes what a pronoun points at is a way to break a
+> paragraph that no diff reads as a change to it.
 
 
 > **Status, 2026-08-20 (twenty-ninth pass) — a shipping pass, not an audit: the
@@ -175,21 +180,29 @@ already exist, and one it treated as a detail is the actual root blocker.
 > right end lives in the "earlier brainstorm" this document refines, which is
 > not in the repo and whose first `focus` nobody has. **An interval no one can
 > re-derive is worth less than the claim without it.** The banner now makes the
-> claim with no number and says in place that it used to carry one; §6(b)'s
-> dependent clause ("the dialect the banner credits for being six weeks early")
-> was re-pointed at what the banner actually credits. Deleting the number
+> claim with no number and says in place that it used to carry one. The one
+> sentence that depended on it — "the dialect the banner credits for being six
+> weeks early", in the **twenty-fourth pass's** block rather than in §6(b),
+> which is where its subject lives — is re-pointed at what the banner actually
+> credits. Deleting the number
 > silently was the other option and it is the shape this ledger exists to catch.
 >
 > **Second, §5.8's trigger daemon is BUILT** — `haus.focus.scenes.<name>.when`
-> plus `focus auto`, on haus's `worktree-focus-triggers`, with its docs half on
-> hausfold.co's branch of the same name.
+> plus `focus auto`, in haus#423, with its docs half at hausfold.co#98.
 > The box stays `- [ ]` and the count below is unchanged at **9**, because
 > neither PR is merged: the twenty-fifth pass's rule (*a PR number inside a
 > `[x]` is a promise; only `mergedAt` keeps it*) is the one rule in this file
 > that was written by tripping over it, and a shipping pass is exactly when it
 > is tempting to break. Re-derived, same command as last pass:
 > `sed -n '/^## 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md
-> | grep -c '^- \[ \]'` — **9**, unchanged from `5421e3d`.
+> | grep -c '^- \[ \]'` — **9**, unchanged from `020b1ce`.
+> ⚠️ **That rev is not the one the twenty-eighth pass quoted.** It cites
+> `5421e3d` twice, and `git cat-file -t 5421e3d` says *Not a valid object name*
+> — almost certainly the pre-squash hash of the pass's own commit, which landed
+> as `020b1ce` (the count there is 9, re-run). The number was right and the
+> citation isn't checkable, which is the twenty-fourth pass's *date it at a rev*
+> rule failing in the one place nobody re-runs: **a hash a squash-merge renamed
+> looks exactly like a hash you can trust.** Cite the merge commit, or a PR.
 >
 > ★ **The finding is about the sketch this file has carried since July, and it
 > is a good outcome rather than a drift one: the four triggers it named — time,
@@ -203,27 +216,56 @@ already exist, and one it treated as a detail is the actual root blocker.
 > design conversation on the day someone implements it. **§5.14's shapes are all
 > about a claim going stale; this is a claim that was never one claim.**
 >
+> ★ **The assurance pass found the design's real hole, and it is a shape worth
+> carrying: a rule that is conservative in one direction is not conservative.**
+> The daemon's probes answer `""` for "I could not tell", and the first draft
+> made that mean "does not hold" — which is careful on the entering side and
+> the exact opposite on the leaving side, because macOS reports no Wi-Fi
+> network during sleep/wake and the display count under-counts while monitors
+> re-negotiate, both of which launchd's timer lands directly on. One blank read
+> would have left the scene and the next re-entered it: hooks off then on, the
+> caffeinate hold dropped and retaken, and with `apps.closeOnExit` **the apps
+> quit and relaunched** — OBS, mid-recording, on the room's own example scene.
+> The fix is a third answer (*holds* / *definitely does not* / *cannot say*),
+> and the generalisable half is the question: **a predicate used in both
+> directions needs its unknown case decided twice, once per direction.** Two
+> more in the same read, both the same shape as findings this file already
+> carries: the leave path had no "spend the edge first" guard while the entry
+> path's own comment explains why it needs one, and ownership tracked by scene
+> NAME made a hand off-then-on inside one interval invisible — the headline
+> promise, false in a window exactly one tick wide. All fixed, each with a test
+> that fails without it.
+>
 > ⚠️ **And one correction this pass owes §5.8's own sketch:** the section
 > proposed the daemon as the thing standing between the room and "done", with
-> the reachability gap as a detour. Backwards, and the four days between them
-> prove it — a scene with no way in but a CLI is what surfaced
-> `apps.closeOnExit` (haus#408) and the palette rows (haus#381), because nothing
-> fires a trigger by hand often enough to notice that leaving a scene left OBS
-> running. The deferral was right for a reason its own box never states: **the
-> precondition wasn't "is a scene useful", it was "has anyone used one enough to
-> find the bugs".**
+> the reachability gap as a detour. Backwards, and the gap between the palette
+> rows landing and the first feel-test proves it — **2 d 13 h**, haus#381
+> `mergedAt 2026-08-16T20:10:48Z` → haus#408 `6510aa6` 2026-08-19T09:50:02Z, and
+> that is elapsed rather than the calendar subtraction this same block corrects
+> two paragraphs up. What those two days produced is `apps.closeOnExit`: a scene
+> that opened OBS and left it running on the way out, which nobody notices until
+> a person enters and leaves the same scene by hand a few times. (The palette
+> rows are **not** an example of that — haus#381's own body says "found while
+> building scenes", and Phase 5's line already said so; using a scene and
+> building one are different weeks.) The deferral was right for a reason its own
+> box never states: **the precondition wasn't "is a scene useful", it was "has
+> anyone used one enough to find the bugs".**
 >
 > **Verified, and the split matters more than usual because this pass wrote
 > code from a cloud container:** `test/focus-auto.sh` runs the real engine
 > (built by the same substitutions `default.nix` makes, not a copy) against
-> stubbed probes and a fake clock — 53 assertions, green, covering the edge
+> stubbed probes and a fake clock — **65** assertions, green, covering the edge
 > story in both directions, manual override of both kinds, a one-tick handover,
 > the midnight wrap, all three probed facts, the `system_profiler` fallback, a
-> scene deleted mid-flight, and a regression test that fails without the fix it
-> guards. `shellcheck --severity=warning` clean at 0.11.0; CI gains the lint and
-> the suite. **Not verified, and named in the PR rather than buried:** nothing
-> ran on a Mac — the four probe reads are exactly what `focus auto --probe`
-> checks in one command — no Nix evaluated anything (§8's ceiling, unchanged),
+> scene deleted mid-flight, and **four** regression tests, each one verified to
+> fail with its own fix reverted (which is the only thing that separates a
+> regression test from a decoration). `shellcheck --severity=warning` clean at
+> 0.11.0; CI gains the lint and
+> the suite (`grep -cE '^assert_eq |\|\| fail ' test/focus-auto.sh` is where the
+> number comes from). **Not verified, and named in the PR rather than buried:**
+> nothing ran on a Mac — the probe reads (`pmset`, `networksetup`,
+> `hausdisp`/`system_profiler`) are exactly what `focus auto --probe` checks in
+> one command — no Nix evaluated anything (§8's ceiling, unchanged),
 > and `docs/site-data/` was regenerated **by hand**, which `site-data-current`
 > will either accept or refuse on its own. A hand-made generated file is a guess
 > with a check behind it, which is the only reason it was worth making.
@@ -4140,7 +4182,7 @@ file.** The worst copy was the header written into *every user's* host file.
 This is what lets someone use a hacker desktop for a year without ever opening
 a text editor — the actual bar for "a Mac for my parents".
 
-### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`) and so is the reachability gap it exposed (haus#381, `mergedAt 2026-08-16T20:10:48Z`); the trigger daemon — the last thing this section holds — is BUILT, on haus's `worktree-focus-triggers` (the PR link lands in the box below), and that box stays `- [ ]` until `mergedAt` says otherwise**
+### 5.8 Generalize `focus` into scenes · M · risk M · ◐ **the declarative half is MERGED (haus#376, `mergedAt 2026-08-16T18:06:39Z`) and so is the reachability gap it exposed (haus#381, `mergedAt 2026-08-16T20:10:48Z`); the trigger daemon — the last thing this section holds — is BUILT and IN REVIEW as [haus#423](https://github.com/hausfold/haus/pull/423), and that box stays `- [ ]` until `mergedAt` says otherwise**
 `focus` is already a scene with one member: it has hooks, an external
 integration (Slack), a bar pill, a CLI, and transient state. Generalize rather
 than invent:
@@ -4240,7 +4282,11 @@ power source, display attach.
       counted off the commit, per the fifth pass's rule:
       `jq -r 'keys[]' docs/site-data/options.json | grep -E
       '^haus\.focus\.scenes\.<name>\.'` at haus `148c303` returns **eight**
-      leaves — those seven plus `description`. The same PR moved the engine to
+      leaves — those seven plus `description`. ⚠️ **Thirteen on haus#423**,
+      which adds five under `when.`: the count above is dated at a rev, which is
+      this file's whole mitigation for a number that moves, and the pass that
+      moves it is the cheapest place to leave the pointer.
+      The same PR moved the engine to
       `$out/bin/focus` on `home.packages` (the `~/.local/bin/focus` link stays,
       pointed at the same store path, because the pounce daemon and sketchybar
       run with minimal environments and get no profile bin dir): every doc
@@ -4298,11 +4344,10 @@ power source, display attach.
       twenty-seventh pass's `pounce-item-grammar` finding in a place with no
       guard to fire; the durable citation is the identifier
       (`_contrib.launcher.focus`), never the line.
-      ◐ **Built 2026-08-20 on haus's `worktree-focus-triggers`, with its docs
-      half on hausfold.co's branch of the same name.** The box is deliberately
-      still `- [ ]`, and cites branches because the PRs were not open when this
-      was written — a rev is checkable and a number I don't have yet is not.
-      This file's
+      ◐ **Built 2026-08-20 — [haus#423](https://github.com/hausfold/haus/pull/423),
+      with its docs half at
+      [hausfold.co#98](https://github.com/hausfold/hausfold.co/pull/98).** The
+      box is deliberately still `- [ ]`. This file's
       own rule is that *a PR number inside a `[x]` is a promise and only
       `mergedAt` keeps it* (the twenty-fifth pass, which tripped on exactly
       this), and neither PR is merged as this is written. What shipped, against
@@ -5716,9 +5761,9 @@ that visible, and turned up two things that were already broken:
       too**, two days later: this line is `◐` rather than `[ ]` because the
       declarative half is merged and the two follow-ups above are not
       started. **Both are since: the reachability gap merged (haus#381) and the
-      trigger daemon is built (haus's `worktree-focus-triggers`).** When that
-      merges, this line and §5.8's box move together — and Phase 5 has nothing
-      left needing code. ⚠️ The first draft of this
+      trigger daemon is built and in review (haus#423).** When that merges,
+      this line and §5.8's box move together — and Phase 5 has nothing left
+      needing code. ⚠️ The first draft of this
       sentence went further and said Phase 5 *"now has no item whose next step is
       write the thing"* — which the same pass's own §5.8 box contradicts, since
       it recommends building the palette surface **before** the triggers. Phase 5
