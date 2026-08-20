@@ -5,7 +5,7 @@ The private tester round that gates every public launch in
 
 **What this round is testing: not whether people like it — where the
 instructions stop making sense on a Mac you don't own.** Everything downstream
-(the Show HN, the Discourse thread, perch's price) assumes a stranger can get
+(the Show HN, the Discourse thread, every free launch) assumes a stranger can get
 from `curl` to a working desktop unattended. Nobody has ever proven that.
 
 **Size, honestly calibrated.** The research plan said 16 testers / 8 whole-house
@@ -156,7 +156,7 @@ Dates assume a 2026-08-05 start; slide the whole block if it slips.
 
 | Days | |
 |---|---|
-| **Aug 5–6** | Clear §0. Perch Phase 0 lands, trill decided. |
+| **Aug 5–6** | Clear §0. Perch Phase 0 lands, trill decided. *(Phase 0 was the FSL relicense — landed, then reversed on 2026-08-15; see §0.)* |
 | **Aug 7–8** | Send 8 invites. Aim to place missions 3, 6, 8 first — the cold Mac user, the launcher, the dev. |
 | **Aug 9–13** | Testers run. You do not help. Triage each report same-day into S1/S2/S3. |
 | **Aug 14–16** | Fix every S1. Write the docs for the top five S2s. |
