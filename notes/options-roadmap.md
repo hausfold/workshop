@@ -6634,6 +6634,19 @@ the invitation, not the hazard.) What (f) describes is therefore live for
 fragments, live for **any two modules**, and dead for desktops. The design that answers it is step E's and
 stays there; what belongs here is the layer.
 
+★ **And half of it is built, hours after this amendment was written**:
+[haus#429](https://github.com/hausfold/haus/pull/429) reserves `haus.my.*` and
+warns a machine that declares a `haus.<name>` which is neither haus's nor
+reserved (docs half, [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107);
+both merged 2026-08-20). That does not close (f) — it covers the *namespace*
+layer, and the case where the second claimant is haus itself. Two modules
+sharing a namespace haus already ships, or a leaf added inside one, are still
+silent and still need E1's per-leaf `declarations` walk. What the build learned
+is in [`rooms-desktops.md`](./rooms-desktops.md#findings-carried-out-of-step-e0),
+including the one this document would have predicted: the design said
+"assertion" throughout *and* said it must not refuse, and only one of those can
+be built.
+
 ### What the readiness test can and can't see, after limit 1 closed
 
 Three things fall out of running the audit twice in one day, and they're really
