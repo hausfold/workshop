@@ -25,6 +25,15 @@ this note defines the product model the code and docs should converge on.
 > declare, and a sandbox governs what reading one can do** — two protections,
 > and every step from B on needs the second.
 
+> **2026-08-20, later — step B is designed**, against Nix 2.34.8 in a cloud
+> container with no Mac and no haus checkout. Second thing in this note argued
+> from a probe rather than from memory, and it cost three claims: the sandbox
+> step A built **cannot fetch**, it does **not keep its per-file precision** on
+> anything fetched, and `flake.lock` has **never recorded a fetch date** — a
+> phrase this note has carried since 2026-08-16. See
+> §[Step B](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one)
+> and [`probes/source-shapes.sh`](./probes/source-shapes.sh).
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -1046,7 +1055,11 @@ outputs = { haus, ... }: {
 ```
 
 `flake.lock` already records, per source: the origin as typed, the resolved
-revision, a content hash, and a fetch date. `nix flake update <name>` already
+revision, a content hash, and the source's own last-modified date. (⚠️ This
+sentence said “a fetch date” until 2026-08-20, and
+[step B measured otherwise](#what-the-lock-records-and-the-one-word-this-note-had-wrong)
+— `lastModified` is the commit's date, and **nothing** in a lock records when
+you pinned it.) `nix flake update <name>` already
 updates exactly one of them. The store copy already makes a rebuild work
 offline. Every requirement the model states for a shareable source —
 inspectable, typed, pinnable, origin-preserving — is a property `flake.lock`
@@ -1082,13 +1095,14 @@ lock file.
 
 ### The three source shapes, measured
 
-Verified against real Nix on 2026-08-16, not recalled:
+Verified against real Nix on 2026-08-16, and re-measured on a real `flake.lock`
+on 2026-08-20 ([`probes/source-shapes.sh`](./probes/source-shapes.sh) §3–4):
 
 | source | input spelling | pins | selection line | notes |
 |---|---|---|---|---|
-| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | rev **and** narHash, plus `lastModified` | `desktop = "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
-| **one file / a gist's raw URL** | `{ url = "file+https://…/writer.nix"; flake = false; }` | **narHash only — no revision** | `desktop = inputs.writer;` | the store path *is* the file, so no path suffix. But there is no version to move between, so `haus update` on it silently follows whatever is at that URL now |
-| **a gist as a repo** | `{ url = "git+https://gist.github.com/ada/<id>"; flake = false; }` | rev (a gist is a git repo) | as the repo row | ⚠️ **unverified** — the mechanism is standard but I did not fetch one |
+| **a repo** (recommended) | `{ url = "github:ada/writer-desktop"; flake = false; }` | `rev`, `narHash`, `ref`, `revCount`, `lastModified` | `desktop = "${inputs.writer}/writer.nix";` | the publisher's repo needs **no `flake.nix`** — the boring three-file repo `desktops/sharing.mdx` already recommends is exactly the right shape |
+| **one file / a gist's raw URL** | `{ url = "file+https://…/writer.nix"; flake = false; }` | **`narHash` only — no revision and no date** | `desktop = inputs.writer;` | the store path *is* the file, so no path suffix. But there is no version to move between, so `haus update` on it silently follows whatever is at that URL now — and [prints a line that reads like a no-op](#the-revisionless-shape-is-worse-than-no-changelog) while doing it |
+| **a gist as a repo** | `{ url = "git+https://gist.github.com/ada/<id>"; flake = false; }` | rev (a gist is a git repo) | as the repo row | ⚠️ **partly verified since 2026-08-20**: a real remote `git+https://` source locks to a full `rev`/`revCount`/`ref` node, so the *mechanism* is measured. What is still unverified is gist hosting specifically |
 | **vendored** (today's advice) | none — a path in your own config | nothing | `desktop = ./desktops/writer.nix;` | stays supported forever, and is the right answer when you intend to *edit* it. See the git gotcha below |
 
 **The selection line is a bare path, and that is not cosmetic.** `mkHaus`
@@ -1110,7 +1124,10 @@ Two measured facts the design leans on:
   evaluation machinery at all.
 - **A `file+https` input lands in the store as a regular file, not a
   directory** (`.r--r--r-- root nixbld 1.5K …-source`), and `checkDesktop`
-  takes it directly.
+  takes it directly. ⭐ Since 2026-08-20 that is also a **security** property
+  rather than a convenience: the guard's unit is the store path, so the shape
+  whose store path *is* one file is the only shape that cannot read anything
+  beside it — see [step B](#the-guards-granularity-changes-in-the-store).
 
 ### What acquisition deliberately does not get
 
@@ -1150,8 +1167,11 @@ haus update [name]        existing command, now takes an input name.
 a *publisher*. Given a remote source it resolves and fetches it; given a local
 path it just reads it. Then it prints, in order:
 
-1. where it came from and what it locked to (origin as typed, resolved rev,
-   fetch date) — or, for a `file+https` source, that there is no revision;
+1. where it came from and what it locked to (origin as typed, resolved rev, and
+   the date the SOURCE was last changed — not the date you fetched it, which
+   [nothing in the lock records](#what-the-lock-records-and-the-one-word-this-note-had-wrong))
+   — or, for a `file+https` source, that there is neither a revision nor a date
+   of any kind;
 2. **the class**: “a desktop — data only, and haus checked it” or “a room —
    this is code”;
 3. `checkDesktop`'s verdict, and on failure every diagnostic with its
@@ -1274,7 +1294,154 @@ live exposure somewhere other than where this section had been looking for it.
   revision to compare, so the changelog half of `cmd_update` has nothing to
   show and the pin moves on content hash alone. `show` and `add` both warn at
   the point the source is chosen, which is the only point where switching to a
-  repo source is cheap.
+  repo source is cheap. ⭐ **Measured 2026-08-20, and it is worse than
+  "nothing to show":** Nix's own update line for a `file` node is one arrow,
+  one URL, no left-hand side and no hash — *identical* to what it prints when
+  nothing moved, while the content underneath has changed. The warning this
+  shape earns is therefore not "there is no changelog" but "**your update line
+  will look like a no-op**", and `cmd_update` should print the narHash pair
+  itself for a `file` node, since it is the only field that moves and Nix will
+  not show it.
+
+### Step B, designed — fetch and read are two acts, and the guard covers one
+
+Designed 2026-08-20 against **Nix 2.34.8** (Determinate 3.21.9), from a cloud
+container with no macOS and no haus checkout. Still nothing built. Every row
+below is a row of [`probes/source-shapes.sh`](./probes/source-shapes.sh), which
+builds throwaway git repos in a `mktemp` dir and runs real `nix eval` and `nix
+flake lock` against them — 18 rows in seconds, no Mac; `PROBE_REMOTE=` adds a
+nineteenth over a genuine remote source.
+
+⚠️ **It measures Nix, not haus.** `share/haus/desktop-check` is not reachable
+from the workshop, so these are claims about the *mechanism* `haus show` stands
+on, not about the command. Nothing here claims a rebuild outcome, and nothing
+here was read off haus's own script. Rerun it on a Nix bump: the granularity
+rows are evaluator behaviour, which is exactly what a release moves.
+
+#### The guard cannot fetch, and the fetch cannot be guarded
+
+[Step A's finding [4]](#findings-carried-out-of-step-a) left the sandbox as the
+thing every later step inherits — "B fetches a stranger's source and evaluates
+it… each has to use the same guard". The first measurement is that the guard
+does not stretch that far:
+
+```text
+error: access to URI 'git+file:///…?ref=main' is forbidden in restricted mode
+```
+
+`builtins.fetchTree` under `allowed-uris = ""` is refused **by URI**. That is the
+guard working rather than failing, and it means `haus show <source>` is two acts
+that cannot be folded into one:
+
+1. **fetch** — unguarded, network, and **no publisher code runs**. A fetch is a
+   `git clone` or an HTTP GET; nothing in the source is evaluated to perform it.
+   The expression that does it must therefore be a literal `fetchTree` over the
+   URL the user typed and must import nothing.
+2. **read** — guarded exactly as step A reads a local file, with the fetched
+   store path as the allowed path. No network is needed and `allowed-uris` stays
+   empty, because there is nothing left to fetch.
+
+This is a better story than step A's, not a compromise on it: reaching the
+network and running the file become separate acts, and neither can quietly do
+the other's job. It also answers B's exit gate structurally — **fetching needs
+no consumer flake at all** (measured: `fetchTree` returns a store path from a
+directory that is not a flake and not even a git repo), so "still writes nothing
+to the consumer" is a property of the mechanism rather than of care taken.
+
+One shape detail worth a comment at the call site, because the first person to
+read it will try to delete it: **both acts must be `--impure`.** `fetchTree` on
+an unpinned ref is refused in pure mode, and `--restrict-eval` only ever
+*subtracts* — pure mode already forbids every absolute path outright, so the
+guarded form of "read this one file" is necessarily `--impure --restrict-eval`.
+Turning one protection off to turn the intended one on looks alarming and is
+correct.
+
+#### The guard's granularity changes in the store
+
+Step A's rule is "exactly two paths named — the checker's own directory and the
+ONE file being read, **not its parent**, because a stranger's file in
+`~/Downloads` must not be able to read the rest of it." Measured, that rule is
+exactly right — and only outside the store:
+
+| allowed path | the desktop reads | verdict |
+|---|---|---|
+| `~/…/peek.nix`, outside the store | its sibling `NOTES.txt` | **blocked** |
+| `~/…/`, the parent dir | the same sibling | allowed — which is the rule's own reason for existing |
+| `$src/peek.nix`, **inside the store** | its sibling `NOTES.txt` | **allowed** |
+| `$src/writer.nix`, inside the store | a *different* store path | blocked |
+| `$src/writer.nix`, inside the store | `/etc/hostname` | blocked |
+
+Naming a file inside the store allows its whole **store root**. So step A's
+per-file precision silently widens to per-source-tree the moment the file
+arrives by fetch — which is every source shape step B adds.
+
+**That is acceptable, and it still has to be written down.** What it opens up is
+the publisher's own repo: Ada's desktop can read a file Ada shipped beside it.
+What it does *not* open is the consumer — another store path is blocked, and
+everything outside the store is blocked — and that was the load-bearing half.
+But this note has been describing a property ("the ONE file") that the mechanism
+only delivers in the local case, and a guard believed to be tighter than it is
+is precisely the kind of thing a later step builds on. The durable form:
+**`restrict-eval`'s unit is the store path, not the file.**
+
+Two consequences. The `file+https` shape, whose store path *is* a single file,
+is the only one that gets the tight guarantee — an accidental virtue of the
+shape this note otherwise warns about. And a repo desktop can `readFile
+./anything` out of its own tree, so a value `show` prints is not necessarily
+written in the file a reader is about to review: wherever `show` attributes a
+value, it should name the **source tree**, not the file.
+
+#### What the lock records, and the one word this note had wrong
+
+[The finding that decides the shape](#the-finding-that-decides-the-shape) has
+said since 2026-08-16 that `flake.lock` records "the origin as typed, the
+resolved revision, a content hash, and **a fetch date**". Measured on a real
+lock, the fourth is wrong:
+
+| shape | lock node's `locked` fields |
+|---|---|
+| `git` (repo, local or remote) | `lastModified`, `narHash`, `ref`, `rev`, `revCount`, `type`, `url` |
+| `file` (raw URL) | `narHash`, `type`, `url` — **that is the whole node** |
+
+`lastModified` is the **source's** timestamp: it matched the fixture repo's
+committer date exactly, and the remote node came back 366 seconds *behind* the
+moment the fetch ran. Nothing in a lock file records when you pinned anything.
+
+Mostly that is harmless, and once it is not. For a repo source the date `show`
+can print answers "how stale is this thing" rather than "how old is my pin" — a
+better question, differently phrased, and `show` should label it as the source's
+date rather than inheriting this note's word for it. For the raw-URL shape there
+is no date **on either reading**, so the shape that most needs "when did I take
+this" is the only one that cannot answer it. `show` and `add` must stamp that
+date themselves, from the clock, or say plainly that there isn't one.
+
+(`"flake": false` on the node survived the re-measurement unchanged, on both
+shapes — the typed origin the model asked for is still there for free.)
+
+#### The revisionless shape is worse than "no changelog"
+
+Measured, and it belongs beside [the rule it sharpens](#rules-that-fall-out-and-the-traps-behind-them):
+`nix flake update` on a `file` node prints one arrow, one URL, no left-hand side
+and no hash, while the content underneath changes. It is not a missing
+changelog — it is a line that reads as *confirmation nothing moved*, to anyone
+who knows the two-sided form from every other input.
+
+#### What B settles about C and D
+
+- **C's naive shape is the thing the guard exists to prevent.** The obvious way
+  to diff a stranger's desktop against your machine is one evaluation with both
+  in its allowed set — which hands a stranger's file your config directory. The
+  split that works is B's, one act further: fetch, then **read the stranger's
+  file under the guard down to a plain data value**, then diff *that value*
+  against your machine in a second evaluation the stranger's file is not part
+  of. Three acts, and the stranger participates in exactly one.
+- **D's `--vendor` changes which guard applies.** Copying the file out of the
+  store into the consumer's config moves it back to per-file granularity, so the
+  same desktop is read under a tighter guard after vendoring than before. Worth
+  a fixture, because it is the sort of asymmetry found by accident otherwise.
+- **B needs no new trust vocabulary.** The prompts, the classes and the
+  no-inference rule all survive; what B adds is a fetch phase in front of the
+  read step A already built, and a store path where a local path used to be.
 
 ### Step E, designed — the machine claims the namespace, not a registry
 
@@ -1297,9 +1464,9 @@ directory, 15 MB and seconds, handed to the probe as an argument — not the
 flake, which still resolves `github:NixOS/nixpkgs` and still 403s exactly as
 [AGENTS.md](../AGENTS.md) warns. Separately worth knowing, and not in that
 warning: `git+https://github.com/…` **does** resolve in a cloud container, so
-the
-403 is api.github.com rather than GitHub. That belongs in AGENTS.md's cloud
-bullet, which currently reads as though nothing third-party is fetchable at all.
+the 403 is api.github.com rather than GitHub. ✅ **That is in AGENTS.md's cloud
+bullet now** (2026-08-20), re-verified independently while designing step B,
+which needed the same fetch path and would have been unmeasurable without it.
 
 All of it is re-runnable, and every row of the design below is a row of its
 output: [`probes/namespace-collision.nix`](./probes/namespace-collision.nix).
@@ -1516,7 +1683,7 @@ behaviour, findings reported rather than folded in, and the
 | Step | Status | Work | Durable evidence | Exit gate |
 |---|---|---|---|---|
 | **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. |
-| **B. Remote sources, read-only** | not started | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each. | A person can fully evaluate a stranger's desktop without their config being touched. |
+| **B. Remote sources, read-only** | not started, [designed](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard, not by inspection of the script: the fetched source can reach nothing outside its own store path. |
 | **C. The machine diff** | not started | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list. | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. |
 | **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
 | **E0. The reserved prefix** | not started | A prefix haus promises never to ship a room under, taught in `rooms/creating`'s "keep it in your own config" callout, plus the consumer-side assertion that names an unclaimed `haus.<name>` and every file declaring anything under it. Derives its namespace list the way `room-registry` does — `internal`/`visible`, not an `_`-prefix shorthand. Depends on nothing in A–D; the exposure is live today, on machines that installed nothing from anyone. | The assertion, and two fixtures: a private module declaring an unregistered namespace, **and a stock haus machine, which must come back empty**. | A person who kept the room shape in their own config is told, at the moment a haus release takes the name, rather than meeting a duplicate-declaration throw — and nobody else is told anything. |

@@ -2,10 +2,10 @@
 
 Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
-(Four probes here aren't about macOS at all — `pack-priority.nix`,
-`preset-composition.nix`, `scale-reach.nix` and `namespace-collision.nix`, at the
-bottom — but they earn the same shelf: a claim in a notes file, with the command
-that proves it beside it.)
+(Five probes here aren't about macOS at all — `pack-priority.nix`,
+`preset-composition.nix`, `scale-reach.nix`, `namespace-collision.nix` and
+`source-shapes.sh`, at the bottom — but they earn the same shelf: a claim in a
+notes file, with the command that proves it beside it.)
 
 ```sh
 swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -309,3 +309,45 @@ whether a fifteen-line consumer-side claim check can see any of it.
 Also the one probe here that has RUN in a cloud container, which is a finding of
 its own: `github:` inputs 403 there, but the git proxy serves anonymous reads,
 so nixpkgs' pure `lib/` is one sparse clone away. The header says how.
+
+## `source-shapes.sh` — what a stranger's desktop costs to fetch, and to read
+
+```sh
+./notes/probes/source-shapes.sh                                     # local fixtures, no network
+PROBE_REMOTE=git+https://github.com/hausfold/workshop \
+  ./notes/probes/source-shapes.sh                                   # + one real remote lock node
+```
+
+Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
+step B. Step A shipped a sandbox for reading a **local** desktop file; step B
+fetches one instead, and this measures what changes when the file arrives in the
+store rather than in `~/Downloads`. Eighteen rows (nineteen with `PROBE_REMOTE`), seconds, no Mac — it builds
+throwaway git repos under one `mktemp` dir and runs real `nix eval` and
+`nix flake lock` against them.
+
+The shelf's usual lesson, in its usual place — the quiet outcome is the
+dangerous one:
+
+- **the guard cannot fetch, and that is the design.** `builtins.fetchTree` under
+  `allowed-uris = ""` is refused by URI, so `show` is two acts: fetch unguarded
+  (no publisher code runs during a `git clone`), then read guarded. Neither can
+  do the other's job, which is a cleaner trust story than one act doing both;
+- **`restrict-eval`'s unit is the store path, not the file.** Naming one file
+  allows exactly it *outside* the store and its whole store **root** inside, so
+  a fetched repo's desktop can read everything its publisher shipped beside it.
+  It still cannot reach another store path or anything outside the store — the
+  half that was load-bearing holds, and the half the note had been describing
+  does not;
+- **the lock has never recorded a fetch date.** `lastModified` is the source's
+  own commit date — matched exactly against the fixture, and 366 seconds behind
+  the fetch on the remote node. The raw-URL shape's whole node is `narHash`,
+  `type`, `url`, so it carries no date on either reading;
+- **and the update line for that shape reads like a no-op**: one arrow, one URL,
+  no left-hand side and no hash, printed while the content changed underneath.
+
+⚠️ It measures **Nix, not haus** — `share/haus/desktop-check` isn't reachable
+from the workshop, so these are claims about the mechanism `haus show` stands on.
+Rerun on a Nix bump: the granularity rows are evaluator behaviour, which is
+exactly what a release moves. It is the second probe here to have run in a cloud
+container, and it needed no sparse clone — only `git+https://` and local repos,
+which is the fetch path `namespace-collision.nix`'s header discovered.

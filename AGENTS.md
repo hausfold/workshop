@@ -387,10 +387,25 @@ What a cloud session **can** do, and its hard limits (all found the hard way):
   egress** plus the Nix caches (`cache.nixos.org`, `channels.nixos.org`,
   `releases.nixos.org`). Sanity-check with `nix flake metadata github:NixOS/nixpkgs`:
   if it 403s with "use add_repo", the policy is still too tight for a full eval.
+- ✅ **The 403 is api.github.com, not github.com — plain git reads work.** The
+  bullet above reads as though nothing third-party is fetchable; it isn't that
+  bad. `github:owner/repo` resolves its ref through *api*.github.com, which is
+  what the gate blocks, but the container's git proxy serves anonymous reads of
+  public repos fine — so `git+https://github.com/owner/repo` fetches, clones
+  work, and `builtins.fetchTree { type = "git"; … }` returns a store path. That
+  is enough to probe real Nix behaviour from a cloud session: nixpkgs' pure
+  `lib/` is one `--depth 1 --sparse` clone away (15 MB, seconds), which is how
+  [`notes/probes/namespace-collision.nix`](./notes/probes/namespace-collision.nix)
+  and [`source-shapes.sh`](./notes/probes/source-shapes.sh) run here at all.
+  Re-verified 2026-08-20. It does **not** lift the bullet above: a full flake
+  eval still resolves `github:` inputs and still 403s.
 - ❌ `bench try switch` / `darwin-rebuild switch` never run here — macOS only.
   Activation is always a job for the local machine, at its keyboard.
 
-So cloud is for **editing + own-org lock bumps**, not for building or switching.
+So cloud is for **editing + own-org lock bumps**, not for building or switching —
+plus, since 2026-08-20, **running a pure-Nix probe**, which is a third thing and
+worth naming separately: it needs no darwin system, so the ❌ above doesn't reach
+it.
 
 ## Rules for working here
 
