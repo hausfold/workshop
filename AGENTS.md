@@ -396,13 +396,18 @@ What a cloud session **can** do, and its hard limits (all found the hard way):
   `git clone --depth 1 --filter=blob:none --sparse` + `sparse-checkout set lib`
   away, 15 MB, and that is enough to run haus's own `modules/lib/*.nix` through
   `lib.evalModules` — its real validator, on Linux, in seconds. That is how
-  `notes/probes/namespace-collision.nix` runs from a cloud session. It does not
-  make `nix flake check` reachable: haus pins all nine inputs as `github:`, and
-  the darwin half needs macOS however they are spelled.
+  `notes/probes/namespace-collision.nix` runs from a cloud session, and
+  [`source-shapes.sh`](./notes/probes/source-shapes.sh) needs even less than
+  that — plain git reads and local repos are the whole of it, no clone at all.
+  It does not make `nix flake check` reachable: haus pins all nine inputs as
+  `github:`, and the darwin half needs macOS however they are spelled.
 - ❌ `bench try switch` / `darwin-rebuild switch` never run here — macOS only.
   Activation is always a job for the local machine, at its keyboard.
 
-So cloud is for **editing + own-org lock bumps**, not for building or switching.
+So cloud is for **editing + own-org lock bumps**, not for building or switching —
+plus, since 2026-08-20, **running a pure-Nix probe**, which is a third thing and
+worth naming separately: it needs no darwin system, so the ❌ above doesn't reach
+it.
 
 ## Rules for working here
 
