@@ -1,14 +1,22 @@
 # Go to market — the portfolio, the doors, the order
 
-Working doc, written 2026-08-04 from the launch-strategy research plus the
-monetization decisions in [`perch-monetization.md`](./perch-monetization.md).
-That file owns **how perch charges**. This one owns **what's free, what's paid,
-which audience each piece is for, and in what order any of it goes public.**
+Working doc, written 2026-08-04 from the launch-strategy research. It owns
+**which audience each piece is for, and in what order any of it goes public.**
 
-**The one principle: the free family builds the audience, perch cashes it, and
-they are not the same event.** Every free repo exists to put a stranger in front
-of the house at zero risk. Perch is the only thing anyone pays for, and it should
-launch into an audience that already exists — not manufacture one at $19 a head.
+> ⚠️ **The monetization half of this document is dead, 2026-08-15.** It was
+> written around a paid, fair-source perch — `$19` one-time, an FSL relicense,
+> a capped free tier — and **perch is free of charge and MIT**, retroactively.
+> The FSL experiment covered `v2026.08.04` through `v2026.08.14-1` and was
+> reversed; the licence subsystem, the capacity cap and the purchase strip were
+> never shipped to anyone (the production key was never minted). The companion
+> `perch-monetization.md`, which owned that plan, is **deleted** — perch's own
+> `README.md` licence section is the record of what happened. Rows and phases
+> below that assumed a paid perch are corrected in place; **"selling perch stays
+> possible later"** is the whole of what survives.
+
+**The one principle: every door is free, and the family's job is to put a
+stranger in front of the house at zero risk.** There is no revenue line yet, so
+nothing here trades reach for conversion.
 
 ---
 
@@ -33,21 +41,20 @@ launch into an audience that already exists — not manufacture one at $19 a hea
 | **holt** | free | MIT | Dev-tool door. The only piece whose audience isn't macOS ricers. |
 | **haus** (rice) | free | MIT | ~~The destination.~~ **One rice on `haus`** — the developer-focused one, and the first. Still what the other doors convert into, but it converts them into the *platform*, and it lives on a page inside `/desktops` rather than owning a domain. |
 | **haus** (the layer) / **hausfold** (the house) | free | MIT | **The destination.** `haus` is the nix-darwin layer every rice sets options on; `hausfold` is the org it ships under and the name on the receipt. Was the umbrella; became the product on 2026-08-08; got the two-word split on 2026-08-10 (decision 8). |
-| **perch** | **$19 one-time**, +1 yr updates, $9 renewal | **FSL-1.1-Apache-2.0** | The only revenue line. Free tier = a working shelf capped at 3 tiles. |
-| ~~**trill**~~ (the Messages client; the repo is `hausfold/messages` since 2026-08-08, and the *name* now belongs to the notification compositor) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note ([`perch-monetization.md`](./perch-monetization.md) §5.5, all boxes ticked). rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
+| **perch** | free | MIT | Shelf door. Was the only revenue line — `$19` one-time on an FSL relicense — until 2026-08-15, when perch went free and MIT retroactively. No paid tier, no licence file, no tile cap. |
+| ~~**trill**~~ (the Messages client; the repo is `hausfold/messages` since 2026-08-08, and the *name* now belongs to the notification compositor) | not monetized | MIT | **Archived on GitHub** — settled by removal, not by a note. rice#212/#213 removed the module and the flake input; no tester is handed it at all. |
 | ~~**hausfold** (umbrella)~~ | — | — | ~~The umbrella — commercial identity, not a product. It's the seller, haus is the brand.~~ **Reversed 2026-08-08 — see the row above and §6.** hausfold is the platform *and* still the seller; the two roles turned out not to conflict. |
 
 The original launch thesis said *three doors*. It predates holt's ejection and
-perch's positioning, so it's now **five**, and one of them is paid:
+perch's positioning, so it's now **five**, all of them free:
 
 1. **nebelung** → taste (Catppuccin, theming communities)
 2. **pounce** → utility (r/MacApps, Mac utility enthusiasts)
 3. **holt** → developer pain (HN, agent-coding discourse, any-repo, any-OS-with-git)
 4. **haus** → the committed (NixOS Discourse, r/unixporn)
-5. **perch** → the wallet (Mac press that covered NotchNook, r/MacApps round two)
+5. **perch** → the shelf (Mac press that covered NotchNook, r/MacApps round two)
 
-Doors 1–4 all terminate at **hausfold.co** (was hausfold.co, which 301s).
-Door 5 terminates at a checkout.
+All five doors terminate at **hausfold.co** (was hausfold.co, which 301s).
 
 **The rename sharpens door 4 rather than blunting it.** A rice post lands better
 as "here's my desktop, and here's the platform it's a config of" than as "here's
@@ -68,32 +75,26 @@ The two plans in flight compete for the same window if you let them. This is the
 resolution:
 
 ```
-Phase 0 (perch FSL relicense)   ← NOW, before any public perch install base grows
-        ↓
 House inspection (private testers)   ← notes/launch-phase-1.md
         ↓
 Free launches: nebelung → pounce/holt → the house
         ↓
 4–8 weeks of real usage + public proof
-        ↓
-Perch Phases 1–3 (license layer, Paddle, storefront)
-        ↓
-Perch paid launch, into an audience that already exists
 ```
 
-**Why Phase 0 goes first, before any launch.** Relicensing is a commit today
-(authorship is verified solo) and it only ever gets harder. More importantly:
-every free-launch install of perch between now and the flip is an MIT build in
-someone's hands, and a big MIT install base turns "the next version is fair
-source" into "it was free and now it isn't". Do it while the install base is
-approximately you. `bench release` and the four distribution doors are unchanged
-by it.
+**What used to be here, and why it's gone.** This block opened with a *Phase 0
+(perch FSL relicense)*, gated ahead of every launch on the argument that a big
+MIT install base turns "the next version is fair source" into "it was free and
+now it isn't". The relicense happened, ran for ten days, and was reversed on
+2026-08-15 — perch is MIT again, retroactively over those tags. The two phases
+that followed it (licence layer / Paddle / storefront, then a paid launch) are
+**not scheduled**. Nothing in the launch order competes for a window any more:
+the free launches are the whole sequence.
 
-**Why perch's paid launch is not launch day.** At launch day there is no social
-proof, no press contact who has used it, and no answer to "who else paid for
-this". Selling into that costs more than waiting six weeks. Perch can absolutely
-be *visible* on launch day — free tier, shipping, on the site — it just isn't
-asking for money yet.
+**If perch is ever sold, the one finding worth keeping** is that a paid launch
+should not be launch day — at launch day there is no social proof, no press
+contact who has used it, and no answer to "who else paid for this", so selling
+into that costs more than waiting six weeks.
 
 ## 3. Channels, and the rules that actually bite
 
@@ -256,7 +257,7 @@ Three reasons it isn't first:
   the first people who will ever author one. Collect what they write; *that's*
   the gallery's seed content, and it doesn't exist yet.
 - **It isn't a revenue path.** A directory of free `.nix` files has no plausible
-  take rate. Perch is the decided revenue line; the gallery is retention and
+  take rate. Nothing in the family is a revenue line today; the gallery is retention and
   social proof, which is real value but not money.
 
 Where it belongs: ~~hausfold.co/rices~~ → **`hausfold.co/#desktops`** (its own
@@ -321,7 +322,6 @@ Consequences, revised:
   now buy a *hausfold* product, so support moves to the hausfold.co domain. The
   original reasoning ("routing them to a name they've never seen is friction")
   is exactly why it moves: hausfold is the name they *will* have seen.
-  [`perch-monetization.md` Phase 3](./perch-monetization.md#3-phases) updated.
   **The address is `hi@hausfold.co`** — settled 2026-08-09. This bullet said
   `support@hausfold.co` for a day; that mailbox was never created and isn't
   going to be.
@@ -329,14 +329,14 @@ Consequences, revised:
   holt, not a repo, ever.~~ **Reversed — everything migrates**, all ten repos.
   `PRESENCE.md`'s GitHub row and hausfold's `AGENTS.md` both
   carried this as a hard rule and are updated in the same change.
-- **Paddle will ask who the seller is, and "hausfold" is a name, not an
-  entity.** ✅ **Unchanged, and now more load-bearing** — the name is on more
-  surfaces than a receipt. No incorporation exists, and no trademark *filing*;
-  the register **has** been searched (2026-08-10 — `hausfold` returns zero
-  records worldwide), which
-  is a screening, not a clearance opinion. Selling as an individual trading as
-  hausfold is still the low-friction path,
-  and it still belongs to the Paddle application rather than here.
+- **"hausfold" is a name, not an entity.** ✅ **Unchanged, and now more
+  load-bearing** — the name is on more surfaces than a receipt, and it is on
+  them whether or not anything is ever sold. No incorporation exists, and no
+  trademark *filing*; the register **has** been searched (2026-08-10 —
+  `hausfold` returns zero records worldwide), which is a screening, not a
+  clearance opinion. Nothing forces the question now that perch is free, so it
+  stays open rather than pending: whoever reopens selling picks up an
+  individual-trading-as at that point, or incorporates.
 - **It is not the gallery** → **it hosts the gallery**, at `/desktops` (§5).
   The 2026-08-06 amendment that made hausfold.co a real page rather than a
   placeholder was the first step of this reversal; this finishes it.
@@ -369,16 +369,16 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 - Don't buy ads before you know which message produces installs.
 - Don't open a Discord yet. GitHub Discussions until recurring conversation
   needs a home.
-- Don't gate perch's *downloads*. The paywall lives in the binary — that
-  principle is [`perch-monetization.md`](./perch-monetization.md)'s and it
-  survives everything here.
+- Don't gate perch's *downloads*, and don't reintroduce a gate inside the
+  binary either. Perch is free and MIT as of 2026-08-15; there is nothing to
+  paywall.
 
 ## 9. Open decisions
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6. Successor question unchanged: does the seller incorporate, or sell as an individual trading as hausfold? That one is the Paddle application's. |
-| 2 | Archive trill? | **Closed** — archived on GitHub, module and flake input deleted (rice#212/#213), taken out of every family list. [`perch-monetization.md`](./perch-monetization.md) §5.5. The launch-blocking version of this question is gone. |
+| 1 | Is hausfold the umbrella/commercial identity, or a future product brand? | ~~Decided 2026-08-04: umbrella~~ → **Reversed 2026-08-08: hausfold makes the platform** (and is still the seller) → **refined 2026-08-10: the layer is `haus`, hausfold is the org/maker/seller** (decision 8) — §6. Successor question unchanged, and no longer forced by anything on the calendar: if the family ever sells, does the seller incorporate, or sell as an individual trading as hausfold? |
+| 2 | Archive trill? | **Closed** — archived on GitHub, module and flake input deleted (rice#212/#213), taken out of every family list. The launch-blocking version of this question is gone. |
 | 3 | Does holt get its own launch moment or ride the house's? | Open. Its own — its audience shares almost nothing with the rice's. |
 | 4 | `hausfold.com` — buy it or accept the `.co`? | **Closed 2026-08-08: accept the `.co`, because there is nothing to buy.** ~~Still cheap to reverse; still gets more expensive with brand value.~~ Checked the same day: the `.com` has been registered since 2025-04 and serves **HAUS FOLD**, an operating in-home laundry service in South Carolina. Not parked, not for sale. The `.co`-beside-someone-else's-`.com` tax is real and permanent — the name is the platform, the docs domain *and* the seller on a receipt — but it was never avoidable. Promotes the trademark question: same word, first in time, US commercial use, plausibly different Nice classes. ~~**Get a real USPTO search before filing, marketing spend, or incorporation.**~~ ✅ **Searched 2026-08-10** (USPTO + EUIPO + ~73 offices via TMview): `hausfold` returns **zero records worldwide**, and this business has **never filed** — a common-law user, not a registrant. The trigger now reads: get a clearance **opinion** before filing, marketing spend, or incorporation, since common-law rights survive an empty register. |
 | 5 | Does the site repo go public? | **Closed 2026-08-08 — yes, but as a new repo.** `hausfold/website` was never flipped: it has pull requests, GitHub keeps `refs/pull/N/head` forever, and `git filter-repo` doesn't GC them — so a scrub-and-flip would have removed nothing that mattered. ~~Price: scrub the cached account blob before flipping.~~ That price didn't buy anything. The site is now **[`hausfold/hausfold.co`](https://github.com/hausfold/hausfold.co)**, public, one commit; `hausfold/website` is archived and **stays private permanently**. The specifics stay in the private repo, since this one is public. |

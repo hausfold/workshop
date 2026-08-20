@@ -46,8 +46,7 @@ Nothing below works if a tester hits a wall on step one.
       org-profile#14 took it out of the family lists, and the repo is
       **archived on GitHub**. So no tester is handed it at all, which is a
       better answer than the "no longer maintained, and why" note this box
-      asked for. ([§5.5](./perch-monetization.md#55-open-archive-trill), all
-      five of its boxes now ticked.)
+      asked for.
       The sentence worth keeping, from rice#213: *a supported option nobody
       should turn on is a lie in the option reference.*
 - [ ] **Carry-over, unresolved:** an earlier session flagged a "`.bak`

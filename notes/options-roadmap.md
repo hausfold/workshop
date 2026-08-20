@@ -2670,11 +2670,13 @@ already exist, and one it treated as a detail is the actual root blocker.
 > and this document never referenced it.
 > **One thing worth a line, not a box:** `perch` relicensed MIT →
 > FSL-1.1-ALv2 with a 2-tile free tier + paid unlock (perch#26/#27), and grew
-> an iPhone/iPad companion (perch#29/#30, ADR 0005) — both genuine direction
+> an iPhone/iPad companion (perch#29/#30) — both genuine direction
 > changes for that room, neither one this roadmap's problem to track (perch is
 > a shipped product now, per §9), but worth knowing if a future reference rice
 > leans on perch: a "free" mouse-first rice that includes it may not be, past
-> two pins.
+> two pins. **(The FSL half was reversed on 2026-08-15 — perch is free and MIT,
+> retroactively — so a rice that includes it is free after all. Left as written
+> per §5.14: this is a dated finding, not a live claim.)**
 >
 > **Status, 2026-08-06 (seventh pass) — the same question asked of the OTHER
 > option that fans out, and the answer was worse: `fonts.mono.name` reached ONE
