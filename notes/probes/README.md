@@ -321,9 +321,9 @@ PROBE_REMOTE=git+https://github.com/hausfold/workshop \
 Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
 step B. Step A shipped a sandbox for reading a **local** desktop file; step B
 fetches one instead, and this measures what changes when the file arrives in the
-store rather than in `~/Downloads`. Twenty rows (twenty-two with `PROBE_REMOTE`), seconds, no Mac — it builds
-throwaway git repos under one `mktemp` dir and runs real `nix eval` and
-`nix flake lock` against them.
+store rather than in `~/Downloads`. Twenty-four rows (twenty-six with
+`PROBE_REMOTE`), seconds, no Mac — it builds throwaway git repos under one
+`mktemp` dir and runs real `nix eval` and `nix flake lock` against them.
 
 The shelf's usual lesson, in its usual place — the quiet outcome is the
 dangerous one:
@@ -342,8 +342,14 @@ dangerous one:
   own commit date — matched exactly against the fixture, and measurably older
   than the fetch on the remote node. The raw-URL shape's whole node is `narHash`,
   `type`, `url`, so it carries no date on either reading;
-- **and the update line for that shape reads like a no-op**: one arrow, one URL,
-  no left-hand side and no hash, printed while the content changed underneath;
+- **and the update line for that shape reads like a no-op**: an arrow with the
+  *same URL on both ends*, no rev and no date, printed while the content changed
+  underneath — while a genuine no-op prints no line at all. This row said "no
+  left-hand side" until 2026-08-20, because it grepped the arrow line out of a
+  three-line block and reported the half it had not asked for as missing;
+  **a probe that greps one line out of a multi-line block measures the grep**,
+  and this one wrote its grep into the note twice over. It now reads the
+  whole block, and pins the contrast: a `git` node's two ends differ;
 - **"fetching runs no publisher code" is a property of `flake = false`, not of
   fetching.** A desktop locks inert; a *room* is an ordinary flake input, and
   locking one evaluates its `flake.nix` to find its own inputs — measured with a
@@ -355,4 +361,11 @@ from the workshop, so these are claims about the mechanism `haus show` stands on
 Rerun on a Nix bump: the granularity rows are evaluator behaviour, which is
 exactly what a release moves. It is the second probe here to have run in a cloud
 container, and it needed no sparse clone — only `git+https://` and local repos,
-which is the fetch path `namespace-collision.nix`'s header discovered.
+which is the fetch path `namespace-collision.nix`'s header discovered. It also
+runs green on macOS now: `mktemp -d` there returns a `/var/folders/…` path
+through the `/var → /private/var` symlink, Nix reports a `-I` entry spelled that
+way as "does not exist", and the guard's *outside-the-store* rows then failed
+**closed** — which only one row is shaped to notice, since the rest expect a
+refusal and got one for the wrong reason. (The `in store:` rows allow a
+`/nix/store` path, which no `/var` symlink touches, so they were never at
+risk.) The lab dir is resolved with `pwd -P` before anything is written into it.

@@ -19,8 +19,12 @@
 #      source's own timestamp. Nothing in the lock says when you pinned it.
 #   4. THE RAW-URL SHAPE PINS ONLY narHash — its whole lock node is
 #      narHash/type/url, so no rev and no lastModified — and `nix flake update`
-#      on it prints the same URL on both sides of the arrow while the content
-#      changes underneath.
+#      on it prints an arrow with the SAME URL on both ends, no rev and no date,
+#      while the content changes underneath. Nothing moving prints no line at
+#      all, so the two are not confusable by silence — only by a line that says
+#      the same thing twice. (This section reported "no left-hand side" until
+#      2026-08-20; it was grepping the arrow line out of a three-line block.
+#      ../rooms-desktops.md carries the correction and the lesson.)
 #   5. "FETCHING RUNS NO PUBLISHER CODE" IS A PROPERTY OF `flake = false`, not
 #      of fetching. A desktop locks inert; a ROOM is an ordinary flake input and
 #      locking one EVALUATES its flake.nix to find its own inputs. So pinning a
@@ -52,6 +56,12 @@ done
 printf 'nix: %s\n' "$(nix --version)"
 
 lab=$(mktemp -d)
+# …resolved to its PHYSICAL path, or section 2 measures macOS instead of Nix:
+# `mktemp -d` there hands back /var/folders/…, /var is a symlink to /private/var,
+# and a `-I` entry spelled through it is reported "does not exist, ignoring" —
+# so every guarded read fails as *blocked* and the one row that expects an
+# allowed read is the only one that shows it. No-op on Linux.
+lab=$(cd "$lab" && pwd -P)
 trap 'rm -rf "$lab"' EXIT
 cd "$lab" || exit 1
 
@@ -172,19 +182,72 @@ if [ -n "${PROBE_REMOTE:-}" ]; then
     "$(( $(date +%s) - remote_date ))"
 fi
 
-say "5. Updating a raw-URL source shows the same URL on both sides"
+say "5. Updating a raw-URL source: an arrow with the same URL on both ends"
+# Read the WHOLE block, never one line of it. Nix prints three lines — the
+# input's name, the old side indented under it, the new side behind the arrow.
+# Until 2026-08-20 this section grepped `^\s*(→|->)`, saw only the second half,
+# and reported "no left-hand side"; the note then wrote that down and cited it
+# twice before anyone looked again. A probe that greps one line out of a
+# multi-line block measures the grep.
+# awk, not `sed -n /a/,/b/p`: POSIX BREs have no alternation, so the `\(→\|->\)`
+# end address is a GNU extension that BSD sed reads as a literal `|` — the range
+# then never ends and the "block" runs to EOF. Widening the capture is the same
+# defect as narrowing it.
+update_block() { # update_block <nix output> <input name> — name line .. arrow line
+  printf '%s\n' "$1" | awk -v want="Updated input '$2'" '
+    index($0, want) { inblock = 1 }
+    inblock         { print }
+    inblock && !index($0, want) && (/→/ || /->/) { exit }'
+}
+quoted() { # quoted <lines> — the first single-quoted string in the first line that has one
+  printf '%s\n' "$1" | sed -n "s/^[^']*'\\([^']*\\)'.*\$/\\1/p" | head -1
+}
+sides() { # sides <block> — prints the old side and the new side, one per line
+  quoted "$(printf '%s\n' "$1" | grep -v 'Updated input' | grep -vE '(→|->)')"
+  quoted "$(printf '%s\n' "$1" | grep -E '(→|->)')"
+}
+# A `git` node's date is printed OUTSIDE the quotes — `'…?rev=…' (2026-08-20)` —
+# so it has to be read off the block's own lines. Asking `sides()` about it would
+# be this probe's original sin twice: a test that can only ever see what its own
+# extraction kept.
+carries() { # carries <block> <lhs> <rhs> — "yes" if either end shows a rev or a date
+  case "$2$3" in *rev=*) echo yes; return ;; esac
+  printf '%s\n' "$1" | grep -qE '\([0-9]{4}-[0-9]{2}-[0-9]{2}\)' && echo yes || echo no
+}
+
 before=$(jq -r '.nodes.rawFile.locked.narHash' consumer/flake.lock 2>/dev/null)
 sed -i.bak 's/"mauve"/"teal"/' writer-desktop/writer.nix 2>/dev/null || \
   sed -i '' 's/"mauve"/"teal"/' writer-desktop/writer.nix
 # --refresh: without it the fetcher cache can serve the pre-edit copy under
-# tarball-ttl, and the row below fails for a reason unrelated to the claim.
-update_line=$(cd consumer && nix flake update rawFile --refresh 2>&1 | grep -E '^\s*(→|->)' | head -1)
+# tarball-ttl, and the rows below fail for a reason unrelated to the claim.
+file_out=$(cd consumer && nix flake update rawFile --refresh 2>&1)
 after=$(jq -r '.nodes.rawFile.locked.narHash' consumer/flake.lock 2>/dev/null)
+file_blk=$(update_block "$file_out" rawFile)
+file_lhs=$(sides "$file_blk" | sed -n 1p); file_rhs=$(sides "$file_blk" | sed -n 2p)
 row "content moved (narHash changed)" changed \
   "$([ "$before" != "$after" ] && echo changed || echo same)"
-row "update line distinguishes old from new" no \
-  "$(echo "$update_line" | grep -qE '(→|->).*(→|->)' && echo yes || echo no)"
-printf '     nix said: %s\n' "${update_line:-<nothing>}"
+row "the line HAS a left-hand side" yes "$([ -n "$file_lhs" ] && echo yes || echo no)"
+row "both ends are the same URL, byte for byte" same \
+  "$([ -n "$file_lhs" ] && [ "$file_lhs" = "$file_rhs" ] && echo same || echo differ)"
+row "either end carries a rev or a date" no \
+  "$(carries "$file_blk" "$file_lhs" "$file_rhs")"
+# The real no-op, for contrast: run it again with nothing moved underneath.
+quiet_out=$(cd consumer && nix flake update rawFile --refresh 2>&1)
+row "nothing moved: no update line at all" none \
+  "$(printf '%s\n' "$quiet_out" | grep -qE "Updated input|(→|->) '" && echo printed || echo none)"
+# And what a two-sided line looks like when it means something: commit the SAME
+# edit into the repo shape and move that node instead.
+git -C writer-desktop -c user.email=probe@local -c user.name=probe commit -aqm teal
+git_blk=$(update_block "$(cd consumer && nix flake update repoLocal --refresh 2>&1)" repoLocal)
+git_lhs=$(sides "$git_blk" | sed -n 1p); git_rhs=$(sides "$git_blk" | sed -n 2p)
+# Expecting `yes` from the same `carries` the file row expects `no` from is the
+# point: one detector, both answers measured, so neither row can pass vacuously.
+row "a git node's ends differ, and carry rev + date" differ \
+  "$([ -n "$git_lhs" ] && [ "$git_lhs" != "$git_rhs" ] &&
+     [ "$(carries "$git_blk" "$git_lhs" "$git_rhs")" = yes ] && echo differ || echo same)"
+printf '     the file node:\n%s\n     the git node:\n%s\n' \
+  "$(printf '%s\n' "${file_blk:-<nothing printed>}" | sed 's/^/       /')" \
+  "$(printf '%s\n' "${git_blk:-<nothing printed>}" | sed 's/^/       /')"
 
 say "6. 'Fetching runs no publisher code' is a property of flake=false, not of fetching"
 # The desktop shapes above are all `flake = false`, where a lock is a pure fetch.
