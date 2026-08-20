@@ -93,6 +93,14 @@ holt reship [name]    # a session that kept committing after its PR merged: push
 holt reap             # sweep every LANDED worktree; keeps dirty/unmerged/occupied ones
 ```
 
+`bench status` and `holt` answer different questions, and the difference shows:
+bench lists what **git** knows (`git worktree list`), holt lists what **its
+registry** knows. A tree nobody registered — a hand-run `git worktree add`, a
+scratch checkout for a before/after compare — is git's, not holt's, so bench
+prints it marked **◇** and `holt reap` will never sweep it. Remove one with
+`git -C <repo> worktree remove <path>`; use `holt child` in the first place and
+it's a real lane instead (registered, reapable, visible in the bar).
+
 Never `git stash` in these repos: the stash stack lives in the shared `.git`
 dir, so every worktree *and* the main checkout pop the same one, and parallel
 agents routinely pop each other's entries. `holt park` is per-branch, so it can't.

@@ -632,6 +632,19 @@ branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
   awk -F'\t' -v r="$(repo_dir "$1")" -v b="$2" \
     '$2 == r && $3 == b { found = 1; exit } END { exit !found }' "$WT_REGISTRY"
 }
+# Same question asked of a CHECKOUT rather than a branch. `git worktree list`
+# answers "what trees exist", which is not "what agent lanes exist": a hand-made
+# `git worktree add` (a scratch tree for a before/after compare, a detached
+# /tmp checkout) is in git's list and in no registry. holt lists only the
+# registry, so it will never reap those — printing them under "agent worktrees"
+# with a "sweep them with holt reap" hint is what made the two tools look
+# permanently out of sync when they in fact agreed.
+path_is_lane() { # path_is_lane <checkout> — does holt's registry know this tree?
+  [ -f "$WT_REGISTRY" ] || return 1
+  local phys; phys="$(cd "$1" 2>/dev/null && pwd -P)"
+  awk -F'\t' -v a="$1" -v b="${phys:-$1}" \
+    '$4 == a || $4 == b { found = 1; exit } END { exit !found }' "$WT_REGISTRY"
+}
 
 status_running() { # the receipt a `try switch` left — FIRST section, because it
                    # outranks every lock edge below: when it fires, the locks
@@ -698,19 +711,30 @@ cmd_status() {
   [ "$any_ahead"  = 1 ] && hint "↑ unpushed: bench ship (pushes, then ripples the locks downstream)"
   [ "$any_behind" = 1 ] && hint "↓ behind origin: bench pull <repo> (or bare bench pull for all)"
 
-  # Agent worktrees + their branches — only speak up if any exist.
-  local wt_lines="" any_stale=0
+  # Agent worktrees + their branches — only speak up if any exist. Lanes (a
+  # registry row) print first; orphan trees print after, marked ◇, the same
+  # convention the statusline uses for a worktree holt can't attribute.
+  local wt_lines="" orphan_lines="" any_stale=0 any_lane=0
   for name in "${FAMILY[@]}"; do
     local wt branch dirty
     while IFS= read -r wt; do
       [ -n "$wt" ] || continue
-      branch="$(git -C "$wt" branch --show-current 2>/dev/null || echo '?')"
+      # --show-current prints nothing (and exits 0) on a detached HEAD, so the
+      # `|| echo` fallback never fires and the column came out blank.
+      branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
+      [ -n "$branch" ] || branch='(detached)'
       local dcol; dcol="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && printf '%s' "$C_WARN" || printf '%s' "$C_MUT")"
       dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
-      local repo_c dirty_c; printf -v repo_c '%-12s' "$name"; printf -v dirty_c '%-6s' "$dirty"
-      wt_lines+="$(printf '  %s%s%s %-24s %s%s%s %s%s%s' \
+      local repo_c dirty_c row lane=0
+      path_is_lane "$wt" && { lane=1; any_lane=1; }
+      # ◇ is one column wide but three bytes, and printf pads by BYTES — so the
+      # marked cell is padded two narrower to keep the table square.
+      if [ "$lane" = 1 ]; then printf -v repo_c '%-12s' "$name"; else printf -v repo_c '◇ %-10s' "$name"; fi
+      printf -v dirty_c '%-6s' "$dirty"
+      row="$(printf '  %s%s%s %-24s %s%s%s %s%s%s' \
         "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
         "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$wt" "$C_OFF")"$'\n'
+      if [ "$lane" = 1 ]; then wt_lines+="$row"; else orphan_lines+="$row"; fi
     done <<<"$(list_worktrees "$name")"
     local b
     for b in $(unmerged_agent_branches "$name"); do
@@ -728,13 +752,15 @@ cmd_status() {
       fi
     done
   done
-  if [ -n "$wt_lines" ]; then
+  if [ -n "$wt_lines$orphan_lines" ]; then
     echo
     say "agent worktrees (isolated Claude checkouts; open a PR to land — never push to main)"
     printf '  %s%-12s %-24s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
-    printf '%s' "$wt_lines"
+    printf '%s%s' "$wt_lines" "$orphan_lines"
     # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
-    printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `holt reap`%s\n' "$C_MUT" "$C_OFF"
+    [ "$any_lane" = 1 ] && printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `holt reap`%s\n' "$C_MUT" "$C_OFF"
+    # shellcheck disable=SC2016
+    [ -n "$orphan_lines" ] && printf '  %s◇ not a lane — a hand-made `git worktree add`, in no holt registry, so `holt reap` will never touch it: `git -C <repo> worktree remove <path>`%s\n' "$C_MUT" "$C_OFF"
     # shellcheck disable=SC2016
     [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
   fi

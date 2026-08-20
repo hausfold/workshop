@@ -465,6 +465,26 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [[ "$output" != *"/tmp/wt/perch"* ]]
 }
 
+@test "path_is_lane is false when there's no registry at all" {
+  WT_REGISTRY="$TMP/no-such-registry.tsv"
+  run path_is_lane /tmp/wt/haus
+  [ "$status" -ne 0 ]
+}
+
+@test "path_is_lane separates a registered lane from a hand-made worktree" {
+  # The bug this guards: `git worktree list` also returns scratch trees nobody
+  # registered (a compare checkout, a /tmp detached tree). bench used to print
+  # those as agent lanes and tell you to `holt reap` them — holt never will,
+  # because they have no registry row, so the two tools looked out of sync.
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "lane $ROOT/haus worktree-lane /tmp/wt/haus $ROOT/haus claude"
+  run path_is_lane /tmp/wt/haus
+  [ "$status" -eq 0 ]
+  run path_is_lane /tmp/hauscmp/base
+  [ "$status" -ne 0 ]
+}
+
 @test "detect_lane populates LANE_SRC for every holt child, mapped to its family repo" {
   mkmain pounce
   # detect_lane's self-lookup is `git rev-parse --show-toplevel` (no -C), which
