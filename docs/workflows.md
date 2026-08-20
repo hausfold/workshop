@@ -65,8 +65,9 @@ still delegate to `holt hook create` / `holt hook remove`, so a hand-run
 `--worktree` is registered too — it just isn't what the chord does. Either way
 the plumbing is `holt` — the standalone tool haus ships on `PATH`, **not** a
 `bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
-`Ctrl Alt Shift a` spawns the one agent allowed to edit the checkout you're
-looking at.
+`c` in a window's own shell runs the one agent allowed to edit the checkout
+you're looking at — the ⌃⌥⇧A chord that used to do it was retired in haus#422,
+with the palette's **Agent Here** row.
 
 ```sh
 # ⌘↵ lanes hack away on their own branches; meanwhile:
