@@ -383,10 +383,22 @@ What a cloud session **can** do, and its hard limits (all found the hard way):
   A flake pulls nixpkgs / nix-darwin / home-manager / catppuccin from
   *third-party* GitHub orgs, Nix fetches them through the session's GitHub gate,
   and `add_repo` refuses cross-owner adds — so you can't grant them one by one.
-  It needs an environment whose **network policy allows general `github.com`
-  egress** plus the Nix caches (`cache.nixos.org`, `channels.nixos.org`,
-  `releases.nixos.org`). Sanity-check with `nix flake metadata github:NixOS/nixpkgs`:
-  if it 403s with "use add_repo", the policy is still too tight for a full eval.
+  Sanity-check with `nix flake metadata github:NixOS/nixpkgs`: if it 403s with
+  "use add_repo", the policy is still too tight for a full eval, and what a full
+  one additionally wants is the Nix caches (`cache.nixos.org`,
+  `channels.nixos.org`, `releases.nixos.org`).
+- ✅ **But the gate is `api.github.com`, not github.com — measured 2026-08-20.**
+  A `github:` flakeref resolves through the API and 403s; `git+https://github.com/…`
+  is a plain anonymous git read, which the container's proxy serves for any
+  public repo, third-party org included (`nix flake metadata
+  git+https://github.com/numtide/flake-utils` resolves). So a **source tree** is
+  always reachable even when a flakeref isn't: nixpkgs' pure `lib/` is one
+  `git clone --depth 1 --filter=blob:none --sparse` + `sparse-checkout set lib`
+  away, 15 MB, and that is enough to run haus's own `modules/lib/*.nix` through
+  `lib.evalModules` — its real validator, on Linux, in seconds. That is how
+  `notes/probes/namespace-collision.nix` runs from a cloud session. It does not
+  make `nix flake check` reachable: haus pins all nine inputs as `github:`, and
+  the darwin half needs macOS however they are spelled.
 - ❌ `bench try switch` / `darwin-rebuild switch` never run here — macOS only.
   Activation is always a job for the local machine, at its keyboard.
 
