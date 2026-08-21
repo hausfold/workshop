@@ -74,6 +74,21 @@ this note defines the product model the code and docs should converge on.
 > [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), which
 > leaves **D, E1 and F** as the unbuilt ones.
 
+> **2026-08-20, later still — step D is designed, not built.** Read against
+> `bootstrap.sh`, `cmd_update` and `settings_write`, not run — the acquisition
+> section's "attempt the mechanical edit, verify by re-parsing the result" had
+> been standing in for a design since 2026-08-17, and reading the actual
+> scaffolded `flake.nix` found it understated by one axis: `add` edits the file
+> in **three** places at three syntactic depths (the input, the `outputs`
+> binding pattern that makes the input reachable at all, and the `desktop`
+> line), not one, and they have to land atomically. The verifier does not need
+> inventing — `host-template.nix` already built it, aimed at a generated file
+> rather than an edited one, and it is the same `nixfmt`-as-parser trick either
+> way. `cmd_update [name]` is not "add an argument" — every local in the
+> function today is hardcoded to the literal node `haus`, so it is a rewrite of
+> a function that has had exactly one caller since it was written. See
+> §[Step D](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships).
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -2132,6 +2147,118 @@ measurement is still asking.
   haus might take in a year — they just get told, once, at the moment it becomes
   true.
 
+### Step D, designed — `add` edits three lines, not one, and the parser that catches it already ships
+
+Designed 2026-08-20 against haus `dfdb38a` (the step C build). ⚠️ **Read, not
+measured**, the same caveat step C's structural half carried before its probe:
+`bootstrap.sh`, `cmd_update` and `settings_write` were opened in a real
+checkout, but nothing below was run against a real edit. The exit gate already
+asks for the measurement this owes — a hand-reorganised consumer flake must
+degrade to `--print` — and that is untested, not merely undesigned.
+
+#### The scaffolded shape, and the edit `add` needs that this note had not named
+
+`bootstrap.sh:647-663` is the only place a consumer's `flake.nix` is written
+today, and it is the ground truth for what "the scaffolded shape" means:
+
+```nix
+inputs.haus.url = "github:hausfold/haus";
+
+outputs =
+  { haus, ... }:
+  {
+    darwinConfigurations.$HOSTNAME = haus.mkHaus {
+      username = "$USERNAME";
+      hostname = "$HOSTNAME";
+      host = ./hosts/$HOSTNAME;
+      desktop = haus.desktops.$DESKTOP_NAME;   # only when a desktop was chosen
+    };
+  };
+```
+
+`desktop = haus.desktops.$DESKTOP_NAME` is an attribute path **into haus's own
+flake outputs** — the only desktop pin bootstrap has ever written is one of the
+four haus ships. Nothing in the codebase points `desktop` at a third-party
+input, because nothing needed to until now. Making `haus add <source>` real
+means inventing that convention, and it touches the file in **three** places at
+three different syntactic depths, not the one "attempt the mechanical edit"
+implied:
+
+1. `inputs.<name>.url = "<source>";` — a new top-level input;
+2. the `outputs = { haus, ... }:` **binding pattern itself** — `...` matches an
+   unlisted attribute syntactically but does not bind it, so `<name>` is
+   unreachable inside the body until the pattern becomes `{ haus, <name>, ... }:`;
+3. `desktop = <name> + "/<path>";` (or whatever the source's file addressing
+   turns out to be) inside the `mkHaus { … }` call — replacing whatever line was
+   there, built-in or a previous pin.
+
+All three have to succeed together or none of them may land — the same
+atomicity `settings_write`'s `TX_TARGETS`/`TX_BACKUPS` rollback already gives
+several *separate* files (`modules/core/haus.sh:1874-1906`), just needed here
+within one.
+
+#### The verifier already exists, aimed at a different file
+
+The note has been saying "verify by re-parsing the result" since the
+acquisition section was written, as if that verifier still needed inventing.
+It does not. `modules/host-template.nix:73-79` already built it, for a
+generated file rather than an edited one, and says exactly what to reuse:
+
+> It must PARSE as it ships — it's imported by the host file, so a syntax
+> error here is a machine that won't rebuild. nixfmt is used purely as a
+> parser (output discarded)…
+
+`nixfmt < flake.nix > /dev/null` after the three edits, no flake evaluation, no
+network, no IFD — the same trick, aimed at a mutation instead of a render. On
+nonzero, restore the pre-edit copy (`mktemp` + `mv`, `settings_write`'s own
+shape) and fall to `--print`.
+
+That only proves **syntax**, and syntax is not the risk. A flake.nix that
+still parses but has moved past `{ haus, ... }:` — `self: { haus, nixpkgs,
+... }:`, an `inputs@{ ... }` pattern, a hand-added fourth input — parses fine
+both before AND after a naive edit lands somewhere wrong in it. The check that
+decides whether to *attempt* the surgical edit at all has to run **before**
+it, and it is cheaper than a parser: do the three landmark strings
+(`inputs.haus.url`, the literal `{ haus, ...` opening the `outputs` pattern,
+`desktop = `) still appear where bootstrap put them. Shape check before the
+edit, syntax check after — two different questions, and conflating them is
+how a plausible-looking edit lands on a file it was never safe to touch.
+
+#### `haus update [name]` is a rewrite, not a new argument
+
+The table's phrase — "existing command, now takes an input name" — reads like
+adding an optional parameter to a general function. `cmd_update`
+(`modules/core/haus.sh:1541-1573`) is not general: it takes **no** arguments
+today, and every local in it is hardcoded to the literal node `haus` —
+`old`/`new` read `.nodes.haus.locked.rev`, not `.nodes.$input...`; the
+changelog half reads `.nodes.haus.original.owner`/`.repo` and calls GitHub's
+compare API by name; the prose is haus-specific ("pulling the latest haus …",
+"new in haus (…)"). It is a function written for exactly one caller, and
+`haus update <name>` needs one written for N — every one of those reads
+re-keyed on `$input`, not a branch added alongside them.
+
+The changelog half additionally does not degrade — it assumes GitHub. A
+`file+https` or a non-GitHub `git+https` desktop input has no owner, no repo,
+no compare endpoint, and [the note's own finding](#rules-that-fall-out-and-the-traps-behind-them)
+about a `file` node's update line looking like a no-op already flagged the
+symptom without naming the cause: `fetch_changelog` (`haus.sh:1529-1533`) has
+no branch for "there is nothing to compare," so extending it to a non-GitHub
+input means gating the call on the node's source shape — [the same three
+shapes step B measured](#the-three-source-shapes-measured) — rather than
+letting a malformed URL reach `curl`.
+
+#### What D deliberately does not get
+
+- **No rebuild.** `add`, `remove` and a `desktop` switch all print the next
+  command; only the existing `cmd_rebuild` activates, same rule as `show`.
+- **No room support.** Dropping `flake = false` and the typed code-confirmation
+  prompt is step F. D builds the edit machinery F reuses; the trust decision
+  for code is out of scope here, on purpose.
+- **No namespace-claim check.** "Input names are the namespace, `haus` is
+  reserved, collide and refuse" (already spec'd above) is D's whole collision
+  story. Whether a claimed namespace silently gets a second store root is E1's
+  problem, over a claim table this step does not touch.
+
 ### Execution plan
 
 Same contract as the plan above: exit gate green before the next step changes
@@ -2143,7 +2270,7 @@ behaviour, findings reported rather than folded in, and the
 | **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. ⚠️ **Met for a publisher's CI and not, until 2026-08-20, for anyone on a Mac** — the command [failed on every input there](#findings-that-arrived-before-the-step-did) from the day it shipped, and the gate's own wording is why nobody looked: it names the audience that runs the packaged wrapper. Fixed in [haus#447](https://github.com/hausfold/haus/pull/447). |
 | **B. Remote sources, read-only** | **done** — [haus#435](https://github.com/hausfold/haus/pull/435) + [hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111), [designed here](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one), [findings](#findings-carried-out-of-step-b) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | Met. A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard rather than by inspection of the script (the fetched source can reach nothing outside its own store path), and proven for the *config* by running the whole command from inside a directory that has a consumer flake and cksum-ing it either side. Two things the gate did not ask for and the build owes anyway: `show` fetches a **tree** and never locks one, so the inertness covers a room too; and Nix's error text is a rendering path a remote party can write into. |
 | **C. The machine diff** | **done** — [haus#447](https://github.com/hausfold/haus/pull/447) + [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), [designed here](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room), [findings](#findings-carried-out-of-step-c) | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. One further evaluation — of the READER's flake, which the candidate's file is no part of — asking what the machine currently says about the paths the guarded read produced. `highestPrio` per leaf is the arbitration (100 your host · 900 the desktop you have · >900 nothing outranks a desktop), so the list-replacement rule is the same number rather than a second analysis. `--no-update-lock-file`, because [`nix eval` writes a lock](#a-read-only-query-is-not-automatically-a-read-only-command) and a diff computed against pins nobody chose is worse than a refusal. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list — plus a fixture for each of the three limits the option tree has ([losers invisible, `files` at 1500, a dynamic `attrsOf` sub-path](#what-the-option-tree-will-not-tell-you-and-what-to-say-instead)), since each is a sentence the report owes rather than a case it can skip. The mechanism half is measured in [`probes/machine-diff.sh`](./probes/machine-diff.sh). | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. ⚠️ And one the gate did not ask for and B's did not either: **the command is run the way a person runs it, on the machine it was installed on** — the omission that [hid a total failure of `haus show` for two steps](#findings-that-arrived-before-the-step-did). |
-| **D. `haus add` / `remove` / `desktop`** | not started | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
+| **D. `haus add` / `remove` / `desktop`** | **designed, not built** — [designed here](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships) | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. `add` edits `flake.nix` in three places (the input, the `outputs` binding pattern, the `desktop` line), verified with the same `nixfmt`-as-parser trick `host-template.nix` already uses on a generated file — a shape check runs before the edit is attempted, the parser after. `cmd_update` is a rewrite, not a new argument: every local in it is hardcoded to the node `haus` today. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
 | **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
 | **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
 | **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. ⚠️ **The prompt comes before the LOCK, not before the rebuild** — [measured 2026-08-20](#and-step-f-cannot-borrow-it): dropping `flake = false` means locking the source evaluates the publisher's `flake.nix`, so pinning a room already runs its code and `show --room`'s skip-the-evaluation rule cannot extend to `add`. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. A fixture pinning the lock-time evaluation, so the prompt's placement cannot regress silently. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
