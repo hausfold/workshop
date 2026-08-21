@@ -89,6 +89,20 @@ this note defines the product model the code and docs should converge on.
 > a function that has had exactly one caller since it was written. See
 > §[Step D](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships).
 
+> **2026-08-20, later still — step D is built** ([haus#450](https://github.com/hausfold/haus/pull/450)).
+> The design's own "read, not measured" caveat named the exact gap that
+> turned up: a real edit found a bug the design never predicted — a
+> single-pass rewrite of the `desktop = ` line had two conditional insertion
+> points that could both fire, doubling the line on every second write to a
+> file that already had one. `test/haus-add.sh` proves the fix against a real
+> `nix eval`: a third-party desktop, pinned offline via `haus add`, actually
+> lands its value in the resulting `darwinConfigurations`. **Met for exactly
+> one pinned desktop at a time** — a second concurrent `add` degrades to
+> `--print` rather than risk a bad edit, a scope cut the design did not flag.
+> Docs (`desktops/sharing.mdx`, `customizing.mdx`) are still owed, in
+> hausfold.co. See §[findings](#findings-carried-out-of-step-d), which leaves
+> **E1 and F** as the only unbuilt steps.
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -2259,6 +2273,78 @@ letting a malformed URL reach `curl`.
   story. Whether a claimed namespace silently gets a second store root is E1's
   problem, over a claim table this step does not touch.
 
+#### Findings carried out of step D
+
+`add`/`desktop`/`remove` shipped 2026-08-20 ([haus#450](https://github.com/hausfold/haus/pull/450)), the same day the design's own "read, not measured" caveat named the exact gap that turned up: the exit gate's hand-reorganised-flake fixture was untested, and building it is what found the two real bugs below. The mechanism otherwise survived intact — `nixfmt`-as-parser, the three-landmark edit, `--no-update-lock-file`'s absence here being correct (unlike `show`, `add` WANTS to write the lock) — and a real `nix eval` of a consumer with a freshly pinned third-party desktop landed the desktop's value, proving the whole path end to end rather than just the file edit.
+
+- **[4] A single-pass line-rewrite with two conditional insertion points fires
+  both, and the second call is where it shows.** `flake_set_desktop_line` and
+  `flake_add_input` each read the scaffolded file top to bottom, and each had
+  two places that could write a `desktop = ` line: "insert after `host = `,
+  unless already written" and "replace an existing `desktop = ` line in
+  place." `host = ` always precedes `desktop = ` in the scaffolded shape, so
+  the *unless already written* check ran before the line it was checking for
+  had been read — it was always false, so the host-insert fired every single
+  call, and if a desktop line already existed further down, the replace
+  fired too. The first `add` on a fresh consumer (no prior desktop line) only
+  hit one of the two, so it looked correct; the SECOND write — a `desktop
+  hacker` switch, or `remove`'s replacement — duplicated the line, and a
+  third write duplicated it again. Caught by `haus desktop`'s own listing
+  going silent on the selection marker (a file with two `desktop = ` lines
+  parses as neither), not by a crash. Fixed by counting existing `desktop = `
+  lines BEFORE the loop starts and running exactly one of the two strategies
+  — never deciding reactively mid-scan — with a refusal (degrade to
+  `--print`) if more than one already exists, since that shape is already
+  hand-edited or corrupted and guessing which line wins is worse than asking.
+  General form worth keeping beside step C's TAB-collapse finding: **two
+  insertion points that both key off "have I already done this" in one
+  streaming pass need to know the answer before the pass starts, not
+  discover it partway through** — the same shape as an `attrNames` check
+  ordered wrong, just at the shell-script layer instead of the option-tree
+  one.
+- **[2] Reading a pinned desktop's own file back out of the LOCK is offline
+  and correct, but only extracts the leading token.** `haus desktop <name>`
+  switching to an already-pinned input re-derives which file is the desktop
+  from `flake.lock`'s `.locked` node via the same `fetchTree` the lock itself
+  used — deliberately not remembered anywhere, since nothing remembers it
+  yet (E1's problem). The LISTING side of the same command parses the
+  CURRENT `desktop = ` line the opposite direction — RHS to name — and the
+  first cut took the whole RHS (`writer + "/writer.nix"`) as the name instead
+  of stopping at the first space, so a pinned desktop that was actually
+  selected never showed the `→` marker in `haus desktop`'s own listing.
+  Fixed by cutting at the first space, which is exactly the boundary between
+  the input's identifier and everything Nix contributes after it in both
+  shapes (`name` alone, or `name + "/file"`).
+- **[2] Supporting more than one simultaneously pinned third-party desktop is
+  real added scope, not a smaller version of what's built.** The outputs
+  binding pattern is edited by an EXACT match on `{ haus, ... }:`, so a
+  second `add` — the pattern now reads `{ haus, writer, ... }:` — finds no
+  landmark and degrades to `--print` cleanly rather than mis-editing. Handling
+  N names means parsing and rewriting a token list inside that pattern on
+  every edit, in `add`, `remove`, and any future `desktop` switch — real work
+  the design didn't flag as a boundary because "every desktop this machine has
+  pinned" reads as already assuming plural. Worth a line in `desktops/sharing.mdx`
+  regardless of whether N-ary ever gets built: today, a second `haus add`
+  degrades rather than fails outright, which is the correct default but not
+  the same as working.
+- **[1] `nixfmt`'s bare-stdin form is deprecated**, and `flake_verify` had
+  copied it from `host-template.nix`'s own use of the trick — nixfmt 1.4.0
+  warns on `nixfmt < file` and wants `nixfmt - < file`. Fixed here; `host-template.nix`
+  still carries the bare form this note's own "the verifier already exists"
+  section pointed at, and will want the same one-token fix whenever
+  something next touches it.
+- **[1] `jq`'s own "must be THERE, not merely usually there" reasoning named
+  the exact failure mode nixfmt was about to have.** `modules/core/default.nix`
+  wraps the `haus` CLI's PATH with `jq` and `gum` for precisely this reason —
+  a tool the developer toolbelt happens to install is not a tool every
+  machine has — and `nixfmt` needed the same line added, or a machine with
+  the toolbelt off would have had `haus add`'s very first edit die on
+  `nixfmt: command not found`.
+
+Docs are the one exit-gate line this PR does not close: `desktops/sharing.mdx`
+and `customizing.mdx` still describe the hand-edit-`flake.nix` path as
+canonical, in the hausfold.co repo, untouched by this change.
+
 ### Execution plan
 
 Same contract as the plan above: exit gate green before the next step changes
@@ -2270,7 +2356,7 @@ behaviour, findings reported rather than folded in, and the
 | **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. ⚠️ **Met for a publisher's CI and not, until 2026-08-20, for anyone on a Mac** — the command [failed on every input there](#findings-that-arrived-before-the-step-did) from the day it shipped, and the gate's own wording is why nobody looked: it names the audience that runs the packaged wrapper. Fixed in [haus#447](https://github.com/hausfold/haus/pull/447). |
 | **B. Remote sources, read-only** | **done** — [haus#435](https://github.com/hausfold/haus/pull/435) + [hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111), [designed here](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one), [findings](#findings-carried-out-of-step-b) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | Met. A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard rather than by inspection of the script (the fetched source can reach nothing outside its own store path), and proven for the *config* by running the whole command from inside a directory that has a consumer flake and cksum-ing it either side. Two things the gate did not ask for and the build owes anyway: `show` fetches a **tree** and never locks one, so the inertness covers a room too; and Nix's error text is a rendering path a remote party can write into. |
 | **C. The machine diff** | **done** — [haus#447](https://github.com/hausfold/haus/pull/447) + [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), [designed here](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room), [findings](#findings-carried-out-of-step-c) | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. One further evaluation — of the READER's flake, which the candidate's file is no part of — asking what the machine currently says about the paths the guarded read produced. `highestPrio` per leaf is the arbitration (100 your host · 900 the desktop you have · >900 nothing outranks a desktop), so the list-replacement rule is the same number rather than a second analysis. `--no-update-lock-file`, because [`nix eval` writes a lock](#a-read-only-query-is-not-automatically-a-read-only-command) and a diff computed against pins nobody chose is worse than a refusal. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list — plus a fixture for each of the three limits the option tree has ([losers invisible, `files` at 1500, a dynamic `attrsOf` sub-path](#what-the-option-tree-will-not-tell-you-and-what-to-say-instead)), since each is a sentence the report owes rather than a case it can skip. The mechanism half is measured in [`probes/machine-diff.sh`](./probes/machine-diff.sh). | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. ⚠️ And one the gate did not ask for and B's did not either: **the command is run the way a person runs it, on the machine it was installed on** — the omission that [hid a total failure of `haus show` for two steps](#findings-that-arrived-before-the-step-did). |
-| **D. `haus add` / `remove` / `desktop`** | **designed, not built** — [designed here](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships) | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. `add` edits `flake.nix` in three places (the input, the `outputs` binding pattern, the `desktop` line), verified with the same `nixfmt`-as-parser trick `host-template.nix` already uses on a generated file — a shape check runs before the edit is attempted, the parser after. `cmd_update` is a rewrite, not a new argument: every local in it is hardcoded to the node `haus` today. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision. Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands, vendoring kept as the edit-it path. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. |
+| **D. `haus add` / `remove` / `desktop`** | **done** — [haus#450](https://github.com/hausfold/haus/pull/450), [designed here](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships), [findings](#findings-carried-out-of-step-d) | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. `add` edits `flake.nix` in three places (the input, the `outputs` binding pattern, the `desktop` line), verified with the same `nixfmt`-as-parser trick `host-template.nix` already uses on a generated file — a shape check runs before the edit is attempted, the parser after. `cmd_update` is a rewrite, not a new argument: every local in it is hardcoded to the node `haus` today. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision — `test/haus-add.sh`, 9 scenarios, offline (`path:`/`git+file://`). Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands — **still owed**, see findings. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. ⚠️ **Met for exactly one pinned desktop at a time** — see findings; a second concurrent one is a scope cut this step made, not a gap it missed. |
 | **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
 | **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
 | **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. ⚠️ **The prompt comes before the LOCK, not before the rebuild** — [measured 2026-08-20](#and-step-f-cannot-borrow-it): dropping `flake = false` means locking the source evaluates the publisher's `flake.nix`, so pinning a room already runs its code and `show --room`'s skip-the-evaluation rule cannot extend to `add`. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. A fixture pinning the lock-time evaluation, so the prompt's placement cannot regress silently. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
