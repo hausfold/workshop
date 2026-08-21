@@ -103,6 +103,22 @@ this note defines the product model the code and docs should converge on.
 > hausfold.co. See §[findings](#findings-carried-out-of-step-d), which leaves
 > **E1 and F** as the only unbuilt steps.
 
+> **2026-08-20, later still — that docs debt is closed, and E1 is built.**
+> [hausfold.co#121](https://github.com/hausfold/hausfold.co/pull/121) rewrites
+> `sharing.mdx` and `choosing.mdx` around `haus add`/`desktop`/`remove` (not
+> `customizing.mdx` — re-read rather than assumed, it never described the
+> hand-edit path). [haus#452](https://github.com/hausfold/haus/pull/452) is
+> E1's claim table: `haus._rooms.claimed.<namespace> = "<origin>"` turns an
+> unclaimed namespace's E0 warning into either silence (declarations agree
+> with the claim) or a **fatal** assertion (they don't, or haus has since
+> shipped the name) — fatal rather than a second warning, decided before
+> writing any code: E0 is a private mistake nobody else is exposed to, E1's
+> two cases are the silent-steering hazard the whole design exists to catch.
+> **Only the Nix-module half** — `haus add --room` (step F) still doesn't
+> exist to write the claim automatically, so it's hand-set for now; see
+> §[findings](#findings-carried-out-of-step-e1). **F is the only unbuilt
+> step left.**
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -1883,9 +1899,12 @@ acquisition at all, which moves the step rather than merely sharpening it.
 [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107) (nine seconds
 later). The design below stands as written except where the build corrected it;
 what the build learned is in [Findings carried out of step E0](#findings-carried-out-of-step-e0).
-**E1 is still unbuilt**, and the sentence it needs to make true is the one E0
-could not: a machine running a legitimately published room has nothing recording
-where the room came from, so it warns.
+★ **E1 was also built the same day** — [haus#452](https://github.com/hausfold/haus/pull/452) —
+closing the sentence E0 could not: a machine running a legitimately published
+room now has somewhere to record where it came from, and a claim that agrees
+with what's declared goes silent instead of warning. What E1 could not close
+either — `haus add --room` doesn't exist to write the claim automatically —
+is [step F's](#findings-carried-out-of-step-e1), not a gap in E1 itself.
 
 **How these were measured, because it decides how far to trust them.** From a
 cloud session with no macOS and no way to build a machine: nixpkgs' `lib/`
@@ -2149,6 +2168,74 @@ options, and nothing forces `default` or `example` (those doc-list attrs are
 lazy) — but that is reasoning, and the paragraph above that asks for the
 measurement is still asking.
 
+#### Findings carried out of step E1
+
+Built 2026-08-20, on a Mac rather than a Linux probe, which changed the
+verification story more than the design: every claim below is a real `nix
+flake check` and a real `bench try` against this machine's own host, not
+`lib.evalModules` reasoned about from a container. `haus._rooms.claimed.<ns> =
+"<origin>"` shipped as designed — an unclaimed candidate still warns, a
+claimed one with one store root goes silent, a claimed one with more than one
+is fatal, and a namespace haus later ships that a claim already names is fatal
+independently. Fatal rather than a second warning, decided before writing any
+code rather than after: E0 stays a warning because it is a private mistake
+nobody else is exposed to, and E1's two cases are the silent-steering hazard
+the whole design exists to catch.
+
+- **[2] Only the Nix-module half is built, and it cannot be otherwise until F
+  exists.** The execution table's own words for E1 — "written by `add`,
+  refused on a second claimant by origin" — describe `haus add --room`,
+  which still `die`s with "isn't built yet" (acquisition step F). So half of
+  E1's own spec cannot exist yet: there is no CLI to write the claim
+  automatically, and no live double-`add` to refuse. What shipped is the part
+  that does not need F — the option and the assertion that reads it — which
+  is also the actual argument for building E1 ahead of F in the first place:
+  the note's own "a format decision, and formats are hard to change once
+  anyone has published into it." Until F, `haus._rooms.claimed` is set by
+  hand, in a host file, the same way a fresh install's `hosts/<host>/options.nix`
+  is hand-edited today.
+- **[2] A module that declares `options` cannot also carry bare `warnings` or
+  `assertions` beside it.** `modules/namespaces.nix` grew from a
+  `warnings`-only module (E0) into one that also declares
+  `haus._rooms.claimed`, and the module system refuses that combination
+  outright: `Module '…/namespaces.nix' has an unsupported attribute
+  'assertions'. … Add configuration attributes immediately on the top level
+  instead, or move all of them … into the explicit 'config' attribute.` Every
+  sibling seam module in the repo had only ever done one or the other —
+  `modules/desktop/options.nix` is options-only, `modules/desktop/default.nix`
+  is config-only — so this is the first place in the rooms-desktops work that
+  needed both in one file, and `nix flake check` caught the combination
+  immediately rather than it being reasoned through. Fixed by wrapping
+  `warnings`/`assertions` in an explicit `config = { … };` beside `options`.
+  Worth a habit: a single-file seam module that grows an option later needs
+  this from the first line, not discovered at the next `nix flake check`.
+- **[1] The three fixtures needed a second published-room shape the existing
+  two didn't cover.** E0's `nsPrivateRoom`/`nsReservedRoom` are one file each;
+  co-ownership only exists between two, so `namespace-guard`'s harness grew a
+  third and fourth fixture (`nsClaimedRoom`, `nsCoOwnerRoom`) at different
+  synthetic store roots, plus a claim table (`nsClaimTable`) threaded through
+  a new assertion-side golden table (`namespaceGuardAssertTable`) beside the
+  existing warning-side one. Building it caught its own bug before it ever
+  reached the derivation: the first draft of the new golden-table row helper
+  mapped a string-formatting function directly over the *assertion records*
+  instead of over their `.message` fields — `cannot coerce a set to a string`,
+  from `nix build`, not from reading the diff.
+- **[1] `hausVersion` is optional in the pure-lib rule for the same reason the
+  reserved prefix is read from a sibling file rather than re-derived.**
+  `modules/lib/namespaces.nix` stays a file with no filesystem reads, because
+  it is also staged flat into `modules/desktop-check.nix`'s flake-less copy
+  for `haus show`, where a relative path to the repo root resolves to
+  nothing — the exact E0 finding about "any `lib/` file the validator
+  imports." `VERSION` is read once, in `modules/namespaces.nix` itself (which
+  only ever runs from inside the repo tree), and threaded down as a plain
+  argument that the message renders only if non-null.
+
+⚠️ **Not verified: what `haus add --room` writing the claim, and refusing a
+live double-claim by origin, actually looks like.** That is F's own build,
+not E1's — the fixtures above simulate what a future `add --room` will write,
+by hand, and prove the Nix-module side reacts correctly to it. Nothing here
+exercises a real CLI writing a real claim.
+
 #### What E deliberately does not get
 
 - **No reserved-prefix rewrite of the model.** The prefix is for private and
@@ -2358,7 +2445,7 @@ behaviour, findings reported rather than folded in, and the
 | **C. The machine diff** | **done** — [haus#447](https://github.com/hausfold/haus/pull/447) + [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), [designed here](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room), [findings](#findings-carried-out-of-step-c) | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. One further evaluation — of the READER's flake, which the candidate's file is no part of — asking what the machine currently says about the paths the guarded read produced. `highestPrio` per leaf is the arbitration (100 your host · 900 the desktop you have · >900 nothing outranks a desktop), so the list-replacement rule is the same number rather than a second analysis. `--no-update-lock-file`, because [`nix eval` writes a lock](#a-read-only-query-is-not-automatically-a-read-only-command) and a diff computed against pins nobody chose is worse than a refusal. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list — plus a fixture for each of the three limits the option tree has ([losers invisible, `files` at 1500, a dynamic `attrsOf` sub-path](#what-the-option-tree-will-not-tell-you-and-what-to-say-instead)), since each is a sentence the report owes rather than a case it can skip. The mechanism half is measured in [`probes/machine-diff.sh`](./probes/machine-diff.sh). | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. ⚠️ And one the gate did not ask for and B's did not either: **the command is run the way a person runs it, on the machine it was installed on** — the omission that [hid a total failure of `haus show` for two steps](#findings-that-arrived-before-the-step-did). |
 | **D. `haus add` / `remove` / `desktop`** | **done** — [haus#450](https://github.com/hausfold/haus/pull/450), [designed here](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships), [findings](#findings-carried-out-of-step-d) | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. `add` edits `flake.nix` in three places (the input, the `outputs` binding pattern, the `desktop` line), verified with the same `nixfmt`-as-parser trick `host-template.nix` already uses on a generated file — a shape check runs before the edit is attempted, the parser after. `cmd_update` is a rewrite, not a new argument: every local in it is hardcoded to the node `haus` today. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision — `test/haus-add.sh`, 9 scenarios, offline (`path:`/`git+file://`). Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands — **still owed**, see findings. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. ⚠️ **Met for exactly one pinned desktop at a time** — see findings; a second concurrent one is a scope cut this step made, not a gap it missed. |
 | **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
-| **E1. The claim table** | not started | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, written by `add`, refused on a second claimant by origin, and checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | The three cases as fixtures — unclaimed, double-claimed, later-claimed-by-haus — each asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check. | A room can be added without the possibility of silently breaking on a later haus release, or of silently steering a room it did not write. |
+| **E1. The claim table** | **done** — [haus#452](https://github.com/hausfold/haus/pull/452), [findings](#findings-carried-out-of-step-e1) | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership, fatal; a namespace haus later ships that a claim already names, fatal independently). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | `namespace-guard`'s golden tables, extended: unclaimed/claimed/co-owned/later-shipped as `lib.evalModules` fixtures, asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check — plus a real `nix flake check` and `bench try` against this machine, not reasoned about from a probe. | Met for the Nix-module half only: a claimed, consistent room stays silent; co-ownership and a later-shipped conflict both refuse the build rather than warn. ⚠️ **Not met**: nothing writes the claim automatically yet — `haus add --room` is step F, still `die`s "isn't built yet", so `haus._rooms.claimed` is hand-set until then. |
 | **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. ⚠️ **The prompt comes before the LOCK, not before the rebuild** — [measured 2026-08-20](#and-step-f-cannot-borrow-it): dropping `flake = false` means locking the source evaluates the publisher's `flake.nix`, so pinning a room already runs its code and `show --room`'s skip-the-evaluation rule cannot extend to `add`. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. A fixture pinning the lock-time evaluation, so the prompt's placement cannot regress silently. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
 
 ### Findings carried out of step A
