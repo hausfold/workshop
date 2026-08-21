@@ -2719,8 +2719,8 @@ break timer · storage pressure · NAS reachability · world clocks.
       whoever builds this: the reader no longer has to be invented. `pounce
       doctor` reads three per-item declarations already, so a fourth is a line
       in a report that exists.
-- [ ] **A `workspaces` entry naming a page nothing produces fails silently, and
-      the check for it needs no repo boundary.** `modules/launcher/default.nix`
+- [ ] ◐ **A `workspaces` entry naming a page nothing produces fails silently,
+      and the check for it needs no repo boundary.** `modules/launcher/default.nix`
       carries a section header — `---- validation: the two ways an items entry
       fails silently ----` — over the two checks (b) above is about: a key that
       names nothing, and a hotkey already claimed. haus#427 added a **third**
@@ -2796,6 +2796,18 @@ break timer · storage pressure · NAS reachability · world clocks.
       for the newest way of making one absent. The fix is one regex or one
       shared parser, and it is smaller than the check this box already asks
       for.
+      ✅ **[haus#449](https://github.com/hausfold/haus/pull/449) merged
+      2026-08-21T01:25:04Z, closing the original finding** — the base-segment
+      check this box's own middle paragraph designed, unchanged from the sketch
+      (`haus._workspaces` / `haus._numberedWorkspaces`, case-insensitive, a
+      `warnings` entry mirroring `unknownMembers`). Verified against
+      `darwinConfigurations.example`: a bogus base (`"Q"`) is flagged, a real
+      page's lane child (`"T/main"`) and a real numbered workspace (`"1/lane"`)
+      are not, matching is case-insensitive, and the existing 198 assertions
+      stay green. **`◐`, not `[x]`, because the box is bigger than the finding
+      it started from**: the two checkable halves the thirty-third pass found
+      in `whenFile` — the shared state-path literal and the three-parser header
+      grammar — are untouched by #449 and still fully open.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
