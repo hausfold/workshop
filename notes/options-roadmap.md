@@ -2796,6 +2796,20 @@ break timer · storage pressure · NAS reachability · world clocks.
       for the newest way of making one absent. The fix is one regex or one
       shared parser, and it is smaller than the check this box already asks
       for.
+      ⚠️ **PR open 2026-08-20, not yet merged:
+      [haus#449](https://github.com/hausfold/haus/pull/449) builds the original
+      finding — the base-segment check this box's own middle paragraph
+      designed, unchanged from the sketch (`haus._workspaces` /
+      `haus._numberedWorkspaces`, case-insensitive, a `warnings` entry mirroring
+      `unknownMembers`).** Verified against `darwinConfigurations.example`: a
+      bogus base (`"Q"`) is flagged, a real page's lane child (`"T/main"`) and a
+      real numbered workspace (`"1/lane"`) are not, matching is
+      case-insensitive, and the existing 198 assertions stay green. **Leaving
+      this box open rather than ticking it** — §5.14's rule is the checkbox
+      decides and the checkbox waits for the repo, not the PR, and merging is
+      not this session's call. The two checkable halves the thirty-third pass
+      found in `whenFile` — the shared state-path literal and the three-parser
+      header grammar — are untouched by #449 and still fully open.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
