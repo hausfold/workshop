@@ -2691,14 +2691,17 @@ having, since the failure it prevents wastes a lock and a fetch to discover.
 
 `haus add --room` shipped 2026-08-21, designed and built the same session
 ([haus#457](https://github.com/hausfold/haus/pull/457)). Unlike most of this
-note's other steps, the build did NOT turn up a design correction — the
-whole chain (validate → confirm → lock → wire → claim → land) passed
-`test/haus-add.sh` on its first real run against `nix`, which is worth
-recording precisely because it's the exception: every other step in this
-table found at least one thing the design got wrong or the build had to
-correct. What changed between the design paragraphs above and the code is
-implementation detail, not reasoning, and the two items below are that
-detail.
+note's other steps, `test/haus-add.sh` itself did NOT turn up a design
+correction — the whole chain (validate → confirm → lock → wire → claim →
+land) passed on its first real run against `nix`. What DID turn something up
+is the pre-PR assurance pass this repo's `AGENTS.md` already stands as a
+requirement for every PR, worked in the fourth finding below — worth
+recording precisely because it is a second data point (after
+[step B's own](#findings-carried-out-of-step-b)) that the pass catches a
+different class of bug than a test suite does, on a step whose own tests
+were otherwise clean. What changed between the design paragraphs above and
+the code, besides that pass's fix, is implementation detail, not reasoning,
+and the first two items below are that detail.
 
 - **[2] A quoted attribute belongs in Nix source text, not in the flake
   CLI's OWN installable-fragment parser — two different grammars, and only
@@ -2733,6 +2736,40 @@ detail.
   reuse: `settings_eval_json`'s installable-fragment path-building (above)
   turned out to be a pattern worth NOT copying a third time, even though
   reusing it was the obvious first move.
+- **[4] The one token this design's own trust story exists to distrust was
+  the one token left unvalidated.** `--as` and every `--namespace` are
+  checked against a legal-identifier regex before anything reaches
+  `flake.nix` — `--module` was not, an omission the assurance pass's clean-
+  context read caught and this one, having written the validation twice
+  already, did not notice was missing a third time. Confirmed exploitable
+  rather than theoretical: `--module '"default" or (builtins.trace "pwned"
+  null)'` still parses under `nixfmt` (`flake_verify`'s whole job), so it
+  would have been committed to `flake.nix` and evaluated by every later lock
+  and rebuild. This is precisely the case the room prompt's own wording
+  warns about — "read it, or trust whoever wrote it" — because `--module` is
+  exactly the kind of flag a room's own README would tell a person to copy
+  into their `add` command, making a publisher's install instructions the
+  untrusted input, not a hypothetical hostile flag. Fixed same-session: same
+  regex `--as` gets, checked before the fetch, same as every other room
+  validation. **The general form, worth carrying past this step**: when a
+  design validates two structurally similar inputs and hand-writes the check
+  twice, a third similar input added later has no mechanism forcing the
+  validation to travel with it — worth a shared helper the next time this
+  shape recurs, rather than a third hand-copy.
+- **[2] A courtesy check that fails open on its own tool erroring is a
+  courtesy that can vanish exactly when it matters.** `namespace_taken` and
+  `namespace_claimed_by` folded "the `nix eval` itself failed" into "the
+  answer is no" — for the read-only pre-check this is merely a missed
+  refusal (E1's build-time assertion still catches a real collision); for
+  `rooms_claim_namespace`'s WRITE path it meant a transient failure was
+  read as "unclaimed" and could silently `mkForce` over a claim file that
+  in fact recorded something else. Neither this step's design paragraphs nor
+  its own tests distinguish "no" from "couldn't tell" — `test/haus-add.sh`
+  has no way to make `nix eval` itself fail without breaking every other
+  assertion in the same run, so this was reasoned about rather than
+  fixture-proven, same limit the note above already names for the general
+  pattern. Fixed by giving both helpers a third outcome and making every
+  caller refuse on it rather than proceed.
 
 ### Execution plan
 
