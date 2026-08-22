@@ -44,30 +44,46 @@ ssh admin@192.168.64.5 '/usr/bin/osascript \
 ```
 
 - **Passwordless SSH already works** — the key is in the guest.
-- **`screencapture -x` over SSH returns real pixels**, no prompt, no GUI session
-  juggling. `launchctl asuser 501` is *not* needed and in fact fails
-  (`Could not switch to audit session`) — call the binary directly.
+- **`screencapture -x` over SSH returns real pixels**, no GUI session juggling.
+  `launchctl asuser 501` is *not* needed and in fact fails (`Could not switch
+  to audit session`) — call the binary directly.
 - **`osascript` → System Events drives the UI.** ⌘Space over SSH opened haus's
   own Pounce palette; the screenshot proves it.
 - **The guest is auto-logged-in at the console** (`who` shows `admin console`),
   with WindowServer, Dock and the sill bar running.
 
-**Why none of that hits TCC — and it is not luck.** The cirruslabs base image
-ships with **SIP disabled** (`csrutil status: disabled`), and its system
-TCC.db carries pre-granted rows:
+### TCC prompts fire — they just don't block
+
+This is the part that is easy to state wrongly, because the operation succeeds
+*and* a permission dialog appears. Both. The guest's system TCC.db is written
+with `auth_value = 2` at the same instant the dialog goes up, so the command
+returns real data while the modal sits there unanswered forever. Measured by
+the row timestamps, against the clock of the commands that caused them:
+
+```
+kTCCServiceScreenCapture | /usr/libexec/sshd-keygen-wrapper | 2 | 10:49:11   ← the first capture
+kTCCServicePostEvent     | /usr/libexec/sshd-keygen-wrapper | 2 | 10:51:21   ← the ⌘Space keystroke
+```
+
+Pre-existing from the image and earlier hand-run sessions, which is why parts
+of this were already silent:
 
 ```
 kTCCServiceAccessibility | /usr/libexec/sshd-keygen-wrapper | 2
-kTCCServicePostEvent     | /usr/libexec/sshd-keygen-wrapper | 2
 kTCCServiceAppleEvents   | /usr/libexec/sshd-keygen-wrapper | 2
 kTCCServiceScreenCapture | /usr/bin/osascript               | 2
 ```
 
-That is the single fact the whole capability rests on, and it is a property of
-the **image**, not of tart. A golden image built any other way (a hand-installed
-macOS, an MDM-managed one) does not inherit it, and every one of the commands
-above then dies on a modal nobody can click. Write it down before someone
-"cleans up" the base image.
+**One prompt per (service, client) on first use, not per call** — two further
+captures four seconds apart added no dialog and returned byte-identical PNGs.
+So the graveyard is a fixed, enumerable set, not a growing nag.
+
+The enabling fact underneath is a property of the **image**, not of tart: the
+cirruslabs base ships with **SIP disabled** (`csrutil status: disabled`), which
+is what lets a grant be written rather than merely requested. A golden image
+built any other way — a hand-installed macOS, an MDM-managed one — does not
+inherit it, and the same commands then *do* block on a modal nobody can click.
+Write that down before someone "cleans up" the base image.
 
 ## 3. What's missing, in closing order
 
@@ -106,16 +122,41 @@ The script's job is to clone the base image, run a pinned-tag `bootstrap.sh`
 and drifts), switch, stop, and leave a tagged image lanes clone from in seconds.
 
 **And it has a second job nobody has costed: killing the dialog graveyard.**
-`scratch`'s desktop today is four stacked modals and two notification banners —
-"bash wants access to control System Events", a Keystroke Receiving prompt, "See
-what's new in macOS Tahoe", "App Background Activity", an IINA/QuickTime
-document-type dialog. They are harmless to SSH and fatal to a *screenshot*: the
-agent's evidence is 40% unrelated modal. Worse, macOS 26 adds a new one the
-moment you capture — **"com.apple.sshd-session is requesting to bypass the
-system private window picker"** — which the existing pre-grants do not cover,
-because they are keyed to `sshd-keygen-wrapper`, not to the `sshd-session`
-bundle id. A golden image has to land with that row written and the first-run
-banners already answered, or every lane rediscovers them.
+Nine unanswered dialogs were stacked on `scratch`'s desktop — six document-type
+and permission alerts, the macOS 26 "com.apple.sshd-session is requesting to
+bypass the system private window picker" capture prompt, a Keystroke Receiving
+prompt, and two Notification Center banners ("See what's new in macOS Tahoe",
+"App Background Activity"). Harmless to SSH, fatal to a *screenshot*: the
+agent's evidence is 40% unrelated modal, and the thing it was sent to look at
+is behind them.
+
+They are, at least, scriptable. `System Events` enumerates every alert window
+and its buttons over SSH, and clicking them from the host cleared six of the
+nine in one pass:
+
+```applescript
+tell process "UserNotificationCenter" to click button "Allow" of window 1
+tell process "CoreServicesUIAgent"    to click button "Keep “QuickTime Player”" of window 1
+```
+
+The three that survive say what the golden image actually has to do:
+
+- **The Keystroke Receiving prompt is haus's own**, for `sleepwatcher` (haus
+  runs it as AeroSpace's on-wake watcher). Clicking its only dismissing button
+  is `Deny`, which is the wrong answer — the grant has to be **written**, not
+  clicked. That means an explicit TCC.db insert in the build script, reviewed,
+  rather than an ad-hoc `ssh` one-liner: this repo's own harness refused that
+  command when tried by hand, correctly.
+- **`sleepwatcher` runs from a nix store path** — a TCC row keyed to
+  `/nix/store/<hash>-sleepwatcher-2.2.1/bin/sleepwatcher` dies at the next
+  version bump, the same trap as a Homebrew Cellar path. Whatever the build
+  script grants, it grants to something stable or it re-grants on every rebuild.
+- **The two Notification Center banners have no clickable close** from System
+  Events; they need their own dismissal (or suppression before they are ever
+  posted).
+
+None of this is discovered per-lane if the golden image lands with the rows
+written and the first-run alerts already answered. That is the work.
 
 ### 3.3 Disk is the real concurrency cap, not RAM
 
