@@ -25,7 +25,7 @@ and real enough to run `darwin-rebuild switch` and draw the actual UI.
 | | |
 |---|---|
 | `holt runtime up\|enter\|down <lane> --backend <id>` | holt `be5f571` (#52), docs `a81d64c` (#53). Generic: loads `~/.config/holt/adapters/runtime/<id>.toml`, renders each argv element through `text/template` with the §5.2 lane vars, execs it. Never automatic — create/reap never touch a backend |
-| the `tart` adapter | haus `8a33c4b` (#456). `haus.ai.enable` writes `~/.config/holt/adapters/runtime/tart.toml` + `modules/ai/runtime/tart-adapter.sh`, which does the multi-step dance holt's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
+| the `tart` adapter | haus `8a33c4b` (#456). `haus.ai.enable` writes `~/.config/holt/adapters/runtime/tart.toml` + `~/.config/haus/runtime/tart-adapter.sh` (from `modules/ai/runtime/tart-adapter.sh`), and the script does the multi-step dance holt's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
 
 Neither has ever booted a VM in anger: haus#456 was merged on the strength of
 its error paths, and `tart` is not installed on this machine (see §3.1).
@@ -77,17 +77,29 @@ above then dies on a modal nobody can click. Write it down before someone
 `/nix/store/…-tart-2.30.6/bin/tart`, from some earlier `nix shell`. So the
 shipped adapter is still a dead end on a fresh machine. Two things to decide:
 
-- **nixpkgs has `tart` 2.30.6.** `tart-adapter.sh`'s header comment says
-  `brew install cirruslabs/cli/tart`, which is now the wrong instruction on a
-  machine whose every other tool arrives through the flake. Either the AI room
-  installs it (behind its own option — it is a small binary; the *images* are
-  the tens of GB, not the CLI) or the comment names the nixpkgs attr.
-- The base image still has to be pulled by hand once, ~30 GB.
+- **nixpkgs has `tart` 2.30.6.** The generated `tart.toml`'s header — written
+  by `haus/modules/ai/default.nix:395`, *not* by the adapter script — says
+  `brew install cirruslabs/cli/tart`, which is the wrong instruction on a
+  machine whose every other tool arrives through the flake. Fix it there, and
+  fix the same header's "edit `modules/ai/runtime/tart-adapter.sh`, not here"
+  pointer while you are in it: the brew line isn't in that script either, so a
+  reader chasing it lands twice in the wrong file. Either the AI room installs
+  `tart` (behind its own option — it is a small binary; the *images* are the
+  tens of GB) or the header names the nixpkgs attr.
+- **Decide the base OS, and say so in one place.** That same header and the
+  adapter's `HOLT_TART_BASE` error both name
+  `ghcr.io/cirruslabs/macos-sequoia-base:latest` — but every measurement in §2,
+  and §3.2's macOS-26 capture prompt, was taken on **Tahoe**. Following the
+  shipped instruction pulls a second ~30 GB image on which those findings may
+  not hold.
+- The base image is already local here as `tahoe-base` (32 GB, stopped); the
+  ~30 GB pull is a cost a *fresh* machine pays.
 
 ### 3.2 There is no golden image
 
-haus#456's own plan (`~/.claude/plans/linear-twirling-badger.md`, PR2) named
-`script/build-golden-vm.sh` and it was never written. Without it, `holt runtime
+haus#456's own PR body names this as its deliberate follow-up: a
+`build-golden-vm.sh` (planned for a new top-level `script/` dir — haus has only
+`test/` and `compat/` today), never written. Without it, `holt runtime
 up --backend tart` clones a **bare** macOS: no Nix, no haus, nothing to test.
 The script's job is to clone the base image, run a pinned-tag `bootstrap.sh`
 (never the floating `hausfold.co/hacker.sh` — it resolves the latest release
@@ -116,15 +128,27 @@ lane's backend is costing would be worth more than the guard.
 
 ### 3.4 `agent-desktop-guard` cannot tell a VM from the user's Mac
 
-`modules/ai/desktop-guard.sh` greps the command string. `ssh admin@192.168.64.5
-'osascript … activate'`, `… 'killall Dock'`, `… 'sketchybar --reload'`,
-`… 'darwin-rebuild switch'` all match its patterns and re-open the permission
-prompt — for actions that are, by construction, invisible to the user. That is
-the exact failure the guard's own comment warns about: "a long list stops being
-read and starts being clicked through." The fix is small — exempt a command
-whose *first* effective word is an `ssh` to a `192.168.64.0/24` guest, or
-whose lane exports `HAUS_DESKTOP_OK=1` — but it needs deciding before agents
-use the VM routinely, because the guard is what protects the real screen.
+`modules/ai/desktop-guard.sh` greps the command string, and a guest's address
+is not part of it. Fed real hook JSON, `ssh admin@192.168.64.5
+'osascript … activate'`, `… 'sketchybar --reload'` and `… 'darwin-rebuild
+switch'` each re-open the permission prompt — for actions that are, by
+construction, invisible to the user. That is the exact failure the guard's own
+comment warns about: "a long list stops being read and starts being clicked
+through."
+
+The mirror image is just as instructive: `ssh admin@… 'killall Dock'` does
+**not** match, because that pattern is anchored to a command boundary
+(`(^|[;&|] *)killall`) and the ssh quote isn't one. So the guard is
+simultaneously too loud about the VM and blind to the one VM command that
+looks most like screen theft — both symptoms of matching text rather than
+target.
+
+The blunt escape hatch already exists: `HAUS_DESKTOP_OK=1`
+(`desktop-guard.sh:44`) turns the *whole* guard off for a pane, which is the
+wrong granularity for a lane that also touches the real Mac. The open decision
+is the fine-grained one — exempt a command whose first effective word is an
+`ssh` to a `192.168.64.0/24` guest — and it wants deciding before agents use
+the VM routinely, because the guard is what protects the real screen.
 
 ### 3.5 Nothing tells an agent any of this
 
