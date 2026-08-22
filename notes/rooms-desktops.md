@@ -119,6 +119,21 @@ this note defines the product model the code and docs should converge on.
 > §[findings](#findings-carried-out-of-step-e1). **F is the only unbuilt
 > step left.**
 
+> **2026-08-21 — F is built, and every step in this plan now is.**
+> [haus#457](https://github.com/hausfold/haus/pull/457): `haus add --room
+> --namespace <ns>` pins a third-party room the same way `add` already
+> pinned a desktop — dropping `flake = false`, wiring the input into
+> `mkHaus`'s `extraModules` (a landmark this note's design section had to
+> invent; `add` never needed one before, because a desktop's "select" was
+> already an argument `mkHaus` took), confirming with a typed revision
+> instead of a `y/N` because locking a room already runs its code, and
+> writing `haus._rooms.claimed.<namespace>` — E1's own option, reached with
+> no new Nix at all, through `cmd_set`'s existing write path. [Designed the
+> same session](#step-f-designed--the-confirmation-is-the-lock-and-the-namespace-is-typed-not-evaluated),
+> [findings](#findings-carried-out-of-step-f). The rooms-and-desktops
+> acquisition model this section opened in 2026-08-16 has no unbuilt row
+> left in its [execution plan](#execution-plan).
+
 ## The model
 
 **haus supplies rooms. A desktop curates them. A host makes one desktop yours.**
@@ -2432,6 +2447,293 @@ Docs are the one exit-gate line this PR does not close: `desktops/sharing.mdx`
 and `customizing.mdx` still describe the hand-edit-`flake.nix` path as
 canonical, in the hausfold.co repo, untouched by this change.
 
+> **2026-08-21 — that paragraph is stale; fixed later the same evening it was
+> written, and `customizing.mdx` was never the right name.**
+> [hausfold.co#121](https://github.com/hausfold/hausfold.co/pull/121) rewrote
+> `sharing.mdx` and **`choosing.mdx`** (not `customizing.mdx`, which never
+> described the hand-edit path — re-read rather than assumed) around
+> `haus add`/`desktop`/`remove`. This note's own execution-plan table
+> ([below](#execution-plan)) got the correction at the time; this paragraph and
+> the table row didn't, and drifted for a year of git-blame terms without
+> anyone noticing because nothing regenerates prose. Left as the record of what
+> the PR itself did not close, corrected in place rather than deleted.
+
+### Step F, designed — the confirmation is the lock, and the namespace is typed, not evaluated
+
+Designed 2026-08-21 against haus `de62c75` (the E1 build). Read against the
+real `cmd_add` (`modules/core/haus.sh:2897-3057`) rather than recalled from the
+table's one-line summary, because the summary undersells what changes: dropping
+`flake = false` is one word, and everything else below is what has to
+accompany it for the trust story to still hold.
+
+#### What already holds, and needs no new mechanism
+
+Two things this step used to owe turned out to already exist, read at the
+code rather than assumed:
+
+- **"the prompt comes before the lock" is already true of `cmd_add`'s
+  shape, not something F has to rearrange.** The desktop path confirms
+  (`read -r -p … [y/N]`, `haus.sh:2977-2981`) and only THEN calls
+  `flake_stage` → `flake_add_input` → `flake_verify` → `flake_commit` →
+  `nix flake lock` (`:3038-3049`). `flake_verify` is `nixfmt` over the
+  CONSUMER's `flake.nix` as text — it parses syntax, never evaluates the
+  pinned source — so nothing between the confirmation and the lock call
+  touches the room's code. [Step B's finding](#and-step-f-cannot-borrow-it)
+  said the prompt has to move earlier than "before the rebuild"; it does not
+  have to move earlier than where `cmd_add` already asks. What has to change
+  is not the sequence, it is what confirming MEANS for a room — see below.
+- **The claim table needs no new Nix.** E1 shipped
+  `haus._rooms.claimed.<namespace> = "<origin>"` as an ordinary
+  `attrsOf str` (`modules/namespaces.nix:32-45`), and `haus set`'s existing
+  machinery writes exactly this shape today with no room-specific code at
+  all: `settings_option_exists` walks the option tree component by component
+  and treats an `attrsOf`'s next component as a free key it does not have to
+  recognise (`haus.sh:1782-1820`), so `haus._rooms.claimed.photography` is
+  already "settable" by that walk's own rule, for any `<namespace>` a person
+  types. Writing the claim is therefore a call into the SAME
+  `settings_write`/`settings_file`/`settings_host_dir` primitives `cmd_set`
+  uses (`:1749-1939`), stopped one phase short — no `settings_apply`, because
+  `add` never rebuilds, same as it never rebuilds for a desktop.
+
+#### The chicken-and-egg E1 left, and why it is answered by asking rather than reading
+
+E1's own findings named the gap plainly: `haus._rooms.claimed` "is hand-set
+until [F], the same way a fresh install's `hosts/<host>/options.nix` is
+hand-edited today" (`:2194-2196`). The reason it cannot be auto-populated is
+not an implementation gap, it is the design's own rule pointing back at
+itself: **the only way to learn a room's namespace is to evaluate its
+`options.nix`**, and that evaluation happens when the module is imported into
+a real `nix-darwin` config — i.e. at rebuild — which is exactly the act
+acquisition is not allowed to perform. `haus show --room` proves this rather
+than asserting it: it fetches the tree and reads nothing (`haus-show.sh:298-305`,
+`:386-409`), so by the time `cmd_add --room` is deciding whether to write a
+claim, nothing in this command has ever opened the room's `options.nix` and
+nothing is about to.
+
+So the namespace is not inferred, it is **typed** — the same treatment
+`--room` itself gets, and for the identical reason stated at
+`:1601-1606`: inference is how a data prompt gets shown for a code source, and
+by the same logic, inference is how an UNCLAIMED namespace's warning quietly
+turns into a CLAIMED one's silence for a namespace nobody actually checked. A
+room's README or `haus show --room`'s own trust note ("read it, or trust
+whoever wrote it", `haus-show.sh:724-725`) is where the person is supposed to
+have learned what namespace they're about to claim; the flag makes them say
+it back.
+
+`haus add --room <source> --namespace <ns> [--namespace <ns2> …]`. `--room`
+without at least one `--namespace` refuses before any fetch — the mirror
+image of `--namespace` without `--room` refusing too, since a namespace
+claim only ever accompanies code. Each `<ns>` is validated three ways before
+anything is written: a legal single Nix-identifier component (the same regex
+`settings_path` already applies to a whole path, narrowed to one component);
+never `haus` or `my` (claiming the reserved private prefix on a stranger's
+behalf is backwards — `haus.my.*` is the promise that haus never ships
+there, not a namespace a room could plausibly own); and not already present
+in `options.haus` on THIS machine — checked with a one-line `nix eval
+… (cfg.options.haus ? "$ns")`, sibling to `settings_option_exists` but
+answering with a boolean instead of dying, because refusing here is a
+courtesy (catches the obvious "you named a namespace haus or another room
+already owns" mistake before a lock) rather than the load-bearing check —
+`modules/namespaces.nix`'s assertion is what actually refuses a real
+collision, at eval time, regardless of what this command validates first.
+
+#### The room's own "select" is `extraModules`, not a fourth desktop line
+
+Step D's own words for F — "the same command with `flake = false` dropped"
+(`:1334`) — describe the INPUT half and go quiet on the other half of
+`add`'s contract: "pin + select" (`:1290`). A desktop's select is the
+`desktop = ` line `mkHaus` already takes as an argument; nothing in `mkHaus`'s
+signature does the equivalent for a room, because nothing needed to before
+now. `mkHaus` does take `extraModules ? [ ]`, appended after the desktop's
+own modules (`flake.nix:180`) — the same argument `bootstrap.sh` used to
+scaffold a preset selection into before presets were retired (`:633`), and
+the one place in this design a consumer has ever composed an extra module in
+by name. Pinning a room without adding it to `extraModules` would leave it
+sitting in the lock, evaluable, and never imported — pinned but inert, the
+same failure mode `remove` was built to prevent for a deleted desktop
+selection (`:1353-1357`), just on the other end.
+
+So F edits **three landmarks for a room, not the desktop path's three** —
+the input (without `flake = false;`), the outputs binding pattern (unchanged
+from D), and `extraModules = [ <name>.darwinModules.<module> ];` in place of
+a `desktop = ` line. `<module>` defaults to `default` — the export a
+single-purpose room flake is expected to carry (`haus`'s own foundation
+export, `self.darwinModules.default`, `flake.nix:170`, is the same
+convention scaled down to one room) — and `--module <attr>` overrides it,
+because a third party's export name is exactly the kind of fact this design
+does not get to assume: `--file`'s "no safe default, refused rather than
+resolved" reasoning (`:2655-2662`) applies here for the same cause, a
+publisher's naming choice this command cannot see without evaluating them.
+
+`flake_set_desktop_line` and `flake_add_input` (`haus.sh:2795-2850`) already
+found the trap in this shape once — two insertion points that each decide
+"have I already done this" by re-scanning, which fires both on a second
+write (`:2367-2391`, the [4]-severity finding from D). A sibling
+`extraModules` landmark inherits the same hazard for the same reason: it is
+D's "hand-reorganised flake" case reached by this command's own second call
+rather than a hand edit. The rule already built for `desktop = ` applies
+unchanged — count existing `extraModules = ` lines BEFORE the edit starts,
+and refuse (degrade to `--print`) on anything but zero, rather than deciding
+reactively mid-scan. One room at a time, for the identical reason D scoped
+one desktop at a time (`:2405-2416`): parsing and rewriting a Nix LIST
+token-by-token, rather than replacing a single scalar RHS, is real added
+work a second published room would need and this step does not spend on day
+one. Worth the same line in the docs D's findings asked for: a second `haus
+add --room` degrades to `--print` today, not a fully N-ary story.
+
+#### The prompt a stranger cannot answer for you
+
+Confirming an ordinary `add` is a `y/N` because nothing about it is
+irreversible in a way a re-run can't fix — the desktop schema already proved
+the file is inert. A room prompt cannot lean on that proof, so it doesn't
+try to: `--room`'s add reuses `haus show --room`'s own report as the human
+read (`cmd_add` already does this for desktops, calling `show` once for the
+render and once more with `--json` for the values — `:2937-2952` — and the
+room path takes the same two calls with `--room` threaded through), then
+asks the person to **type the revision back**, not answer yes or no:
+
+```
+Pinning 'photography' from github:ada/photo means locking it, and locking a
+flake input evaluates its flake.nix — that is the FIRST execution of this
+code, not the rebuild.
+Type the first 12 characters of the revision (a1b2c3d4e5f6) to confirm:
+```
+
+`-y`/`--yes` has no effect on this branch — not refused, simply not read,
+because a habitual `-y` in a script must not silently graduate into
+consenting to run code it never asked about. Non-interactively (`[ -t 0 ]`
+false) the equivalent is a **per-name** environment variable,
+`HAUS_ADD_ROOM_<NAME>` (the input name, uppercased, `-`/`'` mapped to `_` —
+the same sanitising `settings_write`'s attrpath quoting already has to do for
+a non-identifier component, aimed at an env var instead of a Nix token),
+which must equal the FULL revision, not the twelve-character prefix a human
+types. Two different lengths for the same fact on purpose: a human is
+reading a terminal and twelve characters is enough to prove they looked at
+the right line; a script is reading a variable it presumably built from the
+same manifest that named the source, and the full revision is what removes
+any prefix-collision doubt from an unattended run. The per-name shape is
+what step B's rule already demands stated generally — "a piped installer can
+never accept a room on a person's behalf" — because a single blanket
+`HAUS_ADD_ROOM_YES=1` is exactly the kind of switch a piped installer sets
+once, up front, for whatever it adds next; a name-keyed variable has to be
+typed out per room, by whoever wrote the script, at the time they wrote it,
+which is a decision rather than a default.
+
+`--file` and `--vendor` are refused outright on the room path, both for the
+same reason `haus show --room` already refuses `--file` (`:304`): there is
+nothing to pick a file out of when nothing is read, and nothing to vendor —
+a room is a flake with its own inputs, not a single value a `cp` can carry.
+`--room` itself is refused when the source resolves to `shape != repo`
+(`haus-show.sh`'s three-way shape classification, `:339-346`): a room with
+no revision has nothing for the typed confirmation to name and nothing
+`nix flake lock` can pin as an ordinary input in the first place — a raw
+`file+https` URL is one blob, not a directory a `flake.nix` could live in.
+
+#### Locking, then claiming — in that order, and only on success
+
+The edit sequence for a room is: confirm (typed, above) → `flake_stage` →
+the three-landmark edit → `flake_verify` (syntax only, still no evaluation)
+→ `flake_commit` → `nix flake lock` (this is the execution the prompt
+named) → **only then**, one `settings_write` per `--namespace`, using the
+`typed` origin string already in hand from the `show --json` read. Claiming
+before the lock would let a failed lock leave a claim for a namespace that
+was never actually pinned; claiming folded into the same failure path as the
+edit (`flake_restore` on a bad edit, `warn` and stop on a failed lock,
+`:3044-3049`) keeps `haus._rooms.claimed` honest about what is actually in
+`flake.lock`, at the cost of one more thing that can partially fail — which
+it can: a lock that succeeds and a claim write that then fails (a second
+namespace collision `nix eval` catches that the CLI's pre-check missed, or a
+haus predating E1) leaves a pinned, wired, UNCLAIMED room. That is not a
+new hazard this step introduces — it is exactly what E0 already handles for
+any private or unclaimed namespace, a warning rather than a refusal, and the
+command says so rather than pretending the write cannot fail: "pinned and
+wired; the namespace claim didn't write — `haus rebuild` will warn about it
+until you set it by hand or re-run `haus add --namespace`."
+
+A namespace already claimed by a DIFFERENT origin refuses before the lock,
+not after: the CLI reads the existing claim file's current value (the same
+`settings_eval_json` phase-3 check `cmd_set` already runs) and compares it
+against this add's `typed` string. A match is a harmless re-add (the same
+room, re-pinned under a new name, or re-run after a partial failure) and is
+skipped rather than rewritten; a mismatch dies pointing at `haus remove
+<existing input>` first. This is a courtesy, not the guarantee — E1's own
+assertion is what actually can't be bypassed, because it runs on the
+evaluated machine regardless of what this command checks first — but a
+courtesy that turns a rebuild-time refusal into an add-time one is worth
+having, since the failure it prevents wastes a lock and a fetch to discover.
+
+#### What F deliberately does not get
+
+- **No second simultaneous third-party room.** Same cut as D made for
+  desktops, for the same reason: N-ary landmark rewriting is real added
+  scope this step does not need to spend to be useful. A second `haus add
+  --room` degrades to `--print`.
+- **No inference of anything about the room's code** — not its namespace,
+  not its `darwinModules` export name (that one at least has a documented
+  default), not whether the source the user marked `--room` is actually a
+  function rather than a desktop's closed value. `show --room` never checks
+  this either, by the same rule; a person who marks a real desktop as a room
+  loses nothing but gets no `checkDesktop` verdict for it.
+- **No retrying a failed claim write automatically.** A partial success
+  (locked, wired, unclaimed) is reported and left for a re-run or a hand
+  edit, the same posture E0 already has toward an unclaimed namespace it
+  did not create.
+- **No `haus room` verb, no listing of pinned rooms, no `enable`/`disable`
+  toggle separate from `extraModules` membership.** `haus desktop` lists
+  and switches because a desktop is exclusive and a rebuild reads exactly
+  one `desktop = ` line; a room's `extraModules` entry has no equivalent
+  "which one is selected" question to answer, only whether it's in the list
+  or not — and with at most one third-party entry (above), `remove` deleting
+  the `extraModules` line along with the input, the way it already deletes a
+  desktop's `inputs.<name>` line, is enough for this step.
+
+#### Findings carried out of step F
+
+`haus add --room` shipped 2026-08-21, designed and built the same session
+([haus#457](https://github.com/hausfold/haus/pull/457)). Unlike most of this
+note's other steps, the build did NOT turn up a design correction — the
+whole chain (validate → confirm → lock → wire → claim → land) passed
+`test/haus-add.sh` on its first real run against `nix`, which is worth
+recording precisely because it's the exception: every other step in this
+table found at least one thing the design got wrong or the build had to
+correct. What changed between the design paragraphs above and the code is
+implementation detail, not reasoning, and the two items below are that
+detail.
+
+- **[2] A quoted attribute belongs in Nix source text, not in the flake
+  CLI's OWN installable-fragment parser — two different grammars, and only
+  one of them this note had reason to trust.** The design above doesn't
+  commit to a shape for `namespace_taken`/the claim-collision reads; the
+  first draft wrote them as direct attribute paths after `#` —
+  `.#darwinConfigurations.$host.config.haus._rooms.claimed."$ns"` — the same
+  style `settings_eval_json` already uses elsewhere in this file for a
+  path that's always a bare identifier by construction. A `--namespace`
+  value needing quotes (anything that isn't a bare Nix identifier — none of
+  today's fixtures exercise one, but nothing forces one either) puts a
+  quoted string inside that CLI fragment, and nothing in this session
+  measured whether `nix eval`'s installable parser accepts that the same way
+  ordinary Nix source does. Rather than find out at someone's terminal, every
+  new read in this step (`namespace_taken`, `namespace_claimed_by`, the
+  claim's own type-check) uses `--apply "cfg: …"` instead: the quoting then
+  happens inside a Nix STRING LITERAL in the lambda body, which is ordinary
+  Nix syntax with no second grammar to get right. `haus.sh:1838-1846` records
+  the reasoning inline. Worth the general form: when a value has to reach a
+  Nix expression through a shell string, prefer landing it inside Nix source
+  text over landing it inside a tool's OWN command-line parser, even when
+  that tool's fragment syntax looks like Nix — it is a second parser with its
+  own edge cases, most of which nobody has measured.
+- **[1] `haus._rooms.claimed` needed no new writer, and that was the
+  design's bet paying off exactly as argued.** The "What already holds"
+  section above predicted `settings_write`/`settings_option_exists` would
+  accept an `attrsOf`'s free-form key with no changes — E1's option was
+  built for `haus set` to reach, months before `haus set` ever tried. It did,
+  on the first attempt: `rooms_claim_namespace` (`haus.sh:1864-1898`) is
+  three calls into existing primitives plus the collision check this step
+  actually had to add. The only surprise was in the OTHER direction from
+  reuse: `settings_eval_json`'s installable-fragment path-building (above)
+  turned out to be a pattern worth NOT copying a third time, even though
+  reusing it was the obvious first move.
+
 ### Execution plan
 
 Same contract as the plan above: exit gate green before the next step changes
@@ -2443,10 +2745,10 @@ behaviour, findings reported rather than folded in, and the
 | **A. Publisher-side inspection** | done | `haus show <file>` for local paths only: class, `checkDesktop` verdict with filenames, the sets/doesn't-set summary, `--json`. No network, no writes. | Fixtures in haus's `test/` covering a valid desktop, each class of `checkDesktop` failure, and a room module; the JSON shape in `notes/agent-surface.md`'s terms. | A publisher can run one command instead of the first two checklist lines in `desktops/sharing.mdx`, and its exit code gates their CI. ⚠️ **Met for a publisher's CI and not, until 2026-08-20, for anyone on a Mac** — the command [failed on every input there](#findings-that-arrived-before-the-step-did) from the day it shipped, and the gate's own wording is why nobody looked: it names the audience that runs the packaged wrapper. Fixed in [haus#447](https://github.com/hausfold/haus/pull/447). |
 | **B. Remote sources, read-only** | **done** — [haus#435](https://github.com/hausfold/haus/pull/435) + [hausfold.co#111](https://github.com/hausfold/hausfold.co/pull/111), [designed here](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one), [findings](#findings-carried-out-of-step-b) | `haus show <source>` for `github:`/`git+https:`/`file+https:` — resolve, fetch, report origin and revision, warn on the revisionless shape. Still writes nothing to the consumer. Fetch and read are **two acts**: the guard cannot fetch, so the fetch runs unguarded (no publisher code runs) and the read runs guarded over the fetched store path. Report the source's date as the source's, and stamp the pin date itself. | A check that the three source shapes resolve to a path `checkDesktop` accepts, plus the recorded lock nodes for each — the mechanism half is measured in [`probes/source-shapes.sh`](./probes/source-shapes.sh) and the haus half is what this step owes. A fixture reading a sibling file out of a fetched repo, pinning the store-root granularity so a later Nix bump cannot narrow or widen it silently. | Met. A person can fully evaluate a stranger's desktop without their config being touched — proven by the guard rather than by inspection of the script (the fetched source can reach nothing outside its own store path), and proven for the *config* by running the whole command from inside a directory that has a consumer flake and cksum-ing it either side. Two things the gate did not ask for and the build owes anyway: `show` fetches a **tree** and never locks one, so the inertness covers a room too; and Nix's error text is a rendering path a remote party can write into. |
 | **C. The machine diff** | **done** — [haus#447](https://github.com/hausfold/haus/pull/447) + [hausfold.co#120](https://github.com/hausfold/hausfold.co/pull/120), [designed here](#step-c-designed--the-machine-answers-and-the-strangers-file-is-not-in-the-room), [findings](#findings-carried-out-of-step-c) | Extend `show` with what the machine becomes: rooms on/off vs. current, machine-wide claims, list-typed replacements. One further evaluation — of the READER's flake, which the candidate's file is no part of — asking what the machine currently says about the paths the guarded read produced. `highestPrio` per leaf is the arbitration (100 your host · 900 the desktop you have · >900 nothing outranks a desktop), so the list-replacement rule is the same number rather than a second analysis. `--no-update-lock-file`, because [`nix eval` writes a lock](#a-read-only-query-is-not-automatically-a-read-only-command) and a diff computed against pins nobody chose is worse than a refusal. | Golden diff output against the example host for two desktops that differ in rooms, a hotkey and a list — plus a fixture for each of the three limits the option tree has ([losers invisible, `files` at 1500, a dynamic `attrsOf` sub-path](#what-the-option-tree-will-not-tell-you-and-what-to-say-instead)), since each is a sentence the report owes rather than a case it can skip. The mechanism half is measured in [`probes/machine-diff.sh`](./probes/machine-diff.sh). | The confirmation prompt in step D has real content, and the list-replacement rule is visible before it bites. ⚠️ And one the gate did not ask for and B's did not either: **the command is run the way a person runs it, on the machine it was installed on** — the omission that [hid a total failure of `haus show` for two steps](#findings-that-arrived-before-the-step-did). |
-| **D. `haus add` / `remove` / `desktop`** | **done** — [haus#450](https://github.com/hausfold/haus/pull/450), [designed here](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships), [findings](#findings-carried-out-of-step-d) | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. `add` edits `flake.nix` in three places (the input, the `outputs` binding pattern, the `desktop` line), verified with the same `nixfmt`-as-parser trick `host-template.nix` already uses on a generated file — a shape check runs before the edit is attempted, the parser after. `cmd_update` is a rewrite, not a new argument: every local in it is hardcoded to the node `haus` today. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision — `test/haus-add.sh`, 9 scenarios, offline (`path:`/`git+file://`). Docs: `desktops/sharing.mdx` and `customizing.mdx` rewritten around the commands — **still owed**, see findings. | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. ⚠️ **Met for exactly one pinned desktop at a time** — see findings; a second concurrent one is a scope cut this step made, not a gap it missed. |
+| **D. `haus add` / `remove` / `desktop`** | **done** — [haus#450](https://github.com/hausfold/haus/pull/450), [designed here](#step-d-designed--add-edits-three-lines-not-one-and-the-parser-that-catches-it-already-ships), [findings](#findings-carried-out-of-step-d) | Write the input and the selection; parse-verify or print; `--as`, `--file`, `--vendor`, `--print`; explicit replacement on remove; `haus update <name>`. `add` edits `flake.nix` in three places (the input, the `outputs` binding pattern, the `desktop` line), verified with the same `nixfmt`-as-parser trick `host-template.nix` already uses on a generated file — a shape check runs before the edit is attempted, the parser after. `cmd_update` is a rewrite, not a new argument: every local in it is hardcoded to the node `haus` today. | Tests over a scaffolded consumer flake, a hand-reorganised one (must degrade to `--print`), and a name collision — `test/haus-add.sh`, 9 scenarios, offline (`path:`/`git+file://`). Docs: `sharing.mdx` and `choosing.mdx` (not `customizing.mdx`, which never described the hand-edit path) rewritten around the commands — closed the same evening in [hausfold.co#121](https://github.com/hausfold/hausfold.co/pull/121); this cell said "still owed" for a year after that shipped, the drift itself now a finding — see [findings](#findings-carried-out-of-step-d). | A stranger's desktop can be found, read, pinned, selected, updated and removed without hand-editing Nix — and every one of those states is legible in `flake.lock`. ⚠️ **Met for exactly one pinned desktop at a time** — see findings; a second concurrent one is a scope cut this step made, not a gap it missed. |
 | **E0. The reserved prefix** | **done** — [haus#429](https://github.com/hausfold/haus/pull/429), [hausfold.co#107](https://github.com/hausfold/hausfold.co/pull/107), both merged 2026-08-20 | `haus.my.*` is reserved, and the promise is a check rather than a sentence: `namespace-guard`'s `promise` row fails if `my` ever turns up in the registry or in haus's own surface. The consumer-side half is `modules/namespaces.nix`, beside `modules/desktop` and riding with the foundation, so a standalone `darwinModules.<room>` import gets it too. It WARNS — the design said "assertion" throughout and also said "it does not refuse", and only one of those can be built; the exit gate decided it. `rooms/creating`'s callout teaches the prefix, and `checkDesktop` answers it properly instead of "haus.my is not a haus option". | `namespace-guard`, pure lib and above the darwin split so it runs on Linux CI: a golden table over a stock machine, a private room, a reserved one and both together, plus the promise row — and the warning text itself, pinned. `test/desktops/reserved-prefix.nix` in both desktop fixture tables. | Met, with one gap the design predicted and this step did not close: **eval cost on a real host is still unmeasured**, since the whole thing was built from Linux. "Nobody else is told anything" is met for a stock machine and NOT for a consumer running a legitimately published room — that one warns until E1's claim table exists, and the message says so rather than giving it the private case's advice. |
 | **E1. The claim table** | **done** — [haus#452](https://github.com/hausfold/haus/pull/452), [findings](#findings-carried-out-of-step-e1) | `haus._rooms.claimed.<namespace> = "<origin as typed>"`, checked against the registry and against per-leaf `declarations` (two store roots under one claimed namespace is silent co-ownership, fatal; a namespace haus later ships that a claim already names, fatal independently). Sequenced before D's room half: it is a format decision, and formats are hard to change once anyone has published into them. | `namespace-guard`'s golden tables, extended: unclaimed/claimed/co-owned/later-shipped as `lib.evalModules` fixtures, asserting on the CONSUMER's evaluated option tree rather than in haus's own flake check — plus a real `nix flake check` and `bench try` against this machine, not reasoned about from a probe. | Met for the Nix-module half only: a claimed, consistent room stays silent; co-ownership and a later-shipped conflict both refuse the build rather than warn. ⚠️ **Not met**: nothing writes the claim automatically yet — `haus add --room` is step F, still `die`s "isn't built yet", so `haus._rooms.claimed` is hand-set until then. |
-| **F. Rooms in `haus add`** | not started | The same command with `flake = false` dropped, plus the code prompt: `--room` required and never inferred, typed confirmation, a per-name environment variable so a piped installer can never accept a room on a person's behalf. ⚠️ **The prompt comes before the LOCK, not before the rebuild** — [measured 2026-08-20](#and-step-f-cannot-borrow-it): dropping `flake = false` means locking the source evaluates the publisher's `flake.nix`, so pinning a room already runs its code and `show --room`'s skip-the-evaluation rule cannot extend to `add`. | Tests over the three source shapes for a room, and a fixture proving `--room` is never inferred from what the source contains. A fixture pinning the lock-time evaluation, so the prompt's placement cannot regress silently. | A stranger's room can be found, read, pinned, updated and removed on the same terms as a desktop, with the trust story the class actually warrants. |
+| **F. Rooms in `haus add`** | **done** — [haus#457](https://github.com/hausfold/haus/pull/457), [designed here](#step-f-designed--the-confirmation-is-the-lock-and-the-namespace-is-typed-not-evaluated) | `flake = false` dropped for a room, plus the code prompt: `--room` required and never inferred, `--namespace <ns>` (repeatable) required alongside it and typed rather than read off the source, `--module <attr>` naming the `darwinModules` export (default `default`). A room has no `desktop = ` line to replace, so its "select" is a new `extraModules = [ <name>.darwinModules.<module> ];` insertion — one room at a time, same scope cut D made for desktops. The typed confirmation names the revision, not a `y/N`; non-interactively it's a per-name `HAUS_ADD_ROOM_<NAME>=<full revision>`. The prompt comes before the LOCK, not before the rebuild, as [step B's finding required](#and-step-f-cannot-borrow-it) — met by construction: `cmd_add`'s own sequence already confirms before `flake_stage`/the edit/`nix flake lock`, so nothing needed rearranging, only what confirming a ROOM means. `haus._rooms.claimed.<ns>` is written after a successful lock by calling into `cmd_set`'s own `settings_write` primitives — no new Nix, since E1 already built the option. | `test/haus-add.sh`, 9 new scenarios (19 total): the flag-combination refusals, a non-repo-shape refusal, the non-interactive confirmation gate (present and absent), a full pin → lock → wire → claim → land round trip against a real two-flake fixture (`nix eval` on the landed `.config.haus.testroom.enable`), `remove` stripping the `extraModules` entry, and the claim-collision + one-room-at-a-time degrade paths. | A stranger's room can be found ([step B](#step-b-designed--fetch-and-read-are-two-acts-and-the-guard-covers-one)), read ([step A](#findings-carried-out-of-step-a)), pinned, updated (`cmd_update` already re-keyed on `$input` by [step D](#haus-update-name-is-a-rewrite-not-a-new-argument), unchanged here) and removed on the same terms as a desktop, with the trust story the class actually warrants. ⚠️ **Met for exactly one pinned room at a time**, the same cut D made for desktops — see [step F's design](#what-f-deliberately-does-not-get). |
 
 ### Findings carried out of step A
 
