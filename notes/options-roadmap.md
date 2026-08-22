@@ -2808,6 +2808,132 @@ break timer · storage pressure · NAS reachability · world clocks.
       it started from**: the two checkable halves the thirty-third pass found
       in `whenFile` — the shared state-path literal and the three-parser header
       grammar — are untouched by #449 and still fully open.
+      → **The header-grammar half has two PRs open, neither merged yet**
+      ([pounce#95](https://github.com/hausfold/pounce/pull/95),
+      [haus#459](https://github.com/hausfold/haus/pull/459), both 2026-08-22)
+      **— and the first thing they found is that the thirty-third pass
+      undercounted the parsers.** It said three. There are **four**: the awk in
+      `pounce-palette`, `CommandRegistry.swift`, haus's `commandField`, and the
+      `grep -o '^# pounce: …'` inside haus's own `pounce-command-keys` check.
+      The fourth is the one worth the paragraph, because widening the first
+      three without it is how a check goes **blind rather than red**: that grep
+      exists to catch a header key pounce silently ignores, it was the
+      narrowest pattern of the four, and a key sitting in a newly-legal
+      indented header would never have reached the comparison at all. The check
+      would have passed *because it could not see the thing it is looking for*
+      — its own comment already warns about this shape ("passing vacuously on
+      `when-file`") one column over. **Widening a reader is not done until its
+      checker is widened too**, and nothing about the reader's diff says so.
+      → ★ **Converging N hand-mirrored copies IS the act that produced the
+      drift, so the first attempt reproduced it — twice, in the same commit
+      that claimed to have ended it.** The first pass at these PRs fixed the
+      `#`-whitespace divergence by editing three regexes, exactly as haus#451
+      had fixed the `=`-whitespace divergence by editing one, and its commit
+      message said "converge the three header parsers". It had missed two live
+      divergences, one of them **named in this very box** two paragraphs above
+      (*"a trailing space survives into haus's value and is trimmed by
+      Swift"*):
+      **(a)** haus's reader kept a value's trailing whitespace where both of
+      pounce's trim it — so one stray space in a comment put a stray space
+      inside a rendered cheatsheet caption, in the surface whose entire job is
+      explaining why a row is absent;
+      **(b) the one nobody had written down anywhere, and the only one that is
+      behavioural rather than cosmetic**: `submenu` is the single field the
+      awk's `END` block never trailing-trimmed, while Swift's `field()` ends in
+      `.trimmingCharacters`. So `# pounce: submenu = true ` was a **submenu
+      under the daemon and a LEAF under the shell launcher** — the same command
+      doing two different things depending on which path summoned it, its only
+      symptom a picker that does not open. Present since `submenu` shipped.
+      → ✅ **So both PRs now carry a golden table instead of only a fix**,
+      which is §5.14's *"when a finding generalises, leave a check behind, not
+      a paragraph"* applied to a finding this file had already written down
+      once and still lost. pounce gains
+      `pkgs/pounce/tests/fixtures/header-grammar/` — one command script per
+      whitespace shape — and `header-grammar.tsv`, what parsing that directory
+      must produce. The comparison surface is `Entry.registryLine`, chosen
+      because it is *already* byte-for-byte the TSV the awk emits, so "the two
+      parsers agree" needs no mapping layer that could itself be wrong.
+      `tests/palette_header_test.sh` pins the awk by running the **real**
+      `pounce-palette` over those fixtures (a stub `pounce` earlier on `PATH`
+      captures the registry), so editing that regex in place is what fails.
+      haus gains `modules/launcher/header-grammar.nix` — the parser in its own
+      file, pure `builtins`, no `lib`, importable by both the module and the
+      check without a fixed point, which is `item-grammar.nix`'s shape exactly
+      one layer up — pinned by a new `pounce-header-grammar` check over twelve
+      cases whose **names are pounce's fixture filenames**, so two repos pin
+      the same decisions under the same words even though their tables differ
+      in shape.
+      → ★ **The table caught (b) on its first run, and would not have if it had
+      been written the other way round.** It was written *from the spec* and
+      then run; had it been blessed from the parsers' output, `submenu-spaced`
+      would have been recorded as `0` and the check would have shipped
+      **ratifying** the bug, green forever, wearing the same green as a correct
+      one. That is the sharpest version of a trap this file keeps meeting from
+      the other side (§5.2's `accent-reach`, `preset-composition` "printing a
+      table's own subject"), and it generalises past golden tables to every
+      test whose expected value someone obtained by running the code: **a
+      fixture you had to execute the code to fill in is a test that ratifies
+      whatever the code did.** Both directions were mutation-checked, which is
+      the other half of the same discipline.
+      → **Three decisions the table now holds that no prose did.** `#pounce:`
+      with no space does NOT parse (no parser ever accepted it; accepting it
+      would *widen* the grammar rather than converge it) · a key is whole, not
+      a prefix, so `names` never satisfies `name` · `NONE` is a **result**, not
+      an absence, because three of the twelve cases must fail and a table
+      listing only successes goes green on a regex matching everything.
+      → 😐 **And one more instance of the family's oldest comment hazard, in
+      the fix for it.** A `''` written inside a Nix indented string — in a
+      **comment**, explaining that `''` is that string's escape character —
+      killed the whole `flake.nix` parse. That is `pages.sh`'s apostrophe bug
+      (§5.9's own box, the one word that meant the Pages command "had never
+      once parsed on a stock macOS") in a second language: **a comment is not
+      inert inside a quoting context**, and both times the character that broke
+      it was the one the comment was about. `[[:blank:]]` avoids the quoting
+      entirely and is more precise than a hand-spelled space-and-tab class
+      anyway.
+      → ★ **The assurance pass then found the direction the whole exercise had
+      backwards, and it is the generalisable half of this box.** Tolerance is
+      not symmetric, because **haus is the PRODUCER of these headers and pounce
+      is the consumer.** Widening haus's reader past the *locked* pounce's does
+      not make haus more forgiving — it makes haus able to write headers the
+      daemon **drops**, losing the row's name, its description, and its
+      `whenFile`, which lists a gated row (Pages, of all things) unconditionally.
+      The tolerance is still right, because it is for a header a **user**
+      hand-types in their own command dir; it is simply not a licence to use it
+      in the commands this layer ships. `pounce-command-headers` now enforces
+      that ours stay canonical — wide pattern finds every line meaning to be a
+      header, narrow pattern is what every parser in both repos agrees on, a
+      line in the first and not the second fails the build. **The rule:
+      *a mirror may be more tolerant than its source only where it READS what
+      strangers wrote; never where it WRITES what the source must read.*** This
+      file has the reverse rule already (§5.9's `shortcut:` disaster — don't
+      enumerate what the app may extend); this is its other face, and nothing
+      here had stated it.
+      → **And two more splits in pounce, both the trailing-space bug's shape,
+      both found only because the table existed to put them in.** `submenu` was
+      **first-wins in the awk and last-wins in Swift** (the one field of five
+      with no `isEmpty` guard), so two `submenu` lines gave the daemon a submenu
+      and the launcher a leaf; and Swift's `.trimmingCharacters(in: .whitespaces)`
+      trims **U+00A0** where awk's `[ \t]` cannot follow, so `submenu = true`
+      plus a non-breaking space split the two again — **in a character you
+      cannot see, that ⌥Space types on macOS.** Converged narrow (space and tab
+      only) rather than wide, because the awk cannot be taught Unicode classes
+      and a grammar that agrees is worth more than one that forgives.
+      → 😐 **The fixtures can defuse themselves, and five of them silently.**
+      Strip the trailing spaces from `trailing-space` or `submenu-spaced`, or
+      turn `tab-hash`'s tab into a space, and the expected value **does not
+      change** — the table still matches while the case tests nothing. There is
+      no `.editorconfig` or `.gitattributes` in either repo standing between
+      those bytes and any reformat. The harness checks the fixture bytes before
+      it checks the table now. `nbsp-tail` is deliberately *not* guarded, and
+      the distinction is the transferable part: **guard exactly those fixtures
+      whose corruption would not change the expected value** — for the rest the
+      table is already the guard, and a guard that duplicates one is noise
+      wearing the shape of rigour.
+      → **Still open until merge**, and the *other* checkable half — the
+      `~/.local/state/haus/any-page` literal shared by `pages.sh:6` and
+      `workspace-mru.sh:71` with nothing mechanical joining them — is untouched
+      by either PR.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
