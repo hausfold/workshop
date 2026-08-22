@@ -1,7 +1,7 @@
 # Option-surface roadmap — the status log
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirtieth (2026-08-20) back to the first (2026-08-02) — thirty-one
+from the thirty-first (2026-08-20) back to the first (2026-08-02) — thirty-two
 blocks, because 2026-08-04 carries two and only one of them was numbered. It
 was the
 roadmap's own preamble until 2026-08-20, when it had grown to 2,393 lines —
@@ -26,6 +26,175 @@ archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
 
 ---
+
+> **Status, 2026-08-20 (thirty-first pass) — §6(f)'s surviving scope is an
+> ENUMERATION, and it has a third member that needs no strangers at all. Every
+> member of it is still true, which is why spot-checking it passes. Measured
+> rather than read: the sibling note's probe re-runs from this session, against
+> haus's real validator.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
+> row eleven): workshop `main` = `origin/main` = `896ded7`, haus = `4e2dd61`,
+> hausfold.co = `a231642`, perch = `f907516`, holt = `fadebfa`. nebelung
+> (`d76f124`) and pounce (`adf03c5`) have not moved since the twenty-ninth pass,
+> so neither of §5.9's two open boxes could have closed. **The count is
+> unchanged at 8**, re-derived at `896ded7` with the command the last three
+> passes ran: `sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`.
+>
+> Landed since `ffcdb0a`: **one haus commit** — `4e2dd61` (haus#424: the tiled
+> popup geometry, and a phantom ⇧ swept out of five places) — its site mirror
+> **7 seconds later** (`a231642`, hausfold.co#102), same-day releases in perch
+> and holt, and one workshop commit that is this file's own neighbour:
+> `896ded7` (#409), step E of [`rooms-desktops.md`](./rooms-desktops.md). **No
+> §5 box moved.** Same cloud-session caveat as the four passes before it —
+> committer dates, not `mergedAt`.
+>
+> ★ **The finding: §6(f) was narrowed by a fix, and the narrowing is what
+> broke.** The 2026-08-14 repeal in the banner above ends *"The silent blend
+> survives exactly where the model still allows two of something: two packs, or
+> two raw `extraModules` fragments"*, and §6(f)'s own ⚠️ closes the same way.
+> Both members are still true. The list is not complete, because both were drawn
+> at the layer §6(f) has always worked at — **definitions**, two rices each
+> setting a value — and the module system merges at a second layer that neither
+> the seam nor the sentence ranges over: **declarations**, two modules each
+> saying an option exists. `896ded7`'s probe measures it, and it re-ran clean
+> here at `4e2dd61` (nixpkgs `lib` at `391b592e`):
+>
+> | two modules declare | what happens |
+> |---|---|
+> | the same leaf, both fully described | throws, naming two **store paths** and no publisher |
+> | the same leaf, one of them bare (`type` only) | `sameLeafOneBare: true` — **merges, silently** |
+> | different leaves under one namespace | `differentLeaves.evaluates: true` — **merges, silently** |
+>
+> Two things follow that §6(f) as written cannot say. **The dichotomy is not
+> about the option's type**: row two is a `bool` — a scalar, the case this
+> document calls "the loud failure mode" — merging without a word, because what
+> disarms the throw is a missing `default`/`description`, not a list-shaped
+> value. And **row three does not blend anything at all**: the probe's
+> `namespaceHolds` prints `["catalog","enable"]`, `enableDeclaredBy` names only
+> Ada's file, and Ben's `config` sets Ada's switch to `true`. Not two values
+> combined — one author steering another's room, with the machine's own
+> `declarations` naming the wrong person. That is a worse shape than the blend
+> §6(f) is about, and it is the *ordinary* shape of two independently written
+> rooms.
+>
+> ⚠️ **And the live exposure needs zero strangers, which is why this isn't
+> filed under acquisition.** Both surviving members of the old enumeration need
+> two third-party things, and the desktop seam bounds them (a host takes exactly
+> one desktop). A module is not a desktop, so that seam does not reach here —
+> and the second party need not be a person: the other claimant can be **a
+> future haus release**, on a machine that installed nothing from anyone.
+> ⚠️ **Step E's reading of the page is the half that does not survive being
+> re-read, and this pass had borrowed it.** Step E has `rooms/creating`
+> teaching the `haus.<name>` shape *and then* offering the escape hatch. At
+> `a231642` the order is the other way round: the "write a plain module in
+> your own config **and stop reading**" callout is at line 46, the
+> `options.haus.kettle` example at line 71 — and the escape-hatch bullet above
+> the callout points at `system.defaults.…`, not at `haus.`.
+> (`options.haus.kettle` appears **once**, not three times; `haus.kettle` is
+> what appears three times.) So the page does not invite the collision, and the
+> exposure stands on the weaker footing that nothing *bounds* it — no seam, no
+> check, and silence when it happens. Caught by opening the artifact instead
+> of trusting the note that cites it, which is the twenty-second pass's rule
+> pointed at a sibling file. The counts around it do survive: 35 namespaces and 311 options,
+> identical at `ffcdb0a` and `4e2dd61` (#424 declares none), and the 35 and
+> 277 step E measured one day earlier — that third one re-derived at `6ba56c8`
+> by this pass's assurance read rather than by the pass. §6(f) gains the
+> layer; the design that answers it is step E's, and it stays in
+> `rooms-desktops.md` where the acquisition plan is.
+>
+> **The ledger shape, which is new (§5.14 gains it).** Every other row there
+> describes an entry decaying, or an edit that never happened. This one is an
+> entry that was **improved**: an open limit got a shipped seam, a pass wrote
+> down what the seam left standing, and the enumeration it wrote is stronger
+> than the sentence it replaced — so it can be wrong while each member checks
+> out. Nothing catches it by spot-checking members; what caught it is asking
+> **what the seam actually bounds** and finding a layer underneath it.
+>
+> ★ **§8's "Doesn't work" was right about the flakeref and wrong about GitHub,
+> and this pass measured both ends.** `nix flake metadata github:NixOS/nixpkgs`
+> 403s here exactly as §8 says — the body is the proxy's `add_repo` message. But
+> `nix flake metadata git+https://github.com/numtide/flake-utils` **resolves**,
+> third-party org and all (rev `11707dc2`). The gate is **api.github.com**, not
+> github.com: a `github:` flakeref goes through the API, and `git+https` is the
+> same anonymous git read the proxy already serves for the "read every repo at a
+> rev" bullet — which was never restricted to our org, only ever tested there.
+> What it buys is what this pass used: nixpkgs' pure `lib/` in one 15 MB sparse
+> clone, and haus's own `modules/lib/desktop.nix` through `lib.evalModules` —
+> its **real** validator over its real registry, in seconds, on Linux.
+> *(Reasoning, not a measurement: this does not put `nix flake check` in reach.
+> haus pins all nine of its inputs as `github:`, so a full eval needs every one
+> rewritten, and its darwin half is out regardless.* ⚠️ *Nor is flake-utils'
+> printed `systems` input evidence that transitive `github:` refs resolve —
+> `flake metadata` reads that from the committed lock rather than fetching it.)*
+>
+> ★ **A shipped answer to "which display is this" is borrowed by three rooms
+> and USED as a selector by none.** §5.10's `haus.displays` ships a vocabulary
+> built for this question — `internal`, `main`, `<uuid>`, most-specific-wins,
+> with `hausdisp list` printing the UUIDs. Grepped at `4e2dd61`, three rooms
+> do reach for it, and not one of them to name a display: `appearance`,
+> `launcher` and `focus` cite `haus.displays.*` in option **descriptions**,
+> and `focus/focus.sh:45` shells out to the room's **binary** for a screen
+> count — deliberately without depending on the room, as its own comment says
+> (`system_profiler` is the fallback). The helper is reused; the vocabulary is
+> not. Meanwhile two rooms answer the same
+> question with the literal string `"Built-in Retina Display"`: `windows`, in
+> **six** rows of the generated `aerospace.toml` — four written into the
+> template and two more by `monLine` (`default.nix:339`) at render, which is
+> the difference between reading the generator and reading the artifact — and,
+> new in #424, `terminal`, at `float-term.sh:233`, where a popup's geometry
+> turns on `name === "Built-in Retina Display"`. They are not even the same
+> test, and the code says so: AeroSpace treats its monitor key as a **regex**,
+> float-term as `===`. For this document the point is not the divergence, it is
+> that **the gap numbers ride `haus.ui.scale` — a publishable option a desktop
+> sets — while the column they land in is a product-name literal.** A desktop
+> is portable; its gap selector is not.
+> ⚠️ **And it sharpens §5.10's open box, which points the tester at the wrong
+> setup.** That box says multi-display is untested because only one display was
+> attached, and sends the reader to *"test on the dock"*. The failure above is
+> **identity, not arrangement**: it reproduces on **one** display, on any Mac
+> whose built-in panel reports a different `localizedName` — no dock, no second
+> monitor. A box whose stated setup is more expensive than its cheapest
+> reproduction is a box nobody runs the cheap half of. *(What the mechanism is,
+> is measured — both spellings are in the files at `4e2dd61`. Which Macs
+> actually diverge is not, and cannot be from here; `hausdisp list` settles it in
+> one command on the machine.)*
+>
+> **Two smaller things, both about #424.** It is a **second instance of the
+> twenty-eighth pass's ledger row** — a true fact read as an impossibility: *"a
+> terminal mouse report has no bit for ⌘"* is true, and governs what the
+> *program* can see, while Ghostty consumes the ⌘-click before anything is
+> forwarded. The ⌘⇧ spelling it produced had spread to five places in haus plus
+> the published page. Worth recording because the row's stated mitigation didn't
+> apply: nobody asked what it would cost to do it ourselves, they asked **who
+> acts first**. And the negative the thirtieth pass would have wanted: **the
+> workshop carries no copy of it this time** — unlike ⌃⌥⇧A, which it was the
+> last repo still documenting. Checked the way row ten demands, by reading
+> around the hits rather than counting them: `⇧` appears five times in tracked
+> files — two keymap-syntax mentions here, and three epitaphs for the retired
+> chord (this file, `AGENTS.md`, `docs/workflows.md`) — and none of them is
+> about the mouse. ⚠️ **That count was true at `896ded7` and this paragraph
+> spoils it**: the block you are reading adds four more `⇧`, so re-running the
+> check from HEAD says nine. The thirtieth pass records the same hazard about
+> its own `16 bools` grep one block below; a check whose subject is a
+> character this file writes is single-use by construction, and the rev is
+> what makes it re-derivable at all.
+>
+> ⚠️ **What this pass's own assurance read killed, because two of them are
+> ledger rows the block above cites.** First, row ten again, from the paragraph
+> that invokes row ten: *"no other room references `haus.displays`"* was a
+> negative proved by a grep over two rooms' files and stated over all twelve.
+> Three rooms do reference it — the finding survives because none of them uses
+> it to NAME a display, which is the claim that was worth making and is not the
+> one that got written. Second, the `rooms/creating` reading above, borrowed
+> from step E and falsified by opening the page. And third, `AGENTS.md` carried
+> §8's wrong gate in the file every agent in this family reads — *"needs an
+> environment whose network policy allows general `github.com` egress"* — while
+> this session had been cloning github.com all afternoon. **Fixed in this
+> commit**, which is the check the ⇧ paragraph above runs on somebody else's
+> correction and this pass had not run on its own.
+
 
 > **Status, 2026-08-20 (thirtieth pass) — §5.9's count went DOWN for the first
 > time, and the correction that was supposed to raise it two days ago was never
