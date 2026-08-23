@@ -28,11 +28,13 @@ Per-client wiring lives in that client's own file; the content stays here or in
 > **`_bench` is a hand copy and can rot.** It reaches fpath by
 > `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench` (haus's terminal room
 > prepends that dir); `exec zsh` reloads it. Its subcommand descriptions must
-> follow `bench`'s own usage header (`bench:2-46`). Only `FAMILY` and
+> follow `bench`'s own usage header (`bench:2-50`). Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — `_bench` seds those two single-line arrays out
 > of the script at completion time. Everything else is copied by hand: `pull`'s
-> six non-flake names, `release`'s four repos (the arms of `version_file`), and
-> the fallbacks beside both sed'd lists. Add a repo to `version_file` and the
+> six non-flake names, `release`'s four repos (the arms of `version_file`),
+> `docs-since`'s five non-family repos (`DOCS_REPOS` is composed from `FAMILY`,
+> so the sed reads the nested expansion back literal and can't be used), and the
+> fallbacks beside both sed'd lists. Add a repo to `version_file` and the
 > completion silently omits it.
 
 ## Master routing table

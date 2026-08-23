@@ -63,7 +63,7 @@ something works, and `main` never holds code nobody has felt.
 | `pull` · `clone` | fast-forward every repo · fetch the ones you're missing |
 | `release <repo> [version]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for holt, which takes semver because five SDK registries share the number |
 | `overlap [--brief\|--path <f>]` | what the OTHER agent lanes on this repo have already changed, and where their edits and yours land in the same region — measured from the shared object store, never declared |
-| `docs-since [--mark]` | every commit since the docs were last reconciled — the input to the scheduled docs sweep |
+| `docs-since [--mark [--pending <repo>…] \| --landed <repo>…]` | every commit since the docs were last reconciled, plus what a repo has read but not landed — the input to the scheduled docs sweep |
 
 ## the family
 

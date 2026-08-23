@@ -33,9 +33,13 @@
 #                  repo have already changed, and where their changes and yours
 #                  land in the same region of the same file — measured from the
 #                  shared object store, not declared by anyone. Advisory.
-#   bench docs-since   commits in every repo since the docs were last
-#                  reconciled (--mark records new watermarks) — the input
-#                  to the daily /docs-sync sweep
+#   bench docs-since [--mark [--pending <repo>…] | --landed [<repo>…]]
+#                  commits in every repo since the docs were last reconciled —
+#                  the input to the daily /docs-sync sweep. Two watermarks per
+#                  repo: --mark advances `read`, --landed advances `landed`
+#                  once that repo's doc PR merges, and --pending holds `landed`
+#                  back for the repos whose PR is still open. A gap between
+#                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
 #                  tap bump (or, for holt, five SDK publishes).
@@ -1873,20 +1877,109 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # different questions; keep them different lists.
 DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co)
 
-docs_watermark() { # docs_watermark <repo> — last reconciled rev, "" if never
+# Two watermarks per repo, and the GAP between them is the whole point:
+#
+#   read   — the last commit a sweep has read. The range starts here, so it has
+#            to advance every run or the next one re-reads what this one just
+#            reconciled.
+#   landed — the last commit whose doc corrections are merged on main. Only a
+#            confirmed merge moves it (`--landed`).
+#
+# They part company the moment a sweep opens a PR that nobody merges. With one
+# watermark those commits were marked read forever and no later run would ever
+# look at them again: the docs stayed wrong and the sweep reported itself clean,
+# which is indistinguishable from a quiet day. The gap is now a ⚠ line.
+#
+# Legacy state carried a single `rev`. It reads as both, so a file written
+# before this split migrates on its first --mark with no false gap.
+docs_state_rev() { # docs_state_rev <repo> <read|landed> — "" if unknown
   [ -f "$DOCS_STATE" ] || { echo ""; return; }
-  python3 - "$DOCS_STATE" "$1" <<'EOF'
+  python3 - "$DOCS_STATE" "$1" "$2" <<'EOF'
 import json, sys
 try:
-    print(json.load(open(sys.argv[1])).get("repos", {}).get(sys.argv[2], {}).get("rev", ""))
+    entry = json.load(open(sys.argv[1])).get("repos", {}).get(sys.argv[2], {})
+    print(entry.get(sys.argv[3]) or entry.get("rev", ""))
 except Exception:
     print("")
 EOF
 }
 
+docs_watermark() { docs_state_rev "$1" read; }    # where the next sweep starts reading
+docs_landed()    { docs_state_rev "$1" landed; }  # how far the docs are actually fixed
+
+docs_set_landed() { # docs_set_landed <repo>… — their corrections merged; close the gaps
+  # One pass over the whole list rather than one rewrite per repo: each rewrite
+  # is a window in which a crash leaves the state file truncated, and this is
+  # the file the next sweep's entire range is computed from.
+  local moved
+  moved="$(python3 - "$DOCS_STATE" "$@" <<'EOF'
+import json, sys
+path, *names = sys.argv[1:]
+try:
+    state = json.load(open(path))
+    state.setdefault("repos", {})
+except Exception:
+    state = {"repos": {}}
+moved = []
+for name in names:
+    entry = state["repos"].get(name, {})
+    rev = entry.get("read") or entry.get("rev") or ""
+    if not rev:
+        continue                    # never read, so there is no gap to close
+    entry.pop("rev", None)          # migrate the pre-split single watermark
+    entry["read"] = rev
+    entry["landed"] = rev
+    state["repos"][name] = entry
+    moved.append(name)
+json.dump(state, open(path, "w"), indent=2)
+open(path, "a").write("\n")
+print("\n".join(moved))
+EOF
+)"
+  local n
+  for n in "$@"; do
+    grep -qxF -- "$n" <<<"$moved" || warn "$n: nothing read yet — no landed watermark to set"
+  done
+  # Name only what actually moved: a success line covering a repo the run
+  # skipped is the kind of green that stops meaning anything.
+  [ -n "$moved" ] && say "landed watermarks caught up: $(tr '\n' ' ' <<<"$moved")"
+  return 0
+}
+
 cmd_docs_since() {
-  local mark="" any=0
-  [ "${1:-}" = "--mark" ] && mark=1
+  local mark="" landed="" pending="" any=0
+  # Repos named after --pending (with --mark) or after --landed. Both flags take
+  # the same kind of list, and they are mutually exclusive modes, so one array
+  # carries whichever is in play.
+  local -a targets=()
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --mark)     mark=1 ;;
+      --landed)   landed=1 ;;
+      --pending)  pending=1 ;;   # the repo names that follow are the pending ones
+      "")         : ;;   # the dispatch used to pass "${2:-}" — tolerate an empty arg
+      -*)         die "docs-since: unknown flag $1" ;;
+      *)          targets+=("$1") ;;
+    esac
+    shift
+  done
+  [ -n "$mark" ] && [ -n "$landed" ] && die "docs-since: --mark and --landed are separate steps"
+  [ -n "$pending" ] && [ -z "$mark" ] && die "docs-since: --pending qualifies --mark; on its own it records nothing"
+  local t
+  for t in "${targets[@]}"; do
+    # -F, because hausfold.co's dot is a BRE metacharacter.
+    printf '%s\n' "${DOCS_REPOS[@]}" | grep -qxF -- "$t" || die "docs-since: $t is not a docs repo"
+  done
+
+  # --landed: a doc PR merged, so catch that repo's `landed` up to what it has
+  # already read. This is the ONLY thing that closes a gap, so it never defaults
+  # to every repo — a bare `--landed` would erase the family's whole outstanding
+  # state on one keystroke, cheerfully.
+  if [ -n "$landed" ]; then
+    [ "${#targets[@]}" -gt 0 ] || die "docs-since: --landed <repo>… — name the repos whose doc PR merged"
+    docs_set_landed "${targets[@]}"
+    return
+  fi
 
   for name in "${DOCS_REPOS[@]}"; do
     local dir
@@ -1900,6 +1993,23 @@ cmd_docs_since() {
     fi
     local head; head="$(git -C "$dir" rev-parse HEAD)"
     local base; base="$(docs_watermark "$name")"
+
+    # Commits this sweep has READ but whose corrections are not on main — a doc
+    # PR still open, or one closed unmerged. Before the read/landed split this
+    # state printed exactly like a repo with nothing to say, which is the one
+    # failure mode the whole sweep exists to avoid.
+    local landed_rev; landed_rev="$(docs_landed "$name")"
+    if [ -n "$base" ] && [ "$landed_rev" != "$base" ]; then
+      if [ -n "$landed_rev" ] && git -C "$dir" cat-file -e "$landed_rev^{commit}" 2>/dev/null; then
+        local gap; gap="$(git -C "$dir" rev-list --count --no-merges \
+          --invert-grep --grep='^Docs-Sync: ' "$landed_rev..$base" 2>/dev/null || echo '?')"
+        warn "$name: $gap commits READ but not landed — its doc PR is open, or was closed unmerged. On merge: bench docs-since --landed $name"
+      elif [ -z "$landed_rev" ]; then
+        warn "$name: read, but nothing has ever landed — no doc PR for it has merged"
+      else
+        warn "$name: landed watermark ${landed_rev:0:7} is gone (rebased away?) — the gap is real but can't be counted"
+      fi
+    fi
 
     # Two different "no watermark"s, and they want opposite answers:
     #
@@ -1948,9 +2058,13 @@ cmd_docs_since() {
     # "$root/$name" in python and silently missing the repo.
     local -a docs_pairs=()
     for name in "${DOCS_REPOS[@]}"; do docs_pairs+=("$name=$(repo_dir "$name")"); done
-    python3 - "$DOCS_STATE" "${docs_pairs[@]}" <<'EOF'
+    # --pending names the repos whose corrections are sitting in a PR nobody has
+    # merged yet: their `read` advances, their `landed` does not. Everything else
+    # has nothing outstanding, so both move together and no false gap appears.
+    python3 - "$DOCS_STATE" "${targets[*]}" "${docs_pairs[@]}" <<'EOF'
 import json, subprocess, sys, datetime
-state_path, *pairs = sys.argv[1:]
+state_path, pending_arg, *pairs = sys.argv[1:]
+pending = set(pending_arg.split())
 repos = [p.split("=", 1) for p in pairs]
 state = {"repos": {}}
 try:
@@ -1971,12 +2085,31 @@ for name, d in repos:
             rev = subprocess.check_output(["git", "-C", d, "rev-parse", "HEAD"], text=True).strip()
         except Exception:
             continue
-    state["repos"][name] = {"rev": rev}
+    entry = state["repos"].get(name, {})
+    # The pre-split single watermark meant "read, and assumed landed" — so it
+    # migrates into `landed` as-is. If those old PRs never merged, the gap
+    # surfaces on the next run instead of staying invisible forever.
+    prev_read   = entry.get("read")   or entry.get("rev") or ""
+    prev_landed = entry.get("landed") or entry.get("rev") or ""
+    entry.pop("rev", None)
+    entry["read"] = rev
+    # A repo ALREADY carrying a gap keeps it, even when this run didn't name it
+    # --pending. Otherwise the ordinary case of a quiet repo whose doc PR is
+    # still open — no new commits, so nothing to name — erases the gap on the
+    # next --mark, which is the exact failure this split exists to prevent.
+    # Closing a gap is `--landed`'s job, and only its job.
+    entry["landed"] = prev_landed if (name in pending or prev_landed != prev_read) else rev
+    entry["read_at"] = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    state["repos"][name] = entry
 state["last_run"] = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 json.dump(state, open(state_path, "w"), indent=2)
 open(state_path, "a").write("\n")
 EOF
-    say "watermarks recorded — next sweep starts from here."
+    if [ "${#targets[@]}" -gt 0 ]; then
+      say "watermarks recorded — next sweep starts from here (still to land: ${targets[*]})."
+    else
+      say "watermarks recorded — next sweep starts from here."
+    fi
   fi
 }
 
@@ -2472,9 +2605,9 @@ case "${1:-status}" in
   rebuild) cmd_rebuild ;;
   pull)    shift; cmd_pull "$@" ;;
   clone)   cmd_clone ;;
-  docs-since) cmd_docs_since "${2:-}" ;;
+  docs-since) cmd_docs_since "${@:2}" ;;
   overlap) shift; cmd_overlap "$@" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,46p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,50p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi

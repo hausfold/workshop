@@ -74,11 +74,14 @@ Per repo, every commit past the last reconciled watermark plus the files it touc
 watermark-based, not "since yesterday": a sweep that slept four days still picks up all
 four. **Don't `--mark` yet** — that's Step 7.
 
-> ⚠️ **The three `⚠` lines are holes, not clean repos.** `no checkout at …` means the repo
+> ⚠️ **Every `⚠` line is a hole, not a clean repo.** `no checkout at …` means the repo
 > wasn't swept at all (`bench clone`). `first sweep — reading its FULL history` means the
 > whole backlog is unreconciled, so that run is a big one and its PR should say so.
 > `watermark … is gone` means the range is a one-day guess and older commits were read by
-> nobody. None of the three aborts the sweep. Carry them into the report.
+> nobody. `N commits READ but not landed` means an earlier run's corrections are still
+> sitting in an open PR (or one that got closed) — those commits are outside your range,
+> so **that repo's open PR is the only thing that will ever fix them**: extend it in
+> Step 6, don't re-read them. None of these aborts the sweep. Carry them into the report.
 
 Read the diff of anything whose subject is thin (`git -C <repo> show <sha> --stat`).
 Version stamps, lock bumps and merge commits carry no doc consequence; skip them fast and
@@ -252,6 +255,26 @@ gh pr list -R hausfold/<repo> --state open --search 'head:docs-sync-' --json num
 **One open PR per repo, growing until Julien merges it, is the shape.** A fresh PR per run
 buries the signal and hands the reviewer conflicts for free.
 
+**If Step 1 warned that this repo has commits read but not landed, find out which way its
+last PR went** — no PR open is equally consistent with *merged* and with *closed unmerged*,
+and the two want opposite answers. Ask, don't infer:
+
+```bash
+gh pr list -R hausfold/<repo> --state merged --search 'head:docs-sync-' \
+  --limit 1 --json number,mergedAt
+```
+
+**Merged** → say so, and the ⚠ clears:
+
+```bash
+./bench docs-since --landed <repo>
+```
+
+Order matters: `--landed` catches `landed` up to whatever `read` holds *right now*, which
+is still the value that merged PR covered. Run it here, before Step 7's `--mark` moves
+`read` on. **Closed unmerged** → don't run it. The ⚠ is telling the truth, and those
+corrections have to ride again in the PR you're about to open.
+
 **None open → start one:**
 
 ```bash
@@ -338,11 +361,17 @@ the failure that rule was never about.
 
 ## Step 7 — mark the watermark
 
-**Only after the PRs are open:**
+**Only after the PRs are open**, and name every repo you left a PR on:
 
 ```bash
-./bench docs-since --mark
+./bench docs-since --mark --pending <repo> <repo>…
 ```
+
+Each repo carries two watermarks. `--mark` advances **`read`** for all of them; `--pending`
+holds **`landed`** back for the ones whose corrections are still in an unmerged PR, so the
+gap shows up as a ⚠ on every run until that PR merges and Step 6 runs `--landed`. Name them
+accurately in both directions: a repo you list but left no PR on warns forever, and one you
+leave off silently claims documented what is still only read.
 
 It records each repo's **`main`**, deliberately, not the branch you're standing on: the
 watermark tracks source commits you've *read*, and those live on `main`. Your doc PR is
@@ -373,12 +402,16 @@ sense of the words**, which is backwards from the one you want: mid-rebase `--ou
 
 ```bash
 git -C <workshop> checkout --ours .docs-sync.json   # --ours IS origin/main, in a rebase
-./bench docs-since --mark
+./bench docs-since --landed <repo>…                # whatever Step 6 confirmed merged
+./bench docs-since --mark --pending <repo>…
 git -C <workshop> add .docs-sync.json && git -C <workshop> rebase --continue
 ```
 
-`--ours` takes the whole file, so it also drops the `comments.done` line Step 5 just wrote,
-and `--mark` won't put it back. Re-apply it before `rebase --continue`.
+`--ours` takes the whole file, so it also drops two things `--mark` won't put back: the
+`comments.done` line Step 5 wrote, and any `--landed` catch-up from Step 6 — `--mark`
+reads the old `landed` out of the file that was just reverted, so a merged PR would go
+back to warning forever. Re-run the `--landed` and re-apply the `comments.done` line
+before `rebase --continue`.
 
 This is the one commit the sweep puts on `main` directly, and it's deliberate: it must
 advance even on a day that produced no PR. Content still only ever lands through a PR.
@@ -390,7 +423,8 @@ The PR bodies hold the detail. The chat report is an index, not a duplicate:
 - **PR links**, one line each on what that repo's sweep covered.
 - **The two or three judgment calls closest to the line** — not the whole "left alone" list.
 - **Anything that blocked you**: a repo you couldn't read or push to, a failed build, a
-  watermark you deliberately left unmarked.
+  watermark you deliberately left unmarked, and any repo still carrying a read-but-not-
+  landed ⚠ — that one is a PR waiting on Julien, and saying so is how it stops waiting.
 
 A clean no-op run is one line saying so. Never claim a doc is now accurate unless you read
 the code it describes.

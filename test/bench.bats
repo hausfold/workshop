@@ -1033,6 +1033,249 @@ Docs-Sync: 2026-07-20"
   [[ "$output" == *"(1 commits)"* ]]            # count matches what's shown
 }
 
+# ── the usage header and the sed that prints it must not drift apart ─────────
+# `bench <garbage>` prints the header with a hardcoded line range. Grow the
+# header and the range silently truncates it — which is how the paragraph about
+# holt needing an explicit semver argument went missing.
+
+@test "bench <garbage> prints the usage header all the way to its last line" {
+  local last; last="$(awk '/^# Rule of thumb/ {print NR - 2; exit}' "$HAUS")"
+  local want; want="$(sed -n "${last}p" "$HAUS" | sed 's/^# \{0,1\}//')"
+  run bash "$HAUS" definitely-not-a-subcommand
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"$want"* ]]
+}
+
+# ── the read/landed split: an unmerged doc PR must not read as a clean repo ───
+# One watermark meant "read" and "documented" were the same number. They part
+# company the moment a sweep opens a PR nobody merges: those commits are marked
+# read forever and no later run ever looks at them again — the docs stay wrong
+# and the sweep reports itself clean. `landed` is what makes that gap sayable.
+
+@test "docs_landed reads the pre-split single rev, so a legacy state shows no false gap" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  echo '{"repos": {"pounce": {"rev": "deadbeef"}}}' > "$DOCS_STATE"
+  run docs_landed pounce
+  [ "$output" = "deadbeef" ]
+  run docs_watermark pounce
+  [ "$output" = "deadbeef" ]                    # and `read` still answers too
+}
+
+@test "docs-since --mark with nothing pending moves read and landed together" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+
+  cmd_docs_since --mark >/dev/null 2>&1
+  [ "$(docs_watermark pounce)" = "$(docs_landed pounce)" ]
+  run cmd_docs_since
+  [[ "$output" != *"READ but not landed"* ]]    # no PR outstanding, so no gap
+}
+
+@test "docs-since --mark --pending advances read alone, leaving landed behind" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1         # a baseline both watermarks share
+  local was; was="$(docs_landed pounce)"
+
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  cmd_docs_since --mark --pending pounce >/dev/null 2>&1
+
+  [ "$(docs_landed pounce)" = "$was" ]                        # landed did not move
+  [ "$(docs_watermark pounce)" != "$was" ]                    # read did
+}
+
+@test "docs-since warns about commits read but not landed, and counts them" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: three"
+  cmd_docs_since --mark --pending pounce >/dev/null 2>&1
+
+  run cmd_docs_since
+  [[ "$output" == *"2 commits READ but not landed"* ]]
+}
+
+@test "the gap ignores the sweep's own commits, like the range does" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: real"
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty \
+    -m "docs: sync 2026-07-20
+
+Docs-Sync: 2026-07-20"
+  cmd_docs_since --mark --pending pounce >/dev/null 2>&1
+
+  run cmd_docs_since
+  [[ "$output" == *"1 commits READ but not landed"* ]]
+}
+
+@test "docs-since --landed closes the gap it was warning about" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  cmd_docs_since --mark --pending pounce >/dev/null 2>&1
+  run cmd_docs_since
+  [[ "$output" == *"READ but not landed"* ]]
+
+  cmd_docs_since --landed pounce >/dev/null 2>&1
+  [ "$(docs_landed pounce)" = "$(docs_watermark pounce)" ]
+  run cmd_docs_since
+  [[ "$output" != *"READ but not landed"* ]]
+}
+
+@test "docs-since --landed refuses to default to every repo" {
+  # --landed is the ONLY thing that closes a gap. Defaulting to all of them
+  # would put the family's whole outstanding state one keystroke from erased.
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce perch)
+  run cmd_docs_since --landed
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"name the repos whose doc PR merged"* ]]
+}
+
+@test "docs-since --landed takes several repos in one pass" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce perch)
+  make_repo pounce; git -C "$ROOT/pounce" branch -M main
+  make_repo perch;  git -C "$ROOT/perch"  branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  git -C "$ROOT/perch"  -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  cmd_docs_since --mark --pending pounce perch >/dev/null 2>&1
+
+  cmd_docs_since --landed pounce perch >/dev/null 2>&1
+  [ "$(docs_landed pounce)" = "$(docs_watermark pounce)" ]
+  [ "$(docs_landed perch)"  = "$(docs_watermark perch)" ]
+}
+
+# ── the gap must outlive a --mark that forgot about it ────────────────────────
+# The ordinary shape of the bug: a repo whose doc PR is open but which produced
+# no commits this run, so the sweep has no reason to name it --pending. If
+# --mark closed its gap the whole split would be decorative.
+
+@test "a repo's gap survives a --mark that doesn't name it pending" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce perch)
+  make_repo pounce; git -C "$ROOT/pounce" branch -M main
+  make_repo perch;  git -C "$ROOT/perch"  branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  cmd_docs_since --mark --pending pounce >/dev/null 2>&1
+  local held; held="$(docs_landed pounce)"
+
+  # Next run: pounce is quiet and its PR is still open, so only perch is named.
+  git -C "$ROOT/perch" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  cmd_docs_since --mark --pending perch >/dev/null 2>&1
+
+  [ "$(docs_landed pounce)" = "$held" ]
+  run cmd_docs_since
+  [[ "$output" == *"pounce: 1 commits READ but not landed"* ]]
+}
+
+@test "a bare --mark leaves every outstanding gap standing" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "feat: two"
+  cmd_docs_since --mark --pending pounce >/dev/null 2>&1
+
+  cmd_docs_since --mark >/dev/null 2>&1          # the old single-flag form
+  run cmd_docs_since
+  [[ "$output" == *"READ but not landed"* ]]
+}
+
+@test "a repo joining the sweep mid-life gets a gap it can name, not a false count" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(perch)
+  make_repo perch
+  git -C "$ROOT/perch" branch -M main
+  cmd_docs_since --mark --pending perch >/dev/null 2>&1   # first sweep, PR opened
+
+  run cmd_docs_since
+  [[ "$output" == *"nothing has ever landed"* ]]
+  cmd_docs_since --landed perch >/dev/null 2>&1
+  run cmd_docs_since
+  [[ "$output" != *"landed"* ]]
+}
+
+@test "a landed watermark that was rebased away says so instead of claiming nothing landed" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+  python3 - "$DOCS_STATE" <<'JSON'
+import json, sys
+s = json.load(open(sys.argv[1]))
+s["repos"]["pounce"]["landed"] = "0" * 40      # a rev this repo has never held
+json.dump(s, open(sys.argv[1], "w"), indent=2)
+JSON
+  run cmd_docs_since
+  [[ "$output" == *"is gone (rebased away?)"* ]]
+  [[ "$output" != *"nothing has ever landed"* ]]
+}
+
+@test "docs-since refuses --pending without --mark rather than recording nothing" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  run cmd_docs_since --pending pounce
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"qualifies --mark"* ]]
+}
+
+@test "docs-since --landed says nothing moved when nothing had been read" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  run cmd_docs_since --landed pounce
+  [[ "$output" == *"nothing read yet"* ]]
+  [[ "$output" != *"watermarks caught up"* ]]   # no cheerful green over a no-op
+}
+
+@test "docs-since refuses a repo it doesn't sweep rather than silently doing nothing" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  run cmd_docs_since --landed notarepo
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"not a docs repo"* ]]
+}
+
+@test "docs-since refuses an unknown flag rather than reading it as a repo" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  run cmd_docs_since --marc
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"unknown flag"* ]]
+}
+
+@test "docs-since still takes a bare --mark, the way the dispatch used to pass it" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  local main_rev; main_rev="$(git -C "$ROOT/pounce" rev-parse main)"
+  cmd_docs_since --mark "" >/dev/null 2>&1      # the empty second arg of the old form
+  run docs_watermark pounce
+  [ "$output" = "$main_rev" ]
+}
+
 # ── who is driving: the switch gate is on WHO, not WHERE ──────────────────────
 # `bench try switch` is allowed from an agent worktree (that's the only way to
 # feel-test ONE unmerged branch). What's gated is an AI agent doing it unasked,
