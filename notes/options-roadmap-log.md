@@ -1,5 +1,15 @@
 # Option-surface roadmap — the status log
 
+> ★ **The passes moved to [`drift.md`](drift.md) on 2026-08-23**, along with
+> §5.14 of the roadmap, because what they were finding had stopped being about
+> the option surface. **This file keeps its name.** Thirty-six dated entries
+> link to it by that name — including the three now in `drift.md`, which say
+> *"moves to `options-roadmap-log.md` unedited"* in their own text — and this
+> log's first rule is that an entry is never edited. Renaming it would either
+> break those links or require correcting evidence in place, which is the
+> thing the catalogue next door exists to stop. The name is a fact about where
+> these passes came from, and they did come from there.
+
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
 from the thirty-fifth (2026-08-22) back to the first (2026-08-02) —
 thirty-six blocks, because 2026-08-04 carries two and only one of them was
