@@ -2827,7 +2827,7 @@ haus.displays.internal.uiScale = "larger-text";
 legal, and the list no longer complete. haus#478 (`mergedAt 07:48:54Z`) added
 `slightly-larger-text` because the four assumed a ladder as short as the 14"
 MacBook Pro's: a 27" 5K reports nine rungs, so `larger-text` landed four below
-the default. §5.14's twenty-first shape, second instance, and it rotted here
+the default. §5.14's eighteenth shape, second instance, and it rotted here
 rather than in a box because a ✅ header tells a reader nothing in the section
 needs checking — a fence is neither a §5 checkbox nor a §6 phase line.
 
@@ -3248,8 +3248,8 @@ sed -n '/^## 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md \
   | grep -c '^- \[ \]'
 ```
 
-The two rules it left behind, restated here because they govern every box above
-and a reader should not have to leave the file to meet them:
+The three rules it left behind, restated here because they govern every box
+above and a reader should not have to leave the file to meet them:
 
 - **A status-block edit is not a substitute for ticking the box, and the box is
   the source of truth.** The header summarises; the checkbox decides. When they
@@ -3260,8 +3260,10 @@ and a reader should not have to leave the file to meet them:
   build.
 - **Neither surface above covers a code fence.** §5's boxes and §6's phase lines
   are the two the rules police; a `nix` block inside a ✅ section is read by
-  nobody, and drift.md's row twenty-six is what a ✅ header costs. When an
-  option's *type* moves, grep this file for the option name, not for its box.
+  nobody, which is where drift.md's row eighteen landed for the second time
+  (§5.10, 2026-08-23). And when an option's *type* moves, nothing here moves at
+  all — that is row twenty-six — so grep this file for the option's NAME, not
+  for its box.
 
 ---
 
