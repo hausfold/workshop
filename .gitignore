@@ -22,3 +22,10 @@
 # That is exactly the trap #283 left behind with `messages/`; don't wait for it.
 /ops/
 .DS_Store
+
+# Coverage dumps. An LLVM-instrumented binary writes `default.profraw` into
+# whatever directory it was *run* from, not where it was built — so one stray
+# family tool on PATH leaves one here and `holt` reads it as unlanded work.
+# perch was that tool (its Xcode project now pins ENABLE_CODE_COVERAGE off);
+# the line stays as the backstop for the next one.
+*.profraw
