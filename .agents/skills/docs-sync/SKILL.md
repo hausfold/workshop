@@ -15,8 +15,9 @@ sweep reads what landed, decides what it broke or bloated, fixes it in the right
 and opens a PR.
 
 **An empty run is a success.** The watermark (Step 1) means you only ever read commits no
-run has read before. If nothing is new, say so and stop — don't re-audit pages no commit
-touched. An invented finding costs a reviewer's afternoon; a skipped no-op costs nothing.
+run has read before. If nothing is new, don't re-audit pages no commit touched — take the
+run's one comment file (Step 5) and stop. An invented finding costs a reviewer's afternoon;
+a skipped no-op costs nothing.
 
 **The site is the source of truth.** `hausfold.co/content/docs/` (Fumadocs) documents
 everything a *user* experiences. READMEs, `AGENTS.md` and in-repo docs serve contributors
@@ -105,11 +106,11 @@ grep -ril "<feature>\|<flag>\|<option>" hausfold.co/content/docs/ <repo>/README.
 | `holt/` — the worktree substrate + its five SDKs | its own `README.md`, `SPEC.md`, `docs/*`, `sdk/*/README`, plus `haus/rooms/ai.mdx` for the user-facing worktree story. holt has **no site tree**, so "the docs" for it are the repo's. An SDK surface change is also a release question — see `/release` |
 | `haus/modules/*` | the matching **room** under `haus/rooms/`, and `haus/desktops/*` when a desktop's values move |
 | a new or renamed nix option | `haus/reference/options.mdx` — **always**, and it is **generated**: `cd hausfold.co && npm run options -- --haus ../haus`. Never hand-edit it. An option a user can set and can't discover is a bug |
-| a new or changed keybind | the **room that owns the key** (`windows` for the tiling binds, `launcher` for ⌘Space, `ai` for the ⌘↵ lane chord). There is no standalone keybindings page. `npm run bindings:check` snapshots the window-manager binds only, not the other two |
+| a new or changed keybind | the **room that owns the key** (`windows` for the tiling binds, `launcher` for ⌘Space, `ai` for the ⌘↵ lane chord). There is no standalone keybindings page. `npm run bindings:check -- --haus ../haus` snapshots the window-manager binds only, not the other two — and those print on `desktops/hacker.mdx` (`#first-moves`) and `rooms/development.mdx` as well as `rooms/windows.mdx` |
 | `bench`, workshop `README.md` | `haus/internals/*`, workshop `README.md` / `AGENTS.md` |
 | `homebrew-tap`, release CI | `haus/install.mdx`, `haus/keeping-it-current.mdx` |
-| `org-profile` (the `hausfold/.github` repo) | `profile/README.md`, the org front page and the first thing anyone sees, plus `profile/assets/README.md`. Reconcile its repo list against `content/docs/index.mdx` |
-| `hausfold.co/` itself — shell, routes, landing pages | that repo's own `README.md` / `AGENTS.md`. The *docs* it serves are the rows above, not this one |
+| `org-profile` (the `hausfold/.github` repo) | `profile/README.md`, the org front page and the first thing anyone sees, plus `profile/assets/README.md`. Reconcile its repo list against `content/docs/meta.json` and the `#made` list in hausfold.co's `src/app/page.tsx`; there is no `/docs` index page, only the four trees |
+| `hausfold.co/` itself — shell, routes, landing pages | that repo's own `README.md` / `AGENTS.md`. The *docs* it serves are the rows above, not this one. 🚨 Never move anything out of `hausfold/ops`' name register and into it — that repo is private for a reason, and this one is the world |
 | a shot or asset placement anywhere | `assets/SHOTLIST.md` in the workshop |
 
 **Every repo is both an input and a target.** The question is never only "does this commit
@@ -131,7 +132,8 @@ Two spellings to correct on sight:
 Most commits need no doc change. Be a strict editor, not an eager one — and reach for the
 knife before the pen.
 
-**1. Cut.** The docs are too long before they are too short. Delete on sight:
+**1. Cut**, from the reader-facing surfaces: the site trees, product READMEs, the org
+front page. The docs are too long before they are too short. Delete on sight:
 - Anything **repeated** elsewhere. One fact, one home; everywhere else links to it.
 - Anything **history**: how a thing used to work, what it was called, when it moved, why
   it changed. Users don't care and it dates the page. Document the current version,
@@ -141,9 +143,14 @@ knife before the pen.
 - Anything a **haus user** would never act on: internal refactors, module plumbing,
   implementation trivia.
 
-  🔒 **The `haus/internals/` group is the exception, and only it.** Contributing and
-  flakes are written for someone working *on* the family, so mechanism, rationale and
-  detail are welcome there. History still isn't.
+  🔒 **`haus/internals/` is the exception on the site, and the only one.** Contributing
+  and flakes are written for someone working *on* the family, so mechanism, rationale and
+  detail belong there. History still doesn't.
+
+  🔒 **Off the site, this whole list stops applying.** `AGENTS.md`/`CLAUDE.md`, `notes/`,
+  `SPEC.md`, `ARCHITECTURE.md` and `bench`'s own comments are *written* in why-it-bit-us:
+  the trap, the date it bit, the fix. That narrative is the payload, not bloat. Correct
+  them when they're wrong; never cut them for length.
 
 **2. Correct.** No hesitation when the docs state something now factually wrong: a flag,
 path, default, keybind, option name, version or behavior that changed; a step that would
@@ -182,7 +189,9 @@ for tone.
   generated `options.mdx` is exempt; its text comes from haus.)
 - **Pretty.** The Fumadocs components are global, so a page imports nothing: `<Callout>`
   for the gotcha that will bite them, `<Steps>`/`<Step>` for ordered setup,
-  `<Cards>`/`<Card>` for parallel choices, tables for dense reference.
+  `<Cards>`/`<Card>` for parallel choices, tables for dense reference. They are **not**
+  Starlight's `<Aside>`/`<CardGrid>`, which are undefined here and fail the build. Keep the
+  frontmatter `description` accurate; it's the search and social snippet.
 - **Link, don't repeat.** Cross-link to `/docs/haus/reference/options/#…` rather than
   restating an option inline.
 - **Keep it honest.** Say what's read-only, what needs a permission, what's a non-goal.
@@ -190,14 +199,17 @@ for tone.
 
 ## Step 5 — the comment pass (one file a run)
 
-Every repo carries far more code comment than it needs. Step 3's rules apply there too:
-cut what's repeated, historical, obvious from the code, or no longer true. **Keep** the
+Every repo carries far more code comment than it needs. Cut what restates the line below
+it, what's repeated three files over, and what's simply no longer true. **Keep** the
 comment that encodes something nuanced — a reason, a trap, an ordering constraint, a "this
-looks wrong and isn't". Those are the ones worth their lines.
+looks wrong and isn't" — including the ones that earn it by naming what bit us and when.
+In code, that history *is* the reason. Step 3's cut-the-history rule is about reader-facing
+pages, not about `bench`'s margins.
 
 This is a rolling job, not a run's job. **One file per run, at most, and only when the doc
-half of the run was light.** Pick the fattest un-swept file, and don't hit the same repo
-two runs running:
+half of the run was light** — a no-op doc day is the best day for it, and the one PR such a
+day produces. Read `comments.done` in `.docs-sync.json` first: its last entry names the repo
+you skip this run. Then take the fattest un-swept file in another:
 
 ```bash
 grep -rcE '^[[:space:]]*(#|//|\*|--)' <repo> --include='*.nix' --include='*.swift' \
@@ -207,7 +219,7 @@ grep -rcE '^[[:space:]]*(#|//|\*|--)' <repo> --include='*.nix' --include='*.swif
 Then record it, so the next run doesn't re-read it. The key survives `--mark`:
 
 ```bash
-python3 - .docs-sync.json <path> <<'EOF'
+python3 - <workshop>/.docs-sync.json <path> <<'EOF'
 import json, sys
 p, *done = sys.argv[1:]
 s = json.load(open(p)); c = s.setdefault("comments", {}).setdefault("done", [])
@@ -252,6 +264,9 @@ git -C <repo> push -u origin docs-sync-<YYYY-MM-DD>
 gh pr create -R hausfold/<repo> --head docs-sync-<YYYY-MM-DD> \
   --title "docs: sync <YYYY-MM-DD>" --body-file /tmp/docs-sync-<repo>.md
 ```
+
+If that branch name is taken because an earlier PR merged the same day, use
+`docs-sync-<YYYY-MM-DD>-2` — in the `checkout -b`, the `push -u` **and** the `--head`.
 
 **One open → extend it.** Same commit shape, but **rewrite** the body rather than appending
 to it: a reviewer reads it once, at merge time, and two stacked findings lists make them
@@ -361,6 +376,9 @@ git -C <workshop> checkout --ours .docs-sync.json   # --ours IS origin/main, in 
 ./bench docs-since --mark
 git -C <workshop> add .docs-sync.json && git -C <workshop> rebase --continue
 ```
+
+`--ours` takes the whole file, so it also drops the `comments.done` line Step 5 just wrote,
+and `--mark` won't put it back. Re-apply it before `rebase --continue`.
 
 This is the one commit the sweep puts on `main` directly, and it's deliberate: it must
 advance even on a day that produced no PR. Content still only ever lands through a PR.

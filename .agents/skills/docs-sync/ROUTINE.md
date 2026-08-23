@@ -26,23 +26,16 @@ arrived pre-cloned somewhere else, move it into place rather than symlinking it 
 teaching bench a new path.
 
 **Most runs are no-ops, and that is a success.** If `bench docs-since` says nothing is
-new, say so and stop. No PR, no re-audit of docs no commit touched, no hunting for
-something to change.
+new, don't re-audit docs no commit touched or hunt for something to change — take the
+run's one comment file (Step 5) and stop.
 
-Hard limits:
+Three things nothing in here will tell you:
 
-- **Never merge, and never push to `main`** — except the Step 7 watermark commit, which
-  rebases first.
-- **Doc files only**, plus Step 5's comment-only edits. A fix that needs a code change
-  goes in the PR body; something structural gets a GitHub issue.
-- **PRs open ready for review, not as drafts.** If the harness defaults to draft, override
-  it.
-- **Every commit carries the `Docs-Sync:` trailer.** Without it the next run reads your
-  output as its input, forever.
-- **`--mark` last**, only after the PRs are open and only for what you actually
-  reconciled. Marking early loses the run silently.
-- **Never copy anything from `hausfold/ops`** (the name register) into a public repo. It
-  isn't cloned here; keep it that way.
+- **`hausfold/ops`, the name register, is not cloned here. Keep it that way** — nothing
+  from it goes into a public repo, and hausfold.co is the most public of them.
+- **PRs open ready for review.** If the harness defaults to draft, override it.
+- **The pre-cloned checkouts lie about `main`.** Step 0's callout has the tell and the
+  two-line fix; it costs the next run its whole backlog if you miss it.
 
 **Report like an index, not a duplicate** — the PR bodies carry the reasoning, and nobody
 reads a scheduled run's chat log. PR links, the two or three judgment calls closest to the

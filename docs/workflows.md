@@ -278,7 +278,7 @@ closes that gap once a day, and `bench` gives it its input:
 ```
 
 It is **watermark-based, not "since yesterday"**: a sweep that slept for four
-days still picks up all four, and one that fires twice in a day reads each
+days still picks up all four, and a day that fires two runs reads each
 commit exactly once. The watermarks live in `.docs-sync.json`, which is
 committed on purpose — the sweep runs as a scheduled routine in a throwaway
 container, so anything it must remember between runs has to be in the repo. The
