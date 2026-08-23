@@ -1,6 +1,6 @@
 # The agent's own Mac
 
-State, 2026-08-22. How an agent lane gets a macOS it is allowed to touch — boot
+State, 2026-08-23. How an agent lane gets a macOS it is allowed to touch — boot
 it, drive its UI, screenshot it — without ever reaching the screen the user is
 sitting in front of.
 
@@ -167,29 +167,58 @@ writes), `tart suspend` exists and beats a cold boot, and the plan's flock-based
 concurrency guard was never built. A `holt runtime` verb that reports what a
 lane's backend is costing would be worth more than the guard.
 
-### 3.4 `agent-desktop-guard` cannot tell a VM from the user's Mac
+### 3.4 `agent-desktop-guard` cannot tell a VM from the user's Mac · ✅ **DONE (haus#474)**
 
-`modules/ai/desktop-guard.sh` greps the command string, and a guest's address
-is not part of it. Fed real hook JSON, `ssh admin@192.168.64.5
-'osascript … activate'`, `… 'sketchybar --reload'` and `… 'darwin-rebuild
-switch'` each re-open the permission prompt — for actions that are, by
-construction, invisible to the user. That is the exact failure the guard's own
-comment warns about: "a long list stops being read and starts being clicked
-through."
+`modules/ai/desktop-guard.sh` grepped the command string, and a guest's address
+is not part of it. Fed real hook JSON, `ssh admin@192.168.64.5 'osascript …
+activate'`, `… 'sketchybar --reload'` and `… 'darwin-rebuild switch'` each
+re-opened the permission prompt — for actions that are, by construction,
+invisible to the user. That is the exact failure the guard's own comment warns
+about: "a long list stops being read and starts being clicked through."
 
-The mirror image is just as instructive: `ssh admin@… 'killall Dock'` does
+The mirror image was just as instructive: `ssh admin@… 'killall Dock'` did
 **not** match, because that pattern is anchored to a command boundary
-(`(^|[;&|] *)killall`) and the ssh quote isn't one. So the guard is
+(`(^|[;&|] *)killall`) and the ssh quote isn't one. So the guard was
 simultaneously too loud about the VM and blind to the one VM command that
 looks most like screen theft — both symptoms of matching text rather than
 target.
 
-The blunt escape hatch already exists: `HAUS_DESKTOP_OK=1`
-(`desktop-guard.sh:44`) turns the *whole* guard off for a pane, which is the
-wrong granularity for a lane that also touches the real Mac. The open decision
-is the fine-grained one — exempt a command whose first effective word is an
-`ssh` to a `192.168.64.0/24` guest — and it wants deciding before agents use
-the VM routinely, because the guard is what protects the real screen.
+**What shipped.** The guard splits a command at unquoted `;`, `&&`, `||`, `|`
+and newlines, drops the segments that run on another machine, and lets the
+patterns see only what is left. The split is quote-aware — `ssh h 'a; b'` is
+ONE remote segment, not a remote one and a local `b` — and length-preserving,
+so a segment that IS kept is re-emitted as its own original text rather than a
+masked copy. Two ssh shapes stay gated because both really do draw here: `-X`
+/`-Y` forwarding, and an ssh to `localhost`. Whatever the mask can't classify
+(a heredoc body, a `$(…)`, an ssh whose host is a variable) counts as local, so
+the failure mode is one extra prompt, never a missed one.
+
+Two things came with it. `tart run` **without `--no-graphics`** now asks — it
+opens the guest's window on the user's display, and is the one command in this
+whole flow that IS screen theft, which the guard had never heard of. And the
+`killall`/`aerospace` anchors gained the ` *` the `open`/`screencapture` ones
+already had, so an indented line stops escaping them.
+
+Measured against the built store copy, same hook JSON as the table above:
+
+| command | before | after |
+|---|---|---|
+| `ssh admin@<guest> 'haus rebuild'` | prompt | silent |
+| `ssh admin@<guest> 'sketchybar --reload …'` | prompt | silent |
+| `ssh admin@<guest> 'killall Dock; open -a Pounce'` | silent | silent |
+| `ssh admin@<guest> "…" && killall Dock` | silent | **prompt** |
+| `ssh localhost 'haus rebuild'` · `ssh -X …` | prompt | prompt |
+| `tart run <vm> --no-graphics &` | silent | silent |
+| `tart run <vm>` | silent | **prompt** |
+| `haus rebuild` · `open -a Ghostty` · `aerospace focus left` | prompt | prompt |
+
+`test/desktop-guard.bats` (11 cases, in CI, no Mac and no VM needed) pins both
+sides of that line, including the false-negative direction — a local command
+sitting beside a remote one. It runs green under all three awks that can turn
+up under it: macOS's BWK awk, Ubuntu's mawk and gawk.
+
+`HAUS_DESKTOP_OK=1` is still the blunt whole-guard hatch for a pane, and is now
+what it should always have been: for the long unattended run, not for the VM.
 
 ### 3.5 Nothing tells an agent any of this
 
