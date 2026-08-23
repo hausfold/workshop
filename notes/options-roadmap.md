@@ -1482,6 +1482,51 @@ here so it isn't mistaken for fallout of this migration.
       prose** — `modules/bar/default.nix:1692` and
       `:1799` are comments *about* the path, which is why the raw sum reads 18
       and why fifteen was exactly right when written (17 − 2 at `b1e263a`).
+      ★ **The line half is in review 2026-08-23 (haus#491, `09cdf5e`), and the box
+      stays open on the half it was actually open on.** With `haus.bar.enable`
+      on, the bar room now asserts that `haus.roster.sketchybar` is enabled,
+      installs from nixpkgs (`package` or `packageName`), and does so at
+      `scope = "system"` — in the same assertion block whose header already
+      says what it is for: *"a pill that cannot work, as opposed to one that
+      merely won't draw"*. The `scope` option's description gains the path half
+      too, so the precondition is readable where the option is rather than
+      where the bug is. It moves the count above by exactly nothing and the raw
+      sum by one: at haus#491's head the `git grep -c` sums to **19**, still
+      **sixteen** call sites, because the third occurrence it adds is the new
+      block's own comment — prose is now three (`modules/bar/default.nix:1582`,
+      `:1743`, `:1850`), which is the amendment's own subtraction rule surviving
+      first contact with a change that knew about it.
+      → ⚠️ **The first version of that check was wrong in three ways, and that
+      is the part worth keeping.** Written in one sitting against this box's own
+      description of the bug, it (i) tested the RAW
+      `config.haus.roster.sketchybar.package` while roster resolves
+      `packageName` → `package` in its own `let` before anything reads it — so
+      it **refused a working bar**, and specifically the one a data-only
+      desktop has to build, `packageName` being the only nixpkgs source such a
+      file can name; (ii) missed `enable = false`, the *documented* way to drop
+      a roster entry, which filters out before `packagesFor` ever runs while
+      `package` and `scope` still read fine — verbatim the failure the message
+      claims nothing else would say; and (iii) carried prose, in both the room
+      and the option, saying that moving the entry "back to a `brew`" breaks
+      the bar, when the room sets `package` at `mkDefault`, so merely adding a
+      brew installs the tool twice and leaves the bar working. All three came
+      back from the pre-PR assurance read and **none from the build — the clean
+      host built green with the broken check in place, twice.**
+      ★ The general form is drift.md's, not this section's: *a check written
+      from a description of the bug inherits that description's blind spots,
+      and the only thing that finds them is running the check against the cases
+      it is supposed to ALLOW.* Four branches were exercised in the end — three
+      that must fail, one that must build — because *"leave a check behind"* is
+      not satisfied by a check nobody has seen fail, and is not satisfied
+      either by one nobody has seen pass.
+      → **What did NOT ship is the question, and it is the same question.**
+      `binPath` (or `requiresScope`) is still unbuilt, so the second roster
+      entry a room addresses by path gets no help from this: it gets an
+      assertion written by hand, in that room, if whoever writes it happens to
+      know. The assertion is a fix for one entry; the box is about a format
+      that cannot express the precondition. Keep it open until the registry
+      answers, and read this tick as evidence that the cheap half is now cheap
+      enough to have been done — not as progress on the expensive one.
 
 ### 5.5 `haus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (haus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This
