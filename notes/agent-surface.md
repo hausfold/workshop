@@ -313,6 +313,26 @@ whose name is already right, and it means the *tool* decides its skill's folder
 name rather than whoever installs it. That is a real choice and this is where it
 is made; it is not implied by anything else here.
 
+**One skill is the shape; more than one is allowed, and each is a sibling
+directory.** A tool ships a second skill when it owns a job that has no verb —
+holt's `handoff` (writing the brief a `holt spawn --prompt-file` lane opens on)
+is the first, at `ai/handoff/SKILL.md` → `$out/handoff/SKILL.md` beside
+`$out/holt/SKILL.md`. Two rules keep that from becoming a dumping ground:
+
+- **The directory name and the file's own `name:` key must agree**, and every
+  guard runs per skill, not once on the first one. They are two identifiers for
+  one thing — the path a client scans and the string it routes on — and a
+  mismatch installs a skill under a name nothing ever asks for.
+- **A second skill has to be about the tool.** If it would read the same with
+  the tool's name swapped out, it is a personal workflow file and belongs in the
+  user's own config, not in a repo strangers install from.
+
+**Put the guards in a script the repo's CI runs, not in the `runCommand` body.**
+A guard only in the derivation runs on a developer's machine and nowhere else,
+because most of these repos build Go or Swift in CI and no Nix at all — which
+defeats the point, since every failure it catches is invisible at runtime. holt's
+is `script/check-skills.sh`, called by both `nix/skill.nix` and `check.yml`.
+
 haus is the one variant, in two ways, both legacy rather than exemption: its
 skill source is `modules/terminal/agents/SKILL.md` (a room's file, not a repo
 root's) and its derivation is flat, `$out/SKILL.md`, because it predates this
@@ -362,12 +382,16 @@ standard, however complete its SKILL.md is.
 
 | tool | A1 · CLI covers UI | A2 · JSON + exits | A3 · `skill` verb | A4 · SKILL.md | A5 · config file |
 |---|---|---|---|---|---|
-| **holt** | ✅ full lifecycle | ✅ `list --json`, `watch --json` NDJSON, exits 0–5 | ❌ | ❌ | ✅ `config.toml` |
+| **holt** | ✅ full lifecycle | ✅ `list --json`, `watch --json` NDJSON, exits 0–5 | ❌ | ✅ **two** — `holt` + `handoff` | ✅ `config.toml` |
 | **haus** | ✅ `set/get/options/status/plan/diff/doctor` | ⚠️ no `--json` on any verb | ❌ (skill exists, no verb) | ✅ generated | ✅ host file |
 | **pounce** | ⚠️ rich (`run`, `drafts`, `focus`, `doctor`, `config print`), but `drafts list` is TSV-only | ❌ no `--json` anywhere | ❌ | ❌ | ✅ `config.json` |
 | **trill** | ⚠️ `send`/`ping`/`doctor`; no read of what fired | ⚠️ `--json` **output** on `doctor` only (`send --json` is an *input* format) | ❌ | ❌ | ✅ `rules.json` |
 | **perch** | ❌ **`add` only** — cannot list or remove | ⚠️ `--json` on `add` | ❌ | ❌ | ❌ **`UserDefaults`** |
 | **nebelung** | ❌ no CLI at all | ✅ palette is JSON | ❌ | ❌ | n/a |
+
+holt's A4 cell is the one thing that has moved since the measurement: it now
+ships `ai/SKILL.md` and `ai/handoff/SKILL.md`, both built and guarded by
+`nix/skill.nix`. Every other cell still reads as measured.
 
 Reading the table: **A3/A4 is uniformly absent and uniformly cheap** — it is
 docs plus one verb, and it is what the user actually feels. **A1 is the
