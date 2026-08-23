@@ -255,18 +255,25 @@ gh pr list -R hausfold/<repo> --state open --search 'head:docs-sync-' --json num
 **One open PR per repo, growing until Julien merges it, is the shape.** A fresh PR per run
 buries the signal and hands the reviewer conflicts for free.
 
-**If Step 1 warned that this repo has commits read but not landed and no PR is open now,
-the previous one merged.** Say so, before you mark anything — it's what moves the repo's
-`landed` watermark up to its `read` one and clears the ⚠:
+**If Step 1 warned that this repo has commits read but not landed, find out which way its
+last PR went** — no PR open is equally consistent with *merged* and with *closed unmerged*,
+and the two want opposite answers. Ask, don't infer:
+
+```bash
+gh pr list -R hausfold/<repo> --state merged --search 'head:docs-sync-' \
+  --limit 1 --json number,mergedAt
+```
+
+**Merged** → say so, and the ⚠ clears:
 
 ```bash
 ./bench docs-since --landed <repo>
 ```
 
 Order matters: `--landed` catches `landed` up to whatever `read` holds *right now*, which
-is still the value the merged PR covered. Run it here, before Step 7's `--mark` moves
-`read` on. If that PR was **closed unmerged** instead, don't run it — the ⚠ is telling the
-truth, and those corrections need to ride again in the PR you're about to open.
+is still the value that merged PR covered. Run it here, before Step 7's `--mark` moves
+`read` on. **Closed unmerged** → don't run it. The ⚠ is telling the truth, and those
+corrections have to ride again in the PR you're about to open.
 
 **None open → start one:**
 
@@ -395,12 +402,16 @@ sense of the words**, which is backwards from the one you want: mid-rebase `--ou
 
 ```bash
 git -C <workshop> checkout --ours .docs-sync.json   # --ours IS origin/main, in a rebase
+./bench docs-since --landed <repo>…                # whatever Step 6 confirmed merged
 ./bench docs-since --mark --pending <repo>…
 git -C <workshop> add .docs-sync.json && git -C <workshop> rebase --continue
 ```
 
-`--ours` takes the whole file, so it also drops the `comments.done` line Step 5 just wrote,
-and `--mark` won't put it back. Re-apply it before `rebase --continue`.
+`--ours` takes the whole file, so it also drops two things `--mark` won't put back: the
+`comments.done` line Step 5 wrote, and any `--landed` catch-up from Step 6 — `--mark`
+reads the old `landed` out of the file that was just reverted, so a merged PR would go
+back to warning forever. Re-run the `--landed` and re-apply the `comments.done` line
+before `rebase --continue`.
 
 This is the one commit the sweep puts on `main` directly, and it's deliberate: it must
 advance even on a day that produced no PR. Content still only ever lands through a PR.

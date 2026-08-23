@@ -196,7 +196,9 @@ _bench() {
               workshop $(_bench_array FAMILY nebelung pounce perch holt haus)
               org-profile homebrew-tap trill hausfold.co
             )
-            _describe -t repos 'repo' docs_repos && ret=0
+            # Subtract what's already typed, like every other repo arm here.
+            local -a left=( ${docs_repos:|typed} )
+            _describe -t repos 'repo' left && ret=0
           fi
           ;;
 

@@ -286,7 +286,8 @@ stays put. Anything between the two prints as a ⚠ — *`haus`: 14 commits READ
 not landed*. Without that split a sweep could open a PR nobody merged, mark
 those commits read forever, and never look at them again: the docs stayed wrong
 and the run reported itself clean, which is indistinguishable from a quiet day.
-
+Only `--landed` ever closes a gap: a `--mark` that forgets to name a repo leaves
+its gap standing rather than quietly claiming it documented.
 
 It is **watermark-based, not "since yesterday"**: a sweep that slept for four
 days still picks up all four, and a day that fires two runs reads each
