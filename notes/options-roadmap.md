@@ -2143,10 +2143,20 @@ only the second was ever this document's:**
   above** — a policy still says one thing and two desktops still do another,
   and the write is still one-way for anyone who rebuilt before reading this.
   It retires the *decision*, so a later pass re-deriving §5.6's exception
-  finds a choice rather than an oversight. One loose end, cosmetic (1/5): with
-  the shelf off the leaf still *reads* `true` on `minimal` and `blank`,
-  because the default is unconditional and only its effect is gated — `haus
-  show` on those desktops would report a switch that does nothing.
+  finds a choice rather than an oversight. One loose end, cosmetic (1/5) and
+  **already closed**: with the shelf off the leaf still *read* `true` on
+  `minimal` and `blank`, because the default was unconditional and only its
+  effect is gated, so `haus get`, the `haus set` picker and the annotated host
+  file each offered a switch with nothing behind it.
+  [haus#467](https://github.com/hausfold/haus/pull/467) makes the default
+  `config.haus.shelf.enable` — the `developer.git.enable` shape — the same day.
+  ⚠️ This note first named **`haus show`**, which reads a desktop FILE and
+  never a machine's resolved values; the same wrong surface was already
+  load-bearing in `modules/shelf/default.nix`, where the argument for routing
+  the write through a named option rested on it, and haus#467 corrects it
+  there too. Twice in one section, from two authors, about a command whose own
+  footer says what it does not do — worth §5.14's attention if it happens a
+  third time.
 - **Should the policy be stated over VALUES rather than declarations, and
   checked?** That one is structural, still open, and it is the box below.
 
