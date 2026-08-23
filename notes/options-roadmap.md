@@ -1472,14 +1472,16 @@ here so it isn't mistaken for fallout of this migration.
       literal is hardcoded at **sixteen call sites**, still nine files, still
       three rooms: haus#484 (`a6d1474`, 09:40:29Z) added
       `bar/sketchybar/aerospace-notify.sh:26`, an `aerospace_tiling_change`
-      trigger, from the **windows** room, for a reason with nothing to do with
-      `scope`. The box's thesis is that the literal spreads; it spread once
-      inside the box's first afternoon, from a room that has no reason to know
-      the box exists, and nothing but this box would notice. Derive it with
-      `git grep -c '/run/current-system/sw/bin/sketchybar' -- modules` **minus
-      the two occurrences that are prose** — `modules/bar/default.nix:1692` and
+      trigger — in the **bar** room, so the three-room count holds; added by a
+      **windows**-room PR, for a reason with nothing to do with `scope`. The
+      box's thesis is that the literal spreads; it spread once inside the box's
+      first afternoon, from a PR that has no reason to know the box exists, and
+      nothing but this box would notice. Derive it at a rev, never off the
+      working tree: `git grep -c '/run/current-system/sw/bin/sketchybar'
+      7968b7f -- modules` sums to 18, **minus the two occurrences that are
+      prose** — `modules/bar/default.nix:1692` and
       `:1799` are comments *about* the path, which is why the raw sum reads 18
-      and why fifteen was exactly right when written (17 − 2).
+      and why fifteen was exactly right when written (17 − 2 at `b1e263a`).
 
 ### 5.5 `haus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (haus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This

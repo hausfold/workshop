@@ -162,7 +162,7 @@ catch:
 | an IMPOSSIBILITY claim whose remedy is ALREADY IN THE REPO — row sixteen with the search moved inward: not "could we build this ourselves" but "did we already, and forget" *(thirty-eighth pass — `modules/ai/default.nix`'s *"the names are UNVERIFIABLE from here, by construction"*, written at haus `561af88` nine days after the same class was closed in `modules/theme/ports.nix` and terminal's `glowPlugin`, on this file's own fourteenth-pass box)* | grepping the repo for the FIX before writing down that there isn't one — the identifier, not the sentence, which is row fifteen's tell pointed at a remedy instead of at a claim. The reason this survives row sixteen's check is that the impossibility argument here is **half true and precisely stated**: listing a derivation's contents at eval time really is import-from-derivation, really would fire on `haus get`, and the comment says so correctly. What it never asks is whether the check has to happen at eval time at all — `runCommand` turns the same assertion into a build dependency and is not IFD. A wrong reason gets re-examined; a right reason carrying the wrong conclusion is quoted. And the cost of not asking is not a stale doc: it is a dangling symlink in a user's home with eval, `nix flake check` and the home-files build all green |
 | a DECISION that is right, propped up with support nobody checked — the reasoning stands without the extra clauses, and the extra clauses are what a later reader verifies *(twenty-fifth row, written from inside this file on the commit that created it: four claims in `55235fc`'s new prose — "thirty-six dated entries link to it by that name" (zero do), "cited by number across four repos" (two), "source comments in `haus` cite rows by number" (no `.nix` or `.sh` in that repo mentions §5.14 at all), and a header promising the file "holds no work" twelve lines above its one open box)* | asking, of each clause supporting a decision you have already made, whether deleting it would change the decision. If not, it is decoration, and decoration is the part that gets checked — a reader who catches one false support clause re-opens the whole decision, including the half that was sound. This is row twenty-two's *width* problem aimed at a rationale rather than at a correction, and it is the cheaper failure to make: nobody sets out to invent evidence, they reach for a second reason because one felt thin. Every instance above was written in the same twenty minutes, by the same author, **while moving the table that contains row twenty-two** |
 | a STABILITY claim measured by an instrument NARROWER than the claim — the metric is honest, its dimension is not the one that moved, and "unchanged" comes back true reading after reading *(thirty-ninth pass — "318 leaves, key for key" carried four headlines from `ff8ecf3` to `56697b7`, 21 h 59 m, while `haus.displays.<name>.uiScale` gained a fifth legal value in haus#478 and the key set never twitched)* | diffing the instrument's output at a SECOND dimension before writing "unchanged" — here one substitution, `jq -Sr 'to_entries[]\|"\(.key)\t\(.value.type)"'` in place of `jq -r 'keys[]'`, which is how this was found. The tell is a claim whose subject ("the option surface") is wider than the measurement's ("the option NAMES"): a new legal value is the most stranger-visible growth an option can have short of a new option — it is precisely what a desktop author may now write — and a key-set diff cannot see one. Distinct from row twenty, which is a check whose snapshot refreshes while the prose it protects rots: this instrument refreshes nothing and is not wrong, it is aimed one dimension away from the sentence it is quoted for. And what let it survive four readings is that it kept being RIGHT — four true "unchanged"s are what made the fifth feel like confirmation rather than a measurement, which is the same trap row twenty-five names one level up, a sound claim propped on support nobody re-derived |
-| a REMEDY named in shipped instructions and MEASURED to be a no-op by the same repo — the advice still parses, still exits 0, and produces nothing; the room that ships it is not the room that measured it, and the falsification is not LATER than the claim but beside it, in the same rev *(fortieth pass — `modules/ai/default.nix:260`'s *"`open -g` launches without activating"*, live as line 80 of `~/.claude/CLAUDE.md` on every machine the layer installs, and `desktop-guard.sh:243` handing an agent that same form as the compliant one, 49 seconds after `lane-open.sh:236` recorded that `open -g -na Ghostty.app` "leaves a live Ghostty process with NO window, ever")* | grepping for the MECHANISM a commit falsifies — the identifier, not the sentence — inside the PR that falsifies it: `git grep -n 'open -g'` at `4151ac0` is **14 hits in 6 files**, of which that PR touched two, both places where the measurement is written DOWN. This is row twenty-four's search pointed the other way — row twenty-four asks *did we already build the fix and forget*, this asks *who else is quoting the thing I just disproved* — and it needs its own row because neither surface §5.14 polices can see it and neither can a check: `test/desktop-guard.bats` came back green **while pinning `open -g -a Ghostty` as the approved silent form**, because a fixture pins the SHAPE it was written for and knows nothing about whether that shape still works. Row twenty aimed at a fixture instead of a snapshot. And the cost is not a stale doc — it is every agent on every installed machine following an instruction to a command that exits 0 and draws nothing |
+| a REMEDY named in shipped instructions and MEASURED to be a no-op by the same repo — the advice still parses, still exits 0, and produces nothing; the room that ships it is not the room that measured it, and the falsification is not LATER than the claim but beside it, in the same rev *(fortieth pass — `modules/ai/default.nix:260`'s *"`open -g` launches without activating"*, live as line 80 of `~/.claude/CLAUDE.md` on every machine the layer installs, and `desktop-guard.sh:243` handing an agent that same form as the compliant one, all at haus `7968b7f`, 49 seconds after `4151ac0` landed `lane-open.sh:238`'s *"leaves a live Ghostty process with NO window, ever"*)* | grepping for the MECHANISM a commit falsifies — the identifier, not the sentence — inside the PR that falsifies it: `git grep -n 'open -g'` at `4151ac0` is **14 hits in 6 files**, of which that PR touched two, both places where the measurement is written DOWN. This is row twenty-four's search pointed the other way — row twenty-four asks *did we already build the fix and forget*, this asks *who else is quoting the thing I just disproved* — and it needs its own row because neither surface §5.14 polices can see it and neither can a check: `test/desktop-guard.bats` came back green **while pinning `open -g -a Ghostty` as the approved silent form**, because a fixture pins the SHAPE it was written for and knows nothing about whether that shape still works. Row twenty aimed at a fixture instead of a snapshot. And the cost is not a stale doc — it is every agent on every installed machine following an instruction to a command that exits 0 and draws nothing |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -771,8 +771,10 @@ evidence.
 > "leaves a live Ghostty process with NO window, ever, and the initial-command
 > NEVER RUNS — so no zmx session, no client, no lane: a Dock icon and nothing
 > else." It goes on to name the reason nothing downstream noticed for as long as
-> ⌃↵ has existed: **`open` returns the moment LaunchServices accepts**, so the
-> whole chain exits 0 over a window that was never drawn.
+> ⌃↵ has existed: **`open -na` returns the moment LaunchServices accepts** —
+> the note's own words, about the flags it measured — so the whole chain exits
+> 0 over a window that was never drawn. Plain `open` returning the same way is
+> an inference from the same mechanism, not something #487 measured.
 >
 > That is the exact mechanism three other sites recommend, and **the PR touched
 > none of them.** `git grep -n 'open -g'` at `4151ac0` returns **14 hits in 6
@@ -790,9 +792,20 @@ evidence.
 > - **`test/desktop-guard.bats:66`** — `silent 'open -g -a Ghostty'`. A fixture
 >   pinning as the approved quiet form the flag-and-app pair the same rev
 >   measures as producing no window. **Ghostty is the app it names.**
-> - **`modules/shelf/default.nix:329`** — `open -g "$perchDest"`, on a *file*
->   rather than an app, and the one of the four that is not touched by any of
->   this. It is here because the row must not be read wider than the evidence.
+> - **`modules/shelf/default.nix:329`** — `open -g "$perchDest"`, where
+>   `perchDest` is `/Applications/Perch.app`. This was first written up as a
+>   *file* open and excluded on width grounds; **that was wrong, and the pre-PR
+>   assurance read caught it.** It is an app-bundle launch by path — `open -g
+>   -a Perch` spelled differently — and the fifteen lines under it poll `pgrep
+>   -qU … -f "^$perchExec$"` and then print *"perch: shelf back up"*. A `pgrep`
+>   liveness probe cannot tell a process that drew from one that did not, which
+>   is exactly the blindness #487 named; the comment four lines above it reads
+>   *"a rebuild that says it put the shelf back and didn't is the bug this whole
+>   block exists to stop being invisible."* ⚠️ **Unmeasured**, and left that
+>   way: nothing here shows Perch behaving like Ghostty under `-g`, and finding
+>   out means relaunching a live shelf on someone's Mac. The finding is the
+>   shape of the probe, not a failure — and the exclusion sentence it replaces
+>   was doing the opposite of what it claimed.
 >
 > ⚠️ **What is measured and what is not.** #487 measured Ghostty, with `-n` and
 > `--args --initial-command`. Nothing here proves `open -g -a Preview` fails,
@@ -807,12 +820,22 @@ evidence.
 > twenty-four says: before writing that something is impossible, grep for the
 > fix. This says: before merging a commit that falsifies a MECHANISM, grep for
 > the mechanism's other readers — the identifier, not the sentence. Fourteen
-> hits, six files, one command, inside the PR that already knew. And note which
+> hits, six files, one command, inside the PR that already knew — **and one
+> repo, which is that census's own limit.** The same identifier across the
+> family finds two more readers, neither in `haus`: `hausfold.co`'s
+> `content/docs/haus/rooms/ai.mdx:379` carries the guard's table as a
+> *published* page and lists `open -ga Ghostty` under **"Silent: no prompt"** —
+> the instruction's public copy, hand-written, no check, naming the same app;
+> and `pounce`'s `pkgs/pounce-commands/commands/update-pounce.sh:108` is `open
+> -g "$APP"` on a `Pounce.app` path, the same shape as `shelf:329` and equally
+> unmeasured. `holt`, `perch`, `nebelung` and this repo: zero. And note which
 > surface failed: the layer has a check for this class, `test/desktop-guard.bats`
 > — it ran green, because a fixture pins the *shape* it was written for and
 > knows nothing about whether the shape still works. Row twenty pointed at a
 > fixture instead of a snapshot. **Row twenty-seven**, and the fix is a PR in
-> `haus`, not a sentence here.
+> `haus` and one in `hausfold.co`, not a sentence here. Pounce is recorded and
+> not touched: changing an update path on an unmeasured hunch is the worse
+> trade.
 >
 > ★ **Second: the correction that reported itself applied at two sites was
 > applied at one — and it is the rule that exists to prevent exactly this.** The
@@ -832,13 +855,14 @@ evidence.
 > for the sixth consecutive reading, and **byte-identical to `56697b7` at every
 > field**, not just key and type: `diff <(jq -S . A) <(jq -S . B)` is empty.
 > Widening the instrument shortens the span you may honestly claim, which is the
-> thirty-ninth pass's point turned on its own fix — the key set has been quiet
-> for 23 h 16 m, the whole leaf only since `7be2ae0` (09:27:03Z, haus#483), **1
-> h 50 m**.
+> thirty-ninth pass's point turned on its own fix — the passes have read the
+> key set unchanged across 23 h 16 m (it has in fact been unchanged since
+> `e7fd997`, 2026-08-22T10:40:10Z, **24 h 37 m**), while the whole leaf has been
+> still only since `7be2ae0` (09:27:03Z, haus#483), **1 h 50 m**.
 >
-> **And the foundation, for the first time in forty passes.** Six headlines have
-> led with a number read out of a COMMITTED artifact, and none had asked what
-> forces the committed copy to equal the module system. It is
+> **And the foundation, for the first time in forty passes.** Six readings have
+> taken a number out of a COMMITTED artifact, and none had asked what forces
+> the committed copy to equal the module system. It is
 > `checks.<system>.site-data-current`, and all three of its load-bearing
 > properties hold: it is in the **all-systems** set (`nix eval
 > .#checks.x86_64-linux --apply builtins.attrNames` lists it among twenty), CI
@@ -856,8 +880,9 @@ evidence.
 > literal string fifteen call sites in nine files across three rooms now
 > hardcode"*. At `7968b7f` it is **sixteen call sites**, still nine files, still
 > three rooms — haus#484 (`a6d1474`, 09:40:29Z) added
-> `bar/sketchybar/aerospace-notify.sh:26`, an `aerospace_tiling_change` trigger,
-> from the **windows** room, for a reason with nothing to do with `scope`. The
+> `bar/sketchybar/aerospace-notify.sh:26`, an `aerospace_tiling_change` trigger
+> — in the **bar** room, so the three-room count holds; added by a
+> **windows**-room PR, for a reason with nothing to do with `scope`. The
 > box's thesis is that the literal spreads; it spread once in the first four
 > hours and fifteen minutes of the box's life, and the box is the only thing in
 > the repo that would notice.
@@ -876,8 +901,11 @@ evidence.
 > 11:12:01Z) regenerates `reference/options.mdx` from haus `56697b7`'s
 > site-data, and its body says so — *"Found by the workshop's options-roadmap
 > thirty-ninth pass"*. It corrected **five** option entries, not the one the pass
-> named, and then three hand-written pages beside them (`rooms/displays.mdx`,
-> `agent-rebuilds.mdx`, `rooms/focus.mdx`) that no check covers at all: the
+> named, and then **five** hand-written pages beside them
+> (`rooms/displays.mdx`, `agent-rebuilds.mdx`, `rooms/focus.mdx`,
+> `rooms/ai.mdx` and `desktops/customizing.mdx`) that no check covers at all —
+> the last two out of #137's own pre-PR assurance read, which is this same
+> class one level down. The
 > weekly options-drift cron would have caught the generated page and never the
 > prose. **Row twenty again — and for the first time measured across a repo
 > boundary, where the check and the prose it fails to protect are in different
