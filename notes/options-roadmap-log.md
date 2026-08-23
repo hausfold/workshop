@@ -14,8 +14,8 @@
 > and they did come from there.
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirty-fifth (2026-08-22) back to the first (2026-08-02) —
-thirty-six blocks, because 2026-08-04 carries two and only one of them was
+from the thirty-sixth (2026-08-23) back to the first (2026-08-02) —
+thirty-seven blocks, because 2026-08-04 carries two and only one of them was
 numbered. It was the roadmap's own preamble until 2026-08-20, when it had
 grown to 2,393 lines — larger than every other file in `notes/` put together,
 and sitting between the document's title and its §1.
@@ -38,6 +38,155 @@ archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
 
 ---
+
+> **Status, 2026-08-23 (thirty-sixth pass) — the correction reached the
+> INSTANCE and not the CLAIM. The sentence haus#467 fixed has a twin twelve
+> lines below it, in the same comment, carrying the same argument, authored by
+> the same commit, and it is still standing. And the reason both corrections
+> give — *`haus show` reads a desktop FILE and never a machine's resolved
+> values* — is false: run here, it reads this machine's resolved value for 23
+> leaves, ranks every one of them, and calls three `overridden`. The true
+> reason is narrower and unquotable: no file NAMES the leaf.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's
+> sharpening): workshop `main` = `origin/main` = `7ca290d`, haus = `8c1fa43`,
+> perch = `0d7780d`, hausfold.co = `c942439`. pounce is `aabd99a` and holt
+> `1ba98aa`, both unmoved since the thirty-fifth pass's own revs; nebelung is
+> `5d5d0a2`, unmoved since 2026-08-20 — three facts about three revs and not a
+> licence to skip §5.9 (row nineteen). **This family's local time is UTC−5 and
+> this window crosses midnight**: times below are UTC as always, so the block is
+> dated 2026-08-23 while the day at the keyboard was still 2026-08-22. The
+> thirty-fifth pass has the mirror of it — headed 2026-08-22, its own commit
+> `5accf9a` landed 2026-08-23T03:26:27Z — so a reader comparing the two headers
+> to the two commit dates finds a day that does not line up in either
+> direction, and both are right.
+>
+> Landed since the thirty-fifth pass's revs: **three haus commits** — two PRs
+> (#466 03:25:52Z, #467 04:05:04Z) and one lock bump (04:08:16Z) — **two perch**
+> (#84 2026-08-22T12:36:01Z, #85 2026-08-23T03:32:33Z), **two hausfold.co**
+> (#129 2026-08-23T03:01:20Z, #130 2026-08-23T04:07:45Z), **six workshop**
+> (#431 — the thirty-fifth pass itself — #432, #433, #435, #436 and a docs-sync
+> watermark), and nothing in pounce, holt or nebelung.
+>
+> **The count is 10 at `7ca290d`**, re-derived with the command the last eight
+> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-fifth
+> pass predicted. This pass amends §5.6's loose-end note — striking a false
+> clause in place rather than rebutting it below, which is row twenty-two aimed
+> at this pass's own diff — adds a §5.14 row, and opens and closes no box, so
+> the pass after this one should also find 10. It also rotates the log, per the
+> log's own rule that the three most recent passes stay here: the thirty-third
+> moves to [`options-roadmap-log.md`](options-roadmap-log.md) unedited, and both
+> pointer counts are re-COUNTED rather than incremented (34), which is the
+> correction the thirty-third pass asked for and did not get.
+> `docs/site-data/options.json` at `8c1fa43` is **318 leaves in 35 namespaces**,
+> both unchanged; haus#466 inserted 397 lines and none of them is an option.
+>
+> ★ **First, and it is the pass: two sentences, one comment, one commit — and
+> the fix reached one of them.** haus#461 (`e7fd997`, 2026-08-22T10:40:10Z)
+> wrote both. The first argued the screenshot write should go through a named
+> option because it would then be *"readable as a named option in `haus show`
+> and the reference"*; the second, twelve lines down and closing the same
+> argument, says *"Through the option rather than the plist key direct, so the
+> generated option reference and `haus show` describe what the machine actually
+> does. That is the whole gain and it is worth being exact about."* haus#467
+> (`bf1c1ea`, 2026-08-23T04:05:04Z — **17 h 24 m 54 s** later) corrected the
+> first, in place, with a parenthetical naming the wrong surface and the right
+> one, and its own message enumerates what it
+> fixed — *"Two stale comments fixed in the same change, both found by the
+> assurance read"*, one here and one in `modules/options-modules.nix`. The twin
+> is neither of them. At `8c1fa43`,
+> `grep -n 'haus show' modules/shelf/default.nix` returns exactly two lines —
+> **219, the correction, and 231, the claim it is about** — and
+> `modules/shelf/options.nix`'s new comment says *"the claim two files over in
+> ../shelf/default.nix was wrong about which surface"*, singular, about a file
+> holding two of it.
+>
+> ★ **Second, and it is why the twin survived: the reason everybody stated is
+> wrong, and the right one cannot be quoted.** Re-run at `8c1fa43` rather than
+> cited: `haus show --json ./desktops/hacker.nix` reports 23 leaves in `.sets`
+> — neither `haus.shelf.watchScreenshots` nor `haus.screenshots.thumbnail`
+> among them, so the claim's *conclusion* holds — and its `.machine.leaves`
+> block carries the same 23, **every one with a `prio`**, 20 `unchanged` and
+> **3 `overridden`**. A verdict of `overridden` is a statement that something
+> on this machine outranks the file, and it cannot be computed without
+> evaluating this machine: `modules/core/haus-show.sh:520-585` reads
+> `o.highestPrio` and `o.value` out of `darwinConfigurations` of the user's own
+> consumer flake, over a path list that is `[.sets[].path]` plus the leaves the
+> machine's CURRENT desktop sets and the candidate does not (`dropped`). So
+> `haus show`'s boundary is the **leaf set, not the layer**: it reads resolved
+> machine values for every leaf some file names, and it misses
+> `haus.screenshots.thumbnail` because no file names it — the write lives
+> inside a room's `mkIf`, which is exactly what the thirty-fifth pass found and
+> exactly what neither correction says. The *outcome* both corrections reach is
+> right, and was re-checked here: `haus get haus.screenshots.thumbnail` prints
+> `false` on this machine at `8c1fa43`.
+>
+> ⚠️ **And the published documentation has been right about this the whole
+> time.** `content/docs/haus/reference/haus.mdx` at hausfold.co `c942439`
+> describes the command as *"see what it would change on this Mac"*, and
+> `modules/core/haus-show.sh`'s own help and footer say only that it is *"a
+> leaf diff, not a rebuild preview"* — neither ever claimed the machine was out
+> of the evaluation. The false version exists only in source comments and in
+> this file, i.e. in exactly the two places no docs check reads, written by
+> people correcting each other about a command whose user-facing text they did
+> not need to open.
+>
+> **Three statements of the wrong reason, two of them corrections, inside 41
+> minutes.** The thirty-fifth pass wrote *"with your own config never part of
+> the evaluation"* (`5accf9a`, 03:26:27Z) — this document's own, and the first;
+> haus#467's parenthetical repeated it at 04:05:04Z; workshop#435 put it in
+> §5.6 at 04:07:48Z, 2 m 44 s later, in a ⚠️ correcting a different error in
+> the same sentence. **The generalisable half is the width of the reason, not
+> the number of copies.** The fact that justified all three is narrow, specific
+> and dead on arrival as prose — *this desktop file does not set that leaf, and
+> `haus show` reports the leaves a file sets*. The reason each author reached
+> for instead is a rule about the command — *it never reads your machine* —
+> which is memorable, general, load-bearing for the next argument, and false.
+> A correction is written at the moment of maximum confidence about a single
+> line, and the sentence it produces is the one later readers cite; row
+> twenty-two below.
+>
+> ⚠️ **§5.6's own trigger had already fired when it was written.** The note
+> added at 04:07:48Z ends *"Twice in one section, from two authors, about a
+> command whose own footer says what it does not do — worth §5.14's attention
+> if it happens a third time."* The third instance was 17 hours old at that
+> moment, sitting in the file the note is about, and the fourth is the note's
+> own next clause. A condition stated as a future test, met in the past, by the
+> text being corrected: it is worth naming because the note is *right* — the
+> repetition is the finding — and the only thing that failed was looking for it
+> where it already was. Amended in §5.6.
+>
+> ★ **Third, smaller and worth a line: the published reference has started
+> printing rules instead of values, and there are three of them.** haus#467
+> gives `haus.shelf.watchScreenshots` `default = config.haus.shelf.enable` with
+> a matching `defaultText`, so `options.json` at `8c1fa43` now holds **three**
+> leaves whose default is an expression naming another option —
+> `developer.git.enable`, `developer.toolbelt.enable` and this one, all three
+> `config.haus.<x>.enable`. `haus set`'s picker declines to prefill them —
+> `modules/options-catalogue.jq:45-50` makes `pasteable` false when
+> `defaultText | test("\\bconfig\\.")`, re-read here rather than taken from
+> haus#467's message, which says the same thing — which is honest; the
+> reference prints the expression, which is also honest and is the first time a
+> stranger reading that page learns a rule where every other
+> row hands them a value. Nothing is wrong and nothing is checked: no surface
+> resolves it for a reader, which is the thirty-fifth pass's declaration/value
+> gap arriving on the *documentation* side of the same option, one day later.
+>
+> ⚠️ **And one on the check, which inverts row twenty.** hausfold.co#130 fixed
+> two stale copies of that default and its own message sorts them: the
+> generated `reference/options.mdx` **has** a drift check and it is a weekly
+> cron, so left alone it could have said `true` for up to a week; the
+> hand-written `rooms/shelf.mdx` has none and would never have been caught —
+> and it was fixed **2 m 41 s** after the merge, because the person who moved
+> the default was still holding the change. The copy with a check was the slow
+> one and the copy without a check was fixed by proximity, not by tooling.
+> Same coin as the thirty-fourth pass's four days and the thirty-fifth's 59
+> seconds, third toss: what fixes a copy is whether somebody had a reason to
+> have the file open, and a check only changes *the ceiling* on how long it can
+> stay wrong.
+
 
 > **Status, 2026-08-22 (thirty-fifth pass) — the surface grew by one leaf, and
 > that leaf turns a macOS setting off on two of the four shipping desktops.

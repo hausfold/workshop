@@ -2821,8 +2821,15 @@ on macOS 26. Don't expose `1920×1200`; expose intent:
 
 ```nix
 haus.displays.internal.uiScale = "larger-text";
-# more-space | default | larger-text | largest-text
+# more-space | default | slightly-larger-text | larger-text | largest-text
 ```
+⚠️ **The fence read four values until 2026-08-23** — every one of them still
+legal, and the list no longer complete. haus#478 (`mergedAt 07:48:54Z`) added
+`slightly-larger-text` because the four assumed a ladder as short as the 14"
+MacBook Pro's: a 27" 5K reports nine rungs, so `larger-text` landed four below
+the default. §5.14's twenty-first shape, second instance, and it rotted here
+rather than in a box because a ✅ header tells a reader nothing in the section
+needs checking — a fence is neither a §5 checkbox nor a §6 phase line.
 
 - [x] Persistent display UUID exists → key profiles by UUID, not index
 - [x] `CGDisplaySetDisplayMode` is public API → ship a small Swift helper,
@@ -2832,13 +2839,23 @@ haus.displays.internal.uiScale = "larger-text";
 - [x] Applying a mode is proven end-to-end on the internal panel: `default`
       (`1512×982`) → `larger-text` (`1147×745`) → `default`, with CoreGraphics
       reporting the requested mode current after each change (2026-07-30)
-- [ ] Multi-display arrangement is still untested (only one display was attached).
-      Test on the dock before designing `profiles.docked`
+- [ ] Multi-display arrangement is still untested. ~~(only one display was
+      attached)~~ Test on the dock before designing `profiles.docked`
+      ⚠️ **The blocker went away and this box did not move (2026-08-23,
+      thirty-ninth pass).** haus#478 was *"verified against both attached
+      panels"*, and at haus `56697b7` `hausdisp list` reports `active displays:
+      2` — a Studio Display (**main**, nine rungs) beside the internal panel's
+      five. So the dock is here; what is still untested is *arrangement*, and
+      `profiles.docked` remains undesigned (`git grep -ni
+      'profiles\.docked\|arrangement' -- modules/displays` is empty). The box
+      keeps its subject and loses its precondition — §5.14's sixth shape,
+      second instance.
       ⚠️ **The setup this box names is more expensive than the failure beside
       it (thirty-first pass).** Two rooms answer "is this the built-in?" with the
       literal `"Built-in Retina Display"` — `windows`, in six rows of the
       generated `aerospace.toml` (four in the template, two more written by
-      `monLine`), and `terminal` since haus#424, at `float-term.sh:233`,
+      `monLine`), and `terminal` since haus#424, at ~~`float-term.sh:233`~~
+      `float-term.sh:364` (the line moved; `:233` was true at `4e2dd61`),
       where a popup's geometry turns on `name === "Built-in Retina Display"`
       (AeroSpace treats the same key as a **regex**; the file prices the
       divergence at 20/36 instead of 10/10). Neither goes through
@@ -2851,7 +2868,16 @@ haus.displays.internal.uiScale = "larger-text";
       product name: a desktop is portable and its gap selector is not. That
       reproduces on **one** display, on any Mac whose built-in panel reports a
       different `localizedName` — identity, not arrangement, and no dock
-      required. `hausdisp list` settles which Macs diverge in one command.
+      required. ~~`hausdisp list` settles which Macs diverge in one command.~~
+      ⚠️ **It does not, and cannot as written (thirty-ninth pass).** `hausdisp
+      list` prints a kind, a UUID and a mode ladder; `localizedName` appears
+      nowhere in `modules/displays/hausdisp.swift` at `56697b7`. The command
+      that answers it belongs to the room with the problem — `aerospace
+      list-monitors --json`, which on this Mac returns `Studio Display` and
+      `Built-in Retina Display`, so the literal holds here and the divergence
+      stays unproven. A box naming its own remedy reads as cheap; a reader
+      would have discovered this one wasn't runnable only after committing the
+      session to it.
 
 ### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M · ✅ **closed 2026-08-14 — the four commands shipped and were felt (rice#248), and the last two rendering boxes landed in haus#353**
 Before strangers' configs run arbitrary `defaults write` and activation scripts:
@@ -3201,7 +3227,7 @@ option family followed in workshop#137.
 
 **Moved on 2026-08-23**, whole and unedited, to
 [`drift.md`](drift.md) — the standing catalogue of the shapes a claim in this
-family goes wrong in, and what catches each. Twenty-five rows, numbered by
+family goes wrong in, and what catches each. Twenty-six rows, numbered by
 position, **numbering frozen**: "row eleven" still means row eleven, and this
 section's own findings still read as findings about *this* file, which is what
 they were written about.
@@ -3232,6 +3258,10 @@ and a reader should not have to leave the file to meet them:
   `- [ ]` as work to do — and read the *reason* beside an open box, not just the
   box, because a stale reason is what makes a closed blocker read as ready to
   build.
+- **Neither surface above covers a code fence.** §5's boxes and §6's phase lines
+  are the two the rules police; a `nix` block inside a ✅ section is read by
+  nobody, and drift.md's row twenty-six is what a ✅ header costs. When an
+  option's *type* moves, grep this file for the option name, not for its box.
 
 ---
 
