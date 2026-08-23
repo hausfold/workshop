@@ -173,6 +173,138 @@ already exist, and one it treated as a detail is the actual root blocker.
 > paragraph that no diff reads as a change to it.
 
 
+> **Status, 2026-08-23 (thirty-eighth pass) — at haus `561af88`, the defect
+> class this repo has now FIXED TWICE was re-derived as impossible at a third
+> site, in a comment that names a mechanism the shipped fix does not use. And
+> two other classes in the same 47-minute window were swept by hand and left no
+> check behind. `options.json` is 318 leaves for the fourth consecutive reading,
+> key for key, across 17 h 25 m.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
+> workshop `5bf1fb7`, haus `561af88`, perch `352b466`, hausfold.co `09052fb`,
+> holt `809cc3c`. pounce is `aabd99a` and nebelung `5d5d0a2`, unmoved as of
+> those revs — a fact about two revs and not a licence to skip §5.9 (row
+> nineteen). ⚠️ And no `= origin/main` anywhere above, which is the thirty-seventh
+> pass's own narrowest rule, applied on the first pass that could apply it: a
+> tip equality is the one clause in a pass that starts going stale the moment it
+> is written. Non-cloud, so every time below is a committer date on
+> `origin/main`, in UTC; the family's local time is UTC−5, so this whole block
+> is Saturday evening at the keyboard.
+>
+> Landed since the thirty-seventh pass's revs — a **47-minute** window, every
+> commit between 04:52:54Z and 05:26:26Z. **Five haus** (#471 04:52:54Z, #473
+> 05:13:02Z, #472 05:25:17Z, two lock bumps), **three perch** (#87 04:59:04Z
+> plus the `2026.08.23` release and its nix pin), **two holt** (#54 04:59:47Z
+> and the **`0.4.0` release**, 05:18:42Z — the semver one, five SDKs, none of
+> which can withdraw a published number), **one hausfold.co** (#132 05:24:37Z)
+> and **four workshop** (#438, #439, #440 and the thirty-seventh pass itself).
+>
+> **The count was 11 at `5bf1fb7`** — the number the thirty-seventh pass
+> predicted — re-derived with the command the last ten passes ran (`sed -n '/^##
+> 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md | grep -c '^-
+> \[ \]'`). This pass **closes one and opens none in the counted range**, so the
+> pass after this one should find **10**. The one it closes is §5.6's, and it
+> closes the way §5.14 said it would: written a pass ago as `- [ ] ◐ built and
+> open, mergedAt null`, ticked here against `mergedAt 2026-08-23T05:25:17Z`
+> (`6bb294c`). It also opens a box in **§5.14**, which the count command does not
+> reach — deliberately, since that section's boxes are checks-about-the-doc
+> rather than option work — and rotates the log: the thirty-fifth pass moves to
+> [`options-roadmap-log.md`](options-roadmap-log.md) unedited, both pointer
+> counts re-COUNTED rather than incremented (36).
+>
+> `docs/site-data/options.json` at `561af88` is **318 leaves in 35 namespaces**,
+> and the interesting number is how long: `diff <(git show ff8ecf3:… | jq -r
+> 'keys[]') <(git show 561af88:… | jq -r 'keys[]')` is **empty** — key for key
+> identical across **17 h 25 m** (`ff8ecf3`, 2026-08-22T12:00:55Z → `561af88`,
+> 2026-08-23T05:26:26Z), four consecutive readings and three passes reporting
+> "unchanged". Eleven haus PRs landed inside that window.
+>
+> ★ **First, and it is the pass: haus#473 declared its own gap unfixable, and
+> the fix was already in this repo, twice.** `modules/ai/default.nix` lists the
+> skill names each hausfold tool ships (`holt`, `handoff`) so haus can link them
+> into every client's skills directory, and its comment says: *"⚠️ The names are
+> UNVERIFIABLE from here, by construction: nothing checks that the derivation
+> actually contains them, because the check would be a readDir on a store output
+> — import-from-derivation. A name listed here that the pinned revision does not
+> ship installs a DANGLING symlink, silently."*
+>
+> **Half of that is exactly right and the conclusion does not follow.** LISTING
+> what a tool ships needs an eval-time read of a derivation's output, which is
+> IFD and would force a build every time somebody runs `haus get`. ASSERTING
+> that a listed name is there needs no eval-time read at all — and this repo
+> already does it, in two rooms, on this document's own finding. §5.14's
+> fourteenth-pass box (*"a check can pass on the pointer while the referent is
+> missing"*) was closed on 2026-08-14 by copying the placed theme ports through
+> one `runCommand`, which **makes the referent a build DEPENDENCY rather than a
+> promise**; `modules/theme/ports.nix:158-162` says so in those words, and names
+> terminal's `glowPlugin` as the other site. Neither is IFD. The third site
+> re-derived the problem from scratch, reached for the one mechanism that is
+> ruled out, and stopped.
+>
+> **Measured at `561af88`, adding a fourth name `no-such-skill` to the list:**
+>
+> ```
+> $ nix eval …home.file.".claude/skills/no-such-skill".source
+> /nix/store/sz1jm8z…-holt-skill/no-such-skill          # evaluates clean
+> $ ls /nix/store/sz1jm8z…-holt-skill/
+> handoff  holt                                          # it is not there
+> $ nix build …home-files                                # exit 0
+> …/.claude/skills/no-such-skill ⇒ /nix/store/…/no-such-skill
+> $ test -e …                                            # DANGLING
+> ```
+>
+> So the comment's own description of the failure is accurate and its
+> "by construction" is not. Fixed in
+> [haus#474](https://github.com/hausfold/haus/pull/474) by the ports pattern,
+> mutation-tested both ways; the box is in §5.14 with its sibling, and is
+> ticked only on `mergedAt` (row fourteen). Its shape is **row sixteen**
+> sharpened, and the sharpening is where to look — see row twenty-four.
+>
+> ⚠️ **This finding is written at a rev on purpose, headline included** — the
+> thirty-seventh pass's row twenty-three, applied by the first pass that could.
+> haus#474 and this block are two PRs in two repos with no seam between them
+> (§5.14's structural reason 1), so they merge in whichever order GitHub reaches
+> them, and the last time that happened the gap was twelve seconds. *At
+> `561af88`, X* survives either order; *X is still standing* survives neither.
+>
+> ★ **Second: two more classes in the same window, both swept by hand, neither
+> left a check.** haus#471 fixed the bash multibyte swallow — `"…“$query”"`
+> makes the closing curly quote part of the identifier, so the row printed
+> nothing under no `set -u` and **exited 1 having found its matches** under one,
+> killing ⌘⇧F's transcript search on both its hit and its miss path. Its message
+> carries a repo-wide sweep (`grep -rnP … '[^\x00-\x7F]'`) proving no site
+> remains — run once, at a keyboard. At `561af88` that pattern appears in no
+> workflow, no flake check and no test: `grep -n 'x00-x7F' .github/workflows/
+> check.yml flake.nix test/*.nix` is empty, and `add-app.sh` is not in
+> check.yml's lint list at all. shellcheck cannot see the class (SC1111 objects
+> to the curly quotes, which are deliberate display text). And haus#472's own
+> assurance read found the **fourth** rot in check.yml's hand-written CI census
+> — the Linux list said fifteen where `nix eval` says nineteen — in the file
+> whose comment says *"it rots in every direction"* and then dates the three
+> previous rots.
+>
+> **Three classes, one 47-minute window, and the shape is the same in all
+> three: the knowledge exists as PROSE at the site, and prose does not stop the
+> next instance.** A comment that confesses a gap, a commit message that proves
+> a sweep, a census that dates its own rots. §5.14 has said since the sixth pass
+> that the structural fix is to *make the repo emit something mechanical*, and
+> named `data-only-surface` and `accent-reach` as the two that took it. This
+> window produced three candidates and one PR. The row this adds is narrower
+> than "write more checks", because two of the three had a check available and
+> declined it: **grep the repo for the FIX before writing down that there
+> isn't one.**
+>
+> ◐ **And what actually moved this window, since the leaf count saw none of
+> it**: holt `0.4.0` (five SDKs; `--prompt`/`--prompt-file` and a second shipped
+> skill), perch `2026.08.23`, haus#473 turning `haus.ai.skill` from "haus's own
+> skill" into "every hausfold tool's skill" — a widened *meaning* on an existing
+> bool, with a rewritten description and **zero** leaves added. Fourth pass
+> running that the day's most stranger-visible change is invisible to
+> `options.json`, and the third of the last four in which it is a description
+> string.
+
+
 > **Status, 2026-08-23 (thirty-seventh pass) — the thirty-sixth pass's finding
 > was FIXED twelve seconds before the pass reporting it merged, by the same
 > session, out of the same keyboard. Its body was rev-bounded exactly as row
@@ -514,205 +646,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > stay wrong.
 
 
-> **Status, 2026-08-22 (thirty-fifth pass) — the surface grew by one leaf, and
-> that leaf turns a macOS setting off on two of the four shipping desktops.
-> §5.6's null-default policy — the one rule this section derived from first
-> principles and then held across ten groups — is breached, from OUTSIDE §5.6,
-> by a room, at `mkDefault`; and every surface that could have shown it prints
-> `null`, correctly, because the declaration still is.**
->
-> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
-> from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
-> workshop `main` = `origin/main` = `7ea7bc2`, haus = `ff8ecf3`, pounce =
-> `aabd99a`, perch = `c4c67bb`, holt = `1ba98aa`, hausfold.co = `a1dbbcd`.
-> nebelung is `5d5d0a2`, unmoved since 2026-08-20 — a fact about a rev, not a
-> licence to skip a section (row nineteen). Non-cloud, so every time below is a
-> committer date on `origin/main`, rendered in UTC.
->
-> Landed since the thirty-fourth pass's revs — an **82-minute** window, the
-> shortest any pass here has read: every commit below landed between 10:38:35Z
-> and 12:00:55Z. **Six haus commits** — three PRs (#464
-> 10:38:35Z, #461 10:40:10Z, #465 10:54:53Z), two lock bumps and the
-> `2026.08.22` release — **one pounce** (a release), **three perch** (#83 plus
-> two release commits), **one holt** (`0.3.1`), **two hausfold.co** (#125,
-> #128), **two workshop** (#429, #430), and **nothing in nebelung**.
->
-> ⚠️ **#461 is the number the thirty-fourth pass recorded as *"no #461 reached
-> `main`"*, and that parenthesis was FALSE when it merged.** haus#461 landed at
-> 10:40:10Z, 8 m 31 s after `0f3a61c` — the rev that pass measured at — and 62
-> minutes before the pass itself merged (`b39291a`, 11:42:26Z). Row nineteen's
-> honest form is *"no box had closed as of `<rev>`"*, and the pass **had** the
-> rev: it opens *"Landed since the thirty-third pass's revs"* and names all
-> seven. Read strictly against that range the parenthesis is true. Read the way
-> a gap in a PR-number run is actually read — as a fact about the repo — it was
-> already wrong 8 m 31 s later. **The rev has to be inside the clause, not merely
-> in the paragraph.** Forty words of separation is enough for a bounded claim
-> to be received as an unbounded one, which makes this row nineteen's second
-> instance and its first sharpening: the fix is not "attach a rev to the
-> paragraph", it is "write the negative claim so it cannot be quoted without
-> its rev". This pass's own first draft repeated the mistake in the other
-> direction (*"it merged 78 minutes after that sentence"*, backwards by an
-> hour) and was caught by re-deriving the two timestamps rather than by
-> re-reading the prose — row eleven, on a pass about row nineteen.
->
-> **The count is 9 at `7ea7bc2`**, re-derived with the command the last seven
-> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
-> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-fourth
-> pass predicted. This pass amends §5.6's header and its policy note, adds a
-> §5.14 row, and **opens one box**, so the pass after this one should find 10.
->
-> ★ **First, and it is the pass: 317 → 318 leaves in 35 namespaces (unchanged),
-> and the one new leaf writes a `com.apple.screencapture` key on a machine that
-> never asked.** The leaf is `haus.shelf.watchScreenshots` (haus#461), a `bool`
-> defaulting **`true`**, and the half of it that lives in haus rather than in
-> perch is one line: `haus.screenshots.thumbnail = lib.mkIf
-> config.haus.shelf.watchScreenshots (lib.mkDefault false);`
-> (`modules/shelf/default.nix:236`). Evaluated at `ff8ecf3` over all four
-> shipping desktops — `mkHaus` per desktop, reading the resolved
-> `haus.screenshots.thumbnail` and `system.defaults.screencapture` — `hacker`
-> and
-> `everyday` both come out **`thumbnail = false`**, with every other key in
-> that domain `null`; `minimal` and `blank` come out `null`, because both leave
-> the shelf off. So two of four shipping desktops now write
-> `show-thumbnail = false` into a user's plist, and the published reference
-> renders that option as **`null or boolean` · default `null`** over the
-> sentence *"null (the default) leaves macOS's own choice alone…"* Both are
-> accurate. The declaration IS null; the value is not.
->
-> **§5.6's policy is not a style preference and that is what makes this a
-> finding.** The section states it once for all ten groups — *every leaf
-> defaults to null = write nothing, and null is deliberately not the same as
-> "off"* — and then derives it: **the write is one-way.** Going back to `null`
-> stops writing, it cannot restore, because a `defaults` write is sticky and
-> macOS keeps no memory of the prior value, so an on-by-default group does not
-> merely express an opinion, it *destroys* the setting it overwrote on machines
-> already running. `animations` (rice#286) was drafted defaulting to `"fast"`
-> with a good argument and was **reversed before merge** on exactly that
-> ground. `watchScreenshots` is the same trade, decided the other way, one
-> domain over — and the room's own comment reaches the same fact independently
-> and uses it to describe the behaviour rather than to pick the default:
-> *"disabling this room stops the write, it does not put the thumbnail back."*
->
-> ⚠️ **Nothing here was done carelessly, which is the useful part.** haus#461
-> reasoned the priority ladder out in a 33-line comment
-> (`modules/shelf/default.nix:203-235`): `mkDefault` rather than an outright
-> write, *so* a desktop at 900 or a host at 100 wins with no `mkForce`. It
-> added a third paragraph to `haus.screenshots.thumbnail`'s own
-> description saying the shelf turns it off — which regenerated into
-> `options.json` and onto hausfold.co inside the same window — and routed the
-> write through the named option rather than the plist key for a stated reason:
-> *"a capture behaviour that changes machine-wide should be readable as a named
-> option in `haus show` and the reference…"* **`haus show` is the one surface
-> in that sentence that structurally cannot show it, and it says so itself.**
-> Run at `ff8ecf3`, `haus show ./desktops/hacker.nix` reports *"sets 23 options
-> across 11 rooms"*; neither `haus.shelf.watchScreenshots` nor
-> `haus.screenshots.thumbnail` is among the 23, because `haus show` is a leaf
-> diff of the FILE — *"what the file sets and what it leaves alone"*, with your
-> own config never part of the evaluation — and the write lives in a room the
-> file merely switches on. Its footer names the limit and hands off correctly
-> (*"A leaf diff, not a rebuild preview… 'haus plan' builds that answer"*), so
-> nothing is broken; the write is simply one layer below every surface that
-> reads a declaration. The reference prints a declaration. `haus set`'s picker
-> prints a description's first physical line — *"Whether the floating preview
-> thumbnail appears in the bottom-right"* (§3.4, thirty-fourth pass). What is
-> left is `haus plan` and the plist verifier, the two that read the BUILT
-> config, and the module comment names `haus plan` for exactly that reason.
->
-> **The policy travels as a comment, and the shape of where it travels is the
-> mechanism.** `§5.6` is cited **33 times** in haus's source at `ff8ecf3` —
-> `core/options.nix` 11, `core/default.nix` 6, `lib/restart-map.nix` 4,
-> `lib/login-map.nix` 3, `flake.nix` 2, and one each in
-> `core/loginwindow-keys.nix`, `options-groups.nix` and `lib/reachability.nix`
-> — **plus four in a room, all four in `windows`**, which is §5.6's own tenth
-> group and lives in a room because it interlocks with what that room does
-> (`windows/options.nix:312`: *"Every option is null-by-default like every
-> other §5.6 group"*). So the policy HAS reached a room, exactly one, and it is
-> the room that hosts one of these groups. It has never been cited by a room
-> that merely **consumes** one of these leaves — which is the shelf's position,
-> and now the only position it can be broken from. And **no check reads a §5.6
-> leaf's effective value**: of the thirty-three `nix flake check` entries at
-> `ff8ecf3` exactly one reads resolved values at all — `desktop-projection`,
-> which diffs 55 `haus.*` paths out of `darwinConfigurations.example` against
-> `test/projections/example.json` — and not one of those 55 belongs to any of
-> the ten groups. New box below; §5.14 row twenty-one.
->
-> ⚠️ **That paragraph said "ten times … and zero times in a room" until the
-> assurance read.** The ten came from a `grep -rn '5\.6' modules/ flake.nix`
-> piped into `head`, so the count was the terminal's and not the repo's, and
-> the four `windows` hits — the ones that make the claim interesting rather
-> than just bigger — were 21 lines below the cut. Row ten again: a negative
-> claim ("zero in a room") resting on a grep whose output was truncated before
-> it was read.
->
-> ★ **Second: two hand-written cross-repo copies corrected in 59 seconds and 6
-> m 18 s — by nothing — and five more left standing, three of them in the repo
-> the change was made in.** haus#465 (10:54:53Z) took the paw off the agents
-> pill across twelve files, and hausfold.co#128 landed the docs half at
-> 10:55:52Z. The shelf's screenshot behaviour merged at 10:40:10Z and
-> hausfold.co#125 documented it — *"and the two macOS settings it turns off"*,
-> both of them, correctly — at 10:46:28Z. At today's revs `git grep -nwiI paw`
-> returns **zero** in hausfold.co and zero in the workshop's text. In haus it
-> returns **eleven**, and **eight** of those are the **tour** pill's paw, kept
-> deliberately and said so in #465's own message (*"The tour pill keeps ITS
-> paw"*) — so the rename is exact, not merely thorough. The other **three** are
-> in haus's own `notes/zellij-exit.md`, and **two more sit in holt**
-> (`SPEC.md:359`, `test/holt.bats:600`); all five describe the agents pill,
-> and holt's two say *"the rice's paw pill"* — stale twice over, since the pill
-> is a robot now and "rice" stopped being the word on 2026-08-10.
->
-> **No check was involved anywhere in this, in either direction.**
-> `check-rice-bindings.mjs` compares launch-key data to launch-key data; the
-> options page is regenerated by hand; the guides and the specs are prose. The
-> tempting reading — *a session carries the repos it is sitting in* — is
-> falsified by this pass's own numbers: **three of the five stale copies are in
-> haus**, the repo #465 was made in, and holt cut `0.3.1` inside the same
-> 82-minute window, so a session was sitting there too. The variable that
-> survives its own evidence is narrower and more useful: **not which repo, but
-> whether the copy sat in a file the change had a reason to open.** #465 swept
-> the plugin, the bar module, the option descriptions, `AGENTS.md` and the
-> generated site data — twelve files, every one of them downstream of the pill
-> — and never opened a design note in `notes/` or a spec in another repo,
-> because nothing about changing a glyph points at either. That sharpens row
-> twenty rather than adding a row. Row twenty says a green check can hide a
-> stale copy; this says the copies a change reaches and the copies it misses
-> are sorted by **blast radius, not by diligence**, and no amount of care
-> inside the diff widens it. The 59 seconds and the thirty-fourth pass's four
-> days are the same coin, seen from each side.
->
-> ⚠️ **This paragraph claimed "zero across all seven repos" until the assurance
-> read, on the strength of `git grep -niE '\bpaw\b'`.** `git grep -E` is POSIX
-> ERE, where `\b` is not a word boundary — the command returns zero for every
-> word, in every repo, always. **A negative claim proved by a grep that cannot
-> match is row ten**, and it is the second row this pass tripped over while
-> writing about rows nineteen and twenty. The working spellings are `-P` or,
-> as re-run above, `-w`.
->
-> ⚠️ **Third, a window that closed itself, worth recording because the lock
-> chain is what closed it.** haus#461 writes `screenshotsFolder` into
-> `~/.config/perch/config.json`; the perch that reads it is perch#83, merged
-> **8 seconds later** (10:40:18Z); haus's `perch` pin moved to that rev at
-> 10:48:51Z. For **8 minutes 41 seconds** haus `main` wrote a key no perch it
-> pinned could read, and the only thing that made that survivable is the clause
-> the module states three times, once verbatim at
-> `modules/shelf/default.nix:116` — *"A perch that predates the key ignores it,
-> the same way an older one ignores the theme keys."* A forward-compat sentence written
-> for a stranger's stale install was load-bearing for its own repo first, and
-> for eight minutes the six-edge chain in "The one gotcha that explains
-> everything" was the difference between a feature and a dead key.
->
-> ⚠️ **And one for the tempo.** Eighty-two minutes, four releases (pounce, perch and
-> holt within 17 seconds of each other at 11:47Z, perch's `nix release pin`
-> three minutes later, haus at 12:00:55Z), three haus PRs, one new leaf. `holt
-> 0.3.1` is the semver one — five SDKs, none of which can withdraw a published
-> number. The thirty-third pass reported twelve PRs and zero leaves; this one
-> reports three PRs and a policy. Neither number predicted the other, and after
-> three passes saying so it is no longer a caution — it is the reason the leaf
-> count stays in the header and never in the finding.
-
-
 > **The passes before this one are in
-> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-five** dated
-> entries, 2026-08-22 back to 2026-08-02: the thirty-four numbered passes plus
+> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-six** dated
+> entries, 2026-08-22 back to 2026-08-02: the thirty-five numbered passes plus
 > a second, unnumbered 2026-08-04 block that predates the numbering (which is
 > why "twenty-nine" was one short on the day of the split, and is corrected here
 > rather than incremented — and it is COUNTED at every move, with `grep -c '^>
@@ -2156,7 +2092,7 @@ haus.keys = {
       authored user-facing TEXT needs the same seam.**
       (#108's warning for `tour.enable` + `keys.leader = "none"` still stands.)
 
-### 5.6 Curate macOS settings into behaviour groups · M · risk M · ✅ **all ten groups shipped (rice#198, #250, #267, #286; the last three — Windows, `lock`'s login half, `security`'s guest half — 2026-08-19). Every row is spiked except `animations`, which ships unspiked on purpose (below), and the null-default policy held across all ten without exception until 2026-08-22, when it was breached from OUTSIDE the section — a room supplying one of these leaves a value at `mkDefault`, so the declaration is still `null` and two of the four shipping desktops write the key anyway (the ⚠️ under the policy note). The check that would make that product visible rather than described is BUILT and not yet merged — `settings-writes`, haus#472, resolving all 66 leaves on all four desktops — and its first result is that no desktop names any of the 66 at all, so every future breach arrives, as this one did, from a room. The three logout-only groups were unblocked by the third fact table, `modules/lib/login-map.nix`, not by anything changing about the domains. One key is still deliberately unbuilt and says so in its own box: remote login, which is not a `defaults` key at all**
+### 5.6 Curate macOS settings into behaviour groups · M · risk M · ✅ **all ten groups shipped (rice#198, #250, #267, #286; the last three — Windows, `lock`'s login half, `security`'s guest half — 2026-08-19). Every row is spiked except `animations`, which ships unspiked on purpose (below), and the null-default policy held across all ten without exception until 2026-08-22, when it was breached from OUTSIDE the section — a room supplying one of these leaves a value at `mkDefault`, so the declaration is still `null` and two of the four shipping desktops write the key anyway (the ⚠️ under the policy note). The check that would make that product visible rather than described is BUILT and MERGED — `settings-writes`, haus#472 (`6bb294c`, `mergedAt 2026-08-23T05:25:17Z`), resolving all 66 leaves on all four desktops — and its first result is that no desktop names any of the 66 at all, so every future breach arrives, as this one did, from a room. The three logout-only groups were unblocked by the third fact table, `modules/lib/login-map.nix`, not by anything changing about the domains. One key is still deliberately unbuilt and says so in its own box: remote login, which is not a `defaults` key at all**
 Do **not** mirror every nix-darwin default into `haus.*`; `system.defaults`
 stays the escape hatch. Curate the groups where a *rice* has an opinion:
 
@@ -2520,15 +2456,13 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
       `notes/probes/power-sweep.sh` is the reproducer. Cross-referenced
       nix-darwin#1421, an open request for `pmset`-based options — this is the
       evidence that the existing ones can't stand in for it.
-- [ ] ◐ **State §5.6's policy over effective VALUES, and check it** — **built
-      and open at [haus#472](https://github.com/hausfold/haus/pull/472) as of
-      2026-08-23T05:30Z**, `mergedAt` null when this was written. Written to the
-      sketch below including the ⚠️; `nix flake check` green on aarch64-darwin.
-      The box stays open and stays counted for the reason §5.14 gives in its own
-      words: *a PR number in a tick is a promise; only `mergedAt` keeps it.*
-      Tick it when the PR has one — and note the state above is dated on
-      purpose, because "not merged" is the one clause here that has to go
-      stale. The policy is written about declarations (*"every leaf
+- [x] ✅ **State §5.6's policy over effective VALUES, and check it** —
+      **merged as [haus#472](https://github.com/hausfold/haus/pull/472),
+      `mergedAt 2026-08-23T05:25:17Z` (`6bb294c`)**. It was written here as
+      `- [ ] ◐ built and open, mergedAt null` for eight hours; the promise the
+      previous wording refused to make is the one this tick now keeps, and the
+      dated "not merged" clause went stale exactly as it was written to.
+      The policy is written about declarations (*"every leaf
       defaults to null"*) and read as a promise about machines (*"a desktop
       writes no macOS key you didn't ask for"*); since 2026-08-22 those differ —
       see the ⚠️ above. The check evaluates each shipping desktop, walks all 66
@@ -3834,6 +3768,7 @@ catch:
 | a POLICY stated over DECLARATIONS and read as a promise about VALUES — every leaf in the group still defaults `null`, the reference still prints `null`, and the machine writes the key anyway, because the value arrives from a module the policy was never addressed to *(thirty-fifth pass — §5.6's null-default policy, breached by the shelf room's `watchScreenshots` at `mkDefault`)* | evaluating the option on the shipping desktops and comparing that against its published default, instead of re-reading the declaration the policy is written about. This is row five's wrong-**layer** shape aimed at a rule rather than at a claim, and it is the first entry here that nothing got wrong: §5.6 is accurate about every leaf it declares, the room reasoned its priority ladder out correctly in its own comment, and the generated reference carried both halves into the same page. What no surface holds is the **product** of the two — a declaration layer that says `null` and an evaluation layer that says `false`, each honest alone; the one check in the repo that reads resolved values pins 55 paths, and none of them is in the group the policy is about. The tell is topological rather than textual: of §5.6's 33 citations in haus's source, 29 are inside the machinery that already obeys it and the other four are in the one room that HOSTS one of its groups — so the rule has never been addressed to a room that merely consumes one of these leaves, which is the only place left it can be broken from. A policy whose every citation sits inside its own implementation is a habit with a footnote |
 | a CORRECTION applied to the INSTANCE and not to the CLAIM — the diff fixes the sentence it has open, and states a reason WIDER than the fact that justified it, so the copy twelve lines down survives and the wide clause is the one later authors quote *(thirty-sixth pass — haus#467 fixing one of two `haus show` sentences in one comment, on the ground that the command "never reads a machine's resolved values", which is false of a command that ranks 23 of them)* | grepping the file for the phrase you are about to correct, **before** writing the correction — the twin is usually inside the same comment, because a claim gets restated where an argument closes. And then writing the reason at the width of the evidence: the fact here is *this desktop file does not set that leaf*, which is narrow, checkable and unquotable, while *it never reads your machine* is memorable, general, load-bearing for the next argument and wrong. Every other row here is about a claim decaying, or an edit that never happened; this one is about a correction that was applied, verified and reported honestly, and still left the section it corrected saying the same thing twice. The tell: a correction whose reason would survive deleting the case that prompted it is a rule someone invented at the keyboard |
 | a claim rev-bounded in the BODY and unbounded in the HEADLINE — the evidence paragraph is exemplary, the bolded first sentence is in the present tense, and the headline is what gets quoted *(thirty-seventh pass — the thirty-sixth's "it is still standing", fixed by haus#469 **twelve seconds** before the pass reporting it merged, from the same session)* | writing the finding so the rev is inside the sentence a reader can lift out. This is row eleven meeting the fact that a status block is READ through its header: the paragraph below can be perfect and never be reached. It is also unfixable by ordering — the doc lives in a fifth repo (structural reason 1), so the fix PR and the report PR are queued independently and merge in whichever order GitHub reaches them; had they landed the other way the block would have been true for twelve seconds and false forever after. A finding written *at `<rev>`, X* survives either order; *X is still standing* survives neither. And note what did NOT go wrong: the pass fetched first, dated at revs, derived from the rev, and got the fact right — the defect is entirely in the width of one sentence |
+| an IMPOSSIBILITY claim whose remedy is ALREADY IN THE REPO — row sixteen with the search moved inward: not "could we build this ourselves" but "did we already, and forget" *(thirty-eighth pass — `modules/ai/default.nix`'s *"the names are UNVERIFIABLE from here, by construction"*, written at haus `561af88` nine days after the same class was closed in `modules/theme/ports.nix` and terminal's `glowPlugin`, on this file's own fourteenth-pass box)* | grepping the repo for the FIX before writing down that there isn't one — the identifier, not the sentence, which is row fifteen's tell pointed at a remedy instead of at a claim. The reason this survives row sixteen's check is that the impossibility argument here is **half true and precisely stated**: listing a derivation's contents at eval time really is import-from-derivation, really would fire on `haus get`, and the comment says so correctly. What it never asks is whether the check has to happen at eval time at all — `runCommand` turns the same assertion into a build dependency and is not IFD. A wrong reason gets re-examined; a right reason carrying the wrong conclusion is quoted. And the cost of not asking is not a stale doc: it is a dangling symlink in a user's home with eval, `nix flake check` and the home-files build all green |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -3915,6 +3850,38 @@ contents — the same shape, noticed and then not generalized.
       leaves `bench try` re-reading the old copy and reporting a green build for
       a mutation that never reached the evaluator. `touch` the worktree root
       between mutations, or the check silently proves nothing.)*
+- [ ] ◐ **Assert the referent exists for every TOOL SKILL `modules/ai` lists** —
+      the same gap as the box above, three sites on, and the first one whose own
+      comment argues it cannot be closed. **Built and open at
+      [haus#474](https://github.com/hausfold/haus/pull/474) as of
+      2026-08-23T06:00Z**, `mergedAt` null when this was written; ticked when the
+      PR has one, per row fourteen, and dated on purpose because "not merged" is
+      the one clause here that has to go stale. `haus.ai.skill` links each
+      hausfold tool's skill folder into every installed client's skills dir, and
+      the folder NAMES are a hand-written list (`holt`, `handoff`) because
+      reading them off the store is IFD. That much is right; *"so nothing can
+      check them"* is not. Measured at haus `561af88`: a name the pinned
+      revision doesn't ship evaluates clean, builds `home-files` at exit 0, and
+      lands a **dangling symlink** in `~/.claude/skills` — the same failure the
+      roster-port box above describes in the user's home rather than in a check,
+      and for the same reason (a `home.file` source inside a store output is
+      never existence-checked). Closed the same way: one `runCommand` that
+      copies each listed folder through, so the name is a build **dependency**.
+      Mutation-tested both ways on darwin — the bogus name stops the build
+      naming the derivation, the skill, the path and two remedies; restored, it
+      builds and both skills land.
+      ★ **The generalisable half is not "add a third check", it is that the
+      first two did not travel.** `modules/theme/ports.nix:158-162` states the
+      pattern in general terms — *"copying through one runCommand makes the
+      referent a build DEPENDENCY rather than a promise"* — and even names its
+      own precedent in terminal's `glowPlugin`. It is a comment on a specific
+      port, in a room about themes, and the next author to spell a path into a
+      store output was in a different room and never met it. §5.14's structural
+      answer applies to a fix as much as to a claim: **the two ways this repo
+      guards a cross-derivation pointer are prose in two comments, and prose is
+      what row twenty-four says does not reach the third site.** A `lib`
+      helper — `checkedRef drv path` — would have; that is the follow-up, and
+      it is deliberately NOT in this PR, which fixes the instance.
 - [x] ✅ **A downstream lock pinned at an upstream rev that is not on the
       upstream's `main`** — fetchable only until the PR branch is deleted, and
       nothing in the family noticed. Found in the fourteenth pass's retraction:
@@ -4501,7 +4468,13 @@ that visible, and turned up two things that were already broken:
 
 **Phase 4 — the non-dev Mac**
 - [x] §5.7 `haus set` — done 2026-08-07; see the twelfth-pass status note.
-- [x] §5.6 curated settings groups — **all ten rows carry a shipped marker**:
+- [x] §5.6 curated settings groups — **all ten rows carry a shipped marker, and
+      since 2026-08-23 the policy under them has a check**: `settings-writes`
+      (haus#472, `mergedAt 05:25:17Z`) resolves all 66 leaves on all four
+      shipping desktops, so the rule is enforced over VALUES and not only stated
+      over declarations — read that line here as well as in §5.6's box, since
+      this list is the surface with no reader (below).
+      The ten rows:
       hot corners + screenshots (rice#198), then `lock` (lock half only),
       `menuBar.{clock,controlCenter}` and `security.firewall` (rice#250), then
       `sound`, `locale` and `power` (rice#267), then the tenth group (rice#286),

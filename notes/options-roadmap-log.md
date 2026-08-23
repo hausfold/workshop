@@ -1,8 +1,8 @@
 # Option-surface roadmap — the status log
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirty-fourth (2026-08-22) back to the first (2026-08-02) —
-thirty-five blocks, because 2026-08-04 carries two and only one of them was
+from the thirty-fifth (2026-08-22) back to the first (2026-08-02) —
+thirty-six blocks, because 2026-08-04 carries two and only one of them was
 numbered. It was the roadmap's own preamble until 2026-08-20, when it had
 grown to 2,393 lines — larger than every other file in `notes/` put together,
 and sitting between the document's title and its §1.
@@ -23,6 +23,203 @@ fourth lands, the oldest of those three moves here, on top.
 ⚠️ **Read every `haus.*` below as today's `haus.*`, and every `trill` as the
 archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
+
+---
+
+> **Status, 2026-08-22 (thirty-fifth pass) — the surface grew by one leaf, and
+> that leaf turns a macOS setting off on two of the four shipping desktops.
+> §5.6's null-default policy — the one rule this section derived from first
+> principles and then held across ten groups — is breached, from OUTSIDE §5.6,
+> by a room, at `mkDefault`; and every surface that could have shown it prints
+> `null`, correctly, because the declaration still is.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
+> workshop `main` = `origin/main` = `7ea7bc2`, haus = `ff8ecf3`, pounce =
+> `aabd99a`, perch = `c4c67bb`, holt = `1ba98aa`, hausfold.co = `a1dbbcd`.
+> nebelung is `5d5d0a2`, unmoved since 2026-08-20 — a fact about a rev, not a
+> licence to skip a section (row nineteen). Non-cloud, so every time below is a
+> committer date on `origin/main`, rendered in UTC.
+>
+> Landed since the thirty-fourth pass's revs — an **82-minute** window, the
+> shortest any pass here has read: every commit below landed between 10:38:35Z
+> and 12:00:55Z. **Six haus commits** — three PRs (#464
+> 10:38:35Z, #461 10:40:10Z, #465 10:54:53Z), two lock bumps and the
+> `2026.08.22` release — **one pounce** (a release), **three perch** (#83 plus
+> two release commits), **one holt** (`0.3.1`), **two hausfold.co** (#125,
+> #128), **two workshop** (#429, #430), and **nothing in nebelung**.
+>
+> ⚠️ **#461 is the number the thirty-fourth pass recorded as *"no #461 reached
+> `main`"*, and that parenthesis was FALSE when it merged.** haus#461 landed at
+> 10:40:10Z, 8 m 31 s after `0f3a61c` — the rev that pass measured at — and 62
+> minutes before the pass itself merged (`b39291a`, 11:42:26Z). Row nineteen's
+> honest form is *"no box had closed as of `<rev>`"*, and the pass **had** the
+> rev: it opens *"Landed since the thirty-third pass's revs"* and names all
+> seven. Read strictly against that range the parenthesis is true. Read the way
+> a gap in a PR-number run is actually read — as a fact about the repo — it was
+> already wrong 8 m 31 s later. **The rev has to be inside the clause, not merely
+> in the paragraph.** Forty words of separation is enough for a bounded claim
+> to be received as an unbounded one, which makes this row nineteen's second
+> instance and its first sharpening: the fix is not "attach a rev to the
+> paragraph", it is "write the negative claim so it cannot be quoted without
+> its rev". This pass's own first draft repeated the mistake in the other
+> direction (*"it merged 78 minutes after that sentence"*, backwards by an
+> hour) and was caught by re-deriving the two timestamps rather than by
+> re-reading the prose — row eleven, on a pass about row nineteen.
+>
+> **The count is 9 at `7ea7bc2`**, re-derived with the command the last seven
+> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-fourth
+> pass predicted. This pass amends §5.6's header and its policy note, adds a
+> §5.14 row, and **opens one box**, so the pass after this one should find 10.
+>
+> ★ **First, and it is the pass: 317 → 318 leaves in 35 namespaces (unchanged),
+> and the one new leaf writes a `com.apple.screencapture` key on a machine that
+> never asked.** The leaf is `haus.shelf.watchScreenshots` (haus#461), a `bool`
+> defaulting **`true`**, and the half of it that lives in haus rather than in
+> perch is one line: `haus.screenshots.thumbnail = lib.mkIf
+> config.haus.shelf.watchScreenshots (lib.mkDefault false);`
+> (`modules/shelf/default.nix:236`). Evaluated at `ff8ecf3` over all four
+> shipping desktops — `mkHaus` per desktop, reading the resolved
+> `haus.screenshots.thumbnail` and `system.defaults.screencapture` — `hacker`
+> and
+> `everyday` both come out **`thumbnail = false`**, with every other key in
+> that domain `null`; `minimal` and `blank` come out `null`, because both leave
+> the shelf off. So two of four shipping desktops now write
+> `show-thumbnail = false` into a user's plist, and the published reference
+> renders that option as **`null or boolean` · default `null`** over the
+> sentence *"null (the default) leaves macOS's own choice alone…"* Both are
+> accurate. The declaration IS null; the value is not.
+>
+> **§5.6's policy is not a style preference and that is what makes this a
+> finding.** The section states it once for all ten groups — *every leaf
+> defaults to null = write nothing, and null is deliberately not the same as
+> "off"* — and then derives it: **the write is one-way.** Going back to `null`
+> stops writing, it cannot restore, because a `defaults` write is sticky and
+> macOS keeps no memory of the prior value, so an on-by-default group does not
+> merely express an opinion, it *destroys* the setting it overwrote on machines
+> already running. `animations` (rice#286) was drafted defaulting to `"fast"`
+> with a good argument and was **reversed before merge** on exactly that
+> ground. `watchScreenshots` is the same trade, decided the other way, one
+> domain over — and the room's own comment reaches the same fact independently
+> and uses it to describe the behaviour rather than to pick the default:
+> *"disabling this room stops the write, it does not put the thumbnail back."*
+>
+> ⚠️ **Nothing here was done carelessly, which is the useful part.** haus#461
+> reasoned the priority ladder out in a 33-line comment
+> (`modules/shelf/default.nix:203-235`): `mkDefault` rather than an outright
+> write, *so* a desktop at 900 or a host at 100 wins with no `mkForce`. It
+> added a third paragraph to `haus.screenshots.thumbnail`'s own
+> description saying the shelf turns it off — which regenerated into
+> `options.json` and onto hausfold.co inside the same window — and routed the
+> write through the named option rather than the plist key for a stated reason:
+> *"a capture behaviour that changes machine-wide should be readable as a named
+> option in `haus show` and the reference…"* **`haus show` is the one surface
+> in that sentence that structurally cannot show it, and it says so itself.**
+> Run at `ff8ecf3`, `haus show ./desktops/hacker.nix` reports *"sets 23 options
+> across 11 rooms"*; neither `haus.shelf.watchScreenshots` nor
+> `haus.screenshots.thumbnail` is among the 23, because `haus show` is a leaf
+> diff of the FILE — *"what the file sets and what it leaves alone"*, with your
+> own config never part of the evaluation — and the write lives in a room the
+> file merely switches on. Its footer names the limit and hands off correctly
+> (*"A leaf diff, not a rebuild preview… 'haus plan' builds that answer"*), so
+> nothing is broken; the write is simply one layer below every surface that
+> reads a declaration. The reference prints a declaration. `haus set`'s picker
+> prints a description's first physical line — *"Whether the floating preview
+> thumbnail appears in the bottom-right"* (§3.4, thirty-fourth pass). What is
+> left is `haus plan` and the plist verifier, the two that read the BUILT
+> config, and the module comment names `haus plan` for exactly that reason.
+>
+> **The policy travels as a comment, and the shape of where it travels is the
+> mechanism.** `§5.6` is cited **33 times** in haus's source at `ff8ecf3` —
+> `core/options.nix` 11, `core/default.nix` 6, `lib/restart-map.nix` 4,
+> `lib/login-map.nix` 3, `flake.nix` 2, and one each in
+> `core/loginwindow-keys.nix`, `options-groups.nix` and `lib/reachability.nix`
+> — **plus four in a room, all four in `windows`**, which is §5.6's own tenth
+> group and lives in a room because it interlocks with what that room does
+> (`windows/options.nix:312`: *"Every option is null-by-default like every
+> other §5.6 group"*). So the policy HAS reached a room, exactly one, and it is
+> the room that hosts one of these groups. It has never been cited by a room
+> that merely **consumes** one of these leaves — which is the shelf's position,
+> and now the only position it can be broken from. And **no check reads a §5.6
+> leaf's effective value**: of the thirty-three `nix flake check` entries at
+> `ff8ecf3` exactly one reads resolved values at all — `desktop-projection`,
+> which diffs 55 `haus.*` paths out of `darwinConfigurations.example` against
+> `test/projections/example.json` — and not one of those 55 belongs to any of
+> the ten groups. New box below; §5.14 row twenty-one.
+>
+> ⚠️ **That paragraph said "ten times … and zero times in a room" until the
+> assurance read.** The ten came from a `grep -rn '5\.6' modules/ flake.nix`
+> piped into `head`, so the count was the terminal's and not the repo's, and
+> the four `windows` hits — the ones that make the claim interesting rather
+> than just bigger — were 21 lines below the cut. Row ten again: a negative
+> claim ("zero in a room") resting on a grep whose output was truncated before
+> it was read.
+>
+> ★ **Second: two hand-written cross-repo copies corrected in 59 seconds and 6
+> m 18 s — by nothing — and five more left standing, three of them in the repo
+> the change was made in.** haus#465 (10:54:53Z) took the paw off the agents
+> pill across twelve files, and hausfold.co#128 landed the docs half at
+> 10:55:52Z. The shelf's screenshot behaviour merged at 10:40:10Z and
+> hausfold.co#125 documented it — *"and the two macOS settings it turns off"*,
+> both of them, correctly — at 10:46:28Z. At today's revs `git grep -nwiI paw`
+> returns **zero** in hausfold.co and zero in the workshop's text. In haus it
+> returns **eleven**, and **eight** of those are the **tour** pill's paw, kept
+> deliberately and said so in #465's own message (*"The tour pill keeps ITS
+> paw"*) — so the rename is exact, not merely thorough. The other **three** are
+> in haus's own `notes/zellij-exit.md`, and **two more sit in holt**
+> (`SPEC.md:359`, `test/holt.bats:600`); all five describe the agents pill,
+> and holt's two say *"the rice's paw pill"* — stale twice over, since the pill
+> is a robot now and "rice" stopped being the word on 2026-08-10.
+>
+> **No check was involved anywhere in this, in either direction.**
+> `check-rice-bindings.mjs` compares launch-key data to launch-key data; the
+> options page is regenerated by hand; the guides and the specs are prose. The
+> tempting reading — *a session carries the repos it is sitting in* — is
+> falsified by this pass's own numbers: **three of the five stale copies are in
+> haus**, the repo #465 was made in, and holt cut `0.3.1` inside the same
+> 82-minute window, so a session was sitting there too. The variable that
+> survives its own evidence is narrower and more useful: **not which repo, but
+> whether the copy sat in a file the change had a reason to open.** #465 swept
+> the plugin, the bar module, the option descriptions, `AGENTS.md` and the
+> generated site data — twelve files, every one of them downstream of the pill
+> — and never opened a design note in `notes/` or a spec in another repo,
+> because nothing about changing a glyph points at either. That sharpens row
+> twenty rather than adding a row. Row twenty says a green check can hide a
+> stale copy; this says the copies a change reaches and the copies it misses
+> are sorted by **blast radius, not by diligence**, and no amount of care
+> inside the diff widens it. The 59 seconds and the thirty-fourth pass's four
+> days are the same coin, seen from each side.
+>
+> ⚠️ **This paragraph claimed "zero across all seven repos" until the assurance
+> read, on the strength of `git grep -niE '\bpaw\b'`.** `git grep -E` is POSIX
+> ERE, where `\b` is not a word boundary — the command returns zero for every
+> word, in every repo, always. **A negative claim proved by a grep that cannot
+> match is row ten**, and it is the second row this pass tripped over while
+> writing about rows nineteen and twenty. The working spellings are `-P` or,
+> as re-run above, `-w`.
+>
+> ⚠️ **Third, a window that closed itself, worth recording because the lock
+> chain is what closed it.** haus#461 writes `screenshotsFolder` into
+> `~/.config/perch/config.json`; the perch that reads it is perch#83, merged
+> **8 seconds later** (10:40:18Z); haus's `perch` pin moved to that rev at
+> 10:48:51Z. For **8 minutes 41 seconds** haus `main` wrote a key no perch it
+> pinned could read, and the only thing that made that survivable is the clause
+> the module states three times, once verbatim at
+> `modules/shelf/default.nix:116` — *"A perch that predates the key ignores it,
+> the same way an older one ignores the theme keys."* A forward-compat sentence written
+> for a stranger's stale install was load-bearing for its own repo first, and
+> for eight minutes the six-edge chain in "The one gotcha that explains
+> everything" was the difference between a feature and a dead key.
+>
+> ⚠️ **And one for the tempo.** Eighty-two minutes, four releases (pounce, perch and
+> holt within 17 seconds of each other at 11:47Z, perch's `nix release pin`
+> three minutes later, haus at 12:00:55Z), three haus PRs, one new leaf. `holt
+> 0.3.1` is the semver one — five SDKs, none of which can withdraw a published
+> number. The thirty-third pass reported twelve PRs and zero leaves; this one
+> reports three PRs and a policy. Neither number predicted the other, and after
+> three passes saying so it is no longer a caution — it is the reason the leaf
+> count stays in the header and never in the finding.
 
 ---
 
