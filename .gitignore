@@ -25,7 +25,10 @@
 
 # Coverage dumps. An LLVM-instrumented binary writes `default.profraw` into
 # whatever directory it was *run* from, not where it was built — so one stray
-# family tool on PATH leaves one here and `holt` reads it as unlanded work.
-# perch was that tool (its Xcode project now pins ENABLE_CODE_COVERAGE off);
-# the line stays as the backstop for the next one.
+# family tool on PATH leaves one HERE, in whatever tree the shell was sitting
+# in, and `holt` reads it as unlanded work. perch was that tool; its Xcode
+# project pins `ENABLE_CODE_COVERAGE = NO` now, which is the actual fix. This
+# line only covers the workshop's own tree — every child repo is wholly
+# ignored above, so it can't reach inside one; `perch` and `trill` carry their
+# own, `haus`, `holt`, `nebelung` and `pounce` don't yet.
 *.profraw
