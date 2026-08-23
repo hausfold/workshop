@@ -31,8 +31,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > recurs five times, in the preamble's progress log, §3.1, §6's tail, §7 and §9,
 > spelled differently each time — stays true *about that app*: rice#212 made it
 > opt-in, rice#213 deleted the module and the flake input. It is **not** true of
-> the name. The notification compositor took `trill` on 2026-08-08
->, and the rice's roster
+> the name. The notification compositor took `trill` on 2026-08-08, and the
+> rice's roster
 > carries a `haus.roster.trill` entry for it (renamed from `haus.roster.flick`,
 > haus#264) — metadata-only, a `float` rule for its Settings/Inbox windows
 > in `modules/windows/default.nix`; the rice installs nothing and the app has no
@@ -180,8 +180,9 @@ already exist, and one it treated as a detail is the actual root blocker.
 > [`options-roadmap-log.md`](options-roadmap-log.md) — **thirty-six** dated
 > entries, 2026-08-22 back to 2026-08-02, COUNTED at every move (`grep -c '^>
 > \*\*Status, '`) and never incremented. Read `drift.md` before treating any
-> `- [ ] ` below as work: rule 1 there is that a box goes stale in ways this
-> file cannot show you, and the audit is reading the repos, not this text.
+> `- [ ] ` below as work: the first rule under *How this doc drifts* is that a
+> box goes stale in ways this file cannot show you, and the audit is reading the
+> repos, not this text.
 >
 > **Why the split, in one line:** the option surface has been 318 leaves for
 > four consecutive readings while the drift table took a row in each of the
@@ -3200,16 +3201,20 @@ option family followed in workshop#137.
 
 **Moved on 2026-08-23**, whole and unedited, to
 [`drift.md`](drift.md) — the standing catalogue of the shapes a claim in this
-family goes wrong in, and what catches each. Twenty-four rows, numbered by
+family goes wrong in, and what catches each. Twenty-five rows, numbered by
 position, **numbering frozen**: "row eleven" still means row eleven, and this
 section's own findings still read as findings about *this* file, which is what
 they were written about.
 
-**The heading stays** for two reasons, both mechanical. Commit messages, source
-comments and one other repo's notes cite `options-roadmap.md §5.14` by number
-(`haus`'s `notes/focus-design.md`, haus#472's message, several boxes below) —
-a rename that leaves no forwarding address is row fifteen, in a section whose
-job is to catalogue row fifteen. And the command that measures this file's open
+**The heading stays** for two reasons, both mechanical. `options-roadmap.md
+§5.14` is cited by number from outside this file — `haus`'s
+`notes/focus-design.md`, four `haus` commit messages including `6bb294c`
+(*"§5.14 row twenty"*), and several boxes below — so a rename that leaves no
+forwarding address is row fifteen, in a section whose job is to catalogue row
+fifteen. (Not from haus's *source*: an earlier draft of this paragraph said
+"source comments" and no `.nix` or `.sh` in that repo mentions §5.14 at all.
+Its comments cite §5.2, §5.4, §5.6, §5.9, §5.11 and §5.12 — every section that
+describes an option, and never the one that describes the document.) And the command that measures this file's open
 boxes terminates on this line:
 
 ```sh

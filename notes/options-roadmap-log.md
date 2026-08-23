@@ -2,13 +2,16 @@
 
 > ★ **The passes moved to [`drift.md`](drift.md) on 2026-08-23**, along with
 > §5.14 of the roadmap, because what they were finding had stopped being about
-> the option surface. **This file keeps its name.** Thirty-six dated entries
-> link to it by that name — including the three now in `drift.md`, which say
-> *"moves to `options-roadmap-log.md` unedited"* in their own text — and this
-> log's first rule is that an entry is never edited. Renaming it would either
-> break those links or require correcting evidence in place, which is the
-> thing the catalogue next door exists to stop. The name is a fact about where
-> these passes came from, and they did come from there.
+> the option surface. **This file keeps its name**, and the reason is smaller
+> than the first draft of this paragraph claimed. It said *"thirty-six dated
+> entries link to it by that name"*; **none of the thirty-six do** — the string
+> appears nowhere inside them. What links by name is the roadmap's pointer and
+> the **three** entries now in `drift.md`, whose own text says *"moves to
+> `options-roadmap-log.md` unedited"* — and this log's first rule is that an
+> entry is never edited, so correcting those three to match a rename is exactly
+> what it forbids. Three links and one rule is still enough, and it is what the
+> evidence supports. The name is also a fact about where these passes came from,
+> and they did come from there.
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
 from the thirty-fifth (2026-08-22) back to the first (2026-08-02) —

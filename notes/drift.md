@@ -3,7 +3,9 @@
 **The standing catalogue.** Every row below is a way a claim in this family's
 documents stopped being true, found by someone re-checking it against the
 repos — and beside it, the only thing that actually catches that shape. It is
-not a plan and holds no work: the roadmap it came out of does that.
+not a roadmap and tracks no option work: the file it came out of does that. The
+one open box below is a **check this catalogue left behind** — a tripwire it
+owes the repo — which is a different thing from a feature, and is still work.
 
 **Split out of [`options-roadmap.md`](options-roadmap.md) §5.14 on 2026-08-23**,
 after the thirty-eighth pass, because the two halves had stopped being one
@@ -21,10 +23,15 @@ family-wide catalogue inside an option roadmap is the same mistake one level up.
    section number — which is what every dated finding was written about, and
    retroactively re-pointing them would make the evidence stop matching the PRs
    it cites. Same rule, and the same reason, as that file's own naming banner.
-2. **The row numbering is FROZEN.** Rows are numbered by position, and "row
-   eleven" is quoted by number in commit messages and source comments across
-   four repos. A new shape is APPENDED; no row is ever reordered or removed. The
-   table is 24 rows as of 2026-08-23.
+2. **The row numbering is FROZEN.** Rows are numbered by position and cited by
+   number — in this repo's `notes/`, and from `haus`, whose commit `6bb294c`
+   argues from *"§5.14 row twenty"*. That is two repos and a handful of
+   citations, not the "four repos" an earlier draft of this line claimed; the
+   rule is worth keeping at its real size, because a frozen numbering costs
+   nothing and a renumbering silently rewrites someone else's argument. A new
+   shape is APPENDED; no row is ever reordered or removed. The table is 25 rows
+   as of 2026-08-23 — the twenty-fifth was written by this file's own split,
+   about the prose that announced it.
 3. **`options-roadmap.md` §5.14 still exists**, as a stub pointing here. It
    keeps its number for those citations, and because the command that measures
    that file's open boxes terminates on that heading.
@@ -149,6 +156,7 @@ catch:
 | a CORRECTION applied to the INSTANCE and not to the CLAIM — the diff fixes the sentence it has open, and states a reason WIDER than the fact that justified it, so the copy twelve lines down survives and the wide clause is the one later authors quote *(thirty-sixth pass — haus#467 fixing one of two `haus show` sentences in one comment, on the ground that the command "never reads a machine's resolved values", which is false of a command that ranks 23 of them)* | grepping the file for the phrase you are about to correct, **before** writing the correction — the twin is usually inside the same comment, because a claim gets restated where an argument closes. And then writing the reason at the width of the evidence: the fact here is *this desktop file does not set that leaf*, which is narrow, checkable and unquotable, while *it never reads your machine* is memorable, general, load-bearing for the next argument and wrong. Every other row here is about a claim decaying, or an edit that never happened; this one is about a correction that was applied, verified and reported honestly, and still left the section it corrected saying the same thing twice. The tell: a correction whose reason would survive deleting the case that prompted it is a rule someone invented at the keyboard |
 | a claim rev-bounded in the BODY and unbounded in the HEADLINE — the evidence paragraph is exemplary, the bolded first sentence is in the present tense, and the headline is what gets quoted *(thirty-seventh pass — the thirty-sixth's "it is still standing", fixed by haus#469 **twelve seconds** before the pass reporting it merged, from the same session)* | writing the finding so the rev is inside the sentence a reader can lift out. This is row eleven meeting the fact that a status block is READ through its header: the paragraph below can be perfect and never be reached. It is also unfixable by ordering — the doc lives in a fifth repo (structural reason 1), so the fix PR and the report PR are queued independently and merge in whichever order GitHub reaches them; had they landed the other way the block would have been true for twelve seconds and false forever after. A finding written *at `<rev>`, X* survives either order; *X is still standing* survives neither. And note what did NOT go wrong: the pass fetched first, dated at revs, derived from the rev, and got the fact right — the defect is entirely in the width of one sentence |
 | an IMPOSSIBILITY claim whose remedy is ALREADY IN THE REPO — row sixteen with the search moved inward: not "could we build this ourselves" but "did we already, and forget" *(thirty-eighth pass — `modules/ai/default.nix`'s *"the names are UNVERIFIABLE from here, by construction"*, written at haus `561af88` nine days after the same class was closed in `modules/theme/ports.nix` and terminal's `glowPlugin`, on this file's own fourteenth-pass box)* | grepping the repo for the FIX before writing down that there isn't one — the identifier, not the sentence, which is row fifteen's tell pointed at a remedy instead of at a claim. The reason this survives row sixteen's check is that the impossibility argument here is **half true and precisely stated**: listing a derivation's contents at eval time really is import-from-derivation, really would fire on `haus get`, and the comment says so correctly. What it never asks is whether the check has to happen at eval time at all — `runCommand` turns the same assertion into a build dependency and is not IFD. A wrong reason gets re-examined; a right reason carrying the wrong conclusion is quoted. And the cost of not asking is not a stale doc: it is a dangling symlink in a user's home with eval, `nix flake check` and the home-files build all green |
+| a DECISION that is right, propped up with support nobody checked — the reasoning stands without the extra clauses, and the extra clauses are what a later reader verifies *(twenty-fifth row, written from inside this file on the commit that created it: four claims in `55235fc`'s new prose — "thirty-six dated entries link to it by that name" (zero do), "cited by number across four repos" (two), "source comments in `haus` cite rows by number" (no `.nix` or `.sh` in that repo mentions §5.14 at all), and a header promising the file "holds no work" twelve lines above its one open box)* | asking, of each clause supporting a decision you have already made, whether deleting it would change the decision. If not, it is decoration, and decoration is the part that gets checked — a reader who catches one false support clause re-opens the whole decision, including the half that was sound. This is row twenty-two's *width* problem aimed at a rationale rather than at a correction, and it is the cheaper failure to make: nobody sets out to invent evidence, they reach for a second reason because one felt thin. Every instance above was written in the same twenty minutes, by the same author, **while moving the table that contains row twenty-two** |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
