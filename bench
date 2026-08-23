@@ -582,12 +582,21 @@ ensure_perch_dev_app() {
   local out; out="$(cd "$(mktemp -d "${TMPDIR:-/private/tmp}/bench-perch-dev.XXXXXX")" && pwd -P)"
   mkdir -p "$dd"
 
+  # PERCH_BUNDLE_ID, *not* PRODUCT_BUNDLE_IDENTIFIER: a command-line
+  # PRODUCT_BUNDLE_IDENTIFIER applies to every target in the scheme, so it
+  # collapses the app, PerchFinderAction and PerchCLI onto one identifier. An
+  # app extension sharing its container's bundle id is malformed — PluginKit
+  # registers it, but Finder never offers the Quick Action and Login Items &
+  # Extensions has nothing to switch on, which is what made perch's field-test
+  # #4 look like a plist bug for two passes. perch's project derives all five
+  # ids from this one setting for exactly this reason; see its
+  # nix/dev-app/README.md.
   say "perch: building a signed dev app from $src"
   say "       (bundle com.hausfold.perch.dev, version $ver, $ident) — first run is slow…"
   if ! ( cd "$src" && /usr/bin/xcodebuild \
            -project Perch.xcodeproj -scheme Perch -configuration Debug \
            -destination 'platform=macOS' -derivedDataPath "$dd" \
-           PRODUCT_BUNDLE_IDENTIFIER=com.hausfold.perch.dev \
+           PERCH_BUNDLE_ID=com.hausfold.perch.dev \
            MARKETING_VERSION="$ver" \
            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$ident" \
            build >/dev/null ); then
