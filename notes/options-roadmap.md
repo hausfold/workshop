@@ -4428,6 +4428,13 @@ everything macOS can't veto)* — **mostly done 2026-07-27**
       `roster.*.workspace`-desugars-into-`workspaces` sketch this line
       originally described. See §5.4 for what was measured before calling the
       live host safe.
+      ⚠️ The tick stands and the word **"fully"** does not, as of 2026-08-23:
+      both gaps this Phase item names did ship, and §5.4 has since opened a
+      third that neither of them implied — `scope` is documented as reach and
+      is load-bearing as a path. A Phase box tracks a deliverable, not a
+      section's future, so it is not reopened here; the pointer is so a reader
+      following the tick meets the section's `◐` rather than being surprised
+      by it.
 - [x] §5.10 displays (haus#147) — the only working system-wide "make it
       bigger" lever, now part of `large-print`; docked multi-display validation
       remains before any `profiles.docked` design
