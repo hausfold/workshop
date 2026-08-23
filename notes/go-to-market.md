@@ -360,9 +360,19 @@ Consequences, revised:
   now buy a *hausfold* product, so support moves to the hausfold.co domain. The
   original reasoning ("routing them to a name they've never seen is friction")
   is exactly why it moves: hausfold is the name they *will* have seen.
-  **The address is `hi@hausfold.co`** — settled 2026-08-09. This bullet said
+  ~~**The address is `hi@hausfold.co`**~~ — settled 2026-08-09, **superseded
+  2026-08-22: the address is `julien@hausfold.co`.** This bullet said
   `support@hausfold.co` for a day; that mailbox was never created and isn't
-  going to be.
+  going to be. `hi@` is not a role address either — it named nobody and was
+  read by one person, which is what `julien@` says out loud. What moved with
+  it, in one pass: the colophon on every hausfold.co sheet, `/perch/privacy`,
+  the site's `Organization` JSON-LD `email`, the App Store review contact in
+  perch's `docs/app-store.md`, and the hausfold GitHub org's public email.
+  Nothing else in the family carries a *contact* address — no package
+  manifest, no formula, no `LICENSE`, and nothing published to npm, PyPI or
+  crates.io. The one other `@hausfold.co` string in the family is
+  `docs-sync@hausfold.co` in `.agents/skills/docs-sync/SKILL.md`, which is a
+  bot committer identity rather than a mailbox and does not move with this.
 - ~~**Nothing in the family migrates to the hausfold org.** Not the gallery, not
   holt, not a repo, ever.~~ **Reversed — everything migrates**, all ten repos.
   `PRESENCE.md`'s GitHub row and hausfold's `AGENTS.md` both
