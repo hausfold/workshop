@@ -1576,7 +1576,7 @@ here so it isn't mistaken for fallout of this migration.
       that cannot express the precondition. Keep it open until the registry
       answers, and read this tick as evidence that the cheap half is now cheap
       enough to have been done — not as progress on the expensive one.
-      ✅ **Closed 2026-08-23 (forty-first pass) — [haus#492](https://github.com/hausfold/haus/pull/492)
+      ✅ **Closed 2026-08-23 (forty-first pass) — [haus#493](https://github.com/hausfold/haus/pull/493)
       builds the registry half this box chose between two designs for, and
       picks the one the box said would scale.** `haus.roster.<name>.binPath` is
       read-only and computed from the entry's own source and `scope`:
@@ -2999,7 +2999,7 @@ break timer · storage pressure · NAS reachability · world clocks.
       still hand-mirrored filenames at `0f3a61c`, which is the same
       hand-mirroring one layer up, now with the seam to end it already open.
       ✅ **The other checkable half closed 2026-08-23 (forty-first pass) —
-      [haus#492](https://github.com/hausfold/haus/pull/492).** The
+      [haus#493](https://github.com/hausfold/haus/pull/493).** The
       `~/.local/state/haus/any-page` literal shared by `pages.sh:6` and
       `workspace-mru.sh:71` is now declared in `modules/lib/state-files.nix`
       and pinned by `nix flake check`'s `state-files`: every file listed for a
@@ -3127,7 +3127,7 @@ needs checking — a fence is neither a §5 checkbox nor a §6 phase line.
       **Re-derive a peripheral precondition at the start of the session that
       depends on it, never off the file.**
       ✅ **So the half that does NOT need the dock shipped instead
-      ([haus#492](https://github.com/hausfold/haus/pull/492)): `hausdisp list`
+      ([haus#493](https://github.com/hausfold/haus/pull/493)): `hausdisp list`
       now reports what each panel is CALLED and where it SITS** —
       `name="Built-in Retina Display"` from `NSScreen.localizedName`, and
       `at x,y  WxHpt` from `CGDisplayBounds`, beside the UUID. Two things at
@@ -3536,7 +3536,7 @@ option family followed in workshop#137.
 
 **Moved on 2026-08-23**, whole and unedited, to
 [`drift.md`](drift.md) — the standing catalogue of the shapes a claim in this
-family goes wrong in, and what catches each. **Twenty-nine** rows as of
+family goes wrong in, and what catches each. **Thirty** rows as of
 2026-08-23, numbered by position, **numbering frozen** (and RE-COUNTED here
 rather than incremented — the number went stale twice in one day, which is the
 shape it is a count of): "row eleven" still means row eleven, and this
