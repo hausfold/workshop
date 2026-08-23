@@ -889,6 +889,31 @@ evidence.
 > running that the day's most stranger-visible change is invisible to
 > `options.json` — and the first in which the day's most stranger-visible change
 > is **a sentence this file caused to be rewritten somewhere else.**
+>
+> ⚠️ **Coda, written into this block rather than corrected into it: the streak
+> ended 83 seconds after this pass's rev.** haus#486 (`cdb4198`,
+> `2026-08-23T11:18:37Z`) adds `haus.ai.repoRoots` — the palette's Spawn Agent
+> repo list, previously a `$HAUS_REPO_ROOTS` env var that the one process which
+> reads it, a launchd GUI agent, could never see. **`docs/site-data/options.json`
+> is 319 leaves there**, ending six consecutive readings of 318, and the key-set
+> instrument sees it perfectly: a new leaf is precisely the growth a key diff
+> CAN show. So the thirty-ninth pass's widening is not retired by this — it was
+> aimed at the growth a key diff cannot show, and both instruments are now
+> earning their keep on the same file eighty-three seconds apart.
+>
+> This is left standing rather than folded into the paragraphs above because
+> the block is dated at `7968b7f` and was true there, and **this is the first
+> time a pass has been able to demonstrate rev-bounding working rather than
+> assert it** (row nineteen, row twenty-three). A reader who lifts *"318 leaves
+> for the sixth consecutive reading"* out of this block without its rev is
+> quoting something that had ninety seconds to live.
+>
+> ⚠️ And one thing that is NOT a second missed catch, said plainly so it does
+> not become one: `cdb4198` does edit `modules/ai/default.nix`, the file
+> carrying the instruction above — at line 799, `inherit (cfg) default
+> repoRoots;`, 539 lines from the sentence and with no reason to read it. The
+> finding is that the room shipping the remedy never learned; it is not that
+> someone looked at the line and left it.
 
 
 > **Status, 2026-08-23 (thirty-ninth pass) — at haus `56697b7`, the number five
