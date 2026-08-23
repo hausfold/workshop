@@ -14,8 +14,8 @@
 > and they did come from there.
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirty-sixth (2026-08-23) back to the first (2026-08-02) —
-thirty-seven blocks, because 2026-08-04 carries two and only one of them was
+from the thirty-seventh (2026-08-23) back to the first (2026-08-02) —
+thirty-eight blocks, because 2026-08-04 carries two and only one of them was
 numbered. It was the roadmap's own preamble until 2026-08-20, when it had
 grown to 2,393 lines — larger than every other file in `notes/` put together,
 and sitting between the document's title and its §1.
@@ -38,6 +38,198 @@ archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
 
 ---
+
+> **Status, 2026-08-23 (thirty-seventh pass) — the thirty-sixth pass's finding
+> was FIXED twelve seconds before the pass reporting it merged, by the same
+> session, out of the same keyboard. Its body was rev-bounded exactly as row
+> eleven demands and its HEADLINE was not, and the headline is the sentence a
+> reader quotes. And the pass that landed with it turned up the same shape one
+> layer down: 318 leaves, unchanged for the second pass running, while an
+> option description quietly withdrew the word "one-time".**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
+> workshop = `2ea7793`, haus = `b1e263a`, perch = `a74e42a`, hausfold.co =
+> `2d22b02`. pounce is `aabd99a`, holt `1ba98aa` and nebelung `5d5d0a2` — all
+> three unmoved as of those revs, which is a fact about three revs and not a
+> licence to skip a section (row nineteen).
+>
+> ⚠️ **"Fetched first" is not "fetched last", and this pass proves it.** The
+> earlier drafts of this paragraph read *"workshop `main` = `origin/main` =
+> `2ea7793`"*, and by the time the pass was committed (`c4f4cfa`, 05:08:00Z)
+> four of the seven had moved: workshop to `e8ebc5f` (#438 05:00:22Z, #439
+> 05:01:32Z), haus to `a373ca0` (#471 04:52:54Z), perch to `cb15526` (#87
+> 04:59:04Z) and holt to `c796d9d` (#54 04:59:47Z). **Every rev-bounded claim
+> below survives untouched** — that is what rev-bounding is for — and the
+> enumerated window (04:13:58Z–04:39:00Z) is unaffected; what went stale is the
+> two `= origin/main` equalities, which are the only clauses in a pass that
+> claim a repo's *tip* rather than a repo's *content*. They are struck, not
+> re-measured, because re-measuring them just resets a clock that runs the whole
+> time a pass is being written. This is row nineteen's third instance and its
+> narrowest: **do not write `X = origin/main` in a pass at all.** Named
+> separately in §5.14 would be over-cataloguing; it is the same row with the
+> smallest possible fix. ★ Re-checked at haus `1ddeb51`
+> anyway, since the leaf count is what a stale rev would most plausibly
+> falsify: **still 318, still key for key** (#471 and #473 add none), so the
+> headline holds three haus PRs later. Non-cloud, so every time below is a committer date on
+> `origin/main`, rendered in UTC. **This family's local time is UTC−5 and this
+> window crosses midnight**, as the thirty-sixth pass's did: the whole range
+> below is 2026-08-23 in UTC and was still Saturday evening at the keyboard.
+>
+> Landed since the thirty-sixth pass's revs — a **25-minute** window, the
+> shortest any pass here has read: every commit below landed between 04:13:58Z
+> and 04:39:00Z. **Three haus commits** (#469 04:37:38Z, #468 04:38:36Z, one
+> lock bump 04:39:00Z), **one perch** (#86 04:16:51Z), **one hausfold.co** (#131
+> 04:13:58Z), and nothing in pounce, holt, nebelung or the workshop beyond the
+> thirty-sixth pass itself.
+>
+> **The count is 10 at `2ea7793`**, re-derived with the command the last nine
+> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-sixth
+> pass predicted. This pass **opens one box and closes none**, so the pass after
+> this one should find **11**. The eleventh is §5.6's, which is BUILT and green
+> and open as haus#472 — left `- [ ] ◐` on §5.14's own instruction that only
+> `mergedAt` earns a tick, and to be ticked the moment the PR has one, not
+> re-derived from scratch. It adds a §5.14 row and rotates the log: the thirty-fourth pass
+> moves to [`options-roadmap-log.md`](options-roadmap-log.md) unedited, and both
+> pointer counts are re-COUNTED rather than incremented (35).
+> `docs/site-data/options.json` at `b1e263a` is **318 leaves in 35 namespaces**,
+> key for key identical to `8c1fa43` (`diff <(git show 8c1fa43:… | jq -r
+> 'keys[]') <(git show b1e263a:… | jq -r 'keys[]')` is empty).
+>
+> ★ **First, and it is the pass: twelve seconds.** haus#469 (`70a3555`,
+> 04:37:38Z) fixed the twin sentence the thirty-sixth pass had just found. The
+> pass itself (`2ea7793`, 04:37:50Z) merged **12 seconds later**, headed *"it is
+> still standing"*. Same author, same session — both commits carry
+> `Claude-Session: …session_01GRm5Q4t18YXjezha6J6tka` — and haus#469's own body
+> says *"Found by the workshop's options-roadmap thirty-sixth pass."* One piece
+> of work, landing in two repos, with the remedy arriving first and the report
+> reading as though it hadn't.
+>
+> **The pass did the rev-bounding right and it did not help.** Its evidence
+> paragraph is exemplary: *"At `8c1fa43`, `grep -n 'haus show'
+> modules/shelf/default.nix` returns exactly two lines"* — a claim about a rev,
+> true forever, which is precisely what row eleven asks for and what the
+> thirty-second pass sharpened row nineteen into. The ★ heading above it is in
+> the unbounded present tense, and so is the block header the log will carry.
+> **Row eleven was applied to the INSTANCE and not to the CLAIM** — which is the
+> thirty-sixth pass's own row twenty-two, turned on the pass that wrote it,
+> inside the same commit. That is not an irony worth a line for its own sake; it
+> is the reason the rule needs restating in a form that reaches headlines: a
+> reader meets a status block through its bolded first sentence, quotes that,
+> and never opens the paragraph where the rev is.
+>
+> ⚠️ **And the twelve seconds is not a near miss to tighten up.** No ordering
+> discipline fixes it. The two repos have no seam — §5.14's structural reason 1,
+> *"the work happens in four repos and the doc lives in a fifth"* — so the two
+> PRs were queued independently and merged in whichever order GitHub got to
+> them; had they landed the other way the block would have been true for twelve
+> seconds and false forever after. **The fix is grammatical, not procedural**:
+> a finding written as *at `<rev>`, X* survives either order, and a finding
+> written as *X is still standing* survives neither. Two of the last four
+> passes have now been about a sentence's WIDTH rather than its truth.
+>
+> ★ **Second: the leaf count saw nothing again, and what moved was a promise.**
+> haus#468 — the same PR that takes SketchyBar from nixpkgs so a fresh Tahoe Mac
+> stops building it from source — rewrote the `haus.focus` room description
+> twelve lines away from anything it was about. Old: *"grant sketchybar once for
+> the pill). `focus doctor` walks the **one-time** steps."* New: *"the pill needs
+> one on sketchybar itself, and TCC keys that to the binary — so it is asked
+> again after a rebuild that moves it). `focus doctor` walks **those** steps."*
+> **The word "one-time" was withdrawn.** Moving the binary from
+> `/opt/homebrew/opt/sketchybar/bin` into the system profile means the
+> Accessibility grant is keyed to a store path a nixpkgs bump will move, and the
+> user is re-prompted. That is a behaviour change a person will feel, and the
+> only **user-facing** surface that says so is a description string — with
+> **zero** leaves added, removed or retyped. (Not the only place it is written
+> down: `modules/bar/default.nix:1801-1807` reasons it out at length in a source
+> comment. That is the width the evidence supports; *"declared in exactly one
+> place"* is the wider sentence, and it is the row this file added one pass
+> ago.) `options.json` is the same 318 keys it was.
+>
+> **Three of the last five passes, the instrument has missed the day's most
+> stranger-visible change**: the thirty-third's command header (a declaration
+> surface with no options page), the thirty-fifth's declaration/value gap, and
+> now a description that is the only user-facing record of a regression. ⚠️
+> *Three of five*, not "three running" — the thirty-fourth added four leaves and
+> the thirty-sixth added none, so the misses are not consecutive, and the leaf
+> count itself is unchanged only for the **second** pass in a row, which is what
+> this block's own header says. The header keeps the leaf count for the reason
+> the thirty-fourth pass gave — it is the one number that is cheap and
+> comparable — but three misses in five is no longer a caution about the number,
+> it is a statement about what the number measures:
+> **`options.json` tracks the SHAPE of the surface and nothing about what the
+> surface promises.**
+>
+> ⚠️ **The published copy of that sentence is stale as this is written, and the
+> check that reads it runs weekly.** `content/docs/haus/reference/options.mdx`
+> at hausfold.co `2d22b02` still carries *"grant sketchybar once for the pill"*
+> at lines 5806–5807. `options-drift.yml`'s cron is `30 9 * * 1` — the next
+> firing is 2026-08-24T09:30Z, **28 h 51 m** after the merge, and the general
+> ceiling is seven days. The hand-written `rooms/focus.mdx:280` says *"sketchybar
+> has no Accessibility grant yet"* with no mention of the re-prompt and has no
+> check at all. Fourth toss of the thirty-fourth pass's coin and it landed the
+> same way: the copy with a check is the slow one, the copy without a check is
+> fixed only if somebody happens to have the file open, and here nobody did.
+>
+> ★ **Third, and it is a new box: `haus.roster.<name>.scope` is documented as
+> REACH and is load-bearing as a PATH.** haus#468 moves the sketchybar entry from
+> `brew = "FelixKratz/formulae/sketchybar"` to `package = pkgs.sketchybar` with
+> `scope = lib.mkDefault "system"`, and that `scope` is what puts the binary in
+> `/run/current-system/sw/bin` — a literal string that **fifteen call sites in nine
+> files across three rooms** now hardcode — the bar (`default.nix`,
+> `barpop.swift`, `aerospace-notify.sh`, three `plugins/` scripts), focus
+> (`default.nix`, `focus.sh`) and
+> core (`awake.sh`). The option's own description frames the choice as
+> availability — *"'system': …on PATH for root, for non-login shells, and for
+> launchd jobs… It is about REACH"* — and never says a path depends on it. A
+> host setting `scope = "user"`, which is the DEFAULT for every other roster
+> entry and a documented in-range value, moves the binary to the user profile,
+> leaves the launchd agent pointing at nothing, and the bar simply never draws.
+> Nothing asserts: `grep -rn 'roster\.sketchybar\|sketchybar\.scope' modules/`
+> at `b1e263a` returns **nothing**, while the bar room's own assertion block,
+> in the same file, exists for exactly this class and says so — *"each of these is a
+> pill that cannot work, as opposed to one that merely won't draw."* This is
+> **§5.4's** limit, not §5.9's: registry v2 shipped "install from any of four
+> sources" as a metadata choice, and the first entry to actually MIGRATE between
+> sources turned one of its fields into a filesystem contract three other rooms
+> depend on. Box opened there.
+>
+> ◐ **And one built, deliberately not ticked.** The box the thirty-fifth pass
+> opened — *state §5.6's policy over effective VALUES, and check it* — is
+> written to its sketch and green under `nix flake check`, and is open as
+> haus#472 rather than merged. §5.14's own row says a PR number in a tick is a
+> promise that only `mergedAt` keeps, so the box stays `- [ ] ◐` and stays
+> counted. It resolves all 66 leaves of the ten groups on
+> each of the four shipping desktops and diffs the non-quiet ones against an
+> expected table, tagging each by who supplied the value. **The result is two
+> rows and no `desktop:` among them**, which is the part worth keeping: not one
+> of the four desktops names a single one of the 66 leaves, so the entire
+> curated surface is offered and unexercised by the product — exactly as §5.6
+> intended — and **every row this check will ever gain starts life as a `room:`
+> row**, the one class the policy was never addressed to. The thirty-fifth
+> pass's topological tell (29 of §5.6's 33 citations sit inside its own
+> implementation) is now a mechanical one.
+>
+> ⚠️ **And building it found a fifth instance of the shape this file keeps
+> re-deriving, in the one file that documents itself as prone to it.** haus's
+> `.github/workflows/check.yml` carries a hand-written census of which checks
+> run where, with a comment that says *"Keep this census honest when a check is
+> added: it is this repo's only record of what CI actually covers, and it rots
+> in every direction"* and then recounts three prior rots by date. Re-derived
+> at `b1e263a` with the two commands that comment prints: the darwin list said
+> FOURTEEN and is fifteen with the new check, and the **Linux** list said
+> FIFTEEN while `nix eval .#checks.x86_64-linux --apply builtins.attrNames`
+> returns **nineteen** — `pounce-command-headers`, `pounce-header-grammar`,
+> `userstyles-inline` and `userstyles-important` were declared for Linux and
+> never listed. Fourth rot, and the first in the SAFE direction: the checks
+> were running and the census undercounted them, which is why nothing ever
+> noticed. Both fixed in haus#472. The generalisable half is small and is not
+> new — a comment that tells you how to re-derive it is not a check, however
+> honestly it confesses. §5.14's structural fix ("make the upstream repo emit
+> something mechanical") has an obvious application here that nobody has spent
+> a PR on: the census is two `nix eval` calls away from being generated.
+
 
 > **Status, 2026-08-23 (thirty-sixth pass) — the correction reached the
 > INSTANCE and not the CLAIM. The sentence haus#467 fixed has a twin twelve

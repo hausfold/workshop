@@ -176,17 +176,23 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **The passes, and the drift catalogue they feed, are in
 > [`drift.md`](drift.md).** Split out on 2026-08-23, after the thirty-eighth:
 > the three most recent status blocks and §5.14's table of shapes live there,
-> and the thirty-six before them stay in
-> [`options-roadmap-log.md`](options-roadmap-log.md) — **thirty-six** dated
-> entries, 2026-08-22 back to 2026-08-02, COUNTED at every move (`grep -c '^>
-> \*\*Status, '`) and never incremented. Read `drift.md` before treating any
-> `- [ ] ` below as work: the first rule under *How this doc drifts* is that a
-> box goes stale in ways this file cannot show you, and the audit is reading the
-> repos, not this text.
+> and the ones before them stay in
+> [`options-roadmap-log.md`](options-roadmap-log.md) — **thirty-eight** dated
+> entries, 2026-08-23 back to 2026-08-02, COUNTED at every move (`grep -c '^>
+> \*\*Status, '`) and never incremented. ⚠️ **It read thirty-six until the
+> fortieth pass**, which is what the rule is for: the thirty-ninth rotated one
+> entry in and closed with *"both pointer counts re-COUNTED rather than
+> incremented (37)"* — `drift.md`'s tail moved and this one did not.
 >
-> **Why the split, in one line:** the option surface has been 318 leaves for
-> four consecutive readings while the drift table took a row in each of the
-> last four passes. They had stopped being one subject.
+> Read `drift.md` before treating any `- [ ] ` below as work: the first rule
+> under *How this doc drifts* is that a box goes stale in ways this file cannot
+> show you, and the audit is reading the repos, not this text.
+>
+> **Why the split, in one line, as measured on the day it happened:** the
+> option surface had been 318 leaves for four consecutive readings while the
+> drift table took a row in each of the last four passes. They had stopped
+> being one subject. (Both streaks have run on since: six readings and six
+> rows as of the fortieth pass.)
 
 ---
 
@@ -1461,6 +1467,21 @@ here so it isn't mistaken for fallout of this migration.
       name instead of a string. The second is the one that scales, and it is
       also the one that would have made haus#468 a one-line change instead of a
       sixteen-spelling sweep.
+      ⚠️ **Amended 2026-08-23 (fortieth pass): fifteen is sixteen, four hours
+      and fifteen minutes after this box was written.** At haus `7968b7f` the
+      literal is hardcoded at **sixteen call sites**, still nine files, still
+      three rooms: haus#484 (`a6d1474`, 09:40:29Z) added
+      `bar/sketchybar/aerospace-notify.sh:26`, an `aerospace_tiling_change`
+      trigger — in the **bar** room, so the three-room count holds; added by a
+      **windows**-room PR, for a reason with nothing to do with `scope`. The
+      box's thesis is that the literal spreads; it spread once inside the box's
+      first afternoon, from a PR that has no reason to know the box exists, and
+      nothing but this box would notice. Derive it at a rev, never off the
+      working tree: `git grep -c '/run/current-system/sw/bin/sketchybar'
+      7968b7f -- modules` sums to 18, **minus the two occurrences that are
+      prose** — `modules/bar/default.nix:1692` and
+      `:1799` are comments *about* the path, which is why the raw sum reads 18
+      and why fifteen was exactly right when written (17 − 2 at `b1e263a`).
 
 ### 5.5 `haus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (haus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This

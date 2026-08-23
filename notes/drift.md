@@ -162,6 +162,7 @@ catch:
 | an IMPOSSIBILITY claim whose remedy is ALREADY IN THE REPO — row sixteen with the search moved inward: not "could we build this ourselves" but "did we already, and forget" *(thirty-eighth pass — `modules/ai/default.nix`'s *"the names are UNVERIFIABLE from here, by construction"*, written at haus `561af88` nine days after the same class was closed in `modules/theme/ports.nix` and terminal's `glowPlugin`, on this file's own fourteenth-pass box)* | grepping the repo for the FIX before writing down that there isn't one — the identifier, not the sentence, which is row fifteen's tell pointed at a remedy instead of at a claim. The reason this survives row sixteen's check is that the impossibility argument here is **half true and precisely stated**: listing a derivation's contents at eval time really is import-from-derivation, really would fire on `haus get`, and the comment says so correctly. What it never asks is whether the check has to happen at eval time at all — `runCommand` turns the same assertion into a build dependency and is not IFD. A wrong reason gets re-examined; a right reason carrying the wrong conclusion is quoted. And the cost of not asking is not a stale doc: it is a dangling symlink in a user's home with eval, `nix flake check` and the home-files build all green |
 | a DECISION that is right, propped up with support nobody checked — the reasoning stands without the extra clauses, and the extra clauses are what a later reader verifies *(twenty-fifth row, written from inside this file on the commit that created it: four claims in `55235fc`'s new prose — "thirty-six dated entries link to it by that name" (zero do), "cited by number across four repos" (two), "source comments in `haus` cite rows by number" (no `.nix` or `.sh` in that repo mentions §5.14 at all), and a header promising the file "holds no work" twelve lines above its one open box)* | asking, of each clause supporting a decision you have already made, whether deleting it would change the decision. If not, it is decoration, and decoration is the part that gets checked — a reader who catches one false support clause re-opens the whole decision, including the half that was sound. This is row twenty-two's *width* problem aimed at a rationale rather than at a correction, and it is the cheaper failure to make: nobody sets out to invent evidence, they reach for a second reason because one felt thin. Every instance above was written in the same twenty minutes, by the same author, **while moving the table that contains row twenty-two** |
 | a STABILITY claim measured by an instrument NARROWER than the claim — the metric is honest, its dimension is not the one that moved, and "unchanged" comes back true reading after reading *(thirty-ninth pass — "318 leaves, key for key" carried four headlines from `ff8ecf3` to `56697b7`, 21 h 59 m, while `haus.displays.<name>.uiScale` gained a fifth legal value in haus#478 and the key set never twitched)* | diffing the instrument's output at a SECOND dimension before writing "unchanged" — here one substitution, `jq -Sr 'to_entries[]\|"\(.key)\t\(.value.type)"'` in place of `jq -r 'keys[]'`, which is how this was found. The tell is a claim whose subject ("the option surface") is wider than the measurement's ("the option NAMES"): a new legal value is the most stranger-visible growth an option can have short of a new option — it is precisely what a desktop author may now write — and a key-set diff cannot see one. Distinct from row twenty, which is a check whose snapshot refreshes while the prose it protects rots: this instrument refreshes nothing and is not wrong, it is aimed one dimension away from the sentence it is quoted for. And what let it survive four readings is that it kept being RIGHT — four true "unchanged"s are what made the fifth feel like confirmation rather than a measurement, which is the same trap row twenty-five names one level up, a sound claim propped on support nobody re-derived |
+| a REMEDY named in shipped instructions and MEASURED to be a no-op by the same repo — the advice still parses, still exits 0, and produces nothing; the room that ships it is not the room that measured it, and the falsification is not LATER than the claim but beside it, in the same rev *(fortieth pass — `modules/ai/default.nix:260`'s *"`open -g` launches without activating"*, live as line 80 of `~/.claude/CLAUDE.md` on every machine the layer installs, and `desktop-guard.sh:243` handing an agent that same form as the compliant one, all at haus `7968b7f`, 49 seconds after `4151ac0` landed `lane-open.sh:238`'s *"leaves a live Ghostty process with NO window, ever"*)* | grepping for the MECHANISM a commit falsifies — the identifier, not the sentence — inside the PR that falsifies it: `git grep -n 'open -g'` at `4151ac0` is **14 hits in 6 files**, of which that PR touched two, both places where the measurement is written DOWN. This is row twenty-four's search pointed the other way — row twenty-four asks *did we already build the fix and forget*, this asks *who else is quoting the thing I just disproved* — and it needs its own row because neither surface §5.14 polices can see it and neither can a check: `test/desktop-guard.bats` came back green **while pinning `open -g -a Ghostty` as the approved silent form**, because a fixture pins the SHAPE it was written for and knows nothing about whether that shape still works. Row twenty aimed at a fixture instead of a snapshot. And the cost is not a stale doc — it is every agent on every installed machine following an instruction to a command that exits 0 and draws nothing |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
@@ -722,6 +723,227 @@ both pointer counts are re-COUNTED (`grep -c '^> \*\*Status, '`) rather than
 incremented. Never edit an entry: a dated finding corrected in place stops being
 evidence.
 
+> **Status, 2026-08-23 (fortieth pass) — at haus `7968b7f`, the layer ships an
+> instruction whose remedy the same rev measures as a silent no-op.**
+> `modules/ai/default.nix:260` tells every agent on every machine *"Never
+> foreground an app just to see it. `open -g` launches without activating"* —
+> and `modules/terminal/lanes/lane-open.sh:236`, merged **49 seconds** before
+> this pass's endpoint, records that `open -g -na Ghostty.app` "leaves a live
+> Ghostty process with NO window, ever". haus#487 touched **no file under
+> `modules/ai`**. Separately, the thirty-ninth pass's own *"both pointer counts
+> re-COUNTED"* moved one of the two.
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's sharpening),
+> and with no `= origin/main` anywhere (the thirty-seventh pass's narrowest
+> rule, applied for the third time): workshop `6bb78d9`, haus `7968b7f`, perch
+> `617703d`, hausfold.co `511364a`, pounce `979acb5`. holt is `c8c1056` and
+> nebelung `5d5d0a2`, both unmoved as of those revs — a fact about a rev and not
+> a licence to skip §5.1 (row nineteen). Non-cloud, so every time below is a
+> committer date on the branch, in UTC; the family's local time is UTC−5, so
+> this block is still Sunday morning at the keyboard.
+>
+> Landed since the thirty-ninth pass's revs — **9 commits in 20 m 59 s**,
+> 10:56:15Z to 11:17:14Z, by some way the narrowest window any pass has read
+> (the last three were 4 h 28 m, 34 m and 25 m). **Three perch** (#95–#97),
+> **two workshop** (#444, the thirty-ninth pass itself, and #445), **two haus**
+> (#487 and the lock bump that is this pass's endpoint), **one hausfold.co**
+> (#137) and **one pounce** (#98). **Zero holt, zero nebelung.**
+>
+> **The count is 10** — the number the thirty-ninth pass predicted — re-derived
+> with the command the last twelve passes have run (`sed -n '/^## 5\. The option
+> families/,/^### 5.14/p' notes/options-roadmap.md | grep -c '^- \[ \]'`). This
+> pass closes none and opens none in the counted range, so the pass after it
+> should find **10** again. It rotates the log: the thirty-seventh pass moves to
+> [`options-roadmap-log.md`](options-roadmap-log.md) unedited, both pointer
+> counts re-COUNTED rather than incremented (38) — at **both** of them this
+> time, which is the second finding below.
+>
+> ★ **First, and it is the pass: an instruction shipped to every machine names a
+> remedy the same repo has measured to be a no-op.** haus#487 (`4151ac0`,
+> `2026-08-23T11:16:25Z`) is titled *"⌃↵ opened no window at all — `open -g` is
+> why"*, and the comment block it lands at `lane-open.sh:232` is a measurement:
+>
+> ```
+> open -g -na Ghostty.app --args --title=probe --initial-command=<script>
+> ```
+>
+> "leaves a live Ghostty process with NO window, ever, and the initial-command
+> NEVER RUNS — so no zmx session, no client, no lane: a Dock icon and nothing
+> else." It goes on to name the reason nothing downstream noticed for as long as
+> ⌃↵ has existed: **`open -na` returns the moment LaunchServices accepts** —
+> the note's own words, about the flags it measured — so the whole chain exits
+> 0 over a window that was never drawn. Plain `open` returning the same way is
+> an inference from the same mechanism, not something #487 measured.
+>
+> That is the exact mechanism three other sites recommend, and **the PR touched
+> none of them.** `git grep -n 'open -g'` at `4151ac0` returns **14 hits in 6
+> files**; #487's five files include two of the six, both places where the
+> measurement is *written down*. The other four are where it is *contradicted*:
+>
+> - **`modules/ai/default.nix:260`** — the `haus.ai.instructions` default, and
+>   therefore the text of `~/.claude/CLAUDE.md` on every machine the layer
+>   installs. Checked here, not inferred: **line 80 of the file this session is
+>   running under**, resolved through the store symlink. It is unqualified.
+> - **`modules/ai/desktop-guard.sh:243`** — the PreToolUse hook's own refusal
+>   text, *"Use `open -g` to launch it in the background, or ask the user to
+>   open it."* The guard is the thing that catches an agent about to take the
+>   screen, and the compliant form it hands back is the one that opens nothing.
+> - **`test/desktop-guard.bats:66`** — `silent 'open -g -a Ghostty'`. A fixture
+>   pinning as the approved quiet form the flag-and-app pair the same rev
+>   measures as producing no window. **Ghostty is the app it names.**
+> - **`modules/shelf/default.nix:329`** — `open -g "$perchDest"`, where
+>   `perchDest` is `/Applications/Perch.app`. This was first written up as a
+>   *file* open and excluded on width grounds; **that was wrong, and the pre-PR
+>   assurance read caught it.** It is an app-bundle launch by path — `open -g
+>   -a Perch` spelled differently — and the fifteen lines under it poll `pgrep
+>   -qU … -f "^$perchExec$"` and then print *"perch: shelf back up"*. A `pgrep`
+>   liveness probe cannot tell a process that drew from one that did not, which
+>   is exactly the blindness #487 named; the comment four lines above it reads
+>   *"a rebuild that says it put the shelf back and didn't is the bug this whole
+>   block exists to stop being invisible."* ⚠️ **Unmeasured**, and left that
+>   way: nothing here shows Perch behaving like Ghostty under `-g`, and finding
+>   out means relaunching a live shelf on someone's Mac. The finding is the
+>   shape of the probe, not a failure — and the exclusion sentence it replaces
+>   was doing the opposite of what it claimed.
+>
+> ⚠️ **What is measured and what is not.** #487 measured Ghostty, with `-n` and
+> `--args --initial-command`. Nothing here proves `open -g -a Preview` fails,
+> and the instruction is not simply false. What it is is **unqualified where the
+> repo now knows a qualification**, in prose whose readers are agents doing the
+> one thing the qualification bites: opening an app *to see it*. And because
+> `open` exits 0 either way, an agent that follows the instruction cannot tell
+> which it got — the same blindness #487 blames for `holt spawn` "exiting 0 over
+> a lane that had never started".
+>
+> **The catch is a grep, and it is row twenty-four's aimed the other way.** Row
+> twenty-four says: before writing that something is impossible, grep for the
+> fix. This says: before merging a commit that falsifies a MECHANISM, grep for
+> the mechanism's other readers — the identifier, not the sentence. Fourteen
+> hits, six files, one command, inside the PR that already knew — **and one
+> repo, which is that census's own limit.** The same identifier across the
+> family finds two more readers, neither in `haus`: `hausfold.co`'s
+> `content/docs/haus/rooms/ai.mdx:379` carries the guard's table as a
+> *published* page and lists `open -ga Ghostty` under **"Silent: no prompt"** —
+> the instruction's public copy, hand-written, no check, naming the same app;
+> and `pounce`'s `pkgs/pounce-commands/commands/update-pounce.sh:108` is `open
+> -g "$APP"` on a `Pounce.app` path, the same shape as `shelf:329` and equally
+> unmeasured. `holt`, `perch`, `nebelung` and this repo: zero. And note which
+> surface failed: the layer has a check for this class, `test/desktop-guard.bats`
+> — it ran green, because a fixture pins the *shape* it was written for and
+> knows nothing about whether the shape still works. Row twenty pointed at a
+> fixture instead of a snapshot. **Row twenty-seven**, and the fix is a PR in
+> `haus` and one in `hausfold.co`, not a sentence here. Pounce is recorded and
+> not touched: changing an update path on an unmeasured hunch is the worse
+> trade.
+>
+> ★ **Second: the correction that reported itself applied at two sites was
+> applied at one — and it is the rule that exists to prevent exactly this.** The
+> thirty-ninth pass's block closes *"both pointer counts re-COUNTED rather than
+> incremented (37)"*. `drift.md`'s tail moved to **thirty-seven**.
+> `options-roadmap.md:180` still reads **thirty-six**, and dates its range
+> *"2026-08-22 back to 2026-08-02"* where the log's newest entry is 2026-08-23.
+> `grep -c '^> \*\*Status, ' notes/options-roadmap-log.md` returned **37** while
+> the pointer said thirty-six — which is the whole content of the rule the same
+> sentence invokes. **Row seventeen, second instance**, and the first one aimed
+> at a re-count rather than at a line of prose. Both halves corrected in the
+> commit carrying this block, and both counts re-derived: log **38**, this file
+> **3**.
+>
+> ◐ **Third: the instrument, widened again — and this time the check underneath
+> it was checked.** `docs/site-data/options.json` at `7968b7f` is **318 leaves**
+> for the sixth consecutive reading, and **byte-identical to `56697b7` at every
+> field**, not just key and type: `diff <(jq -S . A) <(jq -S . B)` is empty.
+> Widening the instrument shortens the span you may honestly claim, which is the
+> thirty-ninth pass's point turned on its own fix — the passes have read the
+> key set unchanged across 23 h 16 m (it has in fact been unchanged since
+> `e7fd997`, 2026-08-22T10:40:10Z, **24 h 37 m**), while the whole leaf has been
+> still only since `7be2ae0` (09:27:03Z, haus#483), **1 h 50 m**.
+>
+> **And the foundation, for the first time in forty passes.** Six readings have
+> taken a number out of a COMMITTED artifact, and none had asked what forces
+> the committed copy to equal the module system. It is
+> `checks.<system>.site-data-current`, and all three of its load-bearing
+> properties hold: it is in the **all-systems** set (`nix eval
+> .#checks.x86_64-linux --apply builtins.attrNames` lists it among twenty), CI
+> runs **`nix flake check` unqualified** (`.github/workflows/check.yml:141`, so
+> the builder-side `diff -ru` is not skipped the way `--no-build` would skip it),
+> and it is **green on darwin here** — `nix build
+> .#checks.aarch64-darwin.site-data-current`, run at this rev, exit 0. That last
+> one is not decoration: CI's only flake-check job is `ubuntu-latest`, so the
+> committed copy is pinned to the Linux render, and nothing but a Mac run proves
+> the darwin projection agrees. It does. **Row twenty-five's remedy, applied by
+> hand** — the decision was sound and its support had never been re-derived.
+>
+> ◐ **Fourth: §5.4's `scope` box is fifteen no longer, four hours after it was
+> written.** The box (thirty-seventh pass, `5bf1fb7`, 05:25:26Z) counts *"a
+> literal string fifteen call sites in nine files across three rooms now
+> hardcode"*. At `7968b7f` it is **sixteen call sites**, still nine files, still
+> three rooms — haus#484 (`a6d1474`, 09:40:29Z) added
+> `bar/sketchybar/aerospace-notify.sh:26`, an `aerospace_tiling_change` trigger
+> — in the **bar** room, so the three-room count holds; added by a
+> **windows**-room PR, for a reason with nothing to do with `scope`. The
+> box's thesis is that the literal spreads; it spread once in the first four
+> hours and fifteen minutes of the box's life, and the box is the only thing in
+> the repo that would notice.
+>
+> ⚠️ **Derived twice, because the naive grep says eighteen.**
+> `git grep -c '/run/current-system/sw/bin/sketchybar' 7968b7f -- modules` sums
+> to 18; two of those are **comments** (`modules/bar/default.nix:1692` and
+> `:1799`, both prose *about* the path). Fifteen was exactly right when written —
+> 17 total minus 2 — which is worth saying plainly, because the interesting
+> version of this finding was the wrong one, and it took the second derivation
+> to keep row twenty-five off this block.
+>
+> ◐ **And what actually moved, since the leaf count saw none of it — including
+> this document's own output.** The thirty-ninth pass's finding **left the file
+> and landed in another repo in sixteen minutes**: hausfold.co#137 (`511364a`,
+> 11:12:01Z) regenerates `reference/options.mdx` from haus `56697b7`'s
+> site-data, and its body says so — *"Found by the workshop's options-roadmap
+> thirty-ninth pass"*. It corrected **five** option entries, not the one the pass
+> named, and then **five** hand-written pages beside them
+> (`rooms/displays.mdx`, `agent-rebuilds.mdx`, `rooms/focus.mdx`,
+> `rooms/ai.mdx` and `desktops/customizing.mdx`) that no check covers at all —
+> the last two out of #137's own pre-PR assurance read, which is this same
+> class one level down. The
+> weekly options-drift cron would have caught the generated page and never the
+> prose. **Row twenty again — and for the first time measured across a repo
+> boundary, where the check and the prose it fails to protect are in different
+> repos on different schedules.** Beside
+> that: perch's #95–#97 (bounded cloud-wait syscalls, a watched drag-out
+> destination that shelved the item straight back, and coverage-instrumented
+> binaries out of the shipped build) and pounce#98 swallowing a claimed Return's
+> key UP so macOS stops dropping a context menu on the palette. Sixth pass
+> running that the day's most stranger-visible change is invisible to
+> `options.json` — and the first in which the day's most stranger-visible change
+> is **a sentence this file caused to be rewritten somewhere else.**
+>
+> ⚠️ **Coda, written into this block rather than corrected into it: the streak
+> ended 83 seconds after this pass's rev.** haus#486 (`cdb4198`,
+> `2026-08-23T11:18:37Z`) adds `haus.ai.repoRoots` — the palette's Spawn Agent
+> repo list, previously a `$HAUS_REPO_ROOTS` env var that the one process which
+> reads it, a launchd GUI agent, could never see. **`docs/site-data/options.json`
+> is 319 leaves there**, ending six consecutive readings of 318, and the key-set
+> instrument sees it perfectly: a new leaf is precisely the growth a key diff
+> CAN show. So the thirty-ninth pass's widening is not retired by this — it was
+> aimed at the growth a key diff cannot show, and both instruments are now
+> earning their keep on the same file eighty-three seconds apart.
+>
+> This is left standing rather than folded into the paragraphs above because
+> the block is dated at `7968b7f` and was true there, and **this is the first
+> time a pass has been able to demonstrate rev-bounding working rather than
+> assert it** (row nineteen, row twenty-three). A reader who lifts *"318 leaves
+> for the sixth consecutive reading"* out of this block without its rev is
+> quoting something that had ninety seconds to live.
+>
+> ⚠️ And one thing that is NOT a second missed catch, said plainly so it does
+> not become one: `cdb4198` does edit `modules/ai/default.nix`, the file
+> carrying the instruction above — at line 799, `inherit (cfg) default
+> repoRoots;`, 539 lines from the sentence and with no reason to read it. The
+> finding is that the room shipping the remedy never learned; it is not that
+> someone looked at the line and left it.
+
+
 > **Status, 2026-08-23 (thirty-ninth pass) — at haus `56697b7`, the number five
 > readings have led with is honest and one dimension too narrow.
 > `options.json` is 318 leaves for the FIFTH consecutive reading, key for key,
@@ -1004,201 +1226,9 @@ evidence.
 > string.
 
 
-> **Status, 2026-08-23 (thirty-seventh pass) — the thirty-sixth pass's finding
-> was FIXED twelve seconds before the pass reporting it merged, by the same
-> session, out of the same keyboard. Its body was rev-bounded exactly as row
-> eleven demands and its HEADLINE was not, and the headline is the sentence a
-> reader quotes. And the pass that landed with it turned up the same shape one
-> layer down: 318 leaves, unchanged for the second pass running, while an
-> option description quietly withdrew the word "one-time".**
->
-> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
-> from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
-> workshop = `2ea7793`, haus = `b1e263a`, perch = `a74e42a`, hausfold.co =
-> `2d22b02`. pounce is `aabd99a`, holt `1ba98aa` and nebelung `5d5d0a2` — all
-> three unmoved as of those revs, which is a fact about three revs and not a
-> licence to skip a section (row nineteen).
->
-> ⚠️ **"Fetched first" is not "fetched last", and this pass proves it.** The
-> earlier drafts of this paragraph read *"workshop `main` = `origin/main` =
-> `2ea7793`"*, and by the time the pass was committed (`c4f4cfa`, 05:08:00Z)
-> four of the seven had moved: workshop to `e8ebc5f` (#438 05:00:22Z, #439
-> 05:01:32Z), haus to `a373ca0` (#471 04:52:54Z), perch to `cb15526` (#87
-> 04:59:04Z) and holt to `c796d9d` (#54 04:59:47Z). **Every rev-bounded claim
-> below survives untouched** — that is what rev-bounding is for — and the
-> enumerated window (04:13:58Z–04:39:00Z) is unaffected; what went stale is the
-> two `= origin/main` equalities, which are the only clauses in a pass that
-> claim a repo's *tip* rather than a repo's *content*. They are struck, not
-> re-measured, because re-measuring them just resets a clock that runs the whole
-> time a pass is being written. This is row nineteen's third instance and its
-> narrowest: **do not write `X = origin/main` in a pass at all.** Named
-> separately in §5.14 would be over-cataloguing; it is the same row with the
-> smallest possible fix. ★ Re-checked at haus `1ddeb51`
-> anyway, since the leaf count is what a stale rev would most plausibly
-> falsify: **still 318, still key for key** (#471 and #473 add none), so the
-> headline holds three haus PRs later. Non-cloud, so every time below is a committer date on
-> `origin/main`, rendered in UTC. **This family's local time is UTC−5 and this
-> window crosses midnight**, as the thirty-sixth pass's did: the whole range
-> below is 2026-08-23 in UTC and was still Saturday evening at the keyboard.
->
-> Landed since the thirty-sixth pass's revs — a **25-minute** window, the
-> shortest any pass here has read: every commit below landed between 04:13:58Z
-> and 04:39:00Z. **Three haus commits** (#469 04:37:38Z, #468 04:38:36Z, one
-> lock bump 04:39:00Z), **one perch** (#86 04:16:51Z), **one hausfold.co** (#131
-> 04:13:58Z), and nothing in pounce, holt, nebelung or the workshop beyond the
-> thirty-sixth pass itself.
->
-> **The count is 10 at `2ea7793`**, re-derived with the command the last nine
-> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
-> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-sixth
-> pass predicted. This pass **opens one box and closes none**, so the pass after
-> this one should find **11**. The eleventh is §5.6's, which is BUILT and green
-> and open as haus#472 — left `- [ ] ◐` on §5.14's own instruction that only
-> `mergedAt` earns a tick, and to be ticked the moment the PR has one, not
-> re-derived from scratch. It adds a §5.14 row and rotates the log: the thirty-fourth pass
-> moves to [`options-roadmap-log.md`](options-roadmap-log.md) unedited, and both
-> pointer counts are re-COUNTED rather than incremented (35).
-> `docs/site-data/options.json` at `b1e263a` is **318 leaves in 35 namespaces**,
-> key for key identical to `8c1fa43` (`diff <(git show 8c1fa43:… | jq -r
-> 'keys[]') <(git show b1e263a:… | jq -r 'keys[]')` is empty).
->
-> ★ **First, and it is the pass: twelve seconds.** haus#469 (`70a3555`,
-> 04:37:38Z) fixed the twin sentence the thirty-sixth pass had just found. The
-> pass itself (`2ea7793`, 04:37:50Z) merged **12 seconds later**, headed *"it is
-> still standing"*. Same author, same session — both commits carry
-> `Claude-Session: …session_01GRm5Q4t18YXjezha6J6tka` — and haus#469's own body
-> says *"Found by the workshop's options-roadmap thirty-sixth pass."* One piece
-> of work, landing in two repos, with the remedy arriving first and the report
-> reading as though it hadn't.
->
-> **The pass did the rev-bounding right and it did not help.** Its evidence
-> paragraph is exemplary: *"At `8c1fa43`, `grep -n 'haus show'
-> modules/shelf/default.nix` returns exactly two lines"* — a claim about a rev,
-> true forever, which is precisely what row eleven asks for and what the
-> thirty-second pass sharpened row nineteen into. The ★ heading above it is in
-> the unbounded present tense, and so is the block header the log will carry.
-> **Row eleven was applied to the INSTANCE and not to the CLAIM** — which is the
-> thirty-sixth pass's own row twenty-two, turned on the pass that wrote it,
-> inside the same commit. That is not an irony worth a line for its own sake; it
-> is the reason the rule needs restating in a form that reaches headlines: a
-> reader meets a status block through its bolded first sentence, quotes that,
-> and never opens the paragraph where the rev is.
->
-> ⚠️ **And the twelve seconds is not a near miss to tighten up.** No ordering
-> discipline fixes it. The two repos have no seam — §5.14's structural reason 1,
-> *"the work happens in four repos and the doc lives in a fifth"* — so the two
-> PRs were queued independently and merged in whichever order GitHub got to
-> them; had they landed the other way the block would have been true for twelve
-> seconds and false forever after. **The fix is grammatical, not procedural**:
-> a finding written as *at `<rev>`, X* survives either order, and a finding
-> written as *X is still standing* survives neither. Two of the last four
-> passes have now been about a sentence's WIDTH rather than its truth.
->
-> ★ **Second: the leaf count saw nothing again, and what moved was a promise.**
-> haus#468 — the same PR that takes SketchyBar from nixpkgs so a fresh Tahoe Mac
-> stops building it from source — rewrote the `haus.focus` room description
-> twelve lines away from anything it was about. Old: *"grant sketchybar once for
-> the pill). `focus doctor` walks the **one-time** steps."* New: *"the pill needs
-> one on sketchybar itself, and TCC keys that to the binary — so it is asked
-> again after a rebuild that moves it). `focus doctor` walks **those** steps."*
-> **The word "one-time" was withdrawn.** Moving the binary from
-> `/opt/homebrew/opt/sketchybar/bin` into the system profile means the
-> Accessibility grant is keyed to a store path a nixpkgs bump will move, and the
-> user is re-prompted. That is a behaviour change a person will feel, and the
-> only **user-facing** surface that says so is a description string — with
-> **zero** leaves added, removed or retyped. (Not the only place it is written
-> down: `modules/bar/default.nix:1801-1807` reasons it out at length in a source
-> comment. That is the width the evidence supports; *"declared in exactly one
-> place"* is the wider sentence, and it is the row this file added one pass
-> ago.) `options.json` is the same 318 keys it was.
->
-> **Three of the last five passes, the instrument has missed the day's most
-> stranger-visible change**: the thirty-third's command header (a declaration
-> surface with no options page), the thirty-fifth's declaration/value gap, and
-> now a description that is the only user-facing record of a regression. ⚠️
-> *Three of five*, not "three running" — the thirty-fourth added four leaves and
-> the thirty-sixth added none, so the misses are not consecutive, and the leaf
-> count itself is unchanged only for the **second** pass in a row, which is what
-> this block's own header says. The header keeps the leaf count for the reason
-> the thirty-fourth pass gave — it is the one number that is cheap and
-> comparable — but three misses in five is no longer a caution about the number,
-> it is a statement about what the number measures:
-> **`options.json` tracks the SHAPE of the surface and nothing about what the
-> surface promises.**
->
-> ⚠️ **The published copy of that sentence is stale as this is written, and the
-> check that reads it runs weekly.** `content/docs/haus/reference/options.mdx`
-> at hausfold.co `2d22b02` still carries *"grant sketchybar once for the pill"*
-> at lines 5806–5807. `options-drift.yml`'s cron is `30 9 * * 1` — the next
-> firing is 2026-08-24T09:30Z, **28 h 51 m** after the merge, and the general
-> ceiling is seven days. The hand-written `rooms/focus.mdx:280` says *"sketchybar
-> has no Accessibility grant yet"* with no mention of the re-prompt and has no
-> check at all. Fourth toss of the thirty-fourth pass's coin and it landed the
-> same way: the copy with a check is the slow one, the copy without a check is
-> fixed only if somebody happens to have the file open, and here nobody did.
->
-> ★ **Third, and it is a new box: `haus.roster.<name>.scope` is documented as
-> REACH and is load-bearing as a PATH.** haus#468 moves the sketchybar entry from
-> `brew = "FelixKratz/formulae/sketchybar"` to `package = pkgs.sketchybar` with
-> `scope = lib.mkDefault "system"`, and that `scope` is what puts the binary in
-> `/run/current-system/sw/bin` — a literal string that **fifteen call sites in nine
-> files across three rooms** now hardcode — the bar (`default.nix`,
-> `barpop.swift`, `aerospace-notify.sh`, three `plugins/` scripts), focus
-> (`default.nix`, `focus.sh`) and
-> core (`awake.sh`). The option's own description frames the choice as
-> availability — *"'system': …on PATH for root, for non-login shells, and for
-> launchd jobs… It is about REACH"* — and never says a path depends on it. A
-> host setting `scope = "user"`, which is the DEFAULT for every other roster
-> entry and a documented in-range value, moves the binary to the user profile,
-> leaves the launchd agent pointing at nothing, and the bar simply never draws.
-> Nothing asserts: `grep -rn 'roster\.sketchybar\|sketchybar\.scope' modules/`
-> at `b1e263a` returns **nothing**, while the bar room's own assertion block,
-> in the same file, exists for exactly this class and says so — *"each of these is a
-> pill that cannot work, as opposed to one that merely won't draw."* This is
-> **§5.4's** limit, not §5.9's: registry v2 shipped "install from any of four
-> sources" as a metadata choice, and the first entry to actually MIGRATE between
-> sources turned one of its fields into a filesystem contract three other rooms
-> depend on. Box opened there.
->
-> ◐ **And one built, deliberately not ticked.** The box the thirty-fifth pass
-> opened — *state §5.6's policy over effective VALUES, and check it* — is
-> written to its sketch and green under `nix flake check`, and is open as
-> haus#472 rather than merged. §5.14's own row says a PR number in a tick is a
-> promise that only `mergedAt` keeps, so the box stays `- [ ] ◐` and stays
-> counted. It resolves all 66 leaves of the ten groups on
-> each of the four shipping desktops and diffs the non-quiet ones against an
-> expected table, tagging each by who supplied the value. **The result is two
-> rows and no `desktop:` among them**, which is the part worth keeping: not one
-> of the four desktops names a single one of the 66 leaves, so the entire
-> curated surface is offered and unexercised by the product — exactly as §5.6
-> intended — and **every row this check will ever gain starts life as a `room:`
-> row**, the one class the policy was never addressed to. The thirty-fifth
-> pass's topological tell (29 of §5.6's 33 citations sit inside its own
-> implementation) is now a mechanical one.
->
-> ⚠️ **And building it found a fifth instance of the shape this file keeps
-> re-deriving, in the one file that documents itself as prone to it.** haus's
-> `.github/workflows/check.yml` carries a hand-written census of which checks
-> run where, with a comment that says *"Keep this census honest when a check is
-> added: it is this repo's only record of what CI actually covers, and it rots
-> in every direction"* and then recounts three prior rots by date. Re-derived
-> at `b1e263a` with the two commands that comment prints: the darwin list said
-> FOURTEEN and is fifteen with the new check, and the **Linux** list said
-> FIFTEEN while `nix eval .#checks.x86_64-linux --apply builtins.attrNames`
-> returns **nineteen** — `pounce-command-headers`, `pounce-header-grammar`,
-> `userstyles-inline` and `userstyles-important` were declared for Linux and
-> never listed. Fourth rot, and the first in the SAFE direction: the checks
-> were running and the census undercounted them, which is why nothing ever
-> noticed. Both fixed in haus#472. The generalisable half is small and is not
-> new — a comment that tells you how to re-derive it is not a check, however
-> honestly it confesses. §5.14's structural fix ("make the upstream repo emit
-> something mechanical") has an obvious application here that nobody has spent
-> a PR on: the census is two `nix eval` calls away from being generated.
-
-
 > **The passes before this one are in
-> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-seven** dated
-> entries, 2026-08-23 back to 2026-08-02: the thirty-six numbered passes plus
+> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-eight** dated
+> entries, 2026-08-23 back to 2026-08-02: the thirty-seven numbered passes plus
 > a second, unnumbered 2026-08-04 block that predates the numbering (which is
 > why "twenty-nine" was one short on the day of the split, and is corrected here
 > rather than incremented — and it is COUNTED at every move, with `grep -c '^>
