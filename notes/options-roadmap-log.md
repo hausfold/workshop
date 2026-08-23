@@ -1,8 +1,8 @@
 # Option-surface roadmap — the status log
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirty-third (2026-08-20) back to the first (2026-08-02) —
-thirty-four blocks, because 2026-08-04 carries two and only one of them was
+from the thirty-fourth (2026-08-22) back to the first (2026-08-02) —
+thirty-five blocks, because 2026-08-04 carries two and only one of them was
 numbered. It was the roadmap's own preamble until 2026-08-20, when it had
 grown to 2,393 lines — larger than every other file in `notes/` put together,
 and sitting between the document's title and its §1.
@@ -25,6 +25,131 @@ archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
 
 ---
+
+> **Status, 2026-08-22 (thirty-fourth pass) — the option surface grew for the
+> first time in three passes, and one of the four new leaves is read by
+> nothing. The finding worth the pass is four days old and was GREEN the whole
+> time: the reserved launch-key set is the one enumeration in this family that
+> is published as data AND has a drift check, and the published reference
+> advertised a freed letter for four days and three minutes — because the check
+> fires when the DATA moves, and its snapshot was re-blessed 43 seconds after
+> it moved.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
+> row eleven): workshop `main` = `origin/main` = `43e1f4d`, haus = `0f3a61c`,
+> pounce = `ecd7a26`, hausfold.co = `3d16b16`, perch = `91791bd`, holt =
+> `a81d64c`. nebelung is `5d5d0a2`, unmoved since 2026-08-20 — stated as a fact
+> about a rev and not as a licence to skip a section, which is the
+> thirty-second pass's row. Non-cloud, so every time below is a committer date
+> on `origin/main`, rendered in UTC.
+>
+> Landed since the thirty-third pass's revs: **22 haus commits** — sixteen PRs
+> (#447–#460, #462, #463; no #461 reached `main`) and six lock bumps — **three
+> pounce** (#95, #96, one release), **three perch** (#82 plus two release
+> commits), **three holt** (#51–#53), **nine hausfold.co** (eight numbered,
+> #119–#124 and #126–#127, plus one unnumbered), **eleven workshop** (#421–#428,
+> two `rooms-desktops` commits and a docs-sync watermark), and **nothing in
+> nebelung**. **The count is 9 at `43e1f4d`**, re-derived with the command the
+> last six passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-third
+> pass predicted. This pass amends §3.4, §5.5 and §5.9, adds a §5.14 row, and
+> opens no box, so the pass after this one should also find 9.
+>
+> ★ **First: 313 → 317 leaves in 35 namespaces (unchanged), and the fourth one
+> is a switch with no wire behind it.** The four are `apps.cursor.enable`,
+> `apps.vscode.enable`, `apps.zed.enable` and `homebrew.adopt`; `bar.items` is
+> byte-identical for the fifth pass running. The three editors exist BECAUSE of
+> the fourth — "declare VS Code even though you already installed it yourself"
+> — and the fourth is **declared, typed, defaulted `true`, documented in
+> eighteen lines, listed in `modules/options-groups.nix`, and read by
+> nothing.** `config.haus.homebrew.adopt` occurs in `modules/core/default.nix`
+> only inside the comment explaining why it is *not* inherited beside
+> `autoUpdate`, `upgrade` and `cleanup`: Homebrew removed `brew bundle install
+> --adopt` and now adopts unconditionally, so the option's last paragraph says
+> `false` is a no-op. That is honest and it is invisible where it counts —
+> `haus set`'s picker shows a description's **first physical line**
+> (`modules/options-catalogue.jq`), so the row reads *"Whether a cask haus
+> declares that is already sitting in"*, a fragment that stops mid-clause over
+> a knob that does nothing in either position. Written into §3.4 rather than
+> here, because §3.4 is the section that promised a generated reference cannot
+> rot: it cannot, and it also cannot say this. How many OTHER leaves are in the
+> same position is deliberately not claimed — `inherit (config.haus.X) a b;`
+> and per-module `cfg` aliases defeat the grep that would answer it, and a
+> count from that grep is row ten.
+>
+> ★ **Second, and it is the pass: this family built the exact mechanism the
+> document keeps recommending, aimed it at the OTHER repo's prose, and its own
+> two copies drifted for four days.** `modules/windows/launch-keys.nix` is a
+> single authority whose header says *"two things render this list and neither
+> may guess at it"*; it is published as `docs/site-data/launch-keys.json` and
+> tripwired from hausfold.co by `scripts/check-rice-bindings.mjs`. haus#398
+> (`41b84a8`, 2026-08-18T10:17:38Z) moved it `e` → `f` and carried the
+> cheatsheet row, the collision assertion's message and three comments along in
+> the same commit — one of those comments literally says "`e` went back to the
+> roster". It also **regenerated `options.json` in that commit**, changing two
+> descriptions — `haus.launcher.fnKey` and `haus.launcher.items`, both edited
+> *because of* that same key move, the second gaining the words "`e` is unbound
+> now, and `f` is Find Files" — while the two that enumerate the reserved set by
+> hand had no diff to carry and went on saying `e`. Those two are
+> **`haus.roster.<name>.key`** and **`haus.keys.leaderExtras.*.key`**, the
+> published spellings, read off `options.json` rather than copied from
+> haus#463's own PR body, which names both of them wrongly. They were corrected
+> by haus#463 (`698d3f8`) at 2026-08-22T10:21:17Z — **four days and three
+> minutes** — and hausfold.co's
+> own third copy at 10:23:54Z (#127, "wrong twice"). The tripwire did fire, on
+> 2026-08-18: hausfold.co#76 re-blessed the snapshot and fixed the one page it
+> named **43 seconds after #398**. So the whole system worked at the speed of
+> the check and then stopped, because the check compares data to data and the
+> stale copies were prose. **The direction is what makes it worth a row: the
+> surface that REFUSES you was current the whole time — a host typing `key =
+> "f"` was stopped by an assertion that named `f` correctly — and the surface
+> you read before writing the line was four days stale, telling you `e` was
+> taken when the layer had just handed it back.** True for `e`/`f`, inverted
+> for `.`: haus#460 reserved it without teaching the assertion message to name
+> it, so the same enumeration failed loudly for 28 minutes instead of quietly
+> for four days. Full amendment in §5.5, the
+> generalisable half as §5.14's newest row.
+>
+> ★ **Third, §5.9's header-grammar half closed, eight seconds apart.**
+> pounce#95 (`ecd7a26`, 10:31:12Z) and haus#459 (`4712700`, 10:31:20Z) both
+> merged this morning, with the lock bump 19 seconds behind them pinning pounce
+> at exactly `ecd7a26`. That number matters only because #459's own comment
+> makes a promise conditional on it — *"when the lock moves past pounce#95 this
+> can read those fixture files directly"* — so the condition was satisfied 19
+> seconds after the sentence was written, and eleven of pounce's sixteen
+> fixture names are still hand-mirrored into haus's table at `0f3a61c`
+> (eleven, not the twelve §5.9 says twice — corrected there by this pass).
+> Nothing is wrong; the seam that would
+> end the mirroring is simply open and unwalked, one layer above the mirroring
+> the two PRs just ended. The box stays `◐`: the other checkable half — the
+> `~/.local/state/haus/any-page` literal shared by two rooms with nothing
+> mechanical joining them — is untouched by either PR.
+>
+> ⚠️ **And one for the tempo, continuing the thirty-third pass's note.** Two
+> days, 22 haus commits, sixteen PRs, and the number this file leads with moved
+> by four — but the two days also produced a four-day-old lie on the published
+> reference, a reader-less option, and a conditional TODO that came true inside
+> its own minute. None of the three is visible in a leaf count, a check result
+> or a PR title. The pass that reads only what moved sees a quiet week; the
+> pass that reads WHY each thing moved sees three findings. That is not an
+> argument for reading more commits — it is the argument for what the last five
+> passes have been converging on: **the durable half goes in the box, the
+> perishable half goes in the pass, and the check goes in the repo.**
+>
+> ⚠️ **And the pre-PR assurance read falsified three of this pass's own numbers
+> before it merged, all of the same kind: a count or a name copied from a PR
+> body instead of re-derived at a rev.** "twelve cases" was eleven (inherited
+> from §5.9's own paragraph, written from the open PRs — corrected in both
+> places); the two stale option paths were `haus.roster.<app>.key` /
+> `haus.keys.leaderExtras`, which are haus#463's PR-body spellings and are
+> respectively nonexistent and a different leaf; and the `"period"` example
+> belonged to haus's `leaderExtras.*.key` for 28 m 16 s, not to hausfold.co's
+> hand-copy page. Every one of them would have passed a reader's spot-check,
+> because a PR body is written by the person who did the work and reads exactly
+> like a measurement. Row eleven says *date it at a rev*; the sharper form this
+> pass earns is **derive it from the rev** — a PR body is a claim about a rev,
+> not a reading of one.
+
 
 > **Status, 2026-08-20 (thirty-third pass) — twelve haus PRs in one day, more
 > than any pass here has reported, and the option surface moved by ZERO leaves.
