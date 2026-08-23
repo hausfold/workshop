@@ -1487,10 +1487,15 @@ here so it isn't mistaken for fallout of this migration.
       on, the bar room now asserts that `haus.roster.sketchybar` is enabled,
       installs from nixpkgs (`package` or `packageName`), and does so at
       `scope = "system"` — in the same assertion block whose header already
-      says what it is for — *"a pill that
-      cannot work, as opposed to one that merely won't draw"* — and the `scope`
-      option's description gains the path half, so the precondition is readable
-      where the option is rather than where the bug is.
+      says what it is for: *"a pill that cannot work, as opposed to one that
+      merely won't draw"*. The `scope` option's description gains the path half
+      too, so the precondition is readable where the option is rather than
+      where the bug is. It moves the count above by exactly nothing and the raw
+      sum by one: at haus#491's head the `git grep -c` sums to **19**, still
+      **sixteen** call sites, because the third occurrence it adds is the new
+      block's own comment — prose is now three (`modules/bar/default.nix:1582`,
+      `:1743`, `:1850`), which is the amendment's own subtraction rule surviving
+      first contact with a change that knew about it.
       → ⚠️ **The first version of that check was wrong in three ways, and that
       is the part worth keeping.** Written in one sitting against this box's own
       description of the bug, it (i) tested the RAW
