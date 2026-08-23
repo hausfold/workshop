@@ -270,7 +270,7 @@ both.)
 
 Code moves all day; docs don't follow on their own. The **`/docs-sync`** sweep
 ([`.agents/skills/docs-sync/SKILL.md`](../.agents/skills/docs-sync/SKILL.md))
-closes that gap every few hours, and `bench` gives it its input:
+closes that gap once a day, and `bench` gives it its input:
 
 ```sh
 ./bench docs-since          # every commit past each repo's watermark, per repo
@@ -278,12 +278,17 @@ closes that gap every few hours, and `bench` gives it its input:
 ```
 
 It is **watermark-based, not "since yesterday"**: a sweep that slept for four
-days still picks up all four, and one that fires four times in a day reads each
+days still picks up all four, and a day that fires two runs reads each
 commit exactly once. The watermarks live in `.docs-sync.json`, which is
 committed on purpose — the sweep runs as a scheduled routine in a throwaway
-container, so anything it must remember between runs has to be in the repo.
-That frequency is also why the skill keeps **one open PR per repo** and pushes
-onto it rather than opening a fresh one each run.
+container, so anything it must remember between runs has to be in the repo. The
+same file carries the rolling **comment pass**'s ledger: one over-commented
+source file a run, recorded so the next run doesn't re-read it.
+
+Its editing order is **cut, correct, fold in, add** — in that order. The docs
+are too long before they are too short, and a new page is the last resort. The
+skill keeps **one open PR per repo**, growing until you merge it, rather than
+opening a fresh one each run.
 
 Two things about its repo list are deliberate and get "tidied" wrong:
 
@@ -292,7 +297,7 @@ Two things about its repo list are deliberate and get "tidied" wrong:
   are different questions. `bench clone`/`pull` plant and refresh both for the
   same reason; `try`/`try-batch`/`ship`/`status` still never walk them.
 - **A missing checkout and an unswept repo look identical in the output**, so
-  `docs-since` now warns loudly for both (`no checkout at …`, and either
+  `docs-since` warns loudly for both (`no checkout at …`, and either
   `first sweep — no watermark, reading its FULL history` or `watermark … is gone
   (rebased away?)`). Those lines are holes in the sweep, not clean repos.
 

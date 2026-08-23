@@ -39,6 +39,7 @@ relevant, it's 2, not 1 — that's the whole point of skills.
 | `GEMINI.md` | Gemini CLI | 1 | Symlink → `AGENTS.md`. |
 | `.github/copilot-instructions.md` | GitHub Copilot coding agent + code review | 1 | A **real file**, not a symlink: Copilot reads through the GitHub API, where a symlink is just a path string. Short pointer + the five facts a drive-by reviewer needs. |
 | `.agents/skills/<name>/SKILL.md` | Codex (scans project `.agents/skills/`), and every other client via the links below | 2 | The flow bodies: `ship`, `docs-sync`, `release`, `earshot`. YAML frontmatter (`name`, `description`) + the procedure. |
+| `.agents/skills/docs-sync/ROUTINE.md` | nobody, automatically | 2 | The prompt pasted into the daily docs-sync routine on claude.ai. Checked in so drift between it and the skill is visible; the skill is what a run actually follows. |
 | `.claude/skills/<name>/SKILL.md` | Claude Code | 2 | Symlink → `.agents/skills/<name>/SKILL.md`. |
 | `.opencode/skills/<name>` | OpenCode | 2 | Symlink → `.agents/skills/<name>`. |
 | `.opencode/commands/<name>.md` | OpenCode | 2 | Four-line command that says "read the shared body and follow it" — guarantees `/ship`, `/docs-sync`, `/release` and `/earshot` exist even if skill discovery doesn't fire. |
