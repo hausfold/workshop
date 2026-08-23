@@ -192,9 +192,12 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `origin/main`, in UTC; the family's local time is UTC−5, so this whole block
 > is Saturday evening at the keyboard.
 >
-> Landed since the thirty-seventh pass's revs — a **47-minute** window, every
-> commit between 04:52:54Z and 05:26:26Z. **Five haus** (#471 04:52:54Z, #473
-> 05:13:02Z, #472 05:25:17Z, two lock bumps), **three perch** (#87 04:59:04Z
+> Landed since the thirty-seventh pass's revs — a **34-minute** window, every
+> commit between 04:52:54Z and 05:26:26Z (33 m 32 s; 47 minutes is the distance
+> from the previous pass's haus rev, which is not what this sentence says and
+> not what the last three passes' windows measure). **Six haus** (#471
+> 04:52:54Z, #473 05:13:02Z, #472 05:25:17Z, and **three** lock bumps — the
+> third is this pass's own haus endpoint rev), **three perch** (#87 04:59:04Z
 > plus the `2026.08.23` release and its nix pin), **two holt** (#54 04:59:47Z
 > and the **`0.4.0` release**, 05:18:42Z — the semver one, five SDKs, none of
 > which can withdraw a published number), **one hausfold.co** (#132 05:24:37Z)
@@ -218,16 +221,24 @@ already exist, and one it treated as a detail is the actual root blocker.
 > 'keys[]') <(git show 561af88:… | jq -r 'keys[]')` is **empty** — key for key
 > identical across **17 h 25 m** (`ff8ecf3`, 2026-08-22T12:00:55Z → `561af88`,
 > 2026-08-23T05:26:26Z), four consecutive readings and three passes reporting
-> "unchanged". Eleven haus PRs landed inside that window.
+> "unchanged". **Seven** haus PRs landed inside that window — #466, #467,
+> #469, #468, #471, #473, #472 — twelve commits, five of them lock bumps.
 >
 > ★ **First, and it is the pass: haus#473 declared its own gap unfixable, and
 > the fix was already in this repo, twice.** `modules/ai/default.nix` lists the
 > skill names each hausfold tool ships (`holt`, `handoff`) so haus can link them
-> into every client's skills directory, and its comment says: *"⚠️ The names are
-> UNVERIFIABLE from here, by construction: nothing checks that the derivation
-> actually contains them, because the check would be a readDir on a store output
-> — import-from-derivation. A name listed here that the pinned revision does not
-> ship installs a DANGLING symlink, silently."*
+> into every client's skills directory, and its comment says, in full: *"⚠️ The
+> names are UNVERIFIABLE from here, by construction: nothing checks that the
+> derivation actually contains them, because the check would be a readDir on a
+> store output — import-from-derivation. A name listed here that the pinned
+> revision does not ship installs a DANGLING symlink, silently: eval, `nix flake
+> check` and the home-files build are all green, because a home.file source
+> pointing inside a store output is never existence-checked."* Quoted whole on
+> the assurance read's insistence: the first draft stopped at "silently" and
+> then presented the elided clause as its own measured result. **The comment
+> already knew what happens.** What it gets wrong is three words — "by
+> construction" — which is why the finding is about the conclusion and not the
+> description.
 >
 > **Half of that is exactly right and the conclusion does not follow.** LISTING
 > what a tool ships needs an eval-time read of a derivation's output, which is
@@ -237,7 +248,7 @@ already exist, and one it treated as a detail is the actual root blocker.
 > fourteenth-pass box (*"a check can pass on the pointer while the referent is
 > missing"*) was closed on 2026-08-14 by copying the placed theme ports through
 > one `runCommand`, which **makes the referent a build DEPENDENCY rather than a
-> promise**; `modules/theme/ports.nix:158-162` says so in those words, and names
+> promise**; `modules/theme/ports.nix:158-161` says so in those words, and names
 > terminal's `glowPlugin` as the other site. Neither is IFD. The third site
 > re-derived the problem from scratch, reached for the one mechanism that is
 > ruled out, and stopped.
@@ -254,16 +265,25 @@ already exist, and one it treated as a detail is the actual root blocker.
 > $ test -e …                                            # DANGLING
 > ```
 >
-> So the comment's own description of the failure is accurate and its
-> "by construction" is not. Fixed in
-> [haus#474](https://github.com/hausfold/haus/pull/474) by the ports pattern,
-> mutation-tested both ways; the box is in §5.14 with its sibling, and is
-> ticked only on `mergedAt` (row fourteen). Its shape is **row sixteen**
+> Fixed in [haus#475](https://github.com/hausfold/haus/pull/475) by the ports
+> pattern, mutation-tested three ways; the box is in §5.14 with its sibling, and
+> is ticked only on `mergedAt` (row fourteen). Its shape is **row sixteen**
 > sharpened, and the sharpening is where to look — see row twenty-four.
+>
+> ⚠️ **And the first draft of this block cited haus#474, which is somebody
+> else's merged PR.** The number was guessed as next-free while the PR was still
+> unopened; #474 (*"ai: the desktop guard reads the target, not the text"*)
+> merged at 05:34:02Z, **six minutes before** the commit that cited it. Caught
+> by the assurance read, at 5/5. Row fourteen says a PR number in a tick is a
+> promise only `mergedAt` keeps; this is that failure one step earlier — a
+> number that is a promise about a PR *which does not exist yet*, and GitHub
+> will resolve it to whoever got there first. **Open the PR, then write the
+> number.** Not a new row: row fourteen with the clock wound back further, and
+> the same fix.
 >
 > ⚠️ **This finding is written at a rev on purpose, headline included** — the
 > thirty-seventh pass's row twenty-three, applied by the first pass that could.
-> haus#474 and this block are two PRs in two repos with no seam between them
+> haus#475 and this block are two PRs in two repos with no seam between them
 > (§5.14's structural reason 1), so they merge in whichever order GitHub reaches
 > them, and the last time that happened the gap was twelve seconds. *At
 > `561af88`, X* survives either order; *X is still standing* survives neither.
@@ -2459,9 +2479,18 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
 - [x] ✅ **State §5.6's policy over effective VALUES, and check it** —
       **merged as [haus#472](https://github.com/hausfold/haus/pull/472),
       `mergedAt 2026-08-23T05:25:17Z` (`6bb294c`)**. It was written here as
-      `- [ ] ◐ built and open, mergedAt null` for eight hours; the promise the
-      previous wording refused to make is the one this tick now keeps, and the
-      dated "not merged" clause went stale exactly as it was written to.
+      `- [ ] ◐ built and open, mergedAt null` for **fifteen minutes** — the
+      thirty-seventh pass committed that wording at 05:25:26Z, this tick at
+      05:40:25Z — and the promise the previous wording refused to make is the
+      one this tick keeps.
+      ⚠️ **It did not go stale. It was false when written**, by nine seconds:
+      haus#472 merged at 05:25:17Z and the sentence reading *"as of
+      2026-08-23T05:30Z, `mergedAt` null"* was committed at 05:25:26Z. The box
+      was right to refuse the tick and wrong about why — and a wrong "as of"
+      timestamp is caught by nothing here, because the surrounding discipline
+      (date it, don't tick it) was followed to the letter. Second time in three
+      passes that a status claim was overtaken inside a minute by the very PR it
+      is about; the first was the twelve seconds.
       The policy is written about declarations (*"every leaf
       defaults to null"*) and read as a promise about machines (*"a desktop
       writes no macOS key you didn't ask for"*); since 2026-08-22 those differ —
@@ -3853,10 +3882,14 @@ contents — the same shape, noticed and then not generalized.
 - [ ] ◐ **Assert the referent exists for every TOOL SKILL `modules/ai` lists** —
       the same gap as the box above, three sites on, and the first one whose own
       comment argues it cannot be closed. **Built and open at
-      [haus#474](https://github.com/hausfold/haus/pull/474) as of
-      2026-08-23T06:00Z**, `mergedAt` null when this was written; ticked when the
-      PR has one, per row fourteen, and dated on purpose because "not merged" is
-      the one clause here that has to go stale. `haus.ai.skill` links each
+      [haus#475](https://github.com/hausfold/haus/pull/475) as of
+      2026-08-23T06:28Z**, `mergedAt` null when this was written; ticked when the
+      PR has one, per row fourteen. The "as of" is dated on purpose and read
+      back from the PR rather than from a clock — the box above this one had
+      that timestamp wrong by nine seconds in the other direction, and nothing
+      in this file would have caught it. ⚠️ It also said **#474** until the
+      assurance read: guessed as next-free before the PR was opened, and #474
+      had merged six minutes earlier as unrelated work. `haus.ai.skill` links each
       hausfold tool's skill folder into every installed client's skills dir, and
       the folder NAMES are a hand-written list (`holt`, `handoff`) because
       reading them off the store is IFD. That much is right; *"so nothing can
