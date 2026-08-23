@@ -61,6 +61,25 @@ wrong, and the reward is nine `⚠ no checkout at …` lines you can mistake for
 > machine. `mv` each one to `<workshop>/<name>` instead (or `./bench clone` into a fresh
 > container), and if you did symlink, check `git status` before you stage anything.
 
+> 🚨 **A pre-cloned container also lies about `main`, and Step 6 believes it.** Those
+> checkouts arrive shallow, parked on a scratch branch, with `main` and `origin/main`
+> left at whatever graft the clone made — tens of commits behind the branch you are
+> standing on. Nothing complains: `docs-since` reads `HEAD`, so the *range* is right and
+> the run looks normal. But `--mark` records `git rev-parse main` (deliberately, see
+> Step 6), so it writes those stale revs into `.docs-sync.json` and the next sweep
+> re-reads the entire backlog as if it were new. The `Docs-Sync:` trailer can't save you
+> — it filters this sweep's own commits, not the history the watermark rewound past.
+> The tell is `git diff main...HEAD` answering **`fatal: no merge base`**. Fix it before
+> Step 6, in every repo including the workshop:
+>
+> ```bash
+> git -C <repo> fetch origin main          # moves the stale remote-tracking ref
+> git -C <repo> checkout -B main origin/main
+> ```
+>
+> Then re-run `./bench docs-since` and check the commit counts are the ones you just
+> reconciled. Do this **after** your PRs are pushed, so a reset can't strand a branch.
+
 **Call it `./bench`, not `bench`.** On Julien's Mac a wrapper puts it on PATH; here
 nothing does, so every bare `bench` below is a `command not found` in a container.
 
