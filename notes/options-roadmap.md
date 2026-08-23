@@ -2129,13 +2129,26 @@ can now be broken from.** Nothing enforces it either. Of the thirty-three
 against `test/projections/example.json` — and **none of those 55 is a leaf of
 any of these ten groups**.
 
-Two separable questions, and only the second is this document's:
+Two separable questions. **The first is answered; only the second is open, and
+only the second was ever this document's:**
 
-- **Should the desktops hold this opinion?** A real trade — the shelf's whole
-  promise is "drag it somewhere *now*", and five seconds is most of that. It is
-  the user's call, not this file's, and it is reversible in one line.
+- **Should the desktops hold this opinion?** ✅ **Decided 2026-08-22: yes, and
+  the shipped shape is already the right one.** `watchScreenshots` keeps
+  defaulting `true`, gated on `shelf.enable` — which is not an extra condition
+  to add but the one the module already has, since every line of
+  `modules/shelf/default.nix` sits inside `lib.mkIf config.haus.shelf.enable`.
+  So the thumbnail is only ever written on a machine that asked for a shelf,
+  and the trade is the shelf's own: its whole promise is "drag it somewhere
+  *now*", and five seconds is most of that. **This does not retire the finding
+  above** — a policy still says one thing and two desktops still do another,
+  and the write is still one-way for anyone who rebuilt before reading this.
+  It retires the *decision*, so a later pass re-deriving §5.6's exception
+  finds a choice rather than an oversight. One loose end, cosmetic (1/5): with
+  the shelf off the leaf still *reads* `true` on `minimal` and `blank`,
+  because the default is unconditional and only its effect is gated — `haus
+  show` on those desktops would report a switch that does nothing.
 - **Should the policy be stated over VALUES rather than declarations, and
-  checked?** That one is structural, and it is the box below.
+  checked?** That one is structural, still open, and it is the box below.
 
 They also each turned up one silent failure that reads as "the option doesn't
 work", which is the failure mode this whole section exists to avoid:
