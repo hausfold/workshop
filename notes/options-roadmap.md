@@ -15,6 +15,55 @@ This refines an earlier brainstorm against what's actually in the repos as of
 2026-07-25. Read §1 first — several things the brainstorm proposed building
 already exist, and one it treated as a detail is the actual root blocker.
 
+> **⏹ CLOSED 2026-08-23 (forty-first pass). Read this before §1.**
+>
+> **This document is done as a working doc, and the reason is not that the
+> boxes ran out — it is that the ones left are no longer the kind of thing
+> writing haus can close.** Forty passes and the last three builds took it
+> from ten open boxes to **seven**, and every one of those seven is blocked on
+> something outside a session's reach:
+>
+> | § | Box | What it is actually waiting on |
+> |---|---|---|
+> | 5.1 | `scheme = "auto"` ◐ | a **resolution rule** between `flavor` and system polarity, already settled at the default; the open half is a design call, not code |
+> | 5.1 | `flavor = "custom"` + `theme.palette` | **nothing** — it is buildable today, and is deliberately not built: closing the document was chosen over opening its last feature |
+> | 5.3 | the app-side `sans` | **three other repos.** pounce takes it in a line, perch is a notarized zip, trill has no seam at all — the blocker is a consumer that can be told, and it is not haus's to add |
+> | 5.5 | non-QWERTY untested | **a keyboard nobody here has.** The option exists; what is missing is a person on an AZERTY layout |
+> | 5.9 | pounce command packs | **a decision** — whether a "pack" reduces to preset fragments — and then pounce's repo |
+> | 5.9 | commands declare mutates / confirm / network | **pounce's repo**, to a shape nebelung's `ports.meta.json` already set |
+> | 5.10 | multi-display arrangement ◐ | **a cable.** The design is written and the read half shipped; the arithmetic needs two panels attached |
+>
+> One of those seven is an exception worth naming rather than hiding: **§5.1's
+> `flavor = "custom"` is not blocked on anything.** It is the last feature this
+> document proposed, it is buildable, and the call was made to stop here
+> instead. A roadmap that closes by quietly re-classifying its remaining work
+> as impossible is worse than one that says which line it chose not to cross.
+>
+> **What "done" means: this file stops being a plan and becomes a record.** The
+> passes that kept it honest do not stop — they moved to
+> [`drift.md`](drift.md) three passes ago, which is where a shape found in any
+> repo now goes. Nothing here should be re-opened by editing a checkbox; a box
+> that comes back to life comes back as a PR, and this file records what it
+> found.
+>
+> **Two findings from the closing pass itself, both of which outlive it:**
+>
+> **(a) A box whose precondition is a PERIPHERAL has no stable state.** Every
+> other blocker this file tracks is monotonic — a bug is fixed, an option
+> ships, a lock moves — so a pass can write "no longer blocked" and be believed.
+> §5.10's precondition went away on 2026-08-23 and came *back* four hours
+> later, because a Studio Display was unplugged. Nothing was wrong with either
+> note. Re-derive a peripheral precondition at the start of the session that
+> depends on it, never off the file.
+>
+> **(b) The instruction that opened this pass was already stale in two of its
+> three parts, and the file was what said otherwise.** §5.9's check had merged;
+> §5.10's dock had gone. Both were re-derived against the repos and the machine
+> inside the first ten minutes, which is the only reason the work landed where
+> the work was. **A roadmap describes when it was written; a repo describes
+> now** — and a document being declared finished is exactly when that gap is
+> widest, because nobody is re-reading it any more.
+
 > **★ Naming banner, 2026-08-08 — read every `haus.*` below as `haus.*`.**
 > The platform is **`haus`** — its own name since 2026-08-10 (decision 8), and
 > also its CLI and its option namespace — shipped by the org **hausfold**,
@@ -1424,7 +1473,7 @@ here so it isn't mistaken for fallout of this migration.
       apps.** Read this line as "each of these will get its own room", not "the
       roster must grow to swallow them" — and note that both answers were
       *cheaper* than the schema migration would have been, which is the argument.
-- [ ] **`scope` is documented as REACH and is load-bearing as a PATH.** Opened
+- [x] **`scope` is documented as REACH and is load-bearing as a PATH.** Opened
       2026-08-23, on the first entry ever to MIGRATE between two of the four
       sources this section shipped. haus#468 moved sketchybar from
       `brew = "FelixKratz/formulae/sketchybar"` to `package = pkgs.sketchybar`
@@ -1527,6 +1576,76 @@ here so it isn't mistaken for fallout of this migration.
       that cannot express the precondition. Keep it open until the registry
       answers, and read this tick as evidence that the cheap half is now cheap
       enough to have been done — not as progress on the expensive one.
+      ✅ **Closed 2026-08-23 (forty-first pass) — [haus#493](https://github.com/hausfold/haus/pull/493)
+      builds the registry half this box chose between two designs for, and
+      picks the one the box said would scale.** `haus.roster.<name>.binPath` is
+      read-only and computed from the entry's own source and `scope`:
+      `/run/current-system/sw/bin/<bin>` at `scope = "system"`,
+      `/etc/profiles/per-user/<you>/bin/<bin>` at `"user"`,
+      `/opt/homebrew/bin/<bin>` for a `brew`, and **null** for a `cask`, an
+      `appStoreId` or an `installedBy` — a bundle rather than a binary, and a
+      path haus cannot name. A `bin` leaf beside it covers the entry whose
+      executable is not its roster key (`ical-buddy` ships `icalBuddy`).
+      Sixteen call sites became **two**, both exempted by name and by reason.
+      → ★ **The null is the load-bearing half, and the box's own framing
+      understated it.** This box argued `binPath` over `requiresScope` on
+      SCALE — "the one that would have made haus#468 a one-line change". The
+      better argument only appears once it is built: a computed path can be
+      **absent**, and a room can assert on an absence. A hardcoded string has
+      no absent state at all; it is simply wrong, and stays wrong, and that is
+      exactly why the failure this box opened on had no symptom. `requiresScope`
+      would have re-stated the precondition; `binPath` makes the precondition
+      *checkable by the consumer that has it*.
+      → 😐 **`/etc/profiles/per-user/<you>/bin`, not `~/.nix-profile/bin`** —
+      home-manager runs as a nix-darwin module with `useUserPackages`, which
+      moves the per-user profile under `/etc`. Getting that wrong would have
+      evaluated fine and been a dead path at runtime, which is this box's own
+      disease reproduced inside its cure. Verified against the live machine
+      before it was written down, not after.
+      → ★ **Deriving the path silently rewrote a neighbouring assertion's
+      REASON, and nothing about the diff said so.** The bar's `scope` guard
+      (haus#491) refused `"user"` because "the bar addresses
+      /run/current-system/sw/bin/sketchybar — a path only the system profile
+      provides". Once `barTopPath` IS `binPath`, the whole room follows `scope`,
+      so that sentence became self-contradictory: the message would have named
+      the per-user path and then called it unreachable. The guard is kept and
+      the reason corrected — no bar has ever been run out of the per-user
+      profile, and refusing an *untested* arrangement is a different claim from
+      refusing a *broken* one. **A derived value can turn a true assertion
+      message into a false one without touching the assertion**, and the
+      condition still passing is what hides it. Settling it is one
+      `bench try switch` away, and the comment now says so rather than
+      implying the answer is known.
+      → ✅ **`nix flake check`'s `roster-bin-paths` is the point rather than
+      the garnish**, because this box's whole evidence is that the literal
+      SPREADS: it grew by one from an unrelated room's PR inside the box's
+      first afternoon. Any file under `modules/` naming an owned path outside
+      the allowlist fails, **and an allowlist entry that no longer names it
+      fails too** — an exemption cannot outlive its reason, which is the shape
+      §5.9's `pounce-command-keys` paragraph warns about from the other side
+      (a check going blind rather than red). Mutation-checked both ways.
+      → **The two survivors, and why each earns its line.**
+      `modules/options.nix` is the option's own documentation — the definition
+      site, where the string is the subject. `modules/bar/barpop.swift` is a
+      runtime **fallback chain**, not an address: it tries `$SKETCHYBAR_BIN`
+      (which the bar passes from `binPath`) first and only then walks a list
+      that still holds two Homebrew paths, so a barpop from a new generation
+      finds the bar on a machine mid-migration. **A search is not a mirror**,
+      and a check that cannot tell them apart would have deleted the one thing
+      making the migration this box is about survivable.
+      → 😐 **The three PROSE lines the amendment above taught itself to
+      subtract were swept too, and the subtraction rule is why they nearly
+      weren't.** They are not part of the sixteen — that is the amendment's
+      whole point, and at haus#491's head the raw `git grep -c` reads **19**
+      for sixteen call sites plus three comments. But a rule for excluding
+      something from a COUNT reads, on the next pass, as a rule for excluding
+      it from the WORK, and the three would have been left spelling a path
+      that no longer exists anywhere else. They now name `barTopPath`, on the
+      grounds this file states everywhere else and had not applied here: **a
+      comment holding a derived value is a copy that rots exactly like a `let`
+      binding does**, and it rots more quietly, because nothing evaluates it.
+      Which also settles the tick: haus#491 merged as `1e92e15` the same
+      morning, so the line half above is shipped, not in review.
 
 ### 5.5 `haus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (haus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This
@@ -1579,8 +1698,12 @@ haus.keys = {
       that means "turn this off" has to say which of the two it does; and
       `pounce run <item-key>` exists as the escape hatch for keys another tool
       already owns, which is the honest answer for a rice whose leader is `"none"`.
-- [ ] ~~Split `windows.enable` into `windows.tiling.enable` / `windows.launcher.enable` /
-      `windows.capsRemap.enable`~~ — **superseded, not done.** `keys.leader = "none"`
+- ~~Split `windows.enable` into `windows.tiling.enable` / `windows.launcher.enable` /
+      `windows.capsRemap.enable`~~ — **superseded, not done.** *(Un-boxed
+      2026-08-23: a superseded line is not an open task, and while it wore a
+      `- [ ]` it inflated every count this file takes of itself — the last one
+      by ten percent. §5.14's marker-and-body disagreement, in the marker this
+      time.)* `keys.leader = "none"`
       is capsRemap-off + launcher-off and `keys.windowNav = "none"` is
       tiling-chords-off, which covers every case that motivated the split, from the
       keymap side rather than by multiplying room switches. Revisit only if someone
@@ -2640,7 +2763,7 @@ break timer · storage pressure · NAS reachability · world clocks.
       whoever builds this: the reader no longer has to be invented. `pounce
       doctor` reads three per-item declarations already, so a fourth is a line
       in a report that exists.
-- [ ] ◐ **A `workspaces` entry naming a page nothing produces fails silently,
+- [x] **A `workspaces` entry naming a page nothing produces fails silently,
       and the check for it needs no repo boundary.** `modules/launcher/default.nix`
       carries a section header — `---- validation: the two ways an items entry
       fails silently ----` — over the two checks (b) above is about: a key that
@@ -2875,10 +2998,52 @@ break timer · storage pressure · NAS reachability · world clocks.
       lock bump in the same minute. Nothing is wrong; the twelve case names are
       still hand-mirrored filenames at `0f3a61c`, which is the same
       hand-mirroring one layer up, now with the seam to end it already open.
-      → **The other checkable half is still open**, which is why this box stays
-      `◐` — the `~/.local/state/haus/any-page` literal shared by `pages.sh:6`
-      and `workspace-mru.sh:71`, joined by a prose cross-reference each way and
-      by nothing mechanical, untouched by either PR.
+      ✅ **The other checkable half closed 2026-08-23 (forty-first pass) —
+      [haus#493](https://github.com/hausfold/haus/pull/493).** The
+      `~/.local/state/haus/any-page` literal shared by `pages.sh:6` and
+      `workspace-mru.sh:71` is now declared in `modules/lib/state-files.nix`
+      and pinned by `nix flake check`'s `state-files`: every file listed for a
+      shared name must exist and must still contain both the name and the
+      directory, and no `.nix` under `modules/` may hand-spell a registered
+      path. Mutation-checked in all three directions (rename in the writer
+      alone, a listed file moved, a `.nix` hand-spelling one).
+      → ★ **It was never one pair, and the second one was a `let` block away
+      from the first.** Auditing for the SHAPE rather than for the finding
+      turned up five files under `~/.local/state/haus` written by one room and
+      read by another, across four rooms and in both directions — including
+      `workspace-mru` itself, whose absolute path the launcher spells at
+      `default.nix:1616` for pounce's `pages.mruFile`, in the same room and
+      forty lines from the `any-page` it also names. Two passes wrote this box
+      and neither saw it, because both were looking for the instance they had
+      already been handed. The others: `aerospace-tiling-mode` (windows writes
+      the format, the bar's pill re-reads it with the same awk), `zen-tabs`
+      (terminal writes, the bar's media pill reads), and `lidawake/holds`,
+      which crosses a **privilege** boundary as well as a room — the bar's
+      agent hook creates a hold as the user, core's root daemon reads the
+      directory.
+      → **What the registry is FOR is the contrast it is written against, and
+      `awake` supplies it.** core owns `~/.local/state/haus/awake`, core's
+      `awake` CLI is its only toucher, and the bar's caffeinate pill asks by
+      **running that CLI** rather than by stat-ing its file — so nothing can
+      drift, because there is one spelling. That is the good case and it needs
+      no registry at all. The five entries are the pairs where it wasn't
+      available: a hook that must not fork, a daemon reading what a user-side
+      script writes, a header field pounce stats on the ⌘Space keystroke.
+      **Register the ones you couldn't collapse; don't register the ones you
+      could have.**
+      → 😐 **`grep -q` on a path that does not exist is an ERROR, not a miss**,
+      so existence is tested separately from the content grep. Without that
+      split a *moved* file reads as a passing check rather than a broken one —
+      the same "blind rather than red" trap this box's `pounce-command-keys`
+      paragraph found one layer up, met again while writing the fix for it.
+      → **And the header this box opened on is fixed by deleting its number.**
+      `validation: the two ways an items entry fails silently` said "two" from
+      the day it was written, through a third way added twenty lines ABOVE it
+      and a fourth that is not an items entry at all. Neither PR touched the
+      count and neither had reason to: **a count in a section header is a claim
+      about code nobody editing that code is reading.** It names the shape now
+      and stops counting — which is the only version of that header that
+      survives its next amendment.
 
 ### 5.10 `haus.displays` — ✅ **shipped in haus#147** · M · risk M
 The spike de-risked this and the accessibility spike gutted its alternative, so
@@ -2905,8 +3070,10 @@ needs checking — a fence is neither a §5 checkbox nor a §6 phase line.
 - [x] Applying a mode is proven end-to-end on the internal panel: `default`
       (`1512×982`) → `larger-text` (`1147×745`) → `default`, with CoreGraphics
       reporting the requested mode current after each change (2026-07-30)
-- [ ] Multi-display arrangement is still untested. ~~(only one display was
-      attached)~~ Test on the dock before designing `profiles.docked`
+- [ ] ◐ Multi-display arrangement is still untested. ~~(only one display was
+      attached)~~ ~~Test on the dock before designing `profiles.docked`~~ —
+      **the design is written (below) and the READ half shipped; what is left
+      is the arithmetic, and it needs two panels.**
       ⚠️ **The blocker went away and this box did not move (2026-08-23,
       thirty-ninth pass).** haus#478 was *"verified against both attached
       panels"*, and at haus `56697b7` `hausdisp list` reports `active displays:
@@ -2944,6 +3111,82 @@ needs checking — a fence is neither a §5 checkbox nor a §6 phase line.
       stays unproven. A box naming its own remedy reads as cheap; a reader
       would have discovered this one wasn't runnable only after committing the
       session to it.
+      ⚠️ **The precondition came BACK, four hours later (2026-08-23,
+      forty-first pass).** At haus `1e92e15`, on the same machine, `hausdisp
+      list` reports `active displays: 1` — the Studio Display is unplugged and
+      only the internal panel's five rungs are there. The thirty-ninth pass's
+      *"the blocker went away and this box did not move"* was true when written
+      and is not true now, and nothing was wrong with it. **That is the
+      finding, and it is a new shape for §5.14: a box whose precondition is a
+      PERIPHERAL has no stable state at all.** Every other blocker this file
+      tracks is monotonic — a bug is fixed, an option ships, a lock moves — so
+      a pass can record "no longer blocked" and be believed by the next one.
+      A cable is not monotonic. Recording its state dates the note rather than
+      advancing the box, and a session that plans around the record instead of
+      re-running the command plans around a desk that has since been tidied.
+      **Re-derive a peripheral precondition at the start of the session that
+      depends on it, never off the file.**
+      ✅ **So the half that does NOT need the dock shipped instead
+      ([haus#493](https://github.com/hausfold/haus/pull/493)): `hausdisp list`
+      now reports what each panel is CALLED and where it SITS** —
+      `name="Built-in Retina Display"` from `NSScreen.localizedName`, and
+      `at x,y  WxHpt` from `CGDisplayBounds`, beside the UUID. Two things at
+      once. It makes this box's own stated remedy runnable at last — the
+      thirty-ninth pass struck out *"`hausdisp list` settles which Macs
+      diverge"* because `localizedName` appeared nowhere in the file — and it
+      is the read half of arrangement, which is what any `profiles.docked` has
+      to have before it can write one.
+      → **Measured while adding it, which settles the identity half of this box
+      on ONE display.** `NSScreen.localizedName` here is
+      `Built-in Retina Display` and `aerospace list-monitors --json` reports
+      the identical string, so the literal the windows and terminal rooms match
+      against holds on this Mac and the two rooms agree. `system_profiler`
+      calls the same panel `Color LCD` / `Built-in Liquid Retina XDR Display` —
+      a **third** spelling of one panel, which is exactly why the command that
+      answers this had to belong to the room with the problem rather than to
+      whichever tool was nearest. And the tempting fix is not available:
+      AeroSpace 0.21.3's monitor patterns are `main`, `secondary`, a regex or
+      an id — **there is no `built-in` keyword** (checked against the shipped
+      binary, not the docs), so the product name cannot simply be replaced by
+      the vocabulary. It can be *seen*, which is the difference between a
+      divergence someone hits and one someone can check for.
+      → **`profiles.docked`, designed rather than shipped, and the reason is
+      the paragraph above.** Arrangement is untestable on one panel, and this
+      box's own instruction — test on the dock BEFORE designing — is right.
+      What the design has to be is now constrained by what was measured:
+      **(1)** Arrangement is a RELATION, not a per-display fact. `uiScale`
+      composes per display because each panel answers independently; two
+      origins do not — they can overlap or leave a gap, and macOS silently
+      normalises whatever you hand it. So a profile should state
+      `rightOf` / `below` / `align`, and `hausdisp` should compute origins from
+      each panel's current point size, the way the mode ladder is DERIVED
+      rather than tabulated. Same taste, one option over.
+      **(2)** The trigger is the attached SET. `haus.displays.<uuid>` is
+      already conditional by accident — an absent display exits 2 and is
+      skipped — but a profile is a statement about a whole desk, so its
+      predicate is "exactly these UUIDs are attached", and `main` is part of
+      what it asserts (`CGConfigureDisplayOrigin(…, 0, 0)` is how a display
+      BECOMES main; there is no separate call).
+      **(3)** The ordering constraint that only exists once both features are
+      on: origins are in POINTS, so a `uiScale` change moves every origin. A
+      profile must apply scale FIRST and arrangement SECOND or it computes
+      against a stale point size — invisible with either feature alone, and
+      the kind of thing that would have been found by a user rather than by a
+      test.
+      **(4)** The apply path is one call inside the transaction `apply`
+      already uses (`CGBeginDisplayConfiguration` →
+      `CGConfigureDisplayOrigin` → `CGCompleteDisplayConfiguration
+      .permanently`), so the mechanism is proven and only the *arithmetic* is
+      new — which is the half that needs two panels to test.
+      **(5)** A mis-arranged profile is felt instantly and cannot be undone
+      blind: the pointer stops crossing between screens. `hausdisp arrange`
+      needs a dry run printing the computed origins before it needs anything
+      else, and the `at x,y` that shipped today is exactly the input a person
+      compares that against.
+      → **What is left here is one command with the Studio Display plugged in**
+      — `hausdisp list`, read the two origins — and then the arithmetic in (1).
+      The box keeps its subject; it has lost its second remedy-that-wasn't-
+      runnable and gained the read half it needed.
 
 ### 5.11 Reversibility — the trust prerequisite for *any* community · M · risk M · ✅ **closed 2026-08-14 — the four commands shipped and were felt (rice#248), and the last two rendering boxes landed in haus#353**
 Before strangers' configs run arbitrary `defaults write` and activation scripts:
@@ -3293,8 +3536,10 @@ option family followed in workshop#137.
 
 **Moved on 2026-08-23**, whole and unedited, to
 [`drift.md`](drift.md) — the standing catalogue of the shapes a claim in this
-family goes wrong in, and what catches each. Twenty-six rows, numbered by
-position, **numbering frozen**: "row eleven" still means row eleven, and this
+family goes wrong in, and what catches each. **Thirty** rows as of
+2026-08-23, numbered by position, **numbering frozen** (and RE-COUNTED here
+rather than incremented — the number went stale twice in one day, which is the
+shape it is a count of): "row eleven" still means row eleven, and this
 section's own findings still read as findings about *this* file, which is what
 they were written about.
 

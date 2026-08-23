@@ -14,8 +14,8 @@
 > and they did come from there.
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirty-seventh (2026-08-23) back to the first (2026-08-02) —
-thirty-eight blocks, because 2026-08-04 carries two and only one of them was
+from the thirty-eighth (2026-08-23) back to the first (2026-08-02) —
+thirty-nine blocks, because 2026-08-04 carries two and only one of them was
 numbered. It was the roadmap's own preamble until 2026-08-20, when it had
 grown to 2,393 lines — larger than every other file in `notes/` put together,
 and sitting between the document's title and its §1.
@@ -38,6 +38,158 @@ archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
 
 ---
+
+> **Status, 2026-08-23 (thirty-eighth pass) — at haus `561af88`, the defect
+> class this repo has now FIXED TWICE was re-derived as impossible at a third
+> site, in a comment that names a mechanism the shipped fix does not use. And
+> two other classes in the same 47-minute window were swept by hand and left no
+> check behind. `options.json` is 318 leaves for the fourth consecutive reading,
+> key for key, across 17 h 25 m.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
+> workshop `5bf1fb7`, haus `561af88`, perch `352b466`, hausfold.co `09052fb`,
+> holt `809cc3c`. pounce is `aabd99a` and nebelung `5d5d0a2`, unmoved as of
+> those revs — a fact about two revs and not a licence to skip §5.9 (row
+> nineteen). ⚠️ And no `= origin/main` anywhere above, which is the thirty-seventh
+> pass's own narrowest rule, applied on the first pass that could apply it: a
+> tip equality is the one clause in a pass that starts going stale the moment it
+> is written. Non-cloud, so every time below is a committer date on
+> `origin/main`, in UTC; the family's local time is UTC−5, so this whole block
+> is Saturday evening at the keyboard.
+>
+> Landed since the thirty-seventh pass's revs — a **34-minute** window, every
+> commit between 04:52:54Z and 05:26:26Z (33 m 32 s; 47 minutes is the distance
+> from the previous pass's haus rev, which is not what this sentence says and
+> not what the last three passes' windows measure). **Six haus** (#471
+> 04:52:54Z, #473 05:13:02Z, #472 05:25:17Z, and **three** lock bumps — the
+> third is this pass's own haus endpoint rev), **three perch** (#87 04:59:04Z
+> plus the `2026.08.23` release and its nix pin), **two holt** (#54 04:59:47Z
+> and the **`0.4.0` release**, 05:18:42Z — the semver one, five SDKs, none of
+> which can withdraw a published number), **one hausfold.co** (#132 05:24:37Z)
+> and **four workshop** (#438, #439, #440 and the thirty-seventh pass itself).
+>
+> **The count was 11 at `5bf1fb7`** — the number the thirty-seventh pass
+> predicted — re-derived with the command the last ten passes ran (`sed -n '/^##
+> 5\. The option families/,/^### 5.14/p' notes/options-roadmap.md | grep -c '^-
+> \[ \]'`). This pass **closes one and opens none in the counted range**, so the
+> pass after this one should find **10**. The one it closes is §5.6's, and it
+> closes the way §5.14 said it would: written a pass ago as `- [ ] ◐ built and
+> open, mergedAt null`, ticked here against `mergedAt 2026-08-23T05:25:17Z`
+> (`6bb294c`). It also opens a box in **§5.14**, which the count command does not
+> reach — deliberately, since that section's boxes are checks-about-the-doc
+> rather than option work — and rotates the log: the thirty-fifth pass moves to
+> [`options-roadmap-log.md`](options-roadmap-log.md) unedited, both pointer
+> counts re-COUNTED rather than incremented (36).
+>
+> `docs/site-data/options.json` at `561af88` is **318 leaves in 35 namespaces**,
+> and the interesting number is how long: `diff <(git show ff8ecf3:… | jq -r
+> 'keys[]') <(git show 561af88:… | jq -r 'keys[]')` is **empty** — key for key
+> identical across **17 h 25 m** (`ff8ecf3`, 2026-08-22T12:00:55Z → `561af88`,
+> 2026-08-23T05:26:26Z), four consecutive readings and three passes reporting
+> "unchanged". **Seven** haus PRs landed inside that window — #466, #467,
+> #469, #468, #471, #473, #472 — twelve commits, five of them lock bumps.
+>
+> ★ **First, and it is the pass: haus#473 declared its own gap unfixable, and
+> the fix was already in this repo, twice.** `modules/ai/default.nix` lists the
+> skill names each hausfold tool ships (`holt`, `handoff`) so haus can link them
+> into every client's skills directory, and its comment says, in full: *"⚠️ The
+> names are UNVERIFIABLE from here, by construction: nothing checks that the
+> derivation actually contains them, because the check would be a readDir on a
+> store output — import-from-derivation. A name listed here that the pinned
+> revision does not ship installs a DANGLING symlink, silently: eval, `nix flake
+> check` and the home-files build are all green, because a home.file source
+> pointing inside a store output is never existence-checked."* Quoted whole on
+> the assurance read's insistence: the first draft stopped at "silently" and
+> then presented the elided clause as its own measured result. **The comment
+> already knew what happens.** What it gets wrong is three words — "by
+> construction" — which is why the finding is about the conclusion and not the
+> description.
+>
+> **Half of that is exactly right and the conclusion does not follow.** LISTING
+> what a tool ships needs an eval-time read of a derivation's output, which is
+> IFD and would force a build every time somebody runs `haus get`. ASSERTING
+> that a listed name is there needs no eval-time read at all — and this repo
+> already does it, in two rooms, on this document's own finding. §5.14's
+> fourteenth-pass box (*"a check can pass on the pointer while the referent is
+> missing"*) was closed on 2026-08-14 by copying the placed theme ports through
+> one `runCommand`, which **makes the referent a build DEPENDENCY rather than a
+> promise**; `modules/theme/ports.nix:158-161` says so in those words, and names
+> terminal's `glowPlugin` as the other site. Neither is IFD. The third site
+> re-derived the problem from scratch, reached for the one mechanism that is
+> ruled out, and stopped.
+>
+> **Measured at `561af88`, adding a fourth name `no-such-skill` to the list:**
+>
+> ```
+> $ nix eval …home.file.".claude/skills/no-such-skill".source
+> /nix/store/sz1jm8z…-holt-skill/no-such-skill          # evaluates clean
+> $ ls /nix/store/sz1jm8z…-holt-skill/
+> handoff  holt                                          # it is not there
+> $ nix build …home-files                                # exit 0
+> …/.claude/skills/no-such-skill ⇒ /nix/store/…/no-such-skill
+> $ test -e …                                            # DANGLING
+> ```
+>
+> Fixed in [haus#475](https://github.com/hausfold/haus/pull/475) by the ports
+> pattern, mutation-tested three ways; the box is in §5.14 with its sibling, and
+> is ticked only on `mergedAt` (row fourteen). Its shape is **row sixteen**
+> sharpened, and the sharpening is where to look — see row twenty-four.
+>
+> ⚠️ **And the first draft of this block cited haus#474, which is somebody
+> else's merged PR.** The number was guessed as next-free while the PR was still
+> unopened; #474 (*"ai: the desktop guard reads the target, not the text"*)
+> merged at 05:34:02Z, **six minutes before** the commit that cited it. Caught
+> by the assurance read, at 5/5. Row fourteen says a PR number in a tick is a
+> promise only `mergedAt` keeps; this is that failure one step earlier — a
+> number that is a promise about a PR *which does not exist yet*, and GitHub
+> will resolve it to whoever got there first. **Open the PR, then write the
+> number.** Not a new row: row fourteen with the clock wound back further, and
+> the same fix.
+>
+> ⚠️ **This finding is written at a rev on purpose, headline included** — the
+> thirty-seventh pass's row twenty-three, applied by the first pass that could.
+> haus#475 and this block are two PRs in two repos with no seam between them
+> (§5.14's structural reason 1), so they merge in whichever order GitHub reaches
+> them, and the last time that happened the gap was twelve seconds. *At
+> `561af88`, X* survives either order; *X is still standing* survives neither.
+>
+> ★ **Second: two more classes in the same window, both swept by hand, neither
+> left a check.** haus#471 fixed the bash multibyte swallow — `"…“$query”"`
+> makes the closing curly quote part of the identifier, so the row printed
+> nothing under no `set -u` and **exited 1 having found its matches** under one,
+> killing ⌘⇧F's transcript search on both its hit and its miss path. Its message
+> carries a repo-wide sweep (`grep -rnP … '[^\x00-\x7F]'`) proving no site
+> remains — run once, at a keyboard. At `561af88` that pattern appears in no
+> workflow, no flake check and no test: `grep -n 'x00-x7F' .github/workflows/
+> check.yml flake.nix test/*.nix` is empty, and `add-app.sh` is not in
+> check.yml's lint list at all. shellcheck cannot see the class (SC1111 objects
+> to the curly quotes, which are deliberate display text). And haus#472's own
+> assurance read found the **fourth** rot in check.yml's hand-written CI census
+> — the Linux list said fifteen where `nix eval` says nineteen — in the file
+> whose comment says *"it rots in every direction"* and then dates the three
+> previous rots.
+>
+> **Three classes, one 47-minute window, and the shape is the same in all
+> three: the knowledge exists as PROSE at the site, and prose does not stop the
+> next instance.** A comment that confesses a gap, a commit message that proves
+> a sweep, a census that dates its own rots. §5.14 has said since the sixth pass
+> that the structural fix is to *make the repo emit something mechanical*, and
+> named `data-only-surface` and `accent-reach` as the two that took it. This
+> window produced three candidates and one PR. The row this adds is narrower
+> than "write more checks", because two of the three had a check available and
+> declined it: **grep the repo for the FIX before writing down that there
+> isn't one.**
+>
+> ◐ **And what actually moved this window, since the leaf count saw none of
+> it**: holt `0.4.0` (five SDKs; `--prompt`/`--prompt-file` and a second shipped
+> skill), perch `2026.08.23`, haus#473 turning `haus.ai.skill` from "haus's own
+> skill" into "every hausfold tool's skill" — a widened *meaning* on an existing
+> bool, with a rewritten description and **zero** leaves added. Fourth pass
+> running that the day's most stranger-visible change is invisible to
+> `options.json`, and the third of the last four in which it is a description
+> string.
+
 
 > **Status, 2026-08-23 (thirty-seventh pass) — the thirty-sixth pass's finding
 > was FIXED twelve seconds before the pass reporting it merged, by the same
