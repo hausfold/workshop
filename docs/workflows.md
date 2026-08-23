@@ -273,9 +273,20 @@ Code moves all day; docs don't follow on their own. The **`/docs-sync`** sweep
 closes that gap once a day, and `bench` gives it its input:
 
 ```sh
-./bench docs-since          # every commit past each repo's watermark, per repo
-./bench docs-since --mark   # …record where the next sweep starts (LAST, after the PRs)
+./bench docs-since                          # every commit past each repo's watermark
+./bench docs-since --mark --pending haus    # …record where the next sweep starts
+./bench docs-since --landed haus            # …haus's doc PR merged; the docs caught up
 ```
+
+**Two watermarks per repo, and the gap between them is the point.** `read` is
+the last commit a sweep has looked at; `landed` is the last one whose
+corrections are merged on `main`. `--mark` advances `read`, and `--pending`
+names the repos whose fixes are still sitting in an open PR so their `landed`
+stays put. Anything between the two prints as a ⚠ — *`haus`: 14 commits READ but
+not landed*. Without that split a sweep could open a PR nobody merged, mark
+those commits read forever, and never look at them again: the docs stayed wrong
+and the run reported itself clean, which is indistinguishable from a quiet day.
+
 
 It is **watermark-based, not "since yesterday"**: a sweep that slept for four
 days still picks up all four, and a day that fires two runs reads each

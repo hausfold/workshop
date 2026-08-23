@@ -17,14 +17,14 @@
 # and this is read by zsh, not Nix. `exec zsh` reloads it.
 #
 # The subcommand descriptions are one-line paraphrases of bench's OWN usage
-# header (bench:2-46) — the same text `bench <garbage>` prints. That header is
+# header (bench:2-50) — the same text `bench <garbage>` prints. That header is
 # the source; when it changes, this follows.
 
 # _bench_array <NAME> [fallback…] — the elements of a single-line bash array in
 # `bench`, one per line, falling back to the literals given.
 #
 # The repo lists are READ OUT OF the script rather than copied here: FAMILY
-# (bench:126) and OVERRIDABLE (bench:140) are both single-line arrays, so one
+# (bench:134) and OVERRIDABLE (bench:148) are both single-line arrays, so one
 # sed keeps this file from going stale the day a repo joins or leaves the
 # family. The fallbacks are what you get if the checkout has moved.
 _bench_array() {
@@ -52,7 +52,7 @@ _bench() {
     'pull:fast-forward every repo, or just the named ones'
     'clone:fetch any family repo missing from this directory'
     'overlap:what the OTHER agent lanes on this repo have already changed'
-    'docs-since:commits in every repo since the docs were last reconciled'
+    'docs-since:commits in every repo since the docs were last reconciled, and what is read but not landed'
     'release:stamp the version and tag it, then WATCH the CI run to the end'
   )
 
@@ -174,10 +174,30 @@ _bench() {
           ;;
 
         docs-since)
-          # cmd_docs_since only ever looks at $1 (bench:1827), so --mark is
-          # meaningless anywhere but the first slot.
-          local -a mark=( '--mark:record new watermarks at the commits it reports' )
-          (( CURRENT == 2 )) && { _describe -t flags 'flag' mark && ret=0 }
+          # Two watermarks per repo, so three flags. --mark and --landed are
+          # modes and only make sense in the first slot; --pending qualifies
+          # --mark and is followed by repo names, as --landed can be.
+          local -a modes=(
+            '--mark:record new read watermarks at the commits it reports'
+            '--landed:that repo'\''s doc PR merged — catch its landed watermark up'
+          )
+          local -a qual=( '--pending:the repos whose doc PR is still open — hold their landed watermark' )
+          if (( CURRENT == 2 )); then
+            _describe -t flags 'flag' modes && ret=0
+          elif [[ "$words[2]" == --mark && "$words[CURRENT-1]" == --mark ]]; then
+            _describe -t flags 'flag' qual && ret=0
+          else
+            # DOCS_REPOS is FAMILY plus five repos that carry docs without
+            # carrying a lock edge. bench composes it the same way —
+            # `DOCS_REPOS=(workshop "${FAMILY[@]}" …)` — which is why one sed
+            # can't read it whole: the nested expansion comes back literal.
+            # FAMILY is still read out of the script; only the five are copied.
+            local -a docs_repos=(
+              workshop $(_bench_array FAMILY nebelung pounce perch holt haus)
+              org-profile homebrew-tap trill hausfold.co
+            )
+            _describe -t repos 'repo' docs_repos && ret=0
+          fi
           ;;
 
         # status, ship, rebuild, clone take no arguments.
