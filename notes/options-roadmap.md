@@ -1482,6 +1482,28 @@ here so it isn't mistaken for fallout of this migration.
       prose** — `modules/bar/default.nix:1692` and
       `:1799` are comments *about* the path, which is why the raw sum reads 18
       and why fifteen was exactly right when written (17 − 2 at `b1e263a`).
+      ★ **The line half is in review 2026-08-23 (haus#491, `09cdf5e`), and the box
+      stays open on the half it was actually open on.** The bar room now
+      asserts that `haus.roster.sketchybar` carries a non-null `package` at
+      `scope = "system"` whenever `haus.bar.enable` is on, in the same
+      assertion block whose header already says what it is for — *"a pill that
+      cannot work, as opposed to one that merely won't draw"* — and the `scope`
+      option's description gains the path half, so the precondition is readable
+      where the option is rather than where the bug is. Both branches were
+      **made to fire on purpose** before the PR (extend
+      `darwinConfigurations.example` with `scope = "user"`, then with
+      `package = null`; the clean host still builds), which is the one step
+      that separates a check from a check-shaped comment — drift.md's
+      *"leave a check behind"* is not satisfied by a check nobody has seen
+      fail.
+      → **What did NOT ship is the question, and it is the same question.**
+      `binPath` (or `requiresScope`) is still unbuilt, so the second roster
+      entry a room addresses by path gets no help from this: it gets an
+      assertion written by hand, in that room, if whoever writes it happens to
+      know. The assertion is a fix for one entry; the box is about a format
+      that cannot express the precondition. Keep it open until the registry
+      answers, and read this tick as evidence that the cheap half is now cheap
+      enough to have been done — not as progress on the expensive one.
 
 ### 5.5 `haus.keys` — the keymap is currently closed · M · risk M · ✅ **shipped (haus#108)**
 Caps-Lock leader, ⌘Space, and every zellij bind are generated or baked. This
