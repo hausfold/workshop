@@ -76,11 +76,19 @@ Every tool ships its own agent documentation **inside its binary**, and can
 print or install it:
 
 ```
-<tool> skill                 print the SKILL.md to stdout
-<tool> skill install         write it into every agent client found on this Mac
+<tool> skill                 print the tool's own SKILL.md to stdout
+<tool> skill <name>          print one of its other skills (§A4)
+<tool> skill install         write ALL of them into every agent client found
 <tool> skill install --client claude|codex|opencode
 <tool> skill install --dir PATH
 ```
+
+**`install` means all of them.** A tool that ships a second skill and installs
+only its first has shipped a skill that exists in the repo, in the binary and in
+the derivation, and reaches no standalone user — the "installed, listed, never
+loaded" failure this whole note is built around, one step earlier. Bare
+`<tool> skill` stays singular because it is the "show me the thing" form and a
+tool with one skill is still the common case.
 
 **Embedded, not a file on disk.** A Homebrew cask ships an `.app`; a Nix build
 ships a store path; `go install` ships one binary. Only embedding is uniform
@@ -88,8 +96,9 @@ across all three, and it makes the docs impossible to desync from the binary
 that implements them — the version that answers `--help` is the version that
 answers `skill`.
 
-`install` writes `<skills-dir>/<tool>/SKILL.md` and refuses rather than
-clobbers: if the target exists and differs, it says so and prints the diff
+`install` writes `<skills-dir>/<name>/SKILL.md` — one directory per skill,
+named for the skill rather than the tool, so a tool shipping several lands
+several — and refuses rather than clobbers: if the target exists and differs, it says so and prints the diff
 path. **On a haus machine it refuses outright** — those directories are
 read-only Nix symlinks, and haus has already installed the skill (§4). Say
 that in the refusal; don't make the user work it out from an EPERM.
@@ -97,10 +106,14 @@ that in the refusal; don't make the user work it out from an EPERM.
 The verb is `skill`, not `agent`: all three clients call these things skills,
 and in this family `agent` already means a launchd agent.
 
-### A4 — One SKILL.md, one shape, ≤150 lines
+### A4 — One shape, ≤150 lines each
 
-Committed at `ai/SKILL.md` in the tool's own repo — the single source, embedded
-at build time. The shape:
+Committed at `ai/SKILL.md` in the tool's own repo — the source, embedded at
+build time. **One skill is the shape.** A tool ships a *second* only when it
+owns a job that has no verb, and then it is a sibling directory,
+`ai/<name>/SKILL.md`, under the rules at the end of this section. holt is the
+first: `handoff`, which is how to write the brief `holt spawn --prompt-file`
+opens a lane on. The shape below is the same for every one of them:
 
 ```markdown
 ---
@@ -154,12 +167,28 @@ The second one is true, well written, and will never load.
 Rules that follow from the shape:
 
 - **Skill names are globally unique across the family** — `haus`, `pounce`,
-  `perch`, `trill`, `holt`, `nebelung`. They land in one shared
-  `~/.claude/skills/`, next to whatever else the user installed.
-- **The description is ONE physical line.** A YAML folded scalar (`>-` and an
-  indented body) is valid YAML and every build guard here rejects it, on
-  purpose: the guards are `grep`, and a description that needs a parser is a
-  description that can silently stop being checked.
+  `perch`, `trill`, `holt`, `nebelung`, and holt's `handoff`. They land in one
+  shared `~/.claude/skills/`, next to whatever else the user installed. A name
+  that is not a tool name is the one to think hard about: check it against that
+  list **and against the host's own hand-wired skills**, because a machine that
+  already declares `~/.claude/skills/<name>` gets an activation conflict, not a
+  winner. (`handoff` did exactly that, and the host file had to give it up in
+  the same rebuild.)
+- **A second skill has to be ABOUT the tool.** If it would read the same with
+  the tool's name swapped out, it is a personal workflow file and belongs in the
+  user's own config, not in a repo strangers install from. The test that passed
+  for `handoff`: the brief is the argument to a holt flag, and a flag whose
+  argument nobody knows how to write is a flag nobody uses well.
+- **The description is ONE physical line, and at least 80 characters.** A YAML
+  folded scalar (`>-` and an indented body) is valid YAML and every build guard
+  here rejects it, on purpose: the guards are `grep`, and a description that
+  needs a parser is a description that can silently stop being checked. The
+  floor is in the standard rather than in each repo's guard so that the number
+  cannot drift between repos — under it there are not enough of the user's own
+  phrases in there to route on.
+- **The skill's `name:` key must match the directory it installs into.** Two
+  identifiers for one thing — the path a client scans, and the string it routes
+  on — and a mismatch installs a skill under a name nothing ever asks for.
 - **Name the failure, not the feature, when the tool can't do the thing.** A
   skill whose `description` advertises only what the tool does never loads on
   the sentence it most needs to refuse. perch's is the case: it has no read
@@ -255,7 +284,9 @@ joins that check.
 ## 4. Distribution
 
 **haus machines.** `haus.ai.skill` grows from "install the haus skill" to
-"install the haus skill **and one per hausfold tool this machine has**". haus
+"install the haus skill **and every skill each hausfold tool on this machine
+ships**" — per skill, not per tool, since a tool may ship more than one (§A4).
+haus
 already takes nebelung, pounce, perch and holt as flake inputs, so each flake
 exposes its SKILL.md as a package output (`pkgs.<tool>-skill`) and haus copies
 the ones whose room is actually enabled — the shelf room off means no perch
@@ -270,9 +301,13 @@ a metadata-only `haus.roster.trill` entry. So trill's skill reaches a machine by
 gate is the roster entry rather than a room switch. A step that assumes
 otherwise ships nothing for trill and reports success.
 
-Same install path as today: file-by-file into each client's own skills dir
-(`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`), so a host
-can still symlink an individual skill out of the store for live editing.
+Same install path as today: into each client's own skills dir
+(`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`), one entry
+per skill, named by the TOOL rather than by haus. haus's own skill stays
+file-by-file because `this-machine.md` is rendered per host and has to sit
+beside the store-built parts; a tool's skill has no per-host half, so it is one
+directory symlink. ⚠️ A host that hand-wires `~/.claude/skills/<name>` for a
+skill of the same name must drop it in the **same rebuild** — see §9 step 3.
 
 **Standalone.** `<tool> skill install`. The tool's README says so in its install
 section, one line, right after `brew install`. Homebrew casks get a `caveats`
@@ -295,16 +330,18 @@ fallbacks, and they cost nothing:
 ```
 <repo>/
   ai/SKILL.md              the source, ≤150 lines, committed
-  <build>                  embeds ai/SKILL.md into the binary
+  ai/<name>/SKILL.md       any further skill, same shape (§A4) — usually none
+  script/check-skills.sh   the guards, as a script BOTH CI and Nix run
+  <build>                  embeds ai/**/SKILL.md into the binary
   flake.nix                exposes packages.<system>.<tool>-skill
-                           whose output is $out/<tool>/SKILL.md
+                           whose output is $out/<name>/SKILL.md per skill
 <tool> --help              verbs, flags, exit codes
 <tool> <verb> --json       stable schema, stdout only
 <tool> skill               prints the embedded SKILL.md
-<tool> skill install       writes it into every client found
+<tool> skill install       writes every skill into every client found
 ```
 
-Four files' worth of work per tool, and the one that takes thought is the
+Five files' worth of work per tool, and the one that takes thought is the
 `description`.
 
 **The derivation's output is `$out/<tool>/SKILL.md`, not `$out/SKILL.md`** —
@@ -313,8 +350,14 @@ whose name is already right, and it means the *tool* decides its skill's folder
 name rather than whoever installs it. That is a real choice and this is where it
 is made; it is not implied by anything else here.
 
+**A tool shipping more than one skill lays them out as siblings** —
+`ai/<name>/SKILL.md` → `$out/<name>/SKILL.md`, beside the tool's own. holt is
+the first (`handoff`); the rules that keep that from becoming a dumping ground
+are in §A4, because they bind the skill rather than the packaging. **Every
+guard runs per skill**, not once on the first one.
+
 haus is the one variant, in two ways, both legacy rather than exemption: its
-skill source is `modules/terminal/agents/SKILL.md` (a room's file, not a repo
+skill source is `modules/ai/agents/SKILL.md` (a room's file, not a repo
 root's) and its derivation is flat, `$out/SKILL.md`, because it predates this
 paragraph. Its *generated* half — a reference rendered from the module system
 rather than hand-written — is the part the other five copy.
@@ -324,10 +367,18 @@ derivation lives at `nix/skill.nix` in perch, trill, holt and nebelung, and at
 `pkgs/pounce-skill/default.nix` in pounce, which keeps its packages under
 `pkgs/<name>/`. Only the package *name* and the output *layout* are fixed.
 
-**A repo whose CI builds anything must build its skill package.** Every guard in
-that derivation exists because the failure it catches is invisible at
+**The guards go in a script the repo's own CI runs, not in the `runCommand`
+body.** Every guard exists because the failure it catches is invisible at
 runtime — a skill with broken frontmatter is installed, listed and never
-loaded. A guard that only runs on a developer's machine catches nothing.
+loaded — so a guard that only runs on a developer's machine catches nothing.
+That was the original rule here ("a repo whose CI builds anything must build its
+skill package"), and it turned out not to reach: most of these repos build Go or
+Swift in CI and **no Nix at all**, so guards living in the derivation ran
+nowhere that mattered. A plain script satisfies both callers. holt's is
+`script/check-skills.sh`, run by `nix/skill.nix` and by `check.yml`, and it
+**discovers** `ai/*/SKILL.md` rather than taking a list — three hardcoded lists
+(script, derivation, workflow) is three places to forget a new skill, and
+forgetting it in the CI copy reinstates the whole gap.
 
 ⚠️ **`holt` has a naming conflict to resolve before step 4.** Its `SPEC.md`
 §14.5 already reserves this capability as `holt docs agent [--format=md|json]`,
@@ -344,34 +395,46 @@ pane with no context:
 > checkout of its repo. Say the sentence a user would say. It works on the
 > first try, with no follow-up question about flags.
 
-The sentences, one per tool, are the fixtures:
+The sentences are the fixtures, **one per skill** rather than one per tool — a
+second skill with no sentence of its own is a second skill nothing tests:
 
-| tool | the sentence |
+| skill | the sentence |
 |---|---|
 | perch | "put this file in my shelf" / "what's on my shelf?" |
 | pounce | "what did I copy three things ago?" |
 | trill | "tell me when this build finishes" |
 | holt | "what agent worktrees do I have open?" |
+| holt · handoff | "hand this off to a fresh session" / "spawn an agent to do this" |
 | haus | "make my terminal font bigger" |
 | nebelung | "what's the hex for the background colour?" |
 
 A tool that needs a second turn to get the flags right has not met the
 standard, however complete its SKILL.md is.
 
-## 8. Where the family stands, measured 2026-08-16
+## 8. Where the family stands
+
+A1/A5 measured 2026-08-16; **A2/A3/A4 re-measured 2026-08-22**, because step 2
+landed everywhere in between and the old table had stopped being true about four
+repos at once.
 
 | tool | A1 · CLI covers UI | A2 · JSON + exits | A3 · `skill` verb | A4 · SKILL.md | A5 · config file |
 |---|---|---|---|---|---|
-| **holt** | ✅ full lifecycle | ✅ `list --json`, `watch --json` NDJSON, exits 0–5 | ❌ | ❌ | ✅ `config.toml` |
-| **haus** | ✅ `set/get/options/status/plan/diff/doctor` | ⚠️ no `--json` on any verb | ❌ (skill exists, no verb) | ✅ generated | ✅ host file |
-| **pounce** | ⚠️ rich (`run`, `drafts`, `focus`, `doctor`, `config print`), but `drafts list` is TSV-only | ❌ no `--json` anywhere | ❌ | ❌ | ✅ `config.json` |
-| **trill** | ⚠️ `send`/`ping`/`doctor`; no read of what fired | ⚠️ `--json` **output** on `doctor` only (`send --json` is an *input* format) | ❌ | ❌ | ✅ `rules.json` |
-| **perch** | ❌ **`add` only** — cannot list or remove | ⚠️ `--json` on `add` | ❌ | ❌ | ❌ **`UserDefaults`** |
-| **nebelung** | ❌ no CLI at all | ✅ palette is JSON | ❌ | ❌ | n/a |
+| **holt** | ✅ full lifecycle | ✅ `list --json`, `watch --json` NDJSON, exits 0–5 | ❌ | ✅ **two** — `holt` + `handoff` | ✅ `config.toml` |
+| **haus** | ✅ `set/get/options/status/plan/diff/doctor` | ⚠️ `show --json` only | ❌ (skill exists, no verb) | ✅ generated | ✅ host file |
+| **pounce** | ⚠️ rich (`run`, `drafts`, `focus`, `doctor`, `config print`), but `drafts list` is TSV-only | ❌ no `--json` anywhere | ❌ | ✅ (`pkgs/pounce-skill`) | ✅ `config.json` |
+| **trill** | ⚠️ `send`/`ping`/`doctor`; no read of what fired | ⚠️ `--json` **output** on `doctor` only (`send --json` is an *input* format) | ❌ | ✅ | ✅ `rules.json` |
+| **perch** | ❌ **`add` only** — cannot list or remove | ⚠️ `--json` on `add` | ❌ | ✅ | ❌ **`UserDefaults`** |
+| **nebelung** | ❌ no CLI at all | ✅ palette is JSON | ❌ | ✅ | n/a |
 
-Reading the table: **A3/A4 is uniformly absent and uniformly cheap** — it is
-docs plus one verb, and it is what the user actually feels. **A1 is the
-expensive column and only perch and nebelung genuinely fail it**; perch's gap is
+**A4 is done — all six, step 2 is closed.** What is left of the cheap half is
+A3: the `skill` verb exists nowhere, so a standalone user still gets nothing.
+haus's A2 has moved off "no `--json` on any verb" (`haus show --json`); the rest
+of that column is unre-measured beyond the spot checks above, and A1/A5 are the
+2026-08-16 reading.
+
+Reading the table: **A3 is uniformly absent and uniformly cheap** — it is one
+verb over docs that already exist, and it is what a standalone user feels.
+**A1 is the expensive column and only perch and nebelung genuinely fail it**; perch's gap is
 the one that breaks a real sentence today ("what's on my shelf?"), and perch is
 also the one A5 failure.
 
@@ -385,15 +448,17 @@ the table has this problem.
 ## 9. Order
 
 1. **This note**, and the `AGENTS.md` routing row that points here.
-2. **`ai/SKILL.md` in five repos** — perch, trill, pounce, holt, nebelung. haus
-   is the exception: its skill source already lives at
-   `modules/terminal/agents/SKILL.md` and is built by `skill.nix`, which is the
-   pattern the other five are copying. Docs plus a `nix/skill.nix` exposing
-   `pkgs.<tool>-skill`; no CLI change, no release. This is what haus needs in
-   order to install anything.
-3. **haus installs them** — `haus.ai.skill` extended, plus `references/rooms.md`
-   from `options-groups.nix`'s `rooms` record. After this, a haus user has the
-   whole thing (minus trill — see §4).
+2. ~~**`ai/SKILL.md` in five repos**~~ — **done** (perch, trill, pounce, holt,
+   nebelung all ship one, each with a `nix/skill.nix` exposing
+   `pkgs.<tool>-skill`; pounce's lives at `pkgs/pounce-skill/` per its own
+   convention). haus was never in this step: its skill source already lives at
+   `modules/ai/agents/SKILL.md`, and is the pattern the other five copied.
+3. **haus installs them** — `haus.ai.skill` extended to every tool's skill, plus
+   `references/rooms.md` from `options-groups.nix`'s `rooms` record. After this,
+   a haus user has the whole thing (minus trill — see §4). ⚠️ **A skill whose
+   name a host file already hand-wires collides**: two definitions of one
+   `home.file` path is a home-manager *eval* conflict, not a last-wins, so the
+   host-side removal and the install must land in the same rebuild.
 4. **`<tool> skill` verb** in pounce, perch, trill, holt. Public CLI surface on
    released tools, so it rides a normal release, not a hotfix.
 5. **perch's read verbs** — `perch list`, `perch rm`, `--json` on both, and its
@@ -404,4 +469,6 @@ the table has this problem.
 6. **`--json` sweep** — pounce's read verbs, trill `list`, `haus get --json`.
 
 Steps 2 and 3 deliver the user-visible result; 4–6 are the long tail and can be
-picked up per repo in any order.
+picked up per repo in any order. With 2 done, **3 is the whole remaining
+user-visible win** — six skills exist and, until it lands, a haus machine
+installs one of them.
