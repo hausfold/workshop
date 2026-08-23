@@ -183,11 +183,29 @@ already exist, and one it treated as a detail is the actual root blocker.
 >
 > Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
 > from the rev rather than from a PR body (the thirty-fourth pass's sharpening):
-> workshop `main` = `origin/main` = `2ea7793`, haus = `b1e263a`, perch =
-> `a74e42a`, hausfold.co = `2d22b02`. pounce is `aabd99a`, holt `1ba98aa` and
-> nebelung `5d5d0a2` — all three unmoved since the thirty-fifth pass's own revs,
-> which is a fact about three revs and not a licence to skip a section (row
-> nineteen). Non-cloud, so every time below is a committer date on
+> workshop = `2ea7793`, haus = `b1e263a`, perch = `a74e42a`, hausfold.co =
+> `2d22b02`. pounce is `aabd99a`, holt `1ba98aa` and nebelung `5d5d0a2` — all
+> three unmoved as of those revs, which is a fact about three revs and not a
+> licence to skip a section (row nineteen).
+>
+> ⚠️ **"Fetched first" is not "fetched last", and this pass proves it.** The
+> earlier drafts of this paragraph read *"workshop `main` = `origin/main` =
+> `2ea7793`"*, and by the time the pass was committed (`c4f4cfa`, 05:08:00Z)
+> four of the seven had moved: workshop to `e8ebc5f` (#438 05:00:22Z, #439
+> 05:01:32Z), haus to `a373ca0` (#471 04:52:54Z), perch to `cb15526` (#87
+> 04:59:04Z) and holt to `c796d9d` (#54 04:59:47Z). **Every rev-bounded claim
+> below survives untouched** — that is what rev-bounding is for — and the
+> enumerated window (04:13:58Z–04:39:00Z) is unaffected; what went stale is the
+> two `= origin/main` equalities, which are the only clauses in a pass that
+> claim a repo's *tip* rather than a repo's *content*. They are struck, not
+> re-measured, because re-measuring them just resets a clock that runs the whole
+> time a pass is being written. This is row nineteen's third instance and its
+> narrowest: **do not write `X = origin/main` in a pass at all.** Named
+> separately in §5.14 would be over-cataloguing; it is the same row with the
+> smallest possible fix. ★ Re-checked at haus `1ddeb51`
+> anyway, since the leaf count is what a stale rev would most plausibly
+> falsify: **still 318, still key for key** (#471 and #473 add none), so the
+> headline holds three haus PRs later. Non-cloud, so every time below is a committer date on
 > `origin/main`, rendered in UTC. **This family's local time is UTC−5 and this
 > window crosses midnight**, as the thirty-sixth pass's did: the whole range
 > below is 2026-08-23 in UTC and was still Saturday evening at the keyboard.
@@ -255,17 +273,25 @@ already exist, and one it treated as a detail is the actual root blocker.
 > **The word "one-time" was withdrawn.** Moving the binary from
 > `/opt/homebrew/opt/sketchybar/bin` into the system profile means the
 > Accessibility grant is keyed to a store path a nixpkgs bump will move, and the
-> user is re-prompted. That is a behaviour change a person will feel, declared
-> in exactly one place — a description string — with **zero** leaves added,
-> removed or retyped. `options.json` is the same 318 keys it was.
+> user is re-prompted. That is a behaviour change a person will feel, and the
+> only **user-facing** surface that says so is a description string — with
+> **zero** leaves added, removed or retyped. (Not the only place it is written
+> down: `modules/bar/default.nix:1801-1807` reasons it out at length in a source
+> comment. That is the width the evidence supports; *"declared in exactly one
+> place"* is the wider sentence, and it is the row this file added one pass
+> ago.) `options.json` is the same 318 keys it was.
 >
-> **Three passes running, the instrument has missed the day's most
-> stranger-visible change**: the thirty-third pass's command header (a
-> declaration surface with no options page), the thirty-fifth's declaration/value
-> gap, and now a description that is the only record of a regression. The header
-> keeps the leaf count for the reason the thirty-fourth pass gave — it is the one
-> number that is cheap and comparable — but three consecutive misses is no longer
-> a caution about the number, it is a statement about what the number measures:
+> **Three of the last five passes, the instrument has missed the day's most
+> stranger-visible change**: the thirty-third's command header (a declaration
+> surface with no options page), the thirty-fifth's declaration/value gap, and
+> now a description that is the only user-facing record of a regression. ⚠️
+> *Three of five*, not "three running" — the thirty-fourth added four leaves and
+> the thirty-sixth added none, so the misses are not consecutive, and the leaf
+> count itself is unchanged only for the **second** pass in a row, which is what
+> this block's own header says. The header keeps the leaf count for the reason
+> the thirty-fourth pass gave — it is the one number that is cheap and
+> comparable — but three misses in five is no longer a caution about the number,
+> it is a statement about what the number measures:
 > **`options.json` tracks the SHAPE of the surface and nothing about what the
 > surface promises.**
 >
@@ -286,7 +312,8 @@ already exist, and one it treated as a detail is the actual root blocker.
 > `scope = lib.mkDefault "system"`, and that `scope` is what puts the binary in
 > `/run/current-system/sw/bin` — a literal string that **fifteen call sites in nine
 > files across three rooms** now hardcode — the bar (`default.nix`,
-> `barpop.swift`, four plugin scripts), focus (`default.nix`, `focus.sh`) and
+> `barpop.swift`, `aerospace-notify.sh`, three `plugins/` scripts), focus
+> (`default.nix`, `focus.sh`) and
 > core (`awake.sh`). The option's own description frames the choice as
 > availability — *"'system': …on PATH for root, for non-login shells, and for
 > launchd jobs… It is about REACH"* — and never says a path depends on it. A
@@ -1935,7 +1962,8 @@ here so it isn't mistaken for fallout of this migration.
       and it turned a metadata field into a filesystem contract: `scope =
       "system"` is what puts the binary in `/run/current-system/sw/bin`, a
       literal string **fifteen call sites in nine files across three rooms** now
-      hardcode (bar's `default.nix`, `barpop.swift` and four plugin scripts;
+      hardcode (bar's `default.nix`, `barpop.swift`, `aerospace-notify.sh` and
+      three `sketchybar/plugins/` scripts;
       focus's `default.nix` and `focus.sh`; core's `awake.sh`).
       **The option says none of this.** Its description frames the choice as
       availability — *"'system': …on PATH for root, for non-login shells, and
@@ -2492,13 +2520,15 @@ The check was one `grep mkOption` over `modules/system/defaults/*.nix` and
       `notes/probes/power-sweep.sh` is the reproducer. Cross-referenced
       nix-darwin#1421, an open request for `pmset`-based options — this is the
       evidence that the existing ones can't stand in for it.
-- [ ] ◐ **State §5.6's policy over effective VALUES, and check it** — **BUILT,
-      not merged.** `settings-writes` is written to the sketch below including
-      the ⚠️, `nix flake check` is green, and it is open as
-      [haus#472](https://github.com/hausfold/haus/pull/472), not landed. The box
-      stays open and stays counted for the reason §5.14 gives in its own words:
-      *a PR number in a tick is a promise; only `mergedAt` keeps it.* Tick it
-      when the PR shows one. The policy is written about declarations (*"every leaf
+- [ ] ◐ **State §5.6's policy over effective VALUES, and check it** — **built
+      and open at [haus#472](https://github.com/hausfold/haus/pull/472) as of
+      2026-08-23T05:30Z**, `mergedAt` null when this was written. Written to the
+      sketch below including the ⚠️; `nix flake check` green on aarch64-darwin.
+      The box stays open and stays counted for the reason §5.14 gives in its own
+      words: *a PR number in a tick is a promise; only `mergedAt` keeps it.*
+      Tick it when the PR has one — and note the state above is dated on
+      purpose, because "not merged" is the one clause here that has to go
+      stale. The policy is written about declarations (*"every leaf
       defaults to null"*) and read as a promise about machines (*"a desktop
       writes no macOS key you didn't ask for"*); since 2026-08-22 those differ —
       see the ⚠️ above. The check evaluates each shipping desktop, walks all 66
