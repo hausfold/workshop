@@ -1,8 +1,8 @@
 # Option-surface roadmap — the status log
 
 Every dated pass on [`options-roadmap.md`](options-roadmap.md), newest first,
-from the thirty-second (2026-08-20) back to the first (2026-08-02) —
-thirty-three blocks, because 2026-08-04 carries two and only one of them was
+from the thirty-third (2026-08-20) back to the first (2026-08-02) —
+thirty-four blocks, because 2026-08-04 carries two and only one of them was
 numbered. It was the roadmap's own preamble until 2026-08-20, when it had
 grown to 2,393 lines — larger than every other file in `notes/` put together,
 and sitting between the document's title and its §1.
@@ -25,6 +25,152 @@ archived Messages client** (`hausfold/messages` since 2026-08-08). The
 roadmap's naming banner covers both and is not repeated here.
 
 ---
+
+> **Status, 2026-08-20 (thirty-third pass) — twelve haus PRs in one day, more
+> than any pass here has reported, and the option surface moved by ZERO leaves.
+> The day's most stranger-visible new behaviour is declared on a surface this
+> document has never counted, and §5.9's FOURTH way for a row to be absent
+> merged 47 minutes after the pass that recorded the third.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
+> row eleven): workshop `main` = `origin/main` = `2657865`, haus = `73e7e9c`,
+> pounce = `0c0c3aa`, nebelung = `5d5d0a2`, perch = `cd520d2`, holt =
+> `eb4c438`, hausfold.co = `8f09436`. All seven moved since the thirty-second
+> pass and all seven are read here, so the shape it was burned on — a rev spent
+> on a negative claim, licensing not looking — is not available to this pass and
+> was not needed. Non-cloud, so every time below is a `mergedAt`.
+>
+> Landed since the thirty-second pass's revs: **eighteen haus commits** —
+> twelve PRs (#435–#446, 15:24:36Z → 21:34:15Z), four lock bumps and two
+> releases — **two pounce** (#93 at 16:00:30Z, #94), one nebelung (#47), two
+> perch (#80, #81) plus two release commits, one holt (#50) plus `0.3.0`,
+> **eight hausfold.co** (#111–#118), and seven workshop commits (#415–#420 and
+> the docs-sync watermark). **The count is 9 at `2657865`**, re-derived with the
+> command the last five passes ran (`sed -n '/^## 5\. The option families/,/^###
+> 5.14/p' notes/options-roadmap.md | grep -c '^- \[ \]'`). This pass amends
+> three boxes and §6(b), corrects the log pointer's entry count (one short since
+> the split, and one short again if incremented rather than counted), and opens
+> none; a pass after this one should find 9 and should not treat that as
+> drift.
+>
+> ★ **First: the number this file leads with saw none of it.**
+> `docs/site-data/options.json` at `73e7e9c` is **313 leaves in 35 namespaces**
+> — the same 313 as `9b64840`, key for key (`diff <(git show 9b64840:… | jq -r
+> 'keys[]') <(git show 73e7e9c:… | jq -r 'keys[]')` is empty), eighteen commits
+> and 2,411 inserted lines later. Four strings changed and nothing else, all of
+> them the Stylus retirement's blast radius: `theme.accent`, `zen.extensions`,
+> its example, and `zen.userStyles`. `bar.items` is 16 keys / 15 pills for the
+> fourth pass running. **A pass that measured only the option surface would have
+> reported the largest day this document has recorded as "nothing happened."**
+> What moved instead was the **command header** — `# pounce: key = value` at the
+> top of a command script — which gained `whenFile` (pounce#93) and `cheatWhen`
+> (haus#436) and is a declaration surface with its own grammar, its own three
+> parsers, and no options page. Seven keys over 23 commands today (`name`,
+> `icon`, `description` ×23; `cheat` ×7; `submenu` ×6; `whenFile` and
+> `cheatWhen` ×1). §5.9 has never counted it and the generated reference
+> structurally cannot show it: it is not `haus.*`, so `optionAttrSetToDocList`
+> never sees it, and the `data-only-surface` check that mechanises "an option
+> typed `package` is invisible to a data file" has no counterpart for "a
+> declaration that isn't an option at all".
+>
+> ★ **Second, §5.9's newest box moved under it within the hour: there is a
+> fourth way for a row to be absent, the header grammar it is written in has
+> three parsers that disagree about whitespace, and the two keys only haus reads
+> sit behind the strictest of them.** pounce#93 (16:00:30Z, 47 minutes after
+> the thirty-second pass merged at 15:13:03Z) adds `whenFile` to **both** pounce
+> parsers — a file whose first line is exactly `0` vetoes the row. haus#436
+> (16:09:22Z, **8 m 52 s** later, against 25 seconds for the #92/#427 pair) is
+> its first and only consumer: `launcher/commands/pages.sh` declares
+> `whenFile = ~/.local/state/haus/any-page` and `cheatWhen = while a page
+> exists`, and `windows/scripts/workspace-mru.sh` writes that one byte on every
+> workspace change. The header at `modules/launcher/default.nix:712` still
+> reads *the two ways an items entry fails silently* — untouched for the second
+> day running,
+> and this time it is not even wrong: `whenFile` is not an items entry. **The
+> frame aged, not the members.** The two shell-side columns below were RUN
+> (`builtins.match` per line as the module does it, and the awk on its own
+> input); the Swift column is read off `value(of:)` + `field()`, whose tolerance
+> is explicit in the code and was not executed here:
+>
+> | a header line spelled | `CommandRegistry.swift` | `pounce-palette`'s awk | haus's `commandField` |
+> |---|---|---|---|
+> | `# pounce: k = v` | `v` | `v` | `v` |
+> | `# pounce: k  = v` | `v` | `v` | **no match** |
+> | `# pounce: k= v` | `v` | `v` | **no match** |
+> | `#  pounce: k = v` | no match | no match | no match |
+> | `␣␣# pounce: k = v` | `v` | no match | no match |
+> | `# pounce: k = v␣` | `v` | `v␣` | `v␣` |
+>
+> Swift is the most tolerant and trims; the awk is next; haus's regex is
+> `"# pounce: ${field} = (.*)"`, one space either side, no leading anything.
+> ⚠️ **Row four said `v` in the Swift column until the assurance read ran that
+> column instead of reading it**: `value(of:)` drops leading whitespace and then
+> demands the literal `# pounce:`, so a second space after the `#` is read by
+> *nobody* — only the indented line is Swift-only. The hedge above named exactly
+> the column that was wrong and did not stop it being printed as a measurement,
+> which is §5.14's opening complaint arriving inside a table this pass built to
+> make a point about unchecked spellings. And
+> the split of *who reads what* runs the other way: pounce reads `name`,
+> `description`, `icon`, `submenu`, `whenFile`; haus reads `name`,
+> `description`, `cheat`, `cheatWhen` — so **the only two keys nobody but haus
+> parses are the two the strictest parser owns.** The two it shares fail loudly
+> there: a `description` haus cannot parse is `null` in a string concatenation,
+> and a `name` it cannot parse is `null` into `lib.splitString` unless the
+> command also declares `cheat`, which is that line's fallback — both stop the
+> rebuild. `cheat` and `cheatWhen` fail silently: the key box falls back to the
+> name's first word,
+> and the caption simply loses its ` · while a page exists`. That caption is the
+> one surface whose entire job is explaining a row that isn't there — so the
+> cheapest possible typo, a second space in a comment, disarms the explanation
+> for the newest way to make a row vanish, on a path where nothing throws and
+> the row still works. Same argument the box already makes: **the checkable half
+> has no repo boundary in it.** Neither has the second half — the state path is
+> a literal in two rooms (`pages.sh:6` and `workspace-mru.sh:71`), joined by a
+> prose cross-reference in each direction and by nothing mechanical.
+>
+> ★ **Third, the previous pass's distinction held on its first test, which is
+> the outcome that makes it worth keeping.** `whenFile` is *operative* — the
+> declaration IS the behaviour — and it arrived with its reader in its own PR:
+> `pounce doctor` names every command that declares one, the file it watches,
+> and whether that file is hiding the row right now. So the three *operative*
+> fields have three readers between them, and the two *descriptive*
+> instances (nebelung's ports, `bar.widgets.<name>.permissions`) still have one.
+> This box's own three questions — mutates? needs confirm? needs network? — are
+> descriptive and are still unbuilt at pounce `0c0c3aa`. The instance count that
+> bears on the box is unchanged at two, for the second pass running, while the
+> room around it gained two more fields.
+>
+> ⚠️ **Also amended, in §5.1: `scheme = "auto"` gained a second candidate by a
+> path being RETIRED.** haus#445 dropped the Stylus half of Zen's web theming,
+> so the palette reaches real websites through one compiled
+> `zen-userContent-<flavor>-<accent>.css` that Gecko reads once at startup —
+> pinned to `theme.flavor` and to the last launch. Nothing regressed (the
+> bundle it replaced was flavor-stamped too); what changed is that the fix
+> stopped being somebody else's extension setting and became two compiles under
+> a `@media (prefers-color-scheme: dark)` rule in a `runCommand` haus already
+> writes. Whether Zen honours that in a *user* sheet is the unmeasured half, and
+> it is the whole question. Written into the box.
+>
+> ⚠️ **And one sentence into §6(b), from somebody else's PR.** That paragraph's
+> standing conclusion — the consumer *"is told nearly everything"* — is a claim
+> about a printed message, and haus#435 measured what happens once the input has
+> a publisher: `toJSON` escapes quotes, backslashes and three whitespace
+> controls and nothing else, so `ESC` rode a desktop's own attribute names
+> through `jq -r` to a raw byte, and the class line prints before the values.
+> A stranger's file could repaint haus's verdict on itself. Stripped in that PR,
+> and the hole predated it. Recorded in full in
+> [`rooms-desktops.md`](./rooms-desktops.md)'s step-B findings; §6(b) gets the
+> qualifier only: re-telling a sibling note's finding is how a pair of notes
+> ends up with two copies that can then disagree.
+>
+> ⚠️ **For §5.14, from the tempo rather than from any one finding.** The
+> thirty-second pass merged at 15:13:03Z and its subject moved at 16:00:30Z; the
+> thirty-first pass's negative sentence was 66 minutes stale when it merged. Two
+> passes running, §5.9 has outrun the paragraph describing it inside the hour.
+> That is not a reason to check faster — nothing checks faster than 47 minutes —
+> it is a reason to keep the durable half in the **box** and the perishable half
+> in the pass, which is exactly the split this file already claims to run.
+
 
 > **Status, 2026-08-20 (thirty-second pass) — §5.9's last box predicted that
 > "the third instance will declare into the same void." The third instance

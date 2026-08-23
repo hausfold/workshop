@@ -173,6 +173,155 @@ already exist, and one it treated as a detail is the actual root blocker.
 > paragraph that no diff reads as a change to it.
 
 
+> **Status, 2026-08-23 (thirty-sixth pass) — the correction reached the
+> INSTANCE and not the CLAIM. The sentence haus#467 fixed has a twin twelve
+> lines below it, in the same comment, carrying the same argument, authored by
+> the same commit, and it is still standing. And the reason both corrections
+> give — *`haus show` reads a desktop FILE and never a machine's resolved
+> values* — is false: run here, it reads this machine's resolved value for 23
+> leaves, ranks every one of them, and calls three `overridden`. The true
+> reason is narrower and unquotable: no file NAMES the leaf.**
+>
+> Fetched first (twenty-third pass's rule), dated at revs (row eleven), derived
+> from the rev rather than from a PR body (the thirty-fourth pass's
+> sharpening): workshop `main` = `origin/main` = `7ca290d`, haus = `8c1fa43`,
+> perch = `0d7780d`, hausfold.co = `c942439`. pounce is `aabd99a` and holt
+> `1ba98aa`, both unmoved since the thirty-fifth pass's own revs; nebelung is
+> `5d5d0a2`, unmoved since 2026-08-20 — three facts about three revs and not a
+> licence to skip §5.9 (row nineteen). **This family's local time is UTC−5 and
+> this window crosses midnight**: times below are UTC as always, so the block is
+> dated 2026-08-23 while the day at the keyboard was still 2026-08-22. The
+> thirty-fifth pass has the mirror of it — headed 2026-08-22, its own commit
+> `5accf9a` landed 2026-08-23T03:26:27Z — so a reader comparing the two headers
+> to the two commit dates finds a day that does not line up in either
+> direction, and both are right.
+>
+> Landed since the thirty-fifth pass's revs: **three haus commits** — two PRs
+> (#466 03:25:52Z, #467 04:05:04Z) and one lock bump (04:08:16Z) — **two perch**
+> (#84 2026-08-22T12:36:01Z, #85 2026-08-23T03:32:33Z), **two hausfold.co**
+> (#129 2026-08-23T03:01:20Z, #130 2026-08-23T04:07:45Z), **six workshop**
+> (#431 — the thirty-fifth pass itself — #432, #433, #435, #436 and a docs-sync
+> watermark), and nothing in pounce, holt or nebelung.
+>
+> **The count is 10 at `7ca290d`**, re-derived with the command the last eight
+> passes ran (`sed -n '/^## 5\. The option families/,/^### 5.14/p'
+> notes/options-roadmap.md | grep -c '^- \[ \]'`) — the number the thirty-fifth
+> pass predicted. This pass amends §5.6's loose-end note — striking a false
+> clause in place rather than rebutting it below, which is row twenty-two aimed
+> at this pass's own diff — adds a §5.14 row, and opens and closes no box, so
+> the pass after this one should also find 10. It also rotates the log, per the
+> log's own rule that the three most recent passes stay here: the thirty-third
+> moves to [`options-roadmap-log.md`](options-roadmap-log.md) unedited, and both
+> pointer counts are re-COUNTED rather than incremented (34), which is the
+> correction the thirty-third pass asked for and did not get.
+> `docs/site-data/options.json` at `8c1fa43` is **318 leaves in 35 namespaces**,
+> both unchanged; haus#466 inserted 397 lines and none of them is an option.
+>
+> ★ **First, and it is the pass: two sentences, one comment, one commit — and
+> the fix reached one of them.** haus#461 (`e7fd997`, 2026-08-22T10:40:10Z)
+> wrote both. The first argued the screenshot write should go through a named
+> option because it would then be *"readable as a named option in `haus show`
+> and the reference"*; the second, twelve lines down and closing the same
+> argument, says *"Through the option rather than the plist key direct, so the
+> generated option reference and `haus show` describe what the machine actually
+> does. That is the whole gain and it is worth being exact about."* haus#467
+> (`bf1c1ea`, 2026-08-23T04:05:04Z — **17 h 24 m 54 s** later) corrected the
+> first, in place, with a parenthetical naming the wrong surface and the right
+> one, and its own message enumerates what it
+> fixed — *"Two stale comments fixed in the same change, both found by the
+> assurance read"*, one here and one in `modules/options-modules.nix`. The twin
+> is neither of them. At `8c1fa43`,
+> `grep -n 'haus show' modules/shelf/default.nix` returns exactly two lines —
+> **219, the correction, and 231, the claim it is about** — and
+> `modules/shelf/options.nix`'s new comment says *"the claim two files over in
+> ../shelf/default.nix was wrong about which surface"*, singular, about a file
+> holding two of it.
+>
+> ★ **Second, and it is why the twin survived: the reason everybody stated is
+> wrong, and the right one cannot be quoted.** Re-run at `8c1fa43` rather than
+> cited: `haus show --json ./desktops/hacker.nix` reports 23 leaves in `.sets`
+> — neither `haus.shelf.watchScreenshots` nor `haus.screenshots.thumbnail`
+> among them, so the claim's *conclusion* holds — and its `.machine.leaves`
+> block carries the same 23, **every one with a `prio`**, 20 `unchanged` and
+> **3 `overridden`**. A verdict of `overridden` is a statement that something
+> on this machine outranks the file, and it cannot be computed without
+> evaluating this machine: `modules/core/haus-show.sh:520-585` reads
+> `o.highestPrio` and `o.value` out of `darwinConfigurations` of the user's own
+> consumer flake, over a path list that is `[.sets[].path]` plus the leaves the
+> machine's CURRENT desktop sets and the candidate does not (`dropped`). So
+> `haus show`'s boundary is the **leaf set, not the layer**: it reads resolved
+> machine values for every leaf some file names, and it misses
+> `haus.screenshots.thumbnail` because no file names it — the write lives
+> inside a room's `mkIf`, which is exactly what the thirty-fifth pass found and
+> exactly what neither correction says. The *outcome* both corrections reach is
+> right, and was re-checked here: `haus get haus.screenshots.thumbnail` prints
+> `false` on this machine at `8c1fa43`.
+>
+> ⚠️ **And the published documentation has been right about this the whole
+> time.** `content/docs/haus/reference/haus.mdx` at hausfold.co `c942439`
+> describes the command as *"see what it would change on this Mac"*, and
+> `modules/core/haus-show.sh`'s own help and footer say only that it is *"a
+> leaf diff, not a rebuild preview"* — neither ever claimed the machine was out
+> of the evaluation. The false version exists only in source comments and in
+> this file, i.e. in exactly the two places no docs check reads, written by
+> people correcting each other about a command whose user-facing text they did
+> not need to open.
+>
+> **Three statements of the wrong reason, two of them corrections, inside 41
+> minutes.** The thirty-fifth pass wrote *"with your own config never part of
+> the evaluation"* (`5accf9a`, 03:26:27Z) — this document's own, and the first;
+> haus#467's parenthetical repeated it at 04:05:04Z; workshop#435 put it in
+> §5.6 at 04:07:48Z, 2 m 44 s later, in a ⚠️ correcting a different error in
+> the same sentence. **The generalisable half is the width of the reason, not
+> the number of copies.** The fact that justified all three is narrow, specific
+> and dead on arrival as prose — *this desktop file does not set that leaf, and
+> `haus show` reports the leaves a file sets*. The reason each author reached
+> for instead is a rule about the command — *it never reads your machine* —
+> which is memorable, general, load-bearing for the next argument, and false.
+> A correction is written at the moment of maximum confidence about a single
+> line, and the sentence it produces is the one later readers cite; row
+> twenty-two below.
+>
+> ⚠️ **§5.6's own trigger had already fired when it was written.** The note
+> added at 04:07:48Z ends *"Twice in one section, from two authors, about a
+> command whose own footer says what it does not do — worth §5.14's attention
+> if it happens a third time."* The third instance was 17 hours old at that
+> moment, sitting in the file the note is about, and the fourth is the note's
+> own next clause. A condition stated as a future test, met in the past, by the
+> text being corrected: it is worth naming because the note is *right* — the
+> repetition is the finding — and the only thing that failed was looking for it
+> where it already was. Amended in §5.6.
+>
+> ★ **Third, smaller and worth a line: the published reference has started
+> printing rules instead of values, and there are three of them.** haus#467
+> gives `haus.shelf.watchScreenshots` `default = config.haus.shelf.enable` with
+> a matching `defaultText`, so `options.json` at `8c1fa43` now holds **three**
+> leaves whose default is an expression naming another option —
+> `developer.git.enable`, `developer.toolbelt.enable` and this one, all three
+> `config.haus.<x>.enable`. `haus set`'s picker declines to prefill them —
+> `modules/options-catalogue.jq:45-50` makes `pasteable` false when
+> `defaultText | test("\\bconfig\\.")`, re-read here rather than taken from
+> haus#467's message, which says the same thing — which is honest; the
+> reference prints the expression, which is also honest and is the first time a
+> stranger reading that page learns a rule where every other
+> row hands them a value. Nothing is wrong and nothing is checked: no surface
+> resolves it for a reader, which is the thirty-fifth pass's declaration/value
+> gap arriving on the *documentation* side of the same option, one day later.
+>
+> ⚠️ **And one on the check, which inverts row twenty.** hausfold.co#130 fixed
+> two stale copies of that default and its own message sorts them: the
+> generated `reference/options.mdx` **has** a drift check and it is a weekly
+> cron, so left alone it could have said `true` for up to a week; the
+> hand-written `rooms/shelf.mdx` has none and would never have been caught —
+> and it was fixed **2 m 41 s** after the merge, because the person who moved
+> the default was still holding the change. The copy with a check was the slow
+> one and the copy without a check was fixed by proximity, not by tooling.
+> Same coin as the thirty-fourth pass's four days and the thirty-fifth's 59
+> seconds, third toss: what fixes a copy is whether somebody had a reason to
+> have the file open, and a check only changes *the ceiling* on how long it can
+> stay wrong.
+
+
 > **Status, 2026-08-22 (thirty-fifth pass) — the surface grew by one leaf, and
 > that leaf turns a macOS setting off on two of the four shipping desktops.
 > §5.6's null-default policy — the one rule this section derived from first
@@ -494,158 +643,14 @@ already exist, and one it treated as a detail is the actual root blocker.
 > not a reading of one.
 
 
-> **Status, 2026-08-20 (thirty-third pass) — twelve haus PRs in one day, more
-> than any pass here has reported, and the option surface moved by ZERO leaves.
-> The day's most stranger-visible new behaviour is declared on a surface this
-> document has never counted, and §5.9's FOURTH way for a row to be absent
-> merged 47 minutes after the pass that recorded the third.**
->
-> Fetched first (twenty-third pass's rule), dated at revs (twenty-fourth pass,
-> row eleven): workshop `main` = `origin/main` = `2657865`, haus = `73e7e9c`,
-> pounce = `0c0c3aa`, nebelung = `5d5d0a2`, perch = `cd520d2`, holt =
-> `eb4c438`, hausfold.co = `8f09436`. All seven moved since the thirty-second
-> pass and all seven are read here, so the shape it was burned on — a rev spent
-> on a negative claim, licensing not looking — is not available to this pass and
-> was not needed. Non-cloud, so every time below is a `mergedAt`.
->
-> Landed since the thirty-second pass's revs: **eighteen haus commits** —
-> twelve PRs (#435–#446, 15:24:36Z → 21:34:15Z), four lock bumps and two
-> releases — **two pounce** (#93 at 16:00:30Z, #94), one nebelung (#47), two
-> perch (#80, #81) plus two release commits, one holt (#50) plus `0.3.0`,
-> **eight hausfold.co** (#111–#118), and seven workshop commits (#415–#420 and
-> the docs-sync watermark). **The count is 9 at `2657865`**, re-derived with the
-> command the last five passes ran (`sed -n '/^## 5\. The option families/,/^###
-> 5.14/p' notes/options-roadmap.md | grep -c '^- \[ \]'`). This pass amends
-> three boxes and §6(b), corrects the log pointer's entry count (one short since
-> the split, and one short again if incremented rather than counted), and opens
-> none; a pass after this one should find 9 and should not treat that as
-> drift.
->
-> ★ **First: the number this file leads with saw none of it.**
-> `docs/site-data/options.json` at `73e7e9c` is **313 leaves in 35 namespaces**
-> — the same 313 as `9b64840`, key for key (`diff <(git show 9b64840:… | jq -r
-> 'keys[]') <(git show 73e7e9c:… | jq -r 'keys[]')` is empty), eighteen commits
-> and 2,411 inserted lines later. Four strings changed and nothing else, all of
-> them the Stylus retirement's blast radius: `theme.accent`, `zen.extensions`,
-> its example, and `zen.userStyles`. `bar.items` is 16 keys / 15 pills for the
-> fourth pass running. **A pass that measured only the option surface would have
-> reported the largest day this document has recorded as "nothing happened."**
-> What moved instead was the **command header** — `# pounce: key = value` at the
-> top of a command script — which gained `whenFile` (pounce#93) and `cheatWhen`
-> (haus#436) and is a declaration surface with its own grammar, its own three
-> parsers, and no options page. Seven keys over 23 commands today (`name`,
-> `icon`, `description` ×23; `cheat` ×7; `submenu` ×6; `whenFile` and
-> `cheatWhen` ×1). §5.9 has never counted it and the generated reference
-> structurally cannot show it: it is not `haus.*`, so `optionAttrSetToDocList`
-> never sees it, and the `data-only-surface` check that mechanises "an option
-> typed `package` is invisible to a data file" has no counterpart for "a
-> declaration that isn't an option at all".
->
-> ★ **Second, §5.9's newest box moved under it within the hour: there is a
-> fourth way for a row to be absent, the header grammar it is written in has
-> three parsers that disagree about whitespace, and the two keys only haus reads
-> sit behind the strictest of them.** pounce#93 (16:00:30Z, 47 minutes after
-> the thirty-second pass merged at 15:13:03Z) adds `whenFile` to **both** pounce
-> parsers — a file whose first line is exactly `0` vetoes the row. haus#436
-> (16:09:22Z, **8 m 52 s** later, against 25 seconds for the #92/#427 pair) is
-> its first and only consumer: `launcher/commands/pages.sh` declares
-> `whenFile = ~/.local/state/haus/any-page` and `cheatWhen = while a page
-> exists`, and `windows/scripts/workspace-mru.sh` writes that one byte on every
-> workspace change. The header at `modules/launcher/default.nix:712` still
-> reads *the two ways an items entry fails silently* — untouched for the second
-> day running,
-> and this time it is not even wrong: `whenFile` is not an items entry. **The
-> frame aged, not the members.** The two shell-side columns below were RUN
-> (`builtins.match` per line as the module does it, and the awk on its own
-> input); the Swift column is read off `value(of:)` + `field()`, whose tolerance
-> is explicit in the code and was not executed here:
->
-> | a header line spelled | `CommandRegistry.swift` | `pounce-palette`'s awk | haus's `commandField` |
-> |---|---|---|---|
-> | `# pounce: k = v` | `v` | `v` | `v` |
-> | `# pounce: k  = v` | `v` | `v` | **no match** |
-> | `# pounce: k= v` | `v` | `v` | **no match** |
-> | `#  pounce: k = v` | no match | no match | no match |
-> | `␣␣# pounce: k = v` | `v` | no match | no match |
-> | `# pounce: k = v␣` | `v` | `v␣` | `v␣` |
->
-> Swift is the most tolerant and trims; the awk is next; haus's regex is
-> `"# pounce: ${field} = (.*)"`, one space either side, no leading anything.
-> ⚠️ **Row four said `v` in the Swift column until the assurance read ran that
-> column instead of reading it**: `value(of:)` drops leading whitespace and then
-> demands the literal `# pounce:`, so a second space after the `#` is read by
-> *nobody* — only the indented line is Swift-only. The hedge above named exactly
-> the column that was wrong and did not stop it being printed as a measurement,
-> which is §5.14's opening complaint arriving inside a table this pass built to
-> make a point about unchecked spellings. And
-> the split of *who reads what* runs the other way: pounce reads `name`,
-> `description`, `icon`, `submenu`, `whenFile`; haus reads `name`,
-> `description`, `cheat`, `cheatWhen` — so **the only two keys nobody but haus
-> parses are the two the strictest parser owns.** The two it shares fail loudly
-> there: a `description` haus cannot parse is `null` in a string concatenation,
-> and a `name` it cannot parse is `null` into `lib.splitString` unless the
-> command also declares `cheat`, which is that line's fallback — both stop the
-> rebuild. `cheat` and `cheatWhen` fail silently: the key box falls back to the
-> name's first word,
-> and the caption simply loses its ` · while a page exists`. That caption is the
-> one surface whose entire job is explaining a row that isn't there — so the
-> cheapest possible typo, a second space in a comment, disarms the explanation
-> for the newest way to make a row vanish, on a path where nothing throws and
-> the row still works. Same argument the box already makes: **the checkable half
-> has no repo boundary in it.** Neither has the second half — the state path is
-> a literal in two rooms (`pages.sh:6` and `workspace-mru.sh:71`), joined by a
-> prose cross-reference in each direction and by nothing mechanical.
->
-> ★ **Third, the previous pass's distinction held on its first test, which is
-> the outcome that makes it worth keeping.** `whenFile` is *operative* — the
-> declaration IS the behaviour — and it arrived with its reader in its own PR:
-> `pounce doctor` names every command that declares one, the file it watches,
-> and whether that file is hiding the row right now. So the three *operative*
-> fields have three readers between them, and the two *descriptive*
-> instances (nebelung's ports, `bar.widgets.<name>.permissions`) still have one.
-> This box's own three questions — mutates? needs confirm? needs network? — are
-> descriptive and are still unbuilt at pounce `0c0c3aa`. The instance count that
-> bears on the box is unchanged at two, for the second pass running, while the
-> room around it gained two more fields.
->
-> ⚠️ **Also amended, in §5.1: `scheme = "auto"` gained a second candidate by a
-> path being RETIRED.** haus#445 dropped the Stylus half of Zen's web theming,
-> so the palette reaches real websites through one compiled
-> `zen-userContent-<flavor>-<accent>.css` that Gecko reads once at startup —
-> pinned to `theme.flavor` and to the last launch. Nothing regressed (the
-> bundle it replaced was flavor-stamped too); what changed is that the fix
-> stopped being somebody else's extension setting and became two compiles under
-> a `@media (prefers-color-scheme: dark)` rule in a `runCommand` haus already
-> writes. Whether Zen honours that in a *user* sheet is the unmeasured half, and
-> it is the whole question. Written into the box.
->
-> ⚠️ **And one sentence into §6(b), from somebody else's PR.** That paragraph's
-> standing conclusion — the consumer *"is told nearly everything"* — is a claim
-> about a printed message, and haus#435 measured what happens once the input has
-> a publisher: `toJSON` escapes quotes, backslashes and three whitespace
-> controls and nothing else, so `ESC` rode a desktop's own attribute names
-> through `jq -r` to a raw byte, and the class line prints before the values.
-> A stranger's file could repaint haus's verdict on itself. Stripped in that PR,
-> and the hole predated it. Recorded in full in
-> [`rooms-desktops.md`](./rooms-desktops.md)'s step-B findings; §6(b) gets the
-> qualifier only: re-telling a sibling note's finding is how a pair of notes
-> ends up with two copies that can then disagree.
->
-> ⚠️ **For §5.14, from the tempo rather than from any one finding.** The
-> thirty-second pass merged at 15:13:03Z and its subject moved at 16:00:30Z; the
-> thirty-first pass's negative sentence was 66 minutes stale when it merged. Two
-> passes running, §5.9 has outrun the paragraph describing it inside the hour.
-> That is not a reason to check faster — nothing checks faster than 47 minutes —
-> it is a reason to keep the durable half in the **box** and the perishable half
-> in the pass, which is exactly the split this file already claims to run.
-
-
 > **The passes before this one are in
-> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-three** dated
-> entries, 2026-08-20 back to 2026-08-02: the thirty-two numbered passes plus a
-> second, unnumbered 2026-08-04 block that predates the numbering (which is why
-> "twenty-nine" was one short on the day of the split, and is corrected here
-> rather than incremented). Split out on 2026-08-20 when the
+> [`options-roadmap-log.md`](options-roadmap-log.md)** — **thirty-four** dated
+> entries, 2026-08-20 back to 2026-08-02: the thirty-three numbered passes plus
+> a second, unnumbered 2026-08-04 block that predates the numbering (which is
+> why "twenty-nine" was one short on the day of the split, and is corrected here
+> rather than incremented — and it is COUNTED at every move, with `grep -c '^>
+> \*\*Status, ' notes/options-roadmap-log.md`, never incremented). Split out on
+> 2026-08-20 when the
 > preamble reached 2,393 lines and outweighed every other file in `notes/`.
 > The three most recent stay above. Nothing moved but the text: no entry was
 > edited, merged or dropped.
@@ -2150,13 +2155,29 @@ only the second was ever this document's:**
   file each offered a switch with nothing behind it.
   [haus#467](https://github.com/hausfold/haus/pull/467) makes the default
   `config.haus.shelf.enable` — the `developer.git.enable` shape — the same day.
-  ⚠️ This note first named **`haus show`**, which reads a desktop FILE and
-  never a machine's resolved values; the same wrong surface was already
-  load-bearing in `modules/shelf/default.nix`, where the argument for routing
+  ⚠️ This note first named **`haus show`**, which is the wrong surface for the
+  argument — it reports the leaves a desktop FILE names, and no file names this
+  leaf. ⚠️⚠️ **The reason printed here until the thirty-sixth pass was itself
+  false** and read *"reads a desktop FILE and never a machine's resolved
+  values"*: `haus show` does read them, for every leaf it reports. Struck rather
+  than rebutted, because this is box content later passes quote. The same wrong
+  surface was already load-bearing in `modules/shelf/default.nix`, where the
+  argument for routing
   the write through a named option rested on it, and haus#467 corrects it
   there too. Twice in one section, from two authors, about a command whose own
   footer says what it does not do — worth §5.14's attention if it happens a
   third time.
+  ★ **It already had.** The thirty-sixth pass found the third instance sitting
+  in `modules/shelf/default.nix` itself — twelve lines under the correction,
+  same comment, same commit (`e7fd997`), untouched by haus#467 — and the
+  fourth is the sentence above, which is the fourth statement of a reason that
+  is **itself wrong**: `haus show` does read this machine's resolved values,
+  for every leaf a FILE names (23 of them on `hacker.nix`, three of them
+  `overridden`, measured at haus `8c1fa43`). What it cannot do is report a
+  leaf no file names, which is why `haus.screenshots.thumbnail` is absent.
+  `haus get` remains the right surface, so nothing built on this changes; the
+  repetition, and the width of the reason that made it repeatable, are §5.14
+  row twenty-two.
 - **Should the policy be stated over VALUES rather than declarations, and
   checked?** That one is structural, still open, and it is the box below.
 
@@ -3674,6 +3695,7 @@ catch:
 | a rev that is true when MEASURED and false when PUBLISHED, spent on a NEGATIVE claim — the positive revs beside it age harmlessly *(thirty-second pass — the thirty-first's "nebelung … and pounce … have not moved since the twenty-ninth pass, so neither of §5.9's two open boxes could have closed", 66 minutes after pounce#92)* | writing the claim so a rev can bound it. This is row eleven's fix meeting the one clause it cannot reach: "haus was at `4e2dd61`" stays true forever, because it is a fact about a rev, while "neither box could have closed" is a statement about a section's future with no rev to attach and one job — to license not looking. The honest form says less and cannot go stale: *no box had closed as of `<rev>`*. It costs most where it is spent, because the section a pass excuses itself from checking is the section the excuse is about |
 | a drift check REFRESHED where it fires — the snapshot tracks the data, the PROSE it exists to protect does not, and green comes back with the lie intact *(thirty-fourth pass — the launch-mode reserved keys: one authority, published as data, tripwired from the docs repo, and two option descriptions four days stale)* | asking which COPIES the check compares, not whether it is green. Every other row here is a claim nobody looked at; this one is a claim something looked at and passed. `check-rice-bindings.mjs` compares DATA to DATA — haus's published `launch-keys.json` against a snapshot in the docs repo — so when the authority moved it fired, the snapshot was re-blessed **43 seconds** later, and the hand-written copies of the same set were never in its path at all. A check whose remedy is *re-bless the snapshot* turns “the docs are wrong” into “the docs are current”, and does it faster than anyone can notice which of the two happened. The tell is cheap: a drift check that never fails twice for the same reason is not comparing the thing that drifts |
 | a POLICY stated over DECLARATIONS and read as a promise about VALUES — every leaf in the group still defaults `null`, the reference still prints `null`, and the machine writes the key anyway, because the value arrives from a module the policy was never addressed to *(thirty-fifth pass — §5.6's null-default policy, breached by the shelf room's `watchScreenshots` at `mkDefault`)* | evaluating the option on the shipping desktops and comparing that against its published default, instead of re-reading the declaration the policy is written about. This is row five's wrong-**layer** shape aimed at a rule rather than at a claim, and it is the first entry here that nothing got wrong: §5.6 is accurate about every leaf it declares, the room reasoned its priority ladder out correctly in its own comment, and the generated reference carried both halves into the same page. What no surface holds is the **product** of the two — a declaration layer that says `null` and an evaluation layer that says `false`, each honest alone; the one check in the repo that reads resolved values pins 55 paths, and none of them is in the group the policy is about. The tell is topological rather than textual: of §5.6's 33 citations in haus's source, 29 are inside the machinery that already obeys it and the other four are in the one room that HOSTS one of its groups — so the rule has never been addressed to a room that merely consumes one of these leaves, which is the only place left it can be broken from. A policy whose every citation sits inside its own implementation is a habit with a footnote |
+| a CORRECTION applied to the INSTANCE and not to the CLAIM — the diff fixes the sentence it has open, and states a reason WIDER than the fact that justified it, so the copy twelve lines down survives and the wide clause is the one later authors quote *(thirty-sixth pass — haus#467 fixing one of two `haus show` sentences in one comment, on the ground that the command "never reads a machine's resolved values", which is false of a command that ranks 23 of them)* | grepping the file for the phrase you are about to correct, **before** writing the correction — the twin is usually inside the same comment, because a claim gets restated where an argument closes. And then writing the reason at the width of the evidence: the fact here is *this desktop file does not set that leaf*, which is narrow, checkable and unquotable, while *it never reads your machine* is memorable, general, load-bearing for the next argument and wrong. Every other row here is about a claim decaying, or an edit that never happened; this one is about a correction that was applied, verified and reported honestly, and still left the section it corrected saying the same thing twice. The tell: a correction whose reason would survive deleting the case that prompted it is a rule someone invented at the keyboard |
 
 The sixth shape needs its own line because it is the only one that makes an
 entry read *better* than it is. §5.3's `sans` box said "nothing blocks it now
