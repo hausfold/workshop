@@ -10,6 +10,31 @@ thirty-ninth pass all three are closed; the follow-up the last one names (a
 `lib.checkedRef` helper, so the pattern travels instead of being stated a fourth
 time in a fourth comment) is deliberately not a box here.
 
+> ◐ **That follow-up is built and OPEN, not merged — haus#495, on
+> `worktree-continue-notes-options-roadmap` at haus `f493c15`, 2026-08-24.**
+> It lands as `modules/lib/checked-ref.nix` with `guard` / `collect` rather
+> than the one-function `checkedRef drv path` the entry below sketches: two of
+> the three sites need the referent COPIED into `$out`, because a `home.file`
+> source is what points at it, and a check whose result nothing consumes is a
+> check on nobody's build path. **Row fourteen is why this says "open" and not
+> "done"** — a box ticked for work that is built but not merged is this
+> catalogue's own worst shape, with its clock reversed. It gets its ✅ when the
+> PR has a `mergedAt`, read off the PR and not off the log (row eleven's
+> sharpening, twice measured).
+>
+> ★ **And the thing worth keeping is not the helper — it is what the assurance
+> pass found while reading it.** All three inline sites tested their referent
+> with a DOUBLE-QUOTED test — `[ -e "…" ]` in ports and tool-skills, `[ -f "…" ]`
+> in terminal — which stops a SPACE, the hazard all three comments name and the
+> one that had actually bitten, and does nothing about a `$` or a backtick,
+> which no comment names. A real rendered file called
+> `theme $HOME.json` was reported MISSING by every one of the three. That is a
+> shape this table does not have: **a guard correct about the hazard it was
+> written for, and silently wrong in the direction that fails a build nobody
+> broke.** Not appended as a row until a second instance turns up — one
+> occurrence is an incident, and this table's rows are supposed to be classes.
+> Named here so the next pass can look.
+
 **Split out of [`options-roadmap.md`](options-roadmap.md) §5.14 on 2026-08-23**,
 after the thirty-eighth pass, because the two halves had stopped being one
 subject. That file's option surface has been 318 leaves for five consecutive
