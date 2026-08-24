@@ -104,6 +104,12 @@ know better; just say why in the PR body.
   That's the whole scoping rule, and it needs no flag.
 - **Uncommitted work in a lane whose checkout is gone.** A parked lane is read from its
   branch, so only its commits are visible.
+- **A merged lane that never rebased is still quietly present.** What main landed is
+  subtracted from a side only when that side actually CONTAINS main's commit — subtracting
+  from a lane that never rebased would delete work it really did author. So a lane whose
+  PR was squash-merged and then left alone can still show as a `·` on a file main has
+  since moved past. The loud half is gone; a `·` there may mean nothing is left to
+  coordinate. `git diff origin/main <branch>` settles it in one line.
 
 ## From the main checkout
 

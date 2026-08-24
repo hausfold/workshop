@@ -2294,6 +2294,79 @@ range_compare() {
   ' | LC_ALL=C sort -k1,1r -k2,2   # -r so hunk (loud) sorts above file (quiet)
 }
 
+# earshot_landed — the ranges MAIN itself put between the base and its tip.
+#
+# Normally empty, and that is the point: two lanes cut from the current main
+# share it as their merge base, nothing sits between, and every line below is
+# a no-op. It earns its keep in the one case where the base falls BEHIND main
+# — a SQUASH merge, which lands a lane's work as a brand-new commit and leaves
+# the lane's own commits unreachable, so `merge-base` keeps answering with the
+# pre-merge commit for as long as the branch exists.
+#
+# When that happens the shared coordinate system is honest and the ATTRIBUTION
+# is not: `side_ranges` measures each side from the base, so main's own commits
+# since the base are counted as the lane's work — on BOTH sides, since the
+# reader's checkout contains the squash. The two then "collide" over a diff
+# neither of them is still holding. Measured 2026-08-24:
+# `worktree-close-out-options-roadmap`, squash-merged as workshop#448 the day
+# before, claimed four files and `notes/drift.md L35-1231` against a lane whose
+# only edit was 24 lines of header — with an intent line quoting its merged
+# commit and a landing order for a branch with nothing left to land. It does
+# not age out; it stands until somebody deletes the branch.
+#
+# Subtracted PER SIDE, and only from a side that actually CARRIES main's commit
+# — the `--is-ancestor "$tip" "$rev"` below, which is the whole correctness of
+# this. A lane that never rebased did not inherit main's work, so none of main's
+# work is in its diff to subtract, and subtracting anyway would delete a lane's
+# real edit whenever it happened to produce the same hunk boundaries. That is
+# not hypothetical: this repo's own fixture has the shape (test 151 lands a
+# change to `doc.md` line 10 on `origin/main` while lane `rival` independently
+# edits line 10, giving both the base-side range `10-10`), and a whole-file add
+# claims `0..HUGE` on every side by construction, so two lanes creating one new
+# file — the add/add case `side_ranges` calls the tool's blindest spot — would
+# cancel out exactly.
+#
+# Subtracted by EXACT range, never by overlap: a lane that edited INSIDE a
+# region main also touched produces different hunk boundaries, and keeping that
+# finding is the safe direction for a tool that only ever advises.
+earshot_landed() { # earshot_landed <main> <base> <side-rev> — main's landed ranges
+                   # that this side already has, and can therefore not have authored
+  local main="$1" base="$2" rev="$3" tip done_tips=""
+  for tip in origin/main main; do
+    tip="$(git -C "$main" rev-parse --verify --quiet "$tip" 2>/dev/null)" || continue
+    if [ -z "$tip" ] || [ "$tip" = "$base" ]; then continue; fi
+    # The usual state is that these two resolve to the same commit; reading it
+    # twice would cost a full diff to throw away in the sort.
+    case "$done_tips" in *" $tip "*) continue ;; esac
+    done_tips="$done_tips $tip "
+    git -C "$main" merge-base --is-ancestor "$base" "$tip" 2>/dev/null || continue
+    git -C "$main" merge-base --is-ancestor "$tip" "$rev" 2>/dev/null || continue
+    # Never a WHOLE-FILE claim. `hunk_ranges` gives any added or deleted file
+    # `0..HUGE`, which does not just match main's range for that path — it
+    # SUBSUMES every edit the side made to it, so a side that inherited main's
+    # add of a file would have its own work in that file erased wholesale. The
+    # per-side gate above cannot see that: the side genuinely does contain
+    # main's commit. Keeping a whole-file add unsubtracted costs at most one
+    # loud row on a path two lanes both created — the add/add case `side_ranges`
+    # calls the one this tool would otherwise be blindest to.
+    side_ranges "$main" "$base" "$tip" | awk -F'\t' -v h="$EARSHOT_HUGE" '$3 != h'
+  done | LC_ALL=C sort -u
+}
+
+# A side's own work: what it changed since the base, minus what main landed
+# INTO it. One stream with a leading `M` block rather than awk's two-file
+# idiom, and for the same reason range_compare gives below — a set that is
+# routinely EMPTY has to be an ordinary case, not an edge one. (`-v` can't
+# carry it either: awk reads escape sequences in a -v value, so a multi-line
+# range set passed that way arrives as a syntax error rather than as data.)
+earshot_unlanded() { # earshot_unlanded <main> <base> <side-rev> <dir> [ref]
+  { earshot_landed "$1" "$2" "$3" | sed 's/^/M\t/'
+    side_ranges "$4" "$2" "${5:-}" | sed 's/^/S\t/'
+  } | awk -F'\t' '
+      $1 == "M" { seen[$2 "\t" $3 "\t" $4] = 1; next }
+      { if (($2 "\t" $3 "\t" $4) in seen) next; print $2 "\t" $3 "\t" $4 }'
+}
+
 earshot_pair() { # earshot_pair <main> <a-dir> <a-ref> <a-rev> <b-dir> <b-ref> <b-rev> [path]
                  # findings between two sides, or nothing at all.
   local main="$1" adir="$2" aref="$3" arev="$4" bdir="$5" bref="$6" brev="$7" only="${8:-}"
@@ -2302,8 +2375,8 @@ earshot_pair() { # earshot_pair <main> <a-dir> <a-ref> <a-rev> <b-dir> <b-ref> <
   # real merge would three-way from. No base (unrelated histories) → no answer.
   base="$(git -C "$main" merge-base "$arev" "$brev" 2>/dev/null)" || return 0
   [ -n "$base" ] || return 0
-  { side_ranges "$adir" "$base" "$aref" | sed 's/^/A\t/'
-    side_ranges "$bdir" "$base" "$bref" | sed 's/^/B\t/'
+  { earshot_unlanded "$main" "$base" "$arev" "$adir" "$aref" | sed 's/^/A\t/'
+    earshot_unlanded "$main" "$base" "$brev" "$bdir" "$bref" | sed 's/^/B\t/'
   } | { if [ -n "$only" ]; then grep -F "	$only	" || true; else cat; fi } | range_compare
 }
 
@@ -2323,13 +2396,15 @@ earshot_pushed() { # earshot_pushed <main> <branch>
   git -C "$1" rev-parse --verify --quiet "refs/remotes/origin/$2" >/dev/null 2>&1
 }
 
-earshot_size() { # earshot_size <dir> <base> [ref] — files changed on that side
-  local dir="$1" base="$2" ref="${3:-}"
-  { if [ -n "$ref" ]; then git -C "$dir" diff --name-only "$base" "$ref" 2>/dev/null
-    else git -C "$dir" diff --name-only "$base" 2>/dev/null
-         git -C "$dir" ls-files --others --exclude-standard 2>/dev/null
-    fi
-  } | LC_ALL=C sort -u | grep -c . || true
+earshot_size() { # earshot_size <main> <base> <side-rev> <dir> [ref] — files of its OWN
+                 # that side changed
+  # Derived from the same unlanded ranges the findings are, not from a second
+  # `--name-only` pass, because this number decides who rebases onto whom: a
+  # side credited with main's commits can win a nomination it should have lost,
+  # and a side whose whole PATH was struck out for one landed hunk loses a file
+  # it really did change. Counting what survived is the only version that can't
+  # do either.
+  earshot_unlanded "$1" "$2" "$3" "$4" "${5:-}" | cut -f1 | LC_ALL=C sort -u | grep -c . || true
 }
 
 # earshot_order — who lands first. Not a rule anyone enforces; a default, so two
@@ -2440,6 +2515,22 @@ cmd_overlap() {
     sdir="${side%%$'\t'*}"; sref="${side#*$'\t'}"
     findings="$(earshot_pair "$main_dir" "$top" "" "$my_head" "$sdir" "$sref" "$branch" "$only")"
 
+    # The merge-tree verdict is computed for EVERY lane, before the empty-index
+    # shortcut below can skip the rest of the loop. It used to sit past that
+    # `continue`, which was harmless only while the two signals could not
+    # disagree in this direction — and subtracting landed ranges is exactly what
+    # makes the index empty while merge-tree still conflicts (an add/add on a
+    # file main has since landed). The failure was not a missed ⚠ but a printed
+    # "merge-tree: clean against every lane", which is worse: the summary line
+    # this tool ends on would have stated something false. Two signals
+    # disagreeing is the information; one of them going quiet because the other
+    # did is the averaging this block exists to refuse.
+    local mt; mt="$(earshot_conflicts "$main_dir" "$my_head" "$branch")"
+    if [ -n "$mt" ]; then
+      verdict+="$(printf '  %s✗%s  %-18s %s' "$C_ERR" "$C_OFF" \
+        "$(earshot_clamp "$lane" 18)" "$(printf '%s' "$mt" | tr '\n' ' ')")"$'\n'
+    fi
+
     if [ -z "$findings" ]; then
       if [ "$brief" = 1 ] && [ -z "$only" ]; then
         body+="$(printf '  %s·%s  %-18s %snothing shared%s' \
@@ -2482,22 +2573,18 @@ cmd_overlap() {
         body+="$(printf '     %s(uncommitted work only — no commits yet)%s' "$C_MUT" "$C_OFF")"$'\n'
       fi
       if [ -n "$base" ]; then
-        ms="$(earshot_size "$top" "$base" "")"
-        ts="$(earshot_size "$sdir" "$base" "$sref")"
+        ms="$(earshot_size "$main_dir" "$base" "$my_head" "$top" "")"
+        ts="$(earshot_size "$main_dir" "$base" "$branch" "$sdir" "$sref")"
         body+="$(printf '     %s↳ %s%s' "$C_MUT" \
           "$(earshot_order "$main_dir" "$my_branch" "$ms" "$branch" "$ts" "$lane" "$my_lane")" "$C_OFF")"$'\n'
       fi
     fi
 
-    # The exact half, reported apart and never folded into the index: a lane can
-    # be loud above and still merge cleanly (both sides converged on the same
-    # text), or quiet above and conflict anyway (a rename the index doesn't
-    # follow). Two signals disagreeing is information; averaging them isn't.
-    local mt; mt="$(earshot_conflicts "$main_dir" "$my_head" "$branch")"
-    if [ -n "$mt" ]; then
-      verdict+="$(printf '  %s✗%s  %-18s %s' "$C_ERR" "$C_OFF" \
-        "$(earshot_clamp "$lane" 18)" "$(printf '%s' "$mt" | tr '\n' ' ')")"$'\n'
-    fi
+    # The exact half is reported apart and never folded into the index: a lane
+    # can be loud above and still merge cleanly (both sides converged on the
+    # same text), or quiet above and conflict anyway (a rename the index doesn't
+    # follow). It is computed at the top of this loop so the second case still
+    # reaches the verdict.
   done <<<"$rows"
 
   # main moves under you while you work, and a sibling landing its PR is the

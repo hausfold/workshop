@@ -124,7 +124,10 @@ Two signals, on purpose:
 
 - **the hunk index** — every lane's changed line ranges since the common ancestor,
   in the *ancestor's* coordinates (the one numbering two diverging trees share),
-  including **uncommitted and untracked** work. `⚠` means the same region, within
+  including **uncommitted and untracked** work, and minus whatever **main landed**
+  into that side since the ancestor (a squash merge puts the ancestor behind main,
+  and the lane that was squashed would otherwise claim every line it shipped for as
+  long as its branch exists). `⚠` means the same region, within
   git's own 3-line context; `·` means the same file, somewhere else in it. Co-editing
   a long shared file is normal here, and a tool that shouted about it would be muted
   inside a day.
