@@ -62,6 +62,13 @@
 # is machine-wide and serial, so parallel agents would silently overwrite each
 # other. `bench status` names whatever local code is currently activated (and
 # lists agent worktrees + unmerged agent branches); `bench ship` warns about them.
+#
+# Banners: `release` and `try-batch` say how they ended on screen too, because
+# both are verbs you start and walk away from. Drawn by trill when this Mac has
+# it, macOS's own banner otherwise. BENCH_NOTIFY=off draws nothing · =trill
+# never falls back to Apple's · TRILL_APP points at a Trill.app somewhere other
+# than ~/Applications or /Applications. Which ones reach you past that is
+# ~/.config/trill/rules.json, matching on source bench.release / bench.try-batch.
 set -euo pipefail
 
 # ROOT is the workshop's MAIN checkout — the dir holding the family repos as
@@ -185,6 +192,50 @@ warn() { printf '%s⚠  %s%s\n' "$C_WARN" "$*" "$C_OFF"; }
 die()  { printf '%s✗  %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; exit 1; }
 # in-section fix nudge — what to run / be aware of, right under what wants it.
 hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
+
+# ── saying it on screen, for the verbs you walk away from ───────────────────
+# `bench release` blocks on a CI run for five to ten minutes and `try-batch`
+# builds the whole review queue; both are "start it and go do something else",
+# and a result that only ever lands in a terminal you stopped looking at is a
+# result you find twenty minutes late.
+#
+# Drawn by trill when this Mac has it — the family's notification compositor —
+# and by macOS's own banner when it doesn't. The bundle is resolved at call
+# time rather than through a `trill` on PATH, for the same reason the nix
+# prelude above exists: nothing guarantees this script was invoked from a login
+# shell. $TRILL_APP overrides where to look, for a branch build.
+#
+# `--source bench.<verb>` is what `~/.config/trill/rules.json` matches on, so
+# "tell me about releases but not batches" is a rule rather than a flag nobody
+# shipped. That dial only covers the trill path, though — on a Mac without it
+# the fallback would fire unconditionally with nothing to turn it off, so
+# `BENCH_NOTIFY` is the one that always works: `off` draws nothing, `trill`
+# never falls back to Apple's banner. Never fatal: this is a courtesy, and
+# `set -e` is on.
+#
+#   notify <kind> <title> <body>     kind: "done" | "fault" | "pulse" | "note"
+#
+# Quote the kind at every call site: `done` is a shell keyword, and an
+# unquoted one makes shellcheck read the line as a broken loop (SC1010).
+notify() {
+  [ "${BENCH_NOTIFY:-auto}" = "off" ] && return 0
+  local kind="$1" title="$2" body="$3" bin=""
+  local candidate
+  for candidate in "${TRILL_APP:-}" "$HOME/Applications/Trill.app" "/Applications/Trill.app"; do
+    [ -n "$candidate" ] || continue
+    if [ -x "$candidate/Contents/MacOS/Trill" ]; then bin="$candidate/Contents/MacOS/Trill"; break; fi
+  done
+  if [ -n "$bin" ] && "$bin" send --source "bench.${BENCH_NOTIFY_SOURCE:-run}" \
+       --kind "$kind" --title "$title" --body "$body" >/dev/null 2>&1; then
+    return 0
+  fi
+  [ "${BENCH_NOTIFY:-auto}" = "trill" ] && return 0
+  # `argv`, never interpolation: a repo name or a tag is data, and a body with
+  # a double quote in it would end the AppleScript string early.
+  osascript -e 'on run argv
+        display notification (item 1 of argv) with title (item 2 of argv)
+      end run' -- "$body" "$title" >/dev/null 2>&1 || true
+}
 
 # Nix's lazy-tree fetcher occasionally leaves a *partial* tree in its cache: the
 # commit→tree mapping lands but a blob never finishes fetching (an interrupted
@@ -1167,6 +1218,7 @@ cmd_try_batch() {
   trap cleanup_batch EXIT
 
   local -a checklist=() dropped=()
+  local batched=0
   local repo
   for repo in "${want_repos[@]}"; do
     local dir; dir="$(repo_dir "$repo")"
@@ -1185,6 +1237,9 @@ cmd_try_batch() {
     git -C "$dir" worktree add -q --detach "$wtdir" HEAD
 
     local num head title url included=0
+    # `included` is per-repo and local; `batched` totals across every repo, for
+    # the one place the COUNT is what's read rather than the list: the banner.
+    # (${#checklist[@]} is double it — two entries per PR, the row and its URL.)
     while IFS=$'\t' read -r num head title url; do
       [ -n "$num" ] || continue
       if ! git -C "$wtdir" rev-parse -q --verify "origin/$head^{commit}" >/dev/null 2>&1; then
@@ -1198,6 +1253,7 @@ cmd_try_batch() {
           "$C_WARN" "$C_OFF" "$C_REPO" "$repo" "$C_OFF" "$num" "$title")")
         checklist+=("$(printf '                  %s%s%s' "$C_MUT" "$url" "$C_OFF")")
         included=$((included + 1))
+        batched=$((batched + 1))
       else
         git -C "$wtdir" merge --abort 2>/dev/null || true
         warn "$repo: dropping #$num ($head) — it conflicts with the batch; test it on its own."
@@ -1226,8 +1282,17 @@ cmd_try_batch() {
 
   ensure_perch_dev_app   # if perch's PRs were batched, build + inject its dev app
   say "building $host against ${#BATCH_SRC[@]} batched integration tree(s)…"
+  # A failed batch build is the walk-away outcome most worth interrupting
+  # someone for, and `set -e` would otherwise take the whole script down in
+  # silence. Explicit, because a trap would also fire on the paths above that
+  # legitimately give up (no PRs, everything dropped) and banner a non-event.
   # shellcheck disable=SC2046
-  (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
+  if ! (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides)); then
+    BENCH_NOTIFY_SOURCE=try-batch notify "fault" \
+      "batch build failed — $batched PR(s)" \
+      "One of the batched branches doesn't build. Nothing merged."
+    die "batch build failed — test the PRs individually (bench try from each worktree)."
+  fi
   say "build OK — nothing pushed, nothing merged, main untouched."
 
   if [ -n "$do_switch" ]; then
@@ -1248,6 +1313,12 @@ cmd_try_batch() {
   fi
   echo
   warn "none of these are merged. gh pr merge the ones that pass; leave the rest open."
+  # NOT ${#checklist[@]}: the loop above pushes TWO entries per PR (the row and
+  # its URL line), so that number is double, and a banner you read while away
+  # from the terminal is the worst place to be off by a factor of two.
+  BENCH_NOTIFY_SOURCE=try-batch notify "done" \
+    "batch built — $batched PR(s) to verify" \
+    "${do_switch:+Activated. }Nothing merged; the checklist is in this shell."
 }
 
 cmd_ship() {
@@ -1836,12 +1907,19 @@ cmd_release() {
     warn "can't watch the run from here — the tag is pushed and CI is running."
     hint "https://github.com/$(gh_repo "$name")/actions  (release → publish jobs)"
     warn "the version stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
+    BENCH_NOTIFY_SOURCE=release notify "note" "$name $tag tagged" \
+      "CI is publishing it — this shell can't watch the run."
     return 0
   fi
 
   printf '\n%s   %s %s%s\n\n' "$C_MUT" "$name" "$tag" "$C_OFF"
   if ! watch_release_run "$name" "$runid"; then
     printf '\n'
+    # Before `die`, not after: `set -e` and the exit inside `die` mean anything
+    # below this line never runs, and a failed release is the single most
+    # worth-interrupting thing this script produces.
+    BENCH_NOTIFY_SOURCE=release notify "fault" "$name $tag failed to publish" \
+      "The CI run went red. Nothing is live."
     die "release run failed — gh run view $runid --repo $(gh_repo "$name") --log-failed"
   fi
   printf '\n'
@@ -1851,6 +1929,8 @@ cmd_release() {
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
   say "$name $version is live — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
+  BENCH_NOTIFY_SOURCE=release notify "done" "$name $version is live" \
+    "Published by CI. ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
   if [ -n "$ship" ]; then
     printf '\n'
     cmd_ship

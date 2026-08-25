@@ -24,6 +24,11 @@ setup() {
   # 1.10 that cd outlives the test body — leaving bats' own cleanup standing in
   # a directory it is about to delete.
   BATS_SAVED_PWD="$PWD"
+  # And HOME, for the same reason: the notify tests below point it at a
+  # non-existent dir to hide the ~/Applications candidate, and on bats-core
+  # 1.10 (Ubuntu CI) that mutation outlives the test body — into a cleanup that
+  # is entitled to a real HOME.
+  BATS_SAVED_HOME="$HOME"
   # A consumer fixture, so nothing here reads the machine's real ~/.config/nix —
   # layer_input() would, and on a dev Mac it would even answer correctly, which
   # is the kind of green that stops meaning anything on CI.
@@ -39,6 +44,7 @@ teardown() {
   # macOS) papers over it, which is exactly why this was green locally and red
   # on CI. Put PATH back before bats needs it.
   PATH="$BATS_SAVED_PATH"
+  HOME="$BATS_SAVED_HOME"
   cd "$BATS_SAVED_PWD" || true
 }
 
@@ -1833,4 +1839,105 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
   [ "$status" -eq 4 ]
   [[ "$output" == *"↔"* ]]
   [[ "$output" != *"🌫"* ]]                  # findings only, no header
+}
+
+# ── notify: the banner `release` and `try-batch` leave on screen ─────────────
+#
+# Every path through it swallows its own output by design — a courtesy must not
+# be why a release fails — so a regression here is invisible by construction.
+# That is exactly the shape this suite exists for.
+#
+# The fixtures replace both renderers: a fake Trill.app whose binary records its
+# argv, and an `osascript` on PATH that records that it ran at all.
+
+mktrill() { # mktrill <exit-code> — a Trill.app whose CLI logs its argv and exits <code>
+  local app="$TMP/Trill.app/Contents/MacOS"
+  mkdir -p "$app"
+  cat >"$app/Trill" <<EOF
+#!/bin/sh
+printf '%s\n' "\$*" >>"$TMP/trill.log"
+exit ${1:-0}
+EOF
+  chmod +x "$app/Trill"
+  export TRILL_APP="$TMP/Trill.app"
+}
+
+mkosascript() {
+  mkdir -p "$TMP/fakebin"
+  cat >"$TMP/fakebin/osascript" <<EOF
+#!/bin/sh
+printf '%s\n' "\$*" >>"$TMP/osascript.log"
+EOF
+  chmod +x "$TMP/fakebin/osascript"
+  PATH="$TMP/fakebin:$PATH"
+}
+
+@test "notify sends through trill when Trill.app is there" {
+  mktrill 0
+  mkosascript
+  BENCH_NOTIFY_SOURCE=release notify "done" "pounce 2026.08.25 is live" "Published by CI."
+  run cat "$TMP/trill.log"
+  [[ "$output" == *"--source bench.release"* ]]
+  [[ "$output" == *"--kind done"* ]]
+  [[ "$output" == *"pounce 2026.08.25 is live"* ]]
+  # and NOT twice — a delivered banner must not also fire Apple's
+  [ ! -f "$TMP/osascript.log" ]
+}
+
+@test "notify falls back to Apple's banner when trill can't draw it" {
+  mktrill 2      # 2 = daemon unreachable
+  mkosascript
+  notify "fault" "release failed" "The CI run went red."
+  run cat "$TMP/osascript.log"
+  [[ "$output" == *"release failed"* ]]
+}
+
+@test "notify falls back when there is no Trill.app at all" {
+  export TRILL_APP="$TMP/nowhere.app"
+  HOME="$TMP/nohome"          # so the ~/Applications candidate misses too
+  mkosascript
+  notify "note" "a title" "a body"
+  run cat "$TMP/osascript.log"
+  [[ "$output" == *"a title"* ]]
+}
+
+@test "notify with TRILL_APP unset does not die under set -u" {
+  unset TRILL_APP
+  HOME="$TMP/nohome"
+  mkosascript
+  run notify "note" "t" "b"
+  [ "$status" -eq 0 ]
+}
+
+@test "BENCH_NOTIFY=off draws nothing through either renderer" {
+  mktrill 0
+  mkosascript
+  BENCH_NOTIFY=off notify "done" "silent" "nothing should appear"
+  [ ! -f "$TMP/trill.log" ]
+  [ ! -f "$TMP/osascript.log" ]
+}
+
+@test "BENCH_NOTIFY=trill never falls back to Apple's banner" {
+  mktrill 2
+  mkosascript
+  BENCH_NOTIFY=trill notify "fault" "t" "b"
+  [ ! -f "$TMP/osascript.log" ]
+}
+
+@test "notify never fails its caller, whatever the renderer does" {
+  # The whole reason it exists as a helper: `set -e` is on in every caller, and
+  # a release must not die because a banner did.
+  mktrill 3
+  mkosascript
+  run notify "note" "t" "b"
+  [ "$status" -eq 0 ]
+}
+
+@test "notify passes a body containing a double quote through intact" {
+  # The bug the argv form fixes: interpolated, this ends the AppleScript string
+  # early. Checked on the trill side, where the argv is recoverable.
+  mktrill 0
+  BENCH_NOTIFY_SOURCE=release notify "done" 'a "quoted" tag' 'body with " in it'
+  run cat "$TMP/trill.log"
+  [[ "$output" == *'a "quoted" tag'* ]]
 }
