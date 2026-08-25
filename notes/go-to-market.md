@@ -27,6 +27,15 @@ Working doc, written 2026-08-04 from the launch-strategy research. It owns
 stranger in front of the house at zero risk.** There is no revenue line yet, so
 nothing here trades reach for conversion.
 
+> **This file owns the strategy; the operations half is `MARKETING.md` in the
+> private [`hausfold/ops`](https://github.com/hausfold/ops) repo** (added
+> 2026-08-25). Which audience, which door, which order and the rules that bite
+> per channel stay here. What actually *runs* — the asset pipelines, the
+> release-triggered drafts, the weekly scoreboard, and the short list that still
+> needs a person — is over there, because it names handles and cadence and this
+> repo is public. Nothing about positioning belongs in that file, and no handle
+> belongs in this one.
+
 ---
 
 ## 1. The portfolio (as of 2026-08-04)
@@ -414,6 +423,31 @@ contributed rices and ports, and voluntarily reported installs.
 Score each channel as **meaningful actions per 100 visitors**, where meaningful
 means: copied the installer, installed pounce or holt, opened a substantive
 issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
+
+> **★ Built 2026-08-25 — this section has a script now**, and it is in the
+> private ops repo (`hausfold/ops`, `scoreboard/collect.sh`) rather than here,
+> because the collected series is our own traffic data. It reads exactly the
+> list above off `gh api .../traffic/*`, release asset download counts and
+> `formulae.brew.sh`; nothing is added to any product.
+>
+> ⚠️ **The one thing this section didn't say, and it has a deadline: GitHub's
+> traffic API retains 14 days.** A week not snapshotted is deleted, not
+> archived — so the pre-launch baseline has to start accumulating *before* the
+> launch, while there is deliberately nothing to see. Every "did it work"
+> question is a comparison against a before that only exists if someone kept it.
+>
+> ⚠️ **"Homebrew analytics" is true but under-specified.** A third-party tap
+> does appear in the public analytics, but only under its full
+> `owner/tap/token` path — `hausfold/tap/pounce`, never `pounce`. Matching the
+> bare product name instead returns `pounceapps/tap/pounceterm` and four more
+> casks belonging to an unrelated org. Measured 2026-08-25, which is also the
+> day `hausfold/tap/perch` recorded its first install.
+>
+> ⚠️ **Clones are not people.** `haus` showed 4078 clones against 11 unique
+> viewers on the first snapshot — CI, Nix fetches and agent lanes. Views,
+> uniques and *referrers* are the human signal; clones are noise with the
+> biggest number on the page, which makes them the most tempting wrong metric
+> here. Referrers are the field that actually answers "which door worked".
 
 ## 8. What not to do
 
