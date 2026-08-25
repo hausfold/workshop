@@ -10,30 +10,20 @@ thirty-ninth pass all three are closed; the follow-up the last one names (a
 `lib.checkedRef` helper, so the pattern travels instead of being stated a fourth
 time in a fourth comment) is deliberately not a box here.
 
-> ◐ **That follow-up is built and OPEN, not merged — haus#495, on
-> `worktree-continue-notes-options-roadmap` at haus `f493c15`, 2026-08-24.**
-> It lands as `modules/lib/checked-ref.nix` with `guard` / `collect` rather
-> than the one-function `checkedRef drv path` the entry below sketches: two of
-> the three sites need the referent COPIED into `$out`, because a `home.file`
-> source is what points at it, and a check whose result nothing consumes is a
-> check on nobody's build path. **Row fourteen is why this says "open" and not
-> "done"** — a box ticked for work that is built but not merged is this
-> catalogue's own worst shape, with its clock reversed. It gets its ✅ when the
-> PR has a `mergedAt`, read off the PR and not off the log (row eleven's
-> sharpening, twice measured).
+> ✅ **That follow-up shipped — [haus#495](https://github.com/hausfold/haus/pull/495),
+> `mergedAt 2026-08-24T21:21:38Z`, `4d84237`.** It lands as
+> `modules/lib/checked-ref.nix` with `guard` / `collect` rather than the
+> one-function `checkedRef drv path` the entry below sketches: two of the three
+> sites need the referent COPIED into `$out`, because a `home.file` source is
+> what points at it, and a check whose result nothing consumes is a check on
+> nobody's build path. This block said ◐ **open** for as long as the PR had no
+> `mergedAt` — row fourteen, a box ticked for work that is built but not merged
+> being this catalogue's own worst shape with its clock reversed — and the
+> timestamp above is read off the PR, not off the log (row eleven's sharpening,
+> twice measured).
 >
-> ★ **And the thing worth keeping is not the helper — it is what the assurance
-> pass found while reading it.** All three inline sites tested their referent
-> with a DOUBLE-QUOTED test — `[ -e "…" ]` in ports and tool-skills, `[ -f "…" ]`
-> in terminal — which stops a SPACE, the hazard all three comments name and the
-> one that had actually bitten, and does nothing about a `$` or a backtick,
-> which no comment names. A real rendered file called
-> `theme $HOME.json` was reported MISSING by every one of the three. That is a
-> shape this table does not have: **a guard correct about the hazard it was
-> written for, and silently wrong in the direction that fails a build nobody
-> broke.** Not appended as a row until a second instance turns up — one
-> occurrence is an incident, and this table's rows are supposed to be classes.
-> Named here so the next pass can look.
+> ★ **The thing worth keeping was not the helper but what the assurance pass
+> found while reading it** — filed below under *Seen once, not yet a row*.
 
 **Split out of [`options-roadmap.md`](options-roadmap.md) §5.14 on 2026-08-23**,
 after the thirty-eighth pass, because the two halves had stopped being one
@@ -739,6 +729,54 @@ Two smaller things, neither a finding:
   durable half either way. §8 gains the capability line, because "read the
   family at a rev" turns out to be most of what auditing this file needs and
   none of what §8 was written to answer.
+
+## Seen once, not yet a row
+
+A finding whose author was not yet willing to assert it as a CLASS. Not a rule
+about the table — rows twenty-six through thirty were each appended from a
+single sighting, and that is fine; a row is a claim about a shape, and one
+instance is often enough to see the shape whole. This shelf is for the other
+case: a finding that is certainly true about its instance and that its finder
+could not yet say the general form of, or could not distinguish from a row
+already here. The numbering is frozen, so a row can never be taken back out —
+which makes "not yet" a cheaper answer than a row that later turns out to be a
+special case of row nine.
+
+**A second sighting is the promotion: append the row, and delete the entry
+here.** Nothing on this shelf is less true than a row. It is less *settled*,
+which is a different claim, and a pass about to append a row should read this
+section first — the shape may already be waiting on it.
+
+**A guard correct about the hazard it was written for, and silently wrong in
+the direction that fails a build nobody broke** *(2026-08-24, found by the
+pre-PR assurance pass on haus#495)*. All three sites that assert a path spelled
+into a store output tested it DOUBLE-QUOTED — `[ -e "…" ]` in `theme/ports.nix`
+and `ai/tool-skills.nix`, `[ -f "…" ]` in `terminal` — which stops a SPACE, the
+hazard all three comments name and the one that had actually bitten, and does
+nothing about a `$` or a backtick, which none of them names. A real rendered
+file called `theme $HOME.json` was reported MISSING by every one of the three.
+The direction is what makes it worth a line: a check that misses is a check
+that costs nothing extra, but a check that fails a build on a file that is
+*there* sends someone hunting an upstream that is fine. Caught by asking, of a
+guard, which hazards its quoting actually answers rather than which one the
+comment beside it names.
+
+**A "must not merge without X" that lives only in a note is not a gate**
+*(2026-08-09, at `c987372^:notes/hausfold-rename.md` §2.1 — recovered
+2026-08-24 from a branch that outlived its merged PR, but dated at the rev,
+because the rev is the half that survives the branch)*. `notes/hausfold-rename.md`
+§2.1 carried a warning that perch#47 must not merge until `perch/LICENSE:9`
+read `hausfold`, "because half of it is worse than none of it". It merged with
+the README half only, and for a few hours perch had two disagreeing copyright
+lines on what was then the paid product. Nothing enforced the note, and nothing
+would have enforced the next one. **The specific finding is dead** — that file
+was deliberately deleted in #386, perch is MIT again and its two lines agree
+(`Copyright (c) 2026 hausfold`) — which is exactly why the general half is
+worth keeping somewhere that is not a retired file. Caught by writing the
+condition where the merge happens (a required check, a PR-template line, a
+`bench` refusal) or by writing it as a request rather than as a rule; a rule
+nothing can enforce reads to its author as a control and to everyone else as
+prose.
 
 ---
 
