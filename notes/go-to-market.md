@@ -440,14 +440,21 @@ issue, contributed a rice/port/command. Not stars. A star means "maybe someday".
 > does appear in the public analytics, but only under its full
 > `owner/tap/token` path — `hausfold/tap/pounce`, never `pounce`. Matching the
 > bare product name instead returns `pounceapps/tap/pounceterm` and four more
-> casks belonging to an unrelated org. Measured 2026-08-25, which is also the
-> day `hausfold/tap/perch` recorded its first install.
+> casks belonging to an unrelated org, so the obvious query reports someone
+> else's installs as ours. Note also that **pounce is a formula and perch is a
+> cask**: a query that reads only `cask-install` silently returns zero for the
+> launcher forever. Measured 2026-08-25.
 >
-> ⚠️ **Clones are not people.** `haus` showed 4078 clones against 11 unique
-> viewers on the first snapshot — CI, Nix fetches and agent lanes. Views,
-> uniques and *referrers* are the human signal; clones are noise with the
-> biggest number on the page, which makes them the most tempting wrong metric
-> here. Referrers are the field that actually answers "which door worked".
+> ⚠️ **Clones are not people, and downloads are not installs.** Clone counts on
+> these repos run two to three orders of magnitude above unique viewers — CI,
+> Nix fetches and agent lanes. A release download is the count of times a file
+> left GitHub, not of machines running it. Views, uniques and *referrers* are
+> the human signal, and referrers are the only field that answers "which door
+> worked"; clones are noise wearing the biggest number on the page, which makes
+> them the most tempting wrong metric here.
+>
+> *(The figures themselves stay in the private repo, which is the point of the
+> split — this box carries the method, not the series.)*
 
 ## 8. What not to do
 
