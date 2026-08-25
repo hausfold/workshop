@@ -30,8 +30,11 @@ Per-client wiring lives in that client's own file; the content stays here or in
 > prepends that dir); `exec zsh` reloads it. Its subcommand descriptions must
 > follow `bench`'s own usage header (`bench:2-50`). Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — `_bench` seds those two single-line arrays out
-> of the script at completion time. Everything else is copied by hand: `pull`'s
-> six non-flake names, `release`'s four repos (the arms of `version_file`),
+> of the script at completion time. **They are no longer the same list**: trill
+> is overridable without being family, so a completion that reads one where it
+> means the other is now wrong rather than merely fragile. Everything else is
+> copied by hand: `pull`'s six non-flake names, `release`'s five repos (the arms
+> of `version_file`),
 > `docs-since`'s five non-family repos (`DOCS_REPOS` is composed from `FAMILY`,
 > so the sed reads the nested expansion back literal and can't be used), and the
 > fallbacks beside both sed'd lists. Add a repo to `version_file` and the
@@ -51,7 +54,7 @@ former, never the latter).
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
 | the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — rooms are named for what they do | `./haus` — the layer `hausfold/haus`. The directory is named for its repo, not for the desktop it carries |
 | the org's GitHub front page | `./org-profile` — the checkout of `hausfold/.github` (`bench clone` maps the alias; this repo's own `./.github` is the workshop's CI) |
-| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **Deliberately not a family repo**: not in `bench`'s `FAMILY`, no lock edge, so `bench status`/`ship` don't see it. It IS in `DOCS_REPOS`, `bench clone` and `bench pull` (like `hausfold.co`) — docs coverage and lock coverage are different lists |
+| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is still not a family repo** — the two are different questions and trill is what separates them. It IS in `OVERRIDABLE` and in `EDGES` (`haus → trill`, gating `haus.trill.enable`), so `bench try` from a trill worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state — it lands through its own PRs. It is also in `DOCS_REPOS`, `bench clone` and `bench pull`. Releasable since 2026-08-25 (`bench release trill`, CalVer, notarized ZIP + CI-owned `nix/release.nix` pin) |
 | holt — the worktree-lifecycle substrate | `./holt` ([hausfold/holt](https://github.com/hausfold/holt)). The layer takes it as a flake input and ships it on PATH; the ⌘↵ lane chord runs `holt new` for every client, and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks call `holt hook create` / `holt hook remove` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
@@ -67,9 +70,9 @@ former, never the latter).
 ## The one gotcha that explains everything
 
 The repos form a chain of pinned flake inputs. The spine is
-`nebelung → pounce → haus → ~/.config/nix`; `perch` and `holt` are inputs of
-`haus` too, as is `nebelung` a second time, directly. That is **six** lock
-edges, enumerated in `bench`'s `EDGES`, not the three the spine suggests. A
+`nebelung → pounce → haus → ~/.config/nix`; `perch`, `trill` and `holt` are
+inputs of `haus` too, as is `nebelung` a second time, directly. That is **seven**
+lock edges, enumerated in `bench`'s `EDGES`, not the three the spine suggests. A
 commit — even a pushed one — is **invisible downstream** until each downstream
 `flake.lock` is updated. Never hand-walk that ripple; the tooling does it:
 
