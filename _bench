@@ -148,6 +148,7 @@ _bench() {
           local -a releasable=(
             'pounce:the palette app'
             'perch:the notch file shelf'
+            'trill:the notification compositor'
             'haus:the nix-darwin layer + the hacker desktop'
             'holt:agent worktrees (semver — pass X.Y.Z yourself)'
           )

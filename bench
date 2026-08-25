@@ -140,6 +140,27 @@ ensure_nix_path
 # and `bench clone` puts it right.
 FAMILY=(nebelung pounce perch holt haus)
 
+# 🚨 FAMILY is NOT "the repos with a flake input", and since trill it never was.
+# Three questions live in three lists here and they answer differently:
+#
+#   FAMILY       repos bench WALKS — status rows, ship's dirty-check and push,
+#                agent-branch warnings. Membership means bench is responsible
+#                for that checkout's git state.
+#   OVERRIDABLE  repos that ARE a flake input and can be redirected at a local
+#                checkout (below). Drives detect_worktree, lane children,
+#                try-batch and overrides().
+#   EDGES        which lock points at whose HEAD (further down). Its `source`
+#                column needs only a checkout at $ROOT/<name>.
+#
+# They were identical for long enough to read as one list, which is exactly how
+# a fourth question would have been answered by the wrong one. trill separates
+# them: it is a flake input of the layer (`haus.trill.enable` installs the
+# bundle) and a lock source, but bench does not walk it — it lands through its
+# own PRs and its only bench verb is `bench release trill`. So trill is in
+# OVERRIDABLE and in EDGES, and deliberately not here. trill's own AGENTS.md
+# says "don't add trill to bench's FAMILY"; that line is still right, and this
+# is why it costs nothing.
+
 # The org every checkout here came from, since the 2026-08-09 transfer. Pair it
 # with `gh_repo` below: a checkout's directory name is not always its repo name,
 # and for the layer it isn't.
@@ -152,7 +173,12 @@ GH_ORG="hausfold"
 # builds a signed .app in your login session and injects it via the flake's
 # `prebuilt` input (see ensure_perch_dev_app), so it feel-tests at source level
 # like the pure-Nix repos.
-OVERRIDABLE=(nebelung pounce perch holt haus)
+#
+# trill is here WITHOUT being in FAMILY (see the block above) and is the second
+# Xcode app in the list, so it gets the same dev-app treatment perch does —
+# `ensure_trill_dev_app` builds a signed .app in your login session and injects
+# it through trill's `prebuilt` input.
+OVERRIDABLE=(nebelung pounce perch holt haus trill)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -453,8 +479,29 @@ EDGES=(
   "haus pounce pounce"
   "haus perch perch"
   "haus holt holt"
+  "haus trill trill"
   "consumer @layer haus"
 )
+
+# The lock SOURCES that aren't in FAMILY — today just trill (see the 🚨 block by
+# FAMILY for why it isn't there). Derived from EDGES rather than typed out, so
+# it cannot drift from the graph it describes: a hand-kept fourth list is the
+# thing this whole comment is trying to stop happening again.
+#
+# What it's for: every place that has to be true of a repo whose HEAD a lock
+# POINTS AT, as opposed to a repo bench manages. The ship chain's
+# fast-forward-before-you-read loop is the load-bearing one — reading a stale
+# local HEAD is how a ripple pins the pre-merge rev and still prints "shipped".
+declare -ga LOCK_ONLY=()
+for _edge in "${EDGES[@]}"; do
+  read -r _holder _input _source <<<"$_edge"
+  _found=""
+  for _name in "${FAMILY[@]}" consumer "${LOCK_ONLY[@]}"; do
+    [ "$_name" = "$_source" ] && { _found=1; break; }
+  done
+  [ -n "$_found" ] || LOCK_ONLY+=("$_source")
+done
+unset _edge _holder _input _source _found _name
 
 host_name() { # the darwinConfiguration to build in the consumer flake
   if [ -n "${HAUS_HOST:-}" ]; then echo "$HAUS_HOST"; return; fi
@@ -481,7 +528,12 @@ detect_worktree() {
   common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
   main="$(dirname "$common")"
   [ "$top" = "$main" ] && return 0
-  for name in "${FAMILY[@]}"; do
+  # OVERRIDABLE, not FAMILY: the question this answers is "can `bench try` build
+  # the branch I'm standing in", and that is exactly flake-overridability. They
+  # were the same list until trill, which is a flake input bench doesn't walk —
+  # against FAMILY, a `bench try` from a trill worktree would silently build the
+  # PINNED trill and say it built your branch.
+  for name in "${OVERRIDABLE[@]}"; do
     if [ "$main" = "$(repo_dir "$name")" ]; then WT_REPO="$name" WT_PATH="$top"; return 0; fi
   done
 }
@@ -536,7 +588,9 @@ detect_lane() { # populate LANE_SRC with every holt-child of THIS pane's worktre
     if [ -z "$path" ] || [ "$path" = "$self" ]; then continue; fi   # self is WT_REPO/WT_PATH already
     row_main="$(awk -F'\t' -v p="$path" '$4 == p { print $2; exit }' "$WT_REGISTRY" 2>/dev/null)"
     [ -n "$row_main" ] || continue
-    for name in "${FAMILY[@]}"; do
+    # OVERRIDABLE for the same reason detect_worktree uses it: a lane child is
+    # only useful here if its repo can be redirected into the build.
+    for name in "${OVERRIDABLE[@]}"; do
       [ "$row_main" = "$(repo_dir "$name")" ] && { LANE_SRC["$name"]="$path"; break; }
     done
   done < <(lane_paths "$self")
@@ -698,14 +752,17 @@ overrides() { # every family input redirected at the local checkouts
   # were through both, which is what makes this line the clearest illustration
   # of the rule — the input name and the directory are different things and only
   # one of them ever moves.
-  local perch_prebuilt="" layer
+  local perch_prebuilt="" trill_prebuilt="" layer
   layer="$(layer_input)"
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input $layer/perch/prebuilt path:$PERCH_DEV_APP_DIR"
+  [ -n "$TRILL_DEV_APP_DIR" ] \
+    && trill_prebuilt=" --override-input $layer/trill/prebuilt path:$TRILL_DEV_APP_DIR"
   echo "--override-input $layer path:$(local_src haus) \
         --override-input $layer/nebelung path:$(local_src nebelung) \
         --override-input $layer/pounce path:$(local_src pounce) \
         --override-input $layer/perch path:$(local_src perch)$perch_prebuilt \
+        --override-input $layer/trill path:$(local_src trill)$trill_prebuilt \
         --override-input $layer/holt path:$(local_src holt)"
 }
 
@@ -775,6 +832,63 @@ ensure_perch_dev_app() {
   say "       any permission grant it's given across future dev builds."
 }
 
+# trill is the second Xcode app in the family and hits the identical macOS 26
+# wall as perch, so this is ensure_perch_dev_app's twin — same reason, same
+# shape, two differences that matter:
+#
+#   * trill's Debug configuration ALREADY carries its own bundle id
+#     (com.hausfold.trill.debug) and its own Application Support directory, on
+#     purpose: TCC keys Full Disk Access by bundle id, one row per id, and
+#     rewrites that row's code requirement to whichever binary asked last. A
+#     Debug build sharing the release id would take the row over and the
+#     installed app would then be denied SILENTLY, because
+#     kTCCServiceSystemPolicyAllFiles never prompts. So there is nothing to
+#     override here — no TRILL_BUNDLE_ID, no PRODUCT_BUNDLE_IDENTIFIER — and
+#     adding one would undo the separation trill's AGENTS.md spells out.
+#   * The stable signing identity matters MORE here than for perch, not less.
+#     perch's dev grants are conveniences; trill's whole System Mirror and
+#     `trill doctor` surface is a Full Disk Access grant, and an ad-hoc signature
+#     changes cdhash every build, so the switch in System Settings revokes
+#     itself between rebuilds.
+TRILL_DEV_APP_DIR=""
+ensure_trill_dev_app() {
+  local src; src="$(local_src trill)"
+  [ "$src" = "$ROOT/trill" ] && return 0             # no local trill source → release
+  [ -n "$TRILL_DEV_APP_DIR" ] && return 0            # already built this run
+  [ -f "$src/Trill.xcodeproj/project.pbxproj" ] || return 0
+
+  local ident
+  ident="$(security find-identity -v -p codesigning 2>/dev/null \
+             | sed -n 's/.*"\(Developer ID Application[^"]*\)".*/\1/p' | head -1)"
+  [ -n "$ident" ] || ident="$(security find-identity -v -p codesigning 2>/dev/null \
+             | sed -n 's/.*"\(Apple Development[^"]*\)".*/\1/p' | head -1)"
+  [ -n "$ident" ] || die "trill dev build needs a stable signing identity (Developer ID or Apple Development) in your keychain so its Full Disk Access grant survives rebuilds — open Xcode once to create one."
+
+  local ver; ver="$(tr -d '[:space:]' < "$src/VERSION" 2>/dev/null || true)"
+  [ -n "$ver" ] && ver="${ver}-dev" || ver="dev"
+
+  # Same as perch: persistent DerivedData for incremental rebuilds, and a real
+  # (pwd -P) temp dir because Nix's path: fetcher rejects a symlinked component.
+  local dd="${XDG_CACHE_HOME:-$HOME/.cache}/bench/trill-dd"
+  local out; out="$(cd "$(mktemp -d "${TMPDIR:-/private/tmp}/bench-trill-dev.XXXXXX")" && pwd -P)"
+  mkdir -p "$dd"
+
+  say "trill: building a signed dev app from $src"
+  say "       (bundle com.hausfold.trill.debug, version $ver, $ident) — first run is slow…"
+  if ! ( cd "$src" && /usr/bin/xcodebuild \
+           -project Trill.xcodeproj -scheme Trill -configuration Debug \
+           -destination 'platform=macOS' -derivedDataPath "$dd" \
+           MARKETING_VERSION="$ver" \
+           CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$ident" \
+           build >/dev/null ); then
+    die "trill dev build failed — re-run that xcodebuild in $src by hand to see why."
+  fi
+  /usr/bin/ditto "$dd/Build/Products/Debug/Trill.app" "$out/Trill.app"
+  TRILL_DEV_APP_DIR="$out"
+  say "trill: dev app built (com.hausfold.trill.debug); its own bundle id keeps it"
+  say "       off the installed app's Full Disk Access row."
+}
+
 # Release bookkeeping. Releases are what users actually consume — pounce via
 # the Homebrew tap, the desktop via hausfold.co/hacker.sh (which serves the
 # LATEST RELEASE's bootstrap, not main) — so a tag that falls behind main is
@@ -783,11 +897,12 @@ latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if non
   git -C "$(repo_dir "$1")" tag --list 'v*' --sort=-v:refname 2>/dev/null | head -1
 }
 commits_since() { # commits_since <repo> <tag> — user-facing commits on HEAD the tag lacks
-  # Discount the release bot's own commits. perch wraps a notarized ZIP, so its
-  # release.yml `bump-flake` job rewrites nix/release.nix with that ZIP's sha256
-  # in a commit pushed AFTER the tag — a pin can't predate the artifact it hashes,
-  # so it sits 1 commit past the latest tag forever without being new work. Left
-  # in, it flags every freshly-released perch as "1 commit behind main" for good.
+  # Discount the release bot's own commits. perch and trill both wrap a notarized
+  # ZIP, so each one's release.yml `bump-flake` job rewrites nix/release.nix with
+  # that ZIP's sha256 in a commit pushed AFTER the tag — a pin can't predate the
+  # artifact it hashes, so it sits 1 commit past the latest tag forever without
+  # being new work. Left in, it flags every freshly-released one as "1 commit
+  # behind main" for good.
   local dir; dir="$(repo_dir "$1")"
   local total; total="$(git -C "$dir" rev-list --count "$2..HEAD" 2>/dev/null)" || { echo "?"; return; }
   local bot; bot="$(git -C "$dir" rev-list --count --author='haus-release' "$2..HEAD" 2>/dev/null || echo 0)"
@@ -952,7 +1067,10 @@ cmd_status() {
   say "repos"
   printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
   local any_dirty=0 any_ahead=0 any_behind=0
-  for name in "${FAMILY[@]}" consumer; do
+  # LOCK_ONLY rides along: the edge report below can say `haus → trill` is
+  # STALE, and a reader whose next question is "what IS trill's checkout doing"
+  # should not have to leave this screen to find out.
+  for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || { printf '  %s%-12s%s %s(missing — bench clone)%s\n' \
       "$C_REPO" "$name" "$C_OFF" "$C_MUT" "$C_OFF"; continue; }
@@ -1043,13 +1161,19 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce perch haus holt; do
+  for name in pounce perch trill haus holt; do
     local dir tag behind audience cut
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
       perch)     audience="brew + the rice's flake pin" ;;
+      # No cask yet — the `trill` token in hausfold/homebrew-tap is free and
+      # unclaimed, so the flake pin is trill's ONLY release consumer today. Say
+      # so rather than copying perch's line: a row claiming brew installs that
+      # nobody can do is the kind of true-looking wrong this report exists to
+      # catch. Add the cask and this audience string together, or not at all.
+      trill)     audience="the layer's flake pin (haus.trill.enable)" ;;
       haus)      audience="hausfold.co/hacker.sh (the desktop)" ;;
       # holt is the only one whose release lands OUTSIDE our own infrastructure:
       # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins holt's
@@ -1259,6 +1383,7 @@ cmd_try() {
   fi
   local host; host="$(host_name)"
   ensure_perch_dev_app   # if perch is the local source, build + inject its dev app
+  ensure_trill_dev_app   # ditto trill — the other Xcode app Nix can't build
   say "building $host against the LOCAL checkouts (uncommitted edits included)…"
   CARD_KEY="bench-try"; CARD_TITLE="bench try · $host"
   trap card_stop EXIT
@@ -1406,6 +1531,7 @@ cmd_try_batch() {
   fi
 
   ensure_perch_dev_app   # if perch's PRs were batched, build + inject its dev app
+  ensure_trill_dev_app   # ditto trill
   say "building $host against ${#BATCH_SRC[@]} batched integration tree(s)…"
   # A failed batch build is the walk-away outcome most worth interrupting
   # someone for, and `set -e` would otherwise take the whole script down in
@@ -1466,7 +1592,13 @@ cmd_ship() {
   # calls the edge ✓ current, because it compares the lock against that same
   # stale local HEAD. Nothing in the output distinguishes it from a real ripple.
   # This has bitten every /ship that merged a PR in a repo the chain touches.
-  for name in "${FAMILY[@]}" consumer; do
+  #
+  # "${LOCK_ONLY[@]}" is why this loop is not just FAMILY: a repo whose HEAD an
+  # edge READS has to be current here for exactly the reason above, whether or
+  # not bench walks it otherwise. trill is the first such repo, and it is the
+  # likeliest to be behind — it isn't on the ship chain, so nothing else in this
+  # verb ever touches its checkout.
+  for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1 || continue
@@ -1657,6 +1789,7 @@ version_file() { # version_file <repo> — WHERE a releasable repo's version liv
   case "$1" in
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
     perch)     echo "$(repo_dir "$1")/VERSION" ;;
+    trill)     echo "$(repo_dir "$1")/VERSION" ;;
     haus)      echo "$(repo_dir "$1")/VERSION" ;;
     holt)      echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
@@ -1668,6 +1801,7 @@ read_version() { # read_version <repo> — the version string that repo tags at
   case "$1" in
     pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
     perch)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
+    trill)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     haus)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
     holt)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
@@ -1682,6 +1816,7 @@ write_version() { # write_version <repo> <version> — stamp the version source 
     # -i suffix arg, so the portable path is redirect + mv.
     pounce)    local t; t="$(mktemp)"; sed -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" >"$t" && mv "$t" "$f" ;;
     perch)     printf '%s\n' "$2" > "$f" ;;
+    trill)     printf '%s\n' "$2" > "$f" ;;
     haus)      printf '%s\n' "$2" > "$f" ;;
     # holt's version lives in FOUR files, not one — VERSION plus three SDK
     # manifests (npm/PyPI/crates each declare their own). bench doesn't learn
@@ -1977,13 +2112,13 @@ cmd_release() {
     esac
     shift
   done
-  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, haus, holt)"
+  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, trill, haus, holt)"
   [ -n "$name" ] || die "$usage"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   version_file "$name" >/dev/null \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, haus, holt)"
+    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, trill, haus, holt)"
 
   local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
   if [ "$scheme" = semver ]; then
@@ -2089,13 +2224,19 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # two repos that carry docs without carrying a lock edge.
 #
 # 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.
-# `trill` and `hausfold.co` are deliberately outside `FAMILY` (no flake input, so
-# try/try-batch/ship must never walk them) — but both have a README, in-repo docs
+# `trill` and `hausfold.co` are deliberately outside `FAMILY` — but both have a
+# README, in-repo docs
 # and a live audience, so a sweep that skips them reports their docs clean for
 # as long as the omission lasts — silently, because a repo with no arm looks
 # exactly like a repo with nothing to say. trill was in that state from its
 # eject (2026-08-09) until this line. Docs coverage and lock coverage are
 # different questions; keep them different lists.
+#
+# That parenthesis used to read "no flake input, so try/try-batch/ship must never
+# walk them", which stopped being true for trill the day it became one. trill is
+# still not in FAMILY and ship still never walks it — but it IS overridable and
+# IS a lock source now (see the 🚨 by FAMILY), so that reasoning lives there and
+# this list keeps only its own. hausfold.co is unchanged: no flake input at all.
 DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co)
 
 # Two watermarks per repo, and the GAP between them is the whole point:

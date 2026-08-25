@@ -196,9 +196,10 @@ change would move them.
 > The newest `Trill.app` in the store is `trill-2026.08.03-1`, which predates
 > both the flick→trill rename and the org decision, and it signs as
 > `com.nebelhaus.trill`. The repo declares `com.hausfold.trill` throughout
-> today. haus has no trill flake input (by design — AGENTS.md keeps trill out of
-> the lock chain), so nothing here installs a current one. Probe a fresh build
-> before an emitter keys on trill at all.
+> today. haus took trill as a flake input on 2026-08-25 (`haus.trill.enable`),
+> but the room is **off by default and there is no release to install yet**, so
+> nothing here installs a current one either way. Probe a fresh build before an
+> emitter keys on trill at all.
 
 ### ⚠️ Probed — the *store build* is ad-hoc, and would be unusable as a principal
 
@@ -242,8 +243,9 @@ carry into the design rather than discover later:
   app. Getting this wrong produces a profile that looks right and matches
   nothing.
 - **Don't key on trill from a local artifact.** The only builds on this machine
-  predate the rename; the repo is already on `com.hausfold.trill`, and haus
-  doesn't install trill at all. Read the id from the repo, not the store.
+  predate the rename; the repo is already on `com.hausfold.trill`, and the
+  `haus.trill.enable` room that would install a current one is off by default
+  and has no release to fetch yet. Read the id from the repo, not the store.
 
 There is a third option nobody should take: a loose `CodeRequirement` of just
 `identifier "com.hausfold.pounce"` with no certificate anchor, which survives

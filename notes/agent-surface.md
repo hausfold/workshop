@@ -293,13 +293,13 @@ the ones whose room is actually enabled — the shelf room off means no perch
 skill, because a skill for an app you don't have is worse than none: the agent
 will confidently offer it.
 
-⚠️ **trill is not one of those inputs, and that is deliberate** — it carries no
-lock edge and is not in `bench`'s `FAMILY` (the workshop's AGENTS.md has the
-rule). It has no room in `options-groups.nix` either, only
-a metadata-only `haus.roster.trill` entry. So trill's skill reaches a machine by
-`trill skill install` until the planned leaf overlay lands; when it does, its
-gate is the roster entry rather than a room switch. A step that assumes
-otherwise ships nothing for trill and reports success.
+⚠️ **This used to say trill is not one of those inputs. As of 2026-08-25 it
+is** — route B landed: haus takes trill as a flake input and `haus.trill.enable`
+is a real room, so `pkgs.trill-skill` is reachable and gates on that switch like
+every other. What stayed true is the narrower claim underneath: trill is still
+not in `bench`'s `FAMILY` (bench's 🚨 by `FAMILY` explains why a lock edge and
+family membership are different questions). `trill skill install` remains the
+answer for a standalone user with no haus.
 
 Same install path as today: into each client's own skills dir
 (`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`), one entry

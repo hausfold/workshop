@@ -308,9 +308,12 @@ opening a fresh one each run.
 Two things about its repo list are deliberate and get "tidied" wrong:
 
 - **`DOCS_REPOS` is not `FAMILY`.** It adds `trill` and `hausfold.co` — repos
-  with docs and an audience but no flake input. Docs coverage and lock coverage
-  are different questions. `bench clone`/`pull` plant and refresh both for the
-  same reason; `try`/`try-batch`/`ship`/`status` still never walk them.
+  with docs and an audience that `FAMILY` doesn't cover. Docs coverage and lock
+  coverage are different questions. `bench clone`/`pull` plant and refresh both
+  for the same reason. `hausfold.co` has no flake input at all; `trill` has one
+  (`haus → trill`) without being family, so `try`/`try-batch` DO build it from a
+  local checkout while `ship`/`status` still don't walk its git state — see
+  bench's 🚨 by `FAMILY` for the three-list split.
 - **A missing checkout and an unswept repo look identical in the output**, so
   `docs-since` warns loudly for both (`no checkout at …`, and either
   `first sweep — no watermark, reading its FULL history` or `watermark … is gone
