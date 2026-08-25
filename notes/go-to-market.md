@@ -149,9 +149,14 @@ Everything the launch needs, and nothing else. Media policy is
 [`assets/SHOTLIST.md`](../assets/SHOTLIST.md) — docs stay text, media is
 marketing-only.
 
-- [ ] **The rice hero shot** — `haus/assets/hero.png` is still a
-      placeholder, and for a rice that one clean desktop *is* the pitch. This is
-      the single highest-leverage unfinished asset in the family.
+- [ ] **The desktop hero shot** — `haus/assets/hero.png` is still a
+      placeholder, and for a desktop that one clean frame *is* the pitch. Still
+      the highest-leverage unfinished asset here — but **its consumers are the
+      posts on this page, not a repo render**: measured 2026-08-25, nothing in
+      the family renders that file (haus's README is words alone, hausfold.co
+      has no `<img>` at that path). And the shipped frame isn't blank — it is
+      a good capture carrying the retired **nebelhaus** wordmark. Scene, staging and the capture command are in
+      [`launch-phase-1.md` §0](./launch-phase-1.md#0-before-you-invite-anyone).
 - [ ] **A 20-second silent workflow loop** — desktop → app hints → launch+tile →
       pounce command → `haus rebuild` → composed desktop. No voiceover, no
       soundtrack. Cut variants for pounce and for nebelung.

@@ -59,9 +59,54 @@ Nothing below works if a tester hits a wall on step one.
       `web/src/content/docs/guides/the-bar.mdx:128`; that whole tree was
       replaced by `hausfold.co/content/docs/` on 2026-08-14, and `.bak` appears
       nowhere in the current docs. Nothing to confirm and nothing to fix.
-- [ ] **Capture the rice hero shot** (`haus/assets/hero.png`). Not a
-      blocker for testers, but it's the asset every later phase waits on, and
-      it's a single good desktop away from done.
+- [ ] **Reshoot the desktop hero** (`haus/assets/hero.png`, 3024×1964, added
+      2026-07-09). Not a tester blocker. Two measurements, 2026-08-25, and both
+      change what this box is:
+
+      **It is not a placeholder — it is a good shot of a retired brand.** The
+      file already matches the scene (top bar, two tiled windows, Pounce
+      mid-search, nebelung grey). What dates it is the **nebelhaus** wordmark
+      and org in frame, plus `julienmartel@Mac`, an 8-day uptime and a 36%
+      battery. Under the naming rules in `AGENTS.md` that shot is now *wrong*,
+      not merely dense — a stronger reason to reshoot than "it's a placeholder"
+      ever was, and the reason nothing here should be tweaked instead.
+
+      **Nothing in the family renders it**, so a capture completes no wiring.
+      haus's README went to words alone on 2026-08-14 and
+      `haus/assets/README.md` says putting an image back "is a decision, not a
+      refresh"; hausfold.co has no `<img>` at that path anywhere (its
+      `/desktops` pages, which carried a frame each, were deleted into
+      `content/docs/haus/desktops/` on 2026-08-14 and the docs carry no
+      frames); org-profile never pointed at it. ⚠️ That same README still
+      claims these assets "stay because hausfold.co and the workshop draw from
+      them" — the hausfold.co half is now false, and it is a `haus` fix, not
+      one this file can make. The real consumers are the *launch posts*:
+      r/unixporn, the Show HN, the creator one-pager, the reel's poster frame
+      ([`go-to-market.md` §4](./go-to-market.md#4-the-finite-asset-list)).
+
+      **The scene**, quoted from [`assets/SHOTLIST.md`](../assets/SHOTLIST.md)
+      row 2, which is canonical and is also the whole of the 450-line shot
+      sheet that was deleted around it: *one clean tiled desktop — bar at the
+      top, two windows tiled, Pounce open mid-search, nebelung grey across
+      everything.* Its staging list is on the same page, and most of it is
+      already true here (accent is `pink`, gaps are default, `harvest` is off,
+      `bar.battery.hideOver = 80` hides the battery pill on mains). What isn't:
+
+      ```sh
+      haus set bar.items.aiUsage false bar.items.elgato false bar.bottom.enable false
+      screencapture -x -T 8 ~/hero.png   # then ⌘Space inside the delay
+      haus reset bar.items.aiUsage bar.items.elgato bar.bottom.enable
+      ```
+
+      `haus set` rebuilds itself and takes every pair in ONE rebuild, so that
+      is one command, not four. `bar.bottom.enable` is in there because this
+      machine runs a **second bar** the scene line doesn't account for — nine
+      more pills across the bottom of every frame. Left as a judgement call:
+      the `agents` and `github` pills stay in shot and show lane names and PR
+      counts. They read as the desktop working, not as leaked personal data,
+      but they are not on SHOTLIST's off-list either. `haus reset` is the undo
+      because it inherits the host file's values instead of pinning the old
+      ones into the writable overlay.
 
 ## 1. The eight, and what each one is for
 
@@ -76,7 +121,7 @@ taste, and taste isn't what this round buys.
 | 4 | Technical Mac user, no Nix | Whole house, then **deliberately break it and roll back** | `haus rollback` / `haus doctor` under a stranger's hands |
 | 5 | Mac user, no Nix | Import **only `windows`** into their own config | The "steal one room" claim |
 | 6 | Launcher/utility person | pounce via Homebrew, then author one command | The standalone door, and the funnel's core promise |
-| 7 | Theme person | Three nebelung ports | The taste door, and port instructions |
+| 7 | Theme person | Install three **existing** nebelung ports into tools they already use | The taste door. ⚠️ Not *authoring* three ports — `docs/install.md` and `docs/ports.md` are written for a stranger, but how to add a NEW port lives only in nebelung's `AGENTS.md`, which assumes an agent with a checkout. Authoring is a different mission and it needs a contributor doc first |
 | 8 | Any dev with a git repo | holt in a repo that isn't yours | The only door with no macOS prerequisite |
 
 Missions 6–8 need no Mac rebuild and no trust, so they're the easiest to recruit
@@ -111,6 +156,18 @@ gets reports.
 > making sense.
 >
 > 30–90 minutes, one narrow mission, short report form. Interested?
+
+**Missions 6–8 swap the middle paragraph.** The generic ask above is written for
+a whole-house install and oversells a 30-minute one; a small mission recruits
+better when the whole of it fits in a sentence and the first command is in the
+message. These three are ready to paste, and each one is a door that needs
+nothing of mine installed first:
+
+| # | The paragraph, and the command that goes with it |
+|---|---|
+| **6** | *pounce is a ⌘Space launcher for macOS — native, no Electron. Install it, live with it for a day, then write it one command of your own. What I need is where the command-authoring docs stop making sense.* → `brew tap hausfold/tap && brew install pounce && brew services start pounce` |
+| **7** | *nebelung is a silver-grey Catppuccin flavour with 54 ports. Pick three tools you actually use, install its port for each, and tell me which of the three fought you.* → [ports table](https://github.com/hausfold/nebelung/blob/main/docs/ports.md), [installing](https://github.com/hausfold/nebelung/blob/main/docs/install.md) |
+| **8** | *holt manages git worktrees for parallel coding agents — one branch, one checkout, one pane, from create to reaped. Use it on a repo of your own that has nothing to do with me. Linux is fine; there's no Mac in this one.* → `go install github.com/hausfold/holt/cmd/holt@latest`, or `nix run github:hausfold/holt` |
 
 Two rules for yourself: **don't watch, and don't rescue.** A tester you talk
 through the install teaches you nothing about the install. Answer after they
@@ -152,7 +209,12 @@ in one sweep.
 
 ## 5. Two weeks
 
-Dates assume a 2026-08-05 start; slide the whole block if it slips.
+⚠️ **This block never ran.** It was written for a 2026-08-05 start and no invite
+has been sent as of 2026-08-25 — the calendar below is a *shape* (clear §0, send
+all eight at once, then a hard no-help week, then S1s, then the gates), not a
+live schedule. Re-date it from the day the first invite actually goes out. What
+slid it is visible in §0: every box there closed by something being deleted or
+reversed rather than by the round starting.
 
 | Days | |
 |---|---|
