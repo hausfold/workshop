@@ -323,11 +323,15 @@ JSON
   local callers guards
   callers="$(grep -v '^\s*#' "$HAUS" | grep -c '\$(overrides)')"
   guards="$(grep -c '^\s*resolve_layer_input  ' "$HAUS")"   # the call sites, not the definition
-  # Three override sites (cmd_try, cmd_try_batch, activate_built), four guards —
-  # cmd_ship's is for `nix flake update "$input"`, which takes the name too. The
-  # equality that matters is the tripwire: a FOURTH override site trips this
-  # test, and whoever adds it has to come and read this comment.
-  [ "$callers" -eq 3 ]
+  # Four override sites now, behind three functions: cmd_try uses it TWICE —
+  # once for the build, once for the trill card's `--dry-run`, which has to see
+  # the same overridden inputs or it would measure the pinned build instead —
+  # plus cmd_try_batch and activate_built. Four guards, because cmd_try's one
+  # `resolve_layer_input` covers both of its sites and cmd_ship's is for `nix
+  # flake update "$input"`, which takes the name too. The count is the
+  # tripwire: a FIFTH override site trips this test, and whoever adds it has to
+  # come and read this comment.
+  [ "$callers" -eq 4 ]
   [ "$guards" -ge "$callers" ]
 }
 
