@@ -106,7 +106,14 @@ commit — even a pushed one — is **invisible downstream** until each downstre
 - `./bench overlap [--brief] [--path <f>]` — what the OTHER agent lanes on this
   repo have already changed, and where their edits and yours land in the same
   region of the same file. Measured from the shared object store rather than
-  declared, including the uncommitted work `git merge-tree` can't see. Run it at
+  declared, including the uncommitted work `git merge-tree` can't see — and
+  never crediting a side with what **main already landed into it**, which
+  matters because a squash merge leaves the merged lane's own commits
+  unreachable, so the merge base falls behind and every line that lane shipped
+  would otherwise read as work still in flight, for as long as the branch
+  exists. Only a side that CONTAINS main's commit has it subtracted: a lane
+  that never rebased did not inherit that work, so nothing of main's is in its
+  diff to take out. Run it at
   lane start, before a big edit to a shared file, and before every `gh pr
   create`. Advisory, refuses nothing; exit 0 clear · 3 same file · 4 same
   region. Flow: [`.agents/skills/earshot/SKILL.md`](./.agents/skills/earshot/SKILL.md),

@@ -1660,6 +1660,125 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
   [[ "$output" == *"rival"* ]]
 }
 
+@test "cmd_overlap stays quiet about a lane whose work was SQUASH-merged into main" {
+  # A squash merge lands the lane's work as a brand-new commit and leaves the
+  # lane's OWN commits unreachable from main — so `merge-base` keeps answering
+  # with the pre-merge commit for as long as the branch exists, and the reader,
+  # whose history contains the squash, measures that landed commit as its own
+  # work. Both sides then hold the same diff and "collide" over it. Before the
+  # M-block the merged lane claimed every line it had landed, forever, with an
+  # intent line quoting its merged commit and a landing order for a branch with
+  # nothing left to land — and it never aged out.
+  mkoverlap
+  # rival's line-10 edit lands on main as a squash: same content, new commit,
+  # rival's own commit not an ancestor of it.
+  setline "$OV/repo/doc.md" 10 10-rival
+  git -C "$OV/repo" commit -qam "squash: rival's line 10, as a new commit"
+  # The reader is cut from main AFTER the merge — the ordinary case, and the
+  # one that makes both sides carry the landed diff.
+  git -C "$OV/repo" worktree add -q -b worktree-after "$OV/lanes/after" main
+  setline "$OV/lanes/after/other.md" 1 mine
+  mkregistry "$WT_REGISTRY" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude" \
+    "after $OV/repo worktree-after $OV/lanes/after $OV/repo claude"
+  cd "$OV/lanes/after"
+  run cmd_overlap
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"doc.md"* ]]
+  [[ "$output" != *"lands first"* ]]
+}
+
+@test "cmd_overlap still sees a merged lane's UNMERGED commits" {
+  # The other half of the same seam: subtracting what main landed must not
+  # subtract what the lane kept doing afterwards — exactly the state `holt
+  # reship` exists for, commits made after the PR merged.
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-rival
+  git -C "$OV/repo" commit -qam "squash: rival's line 10, as a new commit"
+  # Line 13, not 11: three lines clear of the squashed hunk so it forms its own,
+  # and still inside the fuzz around snug's line 12. Adjacent to the landed hunk
+  # it would COALESCE into one range, and the test would then be passing on the
+  # coincidence that the merged range no longer matched, rather than on the
+  # lane's later work being kept.
+  setline "$OV/lanes/rival/doc.md" 13 13-rival-after
+  git -C "$OV/lanes/rival" commit -qam "rival: kept going after the merge"
+  cd "$OV/lanes/snug"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"rival"* ]]
+}
+
+@test "cmd_overlap does not subtract a lane's own edit that main happens to match" {
+  # Per-side, never global: an unrebased lane did not inherit main's commit, so
+  # none of main's work is in its diff to take out — and a global subtraction
+  # would delete this edit, because an independent change to the same line
+  # produces the very same base-side range.
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-from-main
+  git -C "$OV/repo" commit -qam "main: line 10, independently"
+  cd "$OV/lanes/snug"                       # snug edits line 12, rival line 10
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"rival"* ]]
+}
+
+@test "cmd_overlap still calls two lanes creating one new file a collision" {
+  # A whole-file add claims 0..HUGE on every side by construction, so a global
+  # subtraction would cancel this out exactly — and add/add is the case
+  # side_ranges calls the one this tool would otherwise be blindest to.
+  mkoverlap
+  echo from-main > "$OV/repo/new.md"
+  git -C "$OV/repo" add new.md
+  git -C "$OV/repo" commit -qm "main: adds new.md"
+  echo from-rival > "$OV/lanes/rival/new.md"
+  git -C "$OV/lanes/rival" add new.md
+  git -C "$OV/lanes/rival" commit -qm "rival: adds it too"
+  echo from-snug > "$OV/lanes/snug/new.md"
+  cd "$OV/lanes/snug"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  # The FINDING row, not a bare filename: the intent line quotes the lane's
+  # commit subject, so `*"new.md"*` alone is satisfied by the subject even when
+  # the row it is supposed to assert has been subtracted away. (Which is why
+  # the subject above no longer names the file either.)
+  [[ "$output" == *"new.md  the whole file"* ]]
+}
+
+@test "cmd_overlap reaches the merge-tree verdict even when the index is quiet" {
+  # The two signals are reported apart precisely so they can disagree, and the
+  # verdict used to sit past the empty-index `continue` — harmless only while
+  # they could not disagree in THIS direction. Subtracting landed ranges is
+  # what makes the index empty while merge-tree still conflicts: the reader
+  # carries main's change to a line an unrebased lane also edited, so the
+  # reader authored nothing, and the lane will still conflict with main. The
+  # failure mode was not a missed row but a printed "merge-tree: clean".
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-from-main    # main lands line 10; rival has its own
+  git -C "$OV/repo" commit -qam "main: line 10, landed"
+  git -C "$OV/repo" worktree add -q -b worktree-after "$OV/lanes/after" main
+  mkregistry "$WT_REGISTRY" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude" \
+    "after $OV/repo worktree-after $OV/lanes/after $OV/repo claude"
+  cd "$OV/lanes/after"                          # cut from main, nothing of its own
+  run cmd_overlap
+  [[ "$output" == *"none in your files"* ]]     # index quiet, correctly
+  [[ "$output" == *"merge-tree already conflicts"* ]]
+  [[ "$output" != *"merge-tree: clean"* ]]
+  [ "$status" -eq 4 ]
+}
+
+@test "cmd_overlap is unchanged when the merge base IS main's tip" {
+  # The no-op property the M-block leans on: cut from the current main, nothing
+  # sits between base and tip, the landed set is empty, and every finding is
+  # the one this tool reported before the block existed.
+  mkoverlap
+  cd "$OV/lanes/snug"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"rival"* ]]
+  [[ "$output" == *"doc.md"* ]]
+}
+
 @test "cmd_overlap refuses an argument it doesn't know rather than guessing" {
   run cmd_overlap --wat
   [ "$status" -eq 1 ]
