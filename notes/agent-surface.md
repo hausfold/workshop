@@ -294,12 +294,20 @@ skill, because a skill for an app you don't have is worse than none: the agent
 will confidently offer it.
 
 ⚠️ **This used to say trill is not one of those inputs. As of 2026-08-25 it
-is** — route B landed: haus takes trill as a flake input and `haus.trill.enable`
-is a real room, so `pkgs.trill-skill` is reachable and gates on that switch like
-every other. What stayed true is the narrower claim underneath: trill is still
-not in `bench`'s `FAMILY` (bench's 🚨 by `FAMILY` explains why a lock edge and
-family membership are different questions). `trill skill install` remains the
-answer for a standalone user with no haus.
+is** — route B landed the input: haus takes trill as a flake input and
+`haus.trill.enable` is a real room, so `pkgs.trill-skill` is finally *reachable*
+from haus. It is **not yet installed**: `modules/ai/tool-skills.nix` still lists
+only holt, and adding trill there has a wrinkle worth doing on purpose rather
+than in passing — that list is unconditional, while a skill for an app this
+machine doesn't have is worse than none (§4's own argument), and trill's flake
+outputs darwin systems only, so the check that proves the skill name is real
+would need gating before it can run on haus's Linux CI. Until that lands,
+`trill skill install` is still how the skill reaches a machine — and it remains
+the answer for a standalone user with no haus either way.
+
+What stayed true throughout is the narrower claim underneath: trill is still not
+in `bench`'s `FAMILY` (bench's 🚨 by `FAMILY` explains why a lock edge and family
+membership are different questions).
 
 Same install path as today: into each client's own skills dir
 (`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`), one entry
