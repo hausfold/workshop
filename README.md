@@ -18,9 +18,9 @@ nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your 
 theme        palette    layer    host file         darwin-rebuild
 ```
 
-That's the spine, not the whole graph: `perch` and `holt` are inputs of `haus`
-too, and `nebelung` is one a second time, directly rather than through pounce.
-Six edges in all — `bench`'s `EDGES` has the list.
+That's the spine, not the whole graph: `perch`, `trill` and `holt` are inputs of
+`haus` too, and `nebelung` is one a second time, directly rather than through
+pounce. Seven edges in all — `bench`'s `EDGES` has the list.
 
 A flake input is not "whatever's on GitHub right now" — it's one exact commit,
 frozen in `flake.lock`. That's what makes a rebuild reproducible, and it's the
@@ -75,8 +75,12 @@ Five repos share the lock chain above:
 - 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the silver-mist palette underneath all of it.
 - 🦦 [**holt**](https://github.com/hausfold/holt) — worktree lanes, so parallel coding agents never fight over a checkout.
 
-Four more ride along with no lock edge, so the ripple never walks them:
-🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor),
+🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor)
+is on the lock chain too, as an input of `haus`, without being family: `bench
+try` builds your trill branch and `bench ship` ripples its lock, while `bench
+status` and `ship` leave its git state alone. It lands through its own PRs.
+
+Three more ride along with no lock edge at all, so the ripple never walks them:
 🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you
 almost never touch it), ⌂ [hausfold.co](https://github.com/hausfold/hausfold.co)
 and 🐙 [org-profile](https://github.com/hausfold/.github). `bench clone` plants
