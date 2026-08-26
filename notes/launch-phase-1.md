@@ -59,54 +59,67 @@ Nothing below works if a tester hits a wall on step one.
       `web/src/content/docs/guides/the-bar.mdx:128`; that whole tree was
       replaced by `hausfold.co/content/docs/` on 2026-08-14, and `.bak` appears
       nowhere in the current docs. Nothing to confirm and nothing to fix.
-- [ ] **Reshoot the desktop hero** (`haus/assets/hero.png`, 3024×1964, added
-      2026-07-09). Not a tester blocker. Two measurements, 2026-08-25, and both
-      change what this box is:
+- [x] **Reshoot the desktop hero** — **shot and staged 2026-08-26**, replacing
+      the 2026-07-09 frame. It was never a placeholder: that file matched the
+      scene exactly and was retired for carrying the **nebelhaus** wordmark and
+      org, a username, an 8-day uptime and a 36% battery — wrong under
+      `AGENTS.md`'s naming rules rather than merely dense, which is why it was
+      reshot and not cropped.
 
-      **It is not a placeholder — it is a good shot of a retired brand.** The
-      file already matches the scene (top bar, two tiled windows, Pounce
-      mid-search, nebelung grey). What dates it is the **nebelhaus** wordmark
-      and org in frame, plus `julienmartel@Mac`, an 8-day uptime and a 36%
-      battery. Under the naming rules in `AGENTS.md` that shot is now *wrong*,
-      not merely dense — a stronger reason to reshoot than "it's a placeholder"
-      ever was, and the reason nothing here should be tweaked instead.
+      **The old frame could not have been reproduced anyway, and that is the
+      finding worth keeping.** zellij left `haus` on 2026-08-19
+      (`haus/notes/zellij-exit.md`), taking the tab bar, the `SPIRAL` badge and
+      the `Ctrl + <g> LOCK` hint strip that gave the old shot's left window all
+      of its structure. A Ghostty window **is** a pane now, tiled by the
+      `windows` room, so a bare shell reads as an empty rectangle. What
+      replaces that chrome is a TUI: the shipped frame runs lazygit over an
+      unstaged `haus.focus.scenes` tree in `~/.config/nix`, which turns the
+      largest panel in the shot into the option surface itself. Two lessons
+      priced on the way: lazygit's **Log/Commits** panel renders
+      `Author: … <email>` and is disqualifying for a public asset — its
+      **Files** panel is not; and a ~34-column pane wraps anything past ~40
+      characters, so the config being shown off has to be written short.
 
-      **Nothing in the family renders it**, so a capture completes no wiring.
-      haus's README went to words alone on 2026-08-14 and
-      `haus/assets/README.md` says putting an image back "is a decision, not a
-      refresh"; hausfold.co has no `<img>` at that path anywhere (its
-      `/desktops` pages, which carried a frame each, were deleted into
-      `content/docs/haus/desktops/` on 2026-08-14 and the docs carry no
-      frames); org-profile never pointed at it. ⚠️ That same README still
-      claims these assets "stay because hausfold.co and the workshop draw from
-      them" — the hausfold.co half is now false, and it is a `haus` fix, not
-      one this file can make. The real consumers are the *launch posts*:
-      r/unixporn, the Show HN, the creator one-pager, the reel's poster frame
-      ([`go-to-market.md` §4](./go-to-market.md#4-the-finite-asset-list)).
+      The other half is Zen on `github.com/hausfold`, grey and pink because
+      `github` is in `haus.zen.userStyles` — the one element that proves the
+      palette crosses the terminal-to-GUI boundary. Pounce sits mid-search on
+      **Spawn Agent**, a command rather than an app, which is the row that
+      advertises the lane workflow.
 
-      **The scene**, quoted from [`assets/SHOTLIST.md`](../assets/SHOTLIST.md)
-      row 2, which is canonical and is also the whole of the 450-line shot
-      sheet that was deleted around it: *one clean tiled desktop — bar at the
-      top, two windows tiled, Pounce open mid-search, nebelung grey across
-      everything.* Its staging list is on the same page, and most of it is
-      already true here (accent is `pink`, gaps are default, `harvest` is off,
-      `bar.battery.hideOver = 80` hides the battery pill on mains). What isn't:
+      **The staging list in `SHOTLIST.md` is a trap now, and was not run.**
+      `haus set bar.bottom.enable false` does **not** remove the eight pills
+      that live down there: `modules/bar/default.nix:1254` wraps `bottomGroup`
+      in `lib.optionals cfg.bottom.enable`, so `bottomItems` goes empty and the
+      menu-bar filter — `name: elem name liveWidgets && !(elem name
+      bottomItems)` — lets every one of them back onto the top bar. Turning the
+      second bar off *collapses two bars into one crowded one*. To actually
+      thin the frame you switch the pills off in `haus.bar.items` as well:
 
       ```sh
-      haus set bar.items.aiUsage false bar.items.elgato false bar.bottom.enable false
-      screencapture -x -T 8 ~/hero.png   # then ⌘Space inside the delay
-      haus reset bar.items.aiUsage bar.items.elgato bar.bottom.enable
+      haus set bar.bottom.enable false \
+        bar.items.aiUsage false bar.items.elgato false \
+        bar.items.cpu false bar.items.memory false \
+        bar.items.calendar false bar.items.caffeinate false
+      # …shoot…
+      haus reset bar.bottom.enable bar.items.aiUsage bar.items.elgato \
+        bar.items.cpu bar.items.memory bar.items.calendar bar.items.caffeinate
       ```
 
-      `haus set` rebuilds itself and takes every pair in ONE rebuild, so that
-      is one command, not four. `bar.bottom.enable` is in there because this
-      machine runs a **second bar** the scene line doesn't account for — nine
-      more pills across the bottom of every frame. Left as a judgement call:
-      the `agents` and `github` pills stay in shot and show lane names and PR
-      counts. They read as the desktop working, not as leaked personal data,
-      but they are not on SHOTLIST's off-list either. `haus reset` is the undo
-      because it inherits the host file's values instead of pinning the old
-      ones into the writable overlay.
+      ⚠️ **Two things in the frame are this machine, not the desktop.**
+      `haus.zen.userStyles` defaults to `[ ]` and `haus.bar.bottom.enable` to
+      `false`, and `haus`'s `desktops/hacker.nix` sets neither — so a fresh
+      install has an unthemed browser and one bar, not a themed GitHub and two.
+      The launch-post copy has to say so, or the first reply under it is "I
+      installed it and it doesn't look like that."
+
+      **The shipped frame ran none of it** — both bars are on, the battery
+      reads 73% and the clock is not 9:41. A deliberate call: the shot is for
+      launch posts, and a desktop visibly doing work sells better than a
+      staged one. The judgement call this box used to leave open — whether the
+      `agents` and `github` pills stay in shot — is answered the same way, in
+      the affirmative. `haus reset` remains the undo, because it inherits the
+      host file's values instead of pinning the old ones into the writable
+      overlay.
 
 ## 1. The eight, and what each one is for
 
