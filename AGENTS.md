@@ -98,10 +98,15 @@ commit — even a pushed one — is **invisible downstream** until each downstre
   activation is machine-wide and serial and N parallel agents would overwrite
   each other. A person at the keyboard just runs it. Every switch leaves a
   receipt `bench status` reads back; `bench rebuild` puts the pinned build back
-  and clears it. Both draw **one trill card that fills up** while they build —
-  counted off the store, so nix keeps its own bar on the terminal; nothing to
-  build means no card at all, and no trill installed means nothing happens.
-  `BENCH_NO_BANNER=1` turns it off.
+  and clears it. `rebuild` draws **one trill card that fills up** while it
+  builds — counted off the store, so nix keeps its own bar on the terminal;
+  nothing to build means no card at all, and no trill installed means nothing
+  happens. `BENCH_NO_BANNER=1` turns it off. **`try` draws one only under
+  `BENCH_BANNER=1`**: its `--override-input` leaves the flake unlocked, nix's
+  eval cache is keyed on a fingerprint that is null the moment any input is, so
+  the card's `--dry-run` is a second FULL eval (4-9s measured, against 0.05s for
+  the locked shape `rebuild` uses) — which would double a no-op `try` for a
+  banner nobody asked for.
 - `./bench try-batch [switch] [repo…]` — merges every **open PR** onto a
   throwaway integration tree per repo, overrides the flake at those trees, and
   builds/activates the whole queue in ONE rebuild, main untouched. Ends with a
