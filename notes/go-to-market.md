@@ -158,13 +158,24 @@ Everything the launch needs, and nothing else. Media policy is
 [`assets/SHOTLIST.md`](../assets/SHOTLIST.md) — docs stay text, media is
 marketing-only.
 
-- [ ] **The desktop hero shot** — `haus/assets/hero.png` is still a
-      placeholder, and for a desktop that one clean frame *is* the pitch. Still
-      the highest-leverage unfinished asset here — but **its consumers are the
-      posts on this page, not a repo render**: measured 2026-08-25, nothing in
-      the family renders that file (haus's README is words alone, hausfold.co
-      has no `<img>` at that path). And the shipped frame isn't blank — it is
-      a good capture carrying the retired **nebelhaus** wordmark. Scene, staging and the capture command are in
+- [x] **The desktop hero shot** — **shot 2026-08-26 and shipped** as
+      `haus/assets/hero.png` (haus#523), replacing the 2026-07-09 frame. It was
+      never a placeholder: that file was a good capture of a dead brand — it
+      matched the scene exactly and was retired for carrying the retired
+      **nebelhaus** wordmark, which is why it was reshot and not cropped.
+
+      ⚠️ **Two things in the shipped frame are the shooter's host file, not a
+      fresh `hacker` install.** The themed GitHub panel is
+      `haus.zen.userStyles` and the second bar is `haus.bar.bottom.enable`;
+      both default off and `desktops/hacker.nix` sets neither, so a fresh
+      install has an unthemed browser and one bar. **Any copy on this
+      page that leads with this image has to say so** — otherwise the first
+      reply is "I installed it and it doesn't look like that."
+
+      Its consumers are those posts, not a repo render: measured 2026-08-25,
+      nothing in the family renders that file (haus's README is words alone,
+      hausfold.co has no `<img>` at that path). Scene, staging and the capture
+      command are in
       [`launch-phase-1.md` §0](./launch-phase-1.md#0-before-you-invite-anyone).
 - [ ] **A 20-second silent workflow loop** — desktop → app hints → launch+tile →
       pounce command → `haus rebuild` → composed desktop. No voiceover, no
