@@ -229,7 +229,12 @@ hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
 # and by macOS's own banner when it doesn't. The bundle is resolved at call
 # time rather than through a `trill` on PATH, for the same reason the nix
 # prelude above exists: nothing guarantees this script was invoked from a login
-# shell. $TRILL_APP overrides where to look, for a branch build.
+# shell. $TRILL_APP overrides where to look, for a branch build — *overrides*,
+# not "is tried first": set, it is the only candidate. Otherwise a Mac with a
+# real /Applications/Trill.app can never be told to look somewhere else, and
+# the test that asks "what happens with no Trill.app at all" is unrunnable on
+# exactly the machines this code ships to (it fails on any Mac with trill
+# installed, and passed in CI only because CI has none).
 #
 # `--source bench.<verb>` is what `~/.config/trill/rules.json` matches on, so
 # "tell me about releases but not batches" is a rule rather than a flag nobody
@@ -246,9 +251,9 @@ hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
 notify() {
   [ "${BENCH_NOTIFY:-auto}" = "off" ] && return 0
   local kind="$1" title="$2" body="$3" bin=""
-  local candidate
-  for candidate in "${TRILL_APP:-}" "$HOME/Applications/Trill.app" "/Applications/Trill.app"; do
-    [ -n "$candidate" ] || continue
+  local candidate candidates=("$HOME/Applications/Trill.app" "/Applications/Trill.app")
+  [ -n "${TRILL_APP:-}" ] && candidates=("$TRILL_APP")
+  for candidate in "${candidates[@]}"; do
     if [ -x "$candidate/Contents/MacOS/Trill" ]; then bin="$candidate/Contents/MacOS/Trill"; break; fi
   done
   if [ -n "$bin" ] && "$bin" send --source "bench.${BENCH_NOTIFY_SOURCE:-run}" \
