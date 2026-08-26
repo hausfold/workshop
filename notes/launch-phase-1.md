@@ -121,7 +121,7 @@ Nothing below works if a tester hits a wall on step one.
       host file's values instead of pinning the old ones into the writable
       overlay.
 
-## 1. The eight, and what each one is for
+## 1. The missions, and what each one is for
 
 One tester, one mission. Never "have a look around" — an unscoped tester reports
 taste, and taste isn't what this round buys.
@@ -132,14 +132,40 @@ taste, and taste isn't what this round buys.
 | 2 | Existing Nix user | Whole house, then migrate the host file to a second machine | Reproducibility is real, not local |
 | 3 | Technical Mac user, no Nix | Whole house, cold | The hard one. Every assumption you can't see |
 | 4 | Technical Mac user, no Nix | Whole house, then **deliberately break it and roll back** | `haus rollback` / `haus doctor` under a stranger's hands |
-| 5 | Mac user, no Nix | Import **only `windows`** into their own config | The "steal one room" claim |
+| 5 | Nix user who doesn't want the whole desktop | Import **only `windows`** into their own config | The "steal one room" claim |
 | 6 | Launcher/utility person | pounce via Homebrew, then author one command | The standalone door, and the funnel's core promise |
 | 7 | Theme person | Install three **existing** nebelung ports into tools they already use | The taste door. ⚠️ Not *authoring* three ports — `docs/install.md` and `docs/ports.md` are written for a stranger, but how to add a NEW port lives only in nebelung's `AGENTS.md`, which assumes an agent with a checkout. Authoring is a different mission and it needs a contributor doc first |
 | 8 | Any dev with a git repo | holt in a repo that isn't yours | The only door with no macOS prerequisite |
+| 9 | **Non-technical** Mac user | perch from the release zip — no Homebrew, no Terminal | The only door with no command line at all, and [`go-to-market.md`](./go-to-market.md) door 5, which had no tester |
 
-Missions 6–8 need no Mac rebuild and no trust, so they're the easiest to recruit
-and the fastest to report. Start there if recruiting stalls — a completed small
+Missions 6–9 need no Mac rebuild, and 6–8 ask for no trust either, so they're the
+easiest to recruit and the fastest to report. **9 does ask for trust** — dragging
+an unvetted zip into Applications is precisely the ask — which is why its report
+is the most valuable of the four and the one to read first. Start there if recruiting stalls — a completed small
 mission is worth more than a promised big one.
+
+**Nine missions, still eight testers.** Row 9 was added 2026-08-26 because a
+volunteer turned up for it and because perch is a launch door with nobody walking
+through it. The target in the header didn't move: 8 testers, 4 whole-house
+installs — and **rows 1–4 _are_ that target**, one for one, so none of them is
+ever the row to drop. If only eight people show up, the odd one out has to come
+out of the doors (5–9), and which door goes unrun is a launch-order question for
+[`go-to-market.md`](./go-to-market.md), not a testing one. Don't answer it here.
+
+**Placed so far** — two of nine, as of 2026-08-26.
+
+⚠️ **The names live in [`hausfold/ops`](https://github.com/hausfold/ops), never
+in this file.** The workshop is public. Someone who agreed to try something for
+you did not agree to be described, by name, in a repo strangers read — and
+"semi-technical" or "non-technical" is a characterisation, not a fact about
+software. Keep the roster in `ops`; keep here only what changes the plan:
+
+| # | What placing it changed |
+|---|---|
+| 6 | Placed — with a tester who has already run standalone pounce for months. ⚠️ **The install half of this mission is spent**: nobody can re-walk a door they're already through. Scope the ask to *authoring one command*, the half §1 calls the funnel's core promise, and get the install half retroactively — how did you install it, did anything fight you, did you know it was a formula and not a cask. This moves a §4 gate; see the note there |
+| 9 | Placed, and the reason row 9 exists at all — the volunteer wants perch for its own sake rather than as a favour, which makes him worth more than a recruited tester: he has a reason to still have it open a month later, and that's the only way you learn whether it survives past the novelty |
+
+Seven slots open. Of the three §5 wants placed first — 3, 6, 8 — one is done.
 
 **Ask for a desktop.** Anyone completing missions 1–5 has, by definition, a host
 file. Ask them for the `haus.*` part of it as a shareable desktop — the format is
@@ -170,17 +196,34 @@ gets reports.
 >
 > 30–90 minutes, one narrow mission, short report form. Interested?
 
-**Missions 6–8 swap the middle paragraph.** The generic ask above is written for
-a whole-house install and oversells a 30-minute one; a small mission recruits
-better when the whole of it fits in a sentence and the first command is in the
-message. These three are ready to paste, and each one is a door that needs
-nothing of mine installed first:
+**Every mission swaps the middle paragraph.** Keep the opening, the *useful part
+isn't whether you like it* line and the closing ask — that frame is what makes it
+read as a personal request. Replace only the middle. The generic middle above
+describes a whole-house install and oversells a 30-minute one, so nobody should
+receive it verbatim.
+
+**1–5 are rebuilds**: they cost a real afternoon on a real Mac, so the paragraph
+has to say what it costs and stay honest about the blast radius. **6–9 are
+doors**: the whole of the mission fits in a sentence, the first command rides
+along in the message, and none of them needs anything of mine installed first.
 
 | # | The paragraph, and the command that goes with it |
 |---|---|
+| **1** | *You already run nix-darwin, which is exactly why I want you. haus is a layer of options on top of it, not a replacement for it, and I have never once watched it land on a config that already had opinions. Secondary Mac, please — not the one you work on.* → `curl -fsSL https://hausfold.co/hacker.sh \| bash` |
+| **2** | *Two Macs, one host file. Install it on the first, then carry the file to the second and tell me whether you got the same desktop or merely a similar one. Reproducible-off-my-hardware is the claim I can't test alone, and you're the kind of person who can call the bluff.* → same one-liner, then [Creating a desktop](https://hausfold.co/docs/haus/desktops/creating) |
+| **3** | *You've never touched Nix and that is the entire point. One command, a Mac you can afford to reshape, and a note every single time you had to guess what something meant. I won't be there while you do it — that's deliberate, and the notes are the whole deliverable.* → `curl -fsSL https://hausfold.co/hacker.sh \| bash` |
+| **4** | *Install it, then break it on purpose — bad option, wrong value, whatever looks most fragile to you — and get yourself back out with `haus rollback`. What I need to know is whether the undo works in hands that didn't write it. Breaking it is the mission, not an accident.* → `curl -fsSL https://hausfold.co/hacker.sh \| bash`, then `haus rollback` and `haus doctor` |
+| **5** | *Don't install my desktop. Take one room out of it — `windows`, the tiling — into the config you already have, and tell me whether "steal one room" is a real claim or a slogan I should stop making.* → [Creating a desktop](https://hausfold.co/docs/haus/desktops/creating) |
 | **6** | *pounce is a ⌘Space launcher for macOS — native, no Electron. Install it, live with it for a day, then write it one command of your own. What I need is where the command-authoring docs stop making sense.* → `brew tap hausfold/tap && brew install pounce && brew services start pounce` |
 | **7** | *nebelung is a silver-grey Catppuccin flavour with 54 ports. Pick three tools you actually use, install its port for each, and tell me which of the three fought you.* → [ports table](https://github.com/hausfold/nebelung/blob/main/docs/ports.md), [installing](https://github.com/hausfold/nebelung/blob/main/docs/install.md) |
 | **8** | *holt manages git worktrees for parallel coding agents — one branch, one checkout, one pane, from create to reaped. Use it on a repo of your own that has nothing to do with me. Linux is fine; there's no Mac in this one.* → `go install github.com/hausfold/holt/cmd/holt@latest`, or `nix run github:hausfold/holt` |
+| **9** | *perch is a little shelf that lives in the notch at the top of your screen — you drag files onto it, they wait there, you drag them out somewhere else. There's no Terminal in this one: download the zip, unzip it, drag it into Applications. Tell me every moment you weren't sure what to click, including the macOS warnings — especially those.* → [latest release](https://github.com/hausfold/perch/releases/latest), the `perch-…-macos.zip` file |
+
+⚠️ **Mission 9 gets the zip, not the cask.** perch ships both, and
+`brew tap hausfold/tap && brew install --cask perch` is the faster instruction for anyone who already has
+Homebrew — which is exactly why it's the wrong one here. A tester who opens a
+terminal isn't testing the door that a non-technical Mac user actually walks
+through, and that door has never been walked by anyone but you.
 
 Two rules for yourself: **don't watch, and don't rescue.** A tester you talk
 through the install teaches you nothing about the install. Answer after they
@@ -210,8 +253,15 @@ in one sweep.
 ## 4. Exit gates — all must be true before anything goes public
 
 - [ ] 4 whole-house installs completed by people who don't own your machine
-- [ ] pounce installed cleanly by at least one non-Nix user
+- [ ] pounce installed cleanly by at least one non-Nix user — ⚠️ **mission 6's
+      tester can't clear this**, he installed it months ago (§1). A retrospective
+      account clears it only if he can still name the command he ran; otherwise
+      this gate needs a second, cold pounce tester and mission 6 keeps only the
+      authoring half
 - [ ] holt used successfully in a repo that isn't in this family
+- [ ] **perch installed by someone who never opened a Terminal** — from the
+      release zip, not the cask (§1 row 9). It is door 5 in `go-to-market.md`;
+      without this the launch has no evidence for a whole door
 - [ ] rollback exercised by someone other than you, successfully
 - [ ] zero open S1s
 - [ ] the top five S2 questions answered in the docs, not in DMs
