@@ -221,28 +221,15 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [ "$output" = "$ROOT/haus" ]
 }
 
-# ⏳ The scruff arm, and the only place `holt` still means anything to bench.
-# The repo renamed on 2026-08-27; the checkout waits for a tree with no live
-# lane holding an absolute gitdir into it. Three cases, and the ORDER is the
-# contract: prefer the new dir, fall back to the old one only while it is the
-# one on disk, and plant the NEW name on a machine that has neither. Delete
-# this test with the arm.
-
-@test "repo_dir prefers the new scruff checkout when it exists" {
-  mkdir -p "$ROOT/scruff/.git" "$ROOT/holt/.git"
+@test "repo_dir resolves scruff to \$ROOT/scruff, checkout or not" {
+  # The 2026-08-27 `hausfold/holt` → `hausfold/scruff` rename moved the
+  # directory too, so there is no arm here any more and the answer does not
+  # depend on what is on disk. `bench clone` builds its destination from this,
+  # so a fresh machine must never be handed the old directory name.
   run repo_dir scruff
   [ "$output" = "$ROOT/scruff" ]
-}
 
-@test "repo_dir falls back to the holt checkout while that is the one on disk" {
-  mkdir -p "$ROOT/holt/.git"
-  run repo_dir scruff
-  [ "$output" = "$ROOT/holt" ]
-}
-
-@test "repo_dir plants the new name on a machine with neither checkout" {
-  # `bench clone` builds its destination from this, so a fresh machine must
-  # never be handed the old directory name.
+  mkdir -p "$ROOT/scruff/.git"
   run repo_dir scruff
   [ "$output" = "$ROOT/scruff" ]
 }
