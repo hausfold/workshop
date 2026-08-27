@@ -24,10 +24,10 @@ setup() {
   # 1.10 that cd outlives the test body — leaving bats' own cleanup standing in
   # a directory it is about to delete.
   BATS_SAVED_PWD="$PWD"
-  # And HOME, for the same reason: the notify tests below point it at a
-  # non-existent dir to hide the ~/Applications candidate, and on bats-core
-  # 1.10 (Ubuntu CI) that mutation outlives the test body — into a cleanup that
-  # is entitled to a real HOME.
+  # And HOME, for the same reason: the notify tests below repoint it — at a
+  # non-existent dir to hide the ~/Applications candidate, or at a fixture that
+  # PROVIDES one — and on bats-core 1.10 (Ubuntu CI) that mutation outlives the
+  # test body, into a cleanup that is entitled to a real HOME.
   BATS_SAVED_HOME="$HOME"
   # A consumer fixture, so nothing here reads the machine's real ~/.config/nix —
   # layer_input() would, and on a dev Mac it would even answer correctly, which
@@ -2126,16 +2126,32 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
 # The fixtures replace both renderers: a fake Trill.app whose binary records its
 # argv, and an `osascript` on PATH that records that it ran at all.
 
-mktrill() { # mktrill <exit-code> — a Trill.app whose CLI logs its argv and exits <code>
-  local app="$TMP/Trill.app/Contents/MacOS"
+mktrill_at() { # mktrill_at <app-bundle> <exit-code> — a Trill.app whose CLI logs its argv
+  local app="$1/Contents/MacOS"
   mkdir -p "$app"
   cat >"$app/Trill" <<EOF
 #!/bin/sh
 printf '%s\n' "\$*" >>"$TMP/trill.log"
-exit ${1:-0}
+exit ${2:-0}
 EOF
   chmod +x "$app/Trill"
+}
+
+mktrill() { # mktrill <exit-code> — the fixture app, pointed at by TRILL_APP
+  mktrill_at "$TMP/Trill.app" "${1:-0}"
   export TRILL_APP="$TMP/Trill.app"
+}
+
+mkhometrill() { # the same app, at a FAKE $HOME/Applications — for the TRILL_APP-unset path
+  # With TRILL_APP unset the candidates are ("$HOME/Applications/Trill.app"
+  # "/Applications/Trill.app"), and the second is a real, executable app on
+  # every machine this ships to. So such a test cannot just point HOME at an
+  # empty dir: it falls through to the developer's OWN trill and fires a genuine
+  # banner (source bench.run, since no call site's BENCH_NOTIFY_SOURCE is in
+  # play) while still asserting `status -eq 0` and staying green. Planting the
+  # fixture at the FIRST candidate exercises the unset path and is hermetic.
+  HOME="$TMP/fakehome"
+  mktrill_at "$HOME/Applications/Trill.app" 0
 }
 
 mkosascript() {
@@ -2169,8 +2185,9 @@ EOF
 }
 
 @test "notify falls back when there is no Trill.app at all" {
+  # TRILL_APP *overrides* the candidate list rather than heading it, so this IS
+  # the whole set — there is no ~/Applications left to neutralise with HOME.
   export TRILL_APP="$TMP/nowhere.app"
-  HOME="$TMP/nohome"          # so the ~/Applications candidate misses too
   mkosascript
   notify "note" "a title" "a body"
   run cat "$TMP/osascript.log"
@@ -2179,10 +2196,13 @@ EOF
 
 @test "notify with TRILL_APP unset does not die under set -u" {
   unset TRILL_APP
-  HOME="$TMP/nohome"
+  mkhometrill      # found before /Applications, so the machine's real trill never fires
   mkosascript
   run notify "note" "t" "b"
   [ "$status" -eq 0 ]
+  run cat "$TMP/trill.log"
+  [[ "$output" == *"--source bench.run"* ]]     # the default source, no call site setting it
+  [ ! -f "$TMP/osascript.log" ]                 # ~/Applications is a real candidate, not a miss
 }
 
 @test "BENCH_NOTIFY=off draws nothing through either renderer" {
@@ -2213,6 +2233,8 @@ EOF
   # The bug the argv form fixes: interpolated, this ends the AppleScript string
   # early. Checked on the trill side, where the argv is recoverable.
   mktrill 0
+  mkosascript   # unreachable while trill exits 0 — and the fixture is what keeps
+                # a regression in that path off the machine's real osascript
   BENCH_NOTIFY_SOURCE=release notify "done" 'a "quoted" tag' 'body with " in it'
   run cat "$TMP/trill.log"
   [[ "$output" == *'a "quoted" tag'* ]]
