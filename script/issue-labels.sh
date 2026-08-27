@@ -41,7 +41,7 @@ mapfile -t REPOS < <(
 #
 # Only THREE are ours. `bug` ships with every GitHub repo and already means the
 # right thing, so it is deliberately absent — restyling a default label is churn
-# on nine repos that buys nothing.
+# on ten repos that buys nothing.
 LABELS=(
   "triage|f5b58e|Not looked at yet. Every bug and idea starts here; a maintainer takes it off."
   "idea|c9a8f1|Something we could do. Not a commitment."

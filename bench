@@ -160,6 +160,13 @@ FAMILY=(nebelung pounce perch holt haus)
 # OVERRIDABLE and in EDGES, and deliberately not here. trill's own AGENTS.md
 # says "don't add trill to bench's FAMILY"; that line is still right, and this
 # is why it costs nothing.
+#
+# `snug` (2026-08-27) is the SECOND repo on that footing, which is what turns
+# trill from an exception into the rule. It is the terminal-presentation runtime
+# `docs/cli-presentation.md` specifies — a Go package the family imports and one
+# binary the bash callers drive — so the layer takes it as an input and ships it
+# on PATH, and its lock edge has to ripple. bench still does not walk it: it
+# lands through its own PRs. OVERRIDABLE + EDGES + DOCS_REPOS, not here.
 
 # The org every checkout here came from, since the 2026-08-09 transfer. Pair it
 # with `gh_repo` below: a checkout's directory name is not always its repo name,
@@ -178,7 +185,13 @@ GH_ORG="hausfold"
 # Xcode app in the list, so it gets the same dev-app treatment perch does —
 # `ensure_trill_dev_app` builds a signed .app in your login session and injects
 # it through trill's `prebuilt` input.
-OVERRIDABLE=(nebelung pounce perch holt haus trill)
+#
+# snug is here on trill's footing (not in FAMILY) but needs none of that
+# machinery: it is a plain Go flake that builds from source in Nix on every
+# platform, so a bare `--override-input` is the whole story. `bench try` from a
+# snug worktree builds your branch of the library the family's output goes
+# through.
+OVERRIDABLE=(nebelung pounce perch holt haus trill snug)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -493,13 +506,15 @@ EDGES=(
   "haus perch perch"
   "haus scruff holt"
   "haus trill trill"
+  "haus snug snug"
   "consumer @layer haus"
 )
 
-# The lock SOURCES that aren't in FAMILY — today just trill (see the 🚨 block by
-# FAMILY for why it isn't there). Derived from EDGES rather than typed out, so
+# The lock SOURCES that aren't in FAMILY — trill and snug (see the 🚨 block by
+# FAMILY for why neither is there). Derived from EDGES rather than typed out, so
 # it cannot drift from the graph it describes: a hand-kept fourth list is the
-# thing this whole comment is trying to stop happening again.
+# thing this whole comment is trying to stop happening again, and adding snug
+# cost this line a word rather than an edit.
 #
 # What it's for: every place that has to be true of a repo whose HEAD a lock
 # POINTS AT, as opposed to a repo bench manages. The ship chain's
@@ -827,7 +842,8 @@ overrides() { # every family input redirected at the local checkouts
         --override-input $layer/pounce path:$(local_src pounce) \
         --override-input $layer/perch path:$(local_src perch)$perch_prebuilt \
         --override-input $layer/trill path:$(local_src trill)$trill_prebuilt \
-        --override-input $layer/scruff path:$(local_src holt)"
+        --override-input $layer/scruff path:$(local_src holt) \
+        --override-input $layer/snug path:$(local_src snug)"
 }
 
 # perch is the one family repo Nix can't build from source: it's an Xcode project
@@ -1674,9 +1690,9 @@ cmd_ship() {
   #
   # "${LOCK_ONLY[@]}" is why this loop is not just FAMILY: a repo whose HEAD an
   # edge READS has to be current here for exactly the reason above, whether or
-  # not bench walks it otherwise. trill is the first such repo, and it is the
-  # likeliest to be behind — it isn't on the ship chain, so nothing else in this
-  # verb ever touches its checkout.
+  # not bench walks it otherwise. trill and snug are those repos, and they are
+  # the likeliest to be behind — neither is on the ship chain, so nothing else
+  # in this verb ever touches their checkouts.
   for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
@@ -1836,11 +1852,14 @@ cmd_pull() {
   # want a fresh local checkout: `bench status` diffs them, and a stale
   # homebrew-tap clone hides cask/formula bumps CI already pushed (the
   # "released but not installed" trap). Superset of cmd_ship's repo set.
-  # trill + hausfold.co ride along too: bench plants both checkouts (cmd_clone)
-  # and the docs sweep reads both (DOCS_REPOS), so a stale local copy makes the
-  # sweep reconcile yesterday's tree — and hausfold.co is the one repo here whose
-  # deploys happen on push, so stale there is a live-site footgun. Both stay out
-  # of FAMILY — neither is a flake input.
+  # trill, snug + hausfold.co ride along too: bench plants all three checkouts
+  # (cmd_clone) and the docs sweep reads all three (DOCS_REPOS), so a stale local
+  # copy makes the sweep reconcile yesterday's tree — and hausfold.co is the one
+  # repo here whose deploys happen on push, so stale there is a live-site
+  # footgun. All three stay out of FAMILY, but no longer for one reason: trill
+  # and snug ARE flake inputs (see the 🚨 by FAMILY), so a stale checkout of
+  # either also makes `bench status` read a behind HEAD and call a landed rev
+  # unshipped. hausfold.co is the only one here with no flake edge at all.
   #
   # It is spelled `hausfold.co`, and it must stay spelled in full. Between
   # §3.3's step 4 and §10 the layer's checkout was `$ROOT/hausfold`, one dot
@@ -1848,7 +1867,7 @@ cmd_pull() {
   # SAME name in this array twice and had `bench pull` fast-forward one checkout
   # under the other's identity. §10 moved the layer to `$ROOT/haus` and the two
   # names no longer share a prefix — which removes the trap, not the rule.
-  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co consumer)
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug hausfold.co consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
   if [ "$#" -gt 0 ]; then
@@ -2431,8 +2450,8 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # two repos that carry docs without carrying a lock edge, and `ops`.
 #
 # 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.
-# `trill` and `hausfold.co` are deliberately outside `FAMILY` — but both have a
-# README, in-repo docs
+# `trill`, `snug` and `hausfold.co` are deliberately outside `FAMILY` — but all
+# three have a README, in-repo docs
 # and a live audience, so a sweep that skips them reports their docs clean for
 # as long as the omission lasts — silently, because a repo with no arm looks
 # exactly like a repo with nothing to say. trill was in that state from its
@@ -2443,14 +2462,17 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # walk them", which stopped being true for trill the day it became one. trill is
 # still not in FAMILY and ship still never walks it — but it IS overridable and
 # IS a lock source now (see the 🚨 by FAMILY), so that reasoning lives there and
-# this list keeps only its own. hausfold.co is unchanged: no flake input at all.
+# this list keeps only its own. snug arrived (2026-08-27) already on trill's
+# footing — overridable, a lock source, not FAMILY — and is here because its
+# AGENTS.md and README carry the half of `docs/cli-presentation.md` that says
+# how a line is DRAWN. hausfold.co is unchanged: no flake input at all.
 #
 # 🔒 `ops` is the PRIVATE one, and it is in this list on a ONE-WAY basis: the
 # sweep reconciles the files in it, and may never carry a line out of it into a
 # public repo. It holds the name register, the gap list and real people's names.
 # It has no flake edge and nothing to build, so it appears here and nowhere else
 # in bench except `clone`.
-DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co ops)
+DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug hausfold.co ops)
 
 # Two watermarks per repo, and the GAP between them is the whole point:
 #
@@ -2704,11 +2726,17 @@ cmd_clone() {
     fi
   done
 
-  # trill and hausfold.co are the odd ones out: same org as everything above, but
-  # neither is a flake input, so try/try-batch/ship must never walk them and they
-  # stay out of FAMILY. The workshop dir is still where they live, and the docs
-  # sweep reads them (DOCS_REPOS), so clone them here — a repo the sweep can't
-  # open is a blind spot it reports as clean.
+  # trill, snug and hausfold.co are the odd ones out: same org as everything
+  # above, none of them in FAMILY, so `bench status`/`ship` never walk their git
+  # state. That used to read "neither is a flake input"; it stopped being true
+  # for trill and is not true for snug either — both are inputs of the layer and
+  # both are lock SOURCES, which is a different question from FAMILY membership
+  # (the 🚨 by FAMILY is the whole argument). What that means HERE is that these
+  # two clones are load-bearing beyond the docs sweep: EDGES points haus's lock
+  # at `$ROOT/trill` and `$ROOT/snug`, so a machine missing either gets a `?`
+  # rev on that edge rather than a ripple. hausfold.co is the plain case — no
+  # flake edge, cloned only because the docs sweep reads it (DOCS_REPOS), and a
+  # repo the sweep can't open is a blind spot it reports as clean.
   #
   # 🚨 It goes at $ROOT/hausfold.co, and the full spelling is the point. The
   # directory is named for its repo, which is the rule §3.1 settled. Shorten it
@@ -2732,7 +2760,7 @@ cmd_clone() {
   # credentials and will fail loudly on a machine or container without them.
   # That warn is correct. A sweep that silently skips it reports the register
   # clean forever.
-  for name in trill hausfold.co ops; do
+  for name in trill snug hausfold.co ops; do
     local dir; dir="$(repo_dir "$name")"
     if [ -d "$dir/.git" ]; then
       say "$name already here"

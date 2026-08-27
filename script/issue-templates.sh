@@ -6,8 +6,8 @@
 #   ./script/issue-templates.sh --check    fail if any repo has drifted
 #   ./script/issue-templates.sh haus …     just the named repos
 #
-# WHY a generator for files that change once a year: there are nine of them and
-# the shape is the product. Four forms hand-maintained across nine repos is
+# WHY a generator for files that change once a year: there are ten of them and
+# the shape is the product. Four forms hand-maintained across ten repos is
 # `_bench`'s hazard with a wider blast radius (AGENTS.md: "a hand copy and can
 # rot") — the day pounce's bug form asks for something haus's doesn't, a
 # reporter's answer depends on which repo they happened to land in, and nothing
@@ -40,7 +40,7 @@ repo_dir() {
 # own (homebrew-tap, holt-swift, producer-desktop, and whatever gets created
 # next). That fallback is the difference between "every repo" being a list we
 # maintain and being true. `ops` is private and takes no reports, so it's out.
-REPOS=(haus pounce perch trill holt nebelung hausfold.co workshop org)
+REPOS=(haus pounce perch trill snug holt nebelung hausfold.co workshop org)
 
 # ---- the table ---------------------------------------------------------------
 # TOOL      what the reporter calls it
@@ -131,6 +131,28 @@ meta() {
         "digest or catch-up"
         "the GitHub provider"
         "installing or updating"
+        "the docs"
+        "somewhere else, or not sure"
+      )
+      ;;
+    snug)
+      TOOL="snug"
+      BLURB="A CLI drew something wrong in your terminal"
+      DOCS="https://github.com/hausfold/snug#readme"
+      # The one diagnostic that matters is what the TERMINAL is, because every
+      # defect this library exists for is a width or a colour-tier answer.
+      # `snug caps` reports both, and a reporter who hasn't got the binary can
+      # still answer the two halves by hand — which is why the hint names them
+      # rather than only naming the command.
+      DIAG="Your terminal"
+      DIAG_HINT="Paste the output of \`snug caps\`. If you haven't got \`snug\` itself, paste your terminal app and its version, \`echo \$TERM\`, and \`stty size\` at the width where it went wrong. It only reads — it changes nothing and sends nothing anywhere."
+      AREAS=(
+        "a line wrapped, or ran past the edge"
+        "a table — columns misaligned or truncated wrong"
+        "a live region — a spinner or progress that repainted wrong"
+        "colour — wrong, missing, or unreadable"
+        "a glyph drew in the wrong number of cells"
+        "resizing the window"
         "the docs"
         "somewhere else, or not sure"
       )

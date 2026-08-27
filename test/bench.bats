@@ -353,6 +353,64 @@ JSON
   [ -n "$found" ]
 }
 
+# ── the four repo lists answer four different questions ──────────────────────
+# FAMILY / OVERRIDABLE / EDGES / LOCK_ONLY were one list for long enough to read
+# as one, and trill then snug pulled them apart. The 🚨 by FAMILY is the prose;
+# these are the part that fails when someone folds them back together.
+
+@test "every EDGES source is a repo some list can resolve to a checkout" {
+  local edge holder input source name found
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    found=""
+    for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
+      [ "$name" = "$source" ] && { found=1; break; }
+    done
+    [ -n "$found" ] || { echo "EDGES source '$source' is in no list"; return 1; }
+  done
+}
+
+@test "LOCK_ONLY is derived from EDGES, and holds exactly the non-FAMILY sources" {
+  local name fam
+  # Nothing in FAMILY may appear here: LOCK_ONLY is the repos bench does NOT
+  # walk, and a FAMILY repo leaking in would have cmd_ship fast-forward it twice.
+  for name in "${LOCK_ONLY[@]}"; do
+    for fam in "${FAMILY[@]}" consumer; do
+      [ "$name" != "$fam" ] || { echo "$name is in both FAMILY and LOCK_ONLY"; return 1; }
+    done
+  done
+  # And the other direction: an EDGES source outside FAMILY must have landed here
+  # rather than being typed in, which is the whole reason it is a derived array.
+  local edge holder input source found
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    found=""
+    for fam in "${FAMILY[@]}" consumer; do
+      [ "$source" = "$fam" ] && { found=skip; break; }
+    done
+    [ "$found" = skip ] && continue
+    found=""
+    for name in "${LOCK_ONLY[@]}"; do
+      [ "$name" = "$source" ] && { found=1; break; }
+    done
+    [ -n "$found" ] || { echo "EDGES source '$source' never reached LOCK_ONLY"; return 1; }
+  done
+}
+
+@test "a lock source that bench does not walk is overridable, or bench try lies about it" {
+  # `bench try` from a worktree of an EDGES source has to be able to redirect
+  # that input, or it silently builds the PINNED repo while announcing your
+  # branch — detect_worktree walks OVERRIDABLE, not FAMILY, for exactly this.
+  local name found fam
+  for name in "${LOCK_ONLY[@]}"; do
+    found=""
+    for fam in "${OVERRIDABLE[@]}"; do
+      [ "$fam" = "$name" ] && { found=1; break; }
+    done
+    [ -n "$found" ] || { echo "$name is a lock source but not OVERRIDABLE"; return 1; }
+  done
+}
+
 # ── locked_slug: a lock records a SOURCE as well as a rev ─────────────────────
 
 @test "locked_slug reports the owner/repo an input is fetched from" {

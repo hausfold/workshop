@@ -2,7 +2,7 @@
 
 **What a stranger meets when something we made breaks.** The forms are
 **generated**, not written: [`script/issue-templates.sh`](../script/issue-templates.sh)
-renders them from one table into nine repos. Read this before editing a heredoc
+renders them from one table into ten repos. Read this before editing a heredoc
 there.
 
 There is no telemetry in anything we ship and there never will be, so **the
@@ -50,7 +50,7 @@ prose; it is not a tweak to a heredoc.
 
 ### "Wrong repo? File it anyway."
 
-Every bug form opens with it. hausfold is one product split across nine
+Every bug form opens with it. hausfold is one product split across ten
 repositories and a reporter cannot be expected to know which one owns a
 symptom — a tiling bug could be `haus` or the AeroSpace wiring, a banner that
 won't dismiss could be `trill` or haus's notifications room, a broken install
@@ -76,7 +76,7 @@ doctor` teaches them the project doesn't know itself.
 
 Each hint says what the command does *not* do — *it only reads; it changes
 nothing, prompts for nothing, and sends nothing anywhere.* **If a doctor ever
-grows a write, that sentence is a lie in nine repos and this table is where to
+grows a write, that sentence is a lie in ten repos and this table is where to
 come.**
 
 ### Task = the PR body, written first — and it says out loud that it's ours
@@ -103,11 +103,11 @@ the vocabulary; they have one audience.)
 
 | | what | where |
 |---|---|---|
-| **generator** | renders four YAML files into nine repos from one table | [`script/issue-templates.sh`](../script/issue-templates.sh) |
+| **generator** | renders four YAML files into ten repos from one table | [`script/issue-templates.sh`](../script/issue-templates.sh) |
 | **GitHub state** | the labels the forms apply, and the security destination they link | [`script/issue-labels.sh`](../script/issue-labels.sh) |
 | **gate** | the only thing that notices when a repo stops matching | [`.github/workflows/issue-templates.yml`](../.github/workflows/issue-templates.yml) |
 
-**Why a generator.** Four forms hand-maintained across nine repos fails silently
+**Why a generator.** Four forms hand-maintained across ten repos fails silently
 and asymmetrically: the day pounce's bug form asks for something haus's doesn't,
 a reporter's answer depends on which repo they happened to land in, and nothing
 anywhere fails. `--check` is the thing that fails. Every rendered file carries
@@ -171,5 +171,5 @@ destination.
 1. Edit the table in `script/issue-templates.sh` — never a rendered file.
 2. `./script/issue-templates.sh` to write them, `--check` to verify.
 3. New label, or a new repo? `./script/issue-labels.sh` (dry run), then `--apply`.
-4. Commit **in each repo you touched** — this is nine repos, and `bench ship`
+4. Commit **in each repo you touched** — this is ten repos, and `bench ship`
    refuses dirty trees on purpose.
