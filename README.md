@@ -18,7 +18,7 @@ nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your 
 theme        palette    layer    host file         darwin-rebuild
 ```
 
-That's the spine, not the whole graph: `perch`, `trill`, `holt` and `snug` are
+That's the spine, not the whole graph: `perch`, `trill`, `scruff` and `snug` are
 inputs of `haus` too, and `nebelung` is one a second time, directly rather than
 through pounce. Eight edges in all — `bench`'s `EDGES` has the list.
 
@@ -56,12 +56,12 @@ something works, and `main` never holds code nobody has felt.
 |---|---|
 | `status` | what's activated right now (the pinned build, or the branch a `try switch` put on it), every git and lock edge, every release edge |
 | `try [switch]` | build (and activate) against the local checkouts — worktree-aware, so it can build ONE unmerged branch |
-| `try lane [switch]` | same, plus every repo a `holt child` spawned from this pane — a cross-repo lane in one rebuild |
+| `try lane [switch]` | same, plus every repo a `scruff child` spawned from this pane — a cross-repo lane in one rebuild |
 | `try-batch [switch]` | every **open PR** merged onto a throwaway tree per repo and built together in ONE rebuild, `main` untouched |
 | `ship` | push in dependency order, rippling each `flake.lock` |
 | `rebuild` | the plain pinned rebuild — the normal day |
 | `pull` · `clone` | fast-forward every repo · fetch the ones you're missing |
-| `release <repo> [version]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for holt, which takes semver because five SDK registries share the number |
+| `release <repo> [version]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for scruff, which takes semver because five SDK registries share the number |
 | `overlap [--brief\|--path <f>]` | what the OTHER agent lanes on this repo have already changed, and where their edits and yours land in the same region — measured from the shared object store, never declared |
 | `docs-since [--mark [--pending <repo>…] \| --landed <repo>…]` | every commit since the docs were last reconciled, plus what a repo has read but not landed — the input to the scheduled docs sweep |
 
@@ -73,7 +73,7 @@ Five repos share the lock chain above:
 - 🐾 [**pounce**](https://github.com/hausfold/pounce) — a keyboard-first command palette. every command is a file.
 - 🪺 [**perch**](https://github.com/hausfold/perch) — a file shelf that grows out of the notch.
 - 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the silver-mist palette underneath all of it.
-- 🦦 [**holt**](https://github.com/hausfold/holt) — worktree lanes, so parallel coding agents never fight over a checkout.
+- 🐈 [**scruff**](https://github.com/hausfold/scruff) — worktree lanes, so parallel coding agents never fight over a checkout.
 
 Two more are on the lock chain as inputs of `haus`, without being family:
 🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor)
@@ -110,7 +110,7 @@ lands on `main`.
 ## more
 
 - [workflows](./docs/workflows.md) — daily driving, parallel agents, batch-testing, releasing
-- [the three CLIs](./docs/workflows.md#the-three-clis) — `haus` vs `bench` vs `holt`
+- [the three CLIs](./docs/workflows.md#the-three-clis) — `haus` vs `bench` vs `scruff`
 - [the agent surface](./docs/agent-surface.md) — what every tool here owes a coding agent
 - [the agent's own Mac](./docs/agent-vm.md) — a headless macOS a lane can drive, so it never takes your screen
 - [bug reports](./docs/bug-reports.md) — one issue form per repo, generated from one table

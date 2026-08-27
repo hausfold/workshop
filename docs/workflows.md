@@ -10,13 +10,13 @@ Three command-line tools, two jobs — keeping them straight is half the battle:
 | tool | for | does | ships in |
 |------|-----|------|----------|
 | **`haus`** | *using* a haus machine | rebuild / update / rollback / doctor — drives **your Mac** | haus (every install) |
-| **`holt`** | *any agent user* | agent worktrees for **any repo** — spawn, resume, park, reap, `holt child` | haus (every install) |
+| **`scruff`** | *any agent user* | agent worktrees for **any repo** — spawn, resume, park, reap, `scruff child` | haus (every install) |
 | **`bench`** | *developing* the family | try / try-batch / ship / release / status — moves changes **across these repos** | the workshop (here) |
 
 `haus` and `bench` never overlap — named apart on purpose so they can't shadow
-each other (`haus` = your machine; `bench` = these repos). `holt` is a dev tool
+each other (`haus` = your machine; `bench` = these repos). `scruff` is a dev tool
 haus puts on `PATH` regardless of whether you contribute, and has
-[its own repo](https://github.com/hausfold/holt); haus takes it as a flake
+[its own repo](https://github.com/hausfold/scruff); haus takes it as a flake
 input.
 
 ## Daily driving
@@ -52,13 +52,13 @@ name is historical; every client shares it). The chord is scoped to Ghostty, so
 browser; the palette's **Spawn Agent** row is the answer there.
 
 **Which client** is whatever `haus.ai.default` names — `claude`, `codex`,
-`opencode` or `pi`. **All four go through `holt new`**, including Claude:
+`opencode` or `pi`. **All four go through `scruff new`**, including Claude:
 `claude --worktree` would run the client in the pane it was launched from and
-never ask holt's `[hooks] open`, which is the seam a lane's own window arrives
+never ask scruff's `[hooks] open`, which is the seam a lane's own window arrives
 through. The `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json`
-still delegate to `holt hook create` / `holt hook remove`, so a hand-run
+still delegate to `scruff hook create` / `scruff hook remove`, so a hand-run
 `--worktree` is registered too — it just isn't what the chord does. Either way
-the plumbing is `holt` — the standalone tool haus ships on `PATH`, **not** a
+the plumbing is `scruff` — the standalone tool haus ships on `PATH`, **not** a
 `bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
 `c` in a window's own shell runs the one agent allowed to edit the checkout
 you're looking at — the ⌃⌥⇧A chord that used to do it was retired in haus#422,
@@ -74,36 +74,36 @@ git -C nebelung push -u origin worktree-<name> && gh pr create -R hausfold/nebel
 ```
 
 A PR is conflict-detected and atomic, so parallel agents can't clobber each
-other's commits. Closing the pane removes the *checkout*, never the work: `holt`
+other's commits. Closing the pane removes the *checkout*, never the work: `scruff`
 parks any uncommitted edits as a `wip:` commit on the branch first, and only
 *merged* branches get reaped. The branch and PR survive until merged.
 
 ```sh
-holt                  # every parked/live agent worktree, across all repos
-holt <name>           # rebuild a parked checkout and drop back into the client
+scruff                  # every parked/live agent worktree, across all repos
+scruff <name>           # rebuild a parked checkout and drop back into the client
                       # it was made with (claude --resume / codex resume /
                       # opencode --continue / pi --continue)
-holt park [label]     # set the dirty tree aside as one wip: commit — NEVER git stash
-holt unpark           # …and put it back
-holt reship [name]    # a session that kept committing after its PR merged: push
+scruff park [label]     # set the dirty tree aside as one wip: commit — NEVER git stash
+scruff unpark           # …and put it back
+scruff reship [name]    # a session that kept committing after its PR merged: push
                       # the branch and open the follow-up PR (shown as live+N)
-holt reap             # sweep every LANDED worktree; keeps dirty/unmerged/occupied ones
+scruff reap             # sweep every LANDED worktree; keeps dirty/unmerged/occupied ones
 ```
 
-`bench status`'s lane table **is** holt's registry, filtered — not `git worktree
+`bench status`'s lane table **is** scruff's registry, filtered — not `git worktree
 list`. git's answer is "what trees exist", which includes hand-made ones (a
-scratch checkout for a before/after compare, a `/tmp` tree) that holt never made
-and `holt reap` will never sweep; listing those as lanes is what used to make
+scratch checkout for a before/after compare, a `/tmp` tree) that scruff never made
+and `scruff reap` will never sweep; listing those as lanes is what used to make
 the two tools look permanently out of sync. bench keeps the rows whose repo sits
 under the workshop dir — family or not, so `trill`, `snug`, `hausfold.co` and
 the workshop itself all count — plus the host config (`~/.config/nix`, shown as
-`consumer`). A lane in an unrelated repo on the same machine is holt's business,
-not bench's. Use `holt child` for cross-repo work and it lands in that table;
+`consumer`). A lane in an unrelated repo on the same machine is scruff's business,
+not bench's. Use `scruff child` for cross-repo work and it lands in that table;
 a raw `git worktree add` is invisible to both bench and the bar.
 
 Never `git stash` in these repos: the stash stack lives in the shared `.git`
 dir, so every worktree *and* the main checkout pop the same one, and parallel
-agents routinely pop each other's entries. `holt park` is per-branch, so it can't.
+agents routinely pop each other's entries. `scruff park` is per-branch, so it can't.
 
 ### Lanes noticing each other (`bench overlap`)
 
@@ -155,7 +155,7 @@ uncommitted work at all — so when an agent hands you "this fixes the popup bli
 that:
 
 ```sh
-holt                      # lists every worktree with its path (bench status does too)
+scruff                      # lists every worktree with its path (bench status does too)
 cd ~/.cache/claude-worktrees/<repo>/<name>
 bench try switch          # builds against THIS branch and activates it
 # …feel it…
@@ -183,7 +183,7 @@ wherever the source sits. Two things *are* different, and each has its own answe
 ### …and a cross-repo lane, in one rebuild
 
 `bench try` substitutes the ONE repo your worktree belongs to. When a session has
-spawned children in other repos with `holt child` — a haus worktree plus its
+spawned children in other repos with `scruff child` — a haus worktree plus its
 pounce and nebelung lanes, say — plain `try` builds your branch against the
 *pinned* copies of the rest, which is a green build of the wrong thing.
 
@@ -192,7 +192,7 @@ bench try lane            # override every repo this pane's lane touches
 bench try lane switch     # …and activate the whole lane together
 ```
 
-It walks holt's registry transitively from the current worktree, so no PR has to
+It walks scruff's registry transitively from the current worktree, so no PR has to
 exist first and no lock has to move. Same who-not-where activation gate as plain
 `try switch`.
 
@@ -227,9 +227,9 @@ On another machine, or after shipping from elsewhere:
 
 ## Releasing
 
-Four repos are releasable — pounce, perch, haus (the layer) and holt — each
-with a real audience. Three are CalVer; **holt alone is semver**, and that split
-is the only thing about releasing you have to hold in your head.
+Five repos are releasable — pounce, perch, trill, haus (the layer) and scruff —
+each with a real audience. Four are CalVer; **scruff alone is semver**, and that
+split is the only thing about releasing you have to hold in your head.
 
 Versions are **date-based** (CalVer): a release is stamped with the day it's cut
 — `2026.07.18`, or `2026.07.18-1`, `-2`, … for a second release the same day. No
@@ -245,11 +245,11 @@ argument for these three, to make that unarguable.
                             # homebrew cask AND haus's flake pin (nix/release.nix)
 ./bench release haus        # date-stamps VERSION + tags v<date> — this is what
                             # hausfold.co/hacker.sh serves to new installs
-./bench release holt 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
+./bench release scruff 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
                             # crates.io, SwiftPM, the Go proxy) share one number
 ```
 
-holt is forced into semver, not styled into it: three registries already hold
+scruff is forced into semver, not styled into it: three registries already hold
 `0.1.0` and none of them ever lets a published number be withdrawn, so the
 number is a compatibility contract — and CalVer would force the Go SDK's import
 path to end in `/v2026` and change it every January. Deciding the bump means
@@ -366,6 +366,6 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
 7. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
    every `flake.lock`.
 8. **release** — `./bench release <repo>` stamps the version (today's date, or
-   holt's hand-picked semver) and tags it; CI does the rest (pounce: GitHub
+   scruff's hand-picked semver) and tags it; CI does the rest (pounce: GitHub
    release + Homebrew formula; haus: the tag `hausfold.co/hacker.sh` serves to
-   new installs; holt: five SDK registries). Always the user's call.
+   new installs; scruff: five SDK registries). Always the user's call.

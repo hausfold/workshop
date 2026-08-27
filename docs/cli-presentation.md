@@ -1,7 +1,7 @@
 # How the family's CLIs put a line on screen
 
 The one presentation standard for every tool the workshop ships — `bench`,
-`haus`, `holt`, `trill`, and every `pounce` command script. It lives here, beside
+`haus`, `scruff`, `trill`, and every `pounce` command script. It lives here, beside
 `agent-surface.md` and `drift.md`, because it binds every repo and belongs to
 none of them.
 
@@ -15,7 +15,7 @@ a bash fallback has to match line for line.
 ## Why this exists — the three defects, measured
 
 Taken on 2026-08-27 against `bench` (3148 ln), `haus.sh` + `haus-show.sh`
-(5034 ln) and `holt/internal/ui/ui.go`.
+(5034 ln) and `scruff/internal/ui/ui.go`.
 
 ### 1. Fixed-width rows in a resizable window
 
@@ -190,7 +190,7 @@ never bytes and never runes.
   the sum fits; otherwise the widest over its minimum gives up cells first.
 - **Truncation is by priority, with `…` inside the field.** Each column says
   what it gives up first — a repo name truncates from the right, a path from the
-  left (`…/holt/internal/ui`), a duration never truncates.
+  left (`…/scruff/internal/ui`), a duration never truncates.
 - **A column that never truncates is MEASURED, never assumed.** Budget it from
   the widest value actually in the frame. `bench` budgeted seven cells for a
   duration on the reasoning that `12m 34s` is the longest one — and a job past
@@ -259,9 +259,9 @@ The contract:
 
 ### Streams
 
-Unchanged from holt's `internal/ui` (SPEC.md §2.3), promoted to a family rule:
+Unchanged from scruff's `internal/ui` (SPEC.md §2.3), promoted to a family rule:
 **stdout carries data only.** Every diagnostic, prompt and progress line goes to
-stderr, because callers do `cd "$(holt child …)"` and hooks read paths off
+stderr, because callers do `cd "$(scruff child …)"` and hooks read paths off
 stdout.
 
 ## The runtime
@@ -269,11 +269,11 @@ stdout.
 Bash can't link a Go library, so the standard ships as two implementations of
 one spec.
 
-**A Go module + one binary**, in its own repo — modelled on `holt`: standalone,
+**A Go module + one binary**, in its own repo — modelled on `scruff`: standalone,
 repo-agnostic, its own flake input, shipped on `PATH` by the layer. It exists:
 [hausfold/snug](https://github.com/hausfold/snug).
 
-- Go callers (`holt`) import `github.com/hausfold/snug`. No process, no protocol.
+- Go callers (`scruff`) import `github.com/hausfold/snug`. No process, no protocol.
 - Shell callers (`bench`, `haus`, pounce commands) drive the binary, which the
   layer puts on `PATH` unconditionally beside `trill` and `haus-notify`.
 
@@ -317,7 +317,7 @@ one. State as of 2026-08-27:
 | 2 | **`bench`'s live painter** — folded to width, `\033[J`, `trap WINCH` | ✔ done (#469; eight tests in `test/bench.bats` across widths 2–120, plus a real pty for the measurement) |
 | 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ✔ done ([haus#547](https://github.com/hausfold/haus/pull/547); 16 bats cases). Two heads, and §1 has the distinction: the finished row merely *wraps*, the 14-cell `phase_start` stub is what strands a line above its own successor |
 | 4 | **[hausfold/snug](https://github.com/hausfold/snug)** — the Go package and the binary | ✔ done, public, CI green |
-| 5 | **holt's `internal/ui`** onto snug's roles | ✔ done ([holt#70](https://github.com/hausfold/holt/pull/70), re-pinned in [holt#71](https://github.com/hausfold/holt/pull/71)) |
+| 5 | **scruff's `internal/ui`** onto snug's roles | ✔ done ([scruff#70](https://github.com/hausfold/scruff/pull/70), re-pinned in [scruff#71](https://github.com/hausfold/scruff/pull/71)) |
 | 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
 | 7 | **`bench` onto `snug run`** as a coprocess | ○ not started |
 | 8 | **The bash fallback** shipped beside the binary | ○ not started |

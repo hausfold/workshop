@@ -17,7 +17,7 @@
 #                  Works from an agent worktree too — that's how you feel-test
 #                  one unmerged branch. `bench rebuild` puts the pinned build back.
 #   bench try lane [switch]   like `bench try`, but ALSO overrides every repo
-#                  a `holt child` spawned from this same pane — the parent
+#                  a `scruff child` spawned from this same pane — the parent
 #                  worktree plus its cross-repo lane, built (and optionally
 #                  activated) together in one rebuild. Run it from the lane's
 #                  parent worktree; no PR needed, unlike try-batch.
@@ -42,12 +42,12 @@
 #                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
-#                  tap bump (or, for holt, five SDK publishes).
+#                  tap bump (or, for scruff, five SDK publishes).
 #                  --ship ripples the new lock edge downstream afterwards.
 #                  The version is today's date (YYYY.MM.DD, -N on a same-day
-#                  repeat) and typed by nobody — EXCEPT for holt, which is
+#                  repeat) and typed by nobody — EXCEPT for scruff, which is
 #                  semver because it publishes libraries to registries that
-#                  never let a number be taken back: `bench release holt 0.2.0`.
+#                  never let a number be taken back: `bench release scruff 0.2.0`.
 #
 # Rule of thumb: hack freely, `bench try` until happy, commit, `bench ship`.
 #
@@ -126,19 +126,17 @@ ensure_nix_path
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
 # perch sits before haus: it's a flake input of the platform (which installs it
 # via Nix, not Homebrew), so its lock edge ripples downstream like the others.
-# holt sits there too — the layer takes it as an input and ships it on PATH, so a
-# holt commit is invisible to this machine until haus's lock moves, exactly
+# scruff sits there too — the layer takes it as an input and ships it on PATH, so a
+# scruff commit is invisible to this machine until haus's lock moves, exactly
 # like every other edge here.
 #
-# FAMILY entries ARE directory names (`local_src` → `$ROOT/$1`), so an entry only
-# ever names a repo whose checkout sits at `$ROOT/<entry>` — a repo renamed on
-# GitHub without renaming its checkout would have `bench status` reporting one
-# repo under the other's name. That is exactly why the 2026-08-11 rename of
-# `hausfold/hausfold` → `hausfold/haus` (decision 9, 2026-08-11) moves the
-# checkout too. There is no fallback for a machine that hasn't run the `mv`:
-# `repo_dir` is a plain `$ROOT/$1`, so such a machine gets a missing checkout
-# and `bench clone` puts it right.
-FAMILY=(nebelung pounce perch holt haus)
+# FAMILY entries are REPO names, and `repo_dir` is the only thing that turns one
+# into a directory. They agree for four of the five: the 2026-08-11 rename of
+# `hausfold/hausfold` → `hausfold/haus` (decision 9) moved the checkout in the
+# same commit, so no arm was needed. `scruff` is the exception and has one — the
+# repo renamed on 2026-08-27 and the checkout is still `$ROOT/holt` until a
+# quiet tree lets it move. Read `repo_dir` before assuming `$ROOT/<entry>`.
+FAMILY=(nebelung pounce perch scruff haus)
 
 # 🚨 FAMILY is NOT "the repos with a flake input", and since trill it never was.
 # Three questions live in three lists here and they answer differently:
@@ -191,7 +189,7 @@ GH_ORG="hausfold"
 # platform, so a bare `--override-input` is the whole story. `bench try` from a
 # snug worktree builds your branch of the library the family's output goes
 # through.
-OVERRIDABLE=(nebelung pounce perch holt haus trill snug)
+OVERRIDABLE=(nebelung pounce perch scruff haus trill snug)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -203,7 +201,7 @@ declare -gA BATCH_SRC=()  # repo → integration-worktree checkout it should bui
 BATCH_SCRATCH=""          # the mktemp dir holding those worktrees
 
 # bench try lane's scratch state. Same -g rationale as BATCH_SRC above.
-declare -gA LANE_SRC=()   # repo → holt-child checkout it should build against
+declare -gA LANE_SRC=()   # repo → scruff-child checkout it should build against
 
 # ── Palette ──────────────────────────────────────────────────────────────────
 # Colour is a courtesy, never load-bearing. Every escape is gated: emitted only
@@ -318,6 +316,19 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
   case "$1" in
     consumer) echo "$CONSUMER" ;;   # ~/.config/nix, outside the workshop dir
     workshop) echo "$ROOT" ;;       # the workshop IS ROOT, not ROOT/workshop
+    # ⏳ Transitional, and the ONE place the old name still lives. The repo is
+    # `hausfold/scruff` since 2026-08-27; the checkout under $ROOT is still
+    # `holt`, because every open agent lane holds an ABSOLUTE gitdir into it and
+    # `mv`-ing it out from under a live pane strands that pane. So the name
+    # moved everywhere and the directory waits for a quiet tree.
+    #
+    # Prefer the new dir so the `mv` needs no second commit: the day it happens
+    # this arm goes silently correct, and can then be deleted. A fresh machine
+    # has neither, and `bench clone` should plant the NEW name — which is why
+    # the fallback is the last branch and not the first.
+    scruff)   if [ -d "$ROOT/scruff" ]; then echo "$ROOT/scruff"
+              elif [ -d "$ROOT/holt" ]; then echo "$ROOT/holt"
+              else echo "$ROOT/scruff"; fi ;;
     *)        echo "$ROOT/$1" ;;
   esac
 }
@@ -492,19 +503,18 @@ rev_on_main() {
 # a hand copy of one machine's flake.nix — the same class of mirror as the
 # pounce item grammar, one repo down.
 #
-# ⚠️ The middle field is the INPUT NAME and the third is the REPO, and
-# `haus scruff holt` is the row that proves they are not the same word. The
-# worktree tool renamed holt → scruff; haus flipped its input name in
-# hausfold/haus#538, while the repo itself keeps the old name until the tool's
-# own 1.0.0 (its docs/rename.md §5) — so for now the lock edge reads one and the
-# checkout under $ROOT reads the other. When the repo does rename, only the
-# third field and FAMILY/OVERRIDABLE move; this middle one is already right.
+# ⚠️ The middle field is the INPUT NAME and the third is the REPO. They are not
+# the same word: `consumer @layer haus` is the standing proof, and the scruff row
+# was the second one for a fortnight — haus flipped its input to `scruff` in
+# hausfold/haus#538 while the repo was still `hausfold/holt`. The repo caught up
+# on 2026-08-27 and the row is a matched pair again; the mismatch that outlived
+# it is directory-vs-repo, which lives in `repo_dir`'s scruff arm, not here.
 EDGES=(
   "pounce nebelung nebelung"
   "haus nebelung nebelung"
   "haus pounce pounce"
   "haus perch perch"
-  "haus scruff holt"
+  "haus scruff scruff"
   "haus trill trill"
   "haus snug snug"
   "consumer @layer haus"
@@ -569,7 +579,7 @@ detect_worktree() {
 local_src() { # local_src <repo> — the checkout to build against (batch- + lane- + worktree-aware)
   # A try-batch integration tree wins over everything: it's the combined
   # main+PRs checkout we deliberately built for this repo. Next, a lane child
-  # (bench try lane populated LANE_SRC for every holt-child repo). Otherwise
+  # (bench try lane populated LANE_SRC for every scruff-child repo). Otherwise
   # fall through to the active agent worktree (if this repo is it), then the
   # main checkout.
   if [ -n "${BATCH_SRC[$1]:-}" ]; then echo "${BATCH_SRC[$1]}"; return; fi
@@ -577,17 +587,17 @@ local_src() { # local_src <repo> — the checkout to build against (batch- + lan
   if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else repo_dir "$1"; fi
 }
 
-# bench try lane: build+activate a whole holt lane together — this pane's own
-# worktree (already handled by WT_REPO/WT_PATH above) PLUS every `holt child`
-# worktree spawned from it, however many repos it touches. holt's registry
+# bench try lane: build+activate a whole scruff lane together — this pane's own
+# worktree (already handled by WT_REPO/WT_PATH above) PLUS every `scruff child`
+# worktree spawned from it, however many repos it touches. scruff's registry
 # only records a one-hop parent pointer per row (the spawning pane's own
-# checkout path) — never a children list, deliberately (that's holt's own
+# checkout path) — never a children list, deliberately (that's scruff's own
 # scope boundary). So the walk lives here: read every row, and starting from
 # THIS pane's checkout, transitively pull in any row whose `parent` matches a
 # path already found — a child's child included, not just direct children.
 #
 # lane_paths prints one checkout path per line: self, then every descendant,
-# BFS order. A `seen` set makes it cycle-safe even though holt shouldn't ever
+# BFS order. A `seen` set makes it cycle-safe even though scruff shouldn't ever
 # produce one (a child's parent is strictly an earlier pane).
 lane_paths() { # lane_paths <self-checkout-path>
   local self="$1"
@@ -609,7 +619,7 @@ lane_paths() { # lane_paths <self-checkout-path>
   ' "$WT_REGISTRY"
 }
 
-detect_lane() { # populate LANE_SRC with every holt-child of THIS pane's worktree
+detect_lane() { # populate LANE_SRC with every scruff-child of THIS pane's worktree
   local self path row_main name
   self="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
   while IFS= read -r path; do
@@ -682,7 +692,7 @@ CARD_PARENT="$$"
 CARD_TOTAL=0
 CARD_PATHS=()
 
-# Same search holt's `notify` does (internal/commands/notify.go, `trillBinary`),
+# Same search scruff's `notify` does (internal/commands/notify.go, `trillBinary`),
 # in the same order and for the same reason: Trill.app is routinely installed
 # while `trill` is on nobody's PATH, because the app binary IS the CLI. Keep the
 # two in step. `BENCH_TRILL` is authoritative when set — including set to something
@@ -827,10 +837,10 @@ overrides() { # every family input redirected at the local checkouts
   # of the rule — the input name and the directory are different things and only
   # one of them ever moves.
   #
-  # The scruff row is the same rule read from the other end, and it is the
-  # reason the last line looks mismatched: haus's INPUT is `scruff` now
-  # (hausfold/haus#538) while the CHECKOUT is still `$ROOT/holt` until the tool
-  # renames its repo. Spell them apart, never fold them back together.
+  # The scruff row read the same rule from the other end while haus's INPUT was
+  # `scruff` (hausfold/haus#538) and the repo was still `hausfold/holt`. Both say
+  # `scruff` now — but the CHECKOUT is still `$ROOT/holt`, which `repo_dir`
+  # absorbs so this line never has to know. Spell them apart regardless.
   local perch_prebuilt="" trill_prebuilt="" layer
   layer="$(layer_input)"
   [ -n "$PERCH_DEV_APP_DIR" ] \
@@ -842,7 +852,7 @@ overrides() { # every family input redirected at the local checkouts
         --override-input $layer/pounce path:$(local_src pounce) \
         --override-input $layer/perch path:$(local_src perch)$perch_prebuilt \
         --override-input $layer/trill path:$(local_src trill)$trill_prebuilt \
-        --override-input $layer/scruff path:$(local_src holt) \
+        --override-input $layer/scruff path:$(local_src scruff) \
         --override-input $layer/snug path:$(local_src snug)"
 }
 
@@ -994,29 +1004,29 @@ unmerged_agent_branches() { # worktree-* branches not merged into the current HE
   git -C "$(repo_dir "$1")" branch --list 'worktree-*' --no-merged HEAD \
     --format='%(refname:short)' 2>/dev/null
 }
-# The registry `holt` (and frozen `wt`) both write: one tab-separated row per
+# The registry `scruff` (and frozen `wt`) both write: one tab-separated row per
 # worktree, name \t repo \t branch \t checkout \t parent \t agent. It is the ONLY
 # thing that knows a branch is a real, resumable session — a bare `worktree-*`
 # name proves nothing. `--no-merged` can't see a SQUASH merge, so a landed PR's
 # branch looks unmerged forever, and a CLOSED PR's branch never merges at all;
 # both used to be printed as "parked", telling you to resume a session that
-# holt correctly reports doesn't exist. Registry says no row → it's a corpse.
+# scruff correctly reports doesn't exist. Registry says no row → it's a corpse.
 WT_REGISTRY="${CLAUDE_WT_BASE:-$HOME/.cache/claude-worktrees}/registry.tsv"
 branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
   [ -f "$WT_REGISTRY" ] || return 1
   awk -F'\t' -v r="$(repo_dir "$1")" -v b="$2" \
     '$2 == r && $3 == b { found = 1; exit } END { exit !found }' "$WT_REGISTRY"
 }
-# What `bench status` lists is holt's registry, NOT `git worktree list`. git
+# What `bench status` lists is scruff's registry, NOT `git worktree list`. git
 # answers "what trees exist", which is a different question from "what agent
 # lanes exist": a hand-made `git worktree add` (a /tmp checkout, a before/after
-# compare tree) is in git's list and in no registry, and `holt reap` will never
+# compare tree) is in git's list and in no registry, and `scruff reap` will never
 # sweep it. Printing those as lanes, under a hint telling you to reap them, is
-# what made bench and holt look permanently out of sync when they in fact
-# agreed about every real lane. holt is the source of truth; bench only filters
+# what made bench and scruff look permanently out of sync when they in fact
+# agreed about every real lane. scruff is the source of truth; bench only filters
 # it down to the repos this machine's stack is built from — anything under the
 # workshop dir (family or not: trill, hausfold.co, the workshop itself) plus
-# the host config. holt's registry is machine-wide, so a lane in someone
+# the host config. scruff's registry is machine-wide, so a lane in someone
 # else's repo is correctly none of bench's business.
 lane_rows() { # lane_rows — repo \t branch \t checkout \t lane-name, one per lane
   [ -f "$WT_REGISTRY" ] || return 0
@@ -1041,9 +1051,9 @@ lane_label() { # lane_label <repo-dir> — the name this table calls that repo
 }
 lane_table() { # lane_table — the agent-lanes section of `bench status`, or
                # nothing at all when this machine has no lanes and no corpses.
-  # The rows are holt's registry (lane_rows), never `git worktree list`. Live
+  # The rows are scruff's registry (lane_rows), never `git worktree list`. Live
   # lanes print first, then stale branches, then parked lanes — a registry row
-  # whose checkout holt removed, which is a resumable session, not a leak.
+  # whose checkout scruff removed, which is a resumable session, not a leak.
   local wt_lines="" parked_lines="" any_stale=0 any_lane=0
   local repo branch wt lane_name
   while IFS=$'\t' read -r repo branch wt lane_name; do
@@ -1067,7 +1077,7 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
         "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
         "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$where" "$C_OFF")"$'\n'
     else
-      parked_lines+="$(printf '  %s%s%s %-32s %s%s%s %s(parked — '"'"'holt %s'"'"' to resume, or open a PR / delete)%s' \
+      parked_lines+="$(printf '  %s%s%s %-32s %s%s%s %s(parked — '"'"'scruff %s'"'"' to resume, or open a PR / delete)%s' \
         "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
         "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$lane_name" "$C_OFF")"$'\n'
     fi
@@ -1076,7 +1086,7 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   for name in "${FAMILY[@]}"; do
     for b in $(unmerged_agent_branches "$name"); do
       # A worktree-* branch with no checkout AND no registry row: not a lane
-      # holt can resume — a corpse whose PR squash-merged or was closed.
+      # scruff can resume — a corpse whose PR squash-merged or was closed.
       git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b" && continue
       branch_is_parked "$name" "$b" && continue
       any_stale=1
@@ -1089,17 +1099,17 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   done
   [ -n "$wt_lines$parked_lines" ] || return 0
   echo
-  say "agent lanes (holt's registry — isolated checkouts; open a PR to land, never push to main)"
+  say "agent lanes (scruff's registry — isolated checkouts; open a PR to land, never push to main)"
   printf '  %s%-12s %-32s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
   printf '%s%s' "$wt_lines" "$parked_lines"
   # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
-  [ "$any_lane" = 1 ] && printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `holt reap`%s\n' "$C_MUT" "$C_OFF"
+  [ "$any_lane" = 1 ] && printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `scruff reap`%s\n' "$C_MUT" "$C_OFF"
   # shellcheck disable=SC2016
   [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
   return 0
 }
 wt_branch() { # wt_branch <checkout> — the branch to show for a lane's checkout
-  # The registry records the branch holt made, but the tree can have moved on
+  # The registry records the branch scruff made, but the tree can have moved on
   # (or been parked and rebuilt), so ask git and keep the registry as the
   # fallback. Two different unknowns, and both used to render blank: a checkout
   # whose dir is gone makes git exit 128 → '?', while a live but DETACHED tree
@@ -1241,7 +1251,7 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce perch trill haus holt; do
+  for name in pounce perch trill haus scruff; do
     local dir tag behind audience cut
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
@@ -1255,22 +1265,22 @@ cmd_status() {
       # catch. Add the cask and this audience string together, or not at all.
       trill)     audience="the layer's flake pin (haus.trill.enable)" ;;
       haus)      audience="hausfold.co/hacker.sh (the desktop)" ;;
-      # holt is the only one whose release lands OUTSIDE our own infrastructure:
-      # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins holt's
-      # main, so this machine sees a holt commit via the lock edge above — but
+      # scruff is the only one whose release lands OUTSIDE our own infrastructure:
+      # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins scruff's
+      # main, so this machine sees a scruff commit via the lock edge above — but
       # everyone consuming an SDK sees only what was last released.
-      holt)      audience="npm/PyPI/crates/SwiftPM/go get" ;;
+      scruff)    audience="npm/PyPI/crates/SwiftPM/go get" ;;
     esac
-    # CalVer needs no argument; holt is semver, so the number is a judgement.
+    # CalVer needs no argument; scruff is semver, so the number is a judgement.
     cut="bench release $name"
     [ "$(version_scheme "$name")" = semver ] && cut="bench release $name <X.Y.Z>"
     tag="$(latest_tag "$name")"
     if [ -z "$tag" ]; then
-      # holt is the one repo where "no tag" doesn't mean "consumers see main":
+      # scruff is the one repo where "no tag" doesn't mean "consumers see main":
       # its SDKs are already live at 0.1.0, hand-published before this flow
       # existed, and nothing moves them until a tag does.
       local nofallback="falls back to main"
-      [ "$name" = holt ] && nofallback="stays on whatever was last published by hand"
+      [ "$name" = scruff ] && nofallback="stays on whatever was last published by hand"
       printf '  %s⚠%s %-22s no release yet — %s %s\n' \
         "$C_WARN" "$C_OFF" "$name" "$audience" "$nofallback"
       printf '      %scut the first release: %s%s\n' "$C_MUT" "$cut" "$C_OFF"
@@ -1369,7 +1379,7 @@ record_activation() { # record_activation <host> — snapshot which sources went
     # Only worth recording if it isn't the pinned main checkout on a clean main
     # branch — otherwise a `try switch` from a spotless workshop would leave a
     # receipt that says nothing and a status that cries wolf.
-    if [ "$src" = "$ROOT/$repo" ] && [ "$dirty" = clean ] \
+    if [ "$src" = "$(repo_dir "$repo")" ] && [ "$dirty" = clean ] \
        && { [ "$branch" = main ] || [ "$branch" = master ]; }; then continue; fi
     printf -v line '%s\t%s\t%s\t%s' "$repo" "$src" "$branch" "$dirty"
     body+="$line"$'\n'
@@ -1424,13 +1434,13 @@ cmd_try() {
   # all? Not just "is THIS pane's own repo a family worktree" (WT_REPO) — a
   # lane's PARENT is very often a workshop worktree, which isn't itself a
   # flake-overridable repo (no consumer takes the workshop as an input), but its
-  # `holt child` worktrees in family repos absolutely are. So a lane with
+  # `scruff child` worktrees in family repos absolutely are. So a lane with
   # zero WT_REPO and N children is still real local work to gate/build.
   local have_override=""
   { [ -n "$WT_REPO" ] || [ "${#LANE_SRC[@]}" -gt 0 ]; } && have_override=1
 
   if [ -n "$do_lane" ] && [ -z "$have_override" ]; then
-    die "bench try lane found nothing to override — run it from a pane that's an agent worktree of a family repo, has spawned at least one 'holt child' worktree, or both."
+    die "bench try lane found nothing to override — run it from a pane that's an agent worktree of a family repo, has spawned at least one 'scruff child' worktree, or both."
   fi
 
   if [ -n "$have_override" ]; then
@@ -1453,11 +1463,11 @@ cmd_try() {
     fi
     if [ -n "$do_lane" ]; then
       if [ "${#LANE_SRC[@]}" -eq 0 ]; then
-        say "no holt children found for this lane — building $WT_REPO alone (same as plain 'bench try')."
+        say "no scruff children found for this lane — building $WT_REPO alone (same as plain 'bench try')."
       else
         local lane_list=""
         for name in "${!LANE_SRC[@]}"; do lane_list+="$name "; done
-        say "lane: also overriding ${#LANE_SRC[@]} holt child(ren): $lane_list"
+        say "lane: also overriding ${#LANE_SRC[@]} scruff child(ren): $lane_list"
       fi
     fi
   fi
@@ -1808,12 +1818,12 @@ cmd_ship() {
 # ── Claude Code agent worktrees ─────────────────────────────────────────────
 # The worktree lifecycle — create on `claude --worktree`, save-on-close, and
 # list/resume — used to live here, but it isn't family business: it's a standalone,
-# repo-agnostic product now, `holt` (its own repo, ejected from the incubator
+# repo-agnostic product now, `scruff` (its own repo, ejected from the incubator
 # 2026-08-03), which the RICE takes as a flake input and ships on PATH, wired into
 # Claude Code's WorktreeCreate/WorktreeRemove hooks — because the rice already
 # ships the agent keybinds. bench no longer owns it — not every machine that runs
-# `holt` has bench. To see or resume parked/live agent worktrees across ALL repos,
-# run `holt` (or `holt <name>`); its predecessor `wt` is frozen but still reads the
+# `scruff` has bench. To see or resume parked/live agent worktrees across ALL repos,
+# run `scruff` (or `scruff <name>`); its predecessor `wt` is frozen but still reads the
 # same registry.tsv. bench still *reports* family worktrees in `bench status` — and
 # reads that registry to tell a real parked session from a branch that outlived its
 # PR — but it doesn't drive their lifecycle.
@@ -1897,7 +1907,7 @@ version_file() { # version_file <repo> — WHERE a releasable repo's version liv
     perch)     echo "$(repo_dir "$1")/VERSION" ;;
     trill)     echo "$(repo_dir "$1")/VERSION" ;;
     haus)      echo "$(repo_dir "$1")/VERSION" ;;
-    holt)      echo "$(repo_dir "$1")/VERSION" ;;
+    scruff)    echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
   esac
 }
@@ -1909,7 +1919,7 @@ read_version() { # read_version <repo> — the version string that repo tags at
     perch)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     trill)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     haus)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
-    holt)      tr -d '[:space:]' < "$f" 2>/dev/null ;;
+    scruff)    tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
 }
 
@@ -1924,27 +1934,28 @@ write_version() { # write_version <repo> <version> — stamp the version source 
     perch)     printf '%s\n' "$2" > "$f" ;;
     trill)     printf '%s\n' "$2" > "$f" ;;
     haus)      printf '%s\n' "$2" > "$f" ;;
-    # holt's version lives in FOUR files, not one — VERSION plus three SDK
+    # scruff's version lives in FOUR files, not one — VERSION plus three SDK
     # manifests (npm/PyPI/crates each declare their own). bench doesn't learn
     # their shapes; the repo owns that, so the knowledge sits next to the
     # manifests it has to track. Its --check form is what release.yml runs
     # against the pushed tag.
-    holt)      local s; s="$(repo_dir "$1")/script/stamp-version.sh"
-               [ -x "$s" ] || die "holt has no script/stamp-version.sh — bench pull holt"
+    scruff)    local s; s="$(repo_dir "$1")/script/stamp-version.sh"
+               [ -x "$s" ] || die "scruff has no script/stamp-version.sh — bench pull scruff"
                "$s" "$2" >/dev/null ;;
   esac
 }
 
 # CalVer or semver? Every repo here is CalVer — the date IS the version, so
-# there is no number to argue about — EXCEPT holt, and the exception is forced
-# rather than chosen. holt publishes libraries to npm, PyPI and crates.io, all
-# three of which already hold hausfold-holt 0.1.0 and none of which let a
-# version be taken back; and its Go SDK would need its import path to end in
-# `/v2026` under CalVer, changing every January. So holt takes an explicit
-# semver argument and the others refuse one.
+# there is no number to argue about — EXCEPT scruff, and the exception is forced
+# rather than chosen. scruff publishes libraries to npm, PyPI and crates.io, all
+# three of which already hold a published 0.1.0 (under the old `hausfold-holt`
+# names — which is exactly why the 1.0.0 rename can never be walked back) and
+# none of which let a version be taken back; and its Go SDK would need its
+# import path to end in `/v2026` under CalVer, changing every January. So
+# scruff takes an explicit semver argument and the others refuse one.
 version_scheme() { # version_scheme <repo> — calver | semver
   case "$1" in
-    holt) echo semver ;;
+    scruff) echo semver ;;
     *)    echo calver ;;
   esac
 }
@@ -2334,7 +2345,7 @@ cmd_release() {
   # Then it BLOCKS on that CI run (see the watch section above) instead of
   # leaving you with a URL and a checkout that's about to fall behind.
   #
-  # holt is the one repo that takes a version ARGUMENT rather than a date — see
+  # scruff is the one repo that takes a version ARGUMENT rather than a date — see
   # version_scheme() for why it has to. There the number is a judgement about
   # the diff since the last tag (does this break a published SDK's API?), which
   # is the one thing the date can't encode; ask an agent for the bump if you
@@ -2348,13 +2359,13 @@ cmd_release() {
     esac
     shift
   done
-  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, trill, haus, holt)"
+  local usage="usage: bench release <repo> [version] [--ship]   (releasable: pounce, perch, trill, haus, scruff)"
   [ -n "$name" ] || die "$usage"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   version_file "$name" >/dev/null \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, trill, haus, holt)"
+    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, trill, haus, scruff)"
 
   local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
   if [ "$scheme" = semver ]; then
@@ -2386,7 +2397,7 @@ cmd_release() {
 
   # Stamp it into the repo's own version source and commit, so HEAD already says
   # what the tag will claim. The whole-tree diff (rather than one file) is what
-  # lets holt's stamp touch four manifests at once; it's safe because the clean-
+  # lets scruff's stamp touch four manifests at once; it's safe because the clean-
   # tree check above means anything modified here was modified by write_version.
   write_version "$name" "$version"
   if ! git -C "$dir" diff --quiet; then
@@ -2802,7 +2813,7 @@ cmd_clone() {
 #   • merge-tree — a real three-way merge of the two branches, no working tree
 #     touched. Exact, but committed work only.
 #
-# Overlap is only ever defined WITHIN one repo — a `holt child` lane on another
+# Overlap is only ever defined WITHIN one repo — a `scruff child` lane on another
 # repo has its own object store and cannot textually collide with this one — so
 # the same-repo filter is the whole scoping rule and needs no flag.
 #

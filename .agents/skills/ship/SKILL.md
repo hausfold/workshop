@@ -126,7 +126,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 | **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `hausfold.co/content/docs/` (the SOT since 2026-08-14), its `haus/reference/options.mdx`, `haus/rooms/windows.mdx`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across AeroSpace(windows) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
-| **Raw worktree adds** | a raw `git worktree add` where `holt child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
+| **Raw worktree adds** | a raw `git worktree add` where `scruff child` is required (a raw add skips the registry, so the PR goes invisible in the bar). |
 | **Release blast radius** | the diff touches `homebrew-tap`, changes what `bench release` would stamp, moves a flake-input edge, or touches secrets / `~/.config/nix` identity. Any of those is ≥3/5 by definition and belongs in the PR body loudly. |
 | **PR body** | the What/Why/Verify/Watch-out blocks are actually filled in, and **Verify** is concrete and observable — a cold agent with only `gh pr view` must be able to run it. |
 
@@ -134,7 +134,7 @@ Two properties that make this worth doing rather than ritual:
 
 - **It reads the reviewed repo's own `AGENTS.md`**, not the workshop's. A `pounce` PR is
   judged by pounce's boundary rules; a rice PR by the rice's. If a repo has no `AGENTS.md`
-  (holt was that repo until [holt#31](https://github.com/hausfold/holt/pull/31)), pass the
+  (scruff was that repo until [scruff#31](https://github.com/hausfold/scruff/pull/31)), pass the
   workshop's routing table plus that repo's `README.md` and design docs instead, and say in
   the PR body that the pass ran without a repo boundary doc. Don't skip the pass over a
   missing file.
@@ -194,29 +194,29 @@ Not mergeable (conflicts / non-fast-forward)? `git fetch origin && git rebase or
 push, retry. On conflicts you can't cleanly resolve, **stop and show them** — never
 force-push `main`. On the current worktree's own branch the *local* delete may be skipped
 because you're standing on it — fine, leave it: the merged branch + checkout are reaped when
-I close this pane myself (`holt`'s remove path fires on the client's graceful teardown) or by
-a later `holt reap`. `/ship` no longer closes the pane, so there's nothing to race here.
+I close this pane myself (`scruff`'s remove path fires on the client's graceful teardown) or by
+a later `scruff reap`. `/ship` no longer closes the pane, so there's nothing to race here.
 
 ## Step 4 — clean up every worktree this session spun up
 
 A workshop worktree can't see the child repos, so when a task belongs to one you
-hand-create a child-repo worktree (`holt child …`) to do the work. The `WorktreeRemove` hook
+hand-create a child-repo worktree (`scruff child …`) to do the work. The `WorktreeRemove` hook
 never reaps children, so confirm each one's branch is merged (open + merge its PR as in
-Step 3), then let `holt reap` sweep them all at once:
+Step 3), then let `scruff reap` sweep them all at once:
 
 ```bash
-holt reap      # removes every LANDED worktree across all repos: parked ones + clean,
+scruff reap      # removes every LANDED worktree across all repos: parked ones + clean,
                # merged live checkouts that NO pane is sitting in (dirty / unmerged /
                # occupied — including the pane you're in — are kept and listed)
 ```
 
-`holt reap` is idempotent: it only touches checkouts whose PR has merged, whose tree is
+`scruff reap` is idempotent: it only touches checkouts whose PR has merged, whose tree is
 clean, and that no live process is cwd'd into — so it can't drop live work *or* yank a
 sibling agent's checkout out from under its open pane (haus#137; before that fix it
 could, and did). Anything it spares for occupancy is reported as `⏸ kept …`, so a quiet
 run is never a silent skip. Fall back to a targeted
 `git -C <child-repo-main-checkout> worktree remove <path>` only if you need to
-force-remove a child you *know* is clean. `holt` lists every agent worktree across all
+force-remove a child you *know* is clean. `scruff` lists every agent worktree across all
 repos — run it after to confirm nothing you created is left. Don't delete worktrees you
 didn't create.
 
@@ -246,7 +246,7 @@ merging, so confirm it's approved before you ripple.
   Only flag an activation when it's genuinely *risky* — something a user could feel break, or
   a change that's hard to roll back.
 - **Release** (`bench release <repo>`: stamps today's CalVer date → tag → CI publishes →
-  bumps `homebrew-tap`; releasable repos are pounce, perch, holt, haus) is **always gated.**
+  bumps `homebrew-tap`; releasable repos are pounce, perch, scruff, haus) is **always gated.**
   Never run it unprompted — but if this ship touched user-facing behavior in a tagged repo,
   **propose one** (nudging is expected, tagging is my call). Ship first, then release.
 
@@ -299,7 +299,7 @@ is the reliable copy.
   `bench try switch` — there's nothing to make live. Either way, **don't touch the pane.**
   The now-merged worktree you're sitting in is left exactly as-is — reaping it would pull the
   checkout out from under this live pane — and gets cleaned up when I close the pane myself
-  (the `holt` remove hook), or by a later `holt reap`. (Other landed worktrees this session
+  (the `scruff` remove hook), or by a later `scruff reap`. (Other landed worktrees this session
   spawned were already swept in Step 4, which runs from the worktree cwd so its guard keeps
   *this* one.) Don't wait on CI unless CI is what this thread was about.
 

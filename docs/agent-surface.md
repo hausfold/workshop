@@ -253,11 +253,11 @@ body.** Every guard exists because the failure it catches is invisible at
 runtime — a skill with broken frontmatter is installed, listed and never
 loaded — and most of these repos build Go or Swift in CI with no Nix at all, so
 a guard living only in the derivation runs nowhere that matters. The script
-**discovers** `ai/*/SKILL.md` rather than taking a list; holt's
+**discovers** `ai/*/SKILL.md` rather than taking a list; scruff's
 `script/check-skills.sh` is the pattern.
 
 Each repo's build files follow that repo's own convention — `nix/skill.nix` in
-perch, trill, holt and nebelung, `pkgs/pounce-skill/default.nix` in pounce. Only
+perch, trill, scruff and nebelung, `pkgs/pounce-skill/default.nix` in pounce. Only
 the package *name* and the output *layout* are fixed. haus is the one variant:
 its skill source is `modules/ai/agents/SKILL.md` and its derivation is flat.
 
@@ -275,8 +275,8 @@ pane with no context:
 | perch | "put this file in my shelf" / "what's on my shelf?" |
 | pounce | "what did I copy three things ago?" |
 | trill | "tell me when this build finishes" |
-| holt | "what agent worktrees do I have open?" |
-| holt · handoff | "hand this off to a fresh session" / "spawn an agent to do this" |
+| scruff | "what agent worktrees do I have open?" |
+| scruff · handoff | "hand this off to a fresh session" / "spawn an agent to do this" |
 | haus | "make my terminal font bigger" |
 | nebelung | "what's the hex for the background colour?" |
 

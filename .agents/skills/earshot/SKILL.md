@@ -99,7 +99,7 @@ know better; just say why in the PR body.
 - **Renames.** The index doesn't follow them, so a rename on one side and an edit on
   the other can read as quiet and still conflict. `merge-tree` catches it once both
   sides have committed — one more reason the two signals are reported apart.
-- **Other repos.** Overlap is only defined within one repo: a `holt child` lane on
+- **Other repos.** Overlap is only defined within one repo: a `scruff child` lane on
   another repo has its own object store and cannot textually collide with this one.
   That's the whole scoping rule, and it needs no flag.
 - **Uncommitted work in a lane whose checkout is gone.** A parked lane is read from its

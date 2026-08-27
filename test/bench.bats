@@ -221,6 +221,40 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [ "$output" = "$ROOT/haus" ]
 }
 
+# ⏳ The scruff arm, and the only place `holt` still means anything to bench.
+# The repo renamed on 2026-08-27; the checkout waits for a tree with no live
+# lane holding an absolute gitdir into it. Three cases, and the ORDER is the
+# contract: prefer the new dir, fall back to the old one only while it is the
+# one on disk, and plant the NEW name on a machine that has neither. Delete
+# this test with the arm.
+
+@test "repo_dir prefers the new scruff checkout when it exists" {
+  mkdir -p "$ROOT/scruff/.git" "$ROOT/holt/.git"
+  run repo_dir scruff
+  [ "$output" = "$ROOT/scruff" ]
+}
+
+@test "repo_dir falls back to the holt checkout while that is the one on disk" {
+  mkdir -p "$ROOT/holt/.git"
+  run repo_dir scruff
+  [ "$output" = "$ROOT/holt" ]
+}
+
+@test "repo_dir plants the new name on a machine with neither checkout" {
+  # `bench clone` builds its destination from this, so a fresh machine must
+  # never be handed the old directory name.
+  run repo_dir scruff
+  [ "$output" = "$ROOT/scruff" ]
+}
+
+@test "gh_repo resolves scruff to the repo, never the checkout" {
+  run gh_repo scruff
+  [ "$output" = "$GH_ORG/scruff" ]
+  # And the freed slug stays freed — decision 5 in the rename plan: recreating
+  # `hausfold/holt` would kill every redirect permanently.
+  [ "$output" != "$GH_ORG/holt" ]
+}
+
 # ── local_src / overrides: worktree-aware checkout substitution ────────────────
 
 @test "local_src points at the main checkout when not in a worktree" {
@@ -496,18 +530,18 @@ JSON
   [[ "$output" == *"--override-input mydesktop path:$ROOT/haus"* ]]
 }
 
-# ── bench try lane: build a pane's worktree + every holt-child alongside it ────
+# ── bench try lane: build a pane's worktree + every scruff-child alongside it ────
 #
-# holt's registry only ever records a ONE-HOP parent pointer per row (the
+# scruff's registry only ever records a ONE-HOP parent pointer per row (the
 # spawning pane's own checkout path) — never a children list, deliberately.
 # lane_paths/detect_lane do the walk bench-side: start at a checkout, pull in
 # any row whose `parent` matches something already found, transitively.
 
 @test "local_src prefers a lane child checkout over its main checkout" {
-  LANE_SRC[holt]="/tmp/lane/holt"
+  LANE_SRC[scruff]="/tmp/lane/scruff"
   WT_REPO="pounce" WT_PATH="/tmp/wt/pounce"
-  run local_src holt
-  [ "$output" = "/tmp/lane/holt" ]
+  run local_src scruff
+  [ "$output" = "/tmp/lane/scruff" ]
   # the active worktree's own repo is untouched by LANE_SRC…
   run local_src pounce
   [ "$output" = "/tmp/wt/pounce" ]
@@ -517,10 +551,10 @@ JSON
 }
 
 @test "local_src prefers a batch integration checkout over a lane child" {
-  BATCH_SRC[holt]="/tmp/batch/holt"
-  LANE_SRC[holt]="/tmp/lane/holt"
-  run local_src holt
-  [ "$output" = "/tmp/batch/holt" ]
+  BATCH_SRC[scruff]="/tmp/batch/scruff"
+  LANE_SRC[scruff]="/tmp/lane/scruff"
+  run local_src scruff
+  [ "$output" = "/tmp/batch/scruff" ]
 }
 
 @test "overrides points a lane child at its checkout, honouring the active worktree too" {
@@ -545,7 +579,7 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$output" = "/tmp/wt/pounce" ]
 }
 
-@test "lane_paths walks holt-child rows transitively, ignoring unrelated ones" {
+@test "lane_paths walks scruff-child rows transitively, ignoring unrelated ones" {
   WT_REGISTRY="$TMP/registry.tsv"
   mkregistry "$WT_REGISTRY" \
     "child1 $ROOT/haus worktree-child1 /tmp/wt/haus /tmp/wt/pounce claude" \
@@ -602,9 +636,9 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$status" -eq 0 ]
   [[ "$output" == *"worktree-live"* ]]
   [[ "$output" == *"dirty"* ]]                       # the checkout really is dirty
-  [[ "$output" == *"(parked — 'holt gone' to resume"* ]]
+  [[ "$output" == *"(parked — 'scruff gone' to resume"* ]]
   [[ "$output" == *"worktree-dead"* && "$output" == *"stale branch"* ]]
-  [[ "$output" == *"holt reap"* ]]                   # a live lane exists to reap
+  [[ "$output" == *"scruff reap"* ]]                   # a live lane exists to reap
   [[ "$output" != *"alien"* ]]                       # somebody else's repo
 }
 
@@ -625,8 +659,8 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
 }
 
 @test "lane_rows keeps hausfold + host-config lanes and drops everyone else's" {
-  # bench lists holt's registry, not `git worktree list` — git's answer includes
-  # hand-made trees holt never made and `holt reap` will never sweep, which is
+  # bench lists scruff's registry, not `git worktree list` — git's answer includes
+  # hand-made trees scruff never made and `scruff reap` will never sweep, which is
   # what made the two tools look permanently out of sync. The registry is
   # machine-wide, so a lane in an unrelated repo is filtered out here.
   WT_REGISTRY="$TMP/registry.tsv"
@@ -654,7 +688,7 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$output" = "$(printf '%s\t%s\t%s\t%s' "$ROOT/haus" worktree-lane1 /wt/haus lane1)" ]
 }
 
-@test "lane_rows says nothing when holt has never written a registry" {
+@test "lane_rows says nothing when scruff has never written a registry" {
   WT_REGISTRY="$TMP/no-such-registry.tsv"
   run lane_rows
   [ "$status" -eq 0 ]
@@ -677,7 +711,7 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$output" = "·     " ]
 }
 
-@test "detect_lane populates LANE_SRC for every holt child, mapped to its family repo" {
+@test "detect_lane populates LANE_SRC for every scruff child, mapped to its family repo" {
   mkmain pounce
   # detect_lane's self-lookup is `git rev-parse --show-toplevel` (no -C), which
   # resolves symlinks (/tmp → /private/tmp on macOS) — match that here, exactly
@@ -816,7 +850,7 @@ NIX
   [ "$output" = "2026.07.18-1" ]
 }
 
-# ── version_scheme: holt is the one repo whose number is a judgement ───────────
+# ── version_scheme: scruff is the one repo whose number is a judgement ────────
 
 @test "version_scheme is calver for the tag-and-forget repos" {
   for repo in pounce perch haus; do
@@ -825,48 +859,48 @@ NIX
   done
 }
 
-@test "version_scheme is semver for holt" {
-  run version_scheme holt
+@test "version_scheme is semver for scruff" {
+  run version_scheme scruff
   [ "$output" = semver ]
 }
 
-@test "version_file locates holt's VERSION" {
-  run version_file holt
-  [ "$output" = "$ROOT/holt/VERSION" ]
+@test "version_file locates scruff's VERSION" {
+  run version_file scruff
+  [ "$output" = "$ROOT/scruff/VERSION" ]
 }
 
-@test "read_version reads and trims holt's VERSION file" {
-  mkdir -p "$ROOT/holt"
-  printf '0.1.0\n' >"$ROOT/holt/VERSION"
-  run read_version holt
+@test "read_version reads and trims scruff's VERSION file" {
+  mkdir -p "$ROOT/scruff"
+  printf '0.1.0\n' >"$ROOT/scruff/VERSION"
+  run read_version scruff
   [ "$output" = "0.1.0" ]
 }
 
-# holt's version lives in four files, so write_version delegates to the repo's
+# scruff's version lives in four files, so write_version delegates to the repo's
 # own script rather than learning three manifest shapes. What's asserted here is
 # the HANDOFF — that bench calls it with the version — not the script's own
-# behaviour, which holt tests where it lives.
-@test "write_version delegates holt to the repo's stamp script" {
-  mkdir -p "$ROOT/holt/script"
-  cat >"$ROOT/holt/script/stamp-version.sh" <<'SH'
+# behaviour, which scruff tests where it lives.
+@test "write_version delegates scruff to the repo's stamp script" {
+  mkdir -p "$ROOT/scruff/script"
+  cat >"$ROOT/scruff/script/stamp-version.sh" <<'SH'
 #!/usr/bin/env bash
 printf '%s\n' "$1" > "$(dirname "$0")/../VERSION"
 echo "stamped $1"
 SH
-  chmod +x "$ROOT/holt/script/stamp-version.sh"
-  write_version holt 0.2.0
-  run read_version holt
+  chmod +x "$ROOT/scruff/script/stamp-version.sh"
+  write_version scruff 0.2.0
+  run read_version scruff
   [ "$output" = "0.2.0" ]
 }
 
 # A checkout that predates the release flow has no stamp script, and the failure
 # has to name the fix rather than surfacing as a bare "no such file".
-@test "write_version refuses holt when the stamp script is missing" {
-  mkdir -p "$ROOT/holt"
-  run write_version holt 0.2.0
+@test "write_version refuses scruff when the stamp script is missing" {
+  mkdir -p "$ROOT/scruff"
+  run write_version scruff 0.2.0
   [ "$status" -ne 0 ]
   [[ "$output" == *"stamp-version.sh"* ]]
-  [[ "$output" == *"bench pull holt"* ]]
+  [[ "$output" == *"bench pull scruff"* ]]
 }
 
 # ── next_version: today's date, with -N on a same-day repeat ───────────────────
@@ -1292,7 +1326,7 @@ Docs-Sync: 2026-07-20"
 # ── the usage header and the sed that prints it must not drift apart ─────────
 # `bench <garbage>` prints the header with a hardcoded line range. Grow the
 # header and the range silently truncates it — which is how the paragraph about
-# holt needing an explicit semver argument went missing.
+# scruff needing an explicit semver argument went missing.
 
 @test "bench <garbage> prints the usage header all the way to its last line" {
   local last; last="$(awk '/^# Rule of thumb/ {print NR - 2; exit}' "$HAUS")"
@@ -1946,7 +1980,7 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
 
 @test "cmd_overlap still sees a merged lane's UNMERGED commits" {
   # The other half of the same seam: subtracting what main landed must not
-  # subtract what the lane kept doing afterwards — exactly the state `holt
+  # subtract what the lane kept doing afterwards — exactly the state `scruff
   # reship` exists for, commits made after the PR merged.
   mkoverlap
   setline "$OV/repo/doc.md" 10 10-rival

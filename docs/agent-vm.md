@@ -9,19 +9,19 @@ the screen — take a VM.*
 
 | | |
 |---|---|
-| `holt runtime up\|enter\|down <lane> --backend <id>` | generic: loads `~/.config/holt/adapters/runtime/<id>.toml`, renders each argv element through `text/template` with the lane vars, execs it. Never automatic — create/reap never touch a backend |
-| the `tart` adapter | `haus.ai.enable` writes `~/.config/holt/adapters/runtime/tart.toml` + `~/.config/haus/runtime/tart-adapter.sh` (from `modules/ai/runtime/tart-adapter.sh`). The script does the multi-step dance holt's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
+| `scruff runtime up\|enter\|down <lane> --backend <id>` | generic: loads `~/.config/scruff/adapters/runtime/<id>.toml`, renders each argv element through `text/template` with the lane vars, execs it. Never automatic — create/reap never touch a backend |
+| the `tart` adapter | `haus.ai.enable` writes `~/.config/scruff/adapters/runtime/tart.toml` + `~/.config/haus/runtime/tart-adapter.sh` (from `modules/ai/runtime/tart-adapter.sh`). The script does the multi-step dance scruff's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
 | the golden image | `haus`'s `script/build-golden-vm.sh` — clone the base, run a **pinned-tag** `bootstrap.sh` (never the floating `hausfold.co/hacker.sh`, which resolves the latest release and drifts), switch, stop, leave a tagged image lanes clone in seconds |
 
 ## The loop
 
 ```sh
-holt runtime up    my-lane --backend tart   # clone golden image, boot headless
-holt runtime enter my-lane --backend tart   # ssh in, or drive it from the host
-holt runtime down  my-lane --backend tart   # delete the clone
+scruff runtime up    my-lane --backend tart   # clone golden image, boot headless
+scruff runtime enter my-lane --backend tart   # ssh in, or drive it from the host
+scruff runtime down  my-lane --backend tart   # delete the clone
 ```
 
-and, for the half that is not holt's business:
+and, for the half that is not scruff's business:
 
 ```sh
 tart ip scratch                                    # 192.168.64.5
@@ -116,7 +116,7 @@ unattended run, not for the VM.
 
 **Disk is the cap, not RAM.** A full macOS clone is tens of GB. `tart clone` is
 APFS copy-on-write (cheap at creation, grows as the guest writes) and `tart
-suspend` beats a cold boot. A `holt runtime` verb reporting what a lane's
+suspend` beats a cold boot. A `scruff runtime` verb reporting what a lane's
 backend costs would be worth more than a concurrency guard.
 
 **The base OS is one decision, recorded in one place.** Every measurement here

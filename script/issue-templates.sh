@@ -31,16 +31,26 @@ repo_dir() {
   case "$1" in
     workshop) printf '%s' "$ROOT" ;;
     org)      printf '%s/org-profile' "$ROOT" ;;
+    # ⏳ `hausfold/holt` renamed to `hausfold/scruff` on 2026-08-27; the local
+    # checkout is still `holt/` because every open agent lane holds an absolute
+    # gitdir into it. Same three cases as `bench`'s repo_dir, in the same order:
+    # prefer the new dir, take the old one only while it is the one there, and
+    # name the NEW one when neither exists — so the "not checked out here" line
+    # says the name the machine should go and get. CI clones fresh into
+    # `scruff/` and never reaches the fallback. Delete the arm with the `mv`.
+    scruff)   if [ -d "$ROOT/holt" ] && [ ! -d "$ROOT/scruff" ]
+              then printf '%s/holt' "$ROOT"
+              else printf '%s/scruff' "$ROOT"; fi ;;
     *)        printf '%s/%s' "$ROOT" "$1" ;;
   esac
 }
 
 # Every repo that takes reports from a human, plus `org` — the checkout of
 # hausfold/.github, whose templates GitHub serves to any repo with none of its
-# own (homebrew-tap, holt-swift, producer-desktop, and whatever gets created
+# own (homebrew-tap, scruff-swift, producer-desktop, and whatever gets created
 # next). That fallback is the difference between "every repo" being a list we
 # maintain and being true. `ops` is private and takes no reports, so it's out.
-REPOS=(haus pounce perch trill snug holt nebelung hausfold.co workshop org)
+REPOS=(haus pounce perch trill snug scruff nebelung hausfold.co workshop org)
 
 # ---- the table ---------------------------------------------------------------
 # TOOL      what the reporter calls it
@@ -157,12 +167,12 @@ meta() {
         "somewhere else, or not sure"
       )
       ;;
-    holt)
-      TOOL="holt"
+    scruff)
+      TOOL="scruff"
       BLURB="Something about worktrees or lanes doesn't work"
-      DOCS="https://github.com/hausfold/holt#readme"
+      DOCS="https://github.com/hausfold/scruff#readme"
       DIAG="Version and platform"
-      DIAG_HINT="\`holt --version\`, your OS, and which client you spawned the lane with (Claude Code, Codex, OpenCode…)."
+      DIAG_HINT="\`scruff --version\`, your OS, and which client you spawned the lane with (Claude Code, Codex, OpenCode…)."
       AREAS=(
         "creating a lane"
         "resuming a parked lane"
@@ -238,7 +248,7 @@ meta() {
         "Pounce — the command palette"
         "Perch — the notch shelf"
         "trill — notifications"
-        "holt — agent worktrees"
+        "scruff — agent worktrees"
         "Nebelung — the theme"
         "the Homebrew tap"
         "hausfold.co — the site or docs"
