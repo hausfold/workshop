@@ -51,8 +51,8 @@ name is historical; every client shares it). The chord is scoped to Ghostty, so
 ⌘↵ still means *send* everywhere else — and a lane can't be started from a
 browser; the palette's **Spawn Agent** row is the answer there.
 
-**Which client** is whatever `haus.ai.default` names — `claude`, `codex` or
-`opencode`. **All three go through `holt new`**, including Claude:
+**Which client** is whatever `haus.ai.default` names — `claude`, `codex`,
+`opencode` or `pi`. **All four go through `holt new`**, including Claude:
 `claude --worktree` would run the client in the pane it was launched from and
 never ask holt's `[hooks] open`, which is the seam a lane's own window arrives
 through. The `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json`
@@ -81,7 +81,8 @@ parks any uncommitted edits as a `wip:` commit on the branch first, and only
 ```sh
 holt                  # every parked/live agent worktree, across all repos
 holt <name>           # rebuild a parked checkout and drop back into the client
-                      # it was made with (claude --resume / codex resume / opencode --continue)
+                      # it was made with (claude --resume / codex resume /
+                      # opencode --continue / pi --continue)
 holt park [label]     # set the dirty tree aside as one wip: commit — NEVER git stash
 holt unpark           # …and put it back
 holt reship [name]    # a session that kept committing after its PR merged: push
