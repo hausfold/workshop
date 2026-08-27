@@ -5,7 +5,7 @@
 # universalaccess-fda-test.sh already proved the mechanism on ONE key
 # (reduceMotion writes and takes effect with FDA). This fills in the rest,
 # because "same domain, so it must work" is precisely the reasoning that got
-# notes/macos-settings-matrix.md wrong twice.
+# haus's docs/macos-settings.md wrong twice.
 #
 # Two keys here are the point of the whole exercise and are NOT typed by
 # nix-darwin — if they hold up they're reachable via CustomUserPreferences, and
@@ -152,4 +152,4 @@ cat <<'EOF'
   accessibility keys as GUI-only.
 EOF
 
-say "Done — the domain is restored on exit. Record results in macos-settings-matrix.md."
+say "Done — the domain is restored on exit. Record results in haus's docs/macos-settings.md."

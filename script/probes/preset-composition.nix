@@ -1,13 +1,13 @@
 # preset-composition — what happens when two RICES meet, and whether the fix
 # that worked for packs transfers.
 #
-# Evidence for options-roadmap.md §6, limit 3. rice#222 closed limit 3 for
+# Evidence for the option surface's composition limit. rice#222 closed it for
 # packs: `haus.lib.pack` stamps `mkDefault` per leaf at the import seam, so
 # a consumer's own host outranks a pack silently and two packs still collide
 # loudly. The gap it left, named in the roadmap, is **preset vs preset** — and
 # the gallery a launch produces is a pile of presets, not packs.
 #
-#   nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
+#   nix-instantiate --eval --strict --json script/probes/preset-composition.nix \
 #     --arg rice /Users/you/code/workshop/hausfold
 #
 # (Same shape as pack-priority.nix: `nix eval --file` ignores `--arg`, and the

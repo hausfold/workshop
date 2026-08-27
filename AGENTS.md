@@ -3,7 +3,7 @@
 **The hausfold workshop** — the parent directory holding every repo in the
 **hausfold** family, plus `bench`, the script that moves changes between them.
 This repo owns the README, this file, `bench` (+ `_bench`, its zsh completion),
-`notes/`, `docs/`, `assets/`, `test/`, `.agents/` and `LICENSE`. The
+`docs/`, `script/`, `assets/`, `test/`, `.agents/` and `LICENSE`. The
 subdirectories are independent git repos.
 
 **This file is the one set of instructions, for every agent** — Claude Code,
@@ -59,14 +59,37 @@ former, never the latter).
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | **how one of our tools puts a line on screen** | the tool's OWN repo, but never as a bare `osascript -e 'display notification …'` again. Everything the family draws goes through **trill**, with Apple's banner as the fallback when trill isn't installed: haus has `haus-notify` (`modules/core/haus-notify.sh`, on PATH beside a `trill` wrapper), pounce carries a `notify()` per command because it installs standalone, `bench` has one for the verbs you walk away from, and holt already had `holt hook notify`. Give every caller its own `--source` — that string is what `~/.config/trill/rules.json` matches on, and it is the difference between silencing one noisy thing and silencing the tool. No `haus.*` option gates any of it; rules.json is the dial |
-| **a write-up that turned out to be wrong** — a stale README claim, a comment that outlived its code, a check that passes while the thing it protects rots | [`notes/drift.md`](notes/drift.md), which lives here because it binds every repo: thirty numbered shapes and, beside each, the only thing that catches it. **Row numbering is frozen** — this repo's notes and `haus`'s commit messages cite rows by number (`6bb294c`: *"§5.14 row twenty"*). Append a shape when you find one the table can't already name — or, if you can't yet say its general form, put it under *Seen once, not yet a row* and let a second sighting promote it; the passes that find them are at the bottom of that file |
-| **how an agent learns to drive one of our tools** — the `ai/SKILL.md` an end user's agent loads (and any sibling `ai/<name>/SKILL.md` the tool also ships), the `<tool> skill` verb, `--json`/exit-code shape | the tool's OWN repo, to the standard in [`notes/agent-surface.md`](notes/agent-surface.md) — which lives here because it binds every repo. ⚠️ Not a repo's `AGENTS.md`: that is for an agent working **on** the tool, from a checkout; a `SKILL.md` is for an agent **using** it, on a machine with no checkout. Which skills a machine gets is `./haus`'s `haus.ai.skill` |
-| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels a form applies, the private security link | **the generator here, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into NINE repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half (a form's `labels:` are silently DROPPED if the label doesn't exist in that repo, and its security contact link 404s until private vulnerability reporting is on). The design, and why the field count is four, is [`notes/bug-reports.md`](notes/bug-reports.md). ⚠️ A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. There is **no telemetry in anything we ship**, so these forms are the entire feedback channel |
+| **a write-up that turned out to be wrong** — a stale README claim, a comment that outlived its code, a check that passes while the thing it protects rots | [`docs/drift.md`](docs/drift.md), which lives here because it binds every repo: thirty numbered shapes and, beside each, the only thing that catches it. **Row numbering is frozen** — this repo's docs and `haus`'s commit messages cite rows by number. Append a shape when you find one the table can't already name — or, if you can't yet say its general form, put it under *Seen once, not yet a row* and let a second sighting promote it |
+| **how an agent learns to drive one of our tools** — the `ai/SKILL.md` an end user's agent loads (and any sibling `ai/<name>/SKILL.md` the tool also ships), the `<tool> skill` verb, `--json`/exit-code shape | the tool's OWN repo, to the standard in [`docs/agent-surface.md`](docs/agent-surface.md) — which lives here because it binds every repo. ⚠️ Not a repo's `AGENTS.md`: that is for an agent working **on** the tool, from a checkout; a `SKILL.md` is for an agent **using** it, on a machine with no checkout. Which skills a machine gets is `./haus`'s `haus.ai.skill` |
+| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels a form applies, the private security link | **the generator here, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into NINE repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half (a form's `labels:` are silently DROPPED if the label doesn't exist in that repo, and its security contact link 404s until private vulnerability reporting is on). The design, and why the field count is four, is [`docs/bug-reports.md`](docs/bug-reports.md). ⚠️ A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. There is **no telemetry in anything we ship**, so these forms are the entire feedback channel |
 | **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, and only there. It is `curl -fsSL https://hausfold.co/hacker.sh \| bash`. A change to the *script* belongs in `./haus`'s `bootstrap.sh` |
 | the hausfold.co site | `./hausfold.co` — [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Keep the `.co`.** Next 16 + Fumadocs, statically exported onto a Cloudflare Worker, deployed by CI on push to its `main`; `worker.js` serves the installer, download and release-metadata routes in front of the export. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY` |
-| the hausfold **name register** — a handle, an account, a claimed namespace | [hausfold/ops](https://github.com/hausfold/ops), **private**, `PRESENCE.md`. ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**: a list of what nobody has claimed hands it to whoever reads it first. *Trademark* findings are public register records and are fine here; *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand; the dir is `.gitignore`d |
+| the hausfold **name register**, the launch plan, or anything still to be decided | [hausfold/ops](https://github.com/hausfold/ops), **private** — `PRESENCE.md` for the register, [`todo/`](https://github.com/hausfold/ops/tree/main/todo) for every open workstream (launch, agent surface, option surface, MDM). ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**: a list of what nobody has claimed hands it to whoever reads it first. *Trademark* findings are public register records and are fine here; *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand; the dir is `.gitignore`d |
 | pounce's Homebrew formula / perch's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
 | holt's Swift SDK | `./holt`'s `sdk/swift`. [`hausfold/holt-swift`](https://github.com/hausfold/holt-swift) is a **generated mirror** (`git subtree split --prefix=sdk/swift`) that exists because SwiftPM needs `Package.swift` at a repo root. **A `sdk/swift` merge alone does not move the mirror** — only a `v*` tag does, via `sdk/swift/sync-mirror.sh --tag <version>`, and mirroring + tagging IS "publishing" for SwiftPM. To get an unreleased change to a consumer sooner, run that script by hand from holt's `main` (it refuses any other branch). Never hand-edit the mirror |
+
+## Where a write-up goes
+
+**Every repo in the family keeps its long-form documentation in `docs/`.** No
+`notes/` anywhere — it was the old name and it collected history nobody read.
+
+| kind of write-up | where |
+|---|---|
+| how a thing works **now**, in one repo | that repo's `docs/<topic>.md` |
+| a standard that binds every repo | this repo's [`docs/`](./docs/) — `agent-surface.md`, `bug-reports.md`, `drift.md`, `agent-vm.md` |
+| what a user reads | `hausfold.co`'s `content/docs/`, the site's source of truth |
+| **work that still has steps in it** | [hausfold/ops](https://github.com/hausfold/ops)'s `todo/` — private, and the one place a live plan lives |
+
+Three rules that keep them from rotting:
+
+1. **State what is true now, not how it got that way.** The codebase and the git
+   history are the record of why. A doc that narrates its own past is a doc
+   nobody finishes reading.
+2. **A plan is not a doc.** The moment a file is mostly unchecked boxes it
+   belongs in `ops/todo/`, where it is somebody's list rather than everybody's
+   reference.
+3. **Fix it in the same change.** A stale claim you route around is a claim the
+   next reader believes.
 
 ## The one gotcha that explains everything
 
@@ -337,8 +360,8 @@ What a cloud session can do, and its hard limits:
   --filter=blob:none --sparse` + `sparse-checkout set lib` away, 15 MB, enough to
   run haus's own `modules/lib/*.nix` through `lib.evalModules` — its real
   validator, on Linux, in seconds. That is how
-  `notes/probes/namespace-collision.nix` runs from a cloud session, and
-  [`source-shapes.sh`](./notes/probes/source-shapes.sh) needs less still. It does
+  `script/probes/namespace-collision.nix` runs from a cloud session, and
+  [`source-shapes.sh`](./script/probes/source-shapes.sh) needs less still. It does
   not make `nix flake check` reachable: haus pins all nine inputs as `github:`,
   and the darwin half needs macOS however they are spelled.
 - ❌ `bench try switch` / `darwin-rebuild switch` never run here — macOS only.

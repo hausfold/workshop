@@ -1,6 +1,6 @@
 # scale-reach — what `haus.ui.scale` actually reaches, and where it stops.
 #
-# Evidence for options-roadmap.md §5.2. That section carries two claims nobody
+# Evidence for `haus.ui.scale`'s reach. Two claims nobody
 # had measured: (1) "any option whose unit is points is silently coupled to
 # `haus.displays`, because a display mode changes what a point means —
 # worth auditing `fonts.*.size` and prowl's gaps for the same interaction", and
@@ -8,7 +8,7 @@
 # §5.14 lists both as findings that ought to leave a CHECK behind rather than a
 # paragraph.
 #
-#   nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
+#   nix-instantiate --eval --strict --json script/probes/scale-reach.nix \
 #     --arg rice /Users/you/code/workshop/hausfold
 #
 # (Same argument convention as pack-priority.nix / preset-composition.nix: a

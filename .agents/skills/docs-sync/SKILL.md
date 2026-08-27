@@ -136,7 +136,7 @@ Two spellings to correct on sight:
 
 - **Old room code names** (`haus.{sill,prowl,hearth,pounce,perch,hush,collar}.*`) are an
   eval error, not a style nit → `haus.{bar,windows,terminal,launcher,shelf,focus,security.touchId}.*`.
-  The table is in `notes/rooms-desktops.md`.
+  The table is in haus's `docs/model.md`.
 - **A desktop is `hacker`, `everyday`, `minimal` or `blank`.** Anything else is a stale name.
 
 `inputs.<anything>.url` in a *consumer's* flake is that machine's own choice — leave it.
@@ -161,7 +161,7 @@ front page. The docs are too long before they are too short. Delete on sight:
   and flakes are written for someone working *on* the family, so mechanism, rationale and
   detail belong there. History still doesn't.
 
-  🔒 **Off the site, this whole list stops applying.** `AGENTS.md`/`CLAUDE.md`, `notes/`,
+  🔒 **Off the site, this whole list stops applying.** `AGENTS.md`/`CLAUDE.md`,
   `SPEC.md`, `ARCHITECTURE.md` and `bench`'s own comments are *written* in why-it-bit-us:
   the trap, the date it bit, the fix. That narrative is the payload, not bloat. Correct
   them when they're wrong; never cut them for length.

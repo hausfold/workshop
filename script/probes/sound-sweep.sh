@@ -202,4 +202,4 @@ cat <<'EOF'
   be the first setting in the group that survives an OS reinstall.
 EOF
 
-say "Done — everything restored on exit. Record results in macos-settings-matrix.md."
+say "Done — everything restored on exit. Record results in haus's docs/macos-settings.md."

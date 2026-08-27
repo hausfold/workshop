@@ -1,20 +1,20 @@
 # Capability probes
 
-Re-runnable evidence for [`../macos-settings-matrix.md`](../macos-settings-matrix.md).
+Re-runnable evidence for haus's [`docs/macos-settings.md`](https://github.com/hausfold/haus/blob/main/docs/macos-settings.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
 (Six probes here aren't about macOS at all — `pack-priority.nix`,
 `preset-composition.nix`, `scale-reach.nix`, `namespace-collision.nix`,
 `source-shapes.sh` and `machine-diff.sh`, at the bottom — but they earn the same
-shelf: a claim in a notes file, with the command that proves it beside it.)
+shelf: a claim in a docs file, with the command that proves it beside it.)
 
 ```sh
-swift notes/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
-swift notes/probes/locale-effective.swift          # resolved locale + enabled input sources
-swift notes/probes/displays.swift                  # displays, persistent UUIDs, HiDPI modes
-./notes/probes/ncprefs-flags.sh                    # per-app notification switches
-./notes/probes/sound-sweep.sh                      # alert volume, beep sound, startup chime
-./notes/probes/locale-sweep.sh                     # region keys, input sources
-./notes/probes/power-sweep.sh                      # sleep/pmset (section C needs root)
+swift script/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
+swift script/probes/locale-effective.swift          # resolved locale + enabled input sources
+swift script/probes/displays.swift                  # displays, persistent UUIDs, HiDPI modes
+./script/probes/ncprefs-flags.sh                    # per-app notification switches
+./script/probes/sound-sweep.sh                      # alert volume, beep sound, startup chime
+./script/probes/locale-sweep.sh                     # region keys, input sources
+./script/probes/power-sweep.sh                      # sleep/pmset (section C needs root)
 ```
 
 `accessibility-effective.swift` reports what macOS *actually* honours, not what
@@ -28,7 +28,7 @@ matrix can't settle on its own: whether `com.apple.universalaccess` writes work
 when the invoking app has FDA.
 
 ```sh
-./notes/probes/universalaccess-fda-test.sh
+./script/probes/universalaccess-fda-test.sh
 ```
 
 It answers **two** questions, because they're not the same — `com.apple.Accessibility`
@@ -102,7 +102,7 @@ that aren't typed by nix-darwin and are the point of the exercise:
 - **`FontSizeCategory`** — macOS 26's per-app text size ("larger text")
 
 ```sh
-./notes/probes/accessibility-sweep.sh   # from an FDA terminal
+./script/probes/accessibility-sweep.sh   # from an FDA terminal
 ```
 
 It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
@@ -114,16 +114,16 @@ here, since `com.apple.Accessibility` writes succeed and change nothing.
 
 Added 2026-08-08 to settle the three curated-settings groups the roadmap had
 deferred *because nothing had been spiked*. Full results in
-[`../macos-settings-matrix.md`](../macos-settings-matrix.md#sound--localeinput-sources--power--swept-2026-08-08);
+haus's [`docs/macos-settings.md`](https://github.com/hausfold/haus/blob/main/docs/macos-settings.md);
 the short version is that all three are reachable and the stated reason for
 deferring each one was wrong — Sound, Locale and Power have 2, 4 and 6 typed
 options respectively.
 
 ```sh
-./notes/probes/sound-sweep.sh              # add --audible to hear the beep rows
-./notes/probes/locale-sweep.sh
-./notes/probes/power-sweep.sh              # A/B/D read-only
-POWER_SWEEP_WRITE=1 ./notes/probes/power-sweep.sh   # + the root write test
+./script/probes/sound-sweep.sh              # add --audible to hear the beep rows
+./script/probes/locale-sweep.sh
+./script/probes/power-sweep.sh              # A/B/D read-only
+POWER_SWEEP_WRITE=1 ./script/probes/power-sweep.sh   # + the root write test
 ```
 
 Three findings this shelf's own rules predicted and one it didn't:
@@ -200,13 +200,13 @@ nix-darwin's `power.sleep.*` configures a source the config never named, and
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 
-Evidence for [`../options-roadmap.md`](../options-roadmap.md) §6's limit 3
-instead of the matrix: what a shared **pack** must ship so a consumer's own host
+Evidence for the option surface's composition limit rather than for the
+matrix: what a shared **pack** must ship so a consumer's own host
 wins, rather than colliding with it.
 
 ```sh
-nix-instantiate --eval --strict --json notes/probes/pack-priority.nix
-nix-instantiate --eval --strict --json notes/probes/pack-priority.nix \
+nix-instantiate --eval --strict --json script/probes/pack-priority.nix
+nix-instantiate --eval --strict --json script/probes/pack-priority.nix \
   --arg rice ~/code/workshop/hausfold      # from a workshop worktree
 ```
 
@@ -225,7 +225,7 @@ What happens when two whole **rices** meet, rather than a pack and a host.
 the one a gallery produces.
 
 ```sh
-nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
+nix-instantiate --eval --strict --json script/probes/preset-composition.nix \
   --arg rice ~/code/workshop/hausfold
 ```
 
@@ -250,12 +250,11 @@ macOS bump too** — two of its rows are nix-darwin defaults (`dock.tilesize`,
 `NSTableViewDefaultSizeMode`), which is exactly the kind of thing a release moves.
 
 ```sh
-nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
+nix-instantiate --eval --strict --json script/probes/scale-reach.nix \
   --arg rice ~/code/workshop/hausfold
 ```
 
-Evidence for [`../options-roadmap.md`](../options-roadmap.md) §5.2's two
-unmeasured claims — that every point-valued option is silently coupled to
+Evidence for two claims about `haus.ui.scale` that nobody had measured — that every point-valued option is silently coupled to
 `haus.displays`, and the "honest scope" paragraph naming what `ui.scale`
 does and doesn't move. Both turned out to be one measurement apart:
 
@@ -279,13 +278,12 @@ This file keeps the census and the resolved values.
 ## `namespace-collision.nix` — who owns `haus.<name>`
 
 ```sh
-nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix
-nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix \
+nix-instantiate --eval --strict --json script/probes/namespace-collision.nix
+nix-instantiate --eval --strict --json script/probes/namespace-collision.nix \
   --arg haus ~/code/workshop/haus
 ```
 
-Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
-step E — namespace arbitration. It measures three things the note had been
+Evidence for desktop acquisition's namespace arbitration. It measures three things the note had been
 asserting: what the module system does when two rooms claim one namespace, what
 haus's real desktop validator says to a desktop naming a stranger's room, and
 whether a fifteen-line consumer-side claim check can see any of it.
@@ -313,13 +311,12 @@ so nixpkgs' pure `lib/` is one sparse clone away. The header says how.
 ## `source-shapes.sh` — what a stranger's desktop costs to fetch, and to read
 
 ```sh
-./notes/probes/source-shapes.sh                                     # local fixtures, no network
+./script/probes/source-shapes.sh                                     # local fixtures, no network
 PROBE_REMOTE=git+https://github.com/hausfold/workshop \
-  ./notes/probes/source-shapes.sh                                   # + one real remote lock node
+  ./script/probes/source-shapes.sh                                   # + one real remote lock node
 ```
 
-Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
-step B. Step A shipped a sandbox for reading a **local** desktop file; step B
+Evidence for desktop acquisition, step B. Step A shipped a sandbox for reading a **local** desktop file; step B
 fetches one instead, and this measures what changes when the file arrives in the
 store rather than in `~/Downloads`. Twenty-four rows (twenty-six with
 `PROBE_REMOTE`), seconds, no Mac — it builds throwaway git repos under one
@@ -374,13 +371,12 @@ risk.) The lab dir is resolved with `pwd -P` before anything is written into it.
 ## `machine-diff.sh` — what a consumer's own option tree can be asked
 
 ```sh
-./notes/probes/machine-diff.sh                                      # rows 1-7, on synthetic modules
+./script/probes/machine-diff.sh                                      # rows 1-7, on synthetic modules
 PROBE_CONSUMER=~/.config/nix PROBE_HOST=mbp \
-  ./notes/probes/machine-diff.sh                                    # + rows 5 and 8 on a real machine
+  ./script/probes/machine-diff.sh                                    # + rows 5 and 8 on a real machine
 ```
 
-Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
-step C. A and B read the stranger's **file**; C is the first step that has to
+Evidence for desktop acquisition, step C. A and B read the stranger's **file**; C is the first step that has to
 look at the **reader's machine**, so the question is whether the module system
 answers a leaf-by-leaf question cheaply, honestly and without writing anything.
 Eight rows. `lib` comes from `$PROBE_LIB` or from the copy every haus machine

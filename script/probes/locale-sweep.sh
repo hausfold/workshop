@@ -233,4 +233,4 @@ cat <<'EOF'
   at activation rather than shipping a hand-typed name/ID table in Nix.
 EOF
 
-say "Done — everything restored on exit. Record results in macos-settings-matrix.md."
+say "Done — everything restored on exit. Record results in haus's docs/macos-settings.md."

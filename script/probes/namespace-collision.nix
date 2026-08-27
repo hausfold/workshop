@@ -1,14 +1,14 @@
 # namespace-collision — who owns `haus.<name>` when two modules both think they do.
 #
-# Evidence for rooms-desktops.md's Acquisition plan, step E. That section had
+# Evidence for desktop acquisition, step E. The design had
 # asserted since 2026-08-17 that two third-party rooms claiming one namespace
 # "collide as a raw module-system option-declaration error naming neither
 # publisher". This measures it instead, and the assertion is half wrong in the
 # half that matters: the loud error is the LUCKY case, and the ordinary shape of
 # two real rooms merges silently into shared ownership.
 #
-#   nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix
-#   nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix \
+#   nix-instantiate --eval --strict --json script/probes/namespace-collision.nix
+#   nix-instantiate --eval --strict --json script/probes/namespace-collision.nix \
 #     --arg haus /Users/you/code/workshop/haus            # from a worktree
 #
 # Same shape as pack-priority.nix, and the same reason for the `haus` argument:
@@ -26,7 +26,7 @@
 #
 #   git clone --depth 1 --filter=blob:none --sparse https://github.com/NixOS/nixpkgs /tmp/npkgs
 #   git -C /tmp/npkgs sparse-checkout set lib          # 15 MB, seconds
-#   nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix \
+#   nix-instantiate --eval --strict --json script/probes/namespace-collision.nix \
 #     --arg haus /workspace/hausfold/haus --arg lib /tmp/npkgs/lib
 #
 # ---- what it found, 2026-08-20 (haus ffcdb0a) --------------------------------
@@ -314,7 +314,7 @@ in
     value = strangerDesktop;
   };
 
-  # Context for the numbers quoted in rooms-desktops.md, so a re-run dates itself.
+  # Context for the numbers this probe is quoted for, so a re-run dates itself.
   measured = {
     namespaces = builtins.length known;
     options = builtins.foldl' (
