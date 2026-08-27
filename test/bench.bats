@@ -963,6 +963,33 @@ paint_at() { # paint_at <cols> — one frame of three jobs, escapes stripped
   [[ "$narrow" != *"12s"*      ]]
 }
 
+@test "short job names keep their durations, however wide the window" {
+  # The regression this guards: the tier was chosen from `namew` AFTER it had
+  # been clamped down to the longest job name, so a run of build/test/lint —
+  # every name under 8 cells — read as a narrow window and dropped the duration
+  # column on a 200-column terminal.
+  local out
+  WATCH_ROWS=( $'ok\tbuild\t12s\t' $'ok\ttest\t5s\t' )
+  WATCH_COLS=200; WATCH_RESIZED=0; WATCH_PAINTED=0; out="$(paint_live 0 | strip_paint)"
+  [[ "$out" == *"12s"* ]] || { echo "lost the duration at 200 cols: $out"; false; }
+  [[ "$out" == *"5s"*  ]]
+  WATCH_COLS=40;  WATCH_RESIZED=0; WATCH_PAINTED=0; out="$(paint_live 0 | strip_paint)"
+  [[ "$out" == *"12s"* ]] || { echo "lost the duration at 40 cols: $out"; false; }
+}
+
+@test "a duration wider than the usual seven cells still fits" {
+  # "100m 05s" is 8 cells; a hardcoded 7-cell budget wrote into the last column
+  # and soft-wrapped the row — the exact failure this painter exists to stop.
+  # GitHub allows six-hour jobs, and a notarisation wait is the plausible one.
+  local w widest
+  WATCH_ROWS=( $'run\tnotarize\t100m 05s\t' $'ok\tbuild\t12s\t' )
+  for w in 120 60 40 30 24 20 14 10 6 4 2; do
+    WATCH_COLS="$w"; WATCH_RESIZED=0; WATCH_PAINTED=0
+    widest="$(paint_live 0 | strip_paint | widest_cells)"
+    [ "$widest" -le $((w - 1)) ] || { echo "cols=$w painted $widest cells"; false; }
+  done
+}
+
 @test "a resize clears the whole block before repainting" {
   WATCH_COLS=80; WATCH_RESIZED=0; WATCH_PAINTED=0
   WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
@@ -977,14 +1004,42 @@ paint_at() { # paint_at <cols> — one frame of three jobs, escapes stripped
   [[ "$output" != *$'\033[1A'* ]]
 }
 
-@test "watch_measure asks the kernel, not terminfo" {
-  # `tput cols` reads terminfo's STATIC size — 80 for every xterm-* entry — and
-  # answers 80 in a 40-column window. Only TIOCGWINSZ tracks a resize, so a
-  # painter built on tput folds to a width the window hasn't had since 1978.
-  run bash -c "sed -n '/^watch_measure()/,/^}/p' '$HAUS'"
-  [[ "$output" == *"stty size </dev/tty"* ]]
-  [[ "$output" == *"WATCH_RESIZED=1"* ]]
+@test "watch_measure reads COLUMNS from the kernel, not rows and not terminfo" {
+  # Two ways to get this wrong, and both look fine in a source grep:
+  #   · `tput cols` reads terminfo's STATIC size — 80 for every xterm-* entry —
+  #     and answers 80 in a 37-column window. Only TIOCGWINSZ tracks a resize.
+  #   · `stty size` prints "<rows> <cols>", so a `${sz% *}` takes the ROWS.
+  # 24×37: neither field is 80 and neither equals the other, so a pty is the
+  # only thing that can tell the three answers apart.
+  run python3 - "$HAUS" <<'PYEOF'
+import os, pty, sys, fcntl, termios, struct, select
+bench = sys.argv[1]
+pid, fd = pty.fork()
+if pid == 0:
+    # Gate on a read so the parent's TIOCSWINSZ lands before we measure.
+    os.execvp("bash", ["bash", "-c",
+        f"read -r _; HAUS_LIB=1 source {bench}; watch_measure; echo COLS=$WATCH_COLS"])
+fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 37, 0, 0))
+os.write(fd, b"\n")
+out = b""
+while True:
+    r, _, _ = select.select([fd], [], [], 5)
+    if not r:
+        break
+    try:
+        d = os.read(fd, 65536)
+    except OSError:
+        break
+    if not d:
+        break
+    out += d
+    if b"COLS=" in out:
+        break
+sys.stdout.write(out.decode("utf8", "replace"))
+PYEOF
+  [[ "$output" == *"COLS=37"* ]] || { echo "got: $output"; false; }
 }
+
 
 # ── latest_tag / commits_since: the release-edge staleness check ───────────────
 

@@ -2059,7 +2059,7 @@ GUTTER=6                  # "   " + glyph + "  " — 3-cell family gutter, inden
 # fd 1 is the substitution's pipe and never the terminal.
 watch_measure() {
   local sz
-  sz="$(stty size </dev/tty 2>/dev/null)" && WATCH_COLS="${sz#* }" \
+  sz="$(stty size 2>/dev/null </dev/tty)" && WATCH_COLS="${sz#* }" \
     || WATCH_COLS="$(tput cols 2>/dev/null)"
   case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS="${COLUMNS:-80}" ;; esac
   case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS=80 ;; esac
@@ -2076,11 +2076,13 @@ watch_measure() {
 # one fork per row per frame, thirty a second, in the loop whose own comment
 # said everything here was a builtin.
 paint_live() { # paint_live <frame>
-  local row state name detail since now secs glyph namew avail widest detailed gut
+  local row state name detail since now secs glyph namew avail widest detailw detailed gut rows
 
   # A resize reflows whatever is already on screen in ways we cannot model, so
   # don't try: drop to column 0, wipe everything below, and paint the next frame
-  # fresh. One stale copy may stay in scrollback; nothing after it is corrupt.
+  # fresh. `[J` clears from the cursor DOWN, so the pre-resize block stays where
+  # it is and the new one lands under it — one stale copy on screen, and nothing
+  # after it corrupt. Wiping upward would take real scrollback with it.
   if [ "$WATCH_RESIZED" -eq 1 ]; then
     printf '\r\033[J'; WATCH_PAINTED=0; WATCH_RESIZED=0
   fi
@@ -2094,36 +2096,13 @@ paint_live() { # paint_live <frame>
   # why the old row broke at exactly 48 as well as below it.
   avail=$(( WATCH_COLS - 1 ))
 
-  # The name column is the natural width of the widest name, capped at 34 so one
-  # verbose job cannot push the durations off to the right, and then cut down to
-  # whatever actually fits. Longest detail is 7 cells ("12m 34s") plus its space.
-  #
-  # Decided ONCE, before the loop: a per-row decision would let a narrow row's
-  # budget leak into the next row and re-widen it past the edge.
-  widest=0
-  for row in "${WATCH_ROWS[@]}"; do
-    IFS=$'\t' read -r _ name _ _ <<<"$row"
-    [ "${#name}" -gt "$widest" ] && widest="${#name}"
-  done
-  [ "$widest" -gt 34 ] && widest=34
-
-  # Three tiers, widest first. Each one gives up the least useful thing left.
-  #   table  — name column padded, duration aligned beside it
-  #   list   — name only; the duration is what goes, and so does the padding
-  #   bare   — indent collapses to a single space; the glyph still tells you how
-  #            many jobs there are and how each is doing
-  gut="$GUTTER"; namew=$(( avail - GUTTER - 8 )); detailed=1
-  [ "$namew" -gt "$widest" ] && namew="$widest"
-  if [ "$namew" -lt 8 ]; then
-    detailed=0
-    [ "$avail" -lt 12 ] && gut=2                  # bare: no indent, one space
-    namew=$(( avail - gut ))
-    # Under four columns there is no room for a name at all; the glyph alone is
-    # still true. Clamping namew up to 1 here instead would overflow the edge —
-    # the exact class of bug this whole painter exists to stop.
-    [ "$namew" -lt 1 ] && { namew=0; gut=1; }
-  fi
-
+  # ── one pass to resolve every row, one to draw them ────────────────────────
+  # Resolve first because the budget depends on the RESOLVED text: a running
+  # job's duration is re-derived here every frame, so its width isn't known until
+  # it is. Both loops are builtins only — this runs 10× a second, and a `$(date)`
+  # or `$(dur …)` per row per frame would be a few hundred forks a minute just to
+  # draw a clock.
+  widest=0; detailw=0; rows=()
   for row in "${WATCH_ROWS[@]}"; do
     IFS=$'\t' read -r state name detail since <<<"$row"
     # A running job's clock is OURS, not the snapshot's — otherwise the seconds
@@ -2138,6 +2117,45 @@ paint_live() { # paint_live <frame>
         then printf -v detail '%dm %02ds' $((secs / 60)) $((secs % 60))
         else printf -v detail '%ds' "$secs"; fi
     fi
+    [ "${#name}" -gt "$widest" ] && widest="${#name}"
+    [ "${#detail}" -gt "$detailw" ] && detailw="${#detail}"
+    rows+=("$state"$'\t'"$name"$'\t'"$detail")
+  done
+  [ "$widest" -gt 34 ] && widest=34     # one verbose job can't push durations right
+
+  # ── the budget ─────────────────────────────────────────────────────────────
+  # Decided ONCE, before drawing: a per-row decision would let a narrow row's
+  # budget leak into the next row and re-widen it past the edge.
+  #
+  # The tier is chosen from the WINDOW, then the column is clamped to the
+  # content — never the other way round. Clamping first and then testing the
+  # clamped value asks "is the longest name short?" when it means "is there
+  # room?", and a CI run of `build`/`test`/`lint` would drop its durations on a
+  # 200-column terminal.
+  #
+  # `detailw` is measured, not assumed: a job past 100 minutes renders "100m 05s"
+  # — 8 cells where a hardcoded 7 would have overflowed the edge, which is the
+  # very bug this painter exists to stop.
+  gut="$GUTTER"; detailed=1
+  namew=$(( avail - GUTTER - detailw - 1 ))
+  if [ "$namew" -ge 8 ] && [ "$detailw" -gt 0 ]; then
+    [ "$namew" -gt "$widest" ] && namew="$widest"
+  else
+    # Too narrow to align two columns — or nothing to align. The job's name is
+    # the load-bearing half, so the duration is what goes, and so is the padding
+    # that made it a table.
+    detailed=0
+    [ "$avail" -lt 12 ] && gut=2                  # bare: no indent, one space
+    namew=$(( avail - gut ))
+    [ "$namew" -gt "$widest" ] && namew="$widest"
+    # Under four columns there is no room for a name at all; the glyph alone is
+    # still true. Clamping namew up to 1 here instead would overflow the edge —
+    # the exact class of bug this whole painter exists to stop.
+    [ "$namew" -lt 1 ] && { namew=0; gut=1; }
+  fi
+
+  for row in "${rows[@]}"; do
+    IFS=$'\t' read -r state name detail <<<"$row"
     row_glyph glyph "$state" "$1"
     # Truncate INSIDE the field so the duration column stays put.
     [ "$namew" -gt 0 ] && [ "${#name}" -gt "$namew" ] && name="${name:0:$((namew - 1))}…"

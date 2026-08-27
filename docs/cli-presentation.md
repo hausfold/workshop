@@ -24,8 +24,8 @@ Taken on 2026-08-27 against `bench` (3148 ln), `haus.sh` + `haus-show.sh`
 whatever the content, so the wrap threshold is a property of the *format string*
 and nothing else.
 
-`bench release`'s job row (`bench:2047`) is the worst case, because it is
-repainted in place:
+`bench release`'s job row was the worst case, because it is repainted in
+place:
 
 ```
 printf '\033[2K   %s  %s%-34s%s %s%s%s\n'   # 3 + glyph + 2 + 34 + 1 + detail
@@ -54,7 +54,8 @@ the cursor at column 49, and the terminal wraps. So the real threshold is
 `bench` already knows. `WATCH_RENDER_PY` clamps job names to 34 characters with
 the comment *"the live repaint counts LINES to move the cursor back up, so a row
 that soft-wraps in a narrow terminal would desync the whole frame"* — a comment
-that names the bug and then narrows the content instead of measuring the window.
+that named the bug and then narrowed the content instead of measuring the
+window. Line numbers are deliberately absent from this file: it outlives them.
 
 **Nothing anywhere handles `SIGWINCH`.** A resize mid-`bench release` or
 mid-`haus rebuild` corrupts the frame for the rest of the run.
@@ -92,7 +93,7 @@ glyph it was.
 
 `haus.sh` and `haus-show.sh` additionally have **no colour gate at all** — 35
 raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files and CI logs
-alike. `bench` gets this right (`bench:204`) and is the model.
+alike. `bench`'s palette block gets this right and is the model.
 
 ## The standard
 
@@ -155,8 +156,11 @@ different glyphs align and continuation lines have a fixed indent to hang from.
 Everything is measured in display cells, resolved with grapheme-cluster width,
 never bytes and never runes.
 
-- **The window is `min(terminal width, 100)`.** Prose past 100 cells is
-  unreadable and a maximised terminal is not an invitation to fill it.
+- **Prose is capped at `min(terminal width, 100)` cells.** Past 100 a line of
+  text is unreadable, and a maximised terminal is not an invitation to fill it.
+  **Tables and live regions are exempt** — they are already bounded by their own
+  content, and a job list that stopped at 100 while the window was 200 would be
+  hiding the room it had.
 - **Every line fits, or is folded — never soft-wrapped.** A tool that lets the
   terminal wrap has given up its own indentation. Fold at a word boundary and
   hang continuations at the gutter.
@@ -166,6 +170,16 @@ never bytes and never runes.
 - **Truncation is by priority, with `…` inside the field.** Each column says
   what it gives up first — a repo name truncates from the right, a path from the
   left (`…/holt/internal/ui`), a duration never truncates.
+- **A column that never truncates is MEASURED, never assumed.** Budget it from
+  the widest value actually in the frame. `bench` budgeted seven cells for a
+  duration on the reasoning that `12m 34s` is the longest one — and a job past
+  a hundred minutes renders `100m 05s`, eight cells, straight into the last
+  column and back into the bug the budget existed to prevent.
+- **The tier is chosen from the WINDOW, then the column is clamped to the
+  content — never the other way round.** Clamping first and testing the clamped
+  value asks *"is the longest name short?"* when it means *"is there room?"*.
+  `bench` shipped that inversion for an afternoon: a CI run of `build` / `test`
+  / `lint` dropped its duration column on a 200-column terminal.
 - **Below the sum of minimums, the table drops a tier** rather than emitting a
   row it knows will wrap. Three tiers, each giving up the least useful thing
   left:
@@ -205,7 +219,8 @@ The contract:
 1. **Only on a TTY.** Piped, in CI or under `bats`, a live region degrades to
    one plain line per *state change*. No cursor escape ever reaches a file.
 2. **Motion is not gated on `NO_COLOR`.** A spinner on a colourless terminal is
-   still the thing you want to see. (`bench:2103` already says this; keep it.)
+   still the thing you want to see. (`bench`'s watch loop already said this before any of
+   this work; keep it.)
 3. **Repaint counts screen lines, not logical rows.** Since every line is folded
    to fit, those are equal by construction — which is the whole point of folding
    rather than wrapping.
@@ -262,9 +277,10 @@ standard is written here in prose rather than only as Go.
 ## Order of work
 
 1. This file. ✔
-2. `bench` — fold to width, `\033[J`, `trap WINCH`. ✔ *(landed; six tests in
-   `test/bench.bats` hold the contract, sweeping every width from 2 to 130.)*
-   `haus.sh:102` — same treatment, still to do.
+2. `bench` — fold to width, `\033[J`, `trap WINCH`. ✔ *(landed; eight tests in
+   `test/bench.bats` hold the contract across sixteen widths from 2 to 120, plus
+   a real pty for the measurement itself.)* `haus`'s phase painter — same
+   treatment, still to do.
 3. The shared bash fallback, sourced by `bench` and `haus.sh`; holt's
    `internal/ui` moved onto the same role names.
 4. The Go module and binary. The bash fallback is demoted to the no-binary path.
