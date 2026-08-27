@@ -27,6 +27,7 @@ So this skill is about the two things `bench` deliberately doesn't decide:
 |---|---|---|---|
 | `pounce` | CalVer | `bench release pounce` | Homebrew tap |
 | `perch` | CalVer | `bench release perch` | Homebrew tap + the rice's flake pin |
+| `trill` | CalVer | `bench release trill` | the layer's flake pin (`haus.trill.enable`) |
 | `haus` | CalVer | `bench release haus` | `hausfold.co/hacker.sh` |
 | `scruff` | **semver** | `bench release scruff <X.Y.Z>` | npm, PyPI, crates.io, SwiftPM, the Go proxy |
 
@@ -57,9 +58,10 @@ git log --oneline "$LAST"..main
 git diff "$LAST"..main -- sdk/
 ```
 
-On the FIRST cut there is no `v*` tag — the 0.1.0 on the registries was published by hand
-before this flow existed. Diff against the commit that stamped 0.1.0 into the manifests, or
-just read `sdk/*/` history since then.
+`v0.5.0` is the newest tag, so `LAST` resolves and the `|| echo 0.1.0` fallback is dead
+weight kept for a repo that has never been tagged. (It was live once: the `0.1.0` on the
+registries was published by hand before this flow existed, and for that one cut you diffed
+against the commit that stamped it into the manifests instead.)
 
 Judge it against the **published SDK surface**, not the CLI internals:
 
@@ -76,14 +78,25 @@ Two rules that override the taxonomy:
   That is the point of one version: five clients agreeing about one wire format is the
   invariant the SDK CI job exists to protect, and five drifting version lines would hide a
   divergence rather than surface it.
-- **Pre-1.0, breaking still means MINOR-or-major, never PATCH.** scruff is 0.x. If you'd have
-  called it MAJOR at 1.0, cut a MINOR (`0.1.0` → `0.2.0`) and say so in the release notes.
-  Never smuggle a break into a patch — that is the number people pin against.
+- **⏳ scruff's next cut is `1.0.0`, and that is decided, not a judgement.** It is the
+  rename's own cutover (scruff's `docs/rename.md` decision 1): every package on five
+  immutable registries changes name at once, and there is no bigger number to save it for.
+  The taxonomy above resumes at `1.0.1`.
+- **Pre-1.0, breaking still means MINOR-or-major, never PATCH** — the rule scruff lived
+  under through `0.5.0`, and the one any *new* 0.x SDK here would live under. If you'd have
+  called it MAJOR at 1.0, cut a MINOR and say so in the release notes. Never smuggle a break
+  into a patch; that is the number people pin against.
 
 Say which one you picked **and the sentence of evidence for it** before running anything:
 
-> `0.2.0` — MINOR. `watchLane` gained an events form in the Go and Rust clients (#28); the
-> line-yielding form is still there, so nothing published against 0.1.0 breaks.
+> `1.0.0` — the rename cutover. Every SDK's package name moves (`@hausfold/holt` →
+> `@hausfold/scruff`, and the same on PyPI, crates, SwiftPM, the Go proxy) and the `--json`
+> envelope key goes `holt` → `scruff` with `schema` 1 → 2. Nothing published against
+> `0.5.0` breaks, because nothing published against it moves — the old names stay live at
+> their old versions forever.
+
+The shape after that is the taxonomy: `1.0.1` for a fix, `1.1.0` for the release that
+deletes the `holt` symlink and the `HOLT_*` rungs, and so on.
 
 ## Preconditions (check, don't assume)
 
@@ -102,7 +115,7 @@ Then, for the repo you're cutting:
 ## Run it
 
 ```sh
-bench release scruff 0.2.0          # or: bench release haus
+bench release scruff 1.0.0          # or: bench release haus
 ```
 
 It stamps, commits, pushes, tags, then paints a live job tree until CI finishes. For scruff
@@ -128,7 +141,7 @@ The version stamp is a commit, so the repo's HEAD moved and its downstream flake
 stale. `bench release` says so; ripple it:
 
 ```sh
-bench ship                        # or cut with: bench release scruff 0.2.0 --ship
+bench ship                        # or cut with: bench release scruff 1.0.0 --ship
 ```
 
 ## The gate
