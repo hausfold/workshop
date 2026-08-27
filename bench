@@ -330,8 +330,9 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 # bare "$GH_ORG/$name" appears to work, right up until someone creates a repo
 # actually under that freed name. The day one becomes a real repo, every
 # `gh pr list` and `git clone` below silently retargets it, with no error
-# anywhere. `hausfold/hausfold` is the freed slug that exists today, and nothing
-# is queued to claim it — a hazard with no live example is still a hazard.
+# anywhere. Two freed slugs exist today — `hausfold/hausfold` (2026-08-11) and
+# `hausfold/holt` (2026-08-27) — and nothing is queued to claim either. A hazard
+# with no live example is still a hazard, and there are two of them now.
 # `bench status` checks the other end of the same rope — see locked_slug, which
 # catches a flake.lock still FETCHING a repo under a name it has given up.
 gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
