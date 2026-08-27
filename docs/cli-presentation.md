@@ -337,7 +337,7 @@ one. State as of 2026-08-27:
 | 5 | **scruff's `internal/ui`** onto snug's roles | ✔ done ([scruff#70](https://github.com/hausfold/scruff/pull/70), re-pinned in [scruff#71](https://github.com/hausfold/scruff/pull/71)) |
 | 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
 | 7 | **`bench` onto `snug run`** as a coprocess | ○ not started |
-| 8 | **The bash fallback** — `workshop/lib/ui.sh`, the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths) |
+| 8 | **The bash fallback** — [`snug/share/ui.sh`](https://github.com/hausfold/snug/blob/main/share/ui.sh), the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths). Written here as `lib/ui.sh` in [workshop#476](https://github.com/hausfold/workshop/pull/476), moved into snug the same week — see **Why 8 lives in snug** below |
 
 **Everything but 7 is done.** 7 deletes ~150 lines from `bench` —
 `paint_live`, `watch_measure`, `row_glyph` and the `WATCH_RENDER_PY` clamp —
@@ -345,9 +345,10 @@ and was untestable until 6 landed, because there was nothing on `PATH` to
 drive. There is now: `snug` is in the system profile on every haus machine, and
 8 is what covers the machines that are not one.
 
-**What 7 looks like now that 8 exists.** `bench` sources `lib/ui.sh` and calls
-`ui_say` / `ui_row` / `ui_paint`; where `snug` is on `PATH` it opens ONE
-coprocess for the whole command and writes the same records to it. The dispatch
+**What 7 looks like now that 8 exists.** `bench` sources
+`$(repo_dir snug)/share/ui.sh` and calls `ui_say` / `ui_row` / `ui_paint`; where
+`snug` is on `PATH` it opens ONE coprocess for the whole command and writes the
+same records to it. The dispatch
 belongs to `bench`, not to the library — one fork per *command* is the whole
 economy, and a library sourced per script cannot see the command boundary that
 decision needs.
@@ -358,7 +359,7 @@ Delete `bench`'s own painter first and a machine without `snug` on `PATH` — an
 older generation, a script off a thin PATH, anyone who installed `bench` without
 the layer — would have had **no painter at all**.
 
-⚠️ **`lib/ui.sh` deliberately does not inherit this line**, which `bench` and
+⚠️ **`ui.sh` deliberately does not inherit this line**, which `bench` and
 `haus` both carried:
 
 ```sh
@@ -379,14 +380,41 @@ copies.
 hardcoded widths and the four copies of the palette, which is where the drift
 lives.
 
-**How 8 stays in step with 4.** `lib/ui.sh` carries nebelung's hex, and CI diffs
-that table against snug's generated `palette.go` on every push — a fallback that
-drew a *different* colour from the binary would be worse than no fallback, since
-it makes "which machine is this?" a question you have to ask about your own
-output. Two bugs were found by writing it against snug rather than from memory,
-and both were in snug: its `bare` tier carried the full 3-cell gutter whenever
-colour was on (`TrimRight(mark, " ")` does nothing once the mark ends in a reset
-escape), and `Say` at a window narrower than four columns emitted the gutter
-plus a clamped character. Both overflowed the last column; neither was visible
-to a colourless test sweep. Fixed in
-[snug#3](https://github.com/hausfold/snug/pull/3).
+**How 8 stays in step with 4.** It is not kept in step — it is *generated from
+the same list*. `snug`'s `script/gen-palette.sh` writes `palette.go` and
+`ui.sh`'s `UI__HEX`/`UI__X256` blocks in one run, from one nebelung checkout and
+one `TOKENS` list, and snug's bats suite re-derives every 256-colour index and
+diffs the hex against `palette.go` on every push. A fallback that drew a
+*different* colour from the binary would be worse than no fallback, since it
+makes "which machine is this?" a question you have to ask about your own output.
+
+While the two halves were in two repos this was a *diff*, and it needed a snug
+checkout beside the workshop — CI cloned one, and on any laptop without one the
+test skipped: green, checking nothing. Both halves are in snug now, so the drift
+test always runs and the clone step is gone.
+
+Two bugs were found by writing it against snug rather than from memory, and both
+were in snug: its `bare` tier carried the full 3-cell gutter whenever colour was
+on (`TrimRight(mark, " ")` does nothing once the mark ends in a reset escape),
+and `Say` at a window narrower than four columns emitted the gutter plus a
+clamped character. Both overflowed the last column; neither was visible to a
+colourless test sweep. Fixed in
+[snug#3](https://github.com/hausfold/snug/pull/3). A third was found by moving
+it: the bats test that re-derives the 256-colour table computed *unweighted*
+Euclidean distance while `theme.go`'s `dist` weights the channels 3/6/1. It
+agreed on all thirty-two entries by luck, so it passed green while checking a
+different algorithm from the one the binary runs.
+
+**Why 8 lives in snug, not here.** It was written here and moved within the
+week, because the caller that most needs it could never have reached it from
+here: `haus.sh` is `builtins.readFile`'d into a store binary, and a haus user
+has no workshop checkout. A fallback the fallback's biggest consumer cannot
+source is not a fallback. The alternatives were both worse — vendoring a copy
+into haus reintroduces exactly the drift 8 exists to delete, and haus already
+takes `inputs.snug`, so its derivation reads `${snug}/share/ui.sh` straight off
+the store path with no copy and no drift check at all. It ships *inside* snug's
+derivation, beside `bin/snug`, so the binary and the stand-in for the binary
+arrive together or not at all.
+
+Nothing sourced `ui.sh` when it moved, which is the only reason the move was
+free. Do this kind of correction before 7 adopts it, not after.

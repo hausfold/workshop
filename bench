@@ -320,6 +320,35 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
   esac
 }
 
+# ── the shared painter ───────────────────────────────────────────────────────
+# `share/ui.sh` is snug's bash half — the same spec as the binary, at lower
+# fidelity, for a machine that cannot see `snug` on PATH. It lived here as
+# `lib/ui.sh` until 2026-08-27 and moved into snug because `haus.sh` is read
+# into a store binary and a haus user has no workshop checkout; the workshop, by
+# contrast, HAS a snug checkout by construction, so `repo_dir` is the whole
+# lookup. (A machine that ran `bench clone` before snug joined the family may
+# not — hence the guard, not an assumption.)
+#
+# Sourcing costs nothing measurable: every function it runs at load time is pure
+# bash — no `tput`, no `stty`, no subshell. It is the fork-per-line economy that
+# matters, and this is not a fork at all.
+#
+# ⚠️ It is deliberately sourced but NOT yet drawn through. bench's own palette
+# and `paint_live` stay exactly as they are until step 7 of
+# docs/cli-presentation.md, and the reason is a real difference rather than
+# timidity: ui.sh gates colour on fd 2 and puts every human line there, while
+# bench's `say`/`warn`/`hint` write to fd 1 and gate on it. Repainting through
+# ui.sh without moving the streams would put escapes into `bench status | less`.
+# Step 7 moves both together; this makes it reachable, and nothing more.
+ui_load() {
+  local p
+  p="$(repo_dir snug)/share/ui.sh"
+  [ -r "$p" ] || return 0
+  # shellcheck source=/dev/null
+  source "$p"
+}
+ui_load
+
 # repo_dir's counterpart: repo_dir maps a name to a LOCAL directory, gh_repo maps
 # the same name to the REMOTE it came from. They agree for most of the family and
 # must not be assumed to.

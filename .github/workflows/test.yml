@@ -1,8 +1,12 @@
 # Verify the workshop's code artifacts on every push and PR:
-#   • bench    — the family CLI (bats unit suite + shellcheck)
-#   • lib/ui.sh — the bash half of docs/cli-presentation.md, same treatment
+#   • bench — the family CLI (bats unit suite + shellcheck)
 #
 # This is the gate the repo was missing: nothing checked behavior before.
+#
+# `lib/ui.sh` was here too until 2026-08-27 and is now hausfold/snug's
+# `share/ui.sh`, tested by snug's own `bash` job. It moved because `haus.sh` is
+# read into a store binary and a haus user has no workshop checkout, so the
+# caller that most needed the fallback could never have sourced it from here.
 name: Tests
 
 on:
@@ -12,22 +16,14 @@ on:
 
 jobs:
   bench:
-    name: bench + ui.sh (bats + shellcheck)
+    name: bench (bats + shellcheck)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # lib/ui.sh carries a copy of nebelung's hex, and test/ui.bats diffs it
-      # against snug's generated palette.go. Without this the drift test skips —
-      # green, and checking nothing. The clone is anonymous and shallow; snug is
-      # public. It lands at ./snug because that is where a family checkout sits
-      # relative to the workshop, which is what the test looks for.
-      - name: Clone snug, so the palette drift check has something to diff
-        run: git clone --depth 1 --quiet https://github.com/hausfold/snug.git snug
-
       - name: Install bats + shellcheck
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck
       - name: shellcheck
-        run: shellcheck bench lib/ui.sh
+        run: shellcheck bench
       - name: bats
-        run: bats test/bench.bats test/ui.bats
+        run: bats test/bench.bats
