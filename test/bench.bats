@@ -1082,6 +1082,24 @@ paint_at() { # paint_at <cols> — one frame of three jobs, escapes stripped
   [[ "$output" != *$'\033[1A'* ]]
 }
 
+@test "watch_measure survives no tty and no TERM instead of killing its caller" {
+  # The measured failure: `set -e` exempts every command in a `&&`/`||` list
+  # except the LAST, and `tput` exits 2 with TERM unset. Without a `|| true`
+  # inside that final substitution the assignment's status propagates, bench
+  # exits 2 with nothing on either stream, and the sanitising `case` — the line
+  # whose entire job is to cope with a bad answer — never runs.
+  #
+  # No pty on purpose: this is the shape of `ssh mac bench rebuild`, a launchd
+  # job and CI, which is precisely where nobody is watching to notice.
+  # "$BASH", not a bare `bash`: bench needs `declare -gA` and macOS still ships
+  # 3.2 as /bin/bash, so a bare name would fail on the array rather than on the
+  # thing under test — and pass this assertion's negative for the wrong reason.
+  run env -u TERM -u COLUMNS "$BASH" -c \
+    "set -euo pipefail; HAUS_LIB=1 source '$HAUS'; watch_measure; echo COLS=\$WATCH_COLS" </dev/null
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"COLS=80"* ]]
+}
+
 @test "watch_measure reads COLUMNS from the kernel, not rows and not terminfo" {
   # Two ways to get this wrong, and both look fine in a source grep:
   #   · `tput cols` reads terminfo's STATIC size — 80 for every xterm-* entry —

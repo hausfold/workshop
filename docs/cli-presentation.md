@@ -333,6 +333,23 @@ machine without `snug` on `PATH` — an older generation, a script off a thin
 PATH, anyone who installed `bench` without the layer — has **no painter at
 all**. Whoever picks up 7 owns that ordering.
 
+⚠️ **And whatever 8 is, it must not inherit this line**, which `bench` and
+`haus` both carried:
+
+```sh
+sz="$(stty size 2>/dev/null </dev/tty)" && COLS="${sz#* }" || COLS="$(tput cols 2>/dev/null)"
+```
+
+`set -e` exempts every command in a `&&`/`||` list **except the last**, and
+`tput` exits 2 with `TERM` unset — the shape of any session with no pty
+(`ssh mac haus rebuild`, a launchd job, CI). Measured: the caller exits 2 with
+nothing on either stream, after a successful evaluation and before anything
+activated, and the sanitising `case` that exists precisely to cope with a bad
+answer never runs. `|| true` inside that final substitution is the fix. **A
+width probe that can kill its caller is the worst possible failure mode for a
+courtesy** — which is the whole argument for one runtime rather than four
+copies.
+
 3 and 8 are worth doing even if the rest slips: between them they delete the 72
 hardcoded widths and the four copies of the palette, which is where the drift
 lives.

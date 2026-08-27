@@ -2076,10 +2076,20 @@ GUTTER=6                  # "   " + glyph + "  " — 3-cell family gutter, inden
 # asks the kernel (TIOCGWINSZ), which is the only source that tracks a resize.
 # It reads /dev/tty rather than `<&1` because this runs inside `$( )`, where
 # fd 1 is the substitution's pipe and never the terminal.
+# ⚠️ `|| true` inside the LAST substitution, and it is load-bearing under
+# `set -e`. Every command in a `&&`/`||` list is exempt from `set -e` EXCEPT the
+# final one — and `tput` exits 2 with `TERM` unset, which is exactly the shape of
+# a session with no pty (`ssh mac bench rebuild`, a launchd job, CI). Without it
+# the assignment's non-zero status kills the CALLER: measured, the script exits 2
+# with nothing on either stream, and the sanitising `case` below — the line whose
+# whole job is to cope with a bad answer — never runs at all. A width probe that
+# can kill its caller is the worst possible failure mode for a courtesy.
+# haus's phase painter carried the identical line; when snug's shell fallback is
+# written (docs/cli-presentation.md, step 8) it must not inherit it either.
 watch_measure() {
   local sz
   sz="$(stty size 2>/dev/null </dev/tty)" && WATCH_COLS="${sz#* }" \
-    || WATCH_COLS="$(tput cols 2>/dev/null)"
+    || WATCH_COLS="$(tput cols 2>/dev/null || true)"
   case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS="${COLUMNS:-80}" ;; esac
   case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS=80 ;; esac
   WATCH_RESIZED=1
