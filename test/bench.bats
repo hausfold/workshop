@@ -2151,6 +2151,25 @@ EOF
   export TRILL_APP="$TMP/Trill.app"
 }
 
+mkhometrill() { # a Trill.app under a FAKE $HOME/Applications — for the TRILL_APP-unset path
+  # The candidate list is ("$HOME/Applications/Trill.app" "/Applications/Trill.app"),
+  # and the second one is a real, executable app on every machine this ships to.
+  # So a test that unsets TRILL_APP cannot just point HOME at an empty dir: it
+  # falls through to the developer's OWN trill and fires a genuine banner
+  # (source bench.run, since no call site's BENCH_NOTIFY_SOURCE is in play),
+  # while still asserting `status -eq 0` and staying green. Planting the fixture
+  # at the FIRST candidate exercises the unset path and is hermetic.
+  HOME="$TMP/fakehome"
+  local app="$HOME/Applications/Trill.app/Contents/MacOS"
+  mkdir -p "$app"
+  cat >"$app/Trill" <<EOF
+#!/bin/sh
+printf '%s\n' "\$*" >>"$TMP/trill.log"
+exit 0
+EOF
+  chmod +x "$app/Trill"
+}
+
 mkosascript() {
   mkdir -p "$TMP/fakebin"
   cat >"$TMP/fakebin/osascript" <<EOF
@@ -2192,10 +2211,13 @@ EOF
 
 @test "notify with TRILL_APP unset does not die under set -u" {
   unset TRILL_APP
-  HOME="$TMP/nohome"
+  mkhometrill      # found before /Applications, so the machine's real trill never fires
   mkosascript
   run notify "note" "t" "b"
   [ "$status" -eq 0 ]
+  run cat "$TMP/trill.log"
+  [[ "$output" == *"--source bench.run"* ]]     # the default source, no call site setting it
+  [ ! -f "$TMP/osascript.log" ]                 # ~/Applications is a real candidate, not a miss
 }
 
 @test "BENCH_NOTIFY=off draws nothing through either renderer" {

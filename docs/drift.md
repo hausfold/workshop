@@ -103,3 +103,18 @@ writing the condition where the merge happens — a required check, a PR-templat
 line, a `bench` refusal — or by writing it as a request rather than as a rule; a
 rule nothing can enforce reads to its author as a control and to everyone else
 as prose.
+
+**A test fixture that isolates every candidate but the absolute one.** A
+`notify` test unset the env var that overrides where `Trill.app` is looked for
+and pointed `HOME` at an empty dir — hiding the `~/Applications` candidate and
+saying nothing about `/Applications/Trill.app`, which is a real, executable app
+on every machine the code ships to. So the suite delivered a genuine banner to
+the developer's own notification compositor on every run, titled `t`, bodied
+`b`, sourced `bench.run` — a source no call site can produce, since each sets
+its own. It stayed green because the assertion was `status -eq 0`, which the
+real send satisfies exactly as well as the fake one. **Caught by** asking what a
+fixture's *un*-overridden fallback resolves to on the machine running the test,
+and by asserting on the fixture's log rather than on the exit status — a helper
+whose every path swallows its output can only be observed through the renderer
+it was pointed at, so a test that never reads that log cannot tell which
+renderer answered.
