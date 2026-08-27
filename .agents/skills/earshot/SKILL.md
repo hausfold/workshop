@@ -3,7 +3,7 @@ name: earshot
 description: >-
   Find out what the OTHER agent lanes on this repo have already changed, before you
   collide with them — `bench overlap`. Use at the start of a lane, before a big edit
-  to a file the whole family touches (AGENTS.md, a README, flake.lock, notes/), and
+  to a file the whole family touches (AGENTS.md, a README, flake.lock, docs/), and
   once more before opening a PR. Also use when I say /earshot, "who else is in here",
   "is anyone else touching this", "will this conflict", or when a rebase turns up a
   conflict you want to understand rather than just resolve. Nothing is claimed,
@@ -33,7 +33,7 @@ finds bugs, this finds neighbours.
 | When | Run | What it saves you |
 |---|---|---|
 | **Lane start**, before you plan | `bench overlap --brief` | the expensive collision isn't textual — it's two lanes writing the same paragraph twice. Read the neighbours' commit subjects and pick different work. |
-| **Before a big edit** to a shared file — `AGENTS.md`, a README, `notes/*.md`, a docs page | `bench overlap --path <file>` | it prints nothing when the file is clear, so this is cheap enough to make a habit. |
+| **Before a big edit** to a shared file — `AGENTS.md`, a README, `docs/*.md`, a docs page | `bench overlap --path <file>` | it prints nothing when the file is clear, so this is cheap enough to make a habit. |
 | **Before `gh pr create`** — every PR, not just `/ship`ed ones | `bench overlap` | catches the conflict while it's still one small rebase, instead of at merge time against a pile. This is Step 2.5's neighbour: assurance reads YOUR diff, earshot reads everyone else's. |
 
 Don't run it on a loop. Nothing here changes second to second, and a check you run
@@ -67,7 +67,7 @@ In order of preference — the first one that applies:
 1. **Move.** If their commit subject says they're already doing what you were about
    to do, do something else and say so. Cheapest resolution there is.
 2. **Narrow.** Make your edit somewhere else in the file, or in a new file. Two lanes
-   appending to the same `notes/*.md` should be two notes.
+   appending to the same `docs/*.md` should be two files.
 3. **Sequence.** Take the `↳` line's landing order and put it in your PR body's
    **Watch out** block, verbatim: `conflicts with #418 in AGENTS.md — land #418 first,
    then this rebases.` That turns a merge-time surprise into a line the review queue
@@ -87,7 +87,7 @@ know better; just say why in the PR body.
 |---|---|
 | `flake.lock` | never hand-merge. Take main's wholesale (`git checkout --theirs flake.lock`), then re-run `nix flake update <input>` if your branch genuinely needed the newer pin. |
 | `AGENTS.md`, `CLAUDE.md`, `README.md` | keep **both** sides — these grow by section, and a conflict here is nearly always two additions, not two rewrites. |
-| `notes/*.md` | one note per file. If two lanes are appending to the same note, split the note rather than resolving. |
+| `docs/*.md` | one topic per file. If two lanes are appending to the same page, split the page rather than resolving. |
 | generated pages (`reference/options.md` and friends) | regenerate, never resolve. Whoever lands second re-runs the generator. |
 | `bench`, a `SKILL.md`, any single-file tool | genuine sequencing problem — use the `↳` order, don't try to merge two halves of a rewrite. |
 

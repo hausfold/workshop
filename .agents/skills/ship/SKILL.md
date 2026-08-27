@@ -88,7 +88,7 @@ Whatever survives goes into Step 3's **Watch out** block verbatim —
 `conflicts with #418 in AGENTS.md — land #418 first, then this rebases` — so the
 collision reaches the review queue as text rather than as a surprise at merge time.
 The full flow, including the house resolution for `flake.lock`, `AGENTS.md` and
-`notes/*.md`, is [`earshot/SKILL.md`](../earshot/SKILL.md).
+`docs/*.md`, is [`earshot/SKILL.md`](../earshot/SKILL.md).
 
 ## Step 2.5 — pre-PR assurance pass (a subagent that hasn't read this thread)
 

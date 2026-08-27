@@ -31,9 +31,9 @@
 #      room is already running its code, and step F's prompt is owed before the
 #      lock rather than before the rebuild.
 #
-#   ./notes/probes/source-shapes.sh              # local fixtures only, no network
+#   ./script/probes/source-shapes.sh              # local fixtures only, no network
 #   PROBE_REMOTE=git+https://github.com/hausfold/workshop \
-#     ./notes/probes/source-shapes.sh            # + one real remote node
+#     ./script/probes/source-shapes.sh            # + one real remote node
 #
 # No macOS, no darwin system, no build — it builds throwaway git repos in a temp
 # dir and runs real `nix eval` / `nix flake lock` against them, so it runs in

@@ -6,8 +6,8 @@
 # The roadmap's option 1 was "ship packs at a lower priority" — this measures it,
 # because the obvious implementation of that sentence is the broken one.
 #
-#   nix-instantiate --eval --strict --json notes/probes/pack-priority.nix
-#   nix-instantiate --eval --strict --json notes/probes/pack-priority.nix \
+#   nix-instantiate --eval --strict --json script/probes/pack-priority.nix
+#   nix-instantiate --eval --strict --json script/probes/pack-priority.nix \
 #     --arg rice /Users/you/code/workshop/hausfold     # from a worktree
 #
 # (`nix eval --file` does not apply `--arg`, and the rice path has to be an

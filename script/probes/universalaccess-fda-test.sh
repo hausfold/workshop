@@ -2,7 +2,7 @@
 # Settle the universalaccess question — run this FROM A TERMINAL THAT HOLDS
 # FULL DISK ACCESS (that's the whole point of the test).
 #
-# Background: notes/macos-settings-matrix.md. `com.apple.universalaccess`
+# Background: haus's docs/macos-settings.md. `com.apple.universalaccess`
 # refused every write during the original spike, but that spike ran under an app
 # without FDA, so it could never have answered the positive case.
 #
@@ -111,7 +111,7 @@ if printf '%s' "$after" | grep -q 'motion_reduced=true'; then
   ✓✓ WRITES AND TAKES EFFECT with FDA.
      → nix-darwin's system.defaults.universalaccess.* options are REAL on 26,
        conditional on the rebuild being invoked from an FDA-holding app.
-     → Update notes/macos-settings-matrix.md; the five options move from
+     → Update haus's docs/macos-settings.md; the five options move from
        "needs FDA / unproven" to "works, with an FDA caveat".
      → Keep the haus warning (haus#89): the caveat is exactly what it
        documents, and the activation-abort blast radius is unchanged.

@@ -7,8 +7,8 @@
 # half that matters: the loud error is the LUCKY case, and the ordinary shape of
 # two real rooms merges silently into shared ownership.
 #
-#   nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix
-#   nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix \
+#   nix-instantiate --eval --strict --json script/probes/namespace-collision.nix
+#   nix-instantiate --eval --strict --json script/probes/namespace-collision.nix \
 #     --arg haus /Users/you/code/workshop/haus            # from a worktree
 #
 # Same shape as pack-priority.nix, and the same reason for the `haus` argument:
@@ -26,7 +26,7 @@
 #
 #   git clone --depth 1 --filter=blob:none --sparse https://github.com/NixOS/nixpkgs /tmp/npkgs
 #   git -C /tmp/npkgs sparse-checkout set lib          # 15 MB, seconds
-#   nix-instantiate --eval --strict --json notes/probes/namespace-collision.nix \
+#   nix-instantiate --eval --strict --json script/probes/namespace-collision.nix \
 #     --arg haus /workspace/hausfold/haus --arg lib /tmp/npkgs/lib
 #
 # ---- what it found, 2026-08-20 (haus ffcdb0a) --------------------------------

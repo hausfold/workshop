@@ -7,7 +7,7 @@
 # loudly. The gap it left, named in the roadmap, is **preset vs preset** — and
 # the gallery a launch produces is a pile of presets, not packs.
 #
-#   nix-instantiate --eval --strict --json notes/probes/preset-composition.nix \
+#   nix-instantiate --eval --strict --json script/probes/preset-composition.nix \
 #     --arg rice /Users/you/code/workshop/hausfold
 #
 # (Same shape as pack-priority.nix: `nix eval --file` ignores `--arg`, and the

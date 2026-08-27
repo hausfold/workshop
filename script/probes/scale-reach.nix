@@ -8,7 +8,7 @@
 # §5.14 lists both as findings that ought to leave a CHECK behind rather than a
 # paragraph.
 #
-#   nix-instantiate --eval --strict --json notes/probes/scale-reach.nix \
+#   nix-instantiate --eval --strict --json script/probes/scale-reach.nix \
 #     --arg rice /Users/you/code/workshop/hausfold
 #
 # (Same argument convention as pack-priority.nix / preset-composition.nix: a

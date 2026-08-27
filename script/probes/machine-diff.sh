@@ -37,9 +37,9 @@
 #      So a diagnostic that prints one is telling a person to look somewhere
 #      they cannot go, under a different name each time.
 #
-#   ./notes/probes/machine-diff.sh                    # rows 1-7, on synthetic modules
+#   ./script/probes/machine-diff.sh                    # rows 1-7, on synthetic modules
 #   PROBE_CONSUMER=~/.config/nix PROBE_HOST=mbp \
-#     ./notes/probes/machine-diff.sh                  # + rows 5 and 8 on a real machine
+#     ./script/probes/machine-diff.sh                  # + rows 5 and 8 on a real machine
 #
 # Rows 1–4, 5 and 7 are the MODULE SYSTEM and need only nixpkgs' `lib`; 6 needs a
 # flake and builds two throwaway ones in a temp dir. All of that runs anywhere
@@ -53,7 +53,7 @@
 # In a container with neither:
 #   git clone --depth 1 --filter=blob:none --sparse https://github.com/NixOS/nixpkgs
 #   cd nixpkgs && git sparse-checkout set lib     # 15 MB, seconds
-#   PROBE_LIB=$PWD/lib ./notes/probes/machine-diff.sh
+#   PROBE_LIB=$PWD/lib ./script/probes/machine-diff.sh
 #
 # ⚠️ Rows 1–8 are EVALUATOR and module-system behaviour, not haus's. Rerun on a
 # Nix bump or a nixpkgs bump; row 8 in particular is a property of lazy trees,

@@ -13,7 +13,7 @@
 # reporter's answer depends on which repo they happened to land in, and nothing
 # anywhere fails. `--check` is the thing that fails.
 #
-# The design this renders is notes/bug-reports.md. Read that before editing a
+# The design this renders is docs/bug-reports.md. Read that before editing a
 # heredoc here: the field COUNT is load-bearing (four, and launch-phase-1 §3 is
 # why), so adding one is a decision, not a tweak.
 set -euo pipefail
