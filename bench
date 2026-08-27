@@ -478,12 +478,20 @@ rev_on_main() {
 # the edge is read rather than baked in here. Baking it in is what made this row
 # a hand copy of one machine's flake.nix — the same class of mirror as the
 # pounce item grammar, one repo down.
+#
+# ⚠️ The middle field is the INPUT NAME and the third is the REPO, and
+# `haus scruff holt` is the row that proves they are not the same word. The
+# worktree tool renamed holt → scruff; haus flipped its input name in
+# hausfold/haus#538, while the repo itself keeps the old name until the tool's
+# own 1.0.0 (its docs/rename.md §5) — so for now the lock edge reads one and the
+# checkout under $ROOT reads the other. When the repo does rename, only the
+# third field and FAMILY/OVERRIDABLE move; this middle one is already right.
 EDGES=(
   "pounce nebelung nebelung"
   "haus nebelung nebelung"
   "haus pounce pounce"
   "haus perch perch"
-  "haus holt holt"
+  "haus scruff holt"
   "haus trill trill"
   "consumer @layer haus"
 )
@@ -803,6 +811,11 @@ overrides() { # every family input redirected at the local checkouts
   # were through both, which is what makes this line the clearest illustration
   # of the rule — the input name and the directory are different things and only
   # one of them ever moves.
+  #
+  # The scruff row is the same rule read from the other end, and it is the
+  # reason the last line looks mismatched: haus's INPUT is `scruff` now
+  # (hausfold/haus#538) while the CHECKOUT is still `$ROOT/holt` until the tool
+  # renames its repo. Spell them apart, never fold them back together.
   local perch_prebuilt="" trill_prebuilt="" layer
   layer="$(layer_input)"
   [ -n "$PERCH_DEV_APP_DIR" ] \
@@ -814,7 +827,7 @@ overrides() { # every family input redirected at the local checkouts
         --override-input $layer/pounce path:$(local_src pounce) \
         --override-input $layer/perch path:$(local_src perch)$perch_prebuilt \
         --override-input $layer/trill path:$(local_src trill)$trill_prebuilt \
-        --override-input $layer/holt path:$(local_src holt)"
+        --override-input $layer/scruff path:$(local_src holt)"
 }
 
 # perch is the one family repo Nix can't build from source: it's an Xcode project
