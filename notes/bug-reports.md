@@ -30,7 +30,7 @@ Three forms, plus a chooser with three exits.
 |---|---|---|
 | **Bug report** | something is broken | What happened · Where in \<tool\> |
 | **Idea** | something should exist or work differently | What would you want to do · What do you do today instead |
-| **Task** | work we've already decided to do | What · Why · Verify |
+| **Task (for maintainers)** | work we've already decided to do | What · Why · Verify |
 
 And on the chooser itself, three contact links that are *not* forms:
 
@@ -40,8 +40,19 @@ And on the chooser itself, three contact links that are *not* forms:
 - **The docs** → the tool's docs. Worded so it can't be read as a brush-off:
   *a bug report that turns out to be documented is still a docs bug, so file it
   anyway.*
-- **A different hausfold tool** → the org page, with *don't spend time working
-  out which repo.*
+- **Made by us, but a different tool?** → the org page, which **lists** the
+  repos: *open its repo and use its Issues tab. Or just file here; moving an
+  issue between our repos is one click for us.*
+
+  ⚠️ **That link is a directory, not a door**, and the first wording forgot it.
+  It read *"Don't spend time working out which repo. File here and we'll move
+  it"* while pointing at `github.com/hausfold` — a page with no **New issue**
+  button anywhere on it. So the one sentence that was meant to spare a reporter
+  the routing problem *was* the routing problem: click it and you land somewhere
+  you cannot file, having been told to file. The permission to file in the wrong
+  place belongs on the **bug form**, which is a place you can actually file, and
+  it is already the first thing that form says. A contact link can only honestly
+  offer what its destination can do — here, listing.
 
 **Blank issues are off.** This costs us nothing: templates only apply in the web
 UI, so `gh issue create` from a terminal still opens anything we want, including
@@ -107,17 +118,34 @@ file, per `agent-surface.md` §8), and **holt has `--version` but no health
 check**. Both forms currently substitute "tell us your version by hand", which
 is the weakest field in the set and the one most likely to come back empty.
 
-### Task = the PR body, written first
+### Task = the PR body, written first — and it says out loud that it's ours
 
 The **Task** form's four blocks are **What / Why / Verify / Watch out** — the
 same four the ship skill's Step 3 requires of every PR body in the family.
 
 That is the whole of the "issues as the new PRs" idea, applied to our shape: an
 issue filled in this way *is* the PR body, written before the work instead of
-after. A lane picks it up, does the work, and opens a PR whose body is that
-issue with Verify ticked. **Verify** is the block that matters most, because
-`bench try-batch`'s tick-off checklist sends the user back to exactly that list,
-and by then the session that wrote the code is gone.
+after. Whoever does the work opens a PR whose body is that issue with Verify
+ticked. **Verify** is the block that matters most, because `bench try-batch`'s
+tick-off checklist sends the user back to exactly that list, and by then the
+session that wrote the code is gone.
+
+⚠️ **It is the one maintainer-facing form on a chooser strangers read**, which
+is a cost the other two don't have: every reporter meets it, and none of them
+wants it. Its title and description therefore have a job before they describe
+anything — let a reporter rule it out at a glance. The first wording did the
+opposite, reading *"Work we've already decided to do — the spec a lane picks
+up"*: **lane** is workshop vocabulary for an agent's worktree, **spec** invites
+a stranger to think this is where feature requests go, and neither word tells
+them the form isn't for them. It is now titled **Task (for maintainers)** and
+opens with *"This one's for us"* plus a pointer to the right form.
+
+The general rule, worth more than this instance: **internal vocabulary is free
+in a comment and expensive in a form.** Nobody filling in a Task needs the word
+"lane" — they already know the flow — while everybody *not* filling one in pays
+a re-read for it. Where the two audiences share a surface, the copy is written
+for the one that doesn't know us. (The generator's comments keep the vocabulary;
+they have only one audience.)
 
 ## 3. The three artifacts
 

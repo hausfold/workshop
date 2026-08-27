@@ -250,9 +250,14 @@ contact_links:
   - name: The docs
     url: @DOCS@
     about: Worth a look first — but a bug report that turns out to be documented is still a docs bug, so file it anyway.
-  - name: A different hausfold tool
+  # ⚠️ This is a DIRECTORY, not a door. github.com/hausfold has no "new issue"
+  # button, so anything here that reads as "file it at this link" sends someone
+  # to a page that can't take their report. The earlier wording did exactly
+  # that. The permission to file in the wrong place lives ON the bug form,
+  # which is a place you can actually file.
+  - name: Made by us, but a different tool?
     url: https://github.com/hausfold
-    about: Don't spend time working out which repo. File here and we'll move it.
+    about: This page lists all of them — open its repo and use its Issues tab. Or just file here; moving an issue between our repos is one click for us.
 EOF
 }
 
@@ -371,17 +376,26 @@ render_task() {
 #
 # The four blocks below are the PR body's four blocks, on purpose: an issue
 # filled in this way IS the PR body, written before the work instead of after.
-# A lane picks it up and lands a PR whose body is this one with Verify ticked.
-name: Task
-description: Work we've already decided to do — the spec a lane picks up
+# Whoever does the work opens a PR whose body is this one with Verify ticked.
+#
+# ⚠️ This form is MAINTAINER-FACING on a chooser that strangers read, so its
+# title and description have one job before anything else: let a reporter rule
+# it out in one glance. Words that only mean something inside the workshop —
+# "lane", "spec", "ripple" — cost a reporter a re-read here and buy nothing,
+# since the people who fill this in already know the flow.
+name: Task (for maintainers)
+description: Work we've already decided to do, written up so someone can pick it up
 labels: ["task"]
 body:
   - type: markdown
     attributes:
       value: |
-        For work that's already decided. Reporting a problem? Use **Bug
-        report**. Suggesting something? Use **Idea**. Both of those become one
-        of these after triage.
+        **This one's for us.** It's not a place to report a problem or ask for
+        something — it's how we write down work that's already been decided.
+
+        Reporting a problem? Use **Bug report**. Suggesting something? Use
+        **Idea**. We turn those into one of these ourselves once we've decided
+        to do them.
   - type: textarea
     id: what
     attributes:
@@ -409,7 +423,7 @@ body:
     id: watchout
     attributes:
       label: Watch out
-      description: Blast radius. Other repos, other lanes, anything that has to land first or ripple after.
+      description: Blast radius. Other repos, other people's branches, anything that has to land before or after this.
     validations:
       required: false
 EOF
