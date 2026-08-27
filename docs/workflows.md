@@ -95,8 +95,8 @@ list`. git's answer is "what trees exist", which includes hand-made ones (a
 scratch checkout for a before/after compare, a `/tmp` tree) that holt never made
 and `holt reap` will never sweep; listing those as lanes is what used to make
 the two tools look permanently out of sync. bench keeps the rows whose repo sits
-under the workshop dir — family or not, so `trill`, `hausfold.co` and the
-workshop itself all count — plus the host config (`~/.config/nix`, shown as
+under the workshop dir — family or not, so `trill`, `snug`, `hausfold.co` and
+the workshop itself all count — plus the host config (`~/.config/nix`, shown as
 `consumer`). A lane in an unrelated repo on the same machine is holt's business,
 not bench's. Use `holt child` for cross-repo work and it lands in that table;
 a raw `git worktree add` is invisible to both bench and the bar.
@@ -308,10 +308,11 @@ opening a fresh one each run.
 
 Three things about its repo list are deliberate and get "tidied" wrong:
 
-- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill` and `hausfold.co` — repos
-  with docs and an audience that `FAMILY` doesn't cover. Docs coverage and lock
-  coverage are different questions. `bench clone`/`pull` plant and refresh both
-  for the same reason. `hausfold.co` has no flake input at all; `trill` has one
+- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug` and `hausfold.co` —
+  repos with docs and an audience that `FAMILY` doesn't cover. Docs coverage and
+  lock coverage are different questions. `bench clone`/`pull` plant and refresh
+  all three for the same reason. `hausfold.co` has no flake input at all;
+  `trill` and `snug` each have one
   (`haus → trill`) without being family, so `try`/`try-batch` DO build it from a
   local checkout while `ship`/`status` still don't walk its git state — see
   bench's 🚨 by `FAMILY` for the three-list split.

@@ -97,7 +97,7 @@ allows, and add a row.
 ## The rest of the family
 
 Every repo carries this layer: `haus`, `nebelung`, `pounce`, `perch`, `holt`,
-`trill`, `hausfold.co`, `org-profile` (the `hausfold/.github` repo),
+`trill`, `snug`, `hausfold.co`, `org-profile` (the `hausfold/.github` repo),
 `homebrew-tap`, and the consumer config (`~/.config/nix`). Each keeps its
 **own** rules — only the shape is shared. The differences worth knowing:
 

@@ -246,6 +246,26 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [[ "$output" == *"--override-input mydesktop/pounce path:/tmp/wt/pounce"* ]]
 }
 
+@test "overrides emits a row for every OVERRIDABLE repo — a missing one fails silently" {
+  # The seam this covers is the quiet one. `--override-input` for an input nix
+  # has never heard of is NOT an error, so a repo added to OVERRIDABLE and
+  # forgotten here makes `bench try` announce your branch while building the
+  # pinned one. Same failure mode, mirrored, as naming an input that doesn't
+  # exist — which is what the 🚨 in overrides() is about.
+  #
+  # By path rather than by input name on purpose: the input NAME is the
+  # consumer's to choose (`haus scruff holt` is the standing proof they diverge),
+  # so the checkout each row points AT is the only half this repo owns.
+  WT_REPO="" WT_PATH=""
+  run overrides
+  local name
+  for name in "${OVERRIDABLE[@]}"; do
+    [ "$name" = haus ] && continue    # the layer is the override's own root, not a sub-input
+    [[ "$output" == *"path:$ROOT/$name"* ]] \
+      || { echo "OVERRIDABLE repo '$name' has no --override-input row"; echo "$output"; return 1; }
+  done
+}
+
 # ── layer_input: the CONSUMER's name for the haus input, not ours ─────────────
 #
 # `--override-input <a-name-this-flake-doesn't-have>` is not an error in Nix, it

@@ -315,7 +315,7 @@ one. State as of 2026-08-27:
 |---|---|---|
 | 1 | **This file** — the standard itself | ✔ done |
 | 2 | **`bench`'s live painter** — folded to width, `\033[J`, `trap WINCH` | ✔ done (#469; eight tests in `test/bench.bats` across widths 2–120, plus a real pty for the measurement) |
-| 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ◐ in flight |
+| 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ◐ PR open ([haus#547](https://github.com/hausfold/haus/pull/547)) |
 | 4 | **[hausfold/snug](https://github.com/hausfold/snug)** — the Go package and the binary | ✔ done, public, CI green |
 | 5 | **holt's `internal/ui`** onto snug's roles | ◐ in flight |
 | 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ◐ in flight |

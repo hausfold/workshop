@@ -470,7 +470,22 @@ rc=0
 for repo in "${targets[@]}"; do
   dest="$(repo_dir "$repo")/.github/ISSUE_TEMPLATE"
   if [ ! -e "$(repo_dir "$repo")/.git" ]; then
-    printf '  ⚠ %s — not checked out here, skipped (bench clone)\n' "$repo"
+    # Under --check this is a FAILURE, not a skip. "I could not look" is not
+    # "it matches", and the weekly workflow's whole job is to notice a child
+    # repo drifting — so a repo missing from its clone list would otherwise
+    # make this report green forever about a repo it never opened. That is
+    # docs/drift.md's check-that-passes-while-the-thing-it-protects-rots, in
+    # the one script whose purpose is to prevent it.
+    #
+    # Still a plain skip when WRITING: a bootstrap that hasn't run `bench clone`
+    # yet, or a workshop worktree (which never checks out the siblings), should
+    # be able to render the repos it does have.
+    if [ "$check" -eq 1 ]; then
+      printf '  ✗ %s — not checked out here, so nothing was checked (bench clone, or name it explicitly / set ISSUE_TEMPLATES_ROOT)\n' "$repo"
+      rc=1
+    else
+      printf '  ⚠ %s — not checked out here, skipped (bench clone)\n' "$repo"
+    fi
     continue
   fi
   if [ "$check" -eq 1 ]; then
