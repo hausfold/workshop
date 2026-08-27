@@ -70,7 +70,7 @@ Judge it against the **published SDK surface**, not the CLI internals:
   method, a new optional field, a new event variant consumers can ignore.
 - **PATCH** — a fix, a doc, a test, a CLI-only change with no SDK surface movement.
 
-Two rules that override the taxonomy:
+Three rules that override the taxonomy:
 
 - **The five SDKs share one number.** A MAJOR change in the Rust SDK alone bumps all five.
   That is the point of one version: five clients agreeing about one wire format is the
@@ -114,7 +114,7 @@ Then, for the repo you're cutting:
 ## Run it
 
 ```sh
-bench release scruff 1.0.0          # or: bench release haus
+bench release scruff 1.0.1          # or: bench release haus
 ```
 
 It stamps, commits, pushes, tags, then paints a live job tree until CI finishes. For scruff
@@ -128,11 +128,12 @@ That's a one-time browser setup per registry, listed in the header of
 `scruff/.github/workflows/release.yml`. Point me at the specific one and stop — it is my
 click to make, not yours.
 
-⚠️ **scruff's next cut is 1.0.0 and its first three publish jobs WILL fail on auth** unless
-the trusted publishers have been re-entered. npm, PyPI and crates.io each match on repo name
-*and* package name, and both moved in the rename — so `@hausfold/scruff`, `hausfold-scruff`
-and the `scruff` crate are brand-new packages with no publisher at all. `scruff`'s own
-`docs/releasing.md` carries the table. Check it before proposing the tag, not after.
+⚠️ **npm's and crates.io's trusted publishers have never actually run.** All three were
+re-entered for the renamed packages during the 1.0.0 cut, but `@hausfold/scruff` and the
+`scruff` crate had to be published by hand first (neither registry will accept a publisher
+claim for a package that doesn't exist yet), so those two jobs no-opped and OIDC does real
+work for the first time at the next tag. PyPI's was a pending publisher and did run.
+`scruff`'s own `docs/releasing.md` carries the table and the bootstrap traps.
 
 ## Afterwards
 
@@ -140,7 +141,7 @@ The version stamp is a commit, so the repo's HEAD moved and its downstream flake
 stale. `bench release` says so; ripple it:
 
 ```sh
-bench ship                        # or cut with: bench release scruff 1.0.0 --ship
+bench ship                        # or cut with: bench release scruff 1.0.1 --ship
 ```
 
 ## The gate
