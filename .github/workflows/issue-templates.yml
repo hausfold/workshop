@@ -1,0 +1,90 @@
+# The issue forms are generated (script/issue-templates.sh) into NINE repos, and
+# this is the only thing that notices when one of them stops matching.
+#
+# It has to clone the family because the artifact is cross-repo: the generator
+# lives here, the files it writes live there. Every repo it clones is public, so
+# these are anonymous shallow reads and no token is needed.
+#
+# ⚠️ What this does NOT catch, stated rather than pretended: a hand-edit landing
+# in a CHILD repo is invisible until the next run here — that repo's own CI
+# knows nothing about the generator. The schedule is what bounds that window,
+# and the header comment in every generated file is what tells the hand-editor
+# they're in the wrong place. Both are advisory; this job is the gate.
+name: issue templates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'script/issue-templates.sh'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/workflows/issue-templates.yml'
+  pull_request:
+    paths:
+      - 'script/issue-templates.sh'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/workflows/issue-templates.yml'
+  schedule:
+    # Weekly, because the child-repo half can only be caught by a sweep.
+    - cron: '0 8 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  drift:
+    name: every repo matches the generator
+    runs-on: ubuntu-latest
+    # A ceiling, not a target — this runs in well under a minute. GitHub's
+    # default is six hours, which a hung clone would spend in full.
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: workshop
+
+      # The tree the generator expects: every family checkout beside the
+      # workshop. `org-profile` is the checkout name for hausfold/.github —
+      # bench's clone map, and repo_dir()'s `org` arm, both spell it that way.
+      - name: Clone the family
+        run: |
+          set -euo pipefail
+          for pair in \
+            haus:haus pounce:pounce perch:perch trill:trill holt:holt \
+            nebelung:nebelung hausfold.co:hausfold.co org-profile:.github
+          do
+            dir="${pair%%:*}"; repo="${pair##*:}"
+            git clone --depth 1 --quiet \
+              "https://github.com/hausfold/$repo.git" "workshop/$dir"
+          done
+
+      # The workshop's own copy is the checkout above, so ROOT is that dir and
+      # the `workshop` arm of repo_dir() resolves to it.
+      - name: Check for drift
+        run: ISSUE_TEMPLATES_ROOT="$PWD/workshop" workshop/script/issue-templates.sh --check
+
+      # A form that doesn't parse is a form GitHub silently refuses to render,
+      # falling back to a blank issue with no message — so the shape is checked
+      # separately from the drift. Ruby ships on the runner.
+      #
+      # `YAML.safe_load(File.read(…))`, not `safe_load_file`: the latter is
+      # Ruby 3.0+, and macOS ships 2.6 — so the convenient spelling makes the
+      # gate green on CI and unrunnable by hand on the machine the forms are
+      # written on, which is the half that reports "36 broken" and means it
+      # about itself.
+      - name: The YAML parses
+        run: |
+          set -euo pipefail
+          ruby -ryaml -e '
+            bad = 0
+            Dir.glob("workshop/**/.github/ISSUE_TEMPLATE/*.yml").sort.each do |f|
+              begin
+                YAML.safe_load(File.read(f))
+                puts "  ok  #{f}"
+              rescue => e
+                puts "  x   #{f}: #{e.message}"
+                bad += 1
+              end
+            end
+            exit(bad.zero? ? 0 : 1)
+          '
