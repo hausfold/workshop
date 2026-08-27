@@ -869,26 +869,121 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   [ "${lines[2]}" = "RUN	completed	failure" ]
 }
 
-@test "a long job name is clamped so a live row can never soft-wrap" {
-  # The repaint moves the cursor up by LINE COUNT; a wrapped row desyncs the frame.
+@test "the renderer hands the painter the WHOLE job name" {
+  # It used to clamp to 34 chars to protect the repaint from a soft-wrap. The
+  # painter measures the window now, so a clamp here would only ever be a guess
+  # at a width — and it guessed 34 for every terminal alive.
   run render_run '{"status":"completed","conclusion":"success","jobs":[
     {"name":"an absurdly long job name that would certainly wrap a narrow terminal",
      "status":"completed","conclusion":"success",
      "startedAt":"2026-08-02T10:00:00Z","completedAt":"2026-08-02T10:00:05Z"}]}'
-  [ "${lines[0]}" = "ok	an absurdly long job name that wou	5s	" ]
+  [ "${lines[0]}" = "ok	an absurdly long job name that would certainly wrap a narrow terminal	5s	" ]
 }
 
 @test "row_glyph walks the spinner and never leaves colour on" {
-  run row_glyph run 0
-  [ "$output" = "⠋" ]          # NO_COLOR is unset in bats, and stdout isn't a TTY
-  run row_glyph run 11
-  [ "$output" = "⠙" ]          # frame 11 wraps back round the 10-frame cycle
-  run row_glyph ok 0
-  [ "$output" = "✓" ]
-  run row_glyph fail 0
-  [ "$output" = "✗" ]
-  run row_glyph queued 0
-  [ "$output" = "·" ]
+  # Writes into a named variable rather than stdout: at 10 fps across N rows the
+  # old `$(row_glyph …)` was a fork per row per frame, in the loop whose own
+  # comment said everything in it was a builtin.
+  local g
+  row_glyph g run 0;    [ "$g" = "⠋" ]   # NO_COLOR unset in bats, stdout not a TTY
+  row_glyph g run 11;   [ "$g" = "⠙" ]   # frame 11 wraps round the 10-frame cycle
+  row_glyph g ok 0;     [ "$g" = "✓" ]
+  row_glyph g fail 0;   [ "$g" = "✗" ]
+  row_glyph g queued 0; [ "$g" = "·" ]
+}
+
+# ── the live painter fits the window ─────────────────────────────────────────
+# The bug this replaces: a `%-34s` row is 48 cells wide whatever the job is
+# called, the repaint moves the cursor up by the number of rows it PRINTED, and
+# any terminal ≤48 columns soft-wrapped each row into two screen lines — so the
+# cursor walked up through the middle of the block and every frame scrolled.
+# The contract is now: no painted line may reach the terminal's last column, at
+# any width, so printed rows and screen lines are equal by construction.
+
+# Display CELLS, not bytes and not runes: `…` is three bytes and one cell, and
+# the family's own rule is that width is counted the way a terminal counts it.
+# (bench already hard-depends on python3 for the ISO-8601 arithmetic above.)
+strip_paint() { sed $'s/\033\\[[0-9;?]*[A-Za-z]//g' | grep . || true; }
+widest_cells() {
+  python3 -c 'import sys,unicodedata
+w=0
+for l in sys.stdin.read().split("\n"):
+    w=max(w,sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in l))
+print(w)'
+}
+paint_at() { # paint_at <cols> — one frame of three jobs, escapes stripped
+  WATCH_COLS="$1"; WATCH_RESIZED=0; WATCH_PAINTED=0
+  WATCH_ROWS=(
+    $'run\tpublish\t\t'
+    $'ok\tbump-tap\t12s\t'
+    $'wait\tbump-flake-and-notarize-the-zip\tqueued\t'
+  )
+  paint_live 0 | strip_paint
+}
+
+@test "paint_live never reaches the last column, at any width" {
+  local w widest
+  for w in 120 100 60 49 48 47 40 30 24 20 14 11 10 6 4 2; do
+    widest="$(paint_at "$w" | widest_cells)"
+    [ "$widest" -le $((w - 1)) ] || { echo "cols=$w painted $widest cells"; false; }
+  done
+}
+
+@test "paint_live prints exactly one line per job, at any width" {
+  local w n
+  for w in 120 48 40 24 14 6 2; do
+    n="$(paint_at "$w" | wc -l | tr -d ' ')"
+    [ "$n" -eq 3 ] || { echo "cols=$w printed $n lines for 3 jobs"; false; }
+  done
+}
+
+@test "paint_live's own line count matches what it printed" {
+  # This is the invariant the whole painter exists to hold: the repaint moves the
+  # cursor up by WATCH_PAINTED, so WATCH_PAINTED must equal the number of SCREEN
+  # lines used — which is only true while every row fits.
+  local w
+  for w in 120 48 40 24 14 6 2; do
+    WATCH_COLS="$w"; WATCH_RESIZED=0; WATCH_PAINTED=0
+    WATCH_ROWS=( $'run\tpublish\t\t' $'ok\tbump-tap\t12s\t' $'wait\tbump-flake\tqueued\t' )
+    paint_live 0 >/dev/null
+    [ "$WATCH_PAINTED" -eq 3 ] || { echo "cols=$w counted $WATCH_PAINTED"; false; }
+  done
+}
+
+@test "paint_live sheds the duration before it sheds the name" {
+  # Widest tier keeps both columns; below that the name is the load-bearing half
+  # and the duration is what goes, along with the padding that made it a table.
+  local wide narrow
+  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
+  WATCH_COLS=100; WATCH_RESIZED=0; WATCH_PAINTED=0; wide="$(paint_live 0 | strip_paint)"
+  WATCH_COLS=18;  WATCH_RESIZED=0; WATCH_PAINTED=0; narrow="$(paint_live 0 | strip_paint)"
+  [[ "$wide"   == *"bump-tap"* ]]
+  [[ "$wide"   == *"12s"*      ]]
+  [[ "$narrow" == *"bump-tap"* ]]
+  [[ "$narrow" != *"12s"*      ]]
+}
+
+@test "a resize clears the whole block before repainting" {
+  WATCH_COLS=80; WATCH_RESIZED=0; WATCH_PAINTED=0
+  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
+  paint_live 0 >/dev/null
+  [ "$WATCH_PAINTED" -eq 1 ]
+  WATCH_RESIZED=1                       # what the SIGWINCH trap leaves behind
+  run paint_live 1
+  # \r\033[J — column 0, then wipe everything below; the reflow a resize does to
+  # what is already on screen cannot be modelled, so nothing is trusted.
+  [[ "$output" == *$'\r\033[J'* ]]
+  # …and no cursor-up, because the block it would have moved through is gone.
+  [[ "$output" != *$'\033[1A'* ]]
+}
+
+@test "watch_measure asks the kernel, not terminfo" {
+  # `tput cols` reads terminfo's STATIC size — 80 for every xterm-* entry — and
+  # answers 80 in a 40-column window. Only TIOCGWINSZ tracks a resize, so a
+  # painter built on tput folds to a width the window hasn't had since 1978.
+  run bash -c "sed -n '/^watch_measure()/,/^}/p' '$HAUS'"
+  [[ "$output" == *"stty size </dev/tty"* ]]
+  [[ "$output" == *"WATCH_RESIZED=1"* ]]
 }
 
 # ── latest_tag / commits_since: the release-edge staleness check ───────────────
