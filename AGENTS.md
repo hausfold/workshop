@@ -154,7 +154,7 @@ typically — where the palette's **Restore Terminal Windows** is the answer.
 ## Agent worktrees (parallel agent sessions)
 
 Agent lanes spawned with **⌘↵** run whichever client `haus.ai.default` names —
-`claude`, `codex` or `opencode`. **Every client goes through `holt new`**,
+`claude`, `codex`, `opencode` or `pi`. **Every client goes through `holt new`**,
 including Claude (`claude --worktree` would run the client in the pane it was
 launched from and never ask holt's `[hooks] open`, the seam a lane's own window
 arrives through). The `WorktreeCreate`/`WorktreeRemove` hooks → `holt hook
@@ -178,8 +178,8 @@ is disposable — the branch + your client's transcript are the real persistence
 Run `holt` to list every parked/live agent worktree across **all** repos, and
 `holt <name>` (or `holt <repo>/<name>`) to rebuild a parked checkout and drop
 back into the client that worktree was made with (`claude --resume`, `codex
-resume`, `opencode --continue` — `holt` recorded which). `bench status` only
-*reports* family worktrees, reading that same registry.
+resume`, `opencode --continue`, `pi --continue` — `holt` recorded which).
+`bench status` only *reports* family worktrees, reading that same registry.
 
 **Setting work aside uses `holt park`, never `git stash`.** The stash stack
 lives in the shared `.git` dir, so every worktree of a repo *and* the main
