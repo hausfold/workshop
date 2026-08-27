@@ -2294,8 +2294,8 @@ cmd_release() {
 DOCS_STATE="$ROOT/.docs-sync.json"
 
 # Every repo whose commits can invalidate a doc — the flake family, plus the
-# workshop itself (bench and the README live here), the two CI-owned leaves, and the
-# two repos that carry docs without carrying a lock edge.
+# workshop itself (bench and the README live here), the two CI-owned leaves, the
+# two repos that carry docs without carrying a lock edge, and `ops`.
 #
 # 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.
 # `trill` and `hausfold.co` are deliberately outside `FAMILY` — but both have a
@@ -2311,7 +2311,13 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # still not in FAMILY and ship still never walks it — but it IS overridable and
 # IS a lock source now (see the 🚨 by FAMILY), so that reasoning lives there and
 # this list keeps only its own. hausfold.co is unchanged: no flake input at all.
-DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co)
+#
+# 🔒 `ops` is the PRIVATE one, and it is in this list on a ONE-WAY basis: the
+# sweep reconciles the files in it, and may never carry a line out of it into a
+# public repo. It holds the name register, the gap list and real people's names.
+# It has no flake edge and nothing to build, so it appears here and nowhere else
+# in bench except `clone`.
+DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill hausfold.co ops)
 
 # Two watermarks per repo, and the GAP between them is the whole point:
 #
@@ -2587,7 +2593,13 @@ cmd_clone() {
   # refs survive any scrub). Never add a gh_repo arm
   # pointing this name back at `website`: you'd clone a dead snapshot over the
   # live site.
-  for name in trill hausfold.co; do
+  #
+  # `ops` rides the same loop for the same reason — DOCS_REPOS reads it, nothing
+  # else does — with one difference: it is PRIVATE, so this clone needs
+  # credentials and will fail loudly on a machine or container without them.
+  # That warn is correct. A sweep that silently skips it reports the register
+  # clean forever.
+  for name in trill hausfold.co ops; do
     local dir; dir="$(repo_dir "$name")"
     if [ -d "$dir/.git" ]; then
       say "$name already here"

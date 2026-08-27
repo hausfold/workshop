@@ -10,9 +10,9 @@ description: >-
 
 # Docs sync — reconcile the docs with what actually shipped
 
-Code moves across ten repos all day; the docs don't follow on their own. Once a day this
-sweep reads what landed, decides what it broke or bloated, fixes it in the right place,
-and opens a PR.
+Code moves across eleven repos all day; the docs don't follow on their own. Once a day
+this sweep reads what landed, decides what it broke or bloated, fixes it in the right
+place, and opens a PR.
 
 **An empty run is a success.** The watermark (Step 1) means you only ever read commits no
 run has read before. If nothing is new, don't re-audit pages no commit touched — take the
@@ -23,22 +23,32 @@ a skipped no-op costs nothing.
 everything a *user* experiences. READMEs, `AGENTS.md` and in-repo docs serve contributors
 and agents. When the two disagree, the site wins and the repo doc gets corrected.
 
-## Step 0 — in a cloud container, plant the other nine repos
+## Step 0 — in a cloud container, plant the other ten repos
 
 Skip this on Julien's Mac; the checkouts are already there.
 
 ```bash
 ./.agents/setup.sh              # Determinate Nix + the proxy CA; no-ops if Nix exists
 command -v python3 gh || echo "MISSING — the watermark needs python3, Step 6 needs gh"
-./bench clone                   # the nine others, at the dir names bench expects
+./bench clone                   # the ten others, at the dir names bench expects
 git config --global user.name  "docs-sync"
 git config --global user.email "docs-sync@hausfold.co"
 ```
 
-Two layout facts are load-bearing and neither is guessable: the nine live **inside** the
-workshop checkout as gitignored subdirectories (`<workshop>/haus`, …), and `org-profile`'s
-directory is `org-profile` while its remote is `hausfold/.github`. `bench clone` gets both
-right. Call it `./bench` — nothing puts it on PATH in a container.
+Three layout facts are load-bearing and none is guessable: the ten live **inside** the
+workshop checkout as gitignored subdirectories (`<workshop>/haus`, …), `org-profile`'s
+directory is `org-profile` while its remote is `hausfold/.github`, and **`ops` is
+private**, so its clone needs credentials and warns rather than dying without them.
+`bench clone` gets all three right. Call it `./bench` — nothing puts it on PATH in a
+container.
+
+> 🔒 **`hausfold/ops` is swept, and the wall around it is one-way.** It holds the name
+> register, the gap list — what nobody has claimed, which of our surfaces has no answer to
+> a fair objection — and real testers' names. Facts flow **in**: a repo rename, a published
+> package, a shipped page all make a claim in there wrong, and fixing that is this sweep's
+> job. Nothing flows **out**. Never quote, summarise or paraphrase a line from `ops` into a
+> public repo's PR, doc or issue, and never let a finding about `ops` appear in another
+> repo's PR body. If `ops` can't be cloned, say so in Step 8 and sweep the other ten.
 
 > 🚨 **Repos pre-cloned elsewhere get `mv`d into place, never symlinked.** `.gitignore`
 > spells the nine with trailing slashes (`/haus/`), which match a directory and not a
@@ -115,6 +125,7 @@ grep -ril "<feature>\|<flag>\|<option>" hausfold.co/content/docs/ <repo>/README.
 | `org-profile` (the `hausfold/.github` repo) | `profile/README.md`, the org front page and the first thing anyone sees, plus `profile/assets/README.md`. Reconcile its repo list against `content/docs/meta.json` and the `#made` list in hausfold.co's `src/app/page.tsx`; there is no `/docs` index page, only the four trees |
 | `hausfold.co/` itself — shell, routes, landing pages | that repo's own `README.md` / `AGENTS.md`. The *docs* it serves are the rows above, not this one. 🚨 Never move anything out of `hausfold/ops`' name register and into it — that repo is private for a reason, and this one is the world |
 | a shot or asset placement anywhere | `assets/SHOTLIST.md` in the workshop |
+| 🔒 anything that dates a claim in the **private** `ops` repo | `ops/PRESENCE.md` (the register: a repo renamed or created, a package published to npm/PyPI/crates, a namespace won or lost, a domain or handle moved), `ops/MARKETING.md` (a pipeline that got built, a tool that got installed, a blocker that cleared), `ops/scoreboard/` (a **new public repo** has to be added to `collect.sh`'s `REPOS` by hand — one that isn't listed reports as nothing, which looks exactly like a repo nobody visits), `ops/LANDSCAPE.md` and `ops/TESTERS.md` (hand-maintained; correct them only against something that landed). **One-way: nothing from `ops` goes into any other repo's PR** |
 
 **Every repo is both an input and a target.** The question is never only "does this commit
 change the site?" but "did it make a doc *in that repo* wrong?" The front-of-house repos
@@ -154,6 +165,13 @@ front page. The docs are too long before they are too short. Delete on sight:
   `SPEC.md`, `ARCHITECTURE.md` and `bench`'s own comments are *written* in why-it-bit-us:
   the trap, the date it bit, the fix. That narrative is the payload, not bloat. Correct
   them when they're wrong; never cut them for length.
+
+  🔒 **`ops` is the third case, and it cuts like the site.** It is a register, not a
+  narrative: it says what is claimed and what is missing *today*. Which decision reversed
+  which, what a page was called for an afternoon, when a thing went live — all of it is in
+  git, so cut it on sight. **A date survives only when it is provenance for a claim about
+  the world outside this org** (a trademark search, a competitor's star count, a vendor's
+  published price), because there the date is what makes the number checkable.
 
 **2. Correct.** No hesitation when the docs state something now factually wrong: a flag,
 path, default, keybind, option name, version or behavior that changed; a step that would

@@ -305,7 +305,7 @@ are too long before they are too short, and a new page is the last resort. The
 skill keeps **one open PR per repo**, growing until you merge it, rather than
 opening a fresh one each run.
 
-Two things about its repo list are deliberate and get "tidied" wrong:
+Three things about its repo list are deliberate and get "tidied" wrong:
 
 - **`DOCS_REPOS` is not `FAMILY`.** It adds `trill` and `hausfold.co` — repos
   with docs and an audience that `FAMILY` doesn't cover. Docs coverage and lock
@@ -318,6 +318,11 @@ Two things about its repo list are deliberate and get "tidied" wrong:
   `docs-since` warns loudly for both (`no checkout at …`, and either
   `first sweep — no watermark, reading its FULL history` or `watermark … is gone
   (rebased away?)`). Those lines are holes in the sweep, not clean repos.
+- 🔒 **`ops` is in the list, and it is one-way.** The private repo carries the
+  name register, the gap list and real testers' names, and a repo renamed or a
+  package published leaves a claim in there wrong — so the sweep reconciles it.
+  It may never carry a line *out* of `ops` into a public repo. It is private, so
+  its clone needs credentials and warns rather than dying without them.
 
 The sweep never lands on `main` — one PR per affected repo, each commit carrying
 a `Docs-Sync:` trailer so tomorrow's run doesn't read today's output as its input.

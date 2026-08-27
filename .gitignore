@@ -12,14 +12,13 @@
 /nebelung/
 /pounce/
 /perch/
-/ops/
 /org-profile/
 /trill/
-# `ops` is private and NOT in bench's FAMILY, DOCS_REPOS or clone list — it is
-# cloned by hand when name-register work needs it, so most machines won't have
-# it. The line is here anyway: without it, the one clone that does happen leaves
-# `?? ops/` in this tree and a `git add -A` up here tries to add a nested repo.
-# That is exactly the trap #283 left behind with `messages/`; don't wait for it.
+# `ops` is PRIVATE and not in FAMILY — no flake edge, nothing to build — but it
+# IS in DOCS_REPOS and in `bench clone`, because the docs sweep reconciles its
+# files like any other repo's. Without this line the clone leaves `?? ops/` here
+# and a `git add -A` up top tries to add a nested repo. That is the trap #283
+# left behind with `messages/`; don't wait for it.
 /ops/
 .DS_Store
 
