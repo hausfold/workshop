@@ -2217,3 +2217,32 @@ EOF
   run cat "$TMP/trill.log"
   [[ "$output" == *'a "quoted" tag'* ]]
 }
+
+# ── snug's bash painter ──────────────────────────────────────────────────────
+
+@test "bench sources snug's share/ui.sh out of the snug checkout" {
+  # The wiring step 7 of docs/cli-presentation.md builds on, and the reason the
+  # file moved out of this repo: `repo_dir snug` is the whole lookup, so a
+  # renamed path or a `repo_dir` arm that stopped answering fails HERE rather
+  # than the first time bench tries to draw a row.
+  mkdir -p "$ROOT/snug/share"
+  cat > "$ROOT/snug/share/ui.sh" <<'UI'
+ui_say() { printf 'FIXTURE %s\n' "$*"; }
+UI
+  ui_load
+  [ "$(type -t ui_say)" = function ]
+  run ui_say hello
+  [ "$output" = "FIXTURE hello" ]
+}
+
+@test "bench runs on a machine with no snug checkout at all" {
+  # `bench clone` planted no snug before 2026-08-27, so a checkout that predates
+  # it has none — and the fallback painter being missing must cost the caller
+  # nothing. A bare `source` of a nonexistent path exits 1 under `set -e`, which
+  # would kill bench at load time, before any verb ran and with nothing on
+  # either stream: the same failure shape `watch_measure`'s `|| true` exists for.
+  [ ! -e "$ROOT/snug" ]
+  run ui_load
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
