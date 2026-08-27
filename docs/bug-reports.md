@@ -39,6 +39,74 @@ And three contact links on the chooser that are *not* forms:
 create` from a terminal still opens anything we want, including from an agent
 lane. What it buys is that a report from a stranger arrives in a shape.
 
+## The in-product door
+
+Every app in the family that a stranger can *click* carries one row that opens
+its own bug form, with the diagnostics field already answered. Nothing about the
+forms changes; what goes is the trip — "open github.com/hausfold, pick the right
+repo out of all of them, find its Issues tab" — for anyone already inside the
+app that just broke.
+
+| | where the door is | what it prefills |
+|---|---|---|
+| **perch** | menu bar ▸ *Report a Bug…* | version · macOS + build · Mac model · install cohort |
+| **trill** | menu bar ▸ *Report a Bug…* · `trill report [--print]` | the same four, plus whether the notification store it audits could be read |
+| **pounce** | palette ▸ *Report Pounce Issue* · Settings ▸ app menu ▸ *Report a Bug…* · `pounce report [--print]` | the same four, plus the whole `pounce doctor` report |
+| everything else | *(no door yet — haus, the workshop, holt and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
+
+Each app implements its own `BugReport` — pounce installs standalone and perch
+is sandboxed, so there is nothing to share a library through. What they share is
+this page. Four things are the standard, and each of them is a bug that fails
+**silently** if you get it wrong:
+
+1. **`?template=bug.yml`, never `?title=&body=`.** A `body=` prefill opens
+   GitHub's *blank* editor and walks straight past the form — its fields, the
+   "wrong repo? file it anyway" preamble, the `bug`/`triage` labels. An issue is
+   still filed, so nothing anywhere fails. pounce's palette command did exactly
+   this from before the forms existed until 2026-08, and every report that came
+   through it arrived shapeless.
+
+2. **Only `diagnostics` is prefilled.** `what` is the report, `area` is the
+   reporter's guess, `anything` is optional by design — filling any of them in
+   is putting words in their mouth. `diagnostics` is the one field the app
+   answers better than the person can, which is the whole argument for the door.
+
+3. **Encode strictly — `URLComponents.queryItems` is not enough.** Its
+   `CharacterSet.urlQueryAllowed` *contains* `+`, so it leaves it literal, and
+   the receiving server decodes a literal `+` back as a space. `pounce doctor`
+   prints `cmd+space` on nearly every line it draws. Percent-encode everything
+   that isn't RFC 3986 unreserved.
+
+4. **Nothing in the block should want redacting.** It lands in a public issue,
+   and a field the app filled in is a weaker kind of consent than one the
+   reporter typed. No bundle paths, no home directory (pounce rewrites it to
+   `~` before the doctor report goes anywhere), nothing off the user's shelf or
+   inbox. **Nothing is sent until the reporter presses Submit** — the door opens
+   a page, it does not file anything. It is not quite *"it only reads"*, the
+   promise the doctor hints make: a menu row whose block overran the URL writes
+   the block to the pasteboard, because a menu has nowhere else to put it. That
+   is the door's one write, it is the reporter's own clipboard, and for pounce
+   it is a live path rather than a guard rail.
+
+And one size limit: GitHub serves a URL of about 8 KB and refuses past it, so
+each door drops the prefill above ~6 KB and puts the block on the pasteboard (a
+menu row) or on stdout (a CLI) instead. For perch and trill that is a guard rail
+against a block that grows later; for pounce it is a live path, because doctor
+grows a line per binding.
+
+**A door and its hint are one artifact, and nothing checks that.** Each repo's
+`DIAG_HINT` leads with the door — *"pounce report fills this in for you"* — so a
+reporter who arrived the long way learns the short one. `--check` does **not**
+catch it when they stop agreeing: it compares the generator's output to each
+repo's rendered YAML, and it knows nothing about whether the menu row still
+exists. Delete `trill report` tomorrow and the hint renders byte-identical and
+the gate stays green, while the form promises a verb that is gone.
+
+So the discipline is the whole guard: add or remove a door, and the hint is the
+second half of the change, in the same round. Another known hole, stated rather
+than papered over — and the same shape as the one below, a check that passes
+while the thing it protects rots.
+
 ## The four decisions
 
 ### Short, and the same everywhere
@@ -64,7 +132,7 @@ theirs and it is expensive**, and the expensive version ends in no report at all
 |---|---|
 | haus | `haus doctor` |
 | pounce | `pounce doctor` |
-| trill | `trill doctor` |
+| trill | the environment its menu row fills in, plus `trill doctor` for a double-banner report |
 | workshop | `bench status` |
 | perch | version + macOS + Mac model — **no doctor exists** |
 | holt | `holt --version` + OS + which client spawned the lane |
@@ -99,13 +167,14 @@ in a comment and expensive in a form.** Where two audiences share a surface, the
 copy is written for the one that doesn't know us. (The generator's comments keep
 the vocabulary; they have one audience.)
 
-## The three artifacts
+## The artifacts
 
 | | what | where |
 |---|---|---|
 | **generator** | renders four YAML files into ten repos from one table | [`script/issue-templates.sh`](../script/issue-templates.sh) |
 | **GitHub state** | the labels the forms apply, and the security destination they link | [`script/issue-labels.sh`](../script/issue-labels.sh) |
 | **gate** | the only thing that notices when a repo stops matching | [`.github/workflows/issue-templates.yml`](../.github/workflows/issue-templates.yml) |
+| **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/` |
 
 **Why a generator.** Four forms hand-maintained across ten repos fails silently
 and asymmetrically: the day pounce's bug form asks for something haus's doesn't,
@@ -173,3 +242,7 @@ destination.
 3. New label, or a new repo? `./script/issue-labels.sh` (dry run), then `--apply`.
 4. Commit **in each repo you touched** — this is ten repos, and `bench ship`
    refuses dirty trees on purpose.
+
+⚠️ Changing a `DIAG_HINT` that names an in-product door? The door is in that
+app's own repo, and only `--check` notices when the two stop agreeing — so both
+halves move in the same round. See *The in-product door*.

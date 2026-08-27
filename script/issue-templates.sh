@@ -85,7 +85,7 @@ meta() {
       BLURB="Something about the palette doesn't work"
       DOCS="https://hausfold.co/docs/pounce"
       DIAG="pounce doctor"
-      DIAG_HINT="Paste the output of \`pounce doctor\`. It only reads — it changes nothing and sends nothing anywhere."
+      DIAG_HINT="**\`pounce report\` fills this in for you** — so does *Report Pounce Issue* in the palette, and *Report a Bug…* in the Settings window's app menu. Each opens this form with the report already here, and sends nothing until you press Submit. By hand: paste the output of \`pounce doctor\`. It only reads — it changes nothing and sends nothing anywhere."
       AREAS=(
         "the hotkey — pressing it opens nothing"
         "results, ranking or search"
@@ -103,7 +103,7 @@ meta() {
       BLURB="Something about the shelf doesn't work"
       DOCS="https://hausfold.co/docs/perch"
       DIAG="Version and macOS"
-      DIAG_HINT="Perch's version (menu bar → About, or \`perch --version\`), your macOS version, and your Mac model. Perch has no doctor command yet, so this is the substitute."
+      DIAG_HINT="**Perch's menu bar ▸ Report a Bug… fills this in for you** — it opens this form with the version, your macOS build, your Mac model and how this copy was installed already here, and sends nothing until you press Submit. By hand: \`perch --version\` (or Settings, bottom of the sidebar), your macOS version, and your Mac model. Perch has no doctor command yet, so this is the substitute."
       AREAS=(
         "dragging files in"
         "dragging files out"
@@ -121,8 +121,8 @@ meta() {
       TOOL="trill"
       BLURB="Something about notifications doesn't work"
       DOCS="https://hausfold.co/docs/trill"
-      DIAG="trill doctor"
-      DIAG_HINT="Paste the output of \`trill doctor\`. It only reads — it changes nothing and sends nothing anywhere. If it says it needs Full Disk Access, paste that too; it's an answer."
+      DIAG="Diagnostics"
+      DIAG_HINT="**Trill's menu bar ▸ Report a Bug…, or \`trill report\`, fills this in for you** — version, macOS build, Mac model, and whether Full Disk Access is granted. Nothing is sent until you press Submit. If your problem is a banner arriving *twice*, add the output of \`trill doctor\` as well: it only reads — it changes nothing and sends nothing anywhere. If it says it needs Full Disk Access, paste that too; it's an answer."
       AREAS=(
         "a banner — wrong, missing, or won't go away"
         "rules.json — something isn't matching"
