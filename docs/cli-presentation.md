@@ -315,16 +315,17 @@ one. State as of 2026-08-27:
 |---|---|---|
 | 1 | **This file** — the standard itself | ✔ done |
 | 2 | **`bench`'s live painter** — folded to width, `\033[J`, `trap WINCH` | ✔ done (#469; eight tests in `test/bench.bats` across widths 2–120, plus a real pty for the measurement) |
-| 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ◐ PR open ([haus#547](https://github.com/hausfold/haus/pull/547)) |
+| 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ✔ done ([haus#547](https://github.com/hausfold/haus/pull/547); 16 bats cases). Two heads, and §1 has the distinction: the finished row merely *wraps*, the 14-cell `phase_start` stub is what strands a line above its own successor |
 | 4 | **[hausfold/snug](https://github.com/hausfold/snug)** — the Go package and the binary | ✔ done, public, CI green |
-| 5 | **holt's `internal/ui`** onto snug's roles | ◐ in flight |
-| 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ◐ in flight |
+| 5 | **holt's `internal/ui`** onto snug's roles | ✔ done ([holt#70](https://github.com/hausfold/holt/pull/70), re-pinned in [holt#71](https://github.com/hausfold/holt/pull/71)) |
+| 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
 | 7 | **`bench` onto `snug run`** as a coprocess | ○ not started |
 | 8 | **The bash fallback** shipped beside the binary | ○ not started |
 
-**7 deletes ~150 lines from `bench`** — `paint_live`, `watch_measure`,
-`row_glyph` and the `WATCH_RENDER_PY` clamp — and cannot be tested until 6 has
-landed, because there is nothing on `PATH` to drive.
+**Everything but 7 and 8 is done.** 7 deletes ~150 lines from `bench` —
+`paint_live`, `watch_measure`, `row_glyph` and the `WATCH_RENDER_PY` clamp —
+and was untestable until 6 landed, because there was nothing on `PATH` to
+drive. There is now: `snug` is in the system profile on every haus machine.
 
 ⚠️ **8 comes before 7, or 7 needs an explicit no-binary path of its own.** *A
 bash fallback ships beside it* is a promise this file has made since it was
