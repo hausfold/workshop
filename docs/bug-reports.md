@@ -135,7 +135,7 @@ theirs and it is expensive**, and the expensive version ends in no report at all
 | trill | the environment its menu row fills in, plus `trill doctor` for a double-banner report |
 | workshop | `bench status` |
 | perch | version + macOS + Mac model — **no doctor exists** |
-| holt | `holt --version` + OS + which client spawned the lane |
+| scruff | `scruff --version` + OS + which client spawned the lane |
 | nebelung, hausfold.co | *(field omitted entirely)* |
 
 A repo with no diagnostic command gets **no field**, rather than a field asking
@@ -213,7 +213,7 @@ hole, stated rather than papered over.
 
 `hausfold/.github` (checked out as `org-profile/`) gets the same four files, and
 GitHub serves them to **any repo in the org with no templates of its own** —
-`homebrew-tap`, `holt-swift`, and whatever gets created next. That fallback is
+`homebrew-tap`, `scruff-swift`, and whatever gets created next. That fallback is
 the difference between "every repo" being a list we maintain and being true.
 
 Its form differs in exactly two ways, both forced: it **can't** ask for a

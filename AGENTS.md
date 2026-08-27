@@ -56,20 +56,20 @@ former, never the latter).
 | the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — rooms are named for what they do | `./haus` — the layer `hausfold/haus`. The directory is named for its repo, not for the desktop it carries |
 | the org's GitHub front page | `./org-profile` — the checkout of `hausfold/.github` (`bench clone` maps the alias; this repo's own `./.github` is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is still not a family repo** — the two are different questions and trill is what first separated them (snug is the other; see its row above). It IS in `OVERRIDABLE` and in `EDGES` (`haus → trill`, gating `haus.trill.enable`), so `bench try` from a trill worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state — it lands through its own PRs. It is also in `DOCS_REPOS`, `bench clone` and `bench pull`. Releasable since 2026-08-25 (`bench release trill`, CalVer, notarized ZIP + CI-owned `nix/release.nix` pin) |
-| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). **The second repo on trill's footing: a flake input that is not a `FAMILY` repo** (holt is an input too, but it IS `FAMILY` — trill and snug are the only two that come apart) — it IS in `OVERRIDABLE` and in `EDGES` (`haus → snug`), so `bench try` from a snug worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state and it lands through its own PRs. Also in `DOCS_REPOS`, `bench clone` and `bench pull`. One Go package Go callers import and one binary the layer puts on PATH unconditionally for the bash ones. ⚠️ **Not releasable yet** — it carries a `VERSION` but has no `version_file()` arm in `bench` and no release workflow, so nothing tags or publishes it. The design it implements is `docs/cli-presentation.md` here; *how* a line is drawn is snug's repo, *whether* a tool should print it is that tool's |
-| holt — the worktree-lifecycle substrate | `./holt` ([hausfold/holt](https://github.com/hausfold/holt)). The layer takes it as a flake input and ships it on PATH; the ⌘↵ lane chord runs `holt new` for every client, and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks call `holt hook create` / `holt hook remove` |
+| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). **The second repo on trill's footing: a flake input that is not a `FAMILY` repo** (scruff is an input too, but it IS `FAMILY` — trill and snug are the only two that come apart) — it IS in `OVERRIDABLE` and in `EDGES` (`haus → snug`), so `bench try` from a snug worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state and it lands through its own PRs. Also in `DOCS_REPOS`, `bench clone` and `bench pull`. One Go package Go callers import and one binary the layer puts on PATH unconditionally for the bash ones. ⚠️ **Not releasable yet** — it carries a `VERSION` but has no `version_file()` arm in `bench` and no release workflow, so nothing tags or publishes it. The design it implements is `docs/cli-presentation.md` here; *how* a line is drawn is snug's repo, *whether* a tool should print it is that tool's |
+| scruff — the worktree-lifecycle substrate | `./scruff` ([hausfold/scruff](https://github.com/hausfold/scruff)). The layer takes it as a flake input and ships it on PATH; the ⌘↵ lane chord runs `scruff new` for every client, and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks call `scruff hook create` / `scruff hook remove` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
-| **how one of our tools puts a line on screen** | the tool's OWN repo, but never as a bare `osascript -e 'display notification …'` again. Everything the family draws goes through **trill**, with Apple's banner as the fallback when trill isn't installed: haus has `haus-notify` (`modules/core/haus-notify.sh`, on PATH beside a `trill` wrapper), pounce carries a `notify()` per command because it installs standalone, `bench` has one for the verbs you walk away from, and holt already had `holt hook notify`. Give every caller its own `--source` — that string is what `~/.config/trill/rules.json` matches on, and it is the difference between silencing one noisy thing and silencing the tool. No `haus.*` option gates any of it; rules.json is the dial |
+| **how one of our tools puts a line on screen** | the tool's OWN repo, but never as a bare `osascript -e 'display notification …'` again. Everything the family draws goes through **trill**, with Apple's banner as the fallback when trill isn't installed: haus has `haus-notify` (`modules/core/haus-notify.sh`, on PATH beside a `trill` wrapper), pounce carries a `notify()` per command because it installs standalone, `bench` has one for the verbs you walk away from, and scruff already had `scruff hook notify`. Give every caller its own `--source` — that string is what `~/.config/trill/rules.json` matches on, and it is the difference between silencing one noisy thing and silencing the tool. No `haus.*` option gates any of it; rules.json is the dial |
 | **a write-up that turned out to be wrong** — a stale README claim, a comment that outlived its code, a check that passes while the thing it protects rots | [`docs/drift.md`](docs/drift.md), which lives here because it binds every repo: thirty numbered shapes and, beside each, the only thing that catches it. **Row numbering is frozen** — this repo's docs and `haus`'s commit messages cite rows by number. Append a shape when you find one the table can't already name — or, if you can't yet say its general form, put it under *Seen once, not yet a row* and let a second sighting promote it |
-| **how one of our CLIs looks on screen** — a colour, a glyph, a column that wraps, a spinner that scrolls | the standard is [`docs/cli-presentation.md`](docs/cli-presentation.md), which lives here because it binds `bench`, `haus`, `holt`, `trill` and every pounce command alike. The runtime that implements it is **snug** — see its own row above. ⚠️ Colour roles resolve against **nebelung**, never a hand-picked 256-colour index — the seven in the tree today sit ΔE 2–27 from the token they're meant to be wearing, only the greys land close, and the primary accent resolves to *blue*, the one hue nebelung exists to strip out |
+| **how one of our CLIs looks on screen** — a colour, a glyph, a column that wraps, a spinner that scrolls | the standard is [`docs/cli-presentation.md`](docs/cli-presentation.md), which lives here because it binds `bench`, `haus`, `scruff`, `trill` and every pounce command alike. The runtime that implements it is **snug** — see its own row above. ⚠️ Colour roles resolve against **nebelung**, never a hand-picked 256-colour index — the seven in the tree today sit ΔE 2–27 from the token they're meant to be wearing, only the greys land close, and the primary accent resolves to *blue*, the one hue nebelung exists to strip out |
 | **how an agent learns to drive one of our tools** — the `ai/SKILL.md` an end user's agent loads (and any sibling `ai/<name>/SKILL.md` the tool also ships), the `<tool> skill` verb, `--json`/exit-code shape | the tool's OWN repo, to the standard in [`docs/agent-surface.md`](docs/agent-surface.md) — which lives here because it binds every repo. ⚠️ Not a repo's `AGENTS.md`: that is for an agent working **on** the tool, from a checkout; a `SKILL.md` is for an agent **using** it, on a machine with no checkout. Which skills a machine gets is `./haus`'s `haus.ai.skill` |
 | **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels a form applies, the private security link | **the generator here, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into TEN repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half (a form's `labels:` are silently DROPPED if the label doesn't exist in that repo, and its security contact link 404s until private vulnerability reporting is on). The design, and why the field count is four, is [`docs/bug-reports.md`](docs/bug-reports.md). ⚠️ A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. There is **no telemetry in anything we ship**, so these forms are the entire feedback channel. The **in-product door** onto those forms — perch's and trill's *Report a Bug…* menu row, `trill report`, `pounce report` — lives in each app's OWN repo (nothing is shared: pounce installs standalone, perch is sandboxed), to the four-point standard in that same doc. A door and its repo's `DIAG_HINT` are one artifact split across two repos, and **nothing checks that they agree** — `--check` only compares the generator to the rendered YAML, so deleting a door leaves the form promising a verb that is gone, green. Change both in the same round |
 | **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, and only there. It is `curl -fsSL https://hausfold.co/hacker.sh \| bash`. A change to the *script* belongs in `./haus`'s `bootstrap.sh` |
 | the hausfold.co site | `./hausfold.co` — [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Keep the `.co`.** Next 16 + Fumadocs, statically exported onto a Cloudflare Worker, deployed by CI on push to its `main`; `worker.js` serves the installer, download and release-metadata routes in front of the export. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY` |
 | the hausfold **name register**, the launch plan, or anything still to be decided | [hausfold/ops](https://github.com/hausfold/ops), **private** — `PRESENCE.md` for the register, [`todo/`](https://github.com/hausfold/ops/tree/main/todo) for every open workstream (launch, agent surface, option surface, MDM). ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**: a list of what nobody has claimed hands it to whoever reads it first. *Trademark* findings are public register records and are fine here; *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand; the dir is `.gitignore`d |
 | pounce's Homebrew formula / perch's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
-| holt's Swift SDK | `./holt`'s `sdk/swift`. [`hausfold/holt-swift`](https://github.com/hausfold/holt-swift) is a **generated mirror** (`git subtree split --prefix=sdk/swift`) that exists because SwiftPM needs `Package.swift` at a repo root. **A `sdk/swift` merge alone does not move the mirror** — only a `v*` tag does, via `sdk/swift/sync-mirror.sh --tag <version>`, and mirroring + tagging IS "publishing" for SwiftPM. To get an unreleased change to a consumer sooner, run that script by hand from holt's `main` (it refuses any other branch). Never hand-edit the mirror |
+| scruff's Swift SDK | `./scruff`'s `sdk/swift`. [`hausfold/scruff-swift`](https://github.com/hausfold/scruff-swift) is a **generated mirror** (`git subtree split --prefix=sdk/swift`) that exists because SwiftPM needs `Package.swift` at a repo root. **A `sdk/swift` merge alone does not move the mirror** — only a `v*` tag does, via `sdk/swift/sync-mirror.sh --tag <version>`, and mirroring + tagging IS "publishing" for SwiftPM. To get an unreleased change to a consumer sooner, run that script by hand from scruff's `main` (it refuses any other branch). Never hand-edit the mirror |
 
 ## Where a write-up goes
 
@@ -97,7 +97,7 @@ Three rules that keep them from rotting:
 ## The one gotcha that explains everything
 
 The repos form a chain of pinned flake inputs. The spine is
-`nebelung → pounce → haus → ~/.config/nix`; `perch`, `trill`, `holt` and `snug`
+`nebelung → pounce → haus → ~/.config/nix`; `perch`, `trill`, `scruff` and `snug`
 are inputs of `haus` too, as is `nebelung` a second time, directly. That is
 **eight** lock edges, enumerated in `bench`'s `EDGES`, not the three the spine
 suggests. A commit — even a pushed one — is **invisible downstream** until each
@@ -106,7 +106,7 @@ downstream `flake.lock` is updated. Never hand-walk that ripple; the tooling doe
 - `./bench status` — leads with **what this machine is actually running** (the
   pinned build, or the local branches a `try switch` put on it), then every
   stale lock edge, dirty/unpushed repo, and agent worktree / unmerged
-  `worktree-*` branch. The lane table **is** holt's registry (never `git
+  `worktree-*` branch. The lane table **is** scruff's registry (never `git
   worktree list`), filtered to repos under the workshop dir plus the host
   config — so a hand-run `git worktree add` isn't in it at all. It also flags an
   **OFF-MAIN** edge: a lock pinned at a rev that isn't on that repo's `main`,
@@ -139,7 +139,7 @@ downstream `flake.lock` is updated. Never hand-walk that ripple; the tooling doe
   builds/activates the whole queue in ONE rebuild, main untouched. Ends with a
   tick-off checklist; you merge only the PRs that pass. Test-then-merge.
 - `./bench try lane [switch]` — like `bench try`, but ALSO overrides every repo
-  a `holt child` spawned from this same pane, walking holt's registry
+  a `scruff child` spawned from this same pane, walking scruff's registry
   transitively, so a cross-repo lane builds and activates together in ONE
   rebuild, no PR needed. Same who-not-where activation gate.
 - `./bench overlap [--brief] [--path <f>]` — what the OTHER agent lanes on this
@@ -180,44 +180,44 @@ typically — where the palette's **Restore Terminal Windows** is the answer.
 ## Agent worktrees (parallel agent sessions)
 
 Agent lanes spawned with **⌘↵** run whichever client `haus.ai.default` names —
-`claude`, `codex`, `opencode` or `pi`. **Every client goes through `holt new`**,
+`claude`, `codex`, `opencode` or `pi`. **Every client goes through `scruff new`**,
 including Claude (`claude --worktree` would run the client in the pane it was
-launched from and never ask holt's `[hooks] open`, the seam a lane's own window
-arrives through). The `WorktreeCreate`/`WorktreeRemove` hooks → `holt hook
-create` / `holt hook remove` are still declared, so a hand-run
+launched from and never ask scruff's `[hooks] open`, the seam a lane's own window
+arrives through). The `WorktreeCreate`/`WorktreeRemove` hooks → `scruff hook
+create` / `scruff hook remove` are still declared, so a hand-run
 `claude --worktree` still lands in the registry; it just isn't the chord's path.
 Either way the session gets its own checkout under
 `~/.cache/claude-worktrees/<repo>/<name>` (the path name is historical — every
 client shares it) on branch `worktree-<name>`, branched from the repo's **local
-HEAD**. The plumbing is [`holt`](https://github.com/hausfold/holt) — a
+HEAD**. The plumbing is [`scruff`](https://github.com/hausfold/scruff) — a
 standalone, repo-agnostic, client-agnostic Go tool that the layer takes as a
 flake input and ships on PATH. It isn't part of `bench`: the layer already ships
-the agent keybinds, and not every machine running `holt` has the workshop.
+the agent keybinds, and not every machine running `scruff` has the workshop.
 Worktrees live OUTSIDE the repos so trees stay clean and `bench try`'s `path:`
 overrides never swallow them. (The in-place variant — one agent per window,
 allowed to edit the real checkout — is `c` in a window's own shell.)
 
-**Closing a pane never loses work, and every session is resumable.** `holt`'s
+**Closing a pane never loses work, and every session is resumable.** `scruff`'s
 remove path parks any uncommitted edits as a WIP commit on the branch before
 deleting the checkout (only *merged* branches get reaped), so the checkout dir
 is disposable — the branch + your client's transcript are the real persistence.
-Run `holt` to list every parked/live agent worktree across **all** repos, and
-`holt <name>` (or `holt <repo>/<name>`) to rebuild a parked checkout and drop
+Run `scruff` to list every parked/live agent worktree across **all** repos, and
+`scruff <name>` (or `scruff <repo>/<name>`) to rebuild a parked checkout and drop
 back into the client that worktree was made with (`claude --resume`, `codex
-resume`, `opencode --continue`, `pi --continue` — `holt` recorded which).
+resume`, `opencode --continue`, `pi --continue` — `scruff` recorded which).
 `bench status` only *reports* family worktrees, reading that same registry.
 
-**Setting work aside uses `holt park`, never `git stash`.** The stash stack
+**Setting work aside uses `scruff park`, never `git stash`.** The stash stack
 lives in the shared `.git` dir, so every worktree of a repo *and* the main
-checkout pop the same stack — parallel agents clobber each other there. `holt
+checkout pop the same stack — parallel agents clobber each other there. `scruff
 park [label]` commits the whole dirty tree as one `wip:` commit on your branch
-alone; `holt unpark` rewinds it. It refuses to unpark a wip commit you've
+alone; `scruff unpark` rewinds it. It refuses to unpark a wip commit you've
 already pushed, so it can never turn into a force-push.
 
-**A session that keeps committing after its PR merged needs `holt reship`.**
+**A session that keeps committing after its PR merged needs `scruff reship`.**
 GitHub deletes the head branch on merge, so those later commits have no remote
-and no PR — and `holt` deliberately won't reap that branch. It marks the session
-`+N` in the state column (`live+3`); `holt reship [name]` pushes the branch and
+and no PR — and `scruff` deliberately won't reap that branch. It marks the session
+`+N` in the state column (`live+3`); `scruff reship [name]` pushes the branch and
 opens the follow-up PR.
 
 If YOU are running in a worktree (check: `git rev-parse --git-common-dir` points
@@ -279,27 +279,28 @@ outside your toplevel):
   testing-in-prod is house style), then stops and reports. It does **not** close
   this pane and does **not** spawn one. The now-merged worktree is not reaped
   here (you're sitting in it) — it goes when the user closes the pane, or on a
-  later `holt reap`.
+  later `scruff reap`.
 
 **A worktree is of whichever repo the pane sat in — and a *workshop* worktree
 cannot see the child repos.** If `git rev-parse --git-common-dir` points at
 `…/workshop/.git`, your tree holds ONLY the workshop's own files. The family
-sub-repos — `haus/`, `nebelung/`, `pounce/`, `perch/`, `holt/`, `trill/`,
-`snug/`, `hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not
+sub-repos — `haus/`, `nebelung/`, `pounce/`, `perch/`, `scruff/` (on disk as
+`holt/` until the rename lands — the row above), `trill/`, `snug/`,
+`hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not
 there at all.** This is **NOT** a `.gitignore` visibility problem: a linked worktree of
 the workshop never checks out the sibling repos, because each is an independent
 repo living only beside the workshop's main checkout. So the moment a task turns
 out to belong to a child repo, don't grep or hunt for those files in this tree,
 and don't report them as "hidden by gitignore." **You have standing permission —
 no need to ask — to make a dedicated worktree of that child repo and work
-there**, with `holt child`, **not** a raw `git worktree add`:
+there**, with `scruff child`, **not** a raw `git worktree add`:
 
 ```sh
 workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
-cd "$(holt child "$workshop_root/<repo>")"
+cd "$(scruff child "$workshop_root/<repo>")"
 ```
 
-`holt child` does the `git worktree add` **and registers it** with this pane as
+`scruff child` does the `git worktree add` **and registers it** with this pane as
 the parent, so the statusline HUD can see the child's PR — a raw `git worktree
 add` skips the registry, and the refresher then never queries that repo's
 GitHub, so the PR is invisible in the bar. It names the child after this pane's
@@ -404,14 +405,14 @@ for building or switching.
   behind origin and a `bench ship` that ripples a superseded rev. It
   fast-forwards for you when the run goes green. Never hand-bump the formula's
   url/sha lines.
-- **`holt` is the one semver repo, and it's forced, not chosen:** `./bench
-  release holt 0.2.0`. It publishes five SDKs to npm, PyPI, crates.io, SwiftPM
+- **`scruff` is the one semver repo, and it's forced, not chosen:** `./bench
+  release scruff 0.2.0`. It publishes five SDKs to npm, PyPI, crates.io, SwiftPM
   and the Go proxy; three already hold `0.1.0` and none of them ever let a
   published number be withdrawn, so the version is a compatibility contract
   rather than a date — and CalVer would force the Go SDK's import path to end in
   `/v2026`, changing every January. All five SDKs share the one number. `bench`
   refuses a version argument for the CalVer repos and refuses to run without one
-  for holt. Deciding the bump means reading `git diff <last-tag>..main -- sdk/`
+  for scruff. Deciding the bump means reading `git diff <last-tag>..main -- sdk/`
   against the published SDK surface — that judgement is what `/release` is for.
 - Don't cross-edit: a color hex in `haus`, or launchd logic in `pounce`, is in
   the wrong repo even if it would work.

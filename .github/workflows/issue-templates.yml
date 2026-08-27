@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           for pair in \
-            haus:haus pounce:pounce perch:perch trill:trill snug:snug holt:holt \
+            haus:haus pounce:pounce perch:perch trill:trill snug:snug scruff:scruff \
             nebelung:nebelung hausfold.co:hausfold.co org-profile:.github
           do
             dir="${pair%%:*}"; repo="${pair##*:}"
