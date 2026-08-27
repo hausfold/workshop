@@ -52,7 +52,7 @@ app that just broke.
 | **perch** | menu bar ▸ *Report a Bug…* | version · macOS + build · Mac model · install cohort |
 | **trill** | menu bar ▸ *Report a Bug…* · `trill report [--print]` | the same four, plus whether the notification store it audits could be read |
 | **pounce** | palette ▸ *Report Pounce Issue* · Settings ▸ app menu ▸ *Report a Bug…* · `pounce report [--print]` | the same four, plus the whole `pounce doctor` report |
-| everything else | *(no door yet — haus, the workshop, holt and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
+| everything else | *(no door yet — haus, the workshop, scruff and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
 
 Each app implements its own `BugReport` — pounce installs standalone and perch
 is sandboxed, so there is nothing to share a library through. What they share is

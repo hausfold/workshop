@@ -131,11 +131,11 @@ ensure_nix_path
 # like every other edge here.
 #
 # FAMILY entries are REPO names, and `repo_dir` is the only thing that turns one
-# into a directory. They agree for four of the five: the 2026-08-11 rename of
-# `hausfold/hausfold` → `hausfold/haus` (decision 9) moved the checkout in the
-# same commit, so no arm was needed. `scruff` is the exception and has one — the
-# repo renamed on 2026-08-27 and the checkout is still `$ROOT/holt` until a
-# quiet tree lets it move. Read `repo_dir` before assuming `$ROOT/<entry>`.
+# into a directory. Every entry maps straight to `$ROOT/<name>`: both org renames
+# — `hausfold/hausfold` → `hausfold/haus` (2026-08-11, decision 9) and
+# `hausfold/holt` → `hausfold/scruff` (2026-08-27) — moved the checkout too, so
+# no family arm survives in `repo_dir`. Its arms are the two names that are not
+# directories under ROOT at all: `consumer` and `workshop`.
 FAMILY=(nebelung pounce perch scruff haus)
 
 # 🚨 FAMILY is NOT "the repos with a flake input", and since trill it never was.
@@ -316,19 +316,6 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
   case "$1" in
     consumer) echo "$CONSUMER" ;;   # ~/.config/nix, outside the workshop dir
     workshop) echo "$ROOT" ;;       # the workshop IS ROOT, not ROOT/workshop
-    # ⏳ Transitional, and the ONE place the old name still lives. The repo is
-    # `hausfold/scruff` since 2026-08-27; the checkout under $ROOT is still
-    # `holt`, because every open agent lane holds an ABSOLUTE gitdir into it and
-    # `mv`-ing it out from under a live pane strands that pane. So the name
-    # moved everywhere and the directory waits for a quiet tree.
-    #
-    # Prefer the new dir so the `mv` needs no second commit: the day it happens
-    # this arm goes silently correct, and can then be deleted. A fresh machine
-    # has neither, and `bench clone` should plant the NEW name — which is why
-    # the fallback is the last branch and not the first.
-    scruff)   if [ -d "$ROOT/scruff" ]; then echo "$ROOT/scruff"
-              elif [ -d "$ROOT/holt" ]; then echo "$ROOT/holt"
-              else echo "$ROOT/scruff"; fi ;;
     *)        echo "$ROOT/$1" ;;
   esac
 }
@@ -343,8 +330,9 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 # bare "$GH_ORG/$name" appears to work, right up until someone creates a repo
 # actually under that freed name. The day one becomes a real repo, every
 # `gh pr list` and `git clone` below silently retargets it, with no error
-# anywhere. `hausfold/hausfold` is the freed slug that exists today, and nothing
-# is queued to claim it — a hazard with no live example is still a hazard.
+# anywhere. Two freed slugs exist today — `hausfold/hausfold` (2026-08-11) and
+# `hausfold/holt` (2026-08-27) — and nothing is queued to claim either. A hazard
+# with no live example is still a hazard, and there are two of them now.
 # `bench status` checks the other end of the same rope — see locked_slug, which
 # catches a flake.lock still FETCHING a repo under a name it has given up.
 gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
@@ -504,11 +492,9 @@ rev_on_main() {
 # pounce item grammar, one repo down.
 #
 # ⚠️ The middle field is the INPUT NAME and the third is the REPO. They are not
-# the same word: `consumer @layer haus` is the standing proof, and the scruff row
-# was the second one for a fortnight — haus flipped its input to `scruff` in
-# hausfold/haus#538 while the repo was still `hausfold/holt`. The repo caught up
-# on 2026-08-27 and the row is a matched pair again; the mismatch that outlived
-# it is directory-vs-repo, which lives in `repo_dir`'s scruff arm, not here.
+# the same word: `consumer @layer haus` is the standing proof, and it is the only
+# row where they differ today. Spell them apart anyway — the scruff row was a
+# mismatched pair for a fortnight, and nothing about the format stops the next one.
 EDGES=(
   "pounce nebelung nebelung"
   "haus nebelung nebelung"
@@ -838,9 +824,8 @@ overrides() { # every family input redirected at the local checkouts
   # one of them ever moves.
   #
   # The scruff row read the same rule from the other end while haus's INPUT was
-  # `scruff` (hausfold/haus#538) and the repo was still `hausfold/holt`. Both say
-  # `scruff` now — but the CHECKOUT is still `$ROOT/holt`, which `repo_dir`
-  # absorbs so this line never has to know. Spell them apart regardless.
+  # `scruff` (hausfold/haus#538) and the repo was still `hausfold/holt`. Input,
+  # repo and checkout all say `scruff` now. Spell them apart regardless.
   local perch_prebuilt="" trill_prebuilt="" layer
   layer="$(layer_input)"
   [ -n "$PERCH_DEV_APP_DIR" ] \

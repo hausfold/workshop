@@ -50,9 +50,7 @@ set it. That someone is you.
 Read the actual change, not the commit subjects:
 
 ```sh
-# ⏳ The repo is `scruff`; the checkout is still `holt/` until the directory
-# rename lands (workshop AGENTS.md, the scruff routing row). Take whichever exists.
-cd ~/code/workshop/scruff 2>/dev/null || cd ~/code/workshop/holt
+cd ~/code/workshop/scruff
 LAST=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo 0.1.0)
 git log --oneline "$LAST"..main
 git diff "$LAST"..main -- sdk/

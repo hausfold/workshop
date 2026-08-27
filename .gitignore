@@ -8,11 +8,6 @@
 /haus/
 /hausfold.co/
 /homebrew-tap/
-# ⏳ Both spellings, on purpose. `hausfold/holt` renamed to `hausfold/scruff`
-# on 2026-08-27; the checkout is still `holt/` because every open agent lane
-# holds an absolute gitdir into it. Whichever one is on disk stays ignored, so
-# the `mv` needs no commit here — drop `/holt/` once it has happened.
-/holt/
 /scruff/
 /nebelung/
 /pounce/

@@ -284,9 +284,8 @@ outside your toplevel):
 **A worktree is of whichever repo the pane sat in — and a *workshop* worktree
 cannot see the child repos.** If `git rev-parse --git-common-dir` points at
 `…/workshop/.git`, your tree holds ONLY the workshop's own files. The family
-sub-repos — `haus/`, `nebelung/`, `pounce/`, `perch/`, `scruff/` (on disk as
-`holt/` until the rename lands — the row above), `trill/`, `snug/`,
-`hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not
+sub-repos — `haus/`, `nebelung/`, `pounce/`, `perch/`, `scruff/`, `trill/`,
+`snug/`, `hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not
 there at all.** This is **NOT** a `.gitignore` visibility problem: a linked worktree of
 the workshop never checks out the sibling repos, because each is an independent
 repo living only beside the workshop's main checkout. So the moment a task turns

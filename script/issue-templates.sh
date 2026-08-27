@@ -31,16 +31,6 @@ repo_dir() {
   case "$1" in
     workshop) printf '%s' "$ROOT" ;;
     org)      printf '%s/org-profile' "$ROOT" ;;
-    # ⏳ `hausfold/holt` renamed to `hausfold/scruff` on 2026-08-27; the local
-    # checkout is still `holt/` because every open agent lane holds an absolute
-    # gitdir into it. Same three cases as `bench`'s repo_dir, in the same order:
-    # prefer the new dir, take the old one only while it is the one there, and
-    # name the NEW one when neither exists — so the "not checked out here" line
-    # says the name the machine should go and get. CI clones fresh into
-    # `scruff/` and never reaches the fallback. Delete the arm with the `mv`.
-    scruff)   if [ -d "$ROOT/holt" ] && [ ! -d "$ROOT/scruff" ]
-              then printf '%s/holt' "$ROOT"
-              else printf '%s/scruff' "$ROOT"; fi ;;
     *)        printf '%s/%s' "$ROOT" "$1" ;;
   esac
 }
