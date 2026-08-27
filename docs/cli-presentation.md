@@ -57,8 +57,26 @@ that soft-wraps in a narrow terminal would desync the whole frame"* — a commen
 that named the bug and then narrowed the content instead of measuring the
 window. Line numbers are deliberately absent from this file: it outlives them.
 
-**Nothing anywhere handles `SIGWINCH`.** A resize mid-`bench release` or
-mid-`haus rebuild` corrupts the frame for the rest of the run.
+`haus rebuild`'s phase lines were the same defect with a second head, and both
+heads are measured in a real pty (`haus/test/phase-painter.bats`):
+
+| what wrapped | its width | wraps at | what the screen kept |
+| --- | --- | --- | --- |
+| the finished `activate` row | 52 cells | ≤ 52 columns | the row across two screen lines |
+| the stub `phase_start` leaves | 14 cells | ≤ 13 columns | `· activate` orphaned above `✓ activate` |
+
+The second is the one worth naming: `phase_ok` repaints with `\r`, which returns
+to column 0 of the current **physical** row. While the stub fits one row that is
+the same thing as the start of the line; the moment it wraps, `\r` rewinds only
+its last row and the first is stranded there for the rest of the rebuild. A
+painter cannot know which row it is on without measuring the window.
+
+**Nothing anywhere handles `SIGWINCH`.** A resize mid-`bench release` corrupts
+the frame for the rest of the run. `haus`'s painter draws four rows rather than
+ten a second, so it re-measures per row instead and needs no trap — a resize
+mid-phase is picked up by the row that lands after it, and a window that
+narrowed past the stub gets a fresh line rather than a `\r` into the middle of
+one.
 
 ### 2. The palette is not the palette
 
@@ -76,8 +94,10 @@ nebelung. Distance to the nearest nebelung token, CIE ΔE:
 | 245 | `#8a8a8a` | muted (bench) | `overlay1` | `#858585` | 1.9 |
 
 ΔE above ~10 is "plainly a different colour". Only the two greys land close —
-and they are *two different greys for one role*, `243` in haus and `245` in
-bench, which is the drift this table exists to stop.
+and they were *two different greys for one role*, `243` in haus and `245` in
+bench, which is the drift this table exists to stop. That one is settled: haus
+moved to `245` when it grew the gate, so the family has one muted grey until
+step 4 resolves all nine roles against nebelung.
 
 The accent is the sharpest joke: every family CLI's primary hue resolves to
 **blue**, and nebelung is *"Mocha with the blue stripped out"*. Ghostty,
@@ -91,9 +111,10 @@ opens with `🌫`, which is one grapheme, four bytes, and **two display columns*
 Every column after a glyph is sheared by a different amount depending on which
 glyph it was.
 
-`haus.sh` and `haus-show.sh` additionally have **no colour gate at all** — 35
+`haus.sh` and `haus-show.sh` additionally had **no colour gate at all** — 35
 raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files and CI logs
-alike. `bench`'s palette block gets this right and is the model.
+alike. `bench`'s palette block gets this right and was the model; both now carry
+a copy of it, and a bats case fails on any new escape written outside it.
 
 ## The standard
 
