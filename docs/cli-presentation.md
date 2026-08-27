@@ -158,7 +158,7 @@ colour off. One glyph per role, ASCII fallback when the locale isn't UTF-8:
 
 | role | glyph | ascii | width |
 | --- | --- | --- | --- |
-| `say` | `🌫` | `~` | 2 |
+| `say` | `🌫` | `~` | 1 |
 | `ok` | `✓` | `+` | 1 |
 | `warn` | `⚠` | `!` | 1 |
 | `err` | `✗` | `x` | 1 |
@@ -168,9 +168,26 @@ colour off. One glyph per role, ASCII fallback when the locale isn't UTF-8:
 | `hint` | `↳` | `>` | 1 |
 | `spin` | `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏` | `|/-\` | 1 |
 
-`🌫` is width 2 and every other glyph is width 1. The gutter is therefore
-**3 cells wide, always** — glyph plus padding to 3 — so that lines with
-different glyphs align and continuation lines have a fixed indent to hang from.
+Every glyph is **one cell**, and the gutter is therefore **3 cells wide,
+always** — glyph plus padding to 3 — so that lines with different glyphs align
+and continuation lines have a fixed indent to hang from.
+
+⚠️ Widths here are **declared and measured against real terminals**, never taken
+from a width library, and `🌫` (U+1F32B) is why. It has `Emoji_Presentation =
+No`, so it is exactly the codepoint where sources disagree: `x/ansi` and
+`runewidth` both answer 1, they disagree with *each other* on the
+variation-selector form, and the reflex "emoji are two cells" — which this table
+recorded until it was checked — is wrong. Measured in Ghostty, the family's own
+terminal, against a column ruler: **one cell**. To check any other terminal and
+get a number rather than an eyeball, ask it where its cursor ended up:
+
+```sh
+stty -echo; printf '\r\U0001F32B\033[6n'; IFS=';' read -rd R _ col; stty echo
+echo "$col"   # 2 → one cell, 3 → two
+```
+
+Measurement libraries are used only on **content**, which is ordinary text and
+where they agree.
 
 ### Layout
 
@@ -320,21 +337,28 @@ one. State as of 2026-08-27:
 | 5 | **scruff's `internal/ui`** onto snug's roles | ✔ done ([scruff#70](https://github.com/hausfold/scruff/pull/70), re-pinned in [scruff#71](https://github.com/hausfold/scruff/pull/71)) |
 | 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
 | 7 | **`bench` onto `snug run`** as a coprocess | ○ not started |
-| 8 | **The bash fallback** shipped beside the binary | ○ not started |
+| 8 | **The bash fallback** — `workshop/lib/ui.sh`, the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths) |
 
-**Everything but 7 and 8 is done.** 7 deletes ~150 lines from `bench` —
+**Everything but 7 is done.** 7 deletes ~150 lines from `bench` —
 `paint_live`, `watch_measure`, `row_glyph` and the `WATCH_RENDER_PY` clamp —
 and was untestable until 6 landed, because there was nothing on `PATH` to
-drive. There is now: `snug` is in the system profile on every haus machine.
+drive. There is now: `snug` is in the system profile on every haus machine, and
+8 is what covers the machines that are not one.
 
-⚠️ **8 comes before 7, or 7 needs an explicit no-binary path of its own.** *A
-bash fallback ships beside it* is a promise this file has made since it was
-written and nothing implements it. Delete `bench`'s own painter first and a
-machine without `snug` on `PATH` — an older generation, a script off a thin
-PATH, anyone who installed `bench` without the layer — has **no painter at
-all**. Whoever picks up 7 owns that ordering.
+**What 7 looks like now that 8 exists.** `bench` sources `lib/ui.sh` and calls
+`ui_say` / `ui_row` / `ui_paint`; where `snug` is on `PATH` it opens ONE
+coprocess for the whole command and writes the same records to it. The dispatch
+belongs to `bench`, not to the library — one fork per *command* is the whole
+economy, and a library sourced per script cannot see the command boundary that
+decision needs.
 
-⚠️ **And whatever 8 is, it must not inherit this line**, which `bench` and
+⚠️ **8 had to come before 7, and did.** *A bash fallback ships beside it* was a
+promise this file made from the day it was written and nothing implemented it.
+Delete `bench`'s own painter first and a machine without `snug` on `PATH` — an
+older generation, a script off a thin PATH, anyone who installed `bench` without
+the layer — would have had **no painter at all**.
+
+⚠️ **`lib/ui.sh` deliberately does not inherit this line**, which `bench` and
 `haus` both carried:
 
 ```sh
@@ -354,3 +378,15 @@ copies.
 3 and 8 are worth doing even if the rest slips: between them they delete the 72
 hardcoded widths and the four copies of the palette, which is where the drift
 lives.
+
+**How 8 stays in step with 4.** `lib/ui.sh` carries nebelung's hex, and CI diffs
+that table against snug's generated `palette.go` on every push — a fallback that
+drew a *different* colour from the binary would be worse than no fallback, since
+it makes "which machine is this?" a question you have to ask about your own
+output. Two bugs were found by writing it against snug rather than from memory,
+and both were in snug: its `bare` tier carried the full 3-cell gutter whenever
+colour was on (`TrimRight(mark, " ")` does nothing once the mark ends in a reset
+escape), and `Say` at a window narrower than four columns emitted the gutter
+plus a clamped character. Both overflowed the last column; neither was visible
+to a colourless test sweep. Fixed in
+[snug#3](https://github.com/hausfold/snug/pull/3).
