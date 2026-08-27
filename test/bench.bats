@@ -288,14 +288,19 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   # exist — which is what the 🚨 in overrides() is about.
   #
   # By path rather than by input name on purpose: the input NAME is the
-  # consumer's to choose (`haus scruff holt` is the standing proof they diverge),
-  # so the checkout each row points AT is the only half this repo owns.
+  # consumer's to choose (`consumer @layer haus` is the standing proof they
+  # diverge), so the checkout each row points AT is the only half this repo owns.
+  #
+  # And the path comes from `repo_dir`, never `$ROOT/$name`: since scruff those
+  # two answer differently for one repo, and hardcoding the shape here would
+  # make this test the thing that fails when the checkout finally moves.
   WT_REPO="" WT_PATH=""
   run overrides
-  local name
+  local name dir
   for name in "${OVERRIDABLE[@]}"; do
     [ "$name" = haus ] && continue    # the layer is the override's own root, not a sub-input
-    [[ "$output" == *"path:$ROOT/$name"* ]] \
+    dir="$(repo_dir "$name")"
+    [[ "$output" == *"path:$dir"* ]] \
       || { echo "OVERRIDABLE repo '$name' has no --override-input row"; echo "$output"; return 1; }
   done
 }
