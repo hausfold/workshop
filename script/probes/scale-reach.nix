@@ -1,6 +1,6 @@
 # scale-reach — what `haus.ui.scale` actually reaches, and where it stops.
 #
-# Evidence for options-roadmap.md §5.2. That section carries two claims nobody
+# Evidence for `haus.ui.scale`'s reach. Two claims nobody
 # had measured: (1) "any option whose unit is points is silently coupled to
 # `haus.displays`, because a display mode changes what a point means —
 # worth auditing `fonts.*.size` and prowl's gaps for the same interaction", and

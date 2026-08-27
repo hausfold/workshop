@@ -71,7 +71,35 @@ Ordered, and each catches something the one before it can't:
 
 ## Seen once, not yet a row
 
-A shape you can't yet state in general form goes here, and a second sighting
-promotes it to a numbered row.
+For a finding that is certainly true about its instance and whose finder could
+not yet say its general form, or could not distinguish it from a row already
+here. The numbering is frozen, so a row can never be taken back out — which
+makes "not yet" a cheaper answer than a row that later turns out to be a special
+case of row 9.
 
-*(empty)*
+**A second sighting is the promotion: append the row, and delete the entry
+here.** Nothing on this shelf is less *true* than a row; it is less *settled*. A
+pass about to append a row should read this section first — the shape may
+already be waiting on it.
+
+**A guard correct about the hazard it was written for, and silently wrong in
+the direction that fails a build nobody broke.** Three sites asserting a path
+spelled into a store output all tested it DOUBLE-QUOTED — `[ -e "…" ]`, `[ -f
+"…" ]` — which stops a SPACE, the hazard all three comments name and the one
+that had actually bitten, and does nothing about a `$` or a backtick, which none
+of them names. A real rendered file called `theme $HOME.json` was reported
+MISSING by all three. The direction is what makes it worth a line: a check that
+misses costs nothing extra, but a check that fails a build on a file that is
+*there* sends someone hunting an upstream that is fine. **Caught by** asking, of
+a guard, which hazards its quoting actually answers rather than which one the
+comment beside it names.
+
+**A "must not merge without X" that lives only in a note is not a gate.** A note
+carried a warning that a PR must not merge until a second file agreed with the
+first, "because half of it is worse than none of it". It merged with one half,
+and for a few hours the product had two disagreeing copyright lines. Nothing
+enforced the note, and nothing would have enforced the next one. **Caught by**
+writing the condition where the merge happens — a required check, a PR-template
+line, a `bench` refusal — or by writing it as a request rather than as a rule; a
+rule nothing can enforce reads to its author as a control and to everyone else
+as prose.

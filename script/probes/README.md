@@ -114,7 +114,7 @@ here, since `com.apple.Accessibility` writes succeed and change nothing.
 
 Added 2026-08-08 to settle the three curated-settings groups the roadmap had
 deferred *because nothing had been spiked*. Full results in
-[`https://github.com/hausfold/haus/blob/main/docs/macos-settings.md`](https://github.com/hausfold/haus/blob/main/docs/macos-settings.md#sound--localeinput-sources--power--swept-2026-08-08);
+haus's [`docs/macos-settings.md`](https://github.com/hausfold/haus/blob/main/docs/macos-settings.md);
 the short version is that all three are reachable and the stated reason for
 deferring each one was wrong — Sound, Locale and Power have 2, 4 and 6 typed
 options respectively.
@@ -200,8 +200,8 @@ nix-darwin's `power.sleep.*` configures a source the config never named, and
 
 ## `pack-priority.nix` — the first probe that isn't about macOS
 
-Evidence for [`../options-roadmap.md`](../options-roadmap.md) §6's limit 3
-instead of the matrix: what a shared **pack** must ship so a consumer's own host
+Evidence for the option surface's composition limit rather than for the
+matrix: what a shared **pack** must ship so a consumer's own host
 wins, rather than colliding with it.
 
 ```sh
@@ -254,8 +254,7 @@ nix-instantiate --eval --strict --json script/probes/scale-reach.nix \
   --arg rice ~/code/workshop/hausfold
 ```
 
-Evidence for [`../options-roadmap.md`](../options-roadmap.md) §5.2's two
-unmeasured claims — that every point-valued option is silently coupled to
+Evidence for two claims about `haus.ui.scale` that nobody had measured — that every point-valued option is silently coupled to
 `haus.displays`, and the "honest scope" paragraph naming what `ui.scale`
 does and doesn't move. Both turned out to be one measurement apart:
 
@@ -284,8 +283,7 @@ nix-instantiate --eval --strict --json script/probes/namespace-collision.nix \
   --arg haus ~/code/workshop/haus
 ```
 
-Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
-step E — namespace arbitration. It measures three things the note had been
+Evidence for desktop acquisition's namespace arbitration. It measures three things the note had been
 asserting: what the module system does when two rooms claim one namespace, what
 haus's real desktop validator says to a desktop naming a stranger's room, and
 whether a fifteen-line consumer-side claim check can see any of it.
@@ -318,8 +316,7 @@ PROBE_REMOTE=git+https://github.com/hausfold/workshop \
   ./script/probes/source-shapes.sh                                   # + one real remote lock node
 ```
 
-Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
-step B. Step A shipped a sandbox for reading a **local** desktop file; step B
+Evidence for desktop acquisition, step B. Step A shipped a sandbox for reading a **local** desktop file; step B
 fetches one instead, and this measures what changes when the file arrives in the
 store rather than in `~/Downloads`. Twenty-four rows (twenty-six with
 `PROBE_REMOTE`), seconds, no Mac — it builds throwaway git repos under one
@@ -379,8 +376,7 @@ PROBE_CONSUMER=~/.config/nix PROBE_HOST=mbp \
   ./script/probes/machine-diff.sh                                    # + rows 5 and 8 on a real machine
 ```
 
-Evidence for [`../rooms-desktops.md`](../rooms-desktops.md)'s Acquisition plan,
-step C. A and B read the stranger's **file**; C is the first step that has to
+Evidence for desktop acquisition, step C. A and B read the stranger's **file**; C is the first step that has to
 look at the **reader's machine**, so the question is whether the module system
 answers a leaf-by-leaf question cheaply, honestly and without writing anything.
 Eight rows. `lib` comes from `$PROBE_LIB` or from the copy every haus machine

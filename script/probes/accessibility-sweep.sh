@@ -152,4 +152,4 @@ cat <<'EOF'
   accessibility keys as GUI-only.
 EOF
 
-say "Done — the domain is restored on exit. Record results in macos-settings-matrix.md."
+say "Done — the domain is restored on exit. Record results in haus's docs/macos-settings.md."

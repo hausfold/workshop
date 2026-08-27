@@ -1,6 +1,6 @@
 # pack-priority — what a shared PACK has to ship so a consumer's own host wins.
 #
-# Evidence for options-roadmap.md §6, limit 3: composing rices is not the free
+# Evidence for the option surface's composition limit: composing desktops is not the free
 # operation the roadmap assumed. Import order carries no priority, so a host and
 # a pack that both name one app *conflict* rather than one overriding the other.
 # The roadmap's option 1 was "ship packs at a lower priority" — this measures it,

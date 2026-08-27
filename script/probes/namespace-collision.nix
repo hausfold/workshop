@@ -1,6 +1,6 @@
 # namespace-collision — who owns `haus.<name>` when two modules both think they do.
 #
-# Evidence for rooms-desktops.md's Acquisition plan, step E. That section had
+# Evidence for desktop acquisition, step E. The design had
 # asserted since 2026-08-17 that two third-party rooms claiming one namespace
 # "collide as a raw module-system option-declaration error naming neither
 # publisher". This measures it instead, and the assertion is half wrong in the
@@ -314,7 +314,7 @@ in
     value = strangerDesktop;
   };
 
-  # Context for the numbers quoted in rooms-desktops.md, so a re-run dates itself.
+  # Context for the numbers this probe is quoted for, so a re-run dates itself.
   measured = {
     namespaces = builtins.length known;
     options = builtins.foldl' (

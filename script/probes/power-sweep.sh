@@ -275,4 +275,4 @@ cat <<'EOF'
   hotCorners/screenshots/menuBar.
 EOF
 
-say "Done. Record results in macos-settings-matrix.md."
+say "Done. Record results in haus's docs/macos-settings.md."

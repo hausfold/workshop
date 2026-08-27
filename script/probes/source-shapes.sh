@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # source-shapes — what a stranger's desktop costs to FETCH and to READ.
 #
-# Evidence for ../rooms-desktops.md's Acquisition plan, step B. Step A shipped a
+# Evidence for desktop acquisition, step B. Step A shipped a
 # sandbox for reading a LOCAL file (restrict-eval, empty allowed-uris, IFD off,
 # NIX_PATH cleared, two paths named). Step B fetches instead, and this measures
 # what changes when the file it reads arrives in the store rather than in
@@ -24,7 +24,7 @@
 #      all, so the two are not confusable by silence — only by a line that says
 #      the same thing twice. (This section reported "no left-hand side" until
 #      2026-08-20; it was grepping the arrow line out of a three-line block.
-#      ../rooms-desktops.md carries the correction and the lesson.)
+#      haus's docs/model.md carries the shape it settled on.)
 #   5. "FETCHING RUNS NO PUBLISHER CODE" IS A PROPERTY OF `flake = false`, not
 #      of fetching. A desktop locks inert; a ROOM is an ordinary flake input and
 #      locking one EVALUATES its flake.nix to find its own inputs. So pinning a

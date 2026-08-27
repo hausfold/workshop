@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # machine-diff — what a consumer's own option tree can and cannot be asked.
 #
-# Evidence for ../rooms-desktops.md's Acquisition plan, step C: "what your
+# Evidence for desktop acquisition, step C: "what your
 # machine becomes" if you selected a stranger's desktop. Steps A and B read the
 # stranger's FILE; C is the first one that has to look at the reader's MACHINE,
 # and the question it turns on is whether the module system will answer a
