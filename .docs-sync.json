@@ -1,62 +1,67 @@
 {
   "repos": {
     "workshop": {
-      "read": "be23fa3905f059d907a95bf13e7f59ec90424768",
-      "landed": "774b4ee78c4d03d2321fcbb80909113d784c59d0",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "1c3431377d28100d44a3ec695ac92bec0bb6c792",
+      "landed": "be23fa3905f059d907a95bf13e7f59ec90424768",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "nebelung": {
-      "read": "5d5d0a28ef884e3b373e6fe82a8db88dc80c8f86",
-      "landed": "5d5d0a28ef884e3b373e6fe82a8db88dc80c8f86",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "7e1266756fa9016ac999084d327ed0c60c22ad66",
+      "landed": "7e1266756fa9016ac999084d327ed0c60c22ad66",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "pounce": {
-      "read": "f0e52e93b4b72339c657376105575400181d68a7",
-      "landed": "f0e52e93b4b72339c657376105575400181d68a7",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "840627c9c2dcb5724e1d4fa78e8065e75c6efd0f",
+      "landed": "840627c9c2dcb5724e1d4fa78e8065e75c6efd0f",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "haus": {
-      "read": "16c88a28d49ae5424eadab46275c4539b2772d1b",
+      "read": "41df2225f51ba89ae6d1c2b8352e3d0e811392f2",
       "landed": "16c88a28d49ae5424eadab46275c4539b2772d1b",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "org-profile": {
-      "read": "c24a7d5bb8eef5549ac5246da7fd86024e32ad35",
-      "landed": "c24a7d5bb8eef5549ac5246da7fd86024e32ad35",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "3be0dd0cef519f4f644fca8ae03fc7e724be8bb1",
+      "landed": "3be0dd0cef519f4f644fca8ae03fc7e724be8bb1",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "homebrew-tap": {
-      "read": "c84e25e62c91a11920685a7ba32cc3d2353e584c",
-      "landed": "c84e25e62c91a11920685a7ba32cc3d2353e584c",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "2961ed2801a20ce65dde8393c36c7a16fc223b5c",
+      "landed": "2961ed2801a20ce65dde8393c36c7a16fc223b5c",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "perch": {
-      "read": "30fda75e17eb3787ce56e41dd4cfbaf237c24c67",
-      "landed": "30fda75e17eb3787ce56e41dd4cfbaf237c24c67",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "f1941477a02cfa0d2e8058ed8090dc594bc01a2a",
+      "landed": "f1941477a02cfa0d2e8058ed8090dc594bc01a2a",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "scruff": {
-      "read": "524bbc747a3f07e196a0f38d04f2866a07d05a9f",
-      "landed": "7a74e23288afec72a585027fab532777ded39dcb",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "3ea8ac4973b900339e1612d03b97f728c7f1244c",
+      "landed": "3ea8ac4973b900339e1612d03b97f728c7f1244c",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "trill": {
-      "read": "7a18804bcb33ff579c761b4c6a21231d88499f82",
-      "landed": "23291308a917001c80947f911ef7d47f05593763",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "c1570eccbbfb9516393356d9f9fe03044d0253c0",
+      "landed": "c1570eccbbfb9516393356d9f9fe03044d0253c0",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "hausfold.co": {
-      "read": "3a35ece114ef9255e52e1c92ca11f2d31e2f6012",
-      "landed": "9de1cc3ed5b58787a6a4fe477261eb6e96807499",
-      "read_at": "2026-08-26T21:21:17+00:00"
+      "read": "11ec2f486a47b0c5eabb6eddbb297dd56e9952db",
+      "landed": "3a35ece114ef9255e52e1c92ca11f2d31e2f6012",
+      "read_at": "2026-08-27T21:25:30+00:00"
     },
     "ops": {
       "read": "d4f1f2c051490662a0956da9d5d3774619aca121",
       "landed": "d4f1f2c051490662a0956da9d5d3774619aca121",
       "read_at": "2026-08-26T21:21:17+00:00"
+    },
+    "snug": {
+      "read": "85d24c002efd1783d447982b708e4ee0edade23f",
+      "landed": "",
+      "read_at": "2026-08-27T21:25:30+00:00"
     }
   },
-  "last_run": "2026-08-26T21:21:17+00:00",
+  "last_run": "2026-08-27T21:25:30+00:00",
   "comments": {
     "done": [
       "haus/flake.nix"
