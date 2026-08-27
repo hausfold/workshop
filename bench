@@ -2016,20 +2016,54 @@ for j in d.get("jobs", []):
         detail = "%dm %02ds" % (secs // 60, secs % 60) if secs >= 60 else "%ds" % secs
         if st != "completed":
             since = "%d" % started.timestamp()
-    # Clamp the name: the live repaint counts LINES to move the cursor back up,
-    # so a row that soft-wraps in a narrow terminal would desync the whole frame.
-    print("%s\t%s\t%s\t%s" % (state, (j.get("name") or "?")[:34], detail, since))
+    # No clamp here on purpose: the painter measures the window every frame and
+    # folds to fit (see docs/cli-presentation.md). Clamping at the source only
+    # ever guessed at a width, and guessed 34 for every terminal alive.
+    print("%s\t%s\t%s\t%s" % (state, j.get("name") or "?", detail, since))
 print("RUN\t%s\t%s" % (d.get("status") or "", d.get("conclusion") or ""))
 '
 
-row_glyph() { # row_glyph <state> <frame> — the status mark at the head of a job row
-  case "$1" in
-    run)  printf '%s%s%s' "$C_FOG" "${SPIN[$(( $2 % ${#SPIN[@]} ))]}" "$C_OFF" ;;
-    ok)   printf '%s✓%s' "$C_OK"  "$C_OFF" ;;
-    fail) printf '%s✗%s' "$C_ERR" "$C_OFF" ;;
-    skip) printf '%s–%s' "$C_MUT" "$C_OFF" ;;
-    *)    printf '%s·%s' "$C_MUT" "$C_OFF" ;;
+# Every glyph is ONE display cell, including the spinner frames — the painter
+# budgets on that, so a future glyph wider than one cell has to be paired with a
+# change to GUTTER below.
+row_glyph() { # row_glyph <var> <state> <frame> — status mark, into <var>
+  case "$2" in
+    run)  printf -v "$1" '%s%s%s' "$C_FOG" "${SPIN[$(( $3 % ${#SPIN[@]} ))]}" "$C_OFF" ;;
+    ok)   printf -v "$1" '%s✓%s' "$C_OK"  "$C_OFF" ;;
+    fail) printf -v "$1" '%s✗%s' "$C_ERR" "$C_OFF" ;;
+    skip) printf -v "$1" '%s–%s' "$C_MUT" "$C_OFF" ;;
+    *)    printf -v "$1" '%s·%s' "$C_MUT" "$C_OFF" ;;
   esac
+}
+
+# ── measuring the window ─────────────────────────────────────────────────────
+# The rule the old painter broke: a live region may only move the cursor up by
+# the number of SCREEN lines it used, and the only way to know that number is to
+# make every row fit. A `%-34s` row is 48 cells wide whatever the job is called,
+# so every terminal 48 columns or narrower soft-wrapped it into two screen rows
+# while the repaint moved up by one — the newline spam. The fix is to measure
+# and fold, not to clamp the content and hope. See docs/cli-presentation.md.
+#
+# `tput` forks, so it runs once at start and again only when SIGWINCH says the
+# window actually changed — not 10× a second.
+WATCH_COLS=80; WATCH_RESIZED=0
+GUTTER=6                  # "   " + glyph + "  " — 3-cell family gutter, indented
+
+#
+# NOT `tput cols`: terminfo carries a STATIC size (80 for every xterm-* entry),
+# and ncurses only overrides it from the real window when LINES/COLUMNS are
+# exported. Measured in a 40-column pty, `tput cols` answers 80 — so a painter
+# built on it folds to a width the window hasn't had since 1978. `stty size`
+# asks the kernel (TIOCGWINSZ), which is the only source that tracks a resize.
+# It reads /dev/tty rather than `<&1` because this runs inside `$( )`, where
+# fd 1 is the substitution's pipe and never the terminal.
+watch_measure() {
+  local sz
+  sz="$(stty size 2>/dev/null </dev/tty)" && WATCH_COLS="${sz#* }" \
+    || WATCH_COLS="$(tput cols 2>/dev/null)"
+  case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS="${COLUMNS:-80}" ;; esac
+  case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS=80 ;; esac
+  WATCH_RESIZED=1
 }
 
 # Repaint every row in place. Colour lives OUTSIDE the %-*s width (an escape
@@ -2037,12 +2071,38 @@ row_glyph() { # row_glyph <state> <frame> — the status mark at the head of a j
 #
 # Everything in here is a builtin on purpose: this runs 10× a second, and a
 # `$(date)` or `$(dur …)` per row per frame would be a few hundred forks a
-# minute just to draw a clock.
+# minute just to draw a clock. `row_glyph` writes into a variable rather than
+# being called in `$( )` for the same reason — that command substitution was
+# one fork per row per frame, thirty a second, in the loop whose own comment
+# said everything here was a builtin.
 paint_live() { # paint_live <frame>
-  local row state name detail since now secs
+  local row state name detail since now secs glyph namew avail widest detailw detailed gut rows
+
+  # A resize reflows whatever is already on screen in ways we cannot model, so
+  # don't try: drop to column 0, wipe everything below, and paint the next frame
+  # fresh. `[J` clears from the cursor DOWN, so the pre-resize block stays where
+  # it is and the new one lands under it — one stale copy on screen, and nothing
+  # after it corrupt. Wiping upward would take real scrollback with it.
+  if [ "$WATCH_RESIZED" -eq 1 ]; then
+    printf '\r\033[J'; WATCH_PAINTED=0; WATCH_RESIZED=0
+  fi
+
   now="${EPOCHSECONDS:-$(date +%s)}"        # bash ≥5 has it free; older forks once
   [ "$WATCH_PAINTED" -gt 0 ] && printf '\033[%dA' "$WATCH_PAINTED"
   WATCH_PAINTED=0
+
+  # Never write into the last column: a line whose width EQUALS the terminal's
+  # leaves the cursor past the edge and the terminal wraps it anyway. That is
+  # why the old row broke at exactly 48 as well as below it.
+  avail=$(( WATCH_COLS - 1 ))
+
+  # ── one pass to resolve every row, one to draw them ────────────────────────
+  # Resolve first because the budget depends on the RESOLVED text: a running
+  # job's duration is re-derived here every frame, so its width isn't known until
+  # it is. Both loops are builtins only — this runs 10× a second, and a `$(date)`
+  # or `$(dur …)` per row per frame would be a few hundred forks a minute just to
+  # draw a clock.
+  widest=0; detailw=0; rows=()
   for row in "${WATCH_ROWS[@]}"; do
     IFS=$'\t' read -r state name detail since <<<"$row"
     # A running job's clock is OURS, not the snapshot's — otherwise the seconds
@@ -2057,10 +2117,64 @@ paint_live() { # paint_live <frame>
         then printf -v detail '%dm %02ds' $((secs / 60)) $((secs % 60))
         else printf -v detail '%ds' "$secs"; fi
     fi
-    printf '\033[2K   %s  %s%-34s%s %s%s%s\n' \
-      "$(row_glyph "$state" "$1")" "$C_REPO" "$name" "$C_OFF" "$C_MUT" "$detail" "$C_OFF"
+    [ "${#name}" -gt "$widest" ] && widest="${#name}"
+    [ "${#detail}" -gt "$detailw" ] && detailw="${#detail}"
+    rows+=("$state"$'\t'"$name"$'\t'"$detail")
+  done
+  [ "$widest" -gt 34 ] && widest=34     # one verbose job can't push durations right
+
+  # ── the budget ─────────────────────────────────────────────────────────────
+  # Decided ONCE, before drawing: a per-row decision would let a narrow row's
+  # budget leak into the next row and re-widen it past the edge.
+  #
+  # The tier is chosen from the WINDOW, then the column is clamped to the
+  # content — never the other way round. Clamping first and then testing the
+  # clamped value asks "is the longest name short?" when it means "is there
+  # room?", and a CI run of `build`/`test`/`lint` would drop its durations on a
+  # 200-column terminal.
+  #
+  # `detailw` is measured, not assumed: a job past 100 minutes renders "100m 05s"
+  # — 8 cells where a hardcoded 7 would have overflowed the edge, which is the
+  # very bug this painter exists to stop.
+  gut="$GUTTER"; detailed=1
+  namew=$(( avail - GUTTER - detailw - 1 ))
+  if [ "$namew" -ge 8 ] && [ "$detailw" -gt 0 ]; then
+    [ "$namew" -gt "$widest" ] && namew="$widest"
+  else
+    # Too narrow to align two columns — or nothing to align. The job's name is
+    # the load-bearing half, so the duration is what goes, and so is the padding
+    # that made it a table.
+    detailed=0
+    [ "$avail" -lt 12 ] && gut=2                  # bare: no indent, one space
+    namew=$(( avail - gut ))
+    [ "$namew" -gt "$widest" ] && namew="$widest"
+    # Under four columns there is no room for a name at all; the glyph alone is
+    # still true. Clamping namew up to 1 here instead would overflow the edge —
+    # the exact class of bug this whole painter exists to stop.
+    [ "$namew" -lt 1 ] && { namew=0; gut=1; }
+  fi
+
+  for row in "${rows[@]}"; do
+    IFS=$'\t' read -r state name detail <<<"$row"
+    row_glyph glyph "$state" "$1"
+    # Truncate INSIDE the field so the duration column stays put.
+    [ "$namew" -gt 0 ] && [ "${#name}" -gt "$namew" ] && name="${name:0:$((namew - 1))}…"
+
+    if [ "$detailed" -eq 1 ]; then
+      printf '\033[2K   %s  %s%-*s%s %s%s%s\n' \
+        "$glyph" "$C_REPO" "$namew" "$name" "$C_OFF" "$C_MUT" "$detail" "$C_OFF"
+    elif [ "$namew" -eq 0 ]; then
+      printf '\033[2K%s\n' "$glyph"
+    elif [ "$gut" -eq 2 ]; then
+      printf '\033[2K%s %s%s%s\n' "$glyph" "$C_REPO" "$name" "$C_OFF"
+    else
+      printf '\033[2K   %s  %s%s%s\n' "$glyph" "$C_REPO" "$name" "$C_OFF"
+    fi
     WATCH_PAINTED=$((WATCH_PAINTED + 1))
   done
+  # Wipe anything a taller previous frame left below us (a job list can shrink
+  # when a snapshot arrives late, and a narrower window can drop a row).
+  printf '\033[J'
 }
 
 # ── the background poll ───────────────────────────────────────────────────────
@@ -2110,7 +2224,7 @@ release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiti
 }
 
 watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends; 0 iff green
-  local repo="$1" id="$2" frame=0 row state name detail now polled=0
+  local repo="$1" id="$2" frame=0 row state name detail glyph now polled=0
   # Live redraw only on a TTY — piped, in CI, or under bats we print one plain
   # line per state CHANGE, so a log stays readable and no cursor escape ever
   # reaches a file. (Motion, unlike colour, isn't gated on NO_COLOR: a spinner
@@ -2120,6 +2234,11 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
 
   WATCH_SNAP_FILE="$(mktemp "${TMPDIR:-/tmp}/bench-watch.XXXXXX")"
   if [ -n "$live" ]; then
+    # Measure once, then only when the window actually changes. bash delivers
+    # SIGWINCH to a script between commands, so the trap fires the moment the
+    # frame `sleep` returns — a tenth of a second, which reads as instant.
+    watch_measure; WATCH_RESIZED=0
+    trap 'watch_measure' WINCH
     printf '\033[?25l'                                   # hide the cursor while we repaint
     # Restore it however we leave, including Ctrl-C — a terminal left with no
     # cursor is the worst thing a spinner can do to you. EXIT (not RETURN):
@@ -2153,7 +2272,8 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
         IFS=$'\t' read -r state name detail _ <<<"$row"
         [ "${seen[$name]:-}" = "$state" ] && continue
         seen[$name]="$state"
-        printf '   %s  %s (%s)\n' "$(row_glyph "$state" 0)" "$name" "$detail"
+        row_glyph glyph "$state" 0
+        printf '   %s  %s (%s)\n' "$glyph" "$name" "$detail"
       done
     fi
 
@@ -2167,7 +2287,7 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
   done
 
   if [ -n "$live" ]; then printf '\033[?25h'; fi
-  trap - EXIT INT
+  trap - EXIT INT WINCH
   watch_cleanup
   [ "$WATCH_RUN_CONCL" = "success" ]
 }
