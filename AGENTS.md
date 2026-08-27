@@ -31,11 +31,12 @@ Per-client wiring lives in that client's own file; the content stays here or in
 > follow `bench`'s own usage header (`bench:2-50`). Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — `_bench` seds those two single-line arrays out
 > of the script at completion time. **They are no longer the same list**: trill
-> is overridable without being family, so a completion that reads one where it
-> means the other is now wrong rather than merely fragile. Everything else is
-> copied by hand: `pull`'s six non-flake names, `release`'s five repos (the arms
-> of `version_file`),
-> `docs-since`'s five non-family repos (`DOCS_REPOS` is composed from `FAMILY`,
+> and snug are both overridable without being family, so a completion that reads
+> one where it means the other is now wrong rather than merely fragile.
+> Everything else is copied by hand: `pull`'s seven repos bench doesn't walk
+> (they are no longer "the non-flake ones" — trill and snug are inputs),
+> `release`'s five repos (the arms of `version_file`),
+> `docs-since`'s six non-family repos (`DOCS_REPOS` is composed from `FAMILY`,
 > so the sed reads the nested expansion back literal and can't be used), and the
 > fallbacks beside both sed'd lists. Add a repo to `version_file` and the
 > completion silently omits it.
@@ -54,15 +55,16 @@ former, never the latter).
 | the perch notch file shelf (UI, staging, drag/drop) | `./perch` |
 | the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) — rooms are named for what they do | `./haus` — the layer `hausfold/haus`. The directory is named for its repo, not for the desktop it carries |
 | the org's GitHub front page | `./org-profile` — the checkout of `hausfold/.github` (`bench clone` maps the alias; this repo's own `./.github` is the workshop's CI) |
-| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is still not a family repo** — the two are different questions and trill is what separates them. It IS in `OVERRIDABLE` and in `EDGES` (`haus → trill`, gating `haus.trill.enable`), so `bench try` from a trill worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state — it lands through its own PRs. It is also in `DOCS_REPOS`, `bench clone` and `bench pull`. Releasable since 2026-08-25 (`bench release trill`, CalVer, notarized ZIP + CI-owned `nix/release.nix` pin) |
+| the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is still not a family repo** — the two are different questions and trill is what first separated them (snug is the other; see its row above). It IS in `OVERRIDABLE` and in `EDGES` (`haus → trill`, gating `haus.trill.enable`), so `bench try` from a trill worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state — it lands through its own PRs. It is also in `DOCS_REPOS`, `bench clone` and `bench pull`. Releasable since 2026-08-25 (`bench release trill`, CalVer, notarized ZIP + CI-owned `nix/release.nix` pin) |
+| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). **The second repo on trill's footing: a flake input that is not a `FAMILY` repo** (holt is an input too, but it IS `FAMILY` — trill and snug are the only two that come apart) — it IS in `OVERRIDABLE` and in `EDGES` (`haus → snug`), so `bench try` from a snug worktree builds your branch and `bench ship` ripples its lock; it is NOT in `FAMILY`, so `bench status`/`ship` don't walk its git state and it lands through its own PRs. Also in `DOCS_REPOS`, `bench clone` and `bench pull`. One Go package Go callers import and one binary the layer puts on PATH unconditionally for the bash ones. ⚠️ **Not releasable yet** — it carries a `VERSION` but has no `version_file()` arm in `bench` and no release workflow, so nothing tags or publishes it. The design it implements is `docs/cli-presentation.md` here; *how* a line is drawn is snug's repo, *whether* a tool should print it is that tool's |
 | holt — the worktree-lifecycle substrate | `./holt` ([hausfold/holt](https://github.com/hausfold/holt)). The layer takes it as a flake input and ships it on PATH; the ⌘↵ lane chord runs `holt new` for every client, and the Claude Code `WorktreeCreate`/`WorktreeRemove` hooks call `holt hook create` / `holt hook remove` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | **how one of our tools puts a line on screen** | the tool's OWN repo, but never as a bare `osascript -e 'display notification …'` again. Everything the family draws goes through **trill**, with Apple's banner as the fallback when trill isn't installed: haus has `haus-notify` (`modules/core/haus-notify.sh`, on PATH beside a `trill` wrapper), pounce carries a `notify()` per command because it installs standalone, `bench` has one for the verbs you walk away from, and holt already had `holt hook notify`. Give every caller its own `--source` — that string is what `~/.config/trill/rules.json` matches on, and it is the difference between silencing one noisy thing and silencing the tool. No `haus.*` option gates any of it; rules.json is the dial |
 | **a write-up that turned out to be wrong** — a stale README claim, a comment that outlived its code, a check that passes while the thing it protects rots | [`docs/drift.md`](docs/drift.md), which lives here because it binds every repo: thirty numbered shapes and, beside each, the only thing that catches it. **Row numbering is frozen** — this repo's docs and `haus`'s commit messages cite rows by number. Append a shape when you find one the table can't already name — or, if you can't yet say its general form, put it under *Seen once, not yet a row* and let a second sighting promote it |
-| **how one of our CLIs looks on screen** — a colour, a glyph, a column that wraps, a spinner that scrolls | the standard is [`docs/cli-presentation.md`](docs/cli-presentation.md), which lives here because it binds `bench`, `haus`, `holt`, `trill` and every pounce command alike. The runtime that implements it is [hausfold/snug](https://github.com/hausfold/snug) — a Go package for Go callers, one binary for shell ones. ⚠️ Colour roles resolve against **nebelung**, never a hand-picked 256-colour index — the seven in the tree today sit ΔE 2–27 from the token they're meant to be wearing, only the greys land close, and the primary accent resolves to *blue*, the one hue nebelung exists to strip out |
+| **how one of our CLIs looks on screen** — a colour, a glyph, a column that wraps, a spinner that scrolls | the standard is [`docs/cli-presentation.md`](docs/cli-presentation.md), which lives here because it binds `bench`, `haus`, `holt`, `trill` and every pounce command alike. The runtime that implements it is **snug** — see its own row above. ⚠️ Colour roles resolve against **nebelung**, never a hand-picked 256-colour index — the seven in the tree today sit ΔE 2–27 from the token they're meant to be wearing, only the greys land close, and the primary accent resolves to *blue*, the one hue nebelung exists to strip out |
 | **how an agent learns to drive one of our tools** — the `ai/SKILL.md` an end user's agent loads (and any sibling `ai/<name>/SKILL.md` the tool also ships), the `<tool> skill` verb, `--json`/exit-code shape | the tool's OWN repo, to the standard in [`docs/agent-surface.md`](docs/agent-surface.md) — which lives here because it binds every repo. ⚠️ Not a repo's `AGENTS.md`: that is for an agent working **on** the tool, from a checkout; a `SKILL.md` is for an agent **using** it, on a machine with no checkout. Which skills a machine gets is `./haus`'s `haus.ai.skill` |
-| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels a form applies, the private security link | **the generator here, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into NINE repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half (a form's `labels:` are silently DROPPED if the label doesn't exist in that repo, and its security contact link 404s until private vulnerability reporting is on). The design, and why the field count is four, is [`docs/bug-reports.md`](docs/bug-reports.md). ⚠️ A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. There is **no telemetry in anything we ship**, so these forms are the entire feedback channel |
+| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels a form applies, the private security link | **the generator here, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into TEN repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half (a form's `labels:` are silently DROPPED if the label doesn't exist in that repo, and its security contact link 404s until private vulnerability reporting is on). The design, and why the field count is four, is [`docs/bug-reports.md`](docs/bug-reports.md). ⚠️ A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. There is **no telemetry in anything we ship**, so these forms are the entire feedback channel |
 | **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, and only there. It is `curl -fsSL https://hausfold.co/hacker.sh \| bash`. A change to the *script* belongs in `./haus`'s `bootstrap.sh` |
 | the hausfold.co site | `./hausfold.co` — [hausfold/hausfold.co](https://github.com/hausfold/hausfold.co), **public**. ⚠️ **Keep the `.co`.** Next 16 + Fumadocs, statically exported onto a Cloudflare Worker, deployed by CI on push to its `main`; `worker.js` serves the installer, download and release-metadata routes in front of the export. `bench clone` fetches it; it is **not** a flake input and not part of `FAMILY` |
 | the hausfold **name register**, the launch plan, or anything still to be decided | [hausfold/ops](https://github.com/hausfold/ops), **private** — `PRESENCE.md` for the register, [`todo/`](https://github.com/hausfold/ops/tree/main/todo) for every open workstream (launch, agent surface, option surface, MDM). ⚠️ **Never copy it, or a summary of it, into this repo** — the workshop is public, and **which names are *free* is the sensitive half**: a list of what nobody has claimed hands it to whoever reads it first. *Trademark* findings are public register records and are fine here; *availability* findings are not, whichever name they're about. `ops` is in no `bench` list — `gh repo clone hausfold/ops ~/code/workshop/ops` by hand; the dir is `.gitignore`d |
@@ -95,11 +97,11 @@ Three rules that keep them from rotting:
 ## The one gotcha that explains everything
 
 The repos form a chain of pinned flake inputs. The spine is
-`nebelung → pounce → haus → ~/.config/nix`; `perch`, `trill` and `holt` are
-inputs of `haus` too, as is `nebelung` a second time, directly. That is **seven**
-lock edges, enumerated in `bench`'s `EDGES`, not the three the spine suggests. A
-commit — even a pushed one — is **invisible downstream** until each downstream
-`flake.lock` is updated. Never hand-walk that ripple; the tooling does it:
+`nebelung → pounce → haus → ~/.config/nix`; `perch`, `trill`, `holt` and `snug`
+are inputs of `haus` too, as is `nebelung` a second time, directly. That is
+**eight** lock edges, enumerated in `bench`'s `EDGES`, not the three the spine
+suggests. A commit — even a pushed one — is **invisible downstream** until each
+downstream `flake.lock` is updated. Never hand-walk that ripple; the tooling does it:
 
 - `./bench status` — leads with **what this machine is actually running** (the
   pinned build, or the local branches a `try switch` put on it), then every
@@ -283,8 +285,8 @@ outside your toplevel):
 cannot see the child repos.** If `git rev-parse --git-common-dir` points at
 `…/workshop/.git`, your tree holds ONLY the workshop's own files. The family
 sub-repos — `haus/`, `nebelung/`, `pounce/`, `perch/`, `holt/`, `trill/`,
-`hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not there at
-all.** This is **NOT** a `.gitignore` visibility problem: a linked worktree of
+`snug/`, `hausfold.co/`, `org-profile/`, `homebrew-tap/`, `ops/` — are **not
+there at all.** This is **NOT** a `.gitignore` visibility problem: a linked worktree of
 the workshop never checks out the sibling repos, because each is an independent
 repo living only beside the workshop's main checkout. So the moment a task turns
 out to belong to a child repo, don't grep or hunt for those files in this tree,
@@ -363,7 +365,7 @@ What a cloud session can do, and its hard limits:
   validator, on Linux, in seconds. That is how
   `script/probes/namespace-collision.nix` runs from a cloud session, and
   [`source-shapes.sh`](./script/probes/source-shapes.sh) needs less still. It does
-  not make `nix flake check` reachable: haus pins all nine inputs as `github:`,
+  not make `nix flake check` reachable: haus pins all ten inputs as `github:`,
   and the darwin half needs macOS however they are spelled.
 - ❌ `bench try switch` / `darwin-rebuild switch` never run here — macOS only.
   Activation is always a job for the local machine, at its keyboard.

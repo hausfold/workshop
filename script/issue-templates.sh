@@ -6,8 +6,8 @@
 #   ./script/issue-templates.sh --check    fail if any repo has drifted
 #   ./script/issue-templates.sh haus …     just the named repos
 #
-# WHY a generator for files that change once a year: there are nine of them and
-# the shape is the product. Four forms hand-maintained across nine repos is
+# WHY a generator for files that change once a year: there are ten of them and
+# the shape is the product. Four forms hand-maintained across ten repos is
 # `_bench`'s hazard with a wider blast radius (AGENTS.md: "a hand copy and can
 # rot") — the day pounce's bug form asks for something haus's doesn't, a
 # reporter's answer depends on which repo they happened to land in, and nothing
@@ -40,7 +40,7 @@ repo_dir() {
 # own (homebrew-tap, holt-swift, producer-desktop, and whatever gets created
 # next). That fallback is the difference between "every repo" being a list we
 # maintain and being true. `ops` is private and takes no reports, so it's out.
-REPOS=(haus pounce perch trill holt nebelung hausfold.co workshop org)
+REPOS=(haus pounce perch trill snug holt nebelung hausfold.co workshop org)
 
 # ---- the table ---------------------------------------------------------------
 # TOOL      what the reporter calls it
@@ -131,6 +131,28 @@ meta() {
         "digest or catch-up"
         "the GitHub provider"
         "installing or updating"
+        "the docs"
+        "somewhere else, or not sure"
+      )
+      ;;
+    snug)
+      TOOL="snug"
+      BLURB="A CLI drew something wrong in your terminal"
+      DOCS="https://github.com/hausfold/snug#readme"
+      # The one diagnostic that matters is what the TERMINAL is, because every
+      # defect this library exists for is a width or a colour-tier answer.
+      # `snug caps` reports both, and a reporter who hasn't got the binary can
+      # still answer the two halves by hand — which is why the hint names them
+      # rather than only naming the command.
+      DIAG="Your terminal"
+      DIAG_HINT="Paste the output of \`snug caps\`. If you haven't got \`snug\` itself, paste your terminal app and its version, \`echo \$TERM\`, and \`stty size\` at the width where it went wrong. It only reads — it changes nothing and sends nothing anywhere."
+      AREAS=(
+        "a line wrapped, or ran past the edge"
+        "a table — columns misaligned or truncated wrong"
+        "a live region — a spinner or progress that repainted wrong"
+        "colour — wrong, missing, or unreadable"
+        "a glyph drew in the wrong number of cells"
+        "resizing the window"
         "the docs"
         "somewhere else, or not sure"
       )
@@ -448,7 +470,22 @@ rc=0
 for repo in "${targets[@]}"; do
   dest="$(repo_dir "$repo")/.github/ISSUE_TEMPLATE"
   if [ ! -e "$(repo_dir "$repo")/.git" ]; then
-    printf '  ⚠ %s — not checked out here, skipped (bench clone)\n' "$repo"
+    # Under --check this is a FAILURE, not a skip. "I could not look" is not
+    # "it matches", and the weekly workflow's whole job is to notice a child
+    # repo drifting — so a repo missing from its clone list would otherwise
+    # make this report green forever about a repo it never opened. That is
+    # docs/drift.md's check-that-passes-while-the-thing-it-protects-rots, in
+    # the one script whose purpose is to prevent it.
+    #
+    # Still a plain skip when WRITING: a bootstrap that hasn't run `bench clone`
+    # yet, or a workshop worktree (which never checks out the siblings), should
+    # be able to render the repos it does have.
+    if [ "$check" -eq 1 ]; then
+      printf '  ✗ %s — not checked out here, so nothing was checked (bench clone, or name it explicitly / set ISSUE_TEMPLATES_ROOT)\n' "$repo"
+      rc=1
+    else
+      printf '  ⚠ %s — not checked out here, skipped (bench clone)\n' "$repo"
+    fi
     continue
   fi
   if [ "$check" -eq 1 ]; then

@@ -246,6 +246,26 @@ mkmain() { # mkmain <name> — fixture repo on a real `main` with one commit
   [[ "$output" == *"--override-input mydesktop/pounce path:/tmp/wt/pounce"* ]]
 }
 
+@test "overrides emits a row for every OVERRIDABLE repo — a missing one fails silently" {
+  # The seam this covers is the quiet one. `--override-input` for an input nix
+  # has never heard of is NOT an error, so a repo added to OVERRIDABLE and
+  # forgotten here makes `bench try` announce your branch while building the
+  # pinned one. Same failure mode, mirrored, as naming an input that doesn't
+  # exist — which is what the 🚨 in overrides() is about.
+  #
+  # By path rather than by input name on purpose: the input NAME is the
+  # consumer's to choose (`haus scruff holt` is the standing proof they diverge),
+  # so the checkout each row points AT is the only half this repo owns.
+  WT_REPO="" WT_PATH=""
+  run overrides
+  local name
+  for name in "${OVERRIDABLE[@]}"; do
+    [ "$name" = haus ] && continue    # the layer is the override's own root, not a sub-input
+    [[ "$output" == *"path:$ROOT/$name"* ]] \
+      || { echo "OVERRIDABLE repo '$name' has no --override-input row"; echo "$output"; return 1; }
+  done
+}
+
 # ── layer_input: the CONSUMER's name for the haus input, not ours ─────────────
 #
 # `--override-input <a-name-this-flake-doesn't-have>` is not an error in Nix, it
@@ -351,6 +371,64 @@ JSON
     [ "$input" = "@layer" ]
   done
   [ -n "$found" ]
+}
+
+# ── the four repo lists answer four different questions ──────────────────────
+# FAMILY / OVERRIDABLE / EDGES / LOCK_ONLY were one list for long enough to read
+# as one, and trill then snug pulled them apart. The 🚨 by FAMILY is the prose;
+# these are the part that fails when someone folds them back together.
+
+@test "every EDGES source is a repo some list can resolve to a checkout" {
+  local edge holder input source name found
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    found=""
+    for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
+      [ "$name" = "$source" ] && { found=1; break; }
+    done
+    [ -n "$found" ] || { echo "EDGES source '$source' is in no list"; return 1; }
+  done
+}
+
+@test "LOCK_ONLY is derived from EDGES, and holds exactly the non-FAMILY sources" {
+  local name fam
+  # Nothing in FAMILY may appear here: LOCK_ONLY is the repos bench does NOT
+  # walk, and a FAMILY repo leaking in would have cmd_ship fast-forward it twice.
+  for name in "${LOCK_ONLY[@]}"; do
+    for fam in "${FAMILY[@]}" consumer; do
+      [ "$name" != "$fam" ] || { echo "$name is in both FAMILY and LOCK_ONLY"; return 1; }
+    done
+  done
+  # And the other direction: an EDGES source outside FAMILY must have landed here
+  # rather than being typed in, which is the whole reason it is a derived array.
+  local edge holder input source found
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    found=""
+    for fam in "${FAMILY[@]}" consumer; do
+      [ "$source" = "$fam" ] && { found=skip; break; }
+    done
+    [ "$found" = skip ] && continue
+    found=""
+    for name in "${LOCK_ONLY[@]}"; do
+      [ "$name" = "$source" ] && { found=1; break; }
+    done
+    [ -n "$found" ] || { echo "EDGES source '$source' never reached LOCK_ONLY"; return 1; }
+  done
+}
+
+@test "a lock source that bench does not walk is overridable, or bench try lies about it" {
+  # `bench try` from a worktree of an EDGES source has to be able to redirect
+  # that input, or it silently builds the PINNED repo while announcing your
+  # branch — detect_worktree walks OVERRIDABLE, not FAMILY, for exactly this.
+  local name found fam
+  for name in "${LOCK_ONLY[@]}"; do
+    found=""
+    for fam in "${OVERRIDABLE[@]}"; do
+      [ "$fam" = "$name" ] && { found=1; break; }
+    done
+    [ -n "$found" ] || { echo "$name is a lock source but not OVERRIDABLE"; return 1; }
+  done
 }
 
 # ── locked_slug: a lock records a SOURCE as well as a rev ─────────────────────
@@ -1002,6 +1080,24 @@ paint_at() { # paint_at <cols> — one frame of three jobs, escapes stripped
   [[ "$output" == *$'\r\033[J'* ]]
   # …and no cursor-up, because the block it would have moved through is gone.
   [[ "$output" != *$'\033[1A'* ]]
+}
+
+@test "watch_measure survives no tty and no TERM instead of killing its caller" {
+  # The measured failure: `set -e` exempts every command in a `&&`/`||` list
+  # except the LAST, and `tput` exits 2 with TERM unset. Without a `|| true`
+  # inside that final substitution the assignment's status propagates, bench
+  # exits 2 with nothing on either stream, and the sanitising `case` — the line
+  # whose entire job is to cope with a bad answer — never runs.
+  #
+  # No pty on purpose: this is the shape of `ssh mac bench rebuild`, a launchd
+  # job and CI, which is precisely where nobody is watching to notice.
+  # "$BASH", not a bare `bash`: bench needs `declare -gA` and macOS still ships
+  # 3.2 as /bin/bash, so a bare name would fail on the array rather than on the
+  # thing under test — and pass this assertion's negative for the wrong reason.
+  run env -u TERM -u COLUMNS "$BASH" -c \
+    "set -euo pipefail; HAUS_LIB=1 source '$HAUS'; watch_measure; echo COLS=\$WATCH_COLS" </dev/null
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"COLS=80"* ]]
 }
 
 @test "watch_measure reads COLUMNS from the kernel, not rows and not terminfo" {

@@ -23,19 +23,19 @@ a skipped no-op costs nothing.
 everything a *user* experiences. READMEs, `AGENTS.md` and in-repo docs serve contributors
 and agents. When the two disagree, the site wins and the repo doc gets corrected.
 
-## Step 0 — in a cloud container, plant the other ten repos
+## Step 0 — in a cloud container, plant the other eleven repos
 
 Skip this on Julien's Mac; the checkouts are already there.
 
 ```bash
 ./.agents/setup.sh              # Determinate Nix + the proxy CA; no-ops if Nix exists
 command -v python3 gh || echo "MISSING — the watermark needs python3, Step 6 needs gh"
-./bench clone                   # the ten others, at the dir names bench expects
+./bench clone                   # the eleven others, at the dir names bench expects
 git config --global user.name  "docs-sync"
 git config --global user.email "docs-sync@hausfold.co"
 ```
 
-Three layout facts are load-bearing and none is guessable: the ten live **inside** the
+Three layout facts are load-bearing and none is guessable: the eleven live **inside** the
 workshop checkout as gitignored subdirectories (`<workshop>/haus`, …), `org-profile`'s
 directory is `org-profile` while its remote is `hausfold/.github`, and **`ops` is
 private**, so its clone needs credentials and warns rather than dying without them.
@@ -48,10 +48,10 @@ container.
 > package, a shipped page all make a claim in there wrong, and fixing that is this sweep's
 > job. Nothing flows **out**. Never quote, summarise or paraphrase a line from `ops` into a
 > public repo's PR, doc or issue, and never let a finding about `ops` appear in another
-> repo's PR body. If `ops` can't be cloned, say so in Step 8 and sweep the other ten.
+> repo's PR body. If `ops` can't be cloned, say so in Step 8 and sweep the other eleven.
 
 > 🚨 **Repos pre-cloned elsewhere get `mv`d into place, never symlinked.** `.gitignore`
-> spells the nine with trailing slashes (`/haus/`), which match a directory and not a
+> spells the ten with trailing slashes (`/haus/`), which match a directory and not a
 > symlink to one — so a symlinked checkout stops being ignored and `git add -A` stages it.
 
 > 🚨 **A pre-cloned container also lies about `main`, and Step 7 believes it.** Those
@@ -115,6 +115,7 @@ grep -ril "<feature>\|<flag>\|<option>" hausfold.co/content/docs/ <repo>/README.
 | `pounce/` — the launcher | the **`pounce/` tree** (`config.mdx` carries every `config.json` key), plus `haus/rooms/launcher.mdx` for the *haus wiring only*, and the repo's own `README.md` / `docs/reference.md`. A room page documents the room; the app is documented in the app's tree |
 | `perch/` — the notch file shelf | the **`perch/` tree**, plus the repo's own docs, `haus/rooms/shelf.mdx` for the wiring, and `haus/keeping-it-current.mdx` for anything install-shaped (perch ships as a cask). ⚠️ **The tree is the only page about perch now**: its landing sheet at `/perch` was retired on 2026-08-26 (it 301s to `/docs/perch/`), so there is no second surface to keep in step — but `/perch/privacy` survives as a route, because the App Store listing points at it, and a behavior claim in that policy is still a two-file change |
 | `trill/` — the notification compositor | `trill/README.md`, `trill/ARCHITECTURE.md`, and the site's `trill/index.mdx`, an incubator page that says what trill *is*, not what it does |
+| `snug/` — the terminal-presentation runtime | `snug/README.md` and `snug/AGENTS.md`. No site page yet: it is a library and a binary the family drives, not something a user installs. ⚠️ The standard it implements is the **workshop's** `docs/cli-presentation.md` — reconcile the two against each other, and keep *how a line is drawn* in snug while the design stays there |
 | `nebelung/` — palette, ports | `haus/rooms/appearance.mdx` (theming and the palette are one page), `nebelung/README.md` |
 | `holt/` — the worktree substrate + its five SDKs | its own `README.md`, `SPEC.md`, `docs/*`, `sdk/*/README`, plus `haus/rooms/ai.mdx` for the user-facing worktree story. holt has **no site tree**, so "the docs" for it are the repo's. An SDK surface change is also a release question — see `/release` |
 | `haus/modules/*` | the matching **room** under `haus/rooms/`, and `haus/desktops/*` when a desktop's values move |

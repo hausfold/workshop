@@ -270,18 +270,29 @@ Bash can't link a Go library, so the standard ships as two implementations of
 one spec.
 
 **A Go module + one binary**, in its own repo — modelled on `holt`: standalone,
-repo-agnostic, its own flake input, shipped on `PATH` by the layer.
+repo-agnostic, its own flake input, shipped on `PATH` by the layer. It exists:
+[hausfold/snug](https://github.com/hausfold/snug).
 
-- Go callers (`holt`) import the package. No process, no protocol.
-- Shell callers (`bench`, `haus`, pounce commands) drive the binary.
+- Go callers (`holt`) import `github.com/hausfold/snug`. No process, no protocol.
+- Shell callers (`bench`, `haus`, pounce commands) drive the binary, which the
+  layer puts on `PATH` unconditionally beside `trill` and `haus-notify`.
 
-Measured before choosing: **lipgloss v2 (`charm.land/lipgloss/v2`) plus
-`x/term` — 3.0 MB stripped, 4.4 ms cold start, 22 modules in the graph.**
+Two dependencies, and the second choice went the other way from what this file
+first recorded. **`x/ansi` (charm's ANSI-aware string layer) plus `x/term` — 9
+modules in the graph against lipgloss v2's 22, 2.1 MB against 3.0.** The parts
+of lipgloss we would actually use are the parts `x/ansi` already *is*: the
+family's look is quiet — aligned text and a fog palette, no borders and no
+boxes — so a styling engine buys nothing and costs 13 modules.
 
+- **Not lipgloss.** See above. It is the right answer for a bordered, boxed UI
+  and this is not one.
 - **Not bubbletea.** It wants to own the event loop and the screen. `bench` and
   `haus` need a filter *they* drive, not a runtime that drives them. A live
-  region is ~80 lines of lipgloss plus a `SIGWINCH` handler.
+  region is ~80 lines plus a `SIGWINCH` handler.
 - **Not fang/cobra.** Six verbs does not justify cobra's dependency graph.
+- **Not `tput cols`.** terminfo carries a *static* size and answers 80 in a
+  40-column window. `x/term` asks the kernel (`TIOCGWINSZ`), which is the only
+  thing that tracks a resize — and that is the bug the whole library exists for.
 
 **One process per command invocation, not per line.** A fork costs 4.4 ms; a
 per-line fork would put 320 ms of pure overhead into a 60-line `haus rebuild`.
@@ -297,15 +308,49 @@ standard is written here in prose rather than only as Go.
 
 ## Order of work
 
-1. This file. ✔
-2. `bench` — fold to width, `\033[J`, `trap WINCH`. ✔ *(landed; eight tests in
-   `test/bench.bats` hold the contract across sixteen widths from 2 to 120, plus
-   a real pty for the measurement itself.)* `haus`'s phase painter — same
-   treatment, still to do.
-3. The shared bash fallback, sourced by `bench` and `haus.sh`; holt's
-   `internal/ui` moved onto the same role names.
-4. The Go module and binary. The bash fallback is demoted to the no-binary path.
+The list is the durable record of what is left; keep it true or it stops being
+one. State as of 2026-08-27:
 
-Steps 2 and 3 are worth doing even if step 4 slips: they delete the 72
+| | | |
+|---|---|---|
+| 1 | **This file** — the standard itself | ✔ done |
+| 2 | **`bench`'s live painter** — folded to width, `\033[J`, `trap WINCH` | ✔ done (#469; eight tests in `test/bench.bats` across widths 2–120, plus a real pty for the measurement) |
+| 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ✔ done ([haus#547](https://github.com/hausfold/haus/pull/547); 16 bats cases). Two heads, and §1 has the distinction: the finished row merely *wraps*, the 14-cell `phase_start` stub is what strands a line above its own successor |
+| 4 | **[hausfold/snug](https://github.com/hausfold/snug)** — the Go package and the binary | ✔ done, public, CI green |
+| 5 | **holt's `internal/ui`** onto snug's roles | ✔ done ([holt#70](https://github.com/hausfold/holt/pull/70), re-pinned in [holt#71](https://github.com/hausfold/holt/pull/71)) |
+| 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
+| 7 | **`bench` onto `snug run`** as a coprocess | ○ not started |
+| 8 | **The bash fallback** shipped beside the binary | ○ not started |
+
+**Everything but 7 and 8 is done.** 7 deletes ~150 lines from `bench` —
+`paint_live`, `watch_measure`, `row_glyph` and the `WATCH_RENDER_PY` clamp —
+and was untestable until 6 landed, because there was nothing on `PATH` to
+drive. There is now: `snug` is in the system profile on every haus machine.
+
+⚠️ **8 comes before 7, or 7 needs an explicit no-binary path of its own.** *A
+bash fallback ships beside it* is a promise this file has made since it was
+written and nothing implements it. Delete `bench`'s own painter first and a
+machine without `snug` on `PATH` — an older generation, a script off a thin
+PATH, anyone who installed `bench` without the layer — has **no painter at
+all**. Whoever picks up 7 owns that ordering.
+
+⚠️ **And whatever 8 is, it must not inherit this line**, which `bench` and
+`haus` both carried:
+
+```sh
+sz="$(stty size 2>/dev/null </dev/tty)" && COLS="${sz#* }" || COLS="$(tput cols 2>/dev/null)"
+```
+
+`set -e` exempts every command in a `&&`/`||` list **except the last**, and
+`tput` exits 2 with `TERM` unset — the shape of any session with no pty
+(`ssh mac haus rebuild`, a launchd job, CI). Measured: the caller exits 2 with
+nothing on either stream, after a successful evaluation and before anything
+activated, and the sanitising `case` that exists precisely to cope with a bad
+answer never runs. `|| true` inside that final substitution is the fix. **A
+width probe that can kill its caller is the worst possible failure mode for a
+courtesy** — which is the whole argument for one runtime rather than four
+copies.
+
+3 and 8 are worth doing even if the rest slips: between them they delete the 72
 hardcoded widths and the four copies of the palette, which is where the drift
 lives.

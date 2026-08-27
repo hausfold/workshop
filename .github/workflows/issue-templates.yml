@@ -1,4 +1,4 @@
-# The issue forms are generated (script/issue-templates.sh) into NINE repos, and
+# The issue forms are generated (script/issue-templates.sh) into TEN repos, and
 # this is the only thing that notices when one of them stops matching.
 #
 # It has to clone the family because the artifact is cross-repo: the generator
@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           for pair in \
-            haus:haus pounce:pounce perch:perch trill:trill holt:holt \
+            haus:haus pounce:pounce perch:perch trill:trill snug:snug holt:holt \
             nebelung:nebelung hausfold.co:hausfold.co org-profile:.github
           do
             dir="${pair%%:*}"; repo="${pair##*:}"
