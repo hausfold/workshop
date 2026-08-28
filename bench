@@ -25,7 +25,11 @@
 #                  branch together on ONE throwaway integration tree per repo —
 #                  feel-test the whole review queue in a single rebuild, main
 #                  untouched, then merge only the PRs that pass
-#   bench ship      push everything in dependency order, rippling lock updates
+#   bench ship [repo…]  push everything in dependency order, rippling lock
+#                  updates. Named repos narrow it to just them plus everything
+#                  DOWNSTREAM along the lock edges — `bench ship pounce` pushes
+#                  pounce, then bumps + pushes haus and your machine config
+#                  (the repos that consume it), leaving other stale edges alone.
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull [repo…]  fast-forward every repo, or just the named ones
 #   bench clone     fetch any family repo missing from this directory
@@ -1691,11 +1695,72 @@ cmd_try_batch() {
     "${do_switch:+Activated. }Nothing merged; the checklist is in this shell."
 }
 
+# ship_scope <repo>… — the named repos plus their downstream closure along
+# EDGES: every holder whose lock points at a repo already in the set, taken
+# transitively until nothing new joins. Printed one per line, in the order
+# cmd_ship walks (FAMILY, then the lock-only sources, then consumer) — so
+# `ship_scope pounce` prints pounce, haus, consumer, and `ship_scope trill`
+# prints haus, trill, consumer (trill's position is cosmetic: it isn't in
+# FAMILY, so the walk never pushes it — only haus's lock for it moves).
+ship_scope() {
+  local -a set=("$@")
+  local grew=1 edge holder input source n m hit
+  while [ -n "$grew" ]; do
+    grew=""
+    for edge in "${EDGES[@]}"; do
+      read -r holder input source <<<"$edge"
+      hit=""; for n in "${set[@]}"; do [ "$n" = "$source" ] && { hit=1; break; }; done
+      [ -n "$hit" ] || continue
+      hit=""; for n in "${set[@]}"; do [ "$n" = "$holder" ] && { hit=1; break; }; done
+      [ -n "$hit" ] && continue
+      set+=("$holder"); grew=1
+    done
+  done
+  for n in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
+    for m in "${set[@]}"; do [ "$m" = "$n" ] && { printf '%s\n' "$n"; break; }; done
+  done
+  # Not decorative: without it the function's status is the LAST membership
+  # test — nonzero whenever the final name (consumer) isn't in the set, which
+  # no edge graph produces today but a future one could.
+  return 0
+}
+
+# ship_in_scope <name> — is <name> inside the current ship's scope? Reads
+# cmd_ship's SHIP_SCOPE through bash's dynamic scoping; an empty array (a bare
+# `bench ship`) means everything is in scope.
+ship_in_scope() {
+  local n
+  [ "${#SHIP_SCOPE[@]}" -eq 0 ] && return 0
+  for n in "${SHIP_SCOPE[@]}"; do [ "$n" = "$1" ] && return 0; done
+  return 1
+}
+
 cmd_ship() {
+  # `bench ship <repo>…` narrows every loop below to the named repos plus their
+  # downstream closure along EDGES — the repos that CONSUME them, directly or
+  # not — so `bench ship pounce` pushes pounce, bumps + pushes haus and the
+  # consumer, and leaves nebelung's edges alone even when they're stale. The
+  # closure is not optional: shipping a repo WITHOUT its downstream would push
+  # commits that stay invisible on every machine, which is the exact trap this
+  # verb exists to close. Bare `bench ship` keeps the empty scope = everything.
+  local -a SHIP_SCOPE=()
+  if [ "$#" -gt 0 ]; then
+    local arg known
+    for arg in "$@"; do
+      known=""
+      for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
+        [ "$name" = "$arg" ] && { known=1; break; }
+      done
+      [ -n "$known" ] || die "unknown repo '$arg' — shippable: ${FAMILY[*]} ${LOCK_ONLY[*]} consumer"
+    done
+    mapfile -t SHIP_SCOPE < <(ship_scope "$@")
+    say "shipping the downstream ripple of $*: ${SHIP_SCOPE[*]}"
+  fi
   resolve_layer_input   # the consumer hop bumps a lock BY INPUT NAME — say so here, not from the loop
   # Walk the chain upstream→downstream. For each repo: refuse dirty trees
   # (your commits are yours to write), bump any stale family locks, push.
   for name in "${FAMILY[@]}" consumer; do
+    ship_in_scope "$name" || continue
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     if [ -n "$(git -C "$dir" status --porcelain)" ]; then
@@ -1718,6 +1783,7 @@ cmd_ship() {
   # the likeliest to be behind — neither is on the ship chain, so nothing else
   # in this verb ever touches their checkouts.
   for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
+    ship_in_scope "$name" || continue
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1 || continue
@@ -1735,6 +1801,7 @@ cmd_ship() {
 
   # Agent branches never block a ship (main is main), but don't let them rot silently.
   for name in "${FAMILY[@]}"; do
+    ship_in_scope "$name" || continue
     # Guarded like every other loop here: an absent child repo (a workshop clone
     # that hasn't run `bench clone` yet) makes the `git -C` inside exit 128 under
     # `set -e`, killing the ship with no output at all.
@@ -1747,14 +1814,18 @@ cmd_ship() {
 
   local stale=()
   for name in "${FAMILY[@]}" consumer; do
+    ship_in_scope "$name" || continue
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
 
-    # Bump this repo's locks for any upstream family input that moved.
+    # Bump this repo's locks for any upstream family input that moved. Under a
+    # narrowed ship only the edges whose SOURCE is in scope move — bumping a
+    # bystander edge in the same repo would ship work nobody named.
     local bumped=()
     for edge in "${EDGES[@]}"; do
       read -r holder input source <<<"$edge"
       [ "$holder" = "$name" ] || continue
+      ship_in_scope "$source" || continue
       [ "$input" = "@layer" ] && input="$(layer_input)"   # `nix flake update` takes the NAME
       local want; want="$(head_rev "$source")"
       [ "$(locked_rev "$holder" "$input")" != "$want" ] || continue
@@ -1824,7 +1895,7 @@ cmd_ship() {
   done
 
   if [ "${#stale[@]}" -gt 0 ]; then
-    die "shipped what it could, but these edges are STILL stale: ${stale[*]} — bump each by hand (cd <repo> && nix flake update <input>) and re-run, or downstream builds the old code."
+    die "shipped what it could, but these edges are STILL stale: ${stale[*]} — bump each by hand (cd <repo> && nix flake update <input>; raw on purpose, no verb covers a wedged edge past its retries) and re-run, or downstream builds the old code."
   fi
   say "shipped. Apply it to this machine with: bench rebuild"
 }
@@ -3332,13 +3403,13 @@ case "${1:-status}" in
   status)  cmd_status ;;
   try)     shift; cmd_try "$@" ;;
   try-batch) shift; cmd_try_batch "$@" ;;
-  ship)    cmd_ship ;;
+  ship)    shift; cmd_ship "$@" ;;
   rebuild) cmd_rebuild ;;
   pull)    shift; cmd_pull "$@" ;;
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${@:2}" ;;
   overlap) shift; cmd_overlap "$@" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,50p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi

@@ -457,6 +457,50 @@ JSON
   done
 }
 
+# ── ship_scope: the downstream closure a `bench ship <repo>` walks ────────────
+
+@test "ship_scope of pounce is pounce plus everything that consumes it, in walk order" {
+  run ship_scope pounce
+  [ "$status" -eq 0 ]
+  [ "$output" = $'pounce\nhaus\nconsumer' ]
+}
+
+@test "ship_scope of nebelung reaches the whole spine through both of its edges" {
+  run ship_scope nebelung
+  [ "$output" = $'nebelung\npounce\nhaus\nconsumer' ]
+}
+
+@test "ship_scope of a lock-only source ripples haus + consumer without adding the rest of FAMILY" {
+  # trill isn't walked by cmd_ship (not FAMILY) — its presence in the output is
+  # for the fast-forward loop, which reads its HEAD before bumping haus's lock.
+  run ship_scope trill
+  [ "$output" = $'haus\ntrill\nconsumer' ]
+}
+
+@test "ship_scope of the consumer is just the consumer — nothing is downstream of it" {
+  run ship_scope consumer
+  [ "$output" = "consumer" ]
+}
+
+@test "ship_scope never emits a repo twice, however many named seeds converge on it" {
+  # scruff and snug both ripple through haus; haus and consumer must appear once.
+  run ship_scope scruff snug
+  [ "$output" = $'scruff\nhaus\nsnug\nconsumer' ]
+}
+
+@test "ship_in_scope lets everything through when no repos were named" {
+  local -a SHIP_SCOPE=()
+  ship_in_scope nebelung
+  ship_in_scope consumer
+  ship_in_scope anything-at-all
+}
+
+@test "ship_in_scope answers membership when a scope was named" {
+  local -a SHIP_SCOPE=(pounce haus consumer)
+  ship_in_scope haus
+  ! ship_in_scope nebelung
+}
+
 # ── locked_slug: a lock records a SOURCE as well as a rev ─────────────────────
 
 @test "locked_slug reports the owner/repo an input is fetched from" {

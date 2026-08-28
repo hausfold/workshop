@@ -21,7 +21,7 @@
 # that lands on unrelated code as stale, not as a claim about that code.
 #
 # The subcommand descriptions are one-line paraphrases of bench's OWN usage
-# header (bench:2-71) — the same text `bench <garbage>` prints. That header is
+# header (bench:2-54) — the same text `bench <garbage>` prints. That header is
 # the source; when it changes, this follows.
 
 # _bench_array <NAME> [fallback…] — the elements of a single-line bash array in
@@ -57,7 +57,7 @@ _bench() {
     'status:what is this machine RUNNING, and where is everything else?'
     'try:build YOUR machine against the LOCAL checkouts — no pushes'
     'try-batch:feel-test every open PR together, on one integration tree per repo'
-    'ship:push everything in dependency order, rippling lock updates'
+    'ship:push everything in dependency order, rippling lock updates — named repos narrow it to their downstream ripple'
     'rebuild:a plain, pinned rebuild of your machine (the normal day)'
     'pull:fast-forward every repo, or just the named ones'
     'clone:fetch any family repo missing from this directory'
@@ -132,6 +132,20 @@ _bench() {
           else
             _describe -t flags 'overlap flag' oflags && ret=0
           fi
+          ;;
+
+        ship)
+          # Named repos narrow the ripple to themselves plus their downstream
+          # closure along EDGES (`cmd_ship` in `bench`). Shippable = FAMILY
+          # plus the lock-only sources plus the consumer. LOCK_ONLY is DERIVED
+          # from EDGES at runtime, so no sed can read it out — trill and snug
+          # are hand-copied here, like pull's extras, and rot the same way.
+          local -a shippable=(
+            $(_bench_array FAMILY nebelung pounce perch scruff haus)
+            trill snug consumer
+          )
+          local -a left=( ${shippable:|typed} )
+          _describe -t repos 'shippable repo' left && ret=0
           ;;
 
         pull)
@@ -222,7 +236,7 @@ _bench() {
           fi
           ;;
 
-        # status, ship, rebuild, clone take no arguments.
+        # status, rebuild, clone take no arguments.
       esac
       ;;
   esac

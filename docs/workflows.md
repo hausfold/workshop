@@ -39,6 +39,8 @@ real machine config against the **local checkouts**, uncommitted edits and all:
 ./bench try switch     # run it on this Mac  (still nothing pushed)
 # happy? commit in the repo(s) you touched, then:
 ./bench ship           # pushes upstream→downstream, updating each lock along the way
+                       # (a repo arg narrows it: `bench ship pounce` ripples just
+                       # pounce + its downstream consumers)
 ```
 
 ## Parallel agents
