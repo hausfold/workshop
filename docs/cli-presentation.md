@@ -336,28 +336,51 @@ one. State as of 2026-08-27:
 | 4 | **[hausfold/snug](https://github.com/hausfold/snug)** — the Go package and the binary | ✔ done, public, CI green |
 | 5 | **scruff's `internal/ui`** onto snug's roles | ✔ done ([scruff#70](https://github.com/hausfold/scruff/pull/70), re-pinned in [scruff#71](https://github.com/hausfold/scruff/pull/71)) |
 | 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
-| 7 | **`bench` onto `snug run`** as a coprocess | ○ not started |
+| 7 | **`bench` onto `snug run`** as a coprocess | ✔ done ([workshop#482](https://github.com/hausfold/workshop/pull/482); eight bats cases around the record contract, including one that feeds bench's exact bytes to a real `snug run`; see **What 7 shipped**, below) |
 | 8 | **The bash fallback** — [`snug/share/ui.sh`](https://github.com/hausfold/snug/blob/main/share/ui.sh), the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths). Written here as `lib/ui.sh` in [workshop#476](https://github.com/hausfold/workshop/pull/476), moved into snug the same week — see **Why 8 lives in snug** below |
 
-**Everything but 7 is done.** 7 deletes ~150 lines from `bench` —
-`paint_live`, `watch_measure`, `row_glyph` and the `WATCH_RENDER_PY` clamp —
-and was untestable until 6 landed, because there was nothing on `PATH` to
-drive. There is now: `snug` is in the system profile on every haus machine, and
-8 is what covers the machines that are not one.
+**What 7 shipped.** `bench` sources `$(repo_dir snug)/share/ui.sh` and calls
+`ui_say` / `ui_row` / `ui_paint`; where `snug` is on `PATH` and fd 2 is a
+terminal it opens ONE coprocess for the whole command — lazily, on the first
+line the command draws, so a verb that prints nothing forks nothing — and
+writes the same records to it. The dispatch belongs to `bench`, not to the
+library — one fork per *command* is the whole economy, and a library sourced
+per script cannot see the command boundary that decision needs.
 
-**What 7 looks like now that 8 exists.** `bench` sources
-`$(repo_dir snug)/share/ui.sh` and calls `ui_say` / `ui_row` / `ui_paint`; where
-`snug` is on `PATH` it opens ONE coprocess for the whole command and writes the
-same records to it. The dispatch
-belongs to `bench`, not to the library — one fork per *command* is the whole
-economy, and a library sourced per script cannot see the command boundary that
-decision needs.
+Three contract points worth having in one place:
 
-⚠️ **8 had to come before 7, and did.** *A bash fallback ships beside it* was a
-promise this file made from the day it was written and nothing implemented it.
-Delete `bench`'s own painter first and a machine without `snug` on `PATH` — an
-older generation, a script off a thin PATH, anyone who installed `bench` without
-the layer — would have had **no painter at all**.
+- **Records are tab-separated, one per line, verb first** — `say<TAB>text`,
+  `row<TAB>state<TAB>name<TAB>detail`, `paint`, `end`. A space after the verb
+  does not parse: `snug run` splits on tabs and answers `unknown record`.
+- **A row never carries an empty field between two non-empty ones.** `read`
+  collapses consecutive delimiters, so a renderer row's detail is never empty
+  for a running job (it carries the stale duration) — only the trailing
+  `since` field may be empty.
+- **Multi-line text is one record per line.** Newlines would break record
+  framing; the emitter folds them.
+- **A snug that died once stays dead for the command.** `SNUG_TRIED` is not
+  reset by `snug_close`, so a failed record write never re-forks per frame —
+  the fork-a-frame loop is the regression the coprocess exists to prevent.
+  A dying coprocess degrades to ui.sh: `watch_paint || true` keeps the watch
+  alive, the verbs fall back, and `ui_live_close` is guarded on `UI_READY`
+  because it exists only when ui.sh loaded.
+- **The coprocess opens only under a terminal on fd 2**, and only when ui.sh
+  loaded (`UI_TTY` is ui.sh's). A machine with the binary on PATH but no
+  snug checkout gets the ui.sh path even interactively — one detection, one
+  answer.
+
+The watch's duration clock stays in `bench` (a running job's seconds re-derive
+every frame from its start epoch); folding, the budget, the tiers, the resize
+and the cursor are snug's. The message verbs (`say`/`warn`/`hint`/`die`) moved
+to fd 2 with the move — stdout carries data only — and `bench`'s hand-picked
+256-colour palette block is gone, replaced by aliases onto the generated roles.
+The status tables stay on fd 1 for now, so `bench status | less` carries them
+whole; their alias gate keys on fd 1 while the verbs' gate keys on fd 2 — one
+palette, two gates, to be unified when the tables move to ui.sh.
+
+The step also deleted `paint_live`, `watch_measure`, `row_glyph` and the
+`WATCH_RENDER_PY` clamp from `bench` — the last four copies of machinery
+`ui.sh` and `palette.go` already own.
 
 ⚠️ **`ui.sh` deliberately does not inherit this line**, which `bench` and
 `haus` both carried:
@@ -375,10 +398,6 @@ answer never runs. `|| true` inside that final substitution is the fix. **A
 width probe that can kill its caller is the worst possible failure mode for a
 courtesy** — which is the whole argument for one runtime rather than four
 copies.
-
-3 and 8 are worth doing even if the rest slips: between them they delete the 72
-hardcoded widths and the four copies of the palette, which is where the drift
-lives.
 
 **How 8 stays in step with 4.** It is not kept in step — it is *generated from
 the same list*. `snug`'s `script/gen-palette.sh` writes `palette.go` and
