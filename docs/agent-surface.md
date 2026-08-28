@@ -48,7 +48,7 @@ Send implies read. Set implies get.
 <tool> skill                 print the tool's own SKILL.md to stdout
 <tool> skill <name>          print one of its other skills
 <tool> skill install         write ALL of them into every agent client found
-<tool> skill install --client claude|codex|opencode
+<tool> skill install --client claude|codex|opencode|pi
 <tool> skill install --dir PATH
 ```
 
@@ -67,8 +67,8 @@ machine it refuses outright**, because those directories are read-only Nix
 symlinks and haus has already installed the skill. Say that in the refusal;
 don't make the user work it out from an `EPERM`.
 
-The verb is `skill`, not `agent`: all three clients call these things skills,
-and in this family `agent` already means a launchd agent.
+The verb is `skill`, not `agent`: every client calls these things skills, and in
+this family `agent` already means a launchd agent.
 
 ### A4 — One shape, ≤150 lines each
 
@@ -164,7 +164,7 @@ pounce's `config print` is the shape.
 **No MCP servers, for now.** For a coding agent in a terminal — which is every
 agent that will touch these tools — a documented CLI plus a skill is strictly
 better: nothing to launch, nothing to authorize, identical in Claude Code,
-Codex, OpenCode and a bare shell script, and it is the same surface a human
+Codex, OpenCode, pi and a bare shell script, and it is the same surface a human
 uses, so it can't rot in a corner nobody runs. The case for MCP arrives when a
 **non-terminal** agent needs these tools; the CLI is the layer it would wrap
 anyway.
@@ -206,7 +206,7 @@ is actually enabled: a skill for an app you don't have is worse than none,
 because the agent will confidently offer it.
 
 Install path is each client's own skills dir (`~/.claude/skills`,
-`~/.codex/skills`, `~/.config/opencode/skills`), one entry per skill, named by
+`~/.codex/skills`, `~/.config/opencode/skills`, `~/.pi/agent/skills`), one entry per skill, named by
 the tool. haus's own skill stays file-by-file because `this-machine.md` is
 rendered per host; a tool's skill has no per-host half, so it is one directory
 symlink.
