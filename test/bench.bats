@@ -1028,184 +1028,113 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   [ "${lines[0]}" = "ok	an absurdly long job name that would certainly wrap a narrow terminal	5s	" ]
 }
 
-@test "row_glyph walks the spinner and never leaves colour on" {
-  # Writes into a named variable rather than stdout: at 10 fps across N rows the
-  # old `$(row_glyph …)` was a fork per row per frame, in the loop whose own
-  # comment said everything in it was a builtin.
-  local g
-  row_glyph g run 0;    [ "$g" = "⠋" ]   # NO_COLOR unset in bats, stdout not a TTY
-  row_glyph g run 11;   [ "$g" = "⠙" ]   # frame 11 wraps round the 10-frame cycle
-  row_glyph g ok 0;     [ "$g" = "✓" ]
-  row_glyph g fail 0;   [ "$g" = "✗" ]
-  row_glyph g queued 0; [ "$g" = "·" ]
+@test "watch_paint hands snug one row record per job plus a paint, with the clock re-derived" {
+  # The coprocess contract: records exactly in `snug run`'s grammar. fd 9 is a
+  # stand-in for the coprocess — watch_paint only ever WRITES records there and
+  # never reads back, so a plain file proves the framing.
+  local now since r1
+  now="$(date +%s)"; since=$(( now - 65 ))   # 1m 05s ago
+  # A real renderer row for a running job: detail is its (stale) duration, and
+  # only the LAST field may be empty — `read` collapses consecutive tabs, so a
+  # row can never carry an empty field between two non-empty ones.
+  printf -v r1 'run\tbuild + publish release\t0s\t%s' "$since"
+  WATCH_ROWS=( "$r1" $'ok\tbump-tap\t12s\t' )
+  : >"$TMP/records"
+  exec 9>"$TMP/records"
+  SNUG_FD=9; SNUG_PID=""; SNUG_TRIED=1   # fd 9 stands in; no coprocess fork
+  watch_paint >/dev/null 2>&1
+  snug_close >/dev/null 2>&1
+  exec 9>&-
+  SNUG_FD=""
+  run grep -c '^row' "$TMP/records"
+  [ "$output" = "2" ]
+  grep -q '^paint$' "$TMP/records"
+  # A running job's clock is re-derived from its start epoch, not trusted from
+  # the (already stale) snapshot — 65s ago renders 1m 05s. (Regex, not a
+  # literal: the test's `now` and the resolver's can straddle a second.)
+  grep -q $'run\tbuild + publish release\t[0-9]*m [0-9][0-9]s' "$TMP/records"
+  grep -q $'ok\tbump-tap\t12s' "$TMP/records"
+  grep -q '^end$' "$TMP/records"
 }
 
-# ── the live painter fits the window ─────────────────────────────────────────
-# The bug this replaces: a `%-34s` row is 48 cells wide whatever the job is
-# called, the repaint moves the cursor up by the number of rows it PRINTED, and
-# any terminal ≤48 columns soft-wrapped each row into two screen lines — so the
-# cursor walked up through the middle of the block and every frame scrolled.
-# The contract is now: no painted line may reach the terminal's last column, at
-# any width, so printed rows and screen lines are equal by construction.
-
-# Display CELLS, not bytes and not runes: `…` is three bytes and one cell, and
-# the family's own rule is that width is counted the way a terminal counts it.
-# (bench already hard-depends on python3 for the ISO-8601 arithmetic above.)
-strip_paint() { sed $'s/\033\\[[0-9;?]*[A-Za-z]//g' | grep . || true; }
-widest_cells() {
-  python3 -c 'import sys,unicodedata
-w=0
-for l in sys.stdin.read().split("\n"):
-    w=max(w,sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in l))
-print(w)'
-}
-paint_at() { # paint_at <cols> — one frame of three jobs, escapes stripped
-  WATCH_COLS="$1"; WATCH_RESIZED=0; WATCH_PAINTED=0
-  WATCH_ROWS=(
-    $'run\tpublish\t\t'
-    $'ok\tbump-tap\t12s\t'
-    $'wait\tbump-flake-and-notarize-the-zip\tqueued\t'
-  )
-  paint_live 0 | strip_paint
-}
-
-@test "paint_live never reaches the last column, at any width" {
-  local w widest
-  for w in 120 100 60 49 48 47 40 30 24 20 14 11 10 6 4 2; do
-    widest="$(paint_at "$w" | widest_cells)"
-    [ "$widest" -le $((w - 1)) ] || { echo "cols=$w painted $widest cells"; false; }
-  done
-}
-
-@test "paint_live prints exactly one line per job, at any width" {
-  local w n
-  for w in 120 48 40 24 14 6 2; do
-    n="$(paint_at "$w" | wc -l | tr -d ' ')"
-    [ "$n" -eq 3 ] || { echo "cols=$w printed $n lines for 3 jobs"; false; }
-  done
-}
-
-@test "paint_live's own line count matches what it printed" {
-  # This is the invariant the whole painter exists to hold: the repaint moves the
-  # cursor up by WATCH_PAINTED, so WATCH_PAINTED must equal the number of SCREEN
-  # lines used — which is only true while every row fits.
-  local w
-  for w in 120 48 40 24 14 6 2; do
-    WATCH_COLS="$w"; WATCH_RESIZED=0; WATCH_PAINTED=0
-    WATCH_ROWS=( $'run\tpublish\t\t' $'ok\tbump-tap\t12s\t' $'wait\tbump-flake\tqueued\t' )
-    paint_live 0 >/dev/null
-    [ "$WATCH_PAINTED" -eq 3 ] || { echo "cols=$w counted $WATCH_PAINTED"; false; }
-  done
-}
-
-@test "paint_live sheds the duration before it sheds the name" {
-  # Widest tier keeps both columns; below that the name is the load-bearing half
-  # and the duration is what goes, along with the padding that made it a table.
-  local wide narrow
-  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
-  WATCH_COLS=100; WATCH_RESIZED=0; WATCH_PAINTED=0; wide="$(paint_live 0 | strip_paint)"
-  WATCH_COLS=18;  WATCH_RESIZED=0; WATCH_PAINTED=0; narrow="$(paint_live 0 | strip_paint)"
-  [[ "$wide"   == *"bump-tap"* ]]
-  [[ "$wide"   == *"12s"*      ]]
-  [[ "$narrow" == *"bump-tap"* ]]
-  [[ "$narrow" != *"12s"*      ]]
-}
-
-@test "short job names keep their durations, however wide the window" {
-  # The regression this guards: the tier was chosen from `namew` AFTER it had
-  # been clamped down to the longest job name, so a run of build/test/lint —
-  # every name under 8 cells — read as a narrow window and dropped the duration
-  # column on a 200-column terminal.
-  local out
-  WATCH_ROWS=( $'ok\tbuild\t12s\t' $'ok\ttest\t5s\t' )
-  WATCH_COLS=200; WATCH_RESIZED=0; WATCH_PAINTED=0; out="$(paint_live 0 | strip_paint)"
-  [[ "$out" == *"12s"* ]] || { echo "lost the duration at 200 cols: $out"; false; }
-  [[ "$out" == *"5s"*  ]]
-  WATCH_COLS=40;  WATCH_RESIZED=0; WATCH_PAINTED=0; out="$(paint_live 0 | strip_paint)"
-  [[ "$out" == *"12s"* ]] || { echo "lost the duration at 40 cols: $out"; false; }
-}
-
-@test "a duration wider than the usual seven cells still fits" {
-  # "100m 05s" is 8 cells; a hardcoded 7-cell budget wrote into the last column
-  # and soft-wrapped the row — the exact failure this painter exists to stop.
-  # GitHub allows six-hour jobs, and a notarisation wait is the plausible one.
-  local w widest
-  WATCH_ROWS=( $'run\tnotarize\t100m 05s\t' $'ok\tbuild\t12s\t' )
-  for w in 120 60 40 30 24 20 14 10 6 4 2; do
-    WATCH_COLS="$w"; WATCH_RESIZED=0; WATCH_PAINTED=0
-    widest="$(paint_live 0 | strip_paint | widest_cells)"
-    [ "$widest" -le $((w - 1)) ] || { echo "cols=$w painted $widest cells"; false; }
-  done
-}
-
-@test "a resize clears the whole block before repainting" {
-  WATCH_COLS=80; WATCH_RESIZED=0; WATCH_PAINTED=0
-  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
-  paint_live 0 >/dev/null
-  [ "$WATCH_PAINTED" -eq 1 ]
-  WATCH_RESIZED=1                       # what the SIGWINCH trap leaves behind
-  run paint_live 1
-  # \r\033[J — column 0, then wipe everything below; the reflow a resize does to
-  # what is already on screen cannot be modelled, so nothing is trusted.
-  [[ "$output" == *$'\r\033[J'* ]]
-  # …and no cursor-up, because the block it would have moved through is gone.
-  [[ "$output" != *$'\033[1A'* ]]
-}
-
-@test "watch_measure survives no tty and no TERM instead of killing its caller" {
-  # The measured failure: `set -e` exempts every command in a `&&`/`||` list
-  # except the LAST, and `tput` exits 2 with TERM unset. Without a `|| true`
-  # inside that final substitution the assignment's status propagates, bench
-  # exits 2 with nothing on either stream, and the sanitising `case` — the line
-  # whose entire job is to cope with a bad answer — never runs.
-  #
-  # No pty on purpose: this is the shape of `ssh mac bench rebuild`, a launchd
-  # job and CI, which is precisely where nobody is watching to notice.
-  # "$BASH", not a bare `bash`: bench needs `declare -gA` and macOS still ships
-  # 3.2 as /bin/bash, so a bare name would fail on the array rather than on the
-  # thing under test — and pass this assertion's negative for the wrong reason.
-  run env -u TERM -u COLUMNS "$BASH" -c \
-    "set -euo pipefail; HAUS_LIB=1 source '$HAUS'; watch_measure; echo COLS=\$WATCH_COLS" </dev/null
+@test "watch_paint prints one plain line per state CHANGE, not per frame, with no snug at all" {
+  # No coprocess, no ui.sh: the glyph carries the meaning and a line is only
+  # drawn when a row's state changes — the piped/CI shape. `run` is a subshell,
+  # so the dedupe map wouldn't survive between calls: paint twice in one body.
+  UI_READY=""; SNUG_FD=""
+  WATCH_SEEN=()
+  WATCH_ROWS=( $'run\tbump-tap\t\t' $'ok\tlint\t5s\t' )
+  watch_two() { watch_paint; WATCH_ROWS=( $'ok\tbump-tap\t12s\t' $'ok\tlint\t5s\t' ); watch_paint; WATCH_ROWS=( $'ok\tbump-tap\t12s\t' $'ok\tlint\t5s\t' ); watch_paint; }
+  run watch_two
   [ "$status" -eq 0 ]
-  [[ "$output" == *"COLS=80"* ]]
+  # run->·, lint->✓, then one change (run->ok), then nothing.
+  [ "${#lines[@]}" -eq 3 ]
+  [[ "$output" == *$'\u2713  bump-tap (12s)'* ]]
+  [[ "$output" == *$'\u00b7  bump-tap ()'* ]]
 }
 
-@test "watch_measure reads COLUMNS from the kernel, not rows and not terminfo" {
-  # Two ways to get this wrong, and both look fine in a source grep:
-  #   · `tput cols` reads terminfo's STATIC size — 80 for every xterm-* entry —
-  #     and answers 80 in a 37-column window. Only TIOCGWINSZ tracks a resize.
-  #   · `stty size` prints "<rows> <cols>", so a `${sz% *}` takes the ROWS.
-  # 24×37: neither field is 80 and neither equals the other, so a pty is the
-  # only thing that can tell the three answers apart.
-  run python3 - "$HAUS" <<'PYEOF'
-import os, pty, sys, fcntl, termios, struct, select
-bench = sys.argv[1]
-pid, fd = pty.fork()
-if pid == 0:
-    # Gate on a read so the parent's TIOCSWINSZ lands before we measure.
-    os.execvp("bash", ["bash", "-c",
-        f"read -r _; HAUS_LIB=1 source {bench}; watch_measure; echo COLS=$WATCH_COLS"])
-fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 37, 0, 0))
-os.write(fd, b"\n")
-out = b""
-while True:
-    r, _, _ = select.select([fd], [], [], 5)
-    if not r:
-        break
-    try:
-        d = os.read(fd, 65536)
-    except OSError:
-        break
-    if not d:
-        break
-    out += d
-    if b"COLS=" in out:
-        break
-sys.stdout.write(out.decode("utf8", "replace"))
-PYEOF
-  [[ "$output" == *"COLS=37"* ]] || { echo "got: $output"; false; }
+@test "watch_paint routes through ui.sh's live region when snug the binary is absent" {
+  # The fallback painter: same records, lower fidelity. Stubbed, because what
+  # this test owns is the DISPATCH — bench fed the rows to ui_row and painted
+  # one frame per call — not ui.sh's rendering, which snug's own suite sweeps
+  # at widths 2–200. Stubs (not the real functions) also make this pass on CI,
+  # where ui.sh never loads.
+  SNUG_FD=""
+  UI_READY=1
+  WATCH_ROWS=( $'run\tbump-tap\t\t' $'ok\tlint\t5s\t' )
+  ui_log="$TMP/ui.log"; : >"$ui_log"
+  ui_clear() { echo -n 'clear;' >>"$ui_log_file"; }
+  ui_row()   { printf 'row:%s:%s:%s;' "$1" "$2" "$3" >>"$ui_log_file"; }
+  ui_paint() { echo -n 'paint;' >>"$ui_log_file"; }
+  ui_log_file="$ui_log"
+  watch_two() { watch_paint; WATCH_ROWS=( $'ok\tbump-tap\t12s\t' $'ok\tlint\t5s\t' ); watch_paint; }
+  run watch_two
+  [ "$status" -eq 0 ]
+  [[ "$(cat "$ui_log")" == "clear;row:run:bump-tap:;row:ok:lint:5s;paint;clear;row:ok:bump-tap:12s;row:ok:lint:5s;paint;" ]]
 }
 
+
+@test "bench's records parse as snug records: the binary itself renders them" {
+  # The record grammar is the contract between two repos; a mismatch would pass
+  # every grep above and fail on the first real `bench release`. So feed the
+  # exact bytes watch_paint emits to a real `snug run` and make it render. Skips
+  # where snug isn't installed (CI) — the pty it can't be tested without, but
+  # every haus machine has the binary.
+  command -v snug >/dev/null 2>&1 || skip "snug not on PATH"
+  SNUG_FD=""; SNUG_PID=""; SNUG_TRIED=""
+  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
+  : >"$TMP/records"
+  exec 9>"$TMP/records"
+  SNUG_FD=9; SNUG_TRIED=1
+  say "hello records" >/dev/null 2>&1
+  watch_paint >/dev/null 2>&1
+  snug_close >/dev/null 2>&1
+  exec 9>&-
+  SNUG_FD=""
+  run snug run <"$TMP/records"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"unknown record"* ]]
+  [[ "$output" == *"hello records"* ]]
+  [[ "$output" == *"bump-tap"* ]]
+  # Every message verb rides the same grammar — feed one record each. (There
+  # is no `fail` wrapper: bench's verb is `die`, which exits. `snug_emit fail`
+  # is the exact path the wrapper takes.)
+  : >"$TMP/records"
+  exec 9>"$TMP/records"
+  SNUG_FD=9; SNUG_TRIED=1
+  warn "a warn" >/dev/null 2>&1
+  hint "a hint" >/dev/null 2>&1
+  snug_emit fail "a fail" >/dev/null 2>&1
+  snug_close >/dev/null 2>&1
+  exec 9>&-
+  SNUG_FD=""
+  run snug run <"$TMP/records"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"unknown record"* ]]
+  [[ "$output" == *"a warn"* ]]
+  [[ "$output" == *"a hint"* ]]
+  [[ "$output" == *"a fail"* ]]
+}
 
 # ── latest_tag / commits_since: the release-edge staleness check ───────────────
 
@@ -2306,7 +2235,7 @@ UI
   # it has none — and the fallback painter being missing must cost the caller
   # nothing. A bare `source` of a nonexistent path exits 1 under `set -e`, which
   # would kill bench at load time, before any verb ran and with nothing on
-  # either stream: the same failure shape `watch_measure`'s `|| true` exists for.
+  # either stream: the same failure shape ui_measure's width guard exists for.
   [ ! -e "$ROOT/snug" ]
   run ui_load
   [ "$status" -eq 0 ]

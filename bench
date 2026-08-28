@@ -207,32 +207,11 @@ BATCH_SCRATCH=""          # the mktemp dir holding those worktrees
 # bench try lane's scratch state. Same -g rationale as BATCH_SRC above.
 declare -gA LANE_SRC=()   # repo → scruff-child checkout it should build against
 
-# ── Palette ──────────────────────────────────────────────────────────────────
-# Colour is a courtesy, never load-bearing. Every escape is gated: emitted only
-# when stdout is a TTY (so `bench status | less`, CI logs, and the bats harness
-# all stay plain) and when NO_COLOR is unset (https://no-color.org); set
-# CLICOLOR_FORCE=1 to force it back on through a pipe. When off, every C_* var is
-# the empty string, so the exact same printf lines fall back to clean text — and
-# alignment is preserved because we only ever colour AROUND pre-padded fields,
-# never inside a %-Ns width (an escape counted as width would shear the columns).
-# The hues stay in the muted, fog-toned 256-colour range the family already uses.
-if { [ -t 1 ] || [ -n "${CLICOLOR_FORCE:-}" ]; } && [ -z "${NO_COLOR:-}" ]; then
-  C_OFF=$'\033[0m'
-  C_FOG=$'\033[38;5;103m'   # primary accent — the fog itself
-  C_OK=$'\033[38;5;108m'    # sage — current / healthy
-  C_WARN=$'\033[38;5;179m'  # amber — stale / wants attention
-  C_ERR=$'\033[38;5;167m'   # rose — failure
-  C_MUT=$'\033[38;5;245m'   # muted grey — secondary detail
-  C_REPO=$'\033[38;5;110m'  # soft blue — repo names
-else
-  C_OFF=; C_FOG=; C_OK=; C_WARN=; C_ERR=; C_MUT=; C_REPO=
-fi
-
-say()  { printf '%s🌫  %s%s\n' "$C_FOG" "$*" "$C_OFF"; }
-warn() { printf '%s⚠  %s%s\n' "$C_WARN" "$*" "$C_OFF"; }
-die()  { printf '%s✗  %s%s\n' "$C_ERR" "$*" "$C_OFF" >&2; exit 1; }
-# in-section fix nudge — what to run / be aware of, right under what wants it.
-hint() { printf '  %s↳ %s%s\n' "$C_MUT" "$*" "$C_OFF"; }
+# ── Palette + verbs ──────────────────────────────────────────────────────────
+# Both are defined just after ui_load, below: the roles come out of snug's
+# generated palette (share/ui.sh) and the verbs write to fd 2, so the source
+# has to come first. (docs/cli-presentation.md, step 7 — the last open line in
+# its order-of-work table.)
 
 # ── saying it on screen, for the verbs you walk away from ───────────────────
 # `bench release` blocks on a CI run for five to ten minutes and `try-batch`
@@ -337,13 +316,21 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 # bash — no `tput`, no `stty`, no subshell. It is the fork-per-line economy that
 # matters, and this is not a fork at all.
 #
-# ⚠️ It is deliberately sourced but NOT yet drawn through. bench's own palette
-# and `paint_live` stay exactly as they are until step 7 of
-# docs/cli-presentation.md, and the reason is a real difference rather than
-# timidity: ui.sh gates colour on fd 2 and puts every human line there, while
-# bench's `say`/`warn`/`hint` write to fd 1 and gate on it. Repainting through
-# ui.sh without moving the streams would put escapes into `bench status | less`.
-# Step 7 moves both together; this makes it reachable, and nothing more.
+# Step 7 of docs/cli-presentation.md draws through it:
+#   - the roles below are aliases onto snug's GENERATED palette — one source of
+#     hexes (snug's script/gen-palette.sh) instead of four copies of
+#     256-colour indices that had drifted ΔE 2–27 from nebelung.
+#   - the message verbs write to fd 2 — the family stream contract: stdout
+#     carries data only. The gate and the stream moved together, which is why
+#     `bench status | less` stays escape-free without bench carrying its own.
+#   - when `snug` is on PATH and fd 2 is a terminal, ONE coprocess (`snug run`)
+#     serves the whole command: message records and the release watch's live
+#     region, folded and repainted by the Go painter while bench writes
+#     newline-delimited records.
+#
+# The dispatch belongs to bench, not to the library — one fork per COMMAND is
+# the whole economy, and a library sourced per script cannot see the command
+# boundary that decision needs.
 ui_load() {
   local p
   p="$(repo_dir snug)/share/ui.sh"
@@ -352,6 +339,106 @@ ui_load() {
   source "$p"
 }
 ui_load
+
+# ui_READY: did ui.sh load? A machine with bench but no snug checkout — a
+# pre-2026-08 clone — degrades to plain text on fd 2, never dies. (ui.sh sets
+# its own gates — UI_TTY, UI_PROFILE — at load; they must never be assumed.)
+UI_READY=""
+type ui_say >/dev/null 2>&1 && UI_READY=1
+
+# ── palette ──────────────────────────────────────────────────────────────────
+# Role names, not colours. C_* alias snug's nine roles so the status tables
+# keep their printf shape; alignment survives because colour only ever wraps
+# AROUND a pre-padded field, never inside a %-Ns width.
+#
+# The tables still live on fd 1 — they are the report, and `bench status | less`
+# carries them whole — while the message verbs below live on fd 2. Two gates,
+# one palette: the alias gate keys on fd 1, ui.sh's own gate keys on fd 2. (They
+# unify when the tables move to ui.sh; until then a TTY stdout with a redirected
+# stderr draws plain — the one edge this split costs, and it degrades the safe
+# way.)
+C_OFF=; C_OK=; C_WARN=; C_ERR=; C_MUT=; C_REPO=
+if [ -n "$UI_READY" ] && { [ -t 1 ] || [ -n "${CLICOLOR_FORCE:-}" ]; } && [ -z "${NO_COLOR:-}" ]; then
+  C_OFF="${UI_OFF:-}"
+  C_OK="${UI_OK:-}"        # ok — current / healthy
+  C_WARN="${UI_WARN:-}"    # warn — stale / wants attention
+  C_ERR="${UI_ERR:-}"      # err — failure
+  C_MUT="${UI_MUTED:-}"    # muted — secondary detail
+  C_REPO="${UI_SUBJECT:-}" # subject — repo names
+fi
+
+# ── the snug coprocess ───────────────────────────────────────────────────────
+# One `snug run` for the whole command (bash pipes stdin and stdout and leaves
+# stderr on the terminal, which is the split snug wants). Opened lazily on the
+# first line the command draws, so a verb that prints nothing forks nothing.
+# Records are tab-separated, one per line, exactly the grammar in `snug`'s
+# usage. The write end closes when bench exits; snug sees EOF and its defer
+# restores the cursor — no EXIT trap needed here, and an INT takes the
+# coprocess down with the group, same path.
+SNUG_BIN=""
+SNUG_FD=""
+SNUG_PID=""
+SNUG_TRIED=""
+
+snug_open() {
+  [ -n "$SNUG_FD" ] && return 0
+  [ -z "$SNUG_TRIED" ] || return 1
+  SNUG_TRIED=1
+  command -v snug >/dev/null 2>&1 || return 1
+  [ -n "$UI_TTY" ] || return 1        # no terminal on fd 2: plain lines
+  SNUG_BIN="$(command -v snug)"
+  coproc SNUG { "$SNUG_BIN" run; } || return 1
+  SNUG_FD="${SNUG[1]}"   # write end; records go here
+  SNUG_PID="${SNUG[0]}"  # read end, never read by bash
+  return 0
+}
+
+snug_emit() { # snug_emit <verb> <text> — one record; 1 = no coproc, caller falls back
+  local line
+  [ -n "$SNUG_FD" ] || snug_open || return 1
+  # Multi-line text breaks record framing: one record per line. (The Go side
+  # re-joins tab fields, so a tab in prose is safe.)
+  while IFS= read -r line; do
+    # Verb and text are TAB-separated — the record grammar splits on tabs, not
+    # spaces (a space-separated verb never parses).
+    { printf '%s\t%s\n' "$1" "$line" >&"$SNUG_FD"; } 2>/dev/null \
+      || { snug_close; return 1; }
+  done <<<"$2"
+  return 0
+}
+
+snug_end() { # end the live region but keep the coprocess for later lines
+  [ -n "$SNUG_FD" ] || return 0
+  { printf 'end\n' >&"$SNUG_FD"; } 2>/dev/null || true
+  return 0
+}
+
+snug_close() { # everything down: end the region and drop the coprocess
+  [ -n "$SNUG_FD" ] || return 0
+  snug_end
+  eval "exec $SNUG_FD>&-" 2>/dev/null || true
+  wait "$SNUG_PID" 2>/dev/null || true
+  SNUG_FD=""
+  SNUG_PID=""
+  # SNUG_TRIED stays set: a snug that died once stays dead this command. A
+  # re-open attempt per frame would be a fork a frame — the regression the
+  # coprocess exists to prevent. The verb wrappers degrade to ui.sh instead.
+  return 0
+}
+
+# ── the message verbs ────────────────────────────────────────────────────────
+# A record to the coprocess when it is open, ui.sh's line otherwise, plain
+# text when ui.sh never loaded. All three write to fd 2.
+say()  { snug_emit say  "$*" || ui_draw say  "$*"; }
+warn() { snug_emit warn "$*" || ui_draw warn "$*"; }
+die()  { snug_emit fail "$*" || ui_draw fail "$*"; exit 1; }
+# in-section fix nudge — what to run / be aware of, right under what wants it.
+hint() { snug_emit hint "$*" || ui_draw hint "$*"; }
+
+ui_draw() { # ui_draw <verb> <text> — snug's fallback painter, plain text if absent
+  if [ -n "$UI_READY" ]; then "ui_$1" "$2"
+  else printf '%s\n' "$2" >&2; fi
+}
 
 # repo_dir's counterpart: repo_dir maps a name to a LOCAL directory, gh_repo maps
 # the same name to the REMOTE it came from. They agree for most of the family and
@@ -2078,7 +2165,6 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # workflows of its own, so when this run goes green the release IS live —
 # nothing further to chase.
 
-SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 WATCH_FRAME_S=0.1         # one spinner frame — 10 fps, so a 10-glyph cycle = 1s
 WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
 
@@ -2091,8 +2177,9 @@ WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
 # time — so the display is smooth and second-accurate at any poll interval, and
 # the interval is free to be a polite 5s instead of a hammering 1s.
 declare -ga WATCH_ROWS=()
-WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""; WATCH_PAINTED=0
+WATCH_RUN_STATUS=""; WATCH_RUN_CONCL=""
 WATCH_FETCH_PID=""; WATCH_SNAP_FILE=""
+declare -gA WATCH_SEEN=()  # the no-snug path: last state printed per row
 
 # Turn a `gh run view --json status,conclusion,jobs` blob into one
 # state<TAB>name<TAB>detail<TAB>since row per job, plus a trailing RUN row.
@@ -2138,96 +2225,17 @@ for j in d.get("jobs", []):
 print("RUN\t%s\t%s" % (d.get("status") or "", d.get("conclusion") or ""))
 '
 
-# Every glyph is ONE display cell, including the spinner frames — the painter
-# budgets on that, so a future glyph wider than one cell has to be paired with a
-# change to GUTTER below.
-row_glyph() { # row_glyph <var> <state> <frame> — status mark, into <var>
-  case "$2" in
-    run)  printf -v "$1" '%s%s%s' "$C_FOG" "${SPIN[$(( $3 % ${#SPIN[@]} ))]}" "$C_OFF" ;;
-    ok)   printf -v "$1" '%s✓%s' "$C_OK"  "$C_OFF" ;;
-    fail) printf -v "$1" '%s✗%s' "$C_ERR" "$C_OFF" ;;
-    skip) printf -v "$1" '%s–%s' "$C_MUT" "$C_OFF" ;;
-    *)    printf -v "$1" '%s·%s' "$C_MUT" "$C_OFF" ;;
-  esac
-}
+# ── painting a frame ─────────────────────────────────────────────────────────
+# The painter is gone; snug owns the frame. bench resolves each row and hands
+# them over as records to the coprocess, or to ui.sh's live region when there
+# is no binary. Folding, the budget, the tiers, the resize and the cursor all
+# live in snug now — see docs/cli-presentation.md, step 7.
 
-# ── measuring the window ─────────────────────────────────────────────────────
-# The rule the old painter broke: a live region may only move the cursor up by
-# the number of SCREEN lines it used, and the only way to know that number is to
-# make every row fit. A `%-34s` row is 48 cells wide whatever the job is called,
-# so every terminal 48 columns or narrower soft-wrapped it into two screen rows
-# while the repaint moved up by one — the newline spam. The fix is to measure
-# and fold, not to clamp the content and hope. See docs/cli-presentation.md.
-#
-# `tput` forks, so it runs once at start and again only when SIGWINCH says the
-# window actually changed — not 10× a second.
-WATCH_COLS=80; WATCH_RESIZED=0
-GUTTER=6                  # "   " + glyph + "  " — 3-cell family gutter, indented
-
-#
-# NOT `tput cols`: terminfo carries a STATIC size (80 for every xterm-* entry),
-# and ncurses only overrides it from the real window when LINES/COLUMNS are
-# exported. Measured in a 40-column pty, `tput cols` answers 80 — so a painter
-# built on it folds to a width the window hasn't had since 1978. `stty size`
-# asks the kernel (TIOCGWINSZ), which is the only source that tracks a resize.
-# It reads /dev/tty rather than `<&1` because this runs inside `$( )`, where
-# fd 1 is the substitution's pipe and never the terminal.
-# ⚠️ `|| true` inside the LAST substitution, and it is load-bearing under
-# `set -e`. Every command in a `&&`/`||` list is exempt from `set -e` EXCEPT the
-# final one — and `tput` exits 2 with `TERM` unset, which is exactly the shape of
-# a session with no pty (`ssh mac bench rebuild`, a launchd job, CI). Without it
-# the assignment's non-zero status kills the CALLER: measured, the script exits 2
-# with nothing on either stream, and the sanitising `case` below — the line whose
-# whole job is to cope with a bad answer — never runs at all. A width probe that
-# can kill its caller is the worst possible failure mode for a courtesy.
-# haus's phase painter carried the identical line; when snug's shell fallback is
-# written (docs/cli-presentation.md, step 8) it must not inherit it either.
-watch_measure() {
-  local sz
-  sz="$(stty size 2>/dev/null </dev/tty)" && WATCH_COLS="${sz#* }" \
-    || WATCH_COLS="$(tput cols 2>/dev/null || true)"
-  case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS="${COLUMNS:-80}" ;; esac
-  case "$WATCH_COLS" in ''|*[!0-9]*) WATCH_COLS=80 ;; esac
-  WATCH_RESIZED=1
-}
-
-# Repaint every row in place. Colour lives OUTSIDE the %-*s width (an escape
-# counted as width shears the column), same discipline as cmd_status.
-#
-# Everything in here is a builtin on purpose: this runs 10× a second, and a
-# `$(date)` or `$(dur …)` per row per frame would be a few hundred forks a
-# minute just to draw a clock. `row_glyph` writes into a variable rather than
-# being called in `$( )` for the same reason — that command substitution was
-# one fork per row per frame, thirty a second, in the loop whose own comment
-# said everything here was a builtin.
-paint_live() { # paint_live <frame>
-  local row state name detail since now secs glyph namew avail widest detailw detailed gut rows
-
-  # A resize reflows whatever is already on screen in ways we cannot model, so
-  # don't try: drop to column 0, wipe everything below, and paint the next frame
-  # fresh. `[J` clears from the cursor DOWN, so the pre-resize block stays where
-  # it is and the new one lands under it — one stale copy on screen, and nothing
-  # after it corrupt. Wiping upward would take real scrollback with it.
-  if [ "$WATCH_RESIZED" -eq 1 ]; then
-    printf '\r\033[J'; WATCH_PAINTED=0; WATCH_RESIZED=0
-  fi
+watch_rows_resolve() { # watch_rows_resolve <array-name> — WATCH_ROWS with live clocks
+  local -n dest="$1"
+  local row state name detail since now secs
 
   now="${EPOCHSECONDS:-$(date +%s)}"        # bash ≥5 has it free; older forks once
-  [ "$WATCH_PAINTED" -gt 0 ] && printf '\033[%dA' "$WATCH_PAINTED"
-  WATCH_PAINTED=0
-
-  # Never write into the last column: a line whose width EQUALS the terminal's
-  # leaves the cursor past the edge and the terminal wraps it anyway. That is
-  # why the old row broke at exactly 48 as well as below it.
-  avail=$(( WATCH_COLS - 1 ))
-
-  # ── one pass to resolve every row, one to draw them ────────────────────────
-  # Resolve first because the budget depends on the RESOLVED text: a running
-  # job's duration is re-derived here every frame, so its width isn't known until
-  # it is. Both loops are builtins only — this runs 10× a second, and a `$(date)`
-  # or `$(dur …)` per row per frame would be a few hundred forks a minute just to
-  # draw a clock.
-  widest=0; detailw=0; rows=()
   for row in "${WATCH_ROWS[@]}"; do
     IFS=$'\t' read -r state name detail since <<<"$row"
     # A running job's clock is OURS, not the snapshot's — otherwise the seconds
@@ -2242,65 +2250,60 @@ paint_live() { # paint_live <frame>
         then printf -v detail '%dm %02ds' $((secs / 60)) $((secs % 60))
         else printf -v detail '%ds' "$secs"; fi
     fi
-    [ "${#name}" -gt "$widest" ] && widest="${#name}"
-    [ "${#detail}" -gt "$detailw" ] && detailw="${#detail}"
-    rows+=("$state"$'\t'"$name"$'\t'"$detail")
+    # A tab would shift the record's fields; GitHub job names don't carry them,
+    # but if one ever does it shears one cell, not the frame.
+    name="${name//$'\t'/ }"
+    detail="${detail//$'\t'/ }"
+    dest+=("$state"$'\t'"$name"$'\t'"$detail")
   done
-  [ "$widest" -gt 34 ] && widest=34     # one verbose job can't push durations right
-
-  # ── the budget ─────────────────────────────────────────────────────────────
-  # Decided ONCE, before drawing: a per-row decision would let a narrow row's
-  # budget leak into the next row and re-widen it past the edge.
-  #
-  # The tier is chosen from the WINDOW, then the column is clamped to the
-  # content — never the other way round. Clamping first and then testing the
-  # clamped value asks "is the longest name short?" when it means "is there
-  # room?", and a CI run of `build`/`test`/`lint` would drop its durations on a
-  # 200-column terminal.
-  #
-  # `detailw` is measured, not assumed: a job past 100 minutes renders "100m 05s"
-  # — 8 cells where a hardcoded 7 would have overflowed the edge, which is the
-  # very bug this painter exists to stop.
-  gut="$GUTTER"; detailed=1
-  namew=$(( avail - GUTTER - detailw - 1 ))
-  if [ "$namew" -ge 8 ] && [ "$detailw" -gt 0 ]; then
-    [ "$namew" -gt "$widest" ] && namew="$widest"
-  else
-    # Too narrow to align two columns — or nothing to align. The job's name is
-    # the load-bearing half, so the duration is what goes, and so is the padding
-    # that made it a table.
-    detailed=0
-    [ "$avail" -lt 12 ] && gut=2                  # bare: no indent, one space
-    namew=$(( avail - gut ))
-    [ "$namew" -gt "$widest" ] && namew="$widest"
-    # Under four columns there is no room for a name at all; the glyph alone is
-    # still true. Clamping namew up to 1 here instead would overflow the edge —
-    # the exact class of bug this whole painter exists to stop.
-    [ "$namew" -lt 1 ] && { namew=0; gut=1; }
-  fi
-
-  for row in "${rows[@]}"; do
-    IFS=$'\t' read -r state name detail <<<"$row"
-    row_glyph glyph "$state" "$1"
-    # Truncate INSIDE the field so the duration column stays put.
-    [ "$namew" -gt 0 ] && [ "${#name}" -gt "$namew" ] && name="${name:0:$((namew - 1))}…"
-
-    if [ "$detailed" -eq 1 ]; then
-      printf '\033[2K   %s  %s%-*s%s %s%s%s\n' \
-        "$glyph" "$C_REPO" "$namew" "$name" "$C_OFF" "$C_MUT" "$detail" "$C_OFF"
-    elif [ "$namew" -eq 0 ]; then
-      printf '\033[2K%s\n' "$glyph"
-    elif [ "$gut" -eq 2 ]; then
-      printf '\033[2K%s %s%s%s\n' "$glyph" "$C_REPO" "$name" "$C_OFF"
-    else
-      printf '\033[2K   %s  %s%s%s\n' "$glyph" "$C_REPO" "$name" "$C_OFF"
-    fi
-    WATCH_PAINTED=$((WATCH_PAINTED + 1))
-  done
-  # Wipe anything a taller previous frame left below us (a job list can shrink
-  # when a snapshot arrives late, and a narrower window can drop a row).
-  printf '\033[J'
+  return 0
 }
+
+watch_paint() { # watch_paint — one frame: resolve the rows and hand them to snug
+  local -a rows=()
+  local r state name detail g
+
+  # The release watch IS the live region, so this is where the coprocess opens
+  # — one fork per command, on the first frame.
+  snug_open || true
+
+  watch_rows_resolve rows
+
+  if [ -n "$SNUG_FD" ]; then
+    for r in "${rows[@]}"; do
+      IFS=$'\t' read -r state name detail <<<"$r"
+      { printf 'row\t%s\t%s\t%s\n' "$state" "$name" "$detail" >&"$SNUG_FD"; } 2>/dev/null \
+        || { snug_close; return 1; }
+    done
+    { printf 'paint\n' >&"$SNUG_FD"; } 2>/dev/null \
+      || { snug_close; return 1; }
+  elif [ -n "$UI_READY" ]; then
+    # The fallback painter — same spec, lower fidelity.
+    ui_clear
+    for r in "${rows[@]}"; do
+      IFS=$'\t' read -r state name detail <<<"$r"
+      ui_row "$state" "$name" "$detail"
+    done
+    ui_paint
+  else
+    # No snug anywhere: one plain line per state change, glyphs carry the
+    # meaning, no colour. WATCH_SEEN is global — it must survive across frames.
+    for r in "${rows[@]}"; do
+      IFS=$'\t' read -r state name detail <<<"$r"
+      [ "${WATCH_SEEN[$name]:-}" = "$state" ] && continue
+      WATCH_SEEN[$name]="$state"
+      case "$state" in
+        ok)   g='✓' ;;
+        fail) g='✗' ;;
+        skip) g='–' ;;
+        *)    g='·' ;;
+      esac
+      printf '   %s  %s (%s)\n' "$g" "$name" "$detail" >&2
+    done
+  fi
+  return 0
+}
+
 
 # ── the background poll ───────────────────────────────────────────────────────
 # `gh run view` takes anywhere from 200ms to well over a second, and blocking the
@@ -2349,30 +2352,24 @@ release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiti
 }
 
 watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends; 0 iff green
-  local repo="$1" id="$2" frame=0 row state name detail glyph now polled=0
-  # Live redraw only on a TTY — piped, in CI, or under bats we print one plain
-  # line per state CHANGE, so a log stays readable and no cursor escape ever
-  # reaches a file. (Motion, unlike colour, isn't gated on NO_COLOR: a spinner
-  # on a no-colour terminal is still the thing you want to see.)
-  local live=""; [ -t 1 ] && live=1
-  declare -A seen=()
+  local repo="$1" id="$2" now polled=0
+  # Live redraw only when stderr is a terminal — piped, in CI, or under bats
+  # watch_paint degrades to one plain line per state CHANGE, so a log stays
+  # readable and no cursor escape ever reaches a file. (Motion, unlike colour,
+  # isn't gated on NO_COLOR: a spinner on a no-colour terminal is still the
+  # thing you want to see.)
+  local live=""; [ -n "$UI_TTY" ] && live=1
 
   WATCH_SNAP_FILE="$(mktemp "${TMPDIR:-/tmp}/bench-watch.XXXXXX")"
+  # Restore state however we leave — a terminal left with no cursor is the
+  # worst thing a spinner can do to you. The cursor itself is snug's to keep:
+  # ui_live_open chains these traps when the fallback painter takes the region,
+  # and the coprocess sees EOF when bench exits and closes through its own
+  # defer. EXIT (not RETURN): under `set -e` a losing run terminates the shell
+  # outright rather than returning, and a RETURN trap never fires on that path.
+  trap 'watch_cleanup' EXIT
   if [ -n "$live" ]; then
-    # Measure once, then only when the window actually changes. bash delivers
-    # SIGWINCH to a script between commands, so the trap fires the moment the
-    # frame `sleep` returns — a tenth of a second, which reads as instant.
-    watch_measure; WATCH_RESIZED=0
-    trap 'watch_measure' WINCH
-    printf '\033[?25l'                                   # hide the cursor while we repaint
-    # Restore it however we leave, including Ctrl-C — a terminal left with no
-    # cursor is the worst thing a spinner can do to you. EXIT (not RETURN):
-    # under `set -e` a losing run terminates the shell outright rather than
-    # returning, and a RETURN trap never fires on that path.
-    trap 'printf "\033[?25h"; watch_cleanup' EXIT
-    trap 'printf "\033[?25h\n"; watch_cleanup; warn "still running on CI — bench release does not cancel it."; exit 130' INT
-  else
-    trap 'watch_cleanup' EXIT
+    trap 'watch_cleanup; warn "still running on CI — bench release does not cancel it."; exit 130' INT
   fi
 
   while :; do
@@ -2390,28 +2387,28 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
       watch_absorb
     fi
 
-    if [ -n "$live" ]; then
-      paint_live "$frame"
-    else
-      for row in "${WATCH_ROWS[@]}"; do
-        IFS=$'\t' read -r state name detail _ <<<"$row"
-        [ "${seen[$name]:-}" = "$state" ] && continue
-        seen[$name]="$state"
-        row_glyph glyph "$state" 0
-        printf '   %s  %s (%s)\n' "$glyph" "$name" "$detail"
-      done
-    fi
+    # A dying coprocess must not kill the loop: snug_close degrades the verbs,
+    # and the next frame paints through ui.sh.
+    watch_paint || true
 
     [ "$WATCH_RUN_STATUS" = "completed" ] && break
 
     if [ -n "$live" ]; then
-      frame=$((frame + 1)); sleep "$WATCH_FRAME_S"
+      sleep "$WATCH_FRAME_S"               # keep the spinner turning between polls
     else
-      sleep "$WATCH_POLL_S"                 # no animation to keep alive, so just wait
+      sleep "$WATCH_POLL_S"                # no animation to keep alive, so just wait
     fi
   done
 
-  if [ -n "$live" ]; then printf '\033[?25h'; fi
+  # Close the region: the final frame stays in scrollback, the cursor comes
+  # back, and later say lines (the checklist) render above nothing. The
+  # coprocess itself stays up — one fork per command — until bench exits.
+  snug_end
+  # ui.sh's region closer exists only if ui.sh loaded — on a machine with no
+  # snug checkout it never did, and an unguarded call here would exit 127 at
+  # the END of a ten-minute watch, after CI already went green. The degrade
+  # must cost the caller nothing, same shape as the width probe's guard.
+  if [ -n "$UI_READY" ]; then ui_live_close; fi
   trap - EXIT INT WINCH
   watch_cleanup
   [ "$WATCH_RUN_CONCL" = "success" ]
