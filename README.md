@@ -46,6 +46,7 @@ git clone https://github.com/hausfold/workshop && cd workshop
 ./bench try            # build your real machine against the LOCAL checkouts
 ./bench try switch     # …and run it, for real (still nothing pushed)
 ./bench ship           # push upstream→downstream, updating each lock on the way
+./bench ship pounce    # …narrowed to pounce + whatever consumes it, other edges untouched
 ```
 
 `try` is the one that earns the repo. It builds your actual machine config out

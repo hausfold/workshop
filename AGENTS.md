@@ -28,13 +28,15 @@ Per-client wiring lives in that client's own file; the content stays here or in
 > **`_bench` is a hand copy and can rot.** It reaches fpath by
 > `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench` (haus's terminal room
 > prepends that dir); `exec zsh` reloads it. Its subcommand descriptions must
-> follow `bench`'s own usage header (`bench:2-50`). Only `FAMILY` and
+> follow `bench`'s own usage header (`bench:2-54`). Only `FAMILY` and
 > `OVERRIDABLE` are drift-proof — `_bench` seds those two single-line arrays out
 > of the script at completion time. **They are no longer the same list**: trill
 > and snug are both overridable without being family, so a completion that reads
 > one where it means the other is now wrong rather than merely fragile.
 > Everything else is copied by hand: `pull`'s seven repos bench doesn't walk
 > (they are no longer "the non-flake ones" — trill and snug are inputs),
+> `ship`'s three extras (trill, snug, consumer — `LOCK_ONLY` is derived from
+> `EDGES` at runtime, so no sed can read it out),
 > `release`'s five repos (the arms of `version_file`),
 > `docs-since`'s six non-family repos (`DOCS_REPOS` is composed from `FAMILY`,
 > so the sed reads the nested expansion back literal and can't be used), and the
@@ -101,7 +103,10 @@ The repos form a chain of pinned flake inputs. The spine is
 are inputs of `haus` too, as is `nebelung` a second time, directly. That is
 **eight** lock edges, enumerated in `bench`'s `EDGES`, not the three the spine
 suggests. A commit — even a pushed one — is **invisible downstream** until each
-downstream `flake.lock` is updated. Never hand-walk that ripple; the tooling does it:
+downstream `flake.lock` is updated. Never hand-walk that ripple — and never
+*suggest* hand-walking it to the user either, in a report, a wrap-up or a
+"next step" (see the first rule under **Rules for working here**); the tooling
+does it:
 
 - `./bench status` — leads with **what this machine is actually running** (the
   pinned build, or the local branches a `try switch` put on it), then every
@@ -157,7 +162,7 @@ downstream `flake.lock` is updated. Never hand-walk that ripple; the tooling doe
   create`. Advisory, refuses nothing; exit 0 clear · 3 same file · 4 same
   region. Flow: [`.agents/skills/earshot/SKILL.md`](./.agents/skills/earshot/SKILL.md),
   reachable as `/earshot`.
-- `./bench ship` — after commits exist: fast-forwards every checkout to origin
+- `./bench ship [repo…]` — after commits exist: fast-forwards every checkout to origin
   first (a merged PR leaves the local main behind, and a lock bump computed from
   a stale HEAD pins the pre-merge rev while reporting success), then pushes
   upstream→downstream, running `nix flake update` + a lock-bump commit at each
@@ -165,7 +170,12 @@ downstream `flake.lock` is updated. Never hand-walk that ripple; the tooling doe
   edge didn't move. An edge that won't move gets three `--refresh` attempts, 5s
   apart: `github:` with no ref resolves the default branch through
   api.github.com, whose answer is edge-cached for a few seconds. A rev that
-  isn't on the upstream's `origin/main` at all fails fast.
+  isn't on the upstream's `origin/main` at all fails fast. Named repos narrow
+  the whole verb to just them plus their downstream closure along `EDGES` —
+  `bench ship pounce` pushes pounce, bumps + pushes haus and the machine
+  config (the repos that consume it), and leaves other stale edges alone.
+  (`bench pull [repo…]` narrows the same way, without a closure — pulling one
+  repo affects nobody downstream.)
 
 **Iterating on a terminal edit costs nothing — just `bench try switch`.**
 Ghostty watches its own config and applies new keybinds, theme and options to
@@ -375,6 +385,23 @@ for building or switching.
 
 ## Rules for working here
 
+- **Speak in the family's verbs — in what you SUGGEST, not just in what you
+  run.** Every command you hand the user (a "Need from you" step, a wrap-up, a
+  PR body's Verify block) is the wrapper, never the raw incantation underneath:
+  the lock ripple is `bench ship` (or `bench ship <repo>` for one repo's
+  downstream), catching checkouts up is `bench pull [repo…]`, this machine's
+  pinned rebuild is `bench rebuild`, feeling a branch is `bench try [switch]`,
+  and on a haus machine the day-to-day is the `haus` CLI (`haus update`,
+  `haus rebuild`, `haus rollback`). Suggesting `nix flake update <input>` +
+  rebuild where a verb exists is the same bug as hand-walking the ripple — the
+  raw command skips the verb's guards (ship's fast-forward-then-verify,
+  OFF-MAIN detection, rebuild's build-before-switch) and teaches the reader
+  the wrong habit. Raw `nix` / `darwin-rebuild` / per-repo `git` belongs in a
+  suggestion only when no verb covers the operation, and then say so in the
+  same line ("no wrapper for this"). For an **end user of haus** (a machine
+  with no workshop checkout), `haus` is the ONLY vocabulary: a step it cannot
+  express is a missing `haus` verb to report as a gap, never a nix command to
+  paste at them.
 - **Verify by actually running it.** `./bench try` to build, then `./bench try
   switch` to activate — testing in prod is the house style and `darwin-rebuild`
   is passwordless, so drive the whole loop yourself **from a main checkout**.

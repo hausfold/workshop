@@ -227,7 +227,12 @@ chain:
 
 ```bash
 bench ship           # push upstream→downstream, nix flake update + lock-bump commit per hop
+bench ship <repo>    # the same, narrowed to <repo> + its downstream closure — other stale edges stay put
 ```
+
+Either spelling is the ripple — never hand-walk it, and never *suggest*
+hand-walking it (`nix flake update <input>` + commit per repo) in the report:
+the verb carries the fast-forward-then-verify guards the raw commands don't.
 
 `bench ship` is allowed from a worktree (standing permission) — it only pushes
 already-committed/merged work and operates on the MAIN checkouts, never your branch and
