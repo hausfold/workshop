@@ -17,9 +17,14 @@
 #            edges never sit stale overnight.
 #   ci       the latest completed run on each repo's main; red → a CI-RED
 #            line (the foreman's cue to spawn a capped fixer lane) and a
-#            trill fault card. A run it could not READ is `ci-unknown`, not
-#            silence — see the block itself for why that distinction is the
-#            difference between a quiet night and an unreported one.
+#            trill fault card.
+#
+# Four lines say the pass could not SEE, and none of them means "nothing to
+# report": `prs-unknown` (a repo's open PRs unlistable), `tier-unknown` (one
+# PR unjudgeable — distinct from `queued`, which is a judged refusal),
+# `ci-unknown` (a main whose latest run is unreadable), and a non-zero
+# `pass ABORTED` (no repo list, so nothing was sensed at all). Silence is a
+# claim, and here it is only ever the claim that something was looked at.
 #
 # Every line is appended to $STATE_DIR/shift-YYYYMMDD.log — the morning
 # report is that file, not a memory of it. Deterministic on purpose: no
@@ -38,6 +43,16 @@ notify() { # notify <kind> <title> [url]
   command -v trill >/dev/null 2>&1 || return 0
   trill send --source factory --kind "$1" --title "$2" ${3:+--url "$3"} >/dev/null 2>&1 || true
 }
+# One event is one line in the log, so anything quoted into one has to become
+# one: a `gh` error is often several, and a wrapped line stops `grep`ing as an
+# event. Truncated because the discriminating part of these messages is at the
+# front (`connection reset by peer`, `HTTP 403`, `Bad credentials`).
+oneline() { printf '%s' "$*" | tr '\n\t' '  ' | tr -s ' ' | cut -c1-160; }
+# Where a failed command's stderr is parked long enough to be quoted into its
+# own log line. Under $STATE_DIR rather than mktemp so a killed pass leaves it
+# beside the log it belongs to instead of in the system temp dir.
+ERRF="$STATE_DIR/.stderr.$$"
+trap 'rm -f "$ERRF"' EXIT
 
 # ── budget ────────────────────────────────────────────────────────────────────
 # Written by haus's modules/ai/statusline-refresh.sh (the aiusage pill's
@@ -76,9 +91,14 @@ merged=0
 # rule the budget block above already states about itself: degrade to a
 # stated unknown, never to an answer that happens to parse. A pass that
 # sensed nothing exits non-zero so the foreman cannot read it as a clean one.
-if ! repos=$(gh repo list hausfold --no-archived --limit 50 --json name -q '.[].name'); then
-  say "pass ABORTED: could not list hausfold's repos — nothing was sensed or merged"
-  notify fault "factory: pass aborted, GitHub unreachable"
+if ! repos=$(gh repo list hausfold --no-archived --limit 50 --json name -q '.[].name' 2>"$ERRF"); then
+  say "pass ABORTED: hausfold's repos could not be listed: $(oneline "$(cat "$ERRF")")"
+  # This one DOES card, where ci-unknown does not, and the asymmetry is the
+  # blast radius rather than the cause: ci-unknown is one repo unseen in a
+  # pass that otherwise ran, and this is the whole pass dead. The title says
+  # what happened, not why — a rate limit, an expired token and a dropped
+  # connection all arrive here and only the log line tells them apart.
+  notify fault "factory: pass aborted, no repos listed"
   exit 1
 fi
 if [ -z "$repos" ]; then
@@ -87,44 +107,67 @@ if [ -z "$repos" ]; then
   exit 1
 fi
 for repo in $repos; do
-  while IFS=$'\t' read -r num title; do
-    [ -n "$num" ] || continue
-    if verdict=$("$ROOT/script/factory-tier" "$repo" "$num" 2>&1); then
-      if [ "$dry" = 1 ] || [ "$lease_live" = 0 ]; then
-        tag=""; [ "$lease_live" = 0 ] && tag=" (no lease)"
-        say "would-merge: $repo#$num $title$tag"
-      # Pinned to the head SHA the verdict was computed on: a push landing in
-      # the gap makes the merge fail closed to merge-failed, not ride in.
-      elif gh pr merge "$num" -R "hausfold/$repo" --squash \
-        --match-head-commit "${verdict##*head=}" >/dev/null 2>&1; then
-        say "merged: $repo#$num $title"
-        merged=$((merged + 1))
-      else
-        say "merge-failed: $repo#$num — left open"
-      fi
-    else
-      say "queued: $repo#$num $title — ${verdict#tier: not-1 — }"
-    fi
-  done < <(gh pr list -R "hausfold/$repo" -L 100 --json number,title -q '.[] | [.number, .title] | @tsv')
+  # Listed into a variable rather than iterated through `< <(gh pr list …)`,
+  # because a process substitution's exit status is unreachable: a failed
+  # listing yields zero iterations, and a repo whose PRs were never read is
+  # then indistinguishable from a repo with none open. An empty list is a
+  # fact; an unreadable one is a gap in the pass.
+  if pr_rows=$(gh pr list -R "hausfold/$repo" -L 100 --json number,title \
+    -q '.[] | [.number, .title] | @tsv' 2>/dev/null); then
+    while IFS=$'\t' read -r num title; do
+      [ -n "$num" ] || continue
+      # factory-tier's contract is 0 tier-1 · 3 refused-with-a-reason · 2
+      # usage, and anything else is `set -e` aborting inside it — most often
+      # on a `gh` call. Those are three answers, not two. "Refused" and
+      # "could not be judged" collapsing into one `queued:` line is the
+      # expensive one: the nightshift skill tells the foreman that queued
+      # rows need nothing because they are the morning's by design, so a PR
+      # nobody managed to sense gets filed as one nobody needs to look at.
+      verdict=$("$ROOT/script/factory-tier" "$repo" "$num" 2>&1); tier_rc=$?
+      case "$tier_rc" in
+      0)
+        if [ "$dry" = 1 ] || [ "$lease_live" = 0 ]; then
+          tag=""; [ "$lease_live" = 0 ] && tag=" (no lease)"
+          say "would-merge: $repo#$num $title$tag"
+        # Pinned to the head SHA the verdict was computed on: a push landing
+        # in the gap makes the merge fail closed to merge-failed, not ride in.
+        elif gh pr merge "$num" -R "hausfold/$repo" --squash \
+          --match-head-commit "${verdict##*head=}" >/dev/null 2>&1; then
+          say "merged: $repo#$num $title"
+          merged=$((merged + 1))
+        else
+          say "merge-failed: $repo#$num — left open"
+        fi
+        ;;
+      3) say "queued: $repo#$num $title — ${verdict#tier: not-1 — }" ;;
+      *) say "tier-unknown: $repo#$num $title — not judged: $(oneline "$verdict")" ;;
+      esac
+    done <<<"$pr_rows"
+  else
+    say "prs-unknown: $repo — its open PRs could not be listed this pass"
+  fi
 
   # cancelled is deliberately not red: concurrency groups cancel superseded
   # runs on every push, and a fixer lane for those would chase ghosts.
   #
   # The exit status is read apart from the value, because three unrelated
-  # things used to arrive here as an empty `conclusion` and all three were
-  # equally silent: a run still going (nothing to say yet), a repo with no
-  # runs at all (homebrew-tap — same), and **the query itself failing**, which
-  # is the shift going blind on this repo for the pass. That last one is not
-  # hypothetical: measured 2026-08-29, four `connection reset by peer` and one
-  # `http2: client conn could not be established` against api.github.com
-  # across three consecutive passes. Silence has to mean "looked, and it is
-  # not red", or a red main inside a flaky window is reported by omission —
-  # and reporting a red main is the whole reason this block exists.
+  # things arrive as an empty `conclusion` and only one of them is news: a run
+  # still going (nothing to say yet), a repo with no workflow runs at all
+  # (homebrew-tap, .github, scruff-swift — same), and the query failing, which
+  # is the shift blind on this repo for the pass. Silence has to mean "looked,
+  # and it is not red", or a red main inside a flaky window is reported by
+  # omission, and reporting a red main is the whole reason this block exists.
   #
-  # `ci-unknown` is a log line and not a trill card on purpose: one blip is
-  # noise, and it is the foreman that decides whether a repeat is a story.
+  # ⚠️ A repo with Actions DISABLED lands here too: `gh run list` exits 1 on
+  # its 404 rather than returning an empty list, so that repo would be
+  # `ci-unknown` on every pass forever. None of hausfold's are today. If one
+  # ever is, the answer is an arm that recognises the 404, not a wider `||`.
+  #
+  # `ci-unknown` carries the reason and draws no trill card: one blip is noise,
+  # a rate limit or an expired token is not, and the log is what lets the
+  # foreman tell them apart.
   if run_row=$(gh run list -R "hausfold/$repo" -b main -L1 \
-    --json conclusion,url -q '.[] | [.conclusion, .url] | @tsv' 2>/dev/null); then
+    --json conclusion,url -q '.[] | [.conclusion, .url] | @tsv' 2>"$ERRF"); then
     read -r conclusion url <<<"$run_row"
     case "${conclusion:-}" in
     failure | timed_out | startup_failure)
@@ -133,7 +176,7 @@ for repo in $repos; do
       ;;
     esac
   else
-    say "ci-unknown: $repo — main's latest run could not be read this pass"
+    say "ci-unknown: $repo — main's latest run not read: $(oneline "$(cat "$ERRF")")"
   fi
   conclusion=""; url=""
 done
@@ -149,5 +192,8 @@ if [ "$merged" -gt 0 ] && [ "$dry" = 0 ]; then
 fi
 
 say "pass done: $merged merged"
+# `done` is quoted only because shellcheck reads it as a loop terminator
+# (SC1010) otherwise; it is a reserved word in command position alone, so
+# nothing was ever broken here.
 [ "$merged" -gt 0 ] && notify "done" "factory: merged $merged tier-1 PR(s)"
 exit 0

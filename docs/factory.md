@@ -29,25 +29,34 @@ verdict and reason land in the shift log, and the PR waits where it always has.
 
 ## A pass that cannot see
 
-The shift's product is a log somebody reads instead of having watched, so its
-worst failure is not a crash. It is a pass that sensed nothing, said nothing
-about that, and ended on a line indistinguishable from a quiet night.
+The shift's product is a log somebody reads instead of having watched, so
+**silence in it is a claim** — the claim that something was looked at and was
+fine. Four lines exist so that claim is never made on the shift's behalf by a
+step that failed:
 
-Two paths did exactly that. `gh run list` failing left `conclusion` empty, which
-is also what a still-running job and a repo with no workflows look like, so the
-`case` fell through and the repo's `main` went unreported — including when it
-was red. And `gh repo list` failing left the loop with nothing to iterate, so
-every repo went unchecked and the pass still printed `pass done: 0 merged`.
+| line | what could not be seen | exit |
+|---|---|---|
+| `prs-unknown: <repo>` | that repo's open PRs would not list, so none of them was judged this pass | 0 |
+| `tier-unknown: <repo>#<n>` | `factory-tier` returned neither 0 nor 3, so this PR has no verdict. **Distinct from `queued`,** which is a verdict: a named refusal | 0 |
+| `ci-unknown: <repo>` | that repo's latest `main` run would not read, so it is not known to be green | 0 |
+| `pass ABORTED` | the org listing failed or came back empty, so nothing was sensed at all | **non-zero** |
 
-Both now say so: `ci-unknown: <repo>` for the first, a non-zero `pass ABORTED`
-for the second. `ci-unknown` is a log line rather than a trill card, because one
-blip is noise and it is the foreman that decides whether a repeat is a story.
+Each carries the failing command's first line of stderr, because the foreman's
+only judgement here is whether a repeat is a story, and a rate limit, an expired
+token and a dropped connection are the same line without it.
 
-This is the rule the budget block already stated about itself — degrade to a
-named unknown, never to an answer that happens to parse — applied to the half
-that reports on other people's CI. `test/factory-shift.bats` stubs `gh` and
-pins all of it, including the two controls that must NOT change: a green main
-still says nothing, and a red one still says `CI-RED`.
+`pass ABORTED` is the one that draws a trill card, and the asymmetry is blast
+radius rather than cause: the other three are one repo or one PR unseen inside a
+pass that otherwise ran, and this is the whole pass dead. Nothing about it
+weakens *the failure mode is the status quo* — an aborted pass merges nothing
+and leaves every PR where it was, which is the same place a revoked lease leaves
+them.
+
+The rule is the one the budget line already states about itself: degrade to a
+named unknown, never to an answer that happens to parse.
+`test/factory-shift.bats` stubs `gh`, `trill` and `factory-tier` and pins all of
+it, including three controls that must not move — a green main says nothing, a
+red one says `CI-RED`, and a judged refusal is still `queued` with its reason.
 
 ## The budget governor
 

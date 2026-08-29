@@ -4,11 +4,11 @@
 #
 # This is the gate the repo was missing: nothing checked behavior before.
 #
-# The factory scripts joined it because the thing that goes wrong with them is
-# not a crash. `factory-shift` runs unattended and its product is a log read
-# hours later, so its worst failure is a pass that could not see and said
-# nothing — output identical to a quiet night. `test/factory-shift.bats`
-# stubs `gh` to make exactly those passes observable.
+# The factory scripts are here because what goes wrong with them is not a
+# crash. `factory-shift` runs unattended and its product is a log read hours
+# later, so its worst output is a pass that could not see and said nothing,
+# which reads exactly like a quiet night. `test/factory-shift.bats` stubs
+# `gh`, `trill` and `factory-tier` so those passes are observable.
 #
 # `lib/ui.sh` was here too until 2026-08-27 and is now hausfold/snug's
 # `share/ui.sh`, tested by snug's own `bash` job. It moved because `haus.sh` is
