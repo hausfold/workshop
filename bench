@@ -1152,12 +1152,53 @@ branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
 # workshop dir (family or not: trill, hausfold.co, the workshop itself) plus
 # the host config. scruff's registry is machine-wide, so a lane in someone
 # else's repo is correctly none of bench's business.
-lane_rows() { # lane_rows — repo \t branch \t checkout \t lane-name, one per lane
+# A lane whose parent is not its own main checkout was spawned FROM a pane —
+# `scruff child` reaching into a second repo, or ⌘↵ pressed inside another
+# lane. Those rows are indented under the lane that made them rather than
+# dropped: the branch is that lane's own, it gets its own PR, and closing the
+# parent's pane does not reap it, so this table is where it has to stay
+# visible. `scruff` nests the same way, for the same reason.
+lane_rows() { # lane_rows — repo \t branch \t checkout \t lane-name \t depth,
+              # one per lane, each spawned lane directly under its parent
   [ -f "$WT_REGISTRY" ] || return 0
   awk -F'\t' -v ws="$ROOT" -v under="$ROOT/" -v consumer="$CONSUMER" '
+    function walk(i, d,   parts, j, m) {
+      if (done[i]) return          # only a corrupt registry can loop; do not spin
+      done[i] = 1
+      print main[i] "\t" br[i] "\t" wt[i] "\t" nm[i] "\t" d
+      m = split(kids[i], parts, " ")
+      for (j = 1; j <= m; j++) walk(parts[j], d + 1)
+    }
     NF >= 4 && ($2 == ws || $2 == consumer || index($2, under) == 1) {
-      print $2 "\t" $3 "\t" $4 "\t" $1
+      n++; nm[n] = $1; main[n] = $2; br[n] = $3; wt[n] = $4; par[n] = $5
+      idx[$4] = n
+    }
+    END {
+      for (i = 1; i <= n; i++) {
+        p = par[i]
+        # A plain lane parents to its OWN main checkout — that is not a spawn.
+        # A parent outside this filter (a repo bench does not walk) leaves the
+        # row at the top level rather than hiding it under something unlisted.
+        if (p == "" || p == main[i] || !(p in idx) || idx[p] == i) continue
+        spawned[i] = 1
+        kids[idx[p]] = kids[idx[p]] " " i
+      }
+      for (i = 1; i <= n; i++) if (!spawned[i]) walk(i, 0)
+      for (i = 1; i <= n; i++) walk(i, 0)   # a cycle tail: listed, never lost
     }' "$WT_REGISTRY"
+}
+branch_cell() { # branch_cell <depth> <branch> — a 32-COLUMN cell, a spawned
+                # lane indented under its parent. Hand-padded for the same
+                # reason dirty_cell is: `└` is three bytes and one column, so
+                # %-32s would come up two short on every indented row.
+  local d="$1" b="$2" pfx="" cols=32
+  if [ "$d" -ge 1 ]; then
+    printf -v pfx '%*s└ ' "$(( (d - 1) * 2 ))" ''
+    cols=$(( 32 - d * 2 ))
+    [ "$cols" -lt 8 ] && cols=8
+  fi
+  [ "${#b}" -gt "$cols" ] && b="${b:0:cols-1}…"
+  printf '%s%s%*s' "$pfx" "$b" "$(( cols - ${#b} ))" ''
 }
 dirty_cell() { # dirty_cell <dirty|·> — a six-COLUMN cell; printf pads by bytes,
                # and `·` is two bytes wide but one column, so %-6s comes up short.
@@ -1178,18 +1219,19 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   # The rows are scruff's registry (lane_rows), never `git worktree list`. Live
   # lanes print first, then stale branches, then parked lanes — a registry row
   # whose checkout scruff removed, which is a resumable session, not a leak.
-  local wt_lines="" parked_lines="" any_stale=0 any_lane=0
-  local repo branch wt lane_name
-  while IFS=$'\t' read -r repo branch wt lane_name; do
+  local wt_lines="" parked_lines="" any_stale=0 any_lane=0 any_spawned=0
+  local repo branch wt lane_name depth
+  while IFS=$'\t' read -r repo branch wt lane_name depth; do
     [ -n "$repo" ] || continue
+    [ "${depth:-0}" -gt 0 ] && any_spawned=1
     local label repo_c; label="$(lane_label "$repo")"; printf -v repo_c '%-12s' "$label"
     # Lane names are long by design (they carry a uniquifying suffix), so clamp
     # like status_running does — one name must not shear the whole table.
-    [ "${#branch}" -gt 32 ] && branch="${branch:0:31}…"
+    # branch_cell owns the clamp now, because the width an indented row has
+    # left is smaller than 32.
     if [ -d "$wt" ]; then
       any_lane=1
       branch="$(wt_branch "$wt")"
-      [ "${#branch}" -gt 32 ] && branch="${branch:0:31}…"
       local dirty dcol dirty_c where
       dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
       dcol="$C_MUT"; [ "$dirty" = dirty ] && dcol="$C_WARN"
@@ -1197,12 +1239,12 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
       # Abbreviate for the COLUMN only — every git call above wants the real
       # path, and bash doesn't expand a tilde living inside a variable.
       where="$wt"; case "$wt" in "$HOME"/*) where="~${wt#"$HOME"}" ;; esac
-      wt_lines+="$(printf '  %s%s%s %-32s %s%s%s %s%s%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
+      wt_lines+="$(printf '  %s%s%s %s %s%s%s %s%s%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$(branch_cell "${depth:-0}" "$branch")" \
         "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$where" "$C_OFF")"$'\n'
     else
-      parked_lines+="$(printf '  %s%s%s %-32s %s%s%s %s(parked — '"'"'scruff %s'"'"' to resume, or open a PR / delete)%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
+      parked_lines+="$(printf '  %s%s%s %s %s%s%s %s(parked — '"'"'scruff %s'"'"' to resume, or open a PR / delete)%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$(branch_cell "${depth:-0}" "$branch")" \
         "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$lane_name" "$C_OFF")"$'\n'
     fi
   done <<<"$(lane_rows)"
@@ -1215,9 +1257,8 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
       branch_is_parked "$name" "$b" && continue
       any_stale=1
       local repo_c; printf -v repo_c '%-12s' "$name"
-      [ "${#b}" -gt 32 ] && b="${b:0:31}…"
-      wt_lines+="$(printf '  %s%s%s %-32s %s%s%s %s(stale branch — no checkout, no registry row; open a PR or delete)%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$b" \
+      wt_lines+="$(printf '  %s%s%s %s %s%s%s %s(stale branch — no checkout, no registry row; open a PR or delete)%s' \
+        "$C_REPO" "$repo_c" "$C_OFF" "$(branch_cell 0 "$b")" \
         "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$C_OFF")"$'\n'
     done
   done
@@ -1227,6 +1268,9 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   printf '  %s%-12s %-32s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
   printf '%s%s' "$wt_lines" "$parked_lines"
   # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
+  # shellcheck disable=SC2016
+  [ "$any_spawned" = 1 ] && printf '  %s↳ └ = spawned from the lane above it (`scruff child`, or ⌘↵ inside that pane) — its PR is its own, and closing that pane never reaps it%s\n' "$C_MUT" "$C_OFF"
+  # shellcheck disable=SC2016
   [ "$any_lane" = 1 ] && printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `scruff reap`%s\n' "$C_MUT" "$C_OFF"
   # shellcheck disable=SC2016
   [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
