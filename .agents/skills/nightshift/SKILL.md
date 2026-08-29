@@ -55,20 +55,22 @@ On `CI-RED <repo> <url>`, all four must hold:
   a fix that broke CI again does not get a third machine;
 - the failure is on **main**, not a PR branch (the script only reports main).
 
-Spawn it detached, in the repo's own lane, without taking the screen:
+Spawn it as a real background lane through the **handoff skill** — never a
+raw headless `claude -p`, which stalls on its first permission prompt with
+nobody watching, where a lane runs under the pane permission mode lanes
+already have:
 
-```sh
-workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
-cd "$(scruff child "$workshop_root/<repo>")"
-nohup claude -p "Main CI is red: <url>. Diagnose from the run log, fix it,
-verify, then commit, push and open a PR titled 'fix(ci): …'. Stop at PR open." \
-  --permission-mode acceptEdits >"$FACTORY_STATE_DIR/fixer-<repo>.out" 2>&1 &
-```
+1. Write the fixer's brief with `/handoff`: the run URL, then "diagnose from
+   the run log, fix it, verify, commit, push, open a PR titled
+   `fix(ci): …`. Stop at PR open."
+2. Spawn it with `HAUS_LANE_BACKGROUND=1` in front of the handoff skill's
+   spawn step (`/handoff spawn <repo>`), so the window is born off-screen
+   and focus stays wherever the user left it.
+3. Append `fixer-spawned: <repo> <head sha>` to today's shift log
+   (`~/.cache/hausfold-factory/shift-*.log`).
 
-(`FACTORY_STATE_DIR` defaults to `~/.cache/hausfold-factory`.) Log
-`fixer-spawned: <repo> <sha>` via a line in the shift log. A fixer's PR is
-not special: if it is docs-only the next pass merges it; a code fix waits
-for the morning like every other tier-2 shape.
+A fixer's PR is not special: if it is docs-only the next pass merges it; a
+code fix waits for the morning like every other tier-2 shape.
 
 ## Shift end
 

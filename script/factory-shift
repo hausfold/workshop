@@ -38,11 +38,18 @@ notify() { # notify <kind> <title> [url]
 }
 
 # ── budget ────────────────────────────────────────────────────────────────────
+# Written by haus's modules/ai/statusline-refresh.sh (the aiusage pill's
+# feed) — a two-repo artifact with nothing checking agreement, so the
+# percentages are sanity-checked before anything trusts them: a column
+# reorder over there must degrade this line to "unreadable", never
+# mis-throttle the foreman with a number that still happens to parse.
 USAGE_TSV="${FACTORY_USAGE_TSV:-$HOME/.cache/claude-statusline/usage-claude.tsv}"
 if [ -s "$USAGE_TSV" ]; then
   IFS=$'\t' read -r p5 pw _r5 rw _rest <"$USAGE_TSV"
   now=$(date +%s)
-  if [ "${rw:-0}" -gt "$now" ] 2>/dev/null; then
+  if ! [ "${p5:-x}" -le 100 ] 2>/dev/null || ! [ "${pw:-x}" -le 100 ] 2>/dev/null; then
+    say "budget: unreadable feed at $USAGE_TSV (columns moved?)"
+  elif [ "${rw:-0}" -gt "$now" ] 2>/dev/null; then
     line=$((95 * (604800 - (rw - now)) / 604800))
     rel=under; [ "${pw:-0}" -ge "$line" ] 2>/dev/null && rel=OVER
     say "budget: 5h ${p5}% · week ${pw}% vs pace line ${line}% ($rel)"
@@ -69,7 +76,10 @@ for repo in $repos; do
       if [ "$dry" = 1 ] || [ "$lease_live" = 0 ]; then
         tag=""; [ "$lease_live" = 0 ] && tag=" (no lease)"
         say "would-merge: $repo#$num $title$tag"
-      elif gh pr merge "$num" -R "hausfold/$repo" --squash >/dev/null 2>&1; then
+      # Pinned to the head SHA the verdict was computed on: a push landing in
+      # the gap makes the merge fail closed to merge-failed, not ride in.
+      elif gh pr merge "$num" -R "hausfold/$repo" --squash \
+        --match-head-commit "${verdict##*head=}" >/dev/null 2>&1; then
         say "merged: $repo#$num $title"
         merged=$((merged + 1))
       else
@@ -78,14 +88,18 @@ for repo in $repos; do
     else
       say "queued: $repo#$num $title — ${verdict#tier: not-1 — }"
     fi
-  done < <(gh pr list -R "hausfold/$repo" --json number,title -q '.[] | [.number, .title] | @tsv')
+  done < <(gh pr list -R "hausfold/$repo" -L 100 --json number,title -q '.[] | [.number, .title] | @tsv')
 
+  # cancelled is deliberately not red: concurrency groups cancel superseded
+  # runs on every push, and a fixer lane for those would chase ghosts.
   read -r conclusion url < <(gh run list -R "hausfold/$repo" -b main -L1 \
     --json conclusion,url -q '.[] | [.conclusion, .url] | @tsv' 2>/dev/null) || true
-  if [ "${conclusion:-}" = failure ]; then
+  case "${conclusion:-}" in
+  failure | timed_out | startup_failure)
     say "CI-RED: $repo $url"
     notify fault "CI red on $repo main" "$url"
-  fi
+    ;;
+  esac
   conclusion=""; url=""
 done
 

@@ -21,7 +21,15 @@ set -euo pipefail
 STATE_DIR="${FACTORY_STATE_DIR:-$HOME/.cache/hausfold-factory}"
 LEASE="$STATE_DIR/lease"
 
-usage() { sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+usage() {
+  cat >&2 <<'EOF'
+usage:
+  factory-lease grant <duration>   # 30m / 12h / 2d — tier-1 authority until then
+  factory-lease status             # exit 0 live · 1 none/expired
+  factory-lease revoke
+EOF
+  exit 2
+}
 
 parse_duration() { # 30m / 12h / 2d → seconds
   case "$1" in
