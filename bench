@@ -210,8 +210,8 @@ declare -gA LANE_SRC=()   # repo → scruff-child checkout it should build again
 # ── Palette + verbs ──────────────────────────────────────────────────────────
 # Both are defined just after ui_load, below: the roles come out of snug's
 # generated palette (share/ui.sh) and the verbs write to fd 2, so the source
-# has to come first. (docs/cli-presentation.md, step 7 — the last open line in
-# its order-of-work table.)
+# has to come first. (docs/cli-presentation.md, step 7 — done; row 10 is what
+# is still open in its order-of-work table.)
 
 # ── saying it on screen, for the verbs you walk away from ───────────────────
 # `bench release` blocks on a CI run for five to ten minutes and `try-batch`
