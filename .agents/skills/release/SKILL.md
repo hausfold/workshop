@@ -82,7 +82,7 @@ Two rules that override the taxonomy:
   into a patch; that is the number people pin against.
 
 Say which one you picked **and the sentence of evidence for it** before running anything.
-`1.0.0` is the worked example, cut 2026-08-27:
+`1.0.0` is the worked example:
 
 > `1.0.0` — the rename cutover. Every SDK's package name moves (`@hausfold/holt` →
 > `@hausfold/scruff`, and the same on PyPI, crates, SwiftPM, the Go proxy) and the `--json`

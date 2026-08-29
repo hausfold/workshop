@@ -63,8 +63,8 @@ still delegate to `scruff hook create` / `scruff hook remove`, so a hand-run
 the plumbing is `scruff` — the standalone tool haus ships on `PATH`, **not** a
 `bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
 `c` in a window's own shell runs the one agent allowed to edit the checkout
-you're looking at — the ⌃⌥⇧A chord that used to do it was retired in haus#422,
-with the palette's **Agent Here** row.
+you're looking at. There is no chord and no palette row for it — typing `c` is
+the whole interface.
 
 ```sh
 # ⌘↵ lanes hack away on their own branches; meanwhile:
@@ -95,8 +95,8 @@ scruff reap             # sweep every LANDED worktree; keeps dirty/unmerged/occu
 `bench status`'s lane table **is** scruff's registry, filtered — not `git worktree
 list`. git's answer is "what trees exist", which includes hand-made ones (a
 scratch checkout for a before/after compare, a `/tmp` tree) that scruff never made
-and `scruff reap` will never sweep; listing those as lanes is what used to make
-the two tools look permanently out of sync. bench keeps the rows whose repo sits
+and `scruff reap` will never sweep; listing those as lanes would make the two
+tools look permanently out of sync. bench keeps the rows whose repo sits
 under the workshop dir — family or not, so `trill`, `snug`, `hausfold.co` and
 the workshop itself all count — plus the host config (`~/.config/nix`, shown as
 `consumer`). A lane in an unrelated repo on the same machine is scruff's business,
@@ -178,7 +178,7 @@ wherever the source sits. Two things *are* different, and each has its own answe
   checkout, and flagging a source whose worktree has since been reaped. The
   receipt pins the system store path it described, so a `haus rollback`, a
   `bench rebuild`, or anyone else's switch retires it automatically instead of
-  nagging about a build that isn't mounted any more. `bench rebuild` is the way
+  nagging about a build that is no longer mounted. `bench rebuild` is the way
   back to pinned; landing the branch via its PR + `bench ship` is the way to make
   what you're running reproducible.
 
@@ -266,8 +266,8 @@ fast-forwards for you when the run goes green.
 
 The haus one matters more than it looks: the install one-liner serves the
 **latest haus release**, so until you cut one, new users bootstrap from the
-previous tag no matter what's on `main` — and if `main` has since renamed an
-option, the host file that tag scaffolds no longer evaluates against it. Ship
+previous tag no matter what's on `main` — and if `main` renames an option, the
+host file that tag scaffolds stops evaluating against it. Ship
 user-visible haus changes, then release. (The date-stamp moves the repo's HEAD, so `bench ship` once more
 afterward to ripple that lock downstream — or `bench release <repo> --ship` to do
 both.)

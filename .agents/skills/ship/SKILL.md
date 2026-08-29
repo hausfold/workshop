@@ -195,7 +195,7 @@ push, retry. On conflicts you can't cleanly resolve, **stop and show them** — 
 force-push `main`. On the current worktree's own branch the *local* delete may be skipped
 because you're standing on it — fine, leave it: the merged branch + checkout are reaped when
 I close this pane myself (`scruff`'s remove path fires on the client's graceful teardown) or by
-a later `scruff reap`. `/ship` no longer closes the pane, so there's nothing to race here.
+a later `scruff reap`. `/ship` doesn't close the pane, so there's nothing to race here.
 
 ## Step 4 — clean up every worktree this session spun up
 
@@ -243,7 +243,7 @@ merging, so confirm it's approved before you ripple.
 ## Step 6 — activation happens on main directly; release stays gated
 
 - **Activation** (`bench try switch` → `darwin-rebuild switch`) is what makes the shipped
-  change live. A worktree can't run it *in place*, but you **no longer surface it as a
+  change live. A worktree can't run it *in place*, so **don't surface it as a
   follow-up and stay open** — Step 7 does it for me by `cd`-ing to the main checkout and
   running `bench try switch` there directly (the PR has merged, so main holds the work;
   activation is passwordless and testing-in-prod is house style, so "you need to rebuild to

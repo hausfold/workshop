@@ -27,35 +27,29 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
 | 1 | **Pounce demo** | *unshot* (`pounce/assets/demo.webp` is the slot, and is empty) | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. ⚠️ **Nothing is wired**: that README is text + badges, and the file has never existed. |
-| 2 | **Desktop hero** | `haus/assets/hero.png` | the launch posts — r/unixporn, Show HN, the one-pager, the reel's poster; **the haus README carries no capture today** | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. **Reshot 2026-08-26**, retiring a 2026-07-09 frame that was a good shot of a dead brand: it matched the scene exactly and carried the **nebelhaus** wordmark and org, a username, an 8-day uptime and a 36% battery. ⚠️ **The old composition is unreproducible** — zellij left `haus` on 2026-08-19, and with it the tab bar, `SPIRAL` badge and keybind hint strip that gave that frame's left window its structure. A Ghostty window IS a pane now, so a bare shell photographs as an empty rectangle and the window needs a TUI in it. The shipped frame: Zen on `github.com/hausfold` (grey and pink via the `github` entry in `haus.zen.userStyles`) beside Ghostty running lazygit over an unstaged `haus.focus.scenes` tree, Pounce mid-search on **Spawn Agent**, both bars on. Two costs paid finding it — lazygit's **Log/Commits** panel renders `Author: … <email>` and is disqualifying for a public asset (**Files** is not), and a ~34-column pane wraps past ~40 characters, so config being shown off must be written short. ⚠️ **Two things in the frame are the shooter's host, not the desktop** — `haus.zen.userStyles` defaults to `[ ]` and `haus.bar.bottom.enable` to `false`, and `desktops/hacker.nix` sets neither, so a fresh install has an unthemed browser and one bar. Launch-post copy that leads with this image has to say so. `hausfold/ops`'s `todo/launch-phase-1.md` carries the full measurement. Nothing in the family renders it; the consumers are r/unixporn, the Show HN, the creator one-pager and the reel's poster frame. |
-| 3 | ~~**OG social card**~~ | `assets/site/social/og.png` | ~~share-link thumbnail~~ — **nothing, since 2026-08-14** | It was wired into every Astro page's `og:image`; that site is deleted and hausfold.co ships **no** `og:image`, deliberately. The file is kept (evergreen wordmark), the slot is not. Re-earning it means hausfold.co deciding it wants social cards. |
-| 4 | **Landing reel** *(optional)* | *unshot* | the hausfold.co landing page | At most ONE muted ~30–60s stitch, poster = the desktop hero. A single film, never a menu of clips. ⚠️ Its old surface was hausfold.co's hero background, which no longer exists. |
+| 2 | **Desktop hero** | `haus/assets/hero.png` | the launch posts — r/unixporn, Show HN, the one-pager, the reel's poster; **the haus README carries no capture today** | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. ⚠️ **A frame that carries a wordmark, an org name, a username, an uptime or a battery percentage is disqualified** — the brand moves and the rest names the shooter. ⚠️ **A Ghostty window IS a pane**, with no tab bar or keybind hint strip of its own, so a bare shell photographs as an empty rectangle and the window needs a TUI in it. The shipped frame: Zen on `github.com/hausfold` (grey and pink via the `github` entry in `haus.zen.userStyles`) beside Ghostty running lazygit over an unstaged `haus.focus.scenes` tree, Pounce mid-search on **Spawn Agent**, both bars on. Two costs to respect — lazygit's **Log/Commits** panel renders `Author: … <email>` and is disqualifying for a public asset (**Files** is not), and a ~34-column pane wraps past ~40 characters, so config being shown off must be written short. ⚠️ **Two things in the frame are the shooter's host, not the desktop** — `haus.zen.userStyles` defaults to `[ ]` and `haus.bar.bottom.enable` to `false`, and `desktops/hacker.nix` sets neither, so a fresh install has an unthemed browser and one bar. Launch-post copy that leads with this image has to say so. `hausfold/ops`'s `todo/launch-phase-1.md` carries the full measurement. Nothing in the family renders it; the consumers are r/unixporn, the Show HN, the creator one-pager and the reel's poster frame. |
+| 3 | ~~**OG social card**~~ | `assets/site/social/og.png` | ~~share-link thumbnail~~ — **nothing** | hausfold.co ships **no** `og:image`, deliberately. The file is kept (evergreen wordmark), the slot is not. Re-earning it means hausfold.co deciding it wants social cards. |
+| 4 | **Landing reel** *(optional)* | *unshot* | the hausfold.co landing page | At most ONE muted ~30–60s stitch, poster = the desktop hero. A single film, never a menu of clips. ⚠️ hausfold.co's landing page carries no hero background, so nothing is waiting on it. |
 
-*(Nebelung's README now leads with its evergreen wordmark banner — an exempt
-graphic per the policy above, not a survivor-table hero; the old
-`swatch-cascade.webp` marketing loop was retired.)*
+*(Nebelung's README leads with its evergreen wordmark banner — an exempt
+graphic per the policy above, not a survivor-table hero.)*
 
-*(The pounce/perch landings showed the app **in code**, not in a capture:
-`web/src/components/ProductDemo.astro` drew each UI in HTML/CSS inside an SVG
-MacBook. Both that component and its Astro pages died with hausfold.co on
-2026-08-14 — hausfold.co's `/pounce` and `/perch` are Next routes now. The
-principle is what carries: those weren't survivor-table assets, nothing was
+*(A landing may show the app **in code** rather than in a capture — the UI drawn
+in HTML/CSS inside an SVG MacBook. That is not a survivor-table asset: nothing is
 shot, nothing rots, no byte ships. Don't "fix" a landing by pointing it at a
-video. The MacBook frame survives at `assets/site/macbook-pro-orthographic.svg`
-if the drawn-UI idea is ever rebuilt there.)*
+video instead. The MacBook frame is at
+`assets/site/macbook-pro-orthographic.svg`.)*
 
 ## Everything else is delisted
 
-The earlier plan chased a menu — stills **S2–S16**, videos **V1–V10**,
-composites (`S2-trio`, `S16-gallery`), the ports gallery. That menu is retired.
+There is no menu of stills **S2–S16**, videos **V1–V10**, composites
+(`S2-trio`, `S16-gallery`) or a ports gallery. None of it is wired to anything.
 The raw frames still sit on disk as **source material only** — referenced by
 nothing, owed to no one:
 
 - `assets/stills/S2*–S16*` and the composites (workshop, source frames) — **the
-  only copies now**; the two `web/` mirror trees went with the site on 2026-08-14
-  (hash-compared first, so nothing unique was dropped)
-- `assets/site/theming.webp`, `assets/site/tap-caps.webp` (retired demo loops,
-  moved out of `web/public/media/` in the same change)
+  only copies anywhere**, so don't prune them for tidiness
+- `assets/site/theming.webp`, `assets/site/tap-caps.webp` — delisted demo loops
 
 Nothing here is deleted — but nothing here is an obligation either. Don't reshoot
 to "fill in" the set; the set is the four above.
@@ -64,12 +58,11 @@ to "fill in" the set; the set is the four above.
 
 1. It has to displace something, or it's a fifth hero — and there is no fifth.
 2. Host it in the repo whose surface it serves — a README's hero lives beside
-   that README, a site image lives in `hausfold.co`. ⚠️ **`web/public/media/<name>`
-   was the answer here until 2026-08-14 and is now a permanent 404**: that site
-   is deleted and hausfold.co only 301s the pages it used to have, so there is
-   no one-stable-public-URL to hotlink from two places any more. If two surfaces
-   genuinely need one file, `raw.githubusercontent.com` is the shared URL (it is
-   what `org-profile`'s README already uses).
+   that README, a site image lives in `hausfold.co`. ⚠️ **There is no one stable
+   public URL to hotlink a file from two places** — hausfold.co's static export
+   serves no shared media path. If two surfaces genuinely need one file,
+   `raw.githubusercontent.com` is the shared URL (it is what `org-profile`'s
+   README already uses).
 3. Add a row here and name the single surface it serves. If you can't name one, don't shoot it.
 
 **Staging still matters for the shots that survive** — consistency is what makes
@@ -86,7 +79,7 @@ a rice read as *designed*, not *dumped*. Before capturing #1, #2 or #4:
   wraps `bottomGroup` in `lib.optionals cfg.bottom.enable`, so `bottomItems` goes
   empty and every one of them falls back onto the menu bar. Turning the second bar
   off collapses two bars into one crowded one; thin the frame with `haus.bar.items`
-  as well, and `haus reset` to undo. The 2026-08-26 hero deliberately ran none of
+  as well, and `haus reset` to undo. The shipped hero deliberately runs none of
   this — a desktop visibly doing work sells better than a staged one, so the
   `agents` and `github` pills stay in shot.
 - Default gaps (inner `10px` / outer `20px`); KeyCastr bottom-center for any video.
