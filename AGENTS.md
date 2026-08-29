@@ -87,24 +87,25 @@ in its `docs/`. No `notes/` anywhere.
 | a standard that binds every repo | this repo's [`docs/`](./docs/) — `agent-surface.md`, `bug-reports.md`, `drift.md`, `agent-vm.md` |
 | **work that still has steps in it** | [hausfold/ops](https://github.com/hausfold/ops)'s `todo/` — private, and the one place a live plan lives |
 
-**A repo with a tree on hausfold.co keeps no manual of its own.** haus, pounce
-and perch each have one, and for those three the site is where a user-facing
-fact lives — one copy, and the README is a door onto it rather than a second
-telling. What stays in the repo's `docs/` is what a *contributor* needs and the
-site would be wrong to carry: a contract the code cites by name (haus's
+**A repo with a tree on hausfold.co keeps no manual of its own.** haus, pounce,
+perch and scruff each have one, and for those four the site is where a
+user-facing fact lives — one copy, and the README is a door onto it rather than
+a second telling. What stays in the repo's `docs/` is what a *contributor* needs
+and the site would be wrong to carry: a contract the code cites by name (haus's
 `model.md` and `macos-settings.md`, pinned from a dozen source files each), a
 design record for a room built around a missing API (haus's `focus.md`), a wire
 protocol (perch's `cli.md`), a runbook (perch's `app-store.md`,
-`feel-testing.md`), and generated data the site consumes (haus's
-`docs/site-data/`, which `hausfold.co`'s `npm run options` reads — never prune
-it). pounce has none of those and no `docs/` at all.
+`feel-testing.md`, scruff's `releasing.md`), and generated data the site
+consumes (haus's `docs/site-data/`, which `hausfold.co`'s `npm run options`
+reads — never prune it). pounce has none of those and no `docs/` at all.
+scruff's design of record, `SPEC.md`, sits at its root rather than in `docs/`.
 
 **Two kinds of repo this does not describe.** **trill**'s tree is one incubator
 page that hausfold.co's own `AGENTS.md` forbids growing while the tab's
 positioning is undecided, so `trill/docs/` is its manual and its README a door
-onto that. **scruff, snug and nebelung** have no tree at all, so their README
-*is* the front page and carries as much manual as it needs; never cut one of
-those down to a door, because there is nowhere for the content to go.
+onto that. **snug and nebelung** have no tree at all, so their README *is* the
+front page and carries as much manual as it needs; never cut either down to a
+door, because there is nowhere for the content to go.
 
 The test for a README in the first group: if a sentence would still be true and
 useful after the reader has installed the thing, it belongs in the manual, not
