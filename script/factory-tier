@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# factory-tier — is this PR tier 1, i.e. mergeable by the night shift alone?
+#
+#   ./script/factory-tier <repo> <number>              # exit 0 yes · 3 no
+#   ./script/factory-tier --paths-only <repo> <number> # just the file filter
+#
+# Tier 1 is decided by CODE, not by an agent's judgement, and it is
+# deliberately narrow: a docs-only PR — every changed file is *.md or under
+# docs/, none of it renamed — opened by the org owner from a worktree-*
+# branch onto main, green and conflict-free. Files that LOOK like docs but
+# steer agents or CI (AGENTS.md, CLAUDE.md, any SKILL.md, anything under
+# .github/, .claude/ or .agents/, any spelling of case) are excluded: a
+# policy change is never tier 1 however it is spelled. hausfold.co's
+# content/ is excluded too — its main deploys the public site, and a
+# user-facing publish is always gated. Widening this filter is editing
+# docs/factory.md plus this file, in one PR, reviewed by a person.
+#
+# Prints one verdict line; every refusal names its reason so the shift log
+# reads as an audit trail.
+set -euo pipefail
+
+paths_only=0
+if [ "${1:-}" = "--paths-only" ]; then paths_only=1; shift; fi
+repo="${1:-}"; num="${2:-}"
+[ -n "$repo" ] && [ -n "$num" ] || { echo "usage: factory-tier [--paths-only] <repo> <number>" >&2; exit 2; }
+case "$repo" in */*) ;; *) repo="hausfold/$repo" ;; esac
+
+no() { echo "tier: not-1 — $1  ($repo#$num)"; exit 3; }
+
+json=$(gh pr view "$num" -R "$repo" --json state,isDraft,author,baseRefName,headRefName,headRefOid,mergeable,statusCheckRollup,changedFiles,additions,deletions)
+
+# Files come from the REST endpoint, paginated — not from `gh pr view`'s
+# GraphQL `files` — for two reasons that both merge code at 3 a.m. if
+# ignored: GraphQL stops at 100 files SILENTLY (files 101+ never meet the
+# filter), and it carries no rename information, so a `git mv` of a workflow
+# into docs/ lists only the new, docs-shaped path. A rename is a delete
+# wearing a docs name; none is ever tier 1.
+files=$(gh api --paginate "repos/$repo/pulls/$num/files" \
+  --jq '[.[] | {path: .filename, status: .status}]' | jq -s add)
+count=$(jq length <<<"$files")
+[ "$count" -gt 0 ] || no "no files"
+[ "$count" = "$(jq .changedFiles <<<"$json")" ] || no "file list truncated ($count of $(jq .changedFiles <<<"$json"))"
+renamed=$(jq -r '[.[] | select(.status == "renamed") | .path] | first // empty' <<<"$files")
+[ -z "$renamed" ] || no "renames $renamed"
+
+# The deny tests are case-insensitive because APFS is: a merged
+# docs/claude.md IS what a tool opening docs/CLAUDE.md reads.
+bad_path=$(jq -r '
+  [.[].path
+   | select(
+       (test("^docs/") or test("\\.md$")) and
+       (test("(^|/)(AGENTS|CLAUDE|SKILL)\\.md$"; "i") | not) and
+       (test("^\\.(github|claude|agents)/"; "i") | not)
+     | not)
+  ] | first // empty' <<<"$files")
+[ -z "$bad_path" ] || no "touches $bad_path"
+
+if [ "$paths_only" = 1 ]; then echo "tier: paths ok ($repo#$num)"; exit 0; fi
+
+churn=$(jq '.additions + .deletions' <<<"$json")
+[ "$churn" -le "${FACTORY_TIER_MAX_LINES:-2000}" ] || no "$churn changed lines (cap ${FACTORY_TIER_MAX_LINES:-2000})"
+
+[ "$(jq -r .state <<<"$json")" = OPEN ] || no "not open"
+[ "$(jq -r .isDraft <<<"$json")" = false ] || no "draft"
+[ "$(jq -r .baseRefName <<<"$json")" = main ] || no "base is not main"
+jq -e '.headRefName | test("^worktree-")' <<<"$json" >/dev/null || no "head is not a worktree-* branch"
+[ "$(jq -r .author.login <<<"$json")" = "$(gh api user -q .login)" ] || no "author is not you"
+[ "$(jq -r .mergeable <<<"$json")" = MERGEABLE ] || no "mergeable=$(jq -r .mergeable <<<"$json")"
+
+# Checks: empty rollup is fine (most docs repos run no CI on PRs); anything
+# unfinished means "not yet", anything red means no.
+pending=$(jq -r '[.statusCheckRollup[]? | select((.status? // "COMPLETED") != "COMPLETED")] | length' <<<"$json")
+[ "$pending" = 0 ] || no "checks still running"
+red=$(jq -r '[.statusCheckRollup[]?
+  | (.conclusion? // .state? // "SUCCESS")
+  | select(. != "SUCCESS" and . != "NEUTRAL" and . != "SKIPPED")] | first // empty' <<<"$json")
+[ -z "$red" ] || no "check concluded $red"
+
+# head= is load-bearing: factory-shift pins the merge to this exact commit
+# (--match-head-commit), so a push landing between this verdict and the merge
+# fails closed instead of riding in unvetted.
+echo "tier: 1 ($repo#$num · $count files, $churn lines) head=$(jq -r .headRefOid <<<"$json")"

@@ -15,7 +15,7 @@ Only Claude-specific wiring belongs below.
 | Thing | Where | Notes |
 |---|---|---|
 | Project instructions | `AGENTS.md`, imported above | Claude Code reads only `CLAUDE.md`, so this file exists purely to import it. |
-| Skills (`/ship`, `/docs-sync`, `/release`, `/earshot`) | `.claude/skills/<name>/SKILL.md` | Symlinks into `.agents/skills/` — the shared bodies every client uses. Edit the target, never the link. |
+| Skills (`/ship`, `/docs-sync`, `/release`, `/earshot`, `/nightshift`) | `.claude/skills/<name>/SKILL.md` | Symlinks into `.agents/skills/` — the shared bodies every client uses. Edit the target, never the link. |
 | Session bootstrap | `.claude/settings.json` → `SessionStart` → `.agents/setup.sh` | Same script Codex and OpenCode call. Installs Nix in cloud containers, no-ops locally. |
 | Worktree hooks | `~/.claude/settings.json` (yours, not the repo's) → `scruff hook create` / `scruff hook remove` | **haus declares these** and re-asserts them every rebuild, so they self-heal when Claude rewrites the file. Not hand-edited — change them in `haus`'s `modules/terminal`. The four agent-state hooks in the same file stay yours. |
 
