@@ -30,7 +30,17 @@ jobs:
 
       - name: Install bats + shellcheck
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck
+      # The versions are printed because they are not pinned, and apt's
+      # shellcheck disagrees with a newer one about which checks are on by
+      # default: SC2015 on `A && B || C` fires here and not under 0.11.0, so
+      # "clean locally" is not the same claim as "clean in this job". When
+      # this step reddens on a line nobody touched, the version is the first
+      # thing to read.
       - name: shellcheck
-        run: shellcheck bench script/factory-lease script/factory-shift script/factory-tier
+        run: |
+          shellcheck --version
+          shellcheck bench script/factory-lease script/factory-shift script/factory-tier
       - name: bats
-        run: bats test/bench.bats test/factory-shift.bats
+        run: |
+          bats --version
+          bats test/bench.bats test/factory-shift.bats

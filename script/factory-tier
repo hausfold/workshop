@@ -22,7 +22,10 @@ set -euo pipefail
 paths_only=0
 if [ "${1:-}" = "--paths-only" ]; then paths_only=1; shift; fi
 repo="${1:-}"; num="${2:-}"
-[ -n "$repo" ] && [ -n "$num" ] || { echo "usage: factory-tier [--paths-only] <repo> <number>" >&2; exit 2; }
+if [ -z "$repo" ] || [ -z "$num" ]; then
+  echo "usage: factory-tier [--paths-only] <repo> <number>" >&2
+  exit 2
+fi
 case "$repo" in */*) ;; *) repo="hausfold/$repo" ;; esac
 
 no() { echo "tier: not-1 — $1  ($repo#$num)"; exit 3; }
