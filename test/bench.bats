@@ -717,12 +717,12 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" = 4 ]
 }
 
-@test "lane_rows emits repo, branch, checkout, name, depth and parent, tab separated" {
+@test "lane_rows emits repo, branch, checkout, name and parent, tab separated" {
   WT_REGISTRY="$TMP/registry.tsv"
   mkregistry "$WT_REGISTRY" "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude"
   run lane_rows
-  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s\t%s' \
-    "$ROOT/haus" worktree-lane1 /wt/haus lane1 0 "$ROOT/haus")" ]
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s' \
+    "$ROOT/haus" worktree-lane1 /wt/haus lane1 "$ROOT/haus")" ]
 }
 
 @test "lane_rows puts a spawned lane straight under the lane that spawned it" {
@@ -738,10 +738,11 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
     "solo $ROOT/nebelung worktree-solo /wt/solo $ROOT/nebelung claude"
   run lane_rows
   [ "$status" -eq 0 ]
-  [ "$(printf '%s\n' "$output" | cut -f5 | tr '\n' ' ')" = "0 1 2 0 " ] \
-    || fail_rows "a child must follow its parent, one level deeper" "$output"
-  [ "$(printf '%s\n' "$output" | sed -n 2p | cut -f3)" = /wt/haus-par ]
-  [ "$(printf '%s\n' "$output" | sed -n 4p | cut -f3)" = /wt/solo ]
+  # The order IS the tree: parent, its child, that child'"'"'s child, then the
+  # unrelated lane — a chain three deep, so the walk is really recursive.
+  [ "$(printf '%s\n' "$output" | cut -f3 | tr '\n' ' ')" \
+    = "/wt/par /wt/haus-par /wt/deep /wt/solo " ] \
+    || fail_rows "a child must follow the lane that spawned it" "$output"
 }
 
 @test "lane_rows keeps a spawned lane whose parent bench does not list" {
@@ -754,8 +755,8 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
     "ours $ROOT/haus worktree-ours /wt/ours /wt/alien claude"
   run lane_rows
   [ "$status" -eq 0 ]
-  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s\t%s' \
-    "$ROOT/haus" worktree-ours /wt/ours ours 0 /wt/alien)" ]
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s' \
+    "$ROOT/haus" worktree-ours /wt/ours ours /wt/alien)" ]
 }
 
 @test "lane_table indents a spawned lane without shearing the columns" {
