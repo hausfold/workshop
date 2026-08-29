@@ -1,9 +1,12 @@
 # How the family's CLIs put a line on screen
 
-The one presentation standard for every tool the workshop ships — `bench`,
-`haus`, `scruff`, `trill`, and every `pounce` command script. It lives here, beside
-`agent-surface.md` and `drift.md`, because it binds every repo and belongs to
-none of them.
+The one presentation standard for every tool the workshop ships **that draws on a
+terminal** — `bench`, `haus` and `scruff`. It lives here, beside `agent-surface.md`
+and `drift.md`, because it binds every repo and belongs to none of them.
+
+Where it *stops* — trill's CLI, pounce's command scripts, the installers — is
+**Where the standard stops**, below the order of work, and is as load-bearing as
+what it covers: a scope that is merely unstated reads as a sweep nobody finished.
 
 It is the design half. The runtime that implements it is its own repo (see
 **The runtime**, below); this file is what that repo is judged against, and what
@@ -341,6 +344,52 @@ one. State as of 2026-08-29:
 | 7 | **`bench` onto `snug run`** as a coprocess | ✔ done ([workshop#482](https://github.com/hausfold/workshop/pull/482); eight bats cases around the record contract, including one that feeds bench's exact bytes to a real `snug run`; see **What 7 shipped**, below) |
 | 8 | **The bash fallback** — [`snug/share/ui.sh`](https://github.com/hausfold/snug/blob/main/share/ui.sh), the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths). Written here as `lib/ui.sh` in [workshop#476](https://github.com/hausfold/workshop/pull/476), moved into snug the same week — see **Why 8 lives in snug** below |
 | 9 | **`haus` onto `snug run`** — the end-user CLI's own step 7 | ✔ done ([haus#562](https://github.com/hausfold/haus/pull/562); 30 bats cases, two of them real ptys). Both end-user scripts, not one: `haus.sh` and `haus-show.sh` — see **What 9 shipped**, below |
+| 10 | **haus's three remaining painters** — `modules/ai/statusline.sh`, `modules/terminal/scripts/image-preview.sh`, `modules/terminal/lanes/lane-open.sh` | ⏳ open. The last hardcoded indices in anything the family draws; see **What 10 has to answer**, below |
+
+### Where the standard stops
+
+Three surfaces are **deliberately** outside it. Each is a decision, not a
+backlog — re-open one by editing this section, not by quietly converting a file.
+
+- **trill's `trill` CLI — plain, for now.** It draws no colour at all today, and
+  that stays. Two reasons, and the second is the one that decides it: it is
+  Swift, so it cannot import snug's package and would have to drive `snug run`
+  over the record protocol as a coprocess (possible — that is what the protocol
+  is for — but a feature, not a sweep); and trill's tab on hausfold.co is still
+  positioning-undecided, which is why that repo's `AGENTS.md` forbids growing its
+  docs tree. Presentation on a surface whose shape is unsettled is work you do
+  twice. Revisit when the tab ships.
+- **pounce's command scripts — permanently out.** A command's stdout is the
+  *launcher's* input, parsed by the app; there is no terminal on the other end of
+  it and an escape there is a bug, not a style. The `# pounce:` header comments
+  are its whole presentation contract. This is why they are clean today and why
+  nothing should ever make them otherwise.
+- **The installers — exempt because they cannot source a painter.** `haus`'s
+  `bootstrap.sh` (the standalone `curl | bash`), `haus-activate.sh` (runs under
+  `sudo` before anything is on PATH), `script/build-golden-vm.sh`, and trill's
+  `scripts/dev-install.sh`. All four run *before* the machine has snug — an
+  installer that needs the thing it installs is not an installer. Their raw
+  escapes are the one legal remaining use in the family.
+
+**What 10 has to answer.** Two things 7 and 9 never met, both in
+`statusline.sh`, and both worth knowing before the diff:
+
+- **It renders with stdout piped, not to a terminal.** Claude Code captures the
+  line. `ui__detect_profile` gates on a tty, so sourcing `ui.sh` naively turns
+  the HUD monochrome — the gate has to be forced (`UI_TTY=1`) rather than
+  measured. This is the first caller in the family whose colour is *correct*
+  without a tty, and the fallback's own detection is wrong for it by design.
+- **Eleven slots against nine roles, and the collision is fine.** `PURGE` (256
+  index 173, orange) and `WARN` (179, yellow) both land on `warn`. That reads as
+  a lost distinction and is not one: every `PURGE` use carries its own glyph
+  (`⏏`, `◇`, `N^`) while `WARN`'s two carry none, and **the glyph is
+  load-bearing and the colour is not** is this file's own rule. The distinction
+  survives the collapse in the channel the standard says holds it.
+
+  The row tint is the genuine gap — `TINT_FABLE`'s `\033[48;2;…` is a
+  *background*, and the nine roles are all foreground. Either it stays a raw
+  escape with a comment saying so, or snug grows a background role. It is one
+  line either way; do not let it hold up the other ten.
 
 **What 7 shipped.** `bench` sources `$(repo_dir snug)/share/ui.sh` and calls
 `ui_say` / `ui_row` / `ui_paint`; where `snug` is on `PATH` and fd 2 is a
