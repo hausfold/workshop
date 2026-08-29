@@ -377,8 +377,19 @@ fi
 # coprocess down with the group, same path.
 SNUG_BIN=""
 SNUG_FD=""
-SNUG_PID=""
 SNUG_TRIED=""
+# SNUG_PID is NOT declared here: `coproc SNUG` makes bash set it itself, to the
+# coprocess's pid, and UNSETS it once the coprocess is reaped — which is why
+# snug_close reads it as `${SNUG_PID:-}`, or `set -u` would kill the caller on
+# the second call. It used to be assigned the READ fd on the line after the
+# coproc, which shadowed bash's value, so `wait "$SNUG_PID"` was waiting on a
+# number that is not a process (127, swallowed by `|| true`) and the coprocess
+# was never reaped. Found while doing the same move in haus.
+#
+# ⚠️ Now that the wait is real, never emit a `data` record from here. `snug run`
+# writes those to its STDOUT, which is the coproc pipe nothing reads, and a
+# filled 64K pipe would make snug_close block forever where the broken wait made
+# that impossible. Everything bench draws is prose; keep it that way.
 
 snug_open() {
   [ -n "$SNUG_FD" ] && return 0
@@ -389,7 +400,6 @@ snug_open() {
   SNUG_BIN="$(command -v snug)"
   coproc SNUG { "$SNUG_BIN" run; } || return 1
   SNUG_FD="${SNUG[1]}"   # write end; records go here
-  SNUG_PID="${SNUG[0]}"  # read end, never read by bash
   return 0
 }
 
@@ -417,9 +427,8 @@ snug_close() { # everything down: end the region and drop the coprocess
   [ -n "$SNUG_FD" ] || return 0
   snug_end
   eval "exec $SNUG_FD>&-" 2>/dev/null || true
-  wait "$SNUG_PID" 2>/dev/null || true
+  wait "${SNUG_PID:-}" 2>/dev/null || true
   SNUG_FD=""
-  SNUG_PID=""
   # SNUG_TRIED stays set: a snug that died once stays dead this command. A
   # re-open attempt per frame would be a fork a frame — the regression the
   # coprocess exists to prevent. The verb wrappers degrade to ui.sh instead.
