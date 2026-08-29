@@ -17,7 +17,9 @@
 #            edges never sit stale overnight.
 #   ci       the latest completed run on each repo's main; red → a CI-RED
 #            line (the foreman's cue to spawn a capped fixer lane) and a
-#            trill fault card.
+#            trill fault card. A run it could not READ is `ci-unknown`, not
+#            silence — see the block itself for why that distinction is the
+#            difference between a quiet night and an unreported one.
 #
 # Every line is appended to $STATE_DIR/shift-YYYYMMDD.log — the morning
 # report is that file, not a memory of it. Deterministic on purpose: no
@@ -68,7 +70,22 @@ say "$lease_line"
 
 # ── merge + ci, per repo ──────────────────────────────────────────────────────
 merged=0
-repos=$(gh repo list hausfold --no-archived --limit 50 --json name -q '.[].name')
+# The org listing is the subject of everything below it. When it fails, the
+# loop runs zero times and the pass still ends on "pass done: 0 merged" —
+# which is character-for-character what a genuinely quiet night prints. Same
+# rule the budget block above already states about itself: degrade to a
+# stated unknown, never to an answer that happens to parse. A pass that
+# sensed nothing exits non-zero so the foreman cannot read it as a clean one.
+if ! repos=$(gh repo list hausfold --no-archived --limit 50 --json name -q '.[].name'); then
+  say "pass ABORTED: could not list hausfold's repos — nothing was sensed or merged"
+  notify fault "factory: pass aborted, GitHub unreachable"
+  exit 1
+fi
+if [ -z "$repos" ]; then
+  say "pass ABORTED: hausfold listed zero repos — refusing to call that a quiet night"
+  notify fault "factory: pass aborted, repo list came back empty"
+  exit 1
+fi
 for repo in $repos; do
   while IFS=$'\t' read -r num title; do
     [ -n "$num" ] || continue
@@ -92,14 +109,32 @@ for repo in $repos; do
 
   # cancelled is deliberately not red: concurrency groups cancel superseded
   # runs on every push, and a fixer lane for those would chase ghosts.
-  read -r conclusion url < <(gh run list -R "hausfold/$repo" -b main -L1 \
-    --json conclusion,url -q '.[] | [.conclusion, .url] | @tsv' 2>/dev/null) || true
-  case "${conclusion:-}" in
-  failure | timed_out | startup_failure)
-    say "CI-RED: $repo $url"
-    notify fault "CI red on $repo main" "$url"
-    ;;
-  esac
+  #
+  # The exit status is read apart from the value, because three unrelated
+  # things used to arrive here as an empty `conclusion` and all three were
+  # equally silent: a run still going (nothing to say yet), a repo with no
+  # runs at all (homebrew-tap — same), and **the query itself failing**, which
+  # is the shift going blind on this repo for the pass. That last one is not
+  # hypothetical: measured 2026-08-29, four `connection reset by peer` and one
+  # `http2: client conn could not be established` against api.github.com
+  # across three consecutive passes. Silence has to mean "looked, and it is
+  # not red", or a red main inside a flaky window is reported by omission —
+  # and reporting a red main is the whole reason this block exists.
+  #
+  # `ci-unknown` is a log line and not a trill card on purpose: one blip is
+  # noise, and it is the foreman that decides whether a repeat is a story.
+  if run_row=$(gh run list -R "hausfold/$repo" -b main -L1 \
+    --json conclusion,url -q '.[] | [.conclusion, .url] | @tsv' 2>/dev/null); then
+    read -r conclusion url <<<"$run_row"
+    case "${conclusion:-}" in
+    failure | timed_out | startup_failure)
+      say "CI-RED: $repo $url"
+      notify fault "CI red on $repo main" "$url"
+      ;;
+    esac
+  else
+    say "ci-unknown: $repo — main's latest run could not be read this pass"
+  fi
   conclusion=""; url=""
 done
 
@@ -114,5 +149,5 @@ if [ "$merged" -gt 0 ] && [ "$dry" = 0 ]; then
 fi
 
 say "pass done: $merged merged"
-[ "$merged" -gt 0 ] && notify done "factory: merged $merged tier-1 PR(s)"
+[ "$merged" -gt 0 ] && notify "done" "factory: merged $merged tier-1 PR(s)"
 exit 0

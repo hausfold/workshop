@@ -55,7 +55,9 @@ grant)
   ;;
 status)
   if [ ! -s "$LEASE" ]; then echo "lease: none"; exit 1; fi
-  IFS=$'\t' read -r expires tier granted <"$LEASE"
+  # The granted stamp is the third field and nothing here reads it; `_`
+  # consumes it rather than binding a name that looks unused.
+  IFS=$'\t' read -r expires tier _ <"$LEASE"
   case "$expires" in '' | *[!0-9]*) echo "lease: unreadable"; exit 1 ;; esac
   if [ "$now" -ge "$expires" ]; then
     echo "lease: expired $(date -r "$expires" '+%a %H:%M')"; exit 1
