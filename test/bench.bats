@@ -717,11 +717,12 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" = 4 ]
 }
 
-@test "lane_rows emits repo, branch, checkout, lane name and depth, tab separated" {
+@test "lane_rows emits repo, branch, checkout, name, depth and parent, tab separated" {
   WT_REGISTRY="$TMP/registry.tsv"
   mkregistry "$WT_REGISTRY" "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude"
   run lane_rows
-  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s' "$ROOT/haus" worktree-lane1 /wt/haus lane1 0)" ]
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s\t%s' \
+    "$ROOT/haus" worktree-lane1 /wt/haus lane1 0 "$ROOT/haus")" ]
 }
 
 @test "lane_rows puts a spawned lane straight under the lane that spawned it" {
@@ -753,33 +754,66 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
     "ours $ROOT/haus worktree-ours /wt/ours /wt/alien claude"
   run lane_rows
   [ "$status" -eq 0 ]
-  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s' "$ROOT/haus" worktree-ours /wt/ours ours 0)" ]
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s\t%s' \
+    "$ROOT/haus" worktree-ours /wt/ours ours 0 /wt/alien)" ]
 }
 
 @test "lane_table indents a spawned lane without shearing the columns" {
   # `└` is three bytes and ONE column, so a %-32s branch cell comes up two
-  # short on every indented row — the same trap dirty_cell exists for. The
-  # marker is folded to an ASCII stand-in before the widths are compared so
-  # this holds whatever locale the suite runs in.
+  # short on every indented row — the same trap dirty_cell exists for. Cells
+  # are compared up to the dirty marker, which is the first thing past the
+  # branch column and appears in no path; the marker is folded to an ASCII
+  # stand-in first so this holds whatever locale the suite runs in.
   mkmain haus
   WT_REGISTRY="$TMP/registry.tsv"
   git -C "$ROOT/haus" worktree add -q -b worktree-par "$TMP/par"
   git -C "$ROOT/haus" worktree add -q -b worktree-kid "$TMP/kid"
+  local long=worktree-kid-with-a-name-far-past-the-column-cap
+  git -C "$ROOT/haus" worktree add -q -b "$long" "$TMP/long"
   mkregistry "$WT_REGISTRY" \
     "par $ROOT/haus worktree-par $TMP/par $ROOT/haus claude" \
-    "kid $ROOT/haus worktree-kid $TMP/kid $TMP/par claude"
+    "kid $ROOT/haus worktree-kid $TMP/kid $TMP/par claude" \
+    "long $ROOT/haus $long $TMP/long $TMP/par claude"
   run lane_table
   [ "$status" -eq 0 ]
   [[ "$output" == *"└ worktree-kid"* ]] || fail_rows "the spawned lane is not marked" "$output"
   [[ "$output" == *"spawned from the lane above it"* ]] \
     || fail_rows "the marker is never explained" "$output"
-  local parent kid
-  parent="$(printf '%s\n' "$output" | grep -F 'worktree-par ')"
-  kid="$(printf '%s\n' "$output" | grep -F 'worktree-kid')"
-  kid="${kid//└/L}"
-  parent="${parent%%~/*}"; kid="${kid%%~/*}"
-  [ "${#parent}" -eq "${#kid}" ] \
-    || fail_rows "the indent shifted the columns: ${#parent} vs ${#kid}" "$output"
+  local want line
+  want="$(lane_cell_width "$output" worktree-par)"
+  for line in worktree-kid "worktree-kid-with-a-name-far"; do
+    [ "$(lane_cell_width "$output" "$line")" -eq "$want" ] \
+      || fail_rows "the indent shifted the columns on '"'"'$line'"'"'" "$output"
+  done
+}
+
+@test "lane_table does not indent under a parent it put in the other block" {
+  # Rows arrive parent-first, but live and parked ones are printed in separate
+  # blocks — so a live child of a PARKED parent used to lead the table with a
+  # `└` and nothing above it. That is the feature'"'"'s own headline case: a child
+  # is not reaped when the pane that made it closes and parks the parent.
+  mkmain haus
+  WT_REGISTRY="$TMP/registry.tsv"
+  git -C "$ROOT/haus" worktree add -q -b worktree-kid "$TMP/kid"
+  mkregistry "$WT_REGISTRY" \
+    "par $ROOT/haus worktree-par $TMP/no-such-checkout $ROOT/haus claude" \
+    "kid $ROOT/haus worktree-kid $TMP/kid $TMP/no-such-checkout claude"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-kid"* ]] || fail_rows "the spawned lane vanished" "$output"
+  [[ "$output" != *"└"* ]] \
+    || fail_rows "an indent points at a row in the other block" "$output"
+  [[ "$output" != *"spawned from the lane above it"* ]] \
+    || fail_rows "a legend for a marker that was never drawn" "$output"
+}
+
+# lane_cell_width <table> <branch> — display width of everything up to the
+# dirty marker on that row, with the indent glyph folded to ASCII so the count
+# is bytes-or-characters agnostic.
+lane_cell_width() {
+  local line; line="$(printf '%s\n' "$1" | grep -F "$2" | head -1)"
+  line="${line//└/L}"; line="${line%%·*}"; line="${line%%dirty*}"
+  printf '%s' "${#line}"
 }
 
 fail_rows() { # fail_rows <why> <output>
