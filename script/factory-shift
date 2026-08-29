@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# factory-shift — one pass of the night shift: sense, merge what code alone
+# can vouch for, report the rest.
+#
+#   ./script/factory-shift            # act (merges need a live factory-lease)
+#   ./script/factory-shift --dry-run  # sense + report only, merge nothing
+#
+# One pass does four things, in order:
+#   budget   read the aiusage pill's own feed (~/.cache/claude-statusline/
+#            usage-claude.tsv) and print where the week stands against the
+#            pace line — 95% of the weekly window, spent evenly. The script
+#            only REPORTS; the foreman (nightshift skill) is what throttles.
+#   merge    every open PR in the org through factory-tier; tier 1 + live
+#            lease → `gh pr merge --squash`. Anything else is printed with
+#            its reason and left for the morning.
+#   ripple   if anything merged: `bench pull` then `bench ship`, so the lock
+#            edges never sit stale overnight.
+#   ci       the latest completed run on each repo's main; red → a CI-RED
+#            line (the foreman's cue to spawn a capped fixer lane) and a
+#            trill fault card.
+#
+# Every line is appended to $STATE_DIR/shift-YYYYMMDD.log — the morning
+# report is that file, not a memory of it. Deterministic on purpose: no
+# judgement lives here, so what happened while you slept is exactly what
+# this file says happens.
+set -uo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+STATE_DIR="${FACTORY_STATE_DIR:-$HOME/.cache/hausfold-factory}"
+mkdir -p "$STATE_DIR"
+LOG="$STATE_DIR/shift-$(date +%Y%m%d).log"
+dry=0; [ "${1:-}" = "--dry-run" ] && dry=1
+
+say() { echo "$*"; printf '%s %s\n' "$(date '+%H:%M')" "$*" >>"$LOG"; }
+notify() { # notify <kind> <title> [url]
+  command -v trill >/dev/null 2>&1 || return 0
+  trill send --source factory --kind "$1" --title "$2" ${3:+--url "$3"} >/dev/null 2>&1 || true
+}
+
+# ── budget ────────────────────────────────────────────────────────────────────
+USAGE_TSV="${FACTORY_USAGE_TSV:-$HOME/.cache/claude-statusline/usage-claude.tsv}"
+if [ -s "$USAGE_TSV" ]; then
+  IFS=$'\t' read -r p5 pw _r5 rw _rest <"$USAGE_TSV"
+  now=$(date +%s)
+  if [ "${rw:-0}" -gt "$now" ] 2>/dev/null; then
+    line=$((95 * (604800 - (rw - now)) / 604800))
+    rel=under; [ "${pw:-0}" -ge "$line" ] 2>/dev/null && rel=OVER
+    say "budget: 5h ${p5}% · week ${pw}% vs pace line ${line}% ($rel)"
+  else
+    say "budget: 5h ${p5:-?}% · week ${pw:-?}% (no reset stamp — pace line unknown)"
+  fi
+else
+  say "budget: unknown — no usage feed at $USAGE_TSV"
+fi
+
+# ── lease ─────────────────────────────────────────────────────────────────────
+lease_live=0
+if lease_line=$("$ROOT/script/factory-lease" status); then lease_live=1; fi
+say "$lease_line"
+[ "$dry" = 1 ] && say "dry-run: sensing only, merging nothing"
+
+# ── merge + ci, per repo ──────────────────────────────────────────────────────
+merged=0
+repos=$(gh repo list hausfold --no-archived --limit 50 --json name -q '.[].name')
+for repo in $repos; do
+  while IFS=$'\t' read -r num title; do
+    [ -n "$num" ] || continue
+    if verdict=$("$ROOT/script/factory-tier" "$repo" "$num" 2>&1); then
+      if [ "$dry" = 1 ] || [ "$lease_live" = 0 ]; then
+        tag=""; [ "$lease_live" = 0 ] && tag=" (no lease)"
+        say "would-merge: $repo#$num $title$tag"
+      elif gh pr merge "$num" -R "hausfold/$repo" --squash >/dev/null 2>&1; then
+        say "merged: $repo#$num $title"
+        merged=$((merged + 1))
+      else
+        say "merge-failed: $repo#$num — left open"
+      fi
+    else
+      say "queued: $repo#$num $title — ${verdict#tier: not-1 — }"
+    fi
+  done < <(gh pr list -R "hausfold/$repo" --json number,title -q '.[] | [.number, .title] | @tsv')
+
+  read -r conclusion url < <(gh run list -R "hausfold/$repo" -b main -L1 \
+    --json conclusion,url -q '.[] | [.conclusion, .url] | @tsv' 2>/dev/null) || true
+  if [ "${conclusion:-}" = failure ]; then
+    say "CI-RED: $repo $url"
+    notify fault "CI red on $repo main" "$url"
+  fi
+  conclusion=""; url=""
+done
+
+# ── ripple ────────────────────────────────────────────────────────────────────
+if [ "$merged" -gt 0 ] && [ "$dry" = 0 ]; then
+  if "$ROOT/bench" pull >/dev/null 2>&1 && "$ROOT/bench" ship >/dev/null 2>&1; then
+    say "rippled: bench pull + ship after $merged merge(s)"
+  else
+    say "ripple-failed: bench pull/ship — run it by hand in the morning"
+    notify fault "factory: lock ripple failed after $merged merge(s)"
+  fi
+fi
+
+say "pass done: $merged merged"
+[ "$merged" -gt 0 ] && notify done "factory: merged $merged tier-1 PR(s)"
+exit 0

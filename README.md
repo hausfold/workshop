@@ -114,6 +114,7 @@ lands on `main`.
 - [the three CLIs](./docs/workflows.md#the-three-clis) — `haus` vs `bench` vs `scruff`
 - [the agent surface](./docs/agent-surface.md) — what every tool here owes a coding agent
 - [the agent's own Mac](./docs/agent-vm.md) — a headless macOS a lane can drive, so it never takes your screen
+- [the factory](./docs/factory.md) — the night shift: docs-only PRs merge themselves under a lease you grant
 - [bug reports](./docs/bug-reports.md) — one issue form per repo, generated from one table
 - [drift](./docs/drift.md) — the shapes a write-up goes wrong in, and what catches each
 - [AGENTS.md](./AGENTS.md) — where a change goes, and the one instruction file every agent reads
