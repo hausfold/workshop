@@ -111,11 +111,12 @@ opens with `🌫`, which is one grapheme, four bytes, and **two display columns*
 Every column after a glyph is sheared by a different amount depending on which
 glyph it was.
 
-An ungated script is the other half of this: a raw `\033[38;5;N` emitted
-unconditionally paints pipes, files and CI logs alike. Neither `haus.sh` nor
-`haus-show.sh` holds an escape, nor does `bench`: every colour in all three is
-an alias onto snug's generated roles, and haus's suite fails on ANY literal
-escape in those two files outside a comment. There is no legal place for one.
+An ungated script is the other half of this, and `haus.sh` + `haus-show.sh`
+measured 35 raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files
+and CI logs alike. Neither script holds an escape, nor does `bench`: every
+colour in all three is an alias onto snug's generated roles, and haus's suite
+fails on ANY literal escape in those two files outside a comment. There is no
+legal place for one.
 
 ## The standard
 
