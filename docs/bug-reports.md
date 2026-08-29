@@ -62,9 +62,8 @@ this page. Four things are the standard, and each of them is a bug that fails
 1. **`?template=bug.yml`, never `?title=&body=`.** A `body=` prefill opens
    GitHub's *blank* editor and walks straight past the form — its fields, the
    "wrong repo? file it anyway" preamble, the `bug`/`triage` labels. An issue is
-   still filed, so nothing anywhere fails. pounce's palette command did exactly
-   this from before the forms existed until 2026-08, and every report that came
-   through it arrived shapeless.
+   still filed, so nothing anywhere fails. A door built this way delivers a
+   shapeless report every time and never tells you it did.
 
 2. **Only `diagnostics` is prefilled.** `what` is the report, `area` is the
    reporter's guess, `anything` is optional by design — filling any of them in

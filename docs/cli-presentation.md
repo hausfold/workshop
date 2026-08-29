@@ -14,7 +14,7 @@ a bash fallback has to match line for line.
 
 ## Why this exists — the three defects, measured
 
-Taken on 2026-08-27 against `bench` (3148 ln), `haus.sh` + `haus-show.sh`
+Measured 2026-08-27 against `bench` (3148 ln), `haus.sh` + `haus-show.sh`
 (5034 ln) and `scruff/internal/ui/ui.go`.
 
 ### 1. Fixed-width rows in a resizable window
@@ -81,7 +81,8 @@ one.
 ### 2. The palette is not the palette
 
 Seven 256-colour indices, copy-pasted into four files, none of them from
-nebelung. Distance to the nearest nebelung token, CIE ΔE:
+nebelung. This is the measurement the standard was written against; no family
+CLI holds one today. Distance to the nearest nebelung token, CIE ΔE:
 
 | index | hex | role | nearest nebelung | hex | ΔE |
 | --- | --- | --- | --- | --- | --- |
@@ -95,9 +96,8 @@ nebelung. Distance to the nearest nebelung token, CIE ΔE:
 
 ΔE above ~10 is "plainly a different colour". Only the two greys land close —
 and they were *two different greys for one role*, `243` in haus and `245` in
-bench, which is the drift this table exists to stop. That one is settled: haus
-moved to `245` when it grew the gate, so the family has one muted grey until
-step 4 resolves all nine roles against nebelung.
+bench, which is the drift this table exists to stop. All nine roles now resolve
+against nebelung, so there is one grey and nobody picks it.
 
 The accent is the sharpest joke: every family CLI's primary hue resolves to
 **blue**, and nebelung is *"Mocha with the blue stripped out"*. Ghostty,
@@ -111,12 +111,11 @@ opens with `🌫`, which is one grapheme, four bytes, and **two display columns*
 Every column after a glyph is sheared by a different amount depending on which
 glyph it was.
 
-`haus.sh` and `haus-show.sh` additionally had **no colour gate at all** — 35
-raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files and CI logs
-alike. Step 3 gave them one; steps 7 and 9 removed the thing it was gating.
-Neither script holds an escape today, nor does `bench`: every colour in all
-three is an alias onto snug's generated roles, and haus's suite fails on ANY
-literal escape in those two files outside a comment, there being no longer a
+An ungated script is the other half of this, and `haus.sh` + `haus-show.sh`
+measured 35 raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files
+and CI logs alike. Neither script holds an escape, nor does `bench`: every
+colour in all three is an alias onto snug's generated roles, and haus's suite
+fails on ANY literal escape in those two files outside a comment. There is no
 legal place for one.
 
 ## The standard
