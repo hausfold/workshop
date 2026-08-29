@@ -1116,7 +1116,17 @@ unmerged_agent_branches() { # worktree-* branches not merged into the current HE
 # branch looks unmerged forever, and a CLOSED PR's branch never merges at all;
 # both used to be printed as "parked", telling you to resume a session that
 # scruff correctly reports doesn't exist. Registry says no row → it's a corpse.
-WT_REGISTRY="${CLAUDE_WT_BASE:-$HOME/.cache/claude-worktrees}/registry.tsv"
+# The base moved at scruff 1.1.0, and `scruff doctor --migrate-base` is the
+# user's step — it may not have run here yet. Probe rather than assume, so
+# `bench status` reads a real registry on both sides of that move; the same
+# ladder haus's spawn-agent.sh and statusline-refresh.sh take.
+if [ -f "$HOME/.cache/scruff/registry.tsv" ]; then
+  WT_REGISTRY="$HOME/.cache/scruff/registry.tsv"
+elif [ -f "$HOME/.cache/claude-worktrees/registry.tsv" ]; then
+  WT_REGISTRY="$HOME/.cache/claude-worktrees/registry.tsv"
+else
+  WT_REGISTRY="${CLAUDE_WT_BASE:-$HOME/.cache/scruff}/registry.tsv"
+fi
 branch_is_parked() { # branch_is_parked <repo> <branch> — has a registry row?
   [ -f "$WT_REGISTRY" ] || return 1
   awk -F'\t' -v r="$(repo_dir "$1")" -v b="$2" \
