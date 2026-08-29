@@ -197,9 +197,13 @@ arrives through). The `WorktreeCreate`/`WorktreeRemove` hooks → `scruff hook
 create` / `scruff hook remove` are still declared, so a hand-run
 `claude --worktree` still lands in the registry; it just isn't the chord's path.
 Either way the session gets its own checkout under
-`~/.cache/claude-worktrees/<repo>/<name>` (the path name is historical — every
-client shares it) on branch `worktree-<name>`, branched from the repo's **local
-HEAD**. The plumbing is [`scruff`](https://github.com/hausfold/scruff) — a
+`~/.cache/scruff/<repo>/<name>` on branch `worktree-<name>`, branched from the
+repo's **local HEAD**. (A machine that predates scruff 1.1.0 still has its whole
+base at `~/.cache/claude-worktrees`, new lanes included, for as long as that is
+the path holding the `registry.tsv`. `scruff doctor --migrate-base` moves it,
+and refuses with exit 2 while anything is standing in the base — which includes
+the lane you are reading this from, so it is a job for a pane that isn't one.)
+The plumbing is [`scruff`](https://github.com/hausfold/scruff) — a
 standalone, repo-agnostic, client-agnostic Go tool that the layer takes as a
 flake input and ships on PATH. It isn't part of `bench`: the layer already ships
 the agent keybinds, and not every machine running `scruff` has the workshop.

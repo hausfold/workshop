@@ -48,9 +48,9 @@ real machine config against the **local checkouts**, uncommitted edits and all:
 **⌘↵** over a Ghostty window spawns an agent lane in its **own git
 worktree** — own checkout, own `worktree-*` branch, branched from local HEAD — so
 agents never yank the branch out from under each other, or you. The worktrees
-live *outside* the repos, in `~/.cache/claude-worktrees/<repo>/<name>` (the path
-name is historical; every client shares it). The chord is scoped to Ghostty, so
-⌘↵ still means *send* everywhere else — and a lane can't be started from a
+live *outside* the repos, in `~/.cache/scruff/<repo>/<name>`, whichever client
+made them. The chord is scoped to Ghostty, so ⌘↵ still means *send* everywhere
+else — and a lane can't be started from a
 browser; the palette's **Spawn Agent** row is the answer there.
 
 **Which client** is whatever `haus.ai.default` names — `claude`, `codex`,
@@ -158,7 +158,7 @@ that:
 
 ```sh
 scruff                      # lists every worktree with its path (bench status does too)
-cd ~/.cache/claude-worktrees/<repo>/<name>
+cd ~/.cache/scruff/<repo>/<name>
 bench try switch          # builds against THIS branch and activates it
 # …feel it…
 bench rebuild             # back to the pinned build
