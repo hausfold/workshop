@@ -2241,3 +2241,39 @@ UI
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
+
+# ── the lane base moved at scruff 1.1.0 ──────────────────────────────────────
+# `bench status` calls a lane a corpse when it can't find its registry row, so a
+# bench that reads the wrong base doesn't fail loudly — it quietly reports every
+# parked lane as dead. Until 1.2.0 removes the compat symlink these would pass
+# on this machine either way, which is exactly why they are pinned to a fake
+# HOME rather than the real one.
+
+# wt_registry_for <dir>... — WT_REGISTRY as bench resolves it with a HOME that
+# holds a registry under each given ~/.cache subdir, and no CLAUDE_WT_BASE.
+wt_registry_for() {
+  local h="$TMP/basehome" d
+  rm -rf "$h"
+  for d in "$@"; do mkdir -p "$h/.cache/$d"; : >"$h/.cache/$d/registry.tsv"; done
+  ( unset CLAUDE_WT_BASE; HOME="$h" HAUS_LIB=1 source "$HAUS"; printf '%s\n' "$WT_REGISTRY" )
+}
+
+@test "lane base: the 1.1.0 default is found with no CLAUDE_WT_BASE set" {
+  [ "$(wt_registry_for scruff)" = "$TMP/basehome/.cache/scruff/registry.tsv" ]
+}
+
+@test "lane base: a machine that never migrated is still read at the legacy path" {
+  # `scruff doctor --migrate-base` is the user's step and may never be run.
+  [ "$(wt_registry_for claude-worktrees)" = "$TMP/basehome/.cache/claude-worktrees/registry.tsv" ]
+}
+
+@test "lane base: the new path wins when both exist, as it does after the migration" {
+  # The migration leaves the legacy path behind as a symlink for one release.
+  # Preferring it would mean reading the new base through a symlink that 1.2.0
+  # deletes — and every lane reading as a corpse the day it goes.
+  [ "$(wt_registry_for scruff claude-worktrees)" = "$TMP/basehome/.cache/scruff/registry.tsv" ]
+}
+
+@test "lane base: neither path present falls back to the new default, not the old" {
+  [ "$(wt_registry_for)" = "$TMP/basehome/.cache/scruff/registry.tsv" ]
+}
