@@ -331,93 +331,131 @@ fidelity — role names, the 3-cell gutter, folding, the colour gate, a correct
 live region — for machines without the binary on `PATH`. It is the reason the
 standard is written here in prose rather than only as Go.
 
-## Order of work
+## Who draws through it
 
-The list is the durable record of what is left; keep it true or it stops being
-one. State as of 2026-08-29:
+Every surface a *user* drives resolves its colour from snug's generated
+palette; no hand-picked 256-colour index survives in one. The installers and
+the maintenance scripts still hold theirs, deliberately — see **Where the
+standard stops**.
 
-| | | |
-|---|---|---|
-| 1 | **This file** — the standard itself | ✔ done |
-| 2 | **`bench`'s live painter** — folded to width, `\033[J`, `trap WINCH` | ✔ done (#469; eight tests in `test/bench.bats` across widths 2–120, plus a real pty for the measurement) |
-| 3 | **`haus`'s phase painter**, and the colour gate `haus.sh` / `haus-show.sh` never had | ✔ done ([haus#547](https://github.com/hausfold/haus/pull/547); 16 bats cases). Two heads, and §1 has the distinction: the finished row merely *wraps*, the 14-cell `phase_start` stub is what strands a line above its own successor |
-| 4 | **[hausfold/snug](https://github.com/hausfold/snug)** — the Go package and the binary | ✔ done, public, CI green |
-| 5 | **scruff's `internal/ui`** onto snug's roles | ✔ done ([scruff#70](https://github.com/hausfold/scruff/pull/70), re-pinned in [scruff#71](https://github.com/hausfold/scruff/pull/71)) |
-| 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
-| 7 | **`bench` onto `snug run`** as a coprocess | ✔ done ([workshop#482](https://github.com/hausfold/workshop/pull/482); eight bats cases around the record contract, including one that feeds bench's exact bytes to a real `snug run`; see **What 7 shipped**, below) |
-| 8 | **The bash fallback** — [`snug/share/ui.sh`](https://github.com/hausfold/snug/blob/main/share/ui.sh), the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths). Written here as `lib/ui.sh` in [workshop#476](https://github.com/hausfold/workshop/pull/476), moved into snug the same week — see **Why 8 lives in snug** below |
-| 9 | **`haus` onto `snug run`** — the end-user CLI's own step 7 | ✔ done ([haus#562](https://github.com/hausfold/haus/pull/562); 30 bats cases, two of them real ptys). Both end-user scripts, not one: `haus.sh` and `haus-show.sh` — see **What 9 shipped**, below |
-| 10 | **haus's three remaining painters** — `modules/ai/statusline.sh`, `modules/terminal/scripts/image-preview.sh`, `modules/terminal/lanes/lane-open.sh` | ⏳ open. The last hardcoded indices in anything a *user* drives; the maintenance scripts under **Where the standard stops** still hold theirs. See **What 10 has to answer**, below |
+| caller | how it reaches the runtime |
+| --- | --- |
+| `scruff`'s `internal/ui` | imports `github.com/hausfold/snug`. No process, no protocol |
+| `bench` | sources `$(repo_dir snug)/share/ui.sh`, and opens one `snug run` coprocess for a command that draws a live region |
+| haus's `haus.sh` and `haus-show.sh` | ui.sh at `HAUS_UI_SH`, injected by `modules/core`; the `haus rebuild` phase painter is a coprocess |
+| haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
+| haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
 
-**What 10 has to answer.** Two things 7 and 9 never met, both in
-`statusline.sh`, and both worth knowing before the diff:
+haus's suite enforces this, with **two bans of different strengths, and the
+difference is the point.** Over `haus.sh` and `haus-show.sh` it fails on *any*
+literal escape outside a comment: those two draw nothing but text and roles, so
+there is no legal place for one. Over the three painters it bans the SGR colour
+forms only (`\033[38;`, `\033[48;`, the ANSI-basic sets), because those three
+legitimately emit escapes that are not colour — OSC 8 hyperlinks, OSC 2 window
+titles, and the DECTCEM cursor hide/show `image-preview.sh` needs. A blanket ban
+there would have to be suppressed per line until it meant nothing.
 
-- **It renders with stdout piped, not to a terminal.** Claude Code captures the
-  line. `ui__detect_profile` gates on a tty, so sourcing `ui.sh` naively turns
-  the HUD monochrome — the gate has to be forced (`UI_TTY=1`) rather than
-  measured. This is the first caller in the family whose colour is *correct*
-  without a tty, and the fallback's own detection is wrong for it by design.
-- **Eleven slots against nine roles, and the collision is fine.** `PURGE` (256
-  index 173, orange) and `WARN` (179, yellow) both land on `warn`. That reads as
-  a lost distinction and is not one: every `PURGE` use carries its own glyph
-  (`⏏`, `◇`, `N^`) while `WARN`'s two carry none, and **the glyph is
-  load-bearing and the colour is not** is this file's own rule. The distinction
-  survives the collapse in the channel the standard says holds it.
+**One exception is named in the ban rather than pattern-matched away**: the
+statusline's `TINT_FABLE` row tint is a *background*, and the nine roles are all
+foreground. It stays a raw escape, gated on the profile being truecolor — which
+is also correct on its own terms, since `#382713` has no cube equivalent, and
+ungated it paints a warm band behind text that `NO_COLOR` has already returned
+to terminal default.
 
-  A third slot, `NAME`, was `\033[1m` — bold, an ATTRIBUTE rather than a colour,
-  and the nine roles carry no weight. It becomes `subject`, which is what a
-  worktree name is; the bold is simply gone, and nothing needed it.
+Three collisions come out of eleven statusline slots landing on nine roles.
+Two lose nothing. `PURGE` and `WARN` both become `warn`, but every `PURGE` use
+carries its own glyph (`⏏`, `◇`, `N^`) and `WARN`'s two carry none — **the glyph
+is load-bearing and the colour is not** is this file's own rule, so the
+distinction survives in the channel that holds it. `ADD`/`PR_OPEN` both become
+`ok` and `DEL`/`PR_CLOSED` both `err`, which they already were by index. The
+third is a real change and is written down so nobody rediscovers it from the
+screen: `DOT` and `DIM` both become `muted`, so the clean `●` renders in the
+same grey as the cost beside it. They were two hand-picked greys reaching for
+the one role nebelung has for them, and the `●` keeps its meaning positionally.
 
-  The row tint is the one genuine gap — `TINT_FABLE`'s `\033[48;2;…` is a
-  *background*, and the nine roles are all foreground. Either it stays a raw
-  escape with a comment saying so, or snug grows a background role. It is one
-  line either way; do not let it hold up the other ten.
+## Rules a caller has to meet
 
-**What 7 shipped.** `bench` sources `$(repo_dir snug)/share/ui.sh` and calls
-`ui_say` / `ui_row` / `ui_paint`; where `snug` is on `PATH` and fd 2 is a
-terminal it opens ONE coprocess for the whole command — lazily, on the first
-line the command draws, so a verb that prints nothing forks nothing — and
-writes the same records to it. The dispatch belongs to `bench`, not to the
-library — one fork per *command* is the whole economy, and a library sourced
-per script cannot see the command boundary that decision needs.
+**The record protocol.** Tab-separated, one per line, verb first — `say<TAB>text`,
+`row<TAB>state<TAB>name<TAB>detail`, `paint`, `end`. A space after the verb does
+not parse; `snug run` splits on tabs and answers `unknown record`. A row never
+carries an empty field between two non-empty ones, because `read` collapses
+consecutive delimiters — a running job's detail carries its stale duration, and
+only the trailing `since` may be empty. Multi-line text is one record per line;
+the emitter folds the newlines.
 
-Three contract points worth having in one place:
+**One coprocess per command, opened lazily, and dead is dead.** A fork costs
+4.4 ms, so the fork happens on the first line a command draws — a verb that
+prints nothing forks nothing — and the dispatch belongs to the *caller*, not to
+the library: one fork per command is the whole economy, and a library sourced
+per script cannot see the command boundary that decision needs. It opens only
+under a terminal on fd 2 and only when ui.sh loaded, so a machine with the
+binary on `PATH` but no snug checkout gets the ui.sh path even interactively —
+one detection, one answer. A snug that dies once stays dead for the command
+(`SNUG_TRIED` is not reset on close): a failed record write must never re-fork
+per frame, which is the regression the coprocess exists to prevent. Degradation
+falls back to ui.sh, and the close is guarded on `UI_READY` because the live
+region exists only when ui.sh loaded.
 
-- **Records are tab-separated, one per line, verb first** — `say<TAB>text`,
-  `row<TAB>state<TAB>name<TAB>detail`, `paint`, `end`. A space after the verb
-  does not parse: `snug run` splits on tabs and answers `unknown record`.
-- **A row never carries an empty field between two non-empty ones.** `read`
-  collapses consecutive delimiters, so a renderer row's detail is never empty
-  for a running job (it carries the stale duration) — only the trailing
-  `since` field may be empty.
-- **Multi-line text is one record per line.** Newlines would break record
-  framing; the emitter folds them.
-- **A snug that died once stays dead for the command.** `SNUG_TRIED` is not
-  reset by `snug_close`, so a failed record write never re-forks per frame —
-  the fork-a-frame loop is the regression the coprocess exists to prevent.
-  A dying coprocess degrades to ui.sh: `watch_paint || true` keeps the watch
-  alive, the verbs fall back, and `ui_live_close` is guarded on `UI_READY`
-  because it exists only when ui.sh loaded.
-- **The coprocess opens only under a terminal on fd 2**, and only when ui.sh
-  loaded (`UI_TTY` is ui.sh's). A machine with the binary on PATH but no
-  snug checkout gets the ui.sh path even interactively — one detection, one
-  answer.
+**Anything drawing from a background job needs its own duplicate of the write
+end.** Bash closes a coprocess's descriptors in every child it forks, so a
+background painter writing to `${SNUG[1]}` silently does nothing — the row
+freezes at `0.0s` while every other assertion stays green. `exec {FD}>&"${SNUG[1]}"`
+is the whole fix, because a plain duplicate is inherited like any other fd; bash's
+own copy is then closed, or nothing ever reaches EOF. **Write a test that counts
+frames** — a spinner that never turns looks exactly like a phase that is taking
+a while. The loop's leash is `kill -0 $$`: it holds a copy of the write end, so
+without that check a finished caller leaves snug spinning as an orphan.
 
-The watch's duration clock stays in `bench` (a running job's seconds re-derive
-every frame from its start epoch); folding, the budget, the tiers, the resize
-and the cursor are snug's. The message verbs (`say`/`warn`/`hint`/`die`) moved
-to fd 2 with the move — stdout carries data only — and `bench`'s hand-picked
-256-colour palette block is gone, replaced by aliases onto the generated roles.
-The status tables stay on fd 1 for now, so `bench status | less` carries them
-whole; their alias gate keys on fd 1 while the verbs' gate keys on fd 2 — one
-palette, two gates, to be unified when the tables move to ui.sh.
+**Nothing may repaint while `sudo` might be asking for a password.** The prompt
+goes to `/dev/tty` — the same terminal the region repaints, and one the region's
+line count knows nothing about — so ten frames a second rewind over the prompt
+and over what is being typed into it. `haus` draws `activate` as a still row
+unless `sudo -n true` proves the timestamp is already valid: a one-way probe
+that under-detects on purpose, because the safe direction is the still row.
 
-The step also deleted `paint_live`, `watch_measure`, `row_glyph` and the
-`WATCH_RENDER_PY` clamp from `bench` — the last four copies of machinery
-`ui.sh` and `palette.go` already own.
+**Which stream a command draws on is a property of the COMMAND, not the verb.**
+`haus` sets `REPORT=1` in its dispatch for `status doctor plan diff permissions
+btm generations get capture`; those draw entirely on fd 1, everything else
+entirely on fd 2. `die` and progress are the exceptions inside a report and are
+always fd 2 — an error is not part of a report, and neither is a "fetching …"
+line. A per-verb split cannot be right: half the verbs are called from helpers
+that both kinds of command use, so `settings_diff` inside `haus plan` and inside
+`haus set` want opposite answers — and a split header/body makes `haus doctor |
+pbcopy` an unlabelled list of ticks, which `docs/bug-reports.md` makes the entire
+feedback channel for a product with no telemetry. The cost is that a report gets
+no folding, because it cannot use the coprocess: `snug run` draws on ITS stderr,
+which is the terminal, not the calling command's stdout. `bench`'s status tables
+pay the same price.
 
-⚠️ **`ui.sh` deliberately does not inherit this line**, which `bench` and
-`haus` both carried:
+**One colour precedence, asked rather than re-derived.** ui.sh measures fd 2 at
+load. A report draws on fd 1, so ask ui.sh again — `ui__detect_profile` /
+`ui__resolve_palette` with `UI_TTY` set from fd 1 — and read `C_*` off that
+answer. Spelling the rule a second time by hand is how one binary comes to answer
+`NO_COLOR` + `CLICOLOR_FORCE` two ways. Neither answer is wrong in the abstract;
+two answers in one binary is.
+
+**Force the gate where colour is correct without a tty.** haus's statusline
+renders with both descriptors captured — Claude Code reads the line and puts it
+in a terminal — so a measured `[ -t 2 ]` answers "no colour" for output that
+lands in colour anyway. It sets `UI_TTY=1` rather than measuring, and forces
+*only* that, leaving `NO_COLOR` and `TERM=dumb` still able to win.
+
+**Never call your path-to-ui.sh variable `UI_SH`.** That is ui.sh's own
+source-twice sentinel (`[ -n "${UI_SH:-}" ] && return 0`), so a caller holding
+the path in it makes the file return before defining anything: no error, no
+colour, and a suite that stays green because every role is legitimately empty
+when the painter is absent. haus's is `HAUS_UI_SH`, and the module injects it
+rather than letting the script re-resolve a constant path three times per prompt.
+
+**ui.sh is bash 4+, and macOS's `/bin/bash` is 3.2** — where it does not degrade
+but half-loads with `bad substitution`. Use `#!/usr/bin/env bash` and a
+`BASH_VERSINFO` guard, and put the guard in the text that actually *sources* it:
+for a script that hands a snippet to another shell, the snippet is the caller,
+and a `grep` against the outer file is satisfied by a guard protecting nothing.
+A script that never sources ui.sh in its own shell keeps `/bin/bash` — an
+absolute interpreter beats an inherited `PATH` under launchd.
+
+**A width probe must not be able to kill its caller.** This shape:
 
 ```sh
 sz="$(stty size 2>/dev/null </dev/tty)" && COLS="${sz#* }" || COLS="$(tput cols 2>/dev/null)"
@@ -425,132 +463,40 @@ sz="$(stty size 2>/dev/null </dev/tty)" && COLS="${sz#* }" || COLS="$(tput cols 
 
 `set -e` exempts every command in a `&&`/`||` list **except the last**, and
 `tput` exits 2 with `TERM` unset — the shape of any session with no pty
-(`ssh mac haus rebuild`, a launchd job, CI). Measured: the caller exits 2 with
-nothing on either stream, after a successful evaluation and before anything
-activated, and the sanitising `case` that exists precisely to cope with a bad
-answer never runs. `|| true` inside that final substitution is the fix. **A
-width probe that can kill its caller is the worst possible failure mode for a
-courtesy** — which is the whole argument for one runtime rather than four
-copies.
+(`ssh mac haus rebuild`, a launchd job, CI). The caller exits 2 with nothing on
+either stream, after a successful evaluation and before anything activated, and
+the sanitising `case` that exists precisely to cope with a bad answer never runs.
+`|| true` inside that final substitution is the fix. **A width probe that can
+kill its caller is the worst possible failure mode for a courtesy** — which is
+the argument for one runtime rather than four copies. ui.sh deliberately does
+not inherit the line.
 
-**What 9 shipped.** `haus.sh` and `haus-show.sh` draw through snug the way
-`bench` does, and there is now **no hardcoded escape left in either** — the
-suite fails on any `\033[` outside a comment, because with every colour an alias
-onto the generated roles there is no legal place for one. Both scripts already
-*sourced* `ui.sh` (step 6 wired `HAUS_UI_SH` through the wrapper); 9 is the part
-that was deliberately left open, and the comment in `haus.sh` that named this PR
-as its precondition is gone with it.
+**The binary owns a signal policy; the library does not.** `snug run` installs a
+SIGINT handler and exits 128+signum, because Go's default disposition terminates
+without running a `defer`, so the region's `Close()` never fires and a ⌃C leaves
+the terminal with no cursor. The caller cannot fix that — the coprocess is dead
+before bash's INT trap runs. A Go program importing the package owns its own
+policy, so the library installs nothing.
 
-The `haus rebuild` phase painter is the piece with teeth. It was a live region
-of exactly one line, hand-drawn: `phase_start` left a 14-cell stub, `\r\033[2K`
-repainted over it, and `phase_row` chose between five width tiers it measured
-itself. All of that is deleted — `PHASE_COLS`, `PHASE_UNBOUNDED`, `PHASE_STUB`,
-`phase_measure`, `phase_row`, and the `stty size … || tput cols` probe this file
-already warns about. What replaces it is `row`/`paint`/`end` records and a
-background frame loop, so a rebuild's `resolve` and `activate` phases now carry a
-**turning spinner and a live clock**, which bash could not do at all before: the
-phase is a foreground command (`sudo haus-activate` has to keep the terminal for
-its password prompt), so the frames come from a loop beside it rather than from
-polling around a backgrounded phase. The loop's leash is `kill -0 $$` — it holds
-a copy of the coprocess's write end, so without that check a finished `haus`
-would leave snug spinning as an orphan.
+## Why the fallback lives in snug
 
-Three contract points 7 did not have to answer, and 9 did:
+`ui.sh` is not kept in step with `palette.go` — the two are *generated from the
+same list*. snug's `script/gen-palette.sh` writes `palette.go` and ui.sh's
+`UI__HEX` / `UI__X256` blocks in one run, from one nebelung checkout and one
+`TOKENS` list, and snug's suite re-derives every 256-colour index and diffs the
+hex against `palette.go` on every push. A fallback that drew a *different*
+colour from the binary would be worse than no fallback, because it makes "which
+machine is this?" a question you have to ask about your own output. Both halves
+live in one repo so that test always runs: split across two, it is a diff that
+skips — green, checking nothing — on any machine without the second checkout.
 
-- **A coprocess's own descriptors are NOT available in a subshell.** Bash closes
-  them in every child it forks, so a background painter writing to `${SNUG[1]}`
-  silently does nothing — measured, one frame in a 0.6 s phase, the row frozen
-  at `0.0s`, and every other assertion in the suite green throughout. The fix is
-  one line, `exec {FD}>&"${SNUG[1]}"`, because a plain duplicate is inherited
-  like any other fd; bash's copy is then closed, or nothing ever reaches EOF.
-  7 never met this because bench's watch loop paints from the main shell.
-  **Anything that draws from a background job needs the duplicate, and a test
-  that counts frames** — a spinner that never turns looks exactly like a phase
-  that is simply taking a while.
-- **Nothing may repaint while `sudo` might be asking for a password.** The
-  prompt goes to `/dev/tty` — the same terminal the region repaints, and one the
-  region's line count knows nothing about — so ten frames a second rewind over
-  the prompt and over what is being typed into it. `haus` runs `activate` as a
-  still row unless `sudo -n true` proves the timestamp is already valid: a
-  one-way probe that under-detects on purpose, because the safe direction is the
-  row it drew before there was a spinner at all.
-- **Two streams, and which one is a property of the COMMAND, not the verb.**
-  This is where 9 diverges from 7, and the divergence was earned the hard way.
-  `haus` sets `REPORT=1` in its dispatch for `status doctor plan diff
-  permissions btm generations get capture`; those draw entirely on fd 1, and
-  everything else draws entirely on fd 2. `die` is the one exception and is
-  always fd 2, because an error is not part of a report.
-
-  A per-verb split — bench's, and the first cut of 9 — cannot be right here:
-  half the verbs are called from helpers both kinds of command use, so
-  `settings_diff` inside `haus plan` and inside `haus set` want opposite
-  answers. The measured consequence was that `haus doctor`'s section headers
-  went to fd 2 while its findings stayed on fd 1, making `haus doctor | pbcopy`
-  an unlabelled list of ticks — and `docs/bug-reports.md` makes that paste the
-  entire feedback channel for a product with no telemetry.
-
-  The cost is that a report gets no folding, because it cannot use the
-  coprocess: `snug run` draws on ITS stderr, which is the terminal, not the
-  calling command's stdout. That is the same price bench's tables pay.
-  (`haus show` is a report; its `die`, its usage and its one "fetching …"
-  progress line are on fd 2, as errors and progress are everywhere.)
-- **One colour precedence, asked rather than re-derived.** `ui.sh` measures fd 2
-  at load; the reports are on fd 1, so both scripts call its own
-  `ui__detect_profile`/`ui__resolve_palette` a second time with `UI_TTY` set from
-  fd 1, and read `C_*` off *that* answer. Spelling the rule a second time is what
-  made one binary answer `NO_COLOR` + `CLICOLOR_FORCE` two ways during this
-  work — haus's old block had NO_COLOR winning, ui.sh has the force winning.
-  Neither is wrong in the abstract; two answers in one binary is.
-
-⚠️ **9 found a bug in 4, and it is the contract's own item 5.** `snug run`
-never restored the cursor when it was interrupted: Go's default SIGINT
-disposition terminates without running a `defer`, so `region.Close()` never
-fired. Measured against the shipped binary — `hid=True, restored=False`. The
-caller cannot fix it, because the coprocess is dead before bash's INT trap runs,
-and a ⌃C through `bench release`'s watch has been leaving terminals with no
-cursor for as long as 7 has been shipped. Fixed in
-[snug#9](https://github.com/hausfold/snug/pull/9): the BINARY installs the
-handler and exits 128+signum; the library deliberately does not, because a Go
-program importing snug owns its own signal policy.
-
-**How 8 stays in step with 4.** It is not kept in step — it is *generated from
-the same list*. `snug`'s `script/gen-palette.sh` writes `palette.go` and
-`ui.sh`'s `UI__HEX`/`UI__X256` blocks in one run, from one nebelung checkout and
-one `TOKENS` list, and snug's bats suite re-derives every 256-colour index and
-diffs the hex against `palette.go` on every push. A fallback that drew a
-*different* colour from the binary would be worse than no fallback, since it
-makes "which machine is this?" a question you have to ask about your own output.
-
-While the two halves were in two repos this was a *diff*, and it needed a snug
-checkout beside the workshop — CI cloned one, and on any laptop without one the
-test skipped: green, checking nothing. Both halves are in snug now, so the drift
-test always runs and the clone step is gone.
-
-Two bugs were found by writing it against snug rather than from memory, and both
-were in snug: its `bare` tier carried the full 3-cell gutter whenever colour was
-on (`TrimRight(mark, " ")` does nothing once the mark ends in a reset escape),
-and `Say` at a window narrower than four columns emitted the gutter plus a
-clamped character. Both overflowed the last column; neither was visible to a
-colourless test sweep. Fixed in
-[snug#3](https://github.com/hausfold/snug/pull/3). A third was found by moving
-it: the bats test that re-derives the 256-colour table computed *unweighted*
-Euclidean distance while `theme.go`'s `dist` weights the channels 3/6/1. It
-agreed on all thirty-two entries by luck, so it passed green while checking a
-different algorithm from the one the binary runs.
-
-**Why 8 lives in snug, not here.** It was written here and moved within the
-week, because the caller that most needs it could never have reached it from
-here: `haus.sh` is `builtins.readFile`'d into a store binary, and a haus user
-has no workshop checkout. A fallback the fallback's biggest consumer cannot
-source is not a fallback. The alternatives were both worse — vendoring a copy
-into haus reintroduces exactly the drift 8 exists to delete, and haus already
-takes `inputs.snug`, so its derivation reads `${snug}/share/ui.sh` straight off
-the store path with no copy and no drift check at all. It ships *inside* snug's
-derivation, beside `bin/snug`, so the binary and the stand-in for the binary
-arrive together or not at all.
-
-Nothing sourced `ui.sh` when it moved, which is the only reason the move was
-free. Do this kind of correction before 7 adopts it, not after.
+It ships **inside snug's derivation, beside `bin/snug`**, so the binary and the
+stand-in for the binary arrive together or not at all. The caller that most
+needs it could not reach it anywhere else: `haus.sh` is `builtins.readFile`'d
+into a store binary, and a haus user has no workshop checkout. Vendoring a copy
+into haus would reintroduce exactly the drift the fallback exists to delete;
+haus already takes `inputs.snug`, so its derivation reads `${snug}/share/ui.sh`
+straight off the store path, with no copy and nothing to drift.
 
 ## Where the standard stops
 

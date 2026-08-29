@@ -210,8 +210,7 @@ declare -gA LANE_SRC=()   # repo → scruff-child checkout it should build again
 # ── Palette + verbs ──────────────────────────────────────────────────────────
 # Both are defined just after ui_load, below: the roles come out of snug's
 # generated palette (share/ui.sh) and the verbs write to fd 2, so the source
-# has to come first. (docs/cli-presentation.md, step 7 — done; row 10 is what
-# is still open in its order-of-work table.)
+# has to come first. (docs/cli-presentation.md, **Who draws through it**.)
 
 # ── saying it on screen, for the verbs you walk away from ───────────────────
 # `bench release` blocks on a CI run for five to ten minutes and `try-batch`
@@ -316,7 +315,7 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 # bash — no `tput`, no `stty`, no subshell. It is the fork-per-line economy that
 # matters, and this is not a fork at all.
 #
-# Step 7 of docs/cli-presentation.md draws through it:
+# docs/cli-presentation.md's **Rules a caller has to meet** is what it buys:
 #   - the roles below are aliases onto snug's GENERATED palette — one source of
 #     hexes (snug's script/gen-palette.sh) instead of four copies of
 #     256-colour indices that had drifted ΔE 2–27 from nebelung.
@@ -2248,7 +2247,7 @@ print("RUN\t%s\t%s" % (d.get("status") or "", d.get("conclusion") or ""))
 # The painter is gone; snug owns the frame. bench resolves each row and hands
 # them over as records to the coprocess, or to ui.sh's live region when there
 # is no binary. Folding, the budget, the tiers, the resize and the cursor all
-# live in snug now — see docs/cli-presentation.md, step 7.
+# live in snug — see docs/cli-presentation.md, **The runtime**.
 
 watch_rows_resolve() { # watch_rows_resolve <array-name> — WATCH_ROWS with live clocks
   local -n dest="$1"
