@@ -113,8 +113,11 @@ glyph it was.
 
 `haus.sh` and `haus-show.sh` additionally had **no colour gate at all** — 35
 raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files and CI logs
-alike. `bench`'s palette block gets this right and was the model; both now carry
-a copy of it, and a bats case fails on any new escape written outside it.
+alike. Step 3 gave them one; steps 7 and 9 removed the thing it was gating.
+Neither script holds an escape today, nor does `bench`: every colour in all
+three is an alias onto snug's generated roles, and haus's suite fails on ANY
+literal escape in those two files outside a comment, there being no longer a
+legal place for one.
 
 ## The standard
 
@@ -326,7 +329,7 @@ standard is written here in prose rather than only as Go.
 ## Order of work
 
 The list is the durable record of what is left; keep it true or it stops being
-one. State as of 2026-08-27:
+one. State as of 2026-08-29:
 
 | | | |
 |---|---|---|
@@ -338,6 +341,7 @@ one. State as of 2026-08-27:
 | 6 | **snug reachable** — flake input, `bench`'s `EDGES`, on `PATH` | ✔ done ([snug#2](https://github.com/hausfold/snug/pull/2) → [haus#545](https://github.com/hausfold/haus/pull/545) → [workshop#473](https://github.com/hausfold/workshop/pull/473)) |
 | 7 | **`bench` onto `snug run`** as a coprocess | ✔ done ([workshop#482](https://github.com/hausfold/workshop/pull/482); eight bats cases around the record contract, including one that feeds bench's exact bytes to a real `snug run`; see **What 7 shipped**, below) |
 | 8 | **The bash fallback** — [`snug/share/ui.sh`](https://github.com/hausfold/snug/blob/main/share/ui.sh), the same spec in bash | ✔ done (17 bats cases; the width sweeps run 2–200 at four colour depths). Written here as `lib/ui.sh` in [workshop#476](https://github.com/hausfold/workshop/pull/476), moved into snug the same week — see **Why 8 lives in snug** below |
+| 9 | **`haus` onto `snug run`** — the end-user CLI's own step 7 | ✔ done ([haus#562](https://github.com/hausfold/haus/pull/562); 30 bats cases, two of them real ptys). Both end-user scripts, not one: `haus.sh` and `haus-show.sh` — see **What 9 shipped**, below |
 
 **What 7 shipped.** `bench` sources `$(repo_dir snug)/share/ui.sh` and calls
 `ui_say` / `ui_row` / `ui_paint`; where `snug` is on `PATH` and fd 2 is a
@@ -398,6 +402,86 @@ answer never runs. `|| true` inside that final substitution is the fix. **A
 width probe that can kill its caller is the worst possible failure mode for a
 courtesy** — which is the whole argument for one runtime rather than four
 copies.
+
+**What 9 shipped.** `haus.sh` and `haus-show.sh` draw through snug the way
+`bench` does, and there is now **no hardcoded escape left in either** — the
+suite fails on any `\033[` outside a comment, because with every colour an alias
+onto the generated roles there is no legal place for one. Both scripts already
+*sourced* `ui.sh` (step 6 wired `HAUS_UI_SH` through the wrapper); 9 is the part
+that was deliberately left open, and the comment in `haus.sh` that named this PR
+as its precondition is gone with it.
+
+The `haus rebuild` phase painter is the piece with teeth. It was a live region
+of exactly one line, hand-drawn: `phase_start` left a 14-cell stub, `\r\033[2K`
+repainted over it, and `phase_row` chose between five width tiers it measured
+itself. All of that is deleted — `PHASE_COLS`, `PHASE_UNBOUNDED`, `PHASE_STUB`,
+`phase_measure`, `phase_row`, and the `stty size … || tput cols` probe this file
+already warns about. What replaces it is `row`/`paint`/`end` records and a
+background frame loop, so a rebuild's `resolve` and `activate` phases now carry a
+**turning spinner and a live clock**, which bash could not do at all before: the
+phase is a foreground command (`sudo haus-activate` has to keep the terminal for
+its password prompt), so the frames come from a loop beside it rather than from
+polling around a backgrounded phase. The loop's leash is `kill -0 $$` — it holds
+a copy of the coprocess's write end, so without that check a finished `haus`
+would leave snug spinning as an orphan.
+
+Three contract points 7 did not have to answer, and 9 did:
+
+- **A coprocess's own descriptors are NOT available in a subshell.** Bash closes
+  them in every child it forks, so a background painter writing to `${SNUG[1]}`
+  silently does nothing — measured, one frame in a 0.6 s phase, the row frozen
+  at `0.0s`, and every other assertion in the suite green throughout. The fix is
+  one line, `exec {FD}>&"${SNUG[1]}"`, because a plain duplicate is inherited
+  like any other fd; bash's copy is then closed, or nothing ever reaches EOF.
+  7 never met this because bench's watch loop paints from the main shell.
+  **Anything that draws from a background job needs the duplicate, and a test
+  that counts frames** — a spinner that never turns looks exactly like a phase
+  that is simply taking a while.
+- **Nothing may repaint while `sudo` might be asking for a password.** The
+  prompt goes to `/dev/tty` — the same terminal the region repaints, and one the
+  region's line count knows nothing about — so ten frames a second rewind over
+  the prompt and over what is being typed into it. `haus` runs `activate` as a
+  still row unless `sudo -n true` proves the timestamp is already valid: a
+  one-way probe that under-detects on purpose, because the safe direction is the
+  row it drew before there was a spinner at all.
+- **Two streams, and which one is a property of the COMMAND, not the verb.**
+  This is where 9 diverges from 7, and the divergence was earned the hard way.
+  `haus` sets `REPORT=1` in its dispatch for `status doctor plan diff
+  permissions btm generations get capture`; those draw entirely on fd 1, and
+  everything else draws entirely on fd 2. `die` is the one exception and is
+  always fd 2, because an error is not part of a report.
+
+  A per-verb split — bench's, and the first cut of 9 — cannot be right here:
+  half the verbs are called from helpers both kinds of command use, so
+  `settings_diff` inside `haus plan` and inside `haus set` want opposite
+  answers. The measured consequence was that `haus doctor`'s section headers
+  went to fd 2 while its findings stayed on fd 1, making `haus doctor | pbcopy`
+  an unlabelled list of ticks — and `docs/bug-reports.md` makes that paste the
+  entire feedback channel for a product with no telemetry.
+
+  The cost is that a report gets no folding, because it cannot use the
+  coprocess: `snug run` draws on ITS stderr, which is the terminal, not the
+  calling command's stdout. That is the same price bench's tables pay.
+  (`haus show` is a report; its `die`, its usage and its one "fetching …"
+  progress line are on fd 2, as errors and progress are everywhere.)
+- **One colour precedence, asked rather than re-derived.** `ui.sh` measures fd 2
+  at load; the reports are on fd 1, so both scripts call its own
+  `ui__detect_profile`/`ui__resolve_palette` a second time with `UI_TTY` set from
+  fd 1, and read `C_*` off *that* answer. Spelling the rule a second time is what
+  made one binary answer `NO_COLOR` + `CLICOLOR_FORCE` two ways during this
+  work — haus's old block had NO_COLOR winning, ui.sh has the force winning.
+  Neither is wrong in the abstract; two answers in one binary is.
+
+⚠️ **9 found a bug in 4, and it is the contract's own item 5.** `snug run`
+never restored the cursor when it was interrupted: Go's default SIGINT
+disposition terminates without running a `defer`, so `region.Close()` never
+fired. Measured against the shipped binary — `hid=True, restored=False`. The
+caller cannot fix it, because the coprocess is dead before bash's INT trap runs,
+and a ⌃C through `bench release`'s watch has been leaving terminals with no
+cursor for as long as 7 has been shipped. Fixed in
+[snug#9](https://github.com/hausfold/snug/pull/9): the BINARY installs the
+handler and exits 128+signum; the library deliberately does not, because a Go
+program importing snug owns its own signal policy.
 
 **How 8 stays in step with 4.** It is not kept in step — it is *generated from
 the same list*. `snug`'s `script/gen-palette.sh` writes `palette.go` and
