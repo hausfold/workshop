@@ -76,8 +76,7 @@ former, never the latter).
 ## Where a write-up goes
 
 **One fact, one place.** A repo's long-form writing that isn't on the site lives
-in its `docs/` — no `notes/` anywhere, that was the old name and it collected
-history nobody read.
+in its `docs/`. No `notes/` anywhere.
 
 | kind of write-up | where |
 |---|---|
@@ -97,14 +96,14 @@ design record for a room built around a missing API (haus's `focus.md`), a wire
 protocol (perch's `cli.md`), a runbook (perch's `app-store.md`,
 `feel-testing.md`), and generated data the site consumes (haus's
 `docs/site-data/`, which `hausfold.co`'s `npm run options` reads — never prune
-it). pounce needed none of those and has no `docs/` at all.
+it). pounce has none of those and no `docs/` at all.
 
-**Two kinds of repo this does not describe.** **trill** has a tree, but it is one
-incubator page that hausfold.co's own `AGENTS.md` forbids growing until the tab's
-positioning is decided — so `trill/docs/` is its manual, and its README a door
+**Two kinds of repo this does not describe.** **trill**'s tree is one incubator
+page that hausfold.co's own `AGENTS.md` forbids growing while the tab's
+positioning is undecided, so `trill/docs/` is its manual and its README a door
 onto that. **scruff, snug and nebelung** have no tree at all, so their README
-*is* the front page and carries as much manual as it needs; a sweep must not cut
-one of those down to a door, because there is nowhere for the content to go.
+*is* the front page and carries as much manual as it needs; never cut one of
+those down to a door, because there is nowhere for the content to go.
 
 The test for a README in the first group: if a sentence would still be true and
 useful after the reader has installed the thing, it belongs in the manual, not
