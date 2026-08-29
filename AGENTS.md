@@ -75,15 +75,40 @@ former, never the latter).
 
 ## Where a write-up goes
 
-**Every repo in the family keeps its long-form documentation in `docs/`.** No
-`notes/` anywhere — it was the old name and it collected history nobody read.
+**One fact, one place.** A repo's long-form writing that isn't on the site lives
+in its `docs/` — no `notes/` anywhere, that was the old name and it collected
+history nobody read.
 
 | kind of write-up | where |
 |---|---|
-| how a thing works **now**, in one repo | that repo's `docs/<topic>.md` |
-| a standard that binds every repo | this repo's [`docs/`](./docs/) — `agent-surface.md`, `bug-reports.md`, `drift.md`, `agent-vm.md` |
 | what a user reads | `hausfold.co`'s `content/docs/`, the site's source of truth |
+| **a repo's `README.md`** | a **door** wherever the manual is somewhere else — what the thing is, one install line, the way to the docs. In a repo with no tree on the site it is still the front page, and may be the manual. See below |
+| how a thing works **now**, in one repo, for someone working *on* it | that repo's `docs/<topic>.md` |
+| a standard that binds every repo | this repo's [`docs/`](./docs/) — `agent-surface.md`, `bug-reports.md`, `drift.md`, `agent-vm.md` |
 | **work that still has steps in it** | [hausfold/ops](https://github.com/hausfold/ops)'s `todo/` — private, and the one place a live plan lives |
+
+**A repo with a tree on hausfold.co keeps no manual of its own.** haus, pounce
+and perch each have one, and for those three the site is where a user-facing
+fact lives — one copy, and the README is a door onto it rather than a second
+telling. What stays in the repo's `docs/` is what a *contributor* needs and the
+site would be wrong to carry: a contract the code cites by name (haus's
+`model.md` and `macos-settings.md`, pinned from a dozen source files each), a
+design record for a room built around a missing API (haus's `focus.md`), a wire
+protocol (perch's `cli.md`), a runbook (perch's `app-store.md`,
+`feel-testing.md`), and generated data the site consumes (haus's
+`docs/site-data/`, which `hausfold.co`'s `npm run options` reads — never prune
+it). pounce needed none of those and has no `docs/` at all.
+
+**Two kinds of repo this does not describe.** **trill** has a tree, but it is one
+incubator page that hausfold.co's own `AGENTS.md` forbids growing until the tab's
+positioning is decided — so `trill/docs/` is its manual, and its README a door
+onto that. **scruff, snug and nebelung** have no tree at all, so their README
+*is* the front page and carries as much manual as it needs; a sweep must not cut
+one of those down to a door, because there is nowhere for the content to go.
+
+The test for a README in the first group: if a sentence would still be true and
+useful after the reader has installed the thing, it belongs in the manual, not
+the door.
 
 Three rules that keep them from rotting:
 
