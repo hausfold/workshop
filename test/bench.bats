@@ -717,11 +717,109 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" = 4 ]
 }
 
-@test "lane_rows emits repo, branch, checkout and lane name, tab separated" {
+@test "lane_rows emits repo, branch, checkout, name and parent, tab separated" {
   WT_REGISTRY="$TMP/registry.tsv"
   mkregistry "$WT_REGISTRY" "lane1 $ROOT/haus worktree-lane1 /wt/haus $ROOT/haus claude"
   run lane_rows
-  [ "$output" = "$(printf '%s\t%s\t%s\t%s' "$ROOT/haus" worktree-lane1 /wt/haus lane1)" ]
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s' \
+    "$ROOT/haus" worktree-lane1 /wt/haus lane1 "$ROOT/haus")" ]
+}
+
+@test "lane_rows puts a spawned lane straight under the lane that spawned it" {
+  # `scruff child` reaching into a second repo, and ⌘↵ pressed inside a lane's
+  # own pane, write the SAME parentage: the spawning checkout, not the repo's
+  # main one. Both are indented here; neither is dropped, because each carries
+  # its own branch and its own PR and neither is reaped when that pane closes.
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "par $ROOT worktree-par /wt/par $ROOT claude" \
+    "par $ROOT/haus worktree-par /wt/haus-par /wt/par claude" \
+    "deep $ROOT/pounce worktree-deep /wt/deep /wt/haus-par claude" \
+    "solo $ROOT/nebelung worktree-solo /wt/solo $ROOT/nebelung claude"
+  run lane_rows
+  [ "$status" -eq 0 ]
+  # The order IS the tree: parent, its child, that child'"'"'s child, then the
+  # unrelated lane — a chain three deep, so the walk is really recursive.
+  [ "$(printf '%s\n' "$output" | cut -f3 | tr '\n' ' ')" \
+    = "/wt/par /wt/haus-par /wt/deep /wt/solo " ] \
+    || fail_rows "a child must follow the lane that spawned it" "$output"
+}
+
+@test "lane_rows keeps a spawned lane whose parent bench does not list" {
+  # The parent is somebody else's repo, so it is filtered out — but the CHILD
+  # is one of ours, with a branch and a PR of its own. Nesting it under an
+  # invisible row is the one shape that would hide it, so it stays at the top.
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "alien /Users/someone/other worktree-alien /wt/alien /Users/someone/other claude" \
+    "ours $ROOT/haus worktree-ours /wt/ours /wt/alien claude"
+  run lane_rows
+  [ "$status" -eq 0 ]
+  [ "$output" = "$(printf '%s\t%s\t%s\t%s\t%s' \
+    "$ROOT/haus" worktree-ours /wt/ours ours /wt/alien)" ]
+}
+
+@test "lane_table indents a spawned lane without shearing the columns" {
+  # `└` is three bytes and ONE column, so a %-32s branch cell comes up two
+  # short on every indented row — the same trap dirty_cell exists for. Cells
+  # are compared up to the dirty marker, which is the first thing past the
+  # branch column and appears in no path; the marker is folded to an ASCII
+  # stand-in first so this holds whatever locale the suite runs in.
+  mkmain haus
+  WT_REGISTRY="$TMP/registry.tsv"
+  git -C "$ROOT/haus" worktree add -q -b worktree-par "$TMP/par"
+  git -C "$ROOT/haus" worktree add -q -b worktree-kid "$TMP/kid"
+  local long=worktree-kid-with-a-name-far-past-the-column-cap
+  git -C "$ROOT/haus" worktree add -q -b "$long" "$TMP/long"
+  mkregistry "$WT_REGISTRY" \
+    "par $ROOT/haus worktree-par $TMP/par $ROOT/haus claude" \
+    "kid $ROOT/haus worktree-kid $TMP/kid $TMP/par claude" \
+    "long $ROOT/haus $long $TMP/long $TMP/par claude"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"└ worktree-kid"* ]] || fail_rows "the spawned lane is not marked" "$output"
+  [[ "$output" == *"spawned from the lane above it"* ]] \
+    || fail_rows "the marker is never explained" "$output"
+  local want line
+  want="$(lane_cell_width "$output" worktree-par)"
+  for line in worktree-kid "worktree-kid-with-a-name-far"; do
+    [ "$(lane_cell_width "$output" "$line")" -eq "$want" ] \
+      || fail_rows "the indent shifted the columns on '"'"'$line'"'"'" "$output"
+  done
+}
+
+@test "lane_table does not indent under a parent it put in the other block" {
+  # Rows arrive parent-first, but live and parked ones are printed in separate
+  # blocks — so a live child of a PARKED parent used to lead the table with a
+  # `└` and nothing above it. That is the feature'"'"'s own headline case: a child
+  # is not reaped when the pane that made it closes and parks the parent.
+  mkmain haus
+  WT_REGISTRY="$TMP/registry.tsv"
+  git -C "$ROOT/haus" worktree add -q -b worktree-kid "$TMP/kid"
+  mkregistry "$WT_REGISTRY" \
+    "par $ROOT/haus worktree-par $TMP/no-such-checkout $ROOT/haus claude" \
+    "kid $ROOT/haus worktree-kid $TMP/kid $TMP/no-such-checkout claude"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-kid"* ]] || fail_rows "the spawned lane vanished" "$output"
+  [[ "$output" != *"└"* ]] \
+    || fail_rows "an indent points at a row in the other block" "$output"
+  [[ "$output" != *"spawned from the lane above it"* ]] \
+    || fail_rows "a legend for a marker that was never drawn" "$output"
+}
+
+# lane_cell_width <table> <branch> — display width of everything up to the
+# dirty marker on that row, with the indent glyph folded to ASCII so the count
+# is bytes-or-characters agnostic.
+lane_cell_width() {
+  local line; line="$(printf '%s\n' "$1" | grep -F "$2" | head -1)"
+  line="${line//└/L}"; line="${line%%·*}"; line="${line%%dirty*}"
+  printf '%s' "${#line}"
+}
+
+fail_rows() { # fail_rows <why> <output>
+  printf '%s\n--- rows ---\n%s\n' "$1" "$2" >&2
+  return 1
 }
 
 @test "lane_rows says nothing when scruff has never written a registry" {
