@@ -2216,8 +2216,9 @@ EOF
 # ── snug's bash painter ──────────────────────────────────────────────────────
 
 @test "bench sources snug's share/ui.sh out of the snug checkout" {
-  # The wiring step 7 of docs/cli-presentation.md builds on, and the reason the
-  # file moved out of this repo: `repo_dir snug` is the whole lookup, so a
+  # The wiring every drawn line depends on, and the reason the file lives in
+  # snug rather than here (docs/cli-presentation.md, **Why the fallback lives in
+  # snug**): `repo_dir snug` is the whole lookup, so a
   # renamed path or a `repo_dir` arm that stopped answering fails HERE rather
   # than the first time bench tries to draw a row.
   mkdir -p "$ROOT/snug/share"
