@@ -42,10 +42,10 @@ video instead. The MacBook frame is at
 
 ## Everything else is delisted
 
-There is no menu of stills **S2–S16**, videos **V1–V10**, composites
-(`S2-trio`, `S16-gallery`) or a ports gallery. None of it is wired to anything.
-The raw frames still sit on disk as **source material only** — referenced by
-nothing, owed to no one:
+Stills **S2–S16**, videos **V1–V10**, the composites (`S2-trio`,
+`S16-gallery`) and the ports gallery are not a set anyone owes. None of it is
+wired to anything. The frames do sit on disk, as **source material only** —
+referenced by nothing, owed to no one:
 
 - `assets/stills/S2*–S16*` and the composites (workshop, source frames) — **the
   only copies anywhere**, so don't prune them for tidiness

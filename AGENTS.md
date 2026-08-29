@@ -116,7 +116,14 @@ an in-repo doc and a site page alike:
    how a change was made: no dates, no "used to", no "was retired", no PR number
    standing in for a fact. That belongs in the commit message and the PR body,
    which is where someone asking *why* already looks. Keep the fact the history
-   was carrying and drop the sentence when the history is all there was.
+   was carrying and drop the sentence when the history is all there was. Three
+   things are **not** this, and a sweep must leave them: a **date that stamps a
+   measurement's validity** (`script/probes/**` is dated on purpose — an undated
+   result is an unfalsifiable claim); "used to" / "no longer" where they **name a
+   shape** rather than narrate a file's past, which is what `docs/drift.md` and
+   the `/docs-sync` cut-list are built out of; and a fact about a **stale config
+   a reader may still be holding** ("`adopt = false` does nothing", "`flick` is
+   an older name for trill"), which is current, not historical.
 2. **A plan is not a doc.** The moment a file is mostly unchecked boxes it
    belongs in `ops/todo/`, where it is somebody's list rather than everybody's
    reference.

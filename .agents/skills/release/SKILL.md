@@ -92,7 +92,7 @@ Say which one you picked **and the sentence of evidence for it** before running 
 
 That is the length to aim for: what moved, and who it costs.
 
-`1.1.0`, cut 2026-08-28, is the other one worth knowing, because it is the case the
+`1.1.0` is the other one worth knowing, because it is the case the
 taxonomy alone gets wrong: `git diff v1.0.0..v1.1.0 -- sdk/` is three version bumps and a
 relicense, not one line of surface, and it was still a MINOR. Deleting the `holt` symlink
 and the `HOLT_*` env rungs is a break for whoever was still spelling them, and a break
