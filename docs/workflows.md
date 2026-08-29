@@ -103,6 +103,14 @@ the workshop itself all count — plus the host config (`~/.config/nix`, shown a
 not bench's. Use `scruff child` for cross-repo work and it lands in that table;
 a raw `git worktree add` is invisible to both bench and the bar.
 
+A lane spawned from a pane — `scruff child` reaching into a second repo, or ⌘↵
+pressed inside another lane — is drawn indented under the lane that made it,
+marked `└`. It is nested, never dropped: its branch and its PR are its own, and
+closing the parent's pane does not reap it, so this table and `scruff` are the
+only places it surfaces once that pane is gone. (The palette's **Lanes** picker
+is the one surface that does drop them, because it exists to jump to a window
+and those have none.)
+
 Never `git stash` in these repos: the stash stack lives in the shared `.git`
 dir, so every worktree *and* the main checkout pop the same one, and parallel
 agents routinely pop each other's entries. `scruff park` is per-branch, so it can't.
