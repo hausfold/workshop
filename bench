@@ -323,9 +323,9 @@ repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + work
 #     carries data only. The gate and the stream moved together, which is why
 #     `bench status | less` stays escape-free without bench carrying its own.
 #   - when `snug` is on PATH and fd 2 is a terminal, ONE coprocess (`snug run`)
-#     serves the whole command: message records and the release watch's live
-#     region, folded and repainted by the Go painter while bench writes
-#     newline-delimited records.
+#     draws the release watch's live region, and the message lines that scroll
+#     above it for as long as that region is up. Nothing else: outside a region
+#     a coprocess-drawn line races the tables bench prints itself.
 #
 # The dispatch belongs to bench, not to the library — one fork per COMMAND is
 # the whole economy, and a library sourced per script cannot see the command
@@ -344,6 +344,13 @@ ui_load
 # its own gates — UI_TTY, UI_PROFILE — at load; they must never be assumed.)
 UI_READY=""
 type ui_say >/dev/null 2>&1 && UI_READY=1
+# UI_TTY is ui.sh's own measurement of fd 2 and the gate on every coprocess and
+# live region below. On a checkout with no snug it was never set at all, and
+# `set -u` turns each of those reads into `UI_TTY: unbound variable` — bench
+# dying with nothing on either stream, which is the exact failure shape the
+# width probe's `|| true` exists for. `:=` and not `=`: ui.sh has already run by
+# here on a machine that has it, and its answer is the one that counts.
+: "${UI_TTY:=}"
 
 # ── palette ──────────────────────────────────────────────────────────────────
 # Role names, not colours. C_* alias snug's nine roles so the status tables
@@ -368,8 +375,8 @@ fi
 
 # ── the snug coprocess ───────────────────────────────────────────────────────
 # One `snug run` for the whole command (bash pipes stdin and stdout and leaves
-# stderr on the terminal, which is the split snug wants). Opened lazily on the
-# first line the command draws, so a verb that prints nothing forks nothing.
+# stderr on the terminal, which is the split snug wants). Opened by the live
+# region and closed with it, so a command that draws no region forks nothing.
 # Records are tab-separated, one per line, exactly the grammar in `snug`'s
 # usage. The write end closes when bench exits; snug sees EOF and its defer
 # restores the cursor — no EXIT trap needed here, and an INT takes the
@@ -404,7 +411,16 @@ snug_open() {
 
 snug_emit() { # snug_emit <verb> <text> — one record; 1 = no coproc, caller falls back
   local line
-  [ -n "$SNUG_FD" ] || snug_open || return 1
+  # 🚨 This NEVER opens the coprocess, and the message verbs are why. A record
+  # crosses a pipe and is drawn by another process on ITS stderr; a status table
+  # is a printf straight from bench to the terminal. The two are on different
+  # schedules, so a `say` that forked a coprocess put `bench status`'s repos
+  # header ABOVE the section title introducing it, and wedged a lane row into
+  # the middle of a folded sentence. Inside a live region there is no race —
+  # bench writes nothing directly while one is up — so watch_paint is the one
+  # caller of snug_open, and everywhere else ui.sh draws from bench's own
+  # process, in bench's own order.
+  [ -n "$SNUG_FD" ] || return 1
   # Multi-line text breaks record framing: one record per line. (The Go side
   # re-joins tab fields, so a tab in prose is safe.)
   while IFS= read -r line; do
@@ -416,21 +432,21 @@ snug_emit() { # snug_emit <verb> <text> — one record; 1 = no coproc, caller fa
   return 0
 }
 
-snug_end() { # end the live region but keep the coprocess for later lines
-  [ -n "$SNUG_FD" ] || return 0
-  { printf 'end\n' >&"$SNUG_FD"; } 2>/dev/null || true
-  return 0
-}
-
 snug_close() { # everything down: end the region and drop the coprocess
   [ -n "$SNUG_FD" ] || return 0
-  snug_end
+  { printf 'end\n' >&"$SNUG_FD"; } 2>/dev/null || true
   eval "exec $SNUG_FD>&-" 2>/dev/null || true
   wait "${SNUG_PID:-}" 2>/dev/null || true
   SNUG_FD=""
   # SNUG_TRIED stays set: a snug that died once stays dead this command. A
   # re-open attempt per frame would be a fork a frame — the regression the
   # coprocess exists to prevent. The verb wrappers degrade to ui.sh instead.
+  #
+  # ⚠️ The `wait` above is on the NORMAL path now, not just an error one: every
+  # successful `bench release` ends its watch here. That is what makes the
+  # ⚠️ by SNUG_PID load-bearing rather than theoretical — a `data` record would
+  # fill the unread coproc stdout pipe and this would block forever, at the end
+  # of a ten-minute release that already went green.
   return 0
 }
 
@@ -2485,10 +2501,13 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
     fi
   done
 
-  # Close the region: the final frame stays in scrollback, the cursor comes
-  # back, and later say lines (the checklist) render above nothing. The
-  # coprocess itself stays up — one fork per command — until bench exits.
-  snug_end
+  # Close the region AND the coprocess. The final frame stays in scrollback and
+  # the cursor comes back; what the coprocess must not do is outlive the region,
+  # because past this line bench prints tables itself again — `bench release
+  # --ship` ends inside cmd_ship — and a line drawn by another process would
+  # land among them out of order. SNUG_TRIED stays set, so this is still one
+  # fork per command: the checklist below draws through ui.sh.
+  snug_close
   # ui.sh's region closer exists only if ui.sh loaded — on a machine with no
   # snug checkout it never did, and an unguarded call here would exit 127 at
   # the END of a ten-minute watch, after CI already went green. The degrade

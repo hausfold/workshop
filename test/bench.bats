@@ -1192,6 +1192,53 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
 }
 
 
+@test "a message verb never opens the coprocess — the live region is its only door" {
+  # The ordering invariant. A record crosses a pipe and is drawn by `snug run`
+  # on its own stderr; a status table is a printf straight from bench to the
+  # terminal. Mix the two outside a live region and the rows arrive before the
+  # section title that introduces them. So `say` must NOT fork, even standing in
+  # the exact conditions that would let it: a terminal on fd 2.
+  #
+  # NOT `run`, and that is the whole test. `run` is a bats SUBSHELL, so a `say`
+  # that did open a coprocess would set SNUG_FD in the child and leave this
+  # shell's copy empty — every assertion below green, against the regression
+  # itself. Redirect fd 2 to a file instead and read the variables back here.
+  #
+  # No `skip` either: snug_open sets SNUG_TRIED BEFORE it looks for the binary,
+  # so the regression is visible on a machine with no snug — which is CI, which
+  # is where it would land.
+  SNUG_FD=""; SNUG_TRIED=""; UI_TTY=1; UI_READY=""
+  say "a line outside any region" 2>"$TMP/said"
+  grep -q "a line outside any region" "$TMP/said"
+  [ -z "$SNUG_FD" ] || { snug_close; echo "a message verb opened the coprocess"; false; }
+  # Not merely unopened — never ATTEMPTED, or a later region would find
+  # SNUG_TRIED set and degrade for the rest of the command.
+  [ -z "$SNUG_TRIED" ] || { echo "a message verb tried to open the coprocess"; false; }
+}
+
+@test "watch_paint is the ONE caller that opens the coprocess" {
+  # The other half of the same invariant, in two parts. First: the region does
+  # open one, on its first frame. Stubbed rather than forked — what this owns is
+  # the dispatch, and a real coprocess is what the record-grammar test below
+  # already drives.
+  SNUG_FD=""; UI_READY=""
+  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
+  snug_open() { SNUG_OPENED=1; return 1; }
+  SNUG_OPENED=""
+  watch_two() { watch_paint; echo "opened=${SNUG_OPENED:-}"; }
+  run watch_two
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"opened=1"* ]]
+
+  # And second, the word "one": a behavioural test can only ever prove that a
+  # given caller DOES open one, never that no other caller anywhere does. So
+  # count the call sites in the script — one definition, one call, and the call
+  # is watch_paint's. A second one is how the ordering bug comes back.
+  local sites; sites="$(grep -cE '^[[:space:]]*snug_open( \|\| true)?$' "$HAUS")"
+  [ "$sites" -eq 1 ] || { echo "snug_open is called from $sites places, not 1"; \
+    grep -n 'snug_open' "$HAUS"; false; }
+}
+
 @test "bench's records parse as snug records: the binary itself renders them" {
   # The record grammar is the contract between two repos; a mismatch would pass
   # every grep above and fail on the first real `bench release`. So feed the
@@ -2339,6 +2386,18 @@ UI
   run ui_load
   [ "$status" -eq 0 ]
   [ -z "$output" ]
+}
+
+@test "a checkout with no snug still has the gate every region reads" {
+  # UI_TTY is ui.sh's measurement, and on that checkout ui.sh never ran. Under
+  # `set -u` an unset one is not "no terminal" — it is `UI_TTY: unbound
+  # variable`, bench aborting at the first gate with nothing on either stream.
+  # A fresh shell, because setup() sources bench once and the default is set at
+  # load: this asserts the value bench GIVES it, not the one bats inherited.
+  run env -u UI_TTY HAUS_LIB=1 "$BASH" -c \
+    "set -euo pipefail; source '$HAUS'; snug_open && echo OPENED || echo NO-TERMINAL"
+  [ "$status" -eq 0 ] || { echo "bench died on the gate: $output"; false; }
+  [[ "$output" == *NO-TERMINAL* ]] || { echo "got: $output"; false; }
 }
 
 # ── the lane base moved at scruff 1.1.0 ──────────────────────────────────────
