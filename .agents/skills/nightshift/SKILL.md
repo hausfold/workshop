@@ -40,8 +40,23 @@ wakeup:
    - **`queued` rows need nothing** — they are the morning's, by design.
      Never merge one yourself, whatever the reason column says: the lease
      covers tier 1 as `factory-tier` decides it, not as you would.
+   - **`prs-unknown` / `tier-unknown` / `ci-unknown`** → the pass could not
+     SEE that thing; it is not a verdict and it is not a quiet result. Run
+     the pass again once. If the same line comes back, say so in your next
+     message and, for a `ci-unknown`, check that repo's `main` yourself
+     (`gh run list -R hausfold/<repo> -b main -L1`) rather than carrying an
+     unknown through the night — the whole point of the shift is that a red
+     main gets noticed. Never spawn a fixer off an unknown: you have not seen
+     a failure, only a gap.
+   - **`pass ABORTED`** (the script exits non-zero) → nothing was sensed and
+     nothing merged. Retry once; if it aborts again, stop retrying, keep the
+     loop alive at the normal cadence, and report it — this is the one shape
+     where the whole pass is missing rather than one row of it.
 3. `noop: true` when the pass only sensed; `noop: false` when anything
-   merged, spawned or failed.
+   merged, spawned or failed. **An `unknown` line or an abort is `noop:
+   false`** — a pass that could not look is not a quiet night, and collapsing
+   it into the noop streak is exactly the mistake those lines exist to
+   prevent.
 
 ## Fixer lanes
 
