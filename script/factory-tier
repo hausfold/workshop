@@ -48,12 +48,19 @@ renamed=$(jq -r '[.[] | select(.status == "renamed") | .path] | first // empty' 
 
 # The deny tests are case-insensitive because APFS is: a merged
 # docs/claude.md IS what a tool opening docs/CLAUDE.md reads.
+#
+# content/ is denied for every repo, not just hausfold.co where the path
+# actually exists. Scoping it to one repo name would be a second thing to
+# keep true, and the direction this filter should err in is settled: a
+# refusal queues the PR for the morning, which is where it would have been
+# anyway.
 bad_path=$(jq -r '
   [.[].path
    | select(
        (test("^docs/") or test("\\.md$")) and
        (test("(^|/)(AGENTS|CLAUDE|SKILL)\\.md$"; "i") | not) and
-       (test("^\\.(github|claude|agents)/"; "i") | not)
+       (test("^\\.(github|claude|agents)/"; "i") | not) and
+       (test("^content/"; "i") | not)
      | not)
   ] | first // empty' <<<"$files")
 [ -z "$bad_path" ] || no "touches $bad_path"

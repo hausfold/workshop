@@ -46,9 +46,15 @@ wakeup:
 2. `./script/factory-shift`. The script merges, ripples and logs on its own;
    your job is only what it printed:
    - **`CI-RED <repo> <url>`** → maybe spawn a fixer (rules below).
-   - **`merge-failed` / `ripple-failed`** → try once yourself (`gh pr view`
-     for the why; `bench pull` then `bench ship` for a ripple). Still stuck →
-     leave it, it is in the log and trill already carded it.
+   - **`merge-failed` / `ripple-failed`** → **the line carries the reason;
+     read it before doing anything.** A merge refused on `--match-head-commit`
+     is the pin working — the branch moved after the verdict was computed —
+     and needs nothing at all: the next pass re-judges it against the new head.
+     Anything else, try the action once yourself (`bench pull` then `bench
+     ship` for a ripple; `ripple-failed` names which of the two stopped, and
+     re-running the other is not the fix). Still stuck → leave it, it is in the
+     log. `ripple-failed` carded; `merge-failed` deliberately did not, an
+     unmerged PR being exactly where the morning expects to find it.
    - **`queued` rows need nothing** — they are the morning's, by design.
      Never merge one yourself, whatever the reason column says: the lease
      covers tier 1 as `factory-tier` decides it, not as you would.
