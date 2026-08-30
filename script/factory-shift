@@ -178,7 +178,7 @@ for repo in $repos; do
   # then indistinguishable from a repo with none open. An empty list is a
   # fact; an unreadable one is a gap in the pass.
   if pr_rows=$(gh pr list -R "hausfold/$repo" -L 100 --json number,title \
-    -q '.[] | [.number, .title] | @tsv' 2>/dev/null); then
+    -q '.[] | [.number, .title] | @tsv' 2>"$ERRF"); then
     while IFS=$'\t' read -r num title; do
       [ -n "$num" ] || continue
       # factory-tier's contract is 0 tier-1 · 3 refused-with-a-reason · 2
@@ -216,7 +216,7 @@ for repo in $repos; do
       esac
     done <<<"$pr_rows"
   else
-    say "prs-unknown: $repo — its open PRs could not be listed this pass"
+    say "prs-unknown: $repo — its open PRs could not be listed this pass: $(oneline "$(cat "$ERRF")")"
   fi
 
   # cancelled is deliberately not red: concurrency groups cancel superseded
@@ -257,8 +257,8 @@ done
 if [ "$merged" -gt 0 ] && [ "$dry" = 0 ]; then
   # Which of the two stopped is half the report: `pull` failing leaves the
   # checkouts behind origin and nothing shipped, `ship` failing leaves them
-  # current with the lock edges still stale. The morning's move differs, and
-  # one line naming "bench pull/ship" told it neither which nor why.
+  # current with the lock edges still stale. The morning's move differs, so the
+  # line names a verb rather than the pair.
   ripple_stopped=""
   if ! "$ROOT/bench" pull >/dev/null 2>"$ERRF"; then
     ripple_stopped="bench pull"

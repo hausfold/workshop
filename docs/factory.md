@@ -36,9 +36,11 @@ is a case per deny clause, each written so that deleting the clause fails it,
 and both contracts the filter has with `factory-shift`: the exit codes (0 tier
 1 · 3 a named refusal · 2 usage — three answers, not two) and the `head=<sha>`
 that must END the tier-1 line, because the shift slices everything after the
-last `head=` off it and merges against that. Every exclusion this file *names*
-is read back from this file by that suite. An exclusion stated only in prose is
-worse than no exclusion, because it reads as a check.
+last `head=` off it and merges against that. The exclusions named in the tier
+row above are read back out of *this file* by that suite, path by path — an
+exclusion stated only in prose is worse than no exclusion, because it reads as
+a check. That list is hand-maintained on the test's side, so adding an
+exclusion here means adding its row there in the same edit.
 
 ## A pass that cannot see
 

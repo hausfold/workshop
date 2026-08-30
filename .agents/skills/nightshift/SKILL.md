@@ -50,11 +50,14 @@ wakeup:
      read it before doing anything.** A merge refused on `--match-head-commit`
      is the pin working — the branch moved after the verdict was computed —
      and needs nothing at all: the next pass re-judges it against the new head.
-     Anything else, try the action once yourself (`bench pull` then `bench
-     ship` for a ripple; `ripple-failed` names which of the two stopped, and
-     re-running the other is not the fix). Still stuck → leave it, it is in the
-     log. `ripple-failed` carded; `merge-failed` deliberately did not, an
-     unmerged PR being exactly where the morning expects to find it.
+     **A `merge-failed` is never re-driven by hand, whatever the reason says** —
+     that is merging outside `factory-shift`, against a head no tier verdict
+     covers. Read it, and let the next pass have it. A `ripple-failed` you may
+     retry once yourself (`bench pull` then `bench ship`); the line names which
+     of the two stopped, and re-running the other is not the fix. Still stuck →
+     leave it, it is in the log. `ripple-failed` carded; `merge-failed`
+     deliberately did not, an unmerged PR being exactly where the morning
+     expects to find it.
    - **`queued` rows need nothing** — they are the morning's, by design.
      Never merge one yourself, whatever the reason column says: the lease
      covers tier 1 as `factory-tier` decides it, not as you would.

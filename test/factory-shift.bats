@@ -319,6 +319,10 @@ stub_usage() { # <5h %> <week %> <seconds of week left>
   run "$SHIFT" --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"prs-unknown: perch"* ]]
+  # And it carries WHY, like the other three: the foreman's only judgement on
+  # any of these is whether a repeat is a story, and a rate limit, an expired
+  # token and a dropped connection are the same line without it.
+  [[ "$output" == *"http2: client conn could not be established"* ]]
   # An unlistable PR set must not take the CI half down with it: they are
   # independent questions about the same repo.
   [[ "$output" == *"CI-RED: perch"* ]]

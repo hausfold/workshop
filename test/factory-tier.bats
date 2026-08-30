@@ -5,8 +5,8 @@
 # This is the one script in the set whose output causes something with no
 # undo-by-default. docs/factory.md says the merge decision is "made by a path
 # filter a person reviewed, not by a model's read of the diff", and "the filter
-# IS the definition" — which is a claim about a jq expression that, until this
-# file existed, nothing ever executed: `test/factory-shift.bats` stubs
+# IS the definition" — claims about a jq expression, which only something that
+# runs it can hold up. `test/factory-shift.bats` cannot: it stubs
 # `factory-tier` with a hardcoded exit code, so the shift's suite proves what
 # the shift does with a verdict and nothing about how a verdict is reached.
 #
@@ -124,15 +124,17 @@ pr() {
 # ── the deny list: one case per clause ────────────────────────────────────────
 
 @test "every exclusion docs/factory.md names is one the filter actually makes" {
-  # The drift this pins is the one it was written after: the doc said
-  # hausfold.co's content/ was excluded and the jq filter had never heard of
-  # it, so a docs-shaped PR against the repo whose main deploys the public site
-  # was tier 1. A prose exclusion that nothing executes is worse than no
-  # exclusion, because it reads as a check.
+  # A prose exclusion that nothing executes is worse than no exclusion,
+  # because it reads as a check: the doc naming a path the filter has never
+  # heard of costs nothing until the night it merges one.
   #
   # Both sides are read for the same reason the budget dials are: a pin that
   # only greps the script is re-blessed by the same edit that breaks the doc —
   # docs/drift.md's row 20.
+  #
+  # ⚠️ The table below is hand-maintained, so it covers the exclusions it
+  # LISTS and not "every exclusion the doc names". A new one needs a row here
+  # or this case stays green while the pin stops reaching it.
   doc="$BATS_TEST_DIRNAME/../docs/factory.md"
   while IFS='|' read -r claim path; do
     grep -qF "$claim" "$doc" || { echo "doc no longer names: $claim"; false; }
