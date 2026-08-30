@@ -383,11 +383,11 @@ consecutive delimiters — a running job's detail carries its stale duration, an
 only the trailing `since` may be empty. Multi-line text is one record per line;
 the emitter folds the newlines.
 
-**One coprocess per command, opened lazily, and dead is dead.** A fork costs
-4.4 ms, so the fork happens on the first line a command draws — a verb that
-prints nothing forks nothing — and the dispatch belongs to the *caller*, not to
-the library: one fork per command is the whole economy, and a library sourced
-per script cannot see the command boundary that decision needs. It opens only
+**One coprocess per command, opened by the live region and closed with it.** A
+fork costs 4.4 ms, so the fork happens when a command opens a region — a command
+that draws no region forks nothing — and the dispatch belongs to the *caller*,
+not to the library: one fork per command is the whole economy, and a library
+sourced per script cannot see the command boundary that decision needs. It opens only
 under a terminal on fd 2 and only when ui.sh loaded, so a machine with the
 binary on `PATH` but no snug checkout gets the ui.sh path even interactively —
 one detection, one answer. A snug that dies once stays dead for the command
@@ -395,6 +395,19 @@ one detection, one answer. A snug that dies once stays dead for the command
 per frame, which is the regression the coprocess exists to prevent. Degradation
 falls back to ui.sh, and the close is guarded on `UI_READY` because the live
 region exists only when ui.sh loaded.
+
+**Outside a live region, the coprocess is the wrong writer — and a message verb
+must never open one.** A record crosses a pipe and is drawn by another process on
+ITS stderr; a table the command `printf`s itself goes straight to the terminal.
+The two are on different schedules, so a command that mixes them prints its rows
+above the section title that introduces them and wedges a row into the middle of
+a folded sentence. Inside a region there is no race, because a caller writes
+nothing directly while one is up — which is what makes "the region opens it" the
+whole rule, in both directions: the live painter is the only caller of
+`snug_open`, and the close belongs with the region rather than with the command,
+so the lines after it are back on the caller's own schedule. `bench release
+--ship` is the case that decides the second half: it ends inside `bench ship`,
+whose tables would otherwise interleave with its own section titles.
 
 **Anything drawing from a background job needs its own duplicate of the write
 end.** Bash closes a coprocess's descriptors in every child it forks, so a

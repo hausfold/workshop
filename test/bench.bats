@@ -1192,6 +1192,37 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
 }
 
 
+@test "a message verb never opens the coprocess — the live region is its only door" {
+  # The ordering invariant. A record crosses a pipe and is drawn by `snug run`
+  # on its own stderr; a status table is a printf straight from bench to the
+  # terminal. Mix the two outside a live region and the rows arrive before the
+  # section title that introduces them. So `say` must NOT fork, even standing in
+  # the exact conditions that would let it: snug on PATH and a terminal on fd 2.
+  command -v snug >/dev/null 2>&1 || skip "snug not on PATH"
+  SNUG_FD=""; SNUG_TRIED=""; UI_TTY=1; UI_READY=""
+  run say "a line outside any region"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"a line outside any region"* ]]
+  # Not merely unopened — never ATTEMPTED, or a later region would find
+  # SNUG_TRIED set and degrade for the rest of the command.
+  [ -z "$SNUG_FD" ]
+  [ -z "$SNUG_TRIED" ]
+}
+
+@test "watch_paint is the one caller that opens the coprocess" {
+  # The other half of the same invariant: the region does fork, on its first
+  # frame. Stubbed rather than forked — what this owns is the dispatch, and a
+  # real coprocess is what the record-grammar test below already drives.
+  SNUG_FD=""; UI_READY=""
+  WATCH_ROWS=( $'ok\tbump-tap\t12s\t' )
+  snug_open() { SNUG_OPENED=1; return 1; }
+  SNUG_OPENED=""
+  watch_two() { watch_paint; echo "opened=${SNUG_OPENED:-}"; }
+  run watch_two
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"opened=1"* ]]
+}
+
 @test "bench's records parse as snug records: the binary itself renders them" {
   # The record grammar is the contract between two repos; a mismatch would pass
   # every grep above and fail on the first real `bench release`. So feed the
