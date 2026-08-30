@@ -111,10 +111,13 @@ tools we wrote are the only things on screen that don't.
 
 ### 3. Width is counted in the wrong unit
 
-`printf '%-9s'` pads by bytes under most locales, not by display cells. `say()`
-opens with `🌫`, which is one grapheme, four bytes, and **two display columns**.
-Every column after a glyph is sheared by a different amount depending on which
-glyph it was.
+`printf '%-9s'` pads by bytes under most locales, not by display cells, and
+bytes always OVER-count: every mark in the table below is one display column
+and two or three bytes, so a `%-9s` field holding a 3-byte one is padded to nine
+*bytes* and comes out **seven cells wide**. Every column after a glyph is
+sheared by a different amount depending on which glyph it was — `·` is two bytes
+and shears by one, `✓` is three and shears by two — and three CJK runes (nine
+bytes, two cells each) fill the same field to six cells with no padding at all.
 
 An ungated script is the other half of this, and `haus.sh` + `haus-show.sh`
 measured 35 raw `\033[38;5;N` escapes emitted unconditionally, into pipes, files
@@ -165,7 +168,7 @@ colour off. One glyph per role, ASCII fallback when the locale isn't UTF-8:
 
 | role | glyph | ascii | width |
 | --- | --- | --- | --- |
-| `say` | `🌫` | `~` | 1 |
+| `say` | `≋` | `~` | 1 |
 | `ok` | `✓` | `+` | 1 |
 | `warn` | `⚠` | `!` | 1 |
 | `err` | `✗` | `x` | 1 |
@@ -179,17 +182,35 @@ Every glyph is **one cell**, and the gutter is therefore **3 cells wide,
 always** — glyph plus padding to 3 — so that lines with different glyphs align
 and continuation lines have a fixed indent to hang from.
 
-⚠️ Widths here are **declared and measured against real terminals**, never taken
-from a width library, and `🌫` (U+1F32B) is why. It has `Emoji_Presentation =
-No`, so it is exactly the codepoint where sources disagree: `x/ansi` and
-`runewidth` both answer 1, they disagree with *each other* on the
-variation-selector form, and the reflex "emoji are two cells" — which this table
-recorded until it was checked — is wrong. Measured in Ghostty, the family's own
-terminal, against a column ruler: **one cell**. To check any other terminal and
-get a number rather than an eyeball, ask it where its cursor ended up:
+**No mark defaults to emoji presentation** — none has `Emoji_Presentation =
+Yes`, which is the property a disputed width comes from. That is a narrower
+claim than "no emoji", and the difference matters: `⚠` (U+26A0) is `Emoji =
+Yes` and is in the table anyway. `say` is the clean case: `≋` (U+224B) is
+`East_Asian_Width = Neutral` and appears in no emoji table at all, so it is one
+cell everywhere without a measurement to trust — and it is the ASCII fallback
+`~` tripled, which is the whole point of picking it.
+
+⚠️ That is **not** what makes the widths safe, and reading it that way is how
+the next mark gets measured instead of declared. The hazard was never
+emoji-ness; it is `East_Asian_Width`, and two shapes of it survive above:
+
+- `ⓘ` (U+24D8), `–` (U+2013), `·` (U+00B7) — and the truncation `…` (U+2026),
+  which is not a mark but ends every folded line — are **Ambiguous**: one cell
+  in a Western locale, **two** under an East-Asian one. `x/ansi` and
+  `runewidth` each expose a mode for each answer, so neither has a single one
+  to give.
+- `⚠` (U+26A0) is the other. Bare it is one cell; as the emoji-presentation
+  sequence `U+26A0 U+FE0F` it is two. The tables hold **bare codepoints**, and a
+  caller that appends a variation selector to a mark has silently doubled it.
+
+So widths here stay **declared and verified against real terminals**, never
+taken from a width library. Hold a mark against a ruler and read the DIGITS —
+another mark is no reference, because a locale that doubles one Ambiguous glyph
+doubles them all and leaves any two of them aligned. For a number rather than an
+eyeball, ask the terminal where its cursor ended up:
 
 ```sh
-stty -echo; printf '\r\U0001F32B\033[6n'; IFS=';' read -rd R _ col; stty echo
+stty -echo; printf '\r\u24D8\033[6n'; IFS=';' read -rd R _ col; stty echo
 echo "$col"   # 2 → one cell, 3 → two
 ```
 

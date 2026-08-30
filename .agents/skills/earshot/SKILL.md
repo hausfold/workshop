@@ -42,7 +42,7 @@ forty times a turn is one you stop reading.
 ## Reading it
 
 ```
-🌫  earshot — 3 other lane(s) on workshop; 1 in your way, 1 nearby
+≋  earshot — 3 other lane(s) on workshop; 1 in your way, 1 nearby
   ⚠  tidy-raccoon      AGENTS.md  L212-240
      “notes: step B is built — fetch and read, and a third thing to protect”
      ↳ tidy-raccoon lands first (already pushed) — then cuddly-sparrow rebases onto main
