@@ -7,9 +7,10 @@
 #
 # One pass does four things, in order:
 #   budget   read the aiusage pill's own feed (~/.cache/claude-statusline/
-#            usage-claude.tsv) and print where the week stands against the
-#            pace line — 95% of the weekly window, spent evenly. The script
-#            only REPORTS; the foreman (nightshift skill) is what throttles.
+#            usage-claude.tsv) and answer the one question the foreman asks
+#            of it: can the account afford a fixer lane right now? The line
+#            ends `fixer: yes` or `fixer: no (<why>)`, and the foreman
+#            spawns on nothing else.
 #   merge    every open PR in the org through factory-tier; tier 1 + live
 #            lease → `gh pr merge --squash`. Anything else is printed with
 #            its reason and left for the morning.
@@ -60,21 +61,59 @@ trap 'rm -f "$ERRF"' EXIT
 # percentages are sanity-checked before anything trusts them: a column
 # reorder over there must degrade this line to "unreadable", never
 # mis-throttle the foreman with a number that still happens to parse.
+#
+# The line ends in a VERDICT, `fixer: yes` or `fixer: no (<why>)`, and that
+# is the whole throttle. It is decided here rather than left to the skill's
+# prose because a threshold written out in English, in another file, over
+# numbers only this one can see, is a threshold no test can reach — and its
+# refusal is the same word as a correct refusal, so a gate stuck shut looks
+# exactly like a gate doing its job. What stays the foreman's is whether a red
+# main is WORTH a lane; whether the account can afford one is answered here,
+# once, and logged where the morning reads it.
+#
+# The question is forward-looking on purpose. "Is the week spent no faster
+# than the clock so far" is a question nobody has, and it cannot be answered
+# yes by anything but an idle week: spend is monotonic and the clock is not
+# rewindable, so one honest burst on Monday reads over-budget until the reset
+# however much is left. The question worth asking is whether spending a lane
+# NOW still leaves the human enough to finish the week — so RESERVE points of
+# the weekly window are held for them and drain with the clock, and the
+# factory may spend what is left below the ceiling.
+CEILING=95 # of the weekly window; the top 5 points are nobody's
+RESERVE=70 # points held for the human, drained evenly across the week
+FIXER=5    # headroom one fixer lane must find, in points of the weekly window
+# FIXER is an allowance, not a measurement — nothing meters a lane. It does
+# not need to be exact: headroom is re-read from actual spend every pass, so
+# a lane that costs more than its allowance shows up as less headroom for the
+# next one. Widening any of the three is a reviewed edit here and in
+# docs/factory.md, the same way factory-tier's filter is.
 USAGE_TSV="${FACTORY_USAGE_TSV:-$HOME/.cache/claude-statusline/usage-claude.tsv}"
 if [ -s "$USAGE_TSV" ]; then
   IFS=$'\t' read -r p5 pw _r5 rw _rest <"$USAGE_TSV"
   now=$(date +%s)
+  # Every arm ends in a verdict, and every arm that could not do the
+  # arithmetic ends in `no`: an unknown budget is not permission, it is the
+  # same named unknown the rest of this script degrades to.
   if ! [ "${p5:-x}" -le 100 ] 2>/dev/null || ! [ "${pw:-x}" -le 100 ] 2>/dev/null; then
-    say "budget: unreadable feed at $USAGE_TSV (columns moved?)"
+    say "budget: unreadable feed at $USAGE_TSV (columns moved?) · fixer: no (budget unknown)"
   elif [ "${rw:-0}" -gt "$now" ] 2>/dev/null; then
-    line=$((95 * (604800 - (rw - now)) / 604800))
-    rel=under; [ "${pw:-0}" -ge "$line" ] 2>/dev/null && rel=OVER
-    say "budget: 5h ${p5}% · week ${pw}% vs pace line ${line}% ($rel)"
+    reserve=$((RESERVE * (rw - now) / 604800))
+    headroom=$((CEILING - pw - reserve))
+    # 5h first, and it is not about the week at all: a factory that saturates
+    # the rolling window at 4 a.m. rate-limits the person who sits down at 9.
+    if [ "$p5" -ge 80 ]; then
+      verdict="no (5h window at ${p5}%)"
+    elif [ "$headroom" -lt "$FIXER" ]; then
+      verdict="no (headroom ${headroom} pts, one fixer needs ${FIXER})"
+    else
+      verdict=yes
+    fi
+    say "budget: 5h ${p5}% · week ${pw}% · reserve ${reserve} pts · headroom ${headroom} pts · fixer: $verdict"
   else
-    say "budget: 5h ${p5:-?}% · week ${pw:-?}% (no reset stamp — pace line unknown)"
+    say "budget: 5h ${p5}% · week ${pw}% (no weekly reset stamp — headroom unknown) · fixer: no (budget unknown)"
   fi
 else
-  say "budget: unknown — no usage feed at $USAGE_TSV"
+  say "budget: unknown — no usage feed at $USAGE_TSV · fixer: no (budget unknown)"
 fi
 
 # ── lease ─────────────────────────────────────────────────────────────────────

@@ -118,3 +118,21 @@ and by asserting on the fixture's log rather than on the exit status — a helpe
 whose every path swallows its output can only be observed through the renderer
 it was pointed at, so a test that never reads that log cannot tell which
 renderer answered.
+
+**A gate whose condition can never be true, hidden by the fact that refusing is
+its normal answer.** A throttle admitted work only while the week's spend sat
+below a line drawn linearly from zero across the weekly window. Spend only
+rises and the clock does not rewind, so the line was beatable by an idle week
+and nothing else: nineteen consecutive passes read `OVER`, none read `under`,
+and the whole path behind the gate — spawning a lane on a red main — had never
+executed. Nothing looked wrong, because a gate that refuses is a gate doing its
+job, and its log line for *stuck shut* is the same word as its log line for
+*working*. Two things kept it out of sight: the arithmetic lived in one file and
+the comparison in another's prose, so no test could reach the verdict; and the
+gate's other input never fired either, so even the skip it should have logged
+was never written. **Caught by** asking of every gate what its **yes** looks
+like and when it last happened — `grep`ing the log for the affirmative, not the
+refusal — and by making the verdict itself the artifact, in the file that holds
+the numbers, so a case can be written for the yes. The tell is a condition whose
+two sides are a monotonic quantity and a monotonic clock: those cross once, and
+then never again until something resets.

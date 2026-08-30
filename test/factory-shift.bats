@@ -123,6 +123,86 @@ stub_tier() {
   [[ "$output" != *"tier-unknown"* ]]
 }
 
+# Writes the aiusage feed the budget block reads: 5-hour %, weekly %, and how
+# far off the weekly reset is. The third argument is seconds of week REMAINING,
+# because that is what the human's reserve drains against — a test that pinned
+# an absolute stamp would start passing for the wrong reason, then stop.
+stub_usage() { # <5h %> <week %> <seconds of week left>
+  export FACTORY_USAGE_TSV="$TMP/usage.tsv"
+  printf '%s\t%s\t0\t%s\tstub\n' "$1" "$2" "$(($(date +%s) + $3))" >"$FACTORY_USAGE_TSV"
+}
+
+# ── the budget verdict, which is the fixer gate ───────────────────────────────
+# A gate that refuses everything is invisible: its "no" is the same word as a
+# correct "no", and the path behind it simply never runs. So the case that
+# matters most here is the plain affirmative, and it is written first — the
+# refusals below it are only worth pinning once something can get through.
+
+@test "the two dials and the ceiling are still the ones the docs state" {
+  # docs/factory.md's budget governor quotes these three numbers, and the
+  # verdict is unreadable without them. A tuned dial is a fine change; a tuned
+  # dial the doc still states the old value for is the drift this pins.
+  grep -q '^CEILING=95 ' "$SHIFT"
+  grep -q '^RESERVE=70 ' "$SHIFT"
+  grep -q '^FIXER=5 ' "$SHIFT"
+}
+
+@test "an early-week burst with the week mostly unspent can still afford a fixer" {
+  # A sixth of the week's budget gone with 84% of its clock left. Bursty is how
+  # this account is actually spent, so if this shape cannot get through, the
+  # CI-RED path has no reachable caller at all.
+  stub_usage 13 16 $((604800 * 84 / 100))
+  run "$SHIFT" --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fixer: yes"* ]]
+}
+
+@test "a saturated 5-hour window refuses however much of the week is left" {
+  # Not the same question as the week, and it outranks it: a factory that
+  # saturates the rolling window at 4am rate-limits whoever sits down at 9.
+  stub_usage 84 16 $((604800 * 84 / 100))
+  run "$SHIFT" --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fixer: no (5h window at 84%)"* ]]
+}
+
+@test "a burst big enough to eat the human's rest of the week refuses" {
+  # Half the window gone with 90% of it still to come — burst-tolerant is not
+  # the same as unbounded, and the reserve is what draws that line.
+  stub_usage 10 50 $((604800 * 90 / 100))
+  run "$SHIFT" --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fixer: no (headroom"* ]]
+}
+
+@test "a spent week late in the window refuses, where the same spend early does not" {
+  stub_usage 10 90 $((604800 * 10 / 100))
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"fixer: no (headroom"* ]]
+  # The reserve drains with the clock, so the LAST of the week is the factory's
+  # to spend if the human left it — otherwise the gate is just a later pace line.
+  stub_usage 10 60 $((604800 * 10 / 100))
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"fixer: yes"* ]]
+}
+
+@test "a budget that cannot be read is a refusal, never permission" {
+  # Three ways to not know, one answer. An unknown that fell through to `yes`
+  # would spawn lanes on a machine whose quota nobody can see — the same
+  # mistake `ci-unknown` and `tier-unknown` exist to refuse to make.
+  run "$SHIFT" --dry-run   # setup() points FACTORY_USAGE_TSV at a missing file
+  [[ "$output" == *"budget: unknown"*"fixer: no (budget unknown)"* ]]
+
+  printf 'claude\tclaude\t0\t0\tstub\n' >"$TMP/usage.tsv"
+  export FACTORY_USAGE_TSV="$TMP/usage.tsv"
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"unreadable feed"*"fixer: no (budget unknown)"* ]]
+
+  printf '10\t50\t0\t0\tstub\n' >"$TMP/usage.tsv"
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"no weekly reset stamp"*"fixer: no (budget unknown)"* ]]
+}
+
 # ── the four blind spots ─────────────────────────────────────────────────────
 
 @test "a main whose latest run cannot be READ is ci-unknown, never silence" {
