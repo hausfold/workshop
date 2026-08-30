@@ -344,6 +344,13 @@ ui_load
 # its own gates — UI_TTY, UI_PROFILE — at load; they must never be assumed.)
 UI_READY=""
 type ui_say >/dev/null 2>&1 && UI_READY=1
+# UI_TTY is ui.sh's own measurement of fd 2 and the gate on every coprocess and
+# live region below. On a checkout with no snug it was never set at all, and
+# `set -u` turns each of those reads into `UI_TTY: unbound variable` — bench
+# dying with nothing on either stream, which is the exact failure shape the
+# width probe's `|| true` exists for. `:=` and not `=`: ui.sh has already run by
+# here on a machine that has it, and its answer is the one that counts.
+: "${UI_TTY:=}"
 
 # ── palette ──────────────────────────────────────────────────────────────────
 # Role names, not colours. C_* alias snug's nine roles so the status tables
@@ -434,6 +441,12 @@ snug_close() { # everything down: end the region and drop the coprocess
   # SNUG_TRIED stays set: a snug that died once stays dead this command. A
   # re-open attempt per frame would be a fork a frame — the regression the
   # coprocess exists to prevent. The verb wrappers degrade to ui.sh instead.
+  #
+  # ⚠️ The `wait` above is on the NORMAL path now, not just an error one: every
+  # successful `bench release` ends its watch here. That is what makes the
+  # ⚠️ by SNUG_PID load-bearing rather than theoretical — a `data` record would
+  # fill the unread coproc stdout pipe and this would block forever, at the end
+  # of a ten-minute release that already went green.
   return 0
 }
 
