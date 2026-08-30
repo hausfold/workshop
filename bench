@@ -2551,7 +2551,7 @@ cmd_release() {
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   version_file "$name" >/dev/null \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, perch, trill, haus, scruff)"
+    || die "'$name' is not a releasable repo (releasable: pounce, perch, trill, haus, scruff)"
 
   local scheme lasttag; scheme="$(version_scheme "$name")"; lasttag="$(latest_tag "$name")"
   if [ "$scheme" = semver ]; then
