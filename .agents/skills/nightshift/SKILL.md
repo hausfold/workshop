@@ -21,7 +21,14 @@ your first shift.
 1. `./script/factory-lease grant <duration>` — the duration from the
    invocation (`/nightshift 12h`); no duration given means **1h**. Tell the
    user in one line what authority you now hold and until when.
-2. `./script/factory-shift --dry-run` — one sensing pass so your first real
+2. `./script/factory-watchdog once` — confirm the poller `grant` just started
+   is watching you. It is what turns your own death into something the user
+   finds in the morning instead of a lease that stood all night with nobody
+   exercising it. Exit **0** is what you want. **4** is `NO POLLER` — a live
+   lease nothing is watching; say so in your start line, since the shift can
+   run but its safety net did not start. **1** means the grant did not take
+   and there is no shift to run.
+3. `./script/factory-shift --dry-run` — one sensing pass so your first real
    pass holds no surprises. If it shows `would-merge` rows the user can still
    see, name them in your start line.
 
@@ -30,7 +37,12 @@ your first shift.
 Use the dynamic loop mechanism (ScheduleWakeup), cadence **~20 min**. Each
 wakeup:
 
-1. `./script/factory-lease status` — **expired → jump to Shift end.**
+1. `./script/factory-watchdog ensure` — the lease check and the liveness check
+   in one, and it restarts a poller lost to a reboot or an OOM kill. Exit
+   **1 → jump to Shift end** (the lease is gone). **3** means the watchdog
+   thinks *you* have been quiet too long, which on a wakeup you are running
+   means the last pass failed to log — read the shift log before doing
+   anything else.
 2. `./script/factory-shift`. The script merges, ripples and logs on its own;
    your job is only what it printed:
    - **`CI-RED <repo> <url>`** → maybe spawn a fixer (rules below).
@@ -52,6 +64,14 @@ wakeup:
      nothing merged. Retry once; if it aborts again, stop retrying, keep the
      loop alive at the normal cadence, and report it — this is the one shape
      where the whole pass is missing rather than one row of it.
+   - **`foreman-stalled` / `foreman-resumed`** in the log → the watchdog saw
+     you go quiet and you are back. Say so in your next message with the gap
+     it names: a stall you recovered from is the shape that ends a shift when
+     it does not recover, and the user is testing whether it does.
+     **`machine-slept`** is the same line for a gap that was the Mac's, not
+     yours, and needs no more than a mention. **`foreman-gone`** you will
+     never read — it is written as your lease is revoked, which is the
+     watchdog's verdict that you are not coming back.
 3. `noop: true` when the pass only sensed; `noop: false` when anything
    merged, spawned or failed. **An `unknown` line or an abort is `noop:
    false`** — a pass that could not look is not a quiet night, and collapsing
@@ -98,10 +118,17 @@ Lease expired (or the user says "end the shift" / revokes):
    did, budget at close. Post it as your final message AND
    `trill send --source factory --kind done --title "night shift over: <one line>"`.
 3. Stop the loop (`stop: true`). Do not renew your own lease — only the
-   user grants one.
+   user grants one. `factory-lease revoke` stops the watchdog with it; a
+   lease left to expire on its own takes the watchdog down at its next poll,
+   so neither needs stopping by hand.
 
 ## What this skill never does
 
 Merge outside `factory-shift`, widen `factory-tier`, activate the machine
 (`try switch` is the user's), touch releases, or spawn anything when the
 budget line says OVER. Quiet nights are good nights.
+
+It also never stops the watchdog to quiet a `foreman-stalled` line, and never
+re-grants a lease the watchdog revoked. Both are the shift reporting that it
+stopped being able to do its job, and a foreman that silences either is the
+exact failure the lines were added to make visible.
