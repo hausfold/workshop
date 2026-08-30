@@ -403,18 +403,26 @@ The two are on different schedules, so a command that mixes them prints its rows
 above the section title that introduces them and wedges a row into the middle of
 a folded sentence. Inside a region there is no race, because a caller writes
 nothing directly while one is up — which is what makes "the region opens it" the
-whole rule, in both directions: the live painter is the only caller of
-`snug_open`, and the close belongs with the region rather than with the command,
-so the lines after it are back on the caller's own schedule. `bench release
---ship` is the case that decides the second half: it ends inside `bench ship`,
-whose tables would otherwise interleave with its own section titles.
+whole rule, in both directions. The live painter is the only caller that opens
+one; and it closes with the last region rather than at the end of the command,
+so that the moment the caller starts printing for itself again it is the only
+writer. A run of regions may share one coprocess — `haus rebuild` opens a region
+per phase and keeps it across all of them — but the close cannot wait for the
+command: `bench release --ship` ends inside `bench ship`, whose tables would
+interleave with its own section titles, and `haus rebuild`'s failed phase dumps
+25 lines of build log straight to the terminal.
 
 **Anything drawing from a background job needs its own duplicate of the write
 end.** Bash closes a coprocess's descriptors in every child it forks, so a
 background painter writing to `${SNUG[1]}` silently does nothing — the row
 freezes at `0.0s` while every other assertion stays green. `exec {FD}>&"${SNUG[1]}"`
 is the whole fix, because a plain duplicate is inherited like any other fd; bash's
-own copy is then closed, or nothing ever reaches EOF. **Write a test that counts
+own copy is then closed, or nothing ever reaches EOF. **And its converse: anything
+backgrounded that draws NOTHING must drop that fd.** The close half of `snug_close`
+waits for `snug run` to see EOF, and an inherited copy in an unrelated background
+job keeps it from ever arriving — measured, the wait lasted exactly as long as
+that job. Where the job's own exit condition is "the parent is gone", which is
+what a progress ticker watches, the two wait for each other with no clock on it. **Write a test that counts
 frames** — a spinner that never turns looks exactly like a phase that is taking
 a while. The loop's leash is `kill -0 $$`: it holds a copy of the write end, so
 without that check a finished caller leaves snug spinning as an orphan.
