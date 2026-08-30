@@ -15,9 +15,9 @@ above 1, the foreman daemon, VM-verified merges — is a plan, and lives in
 |---|---|
 | `script/factory-lease` | the standing merge grant: `grant 12h` / `status` / `revoke`. One TSV line in `~/.cache/hausfold-factory/`, machine-local so no PR can grant itself authority. Expired == revoked == today's ordinary workflow — the factory's failure mode is the status quo |
 | `script/factory-tier` | is a PR **tier 1** — mergeable by code alone? Docs-only (`*.md`, `docs/`), by the org owner, from a `worktree-*` branch onto `main`, green, conflict-free, ≤2000 changed lines, **no renames** (a rename is a delete wearing a docs name), file list read paginated so nothing hides past GraphQL's 100-file cutoff. Agent-steering files (`AGENTS.md`, `CLAUDE.md`, any `SKILL.md`, `.github/`, `.claude/`, `.agents/` — any case, APFS being case-insensitive) are never tier 1 however docs-shaped: a policy change always meets a person. `hausfold.co`'s `content/` is out too — its `main` deploys the public site, and a user-facing publish is always gated. The filter IS the definition — widening it is a reviewed edit to that script plus this file |
-| `script/factory-shift` | one deterministic pass: print the budget line, run every open org PR through the tier check, merge tier 1 under a live lease (`gh pr merge --squash`, pinned to the head SHA the verdict saw, so a push in the gap fails closed), `bench pull` + `bench ship` if anything landed, flag a red latest run on any repo's `main` as `CI-RED` (+ a trill fault card, `--source factory`; superseded-run cancels don't count). A run it could not **read** is `ci-unknown`, and a pass that could not list the org at all **aborts non-zero** rather than ending on `pass done: 0 merged` — see *A pass that cannot see* below. Appends every line to `~/.cache/hausfold-factory/shift-YYYYMMDD.log` — the morning report is that file. `--dry-run` senses and merges nothing |
+| `script/factory-shift` | one deterministic pass: answer whether a fixer lane is affordable (the `budget:` line — see below), run every open org PR through the tier check, merge tier 1 under a live lease (`gh pr merge --squash`, pinned to the head SHA the verdict saw, so a push in the gap fails closed), `bench pull` + `bench ship` if anything landed, flag a red latest run on any repo's `main` as `CI-RED` (+ a trill fault card, `--source factory`; superseded-run cancels don't count). A run it could not **read** is `ci-unknown`, and a pass that could not list the org at all **aborts non-zero** rather than ending on `pass done: 0 merged` — see *A pass that cannot see* below. Appends every line to `~/.cache/hausfold-factory/shift-YYYYMMDD.log` — the morning report is that file. `--dry-run` senses and merges nothing |
 | `script/factory-watchdog` | the liveness check on the FOREMAN, which no pass can perform: a poller `factory-lease grant` starts, the shift's loop re-`ensure`s, and `revoke` stops. It reads the LATER of the newest shift log's mtime and the lease's own grant stamp as "the last moment the shift was demonstrably alive". Quiet past 45m → `foreman-stalled` in that same log and one trill card; past 90m → `foreman-gone` and **the lease is revoked**. Both thresholds count time the poller was AWAKE for, so a suspended Mac is `machine-slept` and costs the foreman nothing. `once` is the same check as a single command (0 healthy · 3 stalled · **4 live lease with no poller** · 1 no lease); `ensure` is `once` that also starts a missing poller |
-| `/nightshift` | the foreman: a Claude session on the main checkout that grants the lease, loops `factory-shift` on a ~20 min cadence, spawns capped fixer lanes on `CI-RED`, throttles itself against the budget line, and stops when the lease expires. [`.agents/skills/nightshift/SKILL.md`](../.agents/skills/nightshift/SKILL.md) |
+| `/nightshift` | the foreman: a Claude session on the main checkout that grants the lease, loops `factory-shift` on a ~20 min cadence, spawns capped fixer lanes on `CI-RED`, spawns them only on the budget line's `fixer: yes`, and stops when the lease expires. [`.agents/skills/nightshift/SKILL.md`](../.agents/skills/nightshift/SKILL.md) |
 
 ## Tier 1, and why it is code and not judgement
 
@@ -64,16 +64,55 @@ red one says `CI-RED`, and a judged refusal is still `queued` with its reason.
 The aiusage pill's own feed (`~/.cache/claude-statusline/usage-claude.tsv`,
 written from `api.anthropic.com/api/oauth/usage`, so it counts every client of
 the account) already carries the four numbers that matter: 5-hour %, weekly %,
-and both reset stamps. `factory-shift` turns them into one line —
+and both reset stamps. `factory-shift` turns them into one line, and that line
+ends in the answer rather than in the inputs —
 
-    budget: 5h 42% · week 8% vs pace line 12% (under)
+    budget: 5h 13% · week 16% · reserve 58 pts · headroom 21 pts · fixer: yes
 
-— where the pace line is 95% of the weekly window spent evenly across it.
-The script only reports; the *foreman* throttles, and its two rules protect
-the human's hours: never spawn work with the 5-hour window ≥ 80% (a factory
-that saturates at 4 a.m. is rate-limiting the person who sits down at 9), and
-never spawn with the week OVER the pace line. Merging and sensing are `gh`
-calls and cost no tokens — those never throttle.
+Exactly one thing is being decided: **can the account afford a fixer lane right
+now.** Merging and sensing are `gh` calls and cost no tokens, so nothing else in
+the shift throttles — the verdict gates fixer lanes and nothing besides.
+
+Two conditions, both protecting the human's hours:
+
+- **the 5-hour window under 80%.** A factory that saturates the rolling window
+  at 4 a.m. is rate-limiting the person who sits down at 9. It outranks the
+  weekly half and is checked first: a week with room to spare says nothing
+  about the next four hours.
+- **enough weekly headroom left for one lane.** `RESERVE` (70) points of the
+  weekly window are the human's, draining evenly as the week runs off — so the
+  reserve right now is `70 × (fraction of the week remaining)`. What sits
+  between that and the `CEILING` (95; the top five points are nobody's) is the
+  factory's to spend: `headroom = 95 − week% − reserve`, and a lane needs
+  `FIXER` (5) points of it.
+
+The question is **forward-looking**, and that is the load-bearing part. "Is the
+week spent no faster than the clock so far" is a question nobody has, and it
+cannot be answered yes by anything but an idle week: spend only rises and the
+clock does not rewind, so one honest burst on Monday reads over-budget until
+the reset however much is left. On an account spent in bursts that is a gate
+with no reachable yes. Asking instead whether a lane *still leaves enough to
+finish the week* forgives the burst and keeps the bound — 50% gone with 90% of
+the week still to come is refused, 90% gone with a day left is refused, and 16%
+gone with 84% of the week left is 21 points clear.
+
+`FIXER` is an allowance, not a measurement: nothing meters a lane. It does not
+need to be exact, because headroom is re-read from actual spend every pass, so
+a lane that overruns its allowance shows up as less headroom for the next one.
+All three numbers are dials, and turning one is a reviewed edit to
+`script/factory-shift` **and** to this paragraph — the same way widening
+`factory-tier`'s filter is. `test/factory-shift.bats` pins the values so the
+two cannot drift apart silently.
+
+**Every arm that could not do the arithmetic ends `fixer: no (budget unknown)`:**
+a missing feed, a column reorder upstream, a value that is not digits, a reset
+stamp absent or further out than the week it names. An unknown
+budget is not permission, for the same reason `ci-unknown` is not a green main.
+And the foreman does not re-derive any of it — its rule is *spawn only on
+`fixer: yes`*. A threshold written out in prose in a second file, over numbers
+only the script can see, is one no test can reach; and because a gate's refusal
+is the same word whether it is working or stuck, a gate that can never say yes
+looks exactly like a gate doing its job.
 
 ## When the foreman dies
 

@@ -3,7 +3,7 @@ name: nightshift
 description: >-
   Run the factory's night shift from this session: grant the merge lease, loop
   `script/factory-shift` until it expires, spawn capped fixer lanes on red main
-  CI, and throttle everything against the token pace line. Use when I say
+  CI, and throttle everything against the token budget. Use when I say
   /nightshift, "run the night shift", "take the shift", "keep shipping while
   I'm away/asleep", usually with a duration ("/nightshift 12h"). The full
   design is docs/factory.md; this skill is the foreman — the judgement half
@@ -82,8 +82,14 @@ wakeup:
 
 On `CI-RED <repo> <url>`, all four must hold:
 
-- **budget**: the pass's `budget:` line shows 5h **< 80%** and the week
-  **under** the pace line — else log `fixer-skipped: budget` and move on;
+- **budget**: the pass's `budget:` line ends **`fixer: yes`** — else append a
+  `fixer-skipped: budget — <why>` line to today's shift log and move on, where
+  `<why>` is the text in the parentheses after `fixer: no`. Do **not** redo the
+  arithmetic or reason around it: the
+  script has already asked whether a lane still leaves the human enough to
+  finish the week, and a threshold re-derived in prose is a threshold nothing
+  can test and nobody can see is stuck. `fixer: no (budget unknown)` is a
+  refusal like any other — an unreadable quota is not permission;
 - **cap**: fewer than **2** fixers for this repo tonight (count your own
   `fixer-spawned: <repo>` lines in today's shift log);
 - **novelty**: no earlier fixer tonight was spawned for this same head SHA —
@@ -102,7 +108,10 @@ already have:
    spawn step (`/handoff spawn <repo>`), so the window is born off-screen
    and focus stays wherever the user left it.
 3. Append `fixer-spawned: <repo> <head sha>` to today's shift log
-   (`~/.cache/hausfold-factory/shift-*.log`).
+   (`~/.cache/hausfold-factory/shift-*.log`) — the same file `fixer-skipped`
+   goes in. Both lines are yours to write: nothing in `factory-shift` knows a
+   lane was considered, so a decision you only put in a message is one the
+   morning cannot read and the cap cannot count.
 
 A fixer's PR is not special: if it is docs-only the next pass merges it; a
 code fix waits for the morning like every other tier-2 shape.
@@ -125,8 +134,8 @@ Lease expired (or the user says "end the shift" / revokes):
 ## What this skill never does
 
 Merge outside `factory-shift`, widen `factory-tier`, activate the machine
-(`try switch` is the user's), touch releases, or spawn anything when the
-budget line says OVER. Quiet nights are good nights.
+(`try switch` is the user's), touch releases, or spawn anything the budget
+line has not said `fixer: yes` to. Quiet nights are good nights.
 
 It also never stops the watchdog to quiet a `foreman-stalled` line, and never
 re-grants a lease the watchdog revoked. Both are the shift reporting that it
