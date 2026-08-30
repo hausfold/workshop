@@ -2232,7 +2232,7 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
   run cmd_overlap --path doc.md
   [ "$status" -eq 4 ]
   [[ "$output" == *"↔"* ]]
-  [[ "$output" != *"🌫"* ]]                  # findings only, no header
+  [[ "$output" != *"≋"* ]]                  # findings only, no header
 }
 
 # ── notify: the banner `release` and `try-batch` leave on screen ─────────────
