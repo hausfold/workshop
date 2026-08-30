@@ -52,6 +52,16 @@ grant)
   mkdir -p "$STATE_DIR"
   printf '%s\t%s\t%s\n' "$((now + secs))" "$tier" "$now" >"$LEASE"
   echo "lease: tier $tier until $(date -r $((now + secs)) '+%a %H:%M')"
+  # A live lease always has a watchdog, and it is started HERE rather than by
+  # the foreman so the invariant is structural: the one thing that must not
+  # depend on the agent still working is the thing that notices it stopped.
+  # `ensure` is idempotent (one pidfile per machine, claimed O_EXCL), so a
+  # second grant inside a live shift extends the lease without racing — and it
+  # is the same verb the foreman re-runs each wakeup, so there is one
+  # implementation of "make sure something is watching".
+  if [ "${FACTORY_NO_WATCHDOG:-0}" != 1 ] && [ -x "$(dirname "$0")/factory-watchdog" ]; then
+    "$(dirname "$0")/factory-watchdog" ensure >/dev/null 2>&1 || true
+  fi
   ;;
 status)
   if [ ! -s "$LEASE" ]; then echo "lease: none"; exit 1; fi
@@ -67,6 +77,12 @@ status)
   ;;
 revoke)
   rm -f "$LEASE"
+  # The watchdog exits on its own the next time it reads a dead lease, but
+  # that is up to five minutes of a poller outliving the thing it watches.
+  # Stopping it here keeps "no lease" and "nothing running" the same moment.
+  if [ -x "$(dirname "$0")/factory-watchdog" ]; then
+    "$(dirname "$0")/factory-watchdog" stop >/dev/null 2>&1 || true
+  fi
   echo "lease: revoked"
   ;;
 *) usage ;;

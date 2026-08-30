@@ -10,6 +10,11 @@
 # which reads exactly like a quiet night. `test/factory-shift.bats` stubs
 # `gh`, `trill` and `factory-tier` so those passes are observable.
 #
+# `factory-watchdog` is the same argument one layer down, and its silence is
+# harder still: it fires only when the foreman is gone, so nobody ever sees it
+# work on a good night. `test/factory-watchdog.bats` writes lease files and
+# ages logs directly to make every stall shape observable on a runner.
+#
 # `lib/ui.sh` was here too until 2026-08-27 and is now hausfold/snug's
 # `share/ui.sh`, tested by snug's own `bash` job. It moved because `haus.sh` is
 # read into a store binary and a haus user has no workshop checkout, so the
@@ -39,8 +44,9 @@ jobs:
       - name: shellcheck
         run: |
           shellcheck --version
-          shellcheck bench script/factory-lease script/factory-shift script/factory-tier
+          shellcheck bench script/factory-lease script/factory-shift \
+            script/factory-tier script/factory-watchdog
       - name: bats
         run: |
           bats --version
-          bats test/bench.bats test/factory-shift.bats
+          bats test/bench.bats test/factory-shift.bats test/factory-watchdog.bats
