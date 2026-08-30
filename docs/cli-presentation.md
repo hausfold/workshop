@@ -251,6 +251,13 @@ Use `stty size` (TIOCGWINSZ), which is the only source that tracks a resize. Rea
 it from `/dev/tty`, not `<&1`: inside `$( )` — which is where a shell measures —
 fd 1 is the substitution's pipe and never the terminal.
 
+**A stream with no window is not given one.** Assuming 80 for a pipe is the
+`tput cols` mistake with the number hardcoded a layer up, and it costs the same
+thing twice: prose folded at a column nobody chose, and a table cut to 79 cells
+with an ellipsis where the path tail was — in the stream someone is about to
+grep, or the file they redirected the report into. A redirected stream is
+neither folded nor fitted; it is written whole.
+
 Measure once at start, then only when `SIGWINCH` says the window actually
 changed. `stty` forks; a 10 fps painter must not.
 
@@ -287,6 +294,22 @@ Unchanged from scruff's `internal/ui` (SPEC.md §2.3), promoted to a family rule
 **stdout carries data only.** Every diagnostic, prompt and progress line goes to
 stderr, because callers do `cd "$(scruff child …)"` and hooks read paths off
 stdout.
+
+**A report is data.** `bench status`'s tables and the `scruff` listing are the
+thing the user ran the command *for*, not the tool talking about it, so they
+draw on fd 1 — which is what lets `bench status | less` carry them whole — while
+the narration around them stays on fd 2.
+
+**A report is measured, gated and painted for the stream it lands on, never the
+other one.** The two questions come apart the moment the streams do, and they
+come apart in both directions: budget a report from stderr and a TTY stdout
+beside a redirected stderr draws plain, while a piped stdout beside a live
+stderr draws escapes into a pipe. Go callers get one question and one answer
+from `Printer.PrintData`, which measures `Out`; `Print` is the other half, for a
+table that is part of what the tool is *saying*. There is no bash equivalent, so
+`bench` carries two gates asking about two streams and loses the first of those
+two edges — written down in the code beside them rather than left to be
+rediscovered from the screen.
 
 ## The runtime
 
