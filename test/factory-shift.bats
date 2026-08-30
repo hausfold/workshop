@@ -142,9 +142,14 @@ stub_usage() { # <5h %> <week %> <seconds of week left>
   # docs/factory.md's budget governor quotes these three numbers, and the
   # verdict is unreadable without them. A tuned dial is a fine change; a tuned
   # dial the doc still states the old value for is the drift this pins.
-  grep -q '^CEILING=95 ' "$SHIFT"
-  grep -q '^RESERVE=70 ' "$SHIFT"
-  grep -q '^FIXER=5 ' "$SHIFT"
+  #
+  # Both SIDES are read, and that is the whole point: a pin that only greps the
+  # script is re-blessed by the same edit that breaks the doc, which is a check
+  # whose remedy is to update the check — docs/drift.md's row 20.
+  doc="$BATS_TEST_DIRNAME/../docs/factory.md"
+  grep -q '^CEILING=95 ' "$SHIFT" && grep -q '`CEILING` (95' "$doc"
+  grep -q '^RESERVE=70 ' "$SHIFT" && grep -q '`RESERVE` (70)' "$doc"
+  grep -q '^FIXER=5 ' "$SHIFT" && grep -q '`FIXER` (5)' "$doc"
 }
 
 @test "an early-week burst with the week mostly unspent can still afford a fixer" {
@@ -200,7 +205,57 @@ stub_usage() { # <5h %> <week %> <seconds of week left>
 
   printf '10\t50\t0\t0\tstub\n' >"$TMP/usage.tsv"
   run "$SHIFT" --dry-run
-  [[ "$output" == *"no weekly reset stamp"*"fixer: no (budget unknown)"* ]]
+  [[ "$output" == *"weekly reset stamp unusable"*"fixer: no (budget unknown)"* ]]
+}
+
+@test "a feed value that would break the arithmetic degrades, and never to silence" {
+  # `08` is the one that matters: it passes a range test, and `$((08))` is a
+  # fatal base-8 error that takes the whole `budget:` line out of the log. A
+  # missing line is worse than a wrong one here — the morning reads this file
+  # and a row that is simply absent makes no claim it can catch.
+  printf '05\t08\t0\t%s\tstub\n' "$(($(date +%s) + 500000))" >"$TMP/usage.tsv"
+  export FACTORY_USAGE_TSV="$TMP/usage.tsv"
+  run "$SHIFT" --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"budget:"* ]]
+  [[ "$output" != *"value too great for base"* ]]
+
+  # A negative percentage passes a range test too, and it buys headroom.
+  printf '10\t-5\t0\t%s\tstub\n' "$(($(date +%s) + 500000))" >"$TMP/usage.tsv"
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"unreadable feed"*"fixer: no (budget unknown)"* ]]
+}
+
+@test "a reset stamp further out than the window it names is unusable, not a huge reserve" {
+  # What a units change upstream (seconds → milliseconds) looks like from here.
+  # Unbounded, it makes the reserve six figures and the gate permanently shut —
+  # by a `no` that reads exactly like every correct `no`, which is the shape
+  # this whole block exists not to be.
+  printf '10\t16\t0\t9999999999\tstub\n' >"$TMP/usage.tsv"
+  export FACTORY_USAGE_TSV="$TMP/usage.tsv"
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"weekly reset stamp unusable"*"fixer: no (budget unknown)"* ]]
+  [[ "$output" != *"headroom -"* ]]
+}
+
+@test "both thresholds are pinned AT their edge, not near it" {
+  # A case at 84% and one at 13% leaves `-ge 80` and `-gt 80` indistinguishable,
+  # and a gate this PR exists to make reachable should have its edge reachable
+  # by a test too. Each pair straddles one comparison and nothing else.
+  stub_usage 80 16 $((604800 * 84 / 100))
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"fixer: no (5h window at 80%)"* ]]
+  stub_usage 79 16 $((604800 * 84 / 100))
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"fixer: yes"* ]]
+
+  # reserve at a full week = 70, ceiling 95, so headroom = 25 - week%.
+  stub_usage 0 20 604800
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"headroom 5 pts · fixer: yes"* ]]
+  stub_usage 0 21 604800
+  run "$SHIFT" --dry-run
+  [[ "$output" == *"headroom 4 pts · fixer: no (headroom 4 pts, one fixer needs 5)"* ]]
 }
 
 # ── the four blind spots ─────────────────────────────────────────────────────

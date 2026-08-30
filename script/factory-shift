@@ -88,29 +88,49 @@ FIXER=5    # headroom one fixer lane must find, in points of the weekly window
 # next one. Widening any of the three is a reviewed edit here and in
 # docs/factory.md, the same way factory-tier's filter is.
 USAGE_TSV="${FACTORY_USAGE_TSV:-$HOME/.cache/claude-statusline/usage-claude.tsv}"
+# Every arm below ends in a verdict, and every arm that could not do the
+# arithmetic ends in `no`: an unknown budget is not permission, it is the same
+# named unknown the rest of this script degrades to.
+#
+# Each number is checked as DIGITS before anything computes on it, rather than
+# only for range. `[ 08 -le 100 ]` is true and `$((08))` is a fatal base-8
+# error that takes the whole `budget:` line out of the log — which is silence,
+# the one degradation this block may not have. `-5` passes a range test too,
+# and buys headroom the account does not have. A digits test refuses both, and
+# a feed whose columns moved lands in the named unknown it always did.
+digits() { case "${1:-}" in '' | *[!0-9]*) return 1 ;; esac; }
 if [ -s "$USAGE_TSV" ]; then
   IFS=$'\t' read -r p5 pw _r5 rw _rest <"$USAGE_TSV"
   now=$(date +%s)
-  # Every arm ends in a verdict, and every arm that could not do the
-  # arithmetic ends in `no`: an unknown budget is not permission, it is the
-  # same named unknown the rest of this script degrades to.
-  if ! [ "${p5:-x}" -le 100 ] 2>/dev/null || ! [ "${pw:-x}" -le 100 ] 2>/dev/null; then
+  if ! digits "${p5:-}" || ! digits "${pw:-}" || [ "$p5" -gt 100 ] || [ "$pw" -gt 100 ]; then
     say "budget: unreadable feed at $USAGE_TSV (columns moved?) · fixer: no (budget unknown)"
-  elif [ "${rw:-0}" -gt "$now" ] 2>/dev/null; then
-    reserve=$((RESERVE * (rw - now) / 604800))
-    headroom=$((CEILING - pw - reserve))
-    # 5h first, and it is not about the week at all: a factory that saturates
-    # the rolling window at 4 a.m. rate-limits the person who sits down at 9.
-    if [ "$p5" -ge 80 ]; then
-      verdict="no (5h window at ${p5}%)"
-    elif [ "$headroom" -lt "$FIXER" ]; then
-      verdict="no (headroom ${headroom} pts, one fixer needs ${FIXER})"
-    else
-      verdict=yes
-    fi
-    say "budget: 5h ${p5}% · week ${pw}% · reserve ${reserve} pts · headroom ${headroom} pts · fixer: $verdict"
   else
-    say "budget: 5h ${p5}% · week ${pw}% (no weekly reset stamp — headroom unknown) · fixer: no (budget unknown)"
+    p5=$((10#$p5)); pw=$((10#$pw))
+    # The reset stamp is the one input the reserve is a FUNCTION of, so it is
+    # bounded on both sides rather than merely tested for being in the future.
+    # A stamp further out than the window it names — what a units change
+    # upstream from seconds to milliseconds looks like — otherwise yields a
+    # reserve of six figures, and a gate held shut forever by a `no` that
+    # reads like every other `no`. That is the shape this block exists to not
+    # be; a week is what a weekly reset can be at most.
+    left=-1
+    if digits "${rw:-}"; then left=$((10#$rw - now)); fi
+    if [ "$left" -le 0 ] || [ "$left" -gt 604800 ]; then
+      say "budget: 5h ${p5}% · week ${pw}% (weekly reset stamp unusable — headroom unknown) · fixer: no (budget unknown)"
+    else
+      reserve=$((RESERVE * left / 604800))
+      headroom=$((CEILING - pw - reserve))
+      # 5h first, and it is not about the week at all: a factory that saturates
+      # the rolling window at 4 a.m. rate-limits the person who sits down at 9.
+      if [ "$p5" -ge 80 ]; then
+        budget_verdict="no (5h window at ${p5}%)"
+      elif [ "$headroom" -lt "$FIXER" ]; then
+        budget_verdict="no (headroom ${headroom} pts, one fixer needs ${FIXER})"
+      else
+        budget_verdict=yes
+      fi
+      say "budget: 5h ${p5}% · week ${pw}% · reserve ${reserve} pts · headroom ${headroom} pts · fixer: $budget_verdict"
+    fi
   fi
 else
   say "budget: unknown — no usage feed at $USAGE_TSV · fixer: no (budget unknown)"

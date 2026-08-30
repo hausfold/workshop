@@ -82,9 +82,10 @@ wakeup:
 
 On `CI-RED <repo> <url>`, all four must hold:
 
-- **budget**: the pass's `budget:` line ends **`fixer: yes`** — else append
-  `fixer-skipped: budget — <the reason in its parentheses>` to today's shift
-  log and move on. Do **not** redo the arithmetic or reason around it: the
+- **budget**: the pass's `budget:` line ends **`fixer: yes`** — else append a
+  `fixer-skipped: budget — <why>` line to today's shift log and move on, where
+  `<why>` is the text in the parentheses after `fixer: no`. Do **not** redo the
+  arithmetic or reason around it: the
   script has already asked whether a lane still leaves the human enough to
   finish the week, and a threshold re-derived in prose is a threshold nothing
   can test and nobody can see is stuck. `fixer: no (budget unknown)` is a

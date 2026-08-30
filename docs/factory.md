@@ -67,7 +67,7 @@ the account) already carries the four numbers that matter: 5-hour %, weekly %,
 and both reset stamps. `factory-shift` turns them into one line, and that line
 ends in the answer rather than in the inputs —
 
-    budget: 5h 13% · week 16% · reserve 59 pts · headroom 20 pts · fixer: yes
+    budget: 5h 13% · week 16% · reserve 58 pts · headroom 21 pts · fixer: yes
 
 Exactly one thing is being decided: **can the account afford a fixer lane right
 now.** Merging and sensing are `gh` calls and cost no tokens, so nothing else in
@@ -94,7 +94,7 @@ the reset however much is left. On an account spent in bursts that is a gate
 with no reachable yes. Asking instead whether a lane *still leaves enough to
 finish the week* forgives the burst and keeps the bound — 50% gone with 90% of
 the week still to come is refused, 90% gone with a day left is refused, and 16%
-gone with 84% of the week left is 20 points clear.
+gone with 84% of the week left is 21 points clear.
 
 `FIXER` is an allowance, not a measurement: nothing meters a lane. It does not
 need to be exact, because headroom is re-read from actual spend every pass, so
@@ -105,7 +105,8 @@ All three numbers are dials, and turning one is a reviewed edit to
 two cannot drift apart silently.
 
 **Every arm that could not do the arithmetic ends `fixer: no (budget unknown)`:**
-a missing feed, a column reorder upstream, an absent reset stamp. An unknown
+a missing feed, a column reorder upstream, a value that is not digits, a reset
+stamp absent or further out than the week it names. An unknown
 budget is not permission, for the same reason `ci-unknown` is not a green main.
 And the foreman does not re-derive any of it — its rule is *spawn only on
 `fixer: yes`*. A threshold written out in prose in a second file, over numbers
