@@ -238,7 +238,9 @@ On another machine, or after shipping from elsewhere:
 ## Releasing
 
 Five repos are releasable — pounce, perch, trill, haus (the layer) and scruff —
-each with a real audience. Four are CalVer; **scruff alone is semver**, and that
+each with a real audience. **snug is deliberately not one of them**: every
+consumer pins it by rev as a flake input, so a tag would name nothing anyone
+fetches, and `bench release snug` refuses. Four are CalVer; **scruff alone is semver**, and that
 split is the only thing about releasing you have to hold in your head.
 
 Versions are **date-based** (CalVer): a release is stamped with the day it's cut
