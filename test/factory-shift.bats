@@ -28,9 +28,14 @@ setup() {
   export FACTORY_STATE_DIR="$TMP/state"
   # No usage feed and no lease file: the budget line degrades to a stated
   # unknown and the lease reads "none", so nothing here depends on what the
-  # real machine's quota or lease happen to be. "No lease" also means the
-  # merge path stops at `would-merge`, which is what keeps these tests from
-  # ever needing a `gh pr merge` stub that could be wrong in a costly way.
+  # real machine's quota or lease happen to be. "No lease" also stops the
+  # merge path at `would-merge`, which is where every case above the write
+  # section stays.
+  #
+  # The write section does grant a lease and does stub `gh pr merge`. That is
+  # safe for the reason it is safe everywhere else here: PATH is prepended, so
+  # the only `gh` reachable from the script is this file's, and $ROOT/bench is
+  # a stub too. Nothing in this suite can reach the network.
   export FACTORY_USAGE_TSV="$TMP/no-such-usage.tsv"
 
   PATH="$TMP/bin:$PATH"
@@ -41,18 +46,54 @@ setup() {
 printf '%s\n' "$*" >>"$TRILL_CALLS"
 EOF
   chmod +x "$TMP/bin/trill"
+  export GH_MERGE_CALLS="$TMP/gh-merge-calls"
 
   stub_gh ok green none
   stub_tier 3
+  stub_bench ok ok
+}
+
+# The ripple's two verbs, stubbed separately because the pass now reports which
+# of them stopped. $ROOT/bench is resolved by path like factory-tier is, so the
+# stub goes where the script looks rather than in front of it on PATH.
+stub_bench() { # $1 bench pull: ok | fail · $2 bench ship: ok | fail
+  cat >"$TMP/root/bench" <<EOF
+#!/usr/bin/env bash
+case "\$1" in
+pull) case "$1" in fail) echo "bench: perch is dirty — commit or park first" >&2; exit 1 ;; esac ;;
+ship) case "$2" in fail) echo "bench: edge haus → snug did not move" >&2; exit 1 ;; esac ;;
+esac
+EOF
+  chmod +x "$TMP/root/bench"
+}
+
+# A live lease, written directly rather than through `factory-lease grant` —
+# `grant` spawns a real watchdog poller, and a leaked one would outlive the
+# test that spawned it. `factory-lease status` is the only reader here, and
+# this is the file it reads.
+grant_lease() {
+  mkdir -p "$FACTORY_STATE_DIR"
+  printf '%s\t1\t%s\n' "$(($(date +%s) + 3600))" "$(date +%s)" \
+    >"$FACTORY_STATE_DIR/lease"
 }
 
 # $1 gh repo list: ok | fail | empty
 # $2 gh run list:  green | red | fail
 # $3 gh pr list:   none | one | fail
+# $4 gh pr merge:  ok | fail  (only reached with a lease granted; see below)
 stub_gh() {
   cat >"$TMP/bin/gh" <<EOF
 #!/usr/bin/env bash
 case "\$1 \$2" in
+"pr merge")
+  # Recorded rather than merely answered: --match-head-commit is the pin that
+  # makes a push landing between the verdict and the merge fail closed, and a
+  # pin nothing reads back is a pin that can quietly stop being passed.
+  printf '%s\n' "\$*" >>"\$GH_MERGE_CALLS"
+  case "${4:-ok}" in
+  fail) echo "GraphQL: Head branch was modified. Review and try the merge again." >&2; exit 1 ;;
+  esac
+  ;;
 "repo list")
   case "$1" in
   fail)  echo "connection reset by peer" >&2; exit 1 ;;
@@ -278,6 +319,10 @@ stub_usage() { # <5h %> <week %> <seconds of week left>
   run "$SHIFT" --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"prs-unknown: perch"* ]]
+  # And it carries WHY, like the other three: the foreman's only judgement on
+  # any of these is whether a repeat is a story, and a rate limit, an expired
+  # token and a dropped connection are the same line without it.
+  [[ "$output" == *"http2: client conn could not be established"* ]]
   # An unlistable PR set must not take the CI half down with it: they are
   # independent questions about the same repo.
   [[ "$output" == *"CI-RED: perch"* ]]
@@ -352,4 +397,66 @@ EOF
   log="$FACTORY_STATE_DIR/shift-$(date +%Y%m%d).log"
   [ "$(grep -c 'ci-unknown' "$log")" -eq 1 ]
   grep -q 'ci-unknown: perch .*error: one error: two error: three' "$log"
+}
+
+# ── the two lines that report a failed WRITE ──────────────────────────────────
+# Everything above is about a pass that could not SEE. These are passes that
+# saw fine and whose ACTION did not take, and they are read for the same thing:
+# whether this is a repeat, and therefore a story. A merge refused because the
+# branch moved under --match-head-commit is the pin working exactly as designed
+# and needs nothing; one refused by a token that expired three hours ago means
+# the shift has been over since then. Without the reason on the line those are
+# the same night.
+
+@test "a tier-1 PR under a live lease merges, pinned to the SHA the verdict saw" {
+  # The affirmative first, for the same reason the budget suite leads with
+  # `fixer: yes`: until something can get through, none of the refusals below
+  # is distinguishable from a path that simply never runs.
+  stub_gh ok green one
+  stub_tier 0
+  grant_lease
+  run "$SHIFT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"merged: perch#7"* ]]
+  # The head SHA comes out of factory-tier's verdict line by `${verdict##*head=}`,
+  # so this is the far end of the contract test/factory-tier.bats pins at its
+  # source. Two files, and nothing but these two cases holding them together.
+  grep -q -- "--match-head-commit deadbeef" "$GH_MERGE_CALLS"
+  [[ "$output" == *"rippled: bench pull + ship after 1 merge(s)"* ]]
+}
+
+@test "a merge that did not take says why, and leaves the PR open" {
+  stub_gh ok green one fail
+  stub_tier 0
+  grant_lease
+  run "$SHIFT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"merge-failed: perch#7"* ]]
+  [[ "$output" == *"Head branch was modified"* ]]
+  # No card, and that is the same blast-radius judgement `ci-unknown` is made
+  # on: a merge that did not happen leaves the PR exactly where the morning
+  # expects to find it, which is the failure mode the whole factory promises.
+  [ ! -f "$TRILL_CALLS" ]
+}
+
+@test "ripple-failed names WHICH verb stopped, and carries its stderr" {
+  # `pull` failing leaves the checkouts behind origin with nothing shipped;
+  # `ship` failing leaves them current with the lock edges stale. The morning's
+  # move differs, and one line reading "bench pull/ship" told it neither which
+  # nor why.
+  stub_gh ok green one
+  stub_tier 0
+  grant_lease
+
+  stub_bench fail ok
+  run "$SHIFT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"ripple-failed: bench pull"* ]]
+  [[ "$output" == *"commit or park first"* ]]
+
+  stub_bench ok fail
+  run "$SHIFT"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"ripple-failed: bench ship"* ]]
+  [[ "$output" == *"did not move"* ]]
 }

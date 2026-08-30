@@ -27,6 +27,12 @@
 # `pass ABORTED` (no repo list, so nothing was sensed at all). Silence is a
 # claim, and here it is only ever the claim that something was looked at.
 #
+# The two lines that report a failed WRITE — `merge-failed` and
+# `ripple-failed` — are verdicts rather than unknowns, but they quote their
+# stderr for the same reason: the reader's only question is whether this is a
+# repeat, and a fail-closed head-SHA pin and an expired token are the same
+# line without it.
+#
 # Every line is appended to $STATE_DIR/shift-YYYYMMDD.log — the morning
 # report is that file, not a memory of it. Deterministic on purpose: no
 # judgement lives here, so what happened while you slept is exactly what
@@ -172,7 +178,7 @@ for repo in $repos; do
   # then indistinguishable from a repo with none open. An empty list is a
   # fact; an unreadable one is a gap in the pass.
   if pr_rows=$(gh pr list -R "hausfold/$repo" -L 100 --json number,title \
-    -q '.[] | [.number, .title] | @tsv' 2>/dev/null); then
+    -q '.[] | [.number, .title] | @tsv' 2>"$ERRF"); then
     while IFS=$'\t' read -r num title; do
       [ -n "$num" ] || continue
       # factory-tier's contract is 0 tier-1 · 3 refused-with-a-reason · 2
@@ -191,11 +197,18 @@ for repo in $repos; do
         # Pinned to the head SHA the verdict was computed on: a push landing
         # in the gap makes the merge fail closed to merge-failed, not ride in.
         elif gh pr merge "$num" -R "hausfold/$repo" --squash \
-          --match-head-commit "${verdict##*head=}" >/dev/null 2>&1; then
+          --match-head-commit "${verdict##*head=}" >/dev/null 2>"$ERRF"; then
           say "merged: $repo#$num $title"
           merged=$((merged + 1))
         else
-          say "merge-failed: $repo#$num — left open"
+          # A failed WRITE is read for the same thing as a failed read, so it
+          # quotes its stderr for the same reason. This one is a verdict, not
+          # an unknown — the pass saw everything and the merge simply did not
+          # take — but "did not take" spans a head that moved under
+          # --match-head-commit (the pin working exactly as designed, and
+          # nothing to do) and a token that expired three hours ago (the shift
+          # is over and nobody knows). Without the reason those are one line.
+          say "merge-failed: $repo#$num — left open: $(oneline "$(cat "$ERRF")")"
         fi
         ;;
       3) say "queued: $repo#$num $title — ${verdict#tier: not-1 — }" ;;
@@ -203,7 +216,7 @@ for repo in $repos; do
       esac
     done <<<"$pr_rows"
   else
-    say "prs-unknown: $repo — its open PRs could not be listed this pass"
+    say "prs-unknown: $repo — its open PRs could not be listed this pass: $(oneline "$(cat "$ERRF")")"
   fi
 
   # cancelled is deliberately not red: concurrency groups cancel superseded
@@ -242,11 +255,21 @@ done
 
 # ── ripple ────────────────────────────────────────────────────────────────────
 if [ "$merged" -gt 0 ] && [ "$dry" = 0 ]; then
-  if "$ROOT/bench" pull >/dev/null 2>&1 && "$ROOT/bench" ship >/dev/null 2>&1; then
-    say "rippled: bench pull + ship after $merged merge(s)"
-  else
-    say "ripple-failed: bench pull/ship — run it by hand in the morning"
+  # Which of the two stopped is half the report: `pull` failing leaves the
+  # checkouts behind origin and nothing shipped, `ship` failing leaves them
+  # current with the lock edges still stale. The morning's move differs, so the
+  # line names a verb rather than the pair.
+  ripple_stopped=""
+  if ! "$ROOT/bench" pull >/dev/null 2>"$ERRF"; then
+    ripple_stopped="bench pull"
+  elif ! "$ROOT/bench" ship >/dev/null 2>"$ERRF"; then
+    ripple_stopped="bench ship"
+  fi
+  if [ -n "$ripple_stopped" ]; then
+    say "ripple-failed: $ripple_stopped — run it by hand in the morning: $(oneline "$(cat "$ERRF")")"
     notify fault "factory: lock ripple failed after $merged merge(s)"
+  else
+    say "rippled: bench pull + ship after $merged merge(s)"
   fi
 fi
 

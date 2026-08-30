@@ -8,7 +8,13 @@
 # crash. `factory-shift` runs unattended and its product is a log read hours
 # later, so its worst output is a pass that could not see and said nothing,
 # which reads exactly like a quiet night. `test/factory-shift.bats` stubs
-# `gh`, `trill` and `factory-tier` so those passes are observable.
+# `gh`, `trill`, `bench` and `factory-tier` so those passes are observable.
+#
+# `factory-tier` is the one whose output causes something with no
+# undo-by-default, and its bad day is quieter still: a deny clause that stops
+# matching has no symptom until a PR a person meant to see merges at 3 a.m.
+# `test/factory-tier.bats` stubs `gh` and runs the real jq filter — a case per
+# clause, each written so that deleting the clause fails it.
 #
 # `factory-watchdog` is the same argument one layer down, and its silence is
 # harder still: it fires only when the foreman is gone, so nobody ever sees it
@@ -33,8 +39,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install bats + shellcheck
-        run: sudo apt-get update && sudo apt-get install -y bats shellcheck
+      # jq is named rather than assumed present: `factory-tier`'s filter IS a
+      # jq program, so a runner image that dropped it would turn every case in
+      # its suite into an error rather than a failure.
+      - name: Install bats + shellcheck + jq
+        run: sudo apt-get update && sudo apt-get install -y bats shellcheck jq
       # The versions are printed because they are not pinned, and apt's
       # shellcheck disagrees with a newer one about which checks are on by
       # default: SC2015 on `A && B || C` fires here and not under 0.11.0, so
@@ -49,4 +58,5 @@ jobs:
       - name: bats
         run: |
           bats --version
-          bats test/bench.bats test/factory-shift.bats test/factory-watchdog.bats
+          bats test/bench.bats test/factory-tier.bats test/factory-shift.bats \
+            test/factory-watchdog.bats

@@ -28,6 +28,20 @@ first place (unchanged from today), and deciding whether a `CI-RED` warrants a
 fixer lane. Everything `factory-shift` refuses is *queued*, never closed — the
 verdict and reason land in the shift log, and the PR waits where it always has.
 
+"A path filter a person reviewed" is a claim about a jq expression, and
+`test/factory-tier.bats` is what makes it one anything can check — the shift's
+own suite stubs `factory-tier` with a hardcoded exit code, so it proves what
+the shift does with a verdict and nothing about how a verdict is reached. There
+is a case per deny clause, each written so that deleting the clause fails it,
+and both contracts the filter has with `factory-shift`: the exit codes (0 tier
+1 · 3 a named refusal · 2 usage — three answers, not two) and the `head=<sha>`
+that must END the tier-1 line, because the shift slices everything after the
+last `head=` off it and merges against that. The exclusions named in the tier
+row above are read back out of *this file* by that suite, path by path — an
+exclusion stated only in prose is worse than no exclusion, because it reads as
+a check. That list is hand-maintained on the test's side, so adding an
+exclusion here means adding its row there in the same edit.
+
 ## A pass that cannot see
 
 The shift's product is a log somebody reads instead of having watched, so
@@ -53,11 +67,25 @@ weakens *the failure mode is the status quo* — an aborted pass merges nothing
 and leaves every PR where it was, which is the same place a revoked lease leaves
 them.
 
+The two lines that report a failed **write** carry the same evidence, for the
+same reason. `merge-failed` and `ripple-failed` are verdicts rather than
+unknowns — the pass saw everything, and the action did not take — but "did not
+take" spans a head that moved under `--match-head-commit`, which is the pin
+working exactly as designed and needs nothing, and a token that expired three
+hours ago, which means the shift has been over since then. So both quote their
+stderr, and `ripple-failed` names which of `bench pull` and `bench ship`
+stopped: the first leaves the checkouts behind origin with nothing shipped, the
+second leaves them current with the lock edges stale, and the morning's move
+differs. `merge-failed` draws no card — an unmerged PR is exactly where the
+morning expects to find it — where `ripple-failed` does, being the one thing
+the shift changed and did not finish.
+
 The rule is the one the budget line already states about itself: degrade to a
 named unknown, never to an answer that happens to parse.
-`test/factory-shift.bats` stubs `gh`, `trill` and `factory-tier` and pins all of
-it, including three controls that must not move — a green main says nothing, a
-red one says `CI-RED`, and a judged refusal is still `queued` with its reason.
+`test/factory-shift.bats` stubs `gh`, `trill`, `bench` and `factory-tier` and
+pins all of it, including four controls that must not move — a green main says
+nothing, a red one says `CI-RED`, a judged refusal is still `queued` with its
+reason, and a tier-1 PR under a live lease merges at the SHA the verdict named.
 
 ## The budget governor
 
