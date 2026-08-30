@@ -4,10 +4,11 @@ The one presentation standard for every tool the workshop ships **that draws on 
 terminal** — `bench`, `haus` and `scruff`. It lives here, beside `agent-surface.md`
 and `drift.md`, because it binds every repo and belongs to none of them.
 
-Where it *stops* — trill's CLI, pounce's command scripts, the installers, the
-maintenance scripts — is **Where the standard stops**, the last section in this
-file, and is as load-bearing as what it covers: a scope that is merely unstated
-reads as a sweep nobody finished.
+Where it *stops* — trill's CLI, pounce's command scripts, the maintenance
+scripts, and the installers, which are out of the *runtime* but not the
+*palette* — is **Where the standard stops**, the last section in this file, and
+is as load-bearing as what it covers: a scope that is merely unstated reads as a
+sweep nobody finished.
 
 It is the design half. The runtime that implements it is its own repo (see
 **The runtime**, below); this file is what that repo is judged against, and what
@@ -500,30 +501,60 @@ straight off the store path, with no copy and nothing to drift.
 
 ## Where the standard stops
 
-Four surfaces are **deliberately** outside it. Each is a decision, not a
-backlog — re-open one by editing this section, not by quietly converting a file.
+Four surfaces are **deliberately** outside it, and not all in the same way: two
+are out entirely, one is out of the *runtime* but not the *palette*, and one is
+out of everything. Each is a decision, not a backlog — re-open one by editing
+this section, not by quietly converting a file.
 
-- **trill's `trill` CLI — plain, for now.** It draws no colour at all today, and
-  that stays. Two reasons, and the second is the one that decides it: it is
-  Swift, so it cannot import snug's package and would have to drive `snug run`
-  over the record protocol as a coprocess (possible — that is what the protocol
-  is for — but a feature, not a sweep); and trill's tab on hausfold.co is still
-  positioning-undecided, which is why **hausfold.co's own `AGENTS.md`** says
-  "don't grow the tree past that page" — a rule about the SITE tree, not about
-  `trill/docs/`, which is trill's manual and grows freely. Presentation on a
-  surface whose shape is unsettled is work you do twice. Revisit when the tab
-  ships.
+- **trill's `trill` CLI — plain, and staying plain.** It draws no colour at all,
+  and that is settled rather than pending. It is Swift, so it cannot import
+  snug's package; the only way in is to drive `snug run` over the record
+  protocol as a coprocess. That is possible — it is what the protocol is for —
+  but it is a *feature* somebody would have to want, not a sweep somebody
+  forgot, and nobody wants it. Do not file it as debt.
 - **pounce's command scripts — permanently out.** A command's stdout is the
   *launcher's* input, parsed by the app; there is no terminal on the other end of
   it and an escape there is a bug, not a style. The `# pounce:` header comments
   are its whole presentation contract. This is why they are clean today and why
   nothing should ever make them otherwise.
-- **The installers — exempt because they run before the machine has snug.**
-  `haus`'s `bootstrap.sh` (the standalone `curl | bash`) and `haus-activate.sh`
-  (runs under `sudo` before anything is on PATH). An installer that needs the
-  thing it installs is not an installer, and that is the whole test — it is
-  about WHEN a script runs, not about whether someone got round to it.
-- **The maintenance and probe scripts — out because nobody ships them.**
+- **The installers — exempt from the RUNTIME, not from the palette.** `haus`'s
+  `bootstrap.sh` (the standalone `curl | bash`, on a Mac with no nix at all) and
+  `haus-activate.sh` (handed a reset environment by `sudo`, as root, to activate
+  the very generation that would install `share/ui.sh`) genuinely cannot reach a
+  painter: an installer that needs the thing it installs is not an installer.
+  That is a fact about WHEN they run, and it is permanent.
+
+  It bought them more than it should have. "Cannot source it" was read as
+  "colour is somebody else's problem", and the result was the standard's own
+  founding defect surviving on the one screen a new user sees before anything
+  else: `bootstrap.sh` had no gate at all and four escapes picked by eye,
+  `say` among them on index 103 — a **blue**, the one hue nebelung exists to
+  strip out. So the exemption is narrowed to what it actually covers. These two
+  may not *source* snug; they must still **carry its numbers**:
+
+  - every constant is **copied out of snug's generated `share/ui.sh`**, for the
+    `nebelung` variant, which is what `ui__detect_variant` answers on a machine
+    with nothing in `~/.config/snug/variant` — which is exactly the machine an
+    installer runs on. Copy the hex *and* the 256 index *and* the 16-colour
+    name; never hand-pick one, and never derive the index by eye. Hand-picking
+    is the defect, not sourcing.
+  - the gate is **ported, not re-derived** — `NO_COLOR` beats everything except
+    `CLICOLOR_FORCE`, a non-TTY is colourless unless forced, `dumb` means it
+    even when forced.
+  - a copy drifts, so **a test diffs it back**: `haus`'s
+    `test/installer-palette.bats` reads the roles and the precedence out of the
+    real `share/ui.sh` at the pinned rev and reds when either moves. An inlined
+    palette with no drift test is the hand-maintained copy this whole exercise
+    deleted; the test is the price of the exemption, not an extra.
+
+  `bootstrap.sh` is also the one family CLI that gates **two streams
+  separately**. The two-streams rule elsewhere keys on the *command* — a report
+  draws on fd 1, a narrator on fd 2 — but bootstrap's whole preflight (the
+  audit, the settings table, the undo note) is plain stdout prose, so its
+  narration is gated with it on fd 1 and only `die` draws on fd 2. One gate
+  asked about both streams is how `bootstrap.sh | tee log` comes out either
+  escape-littered or silently monochrome.
+- **The maintenance and probe scripts — out, permanently, by decision.**
   `haus`'s `script/build-golden-vm.sh`, trill's `scripts/dev-install.sh`, and
   this repo's `script/issue-labels.sh` and `script/probes/*.sh`. These do *not*
   meet the installer test — `build-golden-vm.sh` wants `tart` on PATH and runs
@@ -531,5 +562,8 @@ backlog — re-open one by editing this section, not by quietly converting a fil
   the honest reason is different: their whole audience is the four people with a
   workshop checkout, and a colour they get wrong costs a maintainer one squint.
   Say that rather than stretching the installer argument over them, which is how
-  an exemption list turns into a place to hide things. They may be converted
-  whenever someone wants to; nothing here is waiting on them.
+  an exemption list turns into a place to hide things. This is a **settled
+  scope**, not a queue: they are not waiting for anybody, and "convert the last
+  few scripts" is not a piece of work that exists. Converting one anyway is not
+  forbidden — it is just nobody's task, and it does not belong in a sweep, a
+  checklist or a PR body as though it were owed.
