@@ -347,11 +347,6 @@ palette). One window, measured once; each stream then answered about its own far
 end, so a redirected report is written whole while the prose beside it is still
 folded to the terminal.
 
-⚠️ A caller REACHING those verbs is what makes any of it true of that caller.
-`bench`'s tables have not moved to them, so bench still gates its own `C_*` on
-fd 1 while aliasing fd 2's palette, and still loses the first of the two edges
-above.
-
 ## The runtime
 
 Bash can't link a Go library, so the standard ships as two implementations of
@@ -422,7 +417,7 @@ standard stops**.
 | caller | how it reaches the runtime |
 | --- | --- |
 | `scruff`'s `internal/ui` | imports `github.com/hausfold/snug`. No process, no protocol |
-| `bench` | sources `$(repo_dir snug)/share/ui.sh`, and opens one `snug run` coprocess for a command that draws a live region |
+| `bench` | sources `$(repo_dir snug)/share/ui.sh`, and opens one `snug run` coprocess for a command that draws a live region. Its tables are `ui_col` + `ui_trow` + `ui_table_data`; a clone with no snug checkout at all — which is what its own CI is — falls back to a renderer in `bench` that lays the same columns out at their natural widths, the answer the budget gives a stream with no window anyway |
 | haus's `haus.sh` and `haus-show.sh` | ui.sh at `HAUS_UI_SH`, injected by `modules/core`; the `haus rebuild` phase painter is a coprocess |
 | haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
 | haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
@@ -529,7 +524,6 @@ feedback channel for a product with no telemetry. The cost is that a report's
 ITS stderr, which is the terminal, not the calling command's stdout. Its
 **tables** need no coprocess — they are budgeted against `UI_OUT_AVAIL` in the
 caller's own shell — so that half of the cost is payable rather than structural.
-`bench`'s status tables go on paying it until they move to `ui_table_data`.
 
 **One colour precedence, asked rather than re-derived.** ui.sh measures BOTH
 streams at load and resolves a palette for each. Narration reads `UI_*`; a report
