@@ -672,8 +672,11 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ "$status" -eq 0 ]
   [[ "$output" == *"worktree-live"* ]]
   [[ "$output" == *"dirty"* ]]                       # the checkout really is dirty
-  [[ "$output" == *"(parked — 'scruff gone' to resume"* ]]
-  [[ "$output" == *"worktree-dead"* && "$output" == *"stale branch"* ]]
+  # The marker, and the legend that carries the guidance the marker replaced —
+  # that guidance is prose, and prose in a left-cut path column loses its FRONT.
+  [[ "$output" == *"(parked)"* ]]
+  [[ "$output" == *"scruff <name>"* ]] || fail_rows "no legend explains (parked)" "$output"
+  [[ "$output" == *"worktree-dead"* && "$output" == *"(stale branch)"* ]]
   [[ "$output" == *"scruff reap"* ]]                   # a live lane exists to reap
   [[ "$output" != *"alien"* ]]                       # somebody else's repo
 }
@@ -791,11 +794,12 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
 }
 
 @test "lane_table indents a spawned lane without shearing the columns" {
-  # `└` is three bytes and ONE column, so a %-32s branch cell comes up two
-  # short on every indented row — the same trap dirty_cell exists for. Cells
-  # are compared up to the dirty marker, which is the first thing past the
-  # branch column and appears in no path; the marker is folded to an ASCII
-  # stand-in first so this holds whatever locale the suite runs in.
+  # `└` is three bytes and ONE column, so a byte-padded branch cell comes up
+  # two short on every indented row — the trap the hand-padded cells here used
+  # to exist for, and the one `ui_pad` closes by counting characters. Cells are
+  # compared up to the dirty marker, which is the first thing past the branch
+  # column and appears in no path; the marker is folded to an ASCII stand-in
+  # first so this holds whatever locale the suite runs in.
   mkmain haus
   WT_REGISTRY="$TMP/registry.tsv"
   git -C "$ROOT/haus" worktree add -q -b worktree-par "$TMP/par"
@@ -2485,21 +2489,38 @@ $1"
   # in step with snug's, but the one answer snug's budget gives a stream with
   # no window, and a pipe is where this overwhelmingly runs.
   #
-  # `·` is the load-bearing cell: two BYTES and one column, so a `%-5s` pads it
-  # to four columns and `where` lands one short on that row alone. That is the
-  # exact shear the hand-padded `dirty_cell` used to exist for.
+  # ASCII only, deliberately: `${#s}` counts BYTES under LC_ALL=C, so a cell
+  # holding `·` lays out differently in a C locale than a UTF-8 one — in snug
+  # and in the fallback alike. An exact-string assertion over a multi-byte cell
+  # would be asserting the suite's locale rather than the layout. The
+  # multi-byte half is the parity test above, which compares two renderers
+  # under whatever locale is running and so holds in all of them.
   run lone_bench "ui_col repo   6 1 subject right
 ui_col branch 8 3 body    right
 ui_col dirty  5 1 muted   never
 ui_col where  6 2 path    left
-ui_trow nebelung main '·' '~/x'
+ui_trow nebelung main '-' '~/x'
 ui_cell d warn dirty
 ui_trow a-longer-repo worktree-x \"\$d\" '~/y'
 ui_table_data 2 1"
   [ "$status" -eq 0 ] || { echo "$output"; false; }
   [ "$output" = "  repo          branch     dirty where
-  nebelung      main       ·     ~/x
+  nebelung      main       -     ~/x
   a-longer-repo worktree-x dirty ~/y" ] || { printf 'got:\n%s\n' "$output"; false; }
+}
+
+@test "a checkout with no snug folds a TAB in a cell, exactly as snug does" {
+  # TAB is the row's own field separator, so a cell carrying one silently
+  # shifts every cell after it and drops the last. snug folds it to a space;
+  # a fallback that did not would lay the row out differently from the painter
+  # it claims to match, on the one input nobody thinks to test.
+  run lone_bench "ui_col a 3 1 body right
+ui_col b 3 1 body right
+ui_col c 3 1 body right
+ui_trow \"one\$(printf '\\t')two\" three four
+ui_table_data 2 0"
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+  [ "$output" = "  one two three four" ] || { printf 'got: [%s]\n' "$output"; false; }
 }
 
 @test "the no-snug fallback lays a table out exactly as snug's does" {

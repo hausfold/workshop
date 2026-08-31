@@ -388,7 +388,17 @@ if [ -z "$UI_READY" ]; then
   ui_col()  { UI__TC_HEAD+=("${1-}"); }
   # No palette to name, so a per-row role is the text alone.
   ui_cell() { printf -v "$1" '%s' "$3"; }
-  ui_trow() { local IFS=$'\t'; UI__TROWS+=("$*"); }
+  # TAB is this file's field separator and NEWLINE is a row, so either one
+  # inside a cell reshapes the table silently rather than failing — which is
+  # why snug's own `ui_trow` folds both to a space, and why this one has to as
+  # well or "the fallback lays it out exactly as snug's does" stops being true.
+  ui_trow() {
+    local c
+    local -a cells=()
+    for c in "$@"; do c="${c//$'\t'/ }"; cells+=("${c//$'\n'/ }"); done
+    local IFS=$'\t'
+    UI__TROWS+=("${cells[*]-}")
+  }
   ui_table_clear() { UI__TC_HEAD=(); UI__TROWS=(); }
   ui_table_data() { ui__plain_table "" "${1:-2}" "${2:-0}"; }
   ui_table()      { ui__plain_table 1 "${1:-2}" "${2:-0}"; }
@@ -1292,7 +1302,7 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   # and this loop is filling two. (Four is the column count; the replay strides
   # by it. An array of arrays is the shape bash does not have.)
   local -a live_rows=() parked_rows=()
-  local any_stale=0 any_lane=0 any_spawned=0
+  local any_stale=0 any_lane=0 any_spawned=0 any_parked=0
   # lane_rows hands the tree over already ordered, parent then children — but
   # this loop then SPLITS its rows into two blocks, so a live child of a parked
   # parent would draw a `└` as the first line of the table with nothing above
@@ -1301,8 +1311,11 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   # follows, because an indent that points at a row which isn't there is worse
   # than no indent at all.
   local -A shown=()
-  local repo branch wt lane_name parent
-  while IFS=$'\t' read -r repo branch wt lane_name parent; do
+  # `_` is the registry's lane name, read past rather than drawn: the name
+  # `scruff <name>` takes is the branch without its `worktree-` prefix, which
+  # the branch column already carries, and the ↳ legend below says so.
+  local repo branch wt parent
+  while IFS=$'\t' read -r repo branch wt _ parent; do
     [ -n "$repo" ] || continue
     local blk up ed=0
     if [ -d "$wt" ]; then blk=live; else blk=parked; fi
@@ -1336,9 +1349,14 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
       where="$wt"; case "$wt" in "$HOME"/*) where="~${wt#"$HOME"}" ;; esac
       live_rows+=("$label" "$bcell" "$dcell" "$where")
     else
+      # A marker, not a sentence. This column gives up its FRONT, which is what
+      # a path wants and the exact wrong end of a note — `…' to resume, or open
+      # a PR / delete)` is what the guidance became once it lived in a cell. It
+      # is a ↳ legend below the table now, beside the two that were already
+      # there, where it folds instead of being cut.
       ui_cell dcell muted '·'
-      parked_rows+=("$label" "$bcell" "$dcell" \
-        "(parked — 'scruff $lane_name' to resume, or open a PR / delete)")
+      any_parked=1
+      parked_rows+=("$label" "$bcell" "$dcell" "(parked)")
     fi
   done <<<"$(lane_rows)"
   local name b
@@ -1350,8 +1368,7 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
       branch_is_parked "$name" "$b" && continue
       any_stale=1
       local dcell; ui_cell dcell muted '·'
-      live_rows+=("$name" "$b" "$dcell" \
-        "(stale branch — no checkout, no registry row; open a PR or delete)")
+      live_rows+=("$name" "$b" "$dcell" "(stale branch)")
     done
   done
   [ "${#live_rows[@]}" -gt 0 ] || [ "${#parked_rows[@]}" -gt 0 ] || return 0
@@ -1377,7 +1394,9 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   # shellcheck disable=SC2016
   [ "$any_lane" = 1 ] && printf '  %s↳ landed ones linger if a pane was killed without the remove hook — sweep them with `scruff reap`%s\n' "$C_MUT" "$C_OFF"
   # shellcheck disable=SC2016
-  [ "$any_stale" = 1 ] && printf '  %s↳ stale branches outlived their PR (squash-merged, or closed) — `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
+  [ "$any_parked" = 1 ] && printf '  %s↳ (parked) = scruff removed the checkout, never the branch — `scruff <name>` rebuilds it and reopens that session (the name is the branch without its `worktree-` prefix), or open a PR / delete%s\n' "$C_MUT" "$C_OFF"
+  # shellcheck disable=SC2016
+  [ "$any_stale" = 1 ] && printf '  %s↳ (stale branch) = no checkout and no registry row; it outlived its PR (squash-merged, or closed) — open a PR, or `git -C <repo> branch -D <branch>`%s\n' "$C_MUT" "$C_OFF"
   return 0
 }
 wt_branch() { # wt_branch <checkout> — the branch to show for a lane's checkout
@@ -1490,7 +1509,11 @@ cmd_status() {
   # inside it. Both are `never`: a rev cut to `9f8e7…` is a lie with a mark on
   # it, exactly like an abbreviated duration, so the budget reserves their real
   # width and the table stacks rather than shorten one.
-  ui_col ""      1 1 body    never
+  # Every column gets a head even where no header row is drawn, because the
+  # head is the LABEL the stacked tier prints beside each value when the window
+  # is too narrow for any table at all (ui.sh, `ui_col`). One character for the
+  # mark, so naming it costs the row nothing.
+  ui_col "!"     1 1 body    never
   ui_col edge   10 3 subject right
   ui_col state   5 1 body    never
   ui_col have    7 1 body    never
@@ -1550,14 +1573,20 @@ cmd_status() {
   say "release edges (what new users actually get)"
   # Same shape as the lock edges: the tag and the distance are each their own
   # claim, so each is its own cell with its own role rather than a colour
-  # buried mid-sentence. The `cut …` line is a row with the first four cells
-  # empty, which is what puts it under the audience it belongs to.
-  ui_col ""      1 1 body    never
+  # buried mid-sentence.
+  #
+  # The `cut …` command is NOT a cell. It is a line whose whole job is to be
+  # copied, and a cell truncates where prose folds: in a cell it came out as
+  # `cut a release: bench release…`, missing the repo — and, for scruff, the
+  # `<X.Y.Z>` that is the one argument bench refuses to run without. Collected
+  # here, printed under the table, each naming its own repo.
+  ui_col "!"     1 1 body    never
   ui_col repo    6 1 subject right
   ui_col release 7 1 body    never
   ui_col state  10 2 body    right
   ui_col "who gets it" 12 3 muted right
   local rel_stale=0
+  local -a cuts=()
   for name in pounce perch trill haus scruff; do
     local dir tag behind audience cut
     dir="$(repo_dir "$name")"
@@ -1592,7 +1621,7 @@ cmd_status() {
       ui_cell mark warn '⚠'; ui_cell state warn "no release yet"
       ui_trow "$mark" "$name" "" "$state" "$audience $nofallback"
       # release stamps the version itself; nothing to bump by hand first.
-      ui_trow "" "" "" "" "cut the first release: $cut"
+      cuts+=("cut the first release: $cut")
       rel_stale=1
       continue
     fi
@@ -1605,11 +1634,15 @@ cmd_status() {
       ui_cell mark warn '⚠'; ui_cell rel_c muted "$tag"
       ui_cell state warn "$behind commit(s) behind"
       ui_trow "$mark" "$name" "$rel_c" "$state" "$audience get the old one"
-      ui_trow "" "" "" "" "cut a release: $cut"
+      cuts+=("cut a release: $cut")
       rel_stale=1
     fi
   done
   ui_table_data 2 0
+  local c
+  for c in ${cuts[@]+"${cuts[@]}"}; do
+    printf '      %s%s%s\n' "$C_MUT" "$c" "$C_OFF"
+  done
 
   echo
   # OFF-MAIN ranks above STALE: a stale lock is behind, an off-main one is
@@ -1993,7 +2026,7 @@ cmd_try_batch() {
 
   echo
   say "test checklist — verify each PR (steps are in its body), then merge only the winners:"
-  ui_col ""     3 1 body    never
+  ui_col box    3 1 body    never
   ui_col repo   6 1 subject right
   ui_col pr     4 1 muted   never
   ui_col what   12 4 body    right
@@ -3392,7 +3425,7 @@ earshot_body_table() { # earshot_body_table <cells-var> — FOUR cells a row
   # shape bash does not have; the replay strides by the column count.)
   local -n __rows="$1"
   local i
-  ui_col ""    1 1 body    never
+  ui_col "!"   1 1 body    never
   ui_col lane 10 2 subject right
   ui_col file  8 3 path    left
   ui_col note  0 4 muted   right
@@ -3402,10 +3435,21 @@ earshot_body_table() { # earshot_body_table <cells-var> — FOUR cells a row
   ui_table_data 2 0
 }
 
+earshot_intent_lines() { # earshot_intent_lines <lines-var> — the prose half
+  # What a neighbouring lane is DOING, and which of you should land first.
+  # Deliberately not table rows: the landing order is meant to be copied into a
+  # PR body word for word, and a cell gives up its tail where a line does not.
+  local -n __lines="$1"
+  local l
+  for l in ${__lines[@]+"${__lines[@]}"}; do
+    printf '  %s%s%s\n' "$C_MUT" "$l" "$C_OFF"
+  done
+}
+
 earshot_verdict_table() { # earshot_verdict_table <cells-var> — THREE cells a row
   local -n __rows="$1"
   local i
-  ui_col ""         1 1 body    never
+  ui_col "!"        1 1 body    never
   ui_col lane      10 2 subject right
   ui_col conflicts 12 5 body    right
   for (( i = 0; i < ${#__rows[@]}; i += 3 )); do
@@ -3467,7 +3511,7 @@ cmd_overlap() {
   [ -n "$my_lane" ] || my_lane="${my_branch#worktree-}"
 
   local n_other=0 loud=0 quiet=0
-  local -a body=() verdict=()
+  local -a body=() verdict=() intent=()
   local lane branch path side sdir sref findings level file detail
   while IFS=$'\t' read -r lane branch path; do
     [ -n "$lane" ] || continue
@@ -3532,26 +3576,27 @@ cmd_overlap() {
       # A lane with no commits past the base has no intent to read — its last
       # commit is the ancestor's, and printing that quotes the shared history
       # back at you as if it were the neighbour's plan.
-      # A lane's intent is prose ABOUT the rows above it, not a fourth finding,
-      # so it lands in the note column with the first three cells empty — under
-      # the detail it annotates rather than beside the marks.
+      # A lane's intent is prose ABOUT its rows, not a fourth finding — and
+      # prose does not go in a cell. AGENTS.md says to copy the printed landing
+      # order into a PR body VERBATIM, and a cell truncates: `↳ bench-budgeted-
+      # tables lan…` is what it became. Collected as lines and printed under
+      # the table instead, each naming the lane it belongs to.
       if [ -n "$tip" ] && [ "$tip" != "$base" ]; then
         subject="$(git -C "$main_dir" log -1 --format=%s "$branch" 2>/dev/null)" || subject=""
         # printf, not an interpolation: the curly quotes are literal text, and
         # a bare one inside a double-quoted string reads as a typo to the
         # linter — which is a fair reading, since it usually is one.
         if [ -n "$subject" ]; then
-          local quoted; printf -v quoted '“%s”' "$subject"
-          body+=("" "" "" "$quoted")
+          local quoted; printf -v quoted '%s — “%s”' "$lane" "$subject"
+          intent+=("$quoted")
         fi
       else
-        body+=("" "" "" "(uncommitted work only — no commits yet)")
+        intent+=("$lane — (uncommitted work only — no commits yet)")
       fi
       if [ -n "$base" ]; then
         ms="$(earshot_size "$main_dir" "$base" "$my_head" "$top" "")"
         ts="$(earshot_size "$main_dir" "$base" "$branch" "$sdir" "$sref")"
-        body+=("" "" "" \
-          "↳ $(earshot_order "$main_dir" "$my_branch" "$ms" "$branch" "$ts" "$lane" "$my_lane")")
+        intent+=("   ↳ $(earshot_order "$main_dir" "$my_branch" "$ms" "$branch" "$ts" "$lane" "$my_lane")")
       fi
     fi
 
@@ -3588,6 +3633,7 @@ cmd_overlap() {
   if [ -n "$only" ]; then
     if [ "${#body[@]}" -eq 0 ] && [ "${#verdict[@]}" -eq 0 ]; then return 0; fi
     [ "${#body[@]}" -gt 0 ] && earshot_body_table body
+    earshot_intent_lines intent
     [ "${#verdict[@]}" -gt 0 ] && earshot_verdict_table verdict
     return "$rc"
   fi
@@ -3602,6 +3648,7 @@ cmd_overlap() {
     say "earshot — $n_other other lane(s) on $repo_label; $loud in your way, $quiet nearby"
   fi
   [ "${#body[@]}" -gt 0 ] && earshot_body_table body
+  earshot_intent_lines intent
   if [ "${#verdict[@]}" -gt 0 ]; then
     printf '\n'
     warn "merge-tree already conflicts (committed work only):"
@@ -3660,7 +3707,7 @@ earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> <brief> — lan
   # `↔` is the column head rather than a glyph repeated on every row: the two
   # lane names are two columns, and what sits between them is the same on all
   # of them, which is what a head is for.
-  ui_col ""    1 1 body    never
+  ui_col "!"   1 1 body    never
   ui_col lane 10 2 subject right
   ui_col "↔"  10 2 subject right
   ui_col file  8 3 path    left
