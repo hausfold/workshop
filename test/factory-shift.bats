@@ -291,6 +291,15 @@ stub_usage() { # <5h %> <week %> <seconds of week left>
   [[ "$output" == *"fixer: yes"* ]]
 
   # reserve at a full week = 70, ceiling 95, so headroom = 25 - week%.
+  # That edge is reachable only with left == 604800 exactly: the script
+  # rejects a stamp further out than the window it names, and integer
+  # division drops the reserve to 69 the moment left is 604799 — so a real
+  # clock only hits it if the script's `date +%s` lands on the same second
+  # the stamp was written. CI crossed a second between the two calls and
+  # the gate flipped to `yes`. Freeze the clock so both read the same `now`.
+  fixed_now=$(date +%s)
+  printf '#!/usr/bin/env bash\necho "%s"\n' "$fixed_now" >"$TMP/bin/date"
+  chmod +x "$TMP/bin/date"
   stub_usage 0 20 604800
   run "$SHIFT" --dry-run
   [[ "$output" == *"headroom 5 pts · fixer: yes"* ]]
