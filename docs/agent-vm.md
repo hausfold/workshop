@@ -87,6 +87,24 @@ Three survive, and they are what the build script actually has to handle:
 - **The two Notification Center banners have no clickable close** from System
   Events; they need their own dismissal, or suppression before they are posted.
 
+## The “Nix Store” disk-unlock modal — cosmetic, but not to an agent
+
+Determinate's installer encrypts the "Nix Store" volume (`disk2s7`) and stashes
+the passphrase in the guest's System keychain for a boot-time auto-unlock. On a
+Tahoe guest that consumer never runs: at boot APFSUserAgent pops **"Enter a
+password to unlock the disk 'Nix Store'"** (log: `_DMAPFSHintForCryptoUserForVolume
+IntErr=2` — no crypto-user hint), and the dialog sits on the desktop forever.
+
+**Nothing is actually blocked.** `determinate-nixd`'s `systems.determinate.nix-store`
+daemon mounts `/nix` itself from the keychain ~41s after boot, and passwordless
+SSH is reachable the whole time — a clone that "needs the screen to boot" was a
+misread of the ~40s boot window. But a stale password modal on a lane's first
+screenshot is still a wrong answer, so the golden image **decrypts the volume**
+(`diskutil apfs decryptVolume`, online, ~1 min for a ~12GB store — the step is
+in `build-golden-vm.sh` 2.5). A decrypted volume cannot prompt: measured, zero
+`DiskUnlock` prompts after decryption, `/nix` mounted, SSH up ~10s after reboot.
+A lane VM gains nothing from FileVault.
+
 ## `agent-desktop-guard` and the VM
 
 `modules/ai/desktop-guard.sh` splits a command at unquoted `;`, `&&`, `||`, `|`
