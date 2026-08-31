@@ -59,14 +59,26 @@ container.
 > at whatever graft the clone made. Nothing complains — `docs-since` reads `HEAD`, so the
 > *range* is right and the run looks normal — but `--mark` records `git rev-parse main`,
 > writing stale revs into `.docs-sync.json` so the next sweep re-reads the whole backlog.
-> The tell is `git diff main...HEAD` answering **`fatal: no merge base`**. Fix it in every
-> repo, the workshop included, **after** your PRs are pushed so a reset can't strand a
-> branch:
+> The tell is `git diff main...HEAD` answering **`fatal: no merge base`**.
+>
+> 🚨 **`--unshallow` is not optional, and a plain fetch will not do it.** `git fetch
+> origin main` leaves `.git/shallow` exactly where it was: measured on a `--depth 1`
+> clone, the ref stays at the graft and the history stays one commit long. So the graft
+> is the *second* half of the lie, and the worse one: `origin/main` itself can be behind,
+> which no amount of `checkout -B` recovers.
 >
 > ```bash
+> [ -f "<repo>/.git/shallow" ] && git -C <repo> fetch --unshallow origin
 > git -C <repo> fetch origin main
 > git -C <repo> checkout -B main origin/main
 > ```
+>
+> Run it in every repo, the workshop included, **here in Step 0** — before Step 1, because
+> a watermark older than the graft is not in the object store at all, so `docs-since`
+> walks a range it cannot see and the repo reads as quiet rather than behind. Nothing is
+> at risk this early: the only branch you are standing on is the container's own scratch
+> one, already pushed. Run the same two lines again in Step 7, **after** your PRs are
+> pushed, for the repos whose `main` moved while you worked.
 
 **Push access is per-repo.** `git -C <repo> push --dry-run origin HEAD` before you spend a
 run's budget on docs you can't land. A repo you can read but not push to still gets
@@ -266,6 +278,13 @@ Two hard rules, because this is the one step that edits code files:
 Nothing lands on `main` unattended, and PRs open **ready for review, never as drafts**. The
 first question for each repo is not what to call the branch — it's whether one is already
 open:
+
+> ⚠️ **`gh` is written out below because it is the shortest spelling, not because it is the
+> mechanism.** A container may have no `gh` at all and offer GitHub through the harness's
+> own tooling instead. Everything that actually binds survives the swap: one open PR per
+> repo, ready for review, `git` for the branch and the push, the `Docs-Sync:` trailer on
+> every commit, and the body written out in full rather than filled in. Read each `gh`
+> line for what it asks, then ask it however you can.
 
 ```bash
 gh pr list -R hausfold/<repo> --state open --search 'head:docs-sync-' --json number,headRefName
