@@ -153,7 +153,7 @@ A role belongs to a **column**, said once, and that covers most of a table. The
 exception is the column whose meaning changes row by row — `bench status`'s
 dirty count is amber only when it is not zero, and its `↑` stays quiet while a
 repo is pushed — so a single cell may carry a role of its own
-(`snug.Cell(Warn, …)`, `ui_cell`). It is a role and never an escape: a caller
+(`snug.Cell(snug.Warn, …)`, `ui_cell`). It is a role and never an escape: a caller
 that builds the row with the colour already in it has put something in the cell
 that the padding then counts, which is the shearing a budget exists to stop.
 
@@ -240,7 +240,11 @@ never bytes and never runes.
   hang continuations at the gutter.
 - **Columns are budgeted, not declared.** A table gets the available width and
   each column a *weight* and a *minimum*. Columns take their natural width if
-  the sum fits; otherwise the widest over its minimum gives up cells first.
+  the sum fits; otherwise every column drops to its minimum and what is left is
+  shared out **by weight** — repeatedly, because a column that reaches its
+  natural width releases its share back to the others. Weight is what decides,
+  not width. The outcome usually looks like "the widest gives up first", and
+  reading it that way is how the next painter gets written to do something else.
 - **Truncation is by priority, with `…` inside the field.** Each column says
   what it gives up first — a repo name truncates from the right, a path from the
   left (`…/scruff/internal/ui`), a duration never truncates.
@@ -336,11 +340,17 @@ beside a redirected stderr draws plain, while a piped stdout beside a live
 stderr draws escapes into a pipe. Go callers get one question and one answer
 from `Printer.PrintData`, which measures `Out`; `Print` is the other half, for a
 table that is part of what the tool is *saying*. The bash half is the same two
-verbs — `ui_table_data` and `ui_table` — over a second measurement and a second
-palette (`UI_OUT_TTY`, `UI_OUT_PROFILE`, `UI_OUT_AVAIL`, `UI_OUT_*`). One
-window, measured once; each stream then answered about its own far end, so a
-redirected report is written whole while the prose beside it is still folded to
-the terminal.
+verbs — `ui_table_data`, measured and painted for fd 1, and `ui_table` for fd 2 —
+the first of them made possible by a second measurement and a second palette
+(`UI_OUT_TTY`, `UI_OUT_PROFILE`, `UI_OUT_AVAIL` and the `UI_OUT_<role>`
+palette). One window, measured once; each stream then answered about its own far
+end, so a redirected report is written whole while the prose beside it is still
+folded to the terminal.
+
+⚠️ A caller REACHING those verbs is what makes any of it true of that caller.
+`bench`'s tables have not moved to them, so bench still gates its own `C_*` on
+fd 1 while aliasing fd 2's palette, and still loses the first of the two edges
+above.
 
 ## The runtime
 
@@ -514,17 +524,20 @@ line. A per-verb split cannot be right: half the verbs are called from helpers
 that both kinds of command use, so `settings_diff` inside `haus plan` and inside
 `haus set` want opposite answers — and a split header/body makes `haus doctor |
 pbcopy` an unlabelled list of ticks, which `docs/bug-reports.md` makes the entire
-feedback channel for a product with no telemetry. The cost is that a report gets
-no folding, because it cannot use the coprocess: `snug run` draws on ITS stderr,
-which is the terminal, not the calling command's stdout. `bench`'s status tables
-pay the same price.
+feedback channel for a product with no telemetry. The cost is that a report's
+*prose* gets no folding, because it cannot use the coprocess: `snug run` draws on
+ITS stderr, which is the terminal, not the calling command's stdout. Its
+**tables** need no coprocess — they are budgeted against `UI_OUT_AVAIL` in the
+caller's own shell — so that half of the cost is payable rather than structural.
+`bench`'s status tables go on paying it until they move to `ui_table_data`.
 
-**One colour precedence, asked rather than re-derived.** ui.sh measures fd 2 at
-load. A report draws on fd 1, so ask ui.sh again — `ui__detect_profile` /
-`ui__resolve_palette` with `UI_TTY` set from fd 1 — and read `C_*` off that
-answer. Spelling the rule a second time by hand is how one binary comes to answer
-`NO_COLOR` + `CLICOLOR_FORCE` two ways. Neither answer is wrong in the abstract;
-two answers in one binary is.
+**One colour precedence, asked rather than re-derived.** ui.sh measures BOTH
+streams at load and resolves a palette for each. Narration reads `UI_*`; a report
+reads `UI_OUT_*`. Never swap `UI_TTY` and ask again, and never spell the rule a
+second time by hand — that is how one binary comes to answer `NO_COLOR` +
+`CLICOLOR_FORCE` two ways. Neither answer is wrong in the abstract; two answers
+in one binary is. (`haus.sh` still does the swap, which is the route that existed
+before the second palette did — a conversion, not a defect.)
 
 **Force the gate where colour is correct without a tty.** haus's statusline
 renders with both descriptors captured — Claude Code reads the line and puts it
