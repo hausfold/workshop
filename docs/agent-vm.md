@@ -33,6 +33,18 @@ ssh admin@192.168.64.5 '/usr/bin/osascript \
 
 What holds, measured:
 
+- **A fresh clone stops at a disk-unlock modal before SSH exists.** The base
+  image's `Nix Store` APFS volume is FileVault-encrypted (`disk2s7`), and every
+  clone comes up with `/nix` unmounted and *"Enter a password to unlock the
+  disk 'Nix Store'"* on the guest's console — port 22 gives `No route to host`
+  (not a refusal) until the modal is answered, which reads like a dead network
+  but is a stalled boot. Typing the guest admin password (`admin`) mounts the
+  volume and SSH answers within seconds; the passphrase is already in the
+  guest's System keychain (`security find-generic-password -s "Nix Store"`), so
+  this is a boot-time mount gap, being fixed in the image
+  (`haus`'s `script/build-golden-vm.sh`). Until it lands, a headless lane needs
+  one answer at a console (`tart run` headful) before `scruff runtime enter`
+  will ever connect.
 - **Passwordless SSH works** — the key is in the guest.
 - **`screencapture -x` over SSH returns real pixels**, no GUI session juggling.
   `launchctl asuser 501` is *not* needed and in fact fails (`Could not switch to
