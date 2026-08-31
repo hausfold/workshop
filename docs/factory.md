@@ -82,8 +82,9 @@ the shift changed and did not finish.
 
 The rule is the one the budget line already states about itself: degrade to a
 named unknown, never to an answer that happens to parse.
-`test/factory-shift.bats` stubs `gh`, `trill`, `bench` and `factory-tier` and
-pins all of it, including four controls that must not move — a green main says
+`test/factory-shift.bats` stubs `gh`, `trill`, `bench`, `factory-tier` and
+`date` (frozen, so a budget edge reachable only on one exact second is
+reachable on every run) and pins all of it, including four controls that must not move — a green main says
 nothing, a red one says `CI-RED`, a judged refusal is still `queued` with its
 reason, and a tier-1 PR under a live lease merges at the SHA the verdict named.
 

@@ -8,7 +8,8 @@
 # crash. `factory-shift` runs unattended and its product is a log read hours
 # later, so its worst output is a pass that could not see and said nothing,
 # which reads exactly like a quiet night. `test/factory-shift.bats` stubs
-# `gh`, `trill`, `bench` and `factory-tier` so those passes are observable.
+# `gh`, `trill`, `bench`, `factory-tier` and `date` so those passes are
+# observable.
 #
 # `factory-tier` is the one whose output causes something with no
 # undo-by-default, and its bad day is quieter still: a deny clause that stops
