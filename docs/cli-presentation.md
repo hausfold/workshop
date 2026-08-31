@@ -149,6 +149,14 @@ answer for free.
 `body` is deliberately unset rather than `text`: painting ordinary prose fights
 the user's own background and is the single fastest way to look cheap.
 
+A role belongs to a **column**, said once, and that covers most of a table. The
+exception is the column whose meaning changes row by row — `bench status`'s
+dirty count is amber only when it is not zero, and its `↑` stays quiet while a
+repo is pushed — so a single cell may carry a role of its own
+(`snug.Cell(Warn, …)`, `ui_cell`). It is a role and never an escape: a caller
+that builds the row with the colour already in it has put something in the cell
+that the padding then counts, which is the shearing a budget exists to stop.
+
 `accent` moves off blue to `mauve` — the nearest nebelung hue to the `#8787af`
 everything already uses, and the one that honours the flavour's premise.
 
@@ -327,10 +335,12 @@ come apart in both directions: budget a report from stderr and a TTY stdout
 beside a redirected stderr draws plain, while a piped stdout beside a live
 stderr draws escapes into a pipe. Go callers get one question and one answer
 from `Printer.PrintData`, which measures `Out`; `Print` is the other half, for a
-table that is part of what the tool is *saying*. There is no bash equivalent, so
-`bench` carries two gates asking about two streams and loses the first of those
-two edges — written down in the code beside them rather than left to be
-rediscovered from the screen.
+table that is part of what the tool is *saying*. The bash half is the same two
+verbs — `ui_table_data` and `ui_table` — over a second measurement and a second
+palette (`UI_OUT_TTY`, `UI_OUT_PROFILE`, `UI_OUT_AVAIL`, `UI_OUT_*`). One
+window, measured once; each stream then answered about its own far end, so a
+redirected report is written whole while the prose beside it is still folded to
+the terminal.
 
 ## The runtime
 
@@ -373,8 +383,24 @@ live region that is still spinning.
 
 **A bash fallback ships beside it** and implements the same spec at lower
 fidelity — role names, the 3-cell gutter, folding, the colour gate, a correct
-live region — for machines without the binary on `PATH`. It is the reason the
-standard is written here in prose rather than only as Go.
+live region, and budgeted tables with their tiers and their stacked floor — for
+machines without the binary on `PATH`. It is the reason the standard is written
+here in prose rather than only as Go.
+
+Which of the two a bash caller reaches is **not one question**, and the answer
+differs per caller. haus takes both off one store path, so its binary and its
+fallback arrive together or not at all; `bench` finds the fallback in the snug
+**checkout** and the binary on **PATH**, which the layer populates — so a
+workshop clone whose layer was never activated has the fallback and no binary,
+and that is the ordinary case rather than an edge. The fallback is therefore
+held to the whole spec, not to a subset.
+
+A palette can be generated from one list for both halves, and is. **A layout
+cannot, so it is diffed**: snug's `TestBashTableMatchesGo` renders the same
+columns and rows through both painters at every width from too narrow to draw at
+all up to wider than any content, and reds on the first line they disagree
+about. It runs with colour ON as well as off — a role with the colour off leaves
+no trace in the output, so layout is all a plain diff can compare.
 
 ## Who draws through it
 
