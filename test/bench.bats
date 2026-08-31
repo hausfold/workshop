@@ -686,12 +686,43 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
   [ -z "$output" ]
 }
 
-@test "lane_table clamps a long branch on a parked row too" {
+@test "lane_table gives up a long branch's tail when the window is narrow" {
+  # The clamp is no longer a number in a format string. `ui_col branch … right`
+  # says which END that column gives up, and the WINDOW decides when — so the
+  # test states a width instead of asserting one bench declared.
+  #
+  # Skipped where there is no snug: this repo's CI checks out the workshop
+  # alone, and bench's own fallback lays every column out at its natural width,
+  # which is what snug's budget hands back for a stream with no window anyway.
+  [ -n "$UI_READY" ] || skip "no snug checkout — nothing to budget against"
+  UI_OUT_AVAIL=56
   WT_REGISTRY="$TMP/registry.tsv"
   mkregistry "$WT_REGISTRY" \
     "gone $ROOT/haus worktree-gone-with-a-very-long-lane-name-indeed $TMP/nope $ROOT/haus claude"
   run lane_table
-  [[ "$output" == *"worktree-gone-with-a-very-long-…"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-gone"* ]]
+  [[ "$output" == *"…"* ]] || fail_rows "nothing was cut in a 56-column window" "$output"
+  [[ "$output" != *"long-lane-name-indeed"* ]] \
+    || fail_rows "the branch column kept a tail the window has no room for" "$output"
+}
+
+@test "lane_table draws the same width in a window it cannot fit at all" {
+  # Below the sum of the minimums snug stops drawing a table and stacks one
+  # label/value pair per line, which is why every column here has a head even
+  # though bench asks for a header row: the head IS the stacked label.
+  [ -n "$UI_READY" ] || skip "no snug checkout — nothing to budget against"
+  UI_OUT_AVAIL=20
+  WT_REGISTRY="$TMP/registry.tsv"
+  mkregistry "$WT_REGISTRY" \
+    "gone $ROOT/haus worktree-gone $TMP/nope $ROOT/haus claude"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"branch"* ]] || fail_rows "the stacked fallback lost its labels" "$output"
+  local line
+  while IFS= read -r line; do
+    [ "${#line}" -le 20 ] || fail_rows "a line overflowed a 20-column window" "$output"
+  done < <(printf '%s\n' "$output" | grep -v 'agent lanes\|↳')
 }
 
 @test "lane_rows keeps hausfold + host-config lanes and drops everyone else's" {
@@ -813,6 +844,9 @@ mkregistry() { # mkregistry <file> <row>... — one "name main branch path paren
 # is bytes-or-characters agnostic.
 lane_cell_width() {
   local line; line="$(printf '%s\n' "$1" | grep -F "$2" | head -1)"
+  # Escapes first: a role paints AROUND a padded field, so they are in the row
+  # and are not width. Counting them is the very shear these tests are for.
+  line="$(printf '%s' "$line" | sed $'"'"'s/\033\\[[0-9;]*m//g'"'"')"
   line="${line//└/L}"; line="${line%%·*}"; line="${line%%dirty*}"
   printf '%s' "${#line}"
 }
@@ -836,13 +870,29 @@ fail_rows() { # fail_rows <why> <output>
   run lane_label "$ROOT/hausfold.co"; [ "$output" = hausfold.co ]
 }
 
-@test "dirty_cell is six COLUMNS wide either way" {
-  # `·` is two BYTES and one column, so printf '%-6s' pads it to six bytes —
-  # five columns — and shears every column to its right.
-  run dirty_cell dirty
-  [ "$output" = "dirty " ]
-  run dirty_cell '·'
-  [ "$output" = "·     " ]
+@test "lane_table's dirty column is painted OUTSIDE its width, so colour can't shear it" {
+  # `dirty` is amber and `·` is muted — a role that changes per ROW, which is
+  # what `ui_cell` is for. The defect it replaces is the one bench shipped:
+  # build the cell with the escapes already in it and the padding counts them,
+  # so every column to the right lands somewhere different depending on which
+  # colour that row happened to take. Forced on here because bats is not a
+  # terminal and the palette resolves to nothing.
+  [ -n "$UI_READY" ] || skip "no snug checkout — the painter is snug's"
+  UI_OUT_WARN=$'"'"'\033[33m'"'"'; UI_OUT_MUTED=$'"'"'\033[90m'"'"'; UI_OUT_OFF=$'"'"'\033[0m'"'"'
+  mkmain haus
+  WT_REGISTRY="$TMP/registry.tsv"
+  git -C "$ROOT/haus" worktree add -q -b worktree-mucky "$TMP/mucky"
+  echo scratch >"$TMP/mucky/uncommitted"
+  git -C "$ROOT/haus" worktree add -q -b worktree-clean "$TMP/clean"
+  mkregistry "$WT_REGISTRY" \
+    "mucky $ROOT/haus worktree-mucky $TMP/mucky $ROOT/haus claude" \
+    "clean $ROOT/haus worktree-clean $TMP/clean $ROOT/haus claude"
+  run lane_table
+  [ "$status" -eq 0 ]
+  [[ "$output" == *$'"'"'\033[33m'"'"'* ]] || fail_rows "the dirty cell was never painted" "$output"
+  [ "$(lane_cell_width "$output" worktree-mucky)" \
+    -eq "$(lane_cell_width "$output" worktree-clean)" ] \
+    || fail_rows "the amber row and the muted one land in different columns" "$output"
 }
 
 @test "detect_lane populates LANE_SRC for every scruff child, mapped to its family repo" {
@@ -1812,7 +1862,13 @@ setup_receipt() { # a state file under the test tmpdir, plus fixture checkouts
   [[ "$output" != *"unknown time"* ]]
 }
 
-@test "status_running clamps a long branch name so the columns can't shear" {
+@test "status_running gives up a long branch's tail rather than shear the columns" {
+  # The clamp is the column's now, not a `${branch:0:31}` here: `ui_col branch
+  # … right` names the end that goes, and the WINDOW decides when. Skipped
+  # where there is no snug to budget against — CI checks out the workshop
+  # alone, and the fallback there draws every column at its natural width.
+  [ -n "$UI_READY" ] || skip "no snug checkout — nothing to budget against"
+  UI_OUT_AVAIL=52
   setup_receipt
   mkdir -p "$STATE_DIR"
   current_system() { echo /nix/store/aaa-system; }
@@ -2140,8 +2196,10 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
   # The FINDING row, not a bare filename: the intent line quotes the lane's
   # commit subject, so `*"new.md"*` alone is satisfied by the subject even when
   # the row it is supposed to assert has been subtracted away. (Which is why
-  # the subject above no longer names the file either.)
-  [[ "$output" == *"new.md  the whole file"* ]]
+  # the subject above no longer names the file either.) One space between the
+  # two, not two — the gap is the table's column gutter now, and a gutter of
+  # two reads as a column rather than a gap.
+  [[ "$output" == *"new.md the whole file"* ]]
 }
 
 @test "cmd_overlap reaches the merge-tree verdict even when the index is quiet" {
@@ -2398,6 +2456,97 @@ UI
     "set -euo pipefail; source '$HAUS'; snug_open && echo OPENED || echo NO-TERMINAL"
   [ "$status" -eq 0 ] || { echo "bench died on the gate: $output"; false; }
   [[ "$output" == *NO-TERMINAL* ]] || { echo "got: $output"; false; }
+}
+
+# ── the table on a checkout with no snug ─────────────────────────────────────
+# Every table bench draws is `ui_col` + `ui_trow` + `ui_table_data`, which are
+# snug's — so on a checkout without one they are `command not found` and bench
+# dies drawing its own report. bench carries a fallback for exactly that, and
+# this repo's CI *is* that machine: it checks out the workshop alone, so up
+# there the fallback is what every table test above actually exercised. Down
+# here it is dead code, which is the only reason these two tests exist — a
+# fallback nobody on a dev Mac ever runs is a fallback that rots.
+#
+# The fixture is bench copied somewhere with no snug/ beside it, because ROOT
+# is resolved at load and `repo_dir snug` is the whole lookup.
+
+lone_bench() { # lone_bench <script> — run <script> against a bench with no snug
+  local lone="$TMP/lone"
+  mkdir -p "$lone"
+  cp "$HAUS" "$lone/bench"
+  env HAUS_LIB=1 "$BASH" -c "set -euo pipefail
+source '$lone/bench'
+[ -z \"\$UI_READY\" ] || { echo 'the fixture found a snug after all' >&2; exit 1; }
+$1"
+}
+
+@test "a checkout with no snug still draws a table, at its natural widths" {
+  # Natural widths and nothing painted — which is not a second layout to keep
+  # in step with snug's, but the one answer snug's budget gives a stream with
+  # no window, and a pipe is where this overwhelmingly runs.
+  #
+  # `·` is the load-bearing cell: two BYTES and one column, so a `%-5s` pads it
+  # to four columns and `where` lands one short on that row alone. That is the
+  # exact shear the hand-padded `dirty_cell` used to exist for.
+  run lone_bench "ui_col repo   6 1 subject right
+ui_col branch 8 3 body    right
+ui_col dirty  5 1 muted   never
+ui_col where  6 2 path    left
+ui_trow nebelung main '·' '~/x'
+ui_cell d warn dirty
+ui_trow a-longer-repo worktree-x \"\$d\" '~/y'
+ui_table_data 2 1"
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+  [ "$output" = "  repo          branch     dirty where
+  nebelung      main       ·     ~/x
+  a-longer-repo worktree-x dirty ~/y" ] || { printf 'got:\n%s\n' "$output"; false; }
+}
+
+@test "the no-snug fallback lays a table out exactly as snug's does" {
+  # The claim the fallback rests on, and the only thing that keeps it from
+  # becoming a second layout: snug diffs its bash painter against the binary
+  # (`TestBashTableMatchesGo`), and this diffs bench's fallback against that
+  # bash painter, over the same columns and rows. Both sides here are writing
+  # to a pipe, which is the whole point — a stream with no window is the one
+  # case the fallback claims to answer identically.
+  [ -n "$UI_READY" ] || skip "no snug checkout — nothing to diff against"
+  cat >"$TMP/table.sh" <<'T'
+ui_col repo   6 1 subject right
+ui_col branch 8 3 body    right
+ui_col dirty  5 1 muted   never
+ui_col where  6 2 path    left
+ui_trow nebelung main '·' '~/x'
+ui_cell d warn dirty
+ui_trow a-longer-repo-name worktree-x-with-a-long-name "$d" '~/.cache/scruff/haus/x'
+ui_trow lone '' '' '(parked — nothing else to say)'
+ui_table_data 2 1
+T
+  run lone_bench "source '$TMP/table.sh'"
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+  local plain="$output"
+  run env HAUS_LIB=1 "$BASH" -c "set -euo pipefail; source '$HAUS'; source '$TMP/table.sh'"
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+  [ "$output" = "$plain" ] \
+    || { printf 'snug drew:\n%s\nthe fallback drew:\n%s\n' "$output" "$plain"; false; }
+}
+
+@test "a checkout with no snug puts ui_table on fd 2, where the narration is" {
+  # The two verbs differ only in the stream, and `active_banner` is the caller
+  # that wants fd 2: its rows sit between a warn and a hint and belong with
+  # them. A fallback that put them on stdout would put a banner into
+  # `bench try switch > log`.
+  run lone_bench "ui_col repo 4 1 subject right
+ui_col tree 4 1 muted never
+ui_trow haus '(clean)'
+ui_table 6 0 2>/dev/null"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ] || { printf 'it drew on stdout:\n%s\n' "$output"; false; }
+  run lone_bench "ui_col repo 4 1 subject right
+ui_col tree 4 1 muted never
+ui_trow haus '(clean)'
+ui_table 6 0 2>&1 1>/dev/null"
+  [ "$status" -eq 0 ]
+  [ "$output" = "      haus (clean)" ] || { printf 'got: [%s]\n' "$output"; false; }
 }
 
 # ── the lane base moved at scruff 1.1.0 ──────────────────────────────────────

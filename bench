@@ -353,24 +353,94 @@ type ui_say >/dev/null 2>&1 && UI_READY=1
 : "${UI_TTY:=}"
 
 # ── palette ──────────────────────────────────────────────────────────────────
-# Role names, not colours. C_* alias snug's nine roles so the status tables
-# keep their printf shape; alignment survives because colour only ever wraps
-# AROUND a pre-padded field, never inside a %-Ns width.
+# Two aliases, for the handful of fd-1 lines that are NOT a table: the release
+# watch's header, the docs-since log, the ↳ legends under a table and the
+# "merge-tree: clean" verdict. Everything with columns in it draws through
+# `ui_table_data`, which paints its own cells from the same palette — so a role
+# is named in `ui_col`/`ui_cell` and never spelled as an escape here.
 #
-# The tables still live on fd 1 — they are the report, and `bench status | less`
-# carries them whole — while the message verbs below live on fd 2. Two gates,
-# one palette: the alias gate keys on fd 1, ui.sh's own gate keys on fd 2. (They
-# unify when the tables move to ui.sh; until then a TTY stdout with a redirected
-# stderr draws plain — the one edge this split costs, and it degrades the safe
-# way.)
-C_OFF=; C_OK=; C_WARN=; C_ERR=; C_MUT=; C_REPO=
-if [ -n "$UI_READY" ] && { [ -t 1 ] || [ -n "${CLICOLOR_FORCE:-}" ]; } && [ -z "${NO_COLOR:-}" ]; then
-  C_OFF="${UI_OFF:-}"
-  C_OK="${UI_OK:-}"        # ok — current / healthy
-  C_WARN="${UI_WARN:-}"    # warn — stale / wants attention
-  C_ERR="${UI_ERR:-}"      # err — failure
-  C_MUT="${UI_MUTED:-}"    # muted — secondary detail
-  C_REPO="${UI_SUBJECT:-}" # subject — repo names
+# They alias `UI_OUT_*`, ui.sh's palette for fd 1, because fd 1 is the stream
+# those lines land on. One gate, and it is ui.sh's: this used to key on a
+# hand-rolled `[ -t 1 ]` + NO_COLOR + CLICOLOR_FORCE while aliasing fd 2's
+# COLOURS, which is the pair of answers that lost the edge the split names — a
+# TTY stdout beside a redirected stderr drew plain. `UI_OUT_*` is the same
+# precedence asked once, about fd 1, with TERM=dumb and the colour depth in it.
+# (docs/cli-presentation.md, **One colour precedence, asked rather than
+# re-derived**.) Empty on a machine with no snug, which is plain text and right.
+C_OFF="${UI_OUT_OFF:-}"
+C_MUT="${UI_OUT_MUTED:-}"    # muted — secondary detail
+
+# ── the table, on a machine with no snug ─────────────────────────────────────
+# Every table below is `ui_col` + `ui_trow` + `ui_table_data`, which are snug's.
+# A pre-2026-08 clone has no snug/ to source them from, and so does this repo's
+# own CI, which checks out the workshop alone — so without these bench would die
+# drawing its own report, `command not found` on the first column it declared.
+#
+# The same degradation `ui_draw` makes for a message line, one shape up: the
+# columns are laid out at their NATURAL widths, nothing cut and nothing painted.
+# That is not a second layout to keep in step with snug's — it is the ONE answer
+# snug's budget gives when the stream has no window to fit, which is a pipe, a
+# file, or a CI runner, and is where this fallback overwhelmingly runs. On a
+# real terminal with no snug the columns simply aren't budgeted, exactly as the
+# lines aren't coloured: the fallback loses the window, not the table.
+if [ -z "$UI_READY" ]; then
+  declare -ga UI__TC_HEAD=() UI__TROWS=()
+  ui_col()  { UI__TC_HEAD+=("${1-}"); }
+  # No palette to name, so a per-row role is the text alone.
+  ui_cell() { printf -v "$1" '%s' "$3"; }
+  ui_trow() { local IFS=$'\t'; UI__TROWS+=("$*"); }
+  ui_table_clear() { UI__TC_HEAD=(); UI__TROWS=(); }
+  ui_table_data() { ui__plain_table "" "${1:-2}" "${2:-0}"; }
+  ui_table()      { ui__plain_table 1 "${1:-2}" "${2:-0}"; }
+  # Split on TAB keeping EMPTY fields — not `IFS=$'\t' read -ra`, which collapses
+  # a run of tabs and shifts every cell after an empty one a column left. A
+  # `dirty` column is empty on a clean repo, so that is the common row here.
+  ui__plain_split() {
+    local -n __sp="$1"
+    local s="$2"$'\t'
+    __sp=()
+    while [ -n "$s" ]; do __sp+=("${s%%$'\t'*}"); s="${s#*$'\t'}"; done
+  }
+  # `local IFS` and never a save/restore pair: a caller that has `unset IFS`
+  # makes the restore either abort under `set -u` or put back an EMPTY one,
+  # which turns word splitting off for the rest of that caller's run.
+  ui__plain_heads() { local IFS=$'\t'; printf -v "$1" '%s' "${UI__TC_HEAD[*]}"; }
+  ui__plain_table() { # ui__plain_table <to-fd-2> <indent> <header>
+    local err="$1" indent="$2" header="$3"
+    local -a all=() cells=() cw=()
+    local i n line pad head_row
+    if [ "${#UI__TC_HEAD[@]}" -eq 0 ] || [ "${#UI__TROWS[@]}" -eq 0 ]; then
+      ui_table_clear; return 0
+    fi
+    for i in "${!UI__TC_HEAD[@]}"; do cw+=("${#UI__TC_HEAD[$i]}"); done
+    if [ "$header" = 1 ]; then ui__plain_heads head_row; all+=("$head_row"); fi
+    all+=("${UI__TROWS[@]}")
+    for n in "${!all[@]}"; do
+      ui__plain_split cells "${all[$n]}"
+      for i in "${!UI__TC_HEAD[@]}"; do
+        [ "$i" -lt "${#cells[@]}" ] || continue
+        [ "${#cells[$i]}" -gt "${cw[$i]}" ] && cw[i]="${#cells[$i]}"
+      done
+    done
+    printf -v pad '%*s' "$indent" ''
+    for n in "${!all[@]}"; do
+      ui__plain_split cells "${all[$n]}"
+      line="$pad"
+      for i in "${!UI__TC_HEAD[@]}"; do
+        local v=""; [ "$i" -lt "${#cells[@]}" ] && v="${cells[$i]}"
+        # Never pad the last column: trailing spaces wrap a row that just fit.
+        # Padded by CHARACTERS, not printf's bytes — `·` and `└` are one column
+        # and two-or-three bytes, and %-*s on either is what sheared every
+        # column to its right before this table existed.
+        [ "$i" -lt $(( ${#UI__TC_HEAD[@]} - 1 )) ] \
+          && printf -v v '%s%*s' "$v" $(( cw[i] - ${#v} > 0 ? cw[i] - ${#v} : 0 )) ''
+        if [ "$i" -eq 0 ]; then line+="$v"; else line+=" $v"; fi
+      done
+      line="${line%"${line##*[! ]}"}"
+      if [ -n "$err" ]; then printf '%s\n' "$line" >&2; else printf '%s\n' "$line"; fi
+    done
+    ui_table_clear
+  }
 fi
 
 # ── the snug coprocess ───────────────────────────────────────────────────────
@@ -1204,35 +1274,6 @@ lane_rows() { # lane_rows — repo \t branch \t checkout \t lane-name \t parent,
       for (i = 1; i <= n; i++) walk(i)      # a cycle tail: listed, never lost
     }' "$WT_REGISTRY"
 }
-branch_cell() { # branch_cell <depth> <branch> — a 32-COLUMN cell, a spawned
-                # lane indented under its parent. Hand-padded for the same
-                # reason dirty_cell is: `└` is three bytes and one column, so
-                # %-32s would come up two short on every indented row.
-  local d="$1" b="$2" pfx="" cols=32
-  if [ "$d" -ge 1 ]; then
-    printf -v pfx '%*s└ ' "$(( (d - 1) * 2 ))" ''
-    cols=$(( 32 - d * 2 ))
-    [ "$cols" -lt 8 ] && cols=8
-  fi
-  local pad
-  if [ "${#b}" -gt "$cols" ]; then
-    # The cell is full: cols-1 characters plus the ellipsis, and no padding.
-    # Computed rather than measured, because `${#b}` counts BYTES under LC_ALL=C
-    # and `…` is three of them — measuring gave a NEGATIVE width, which printf
-    # honours by padding the other way.
-    b="${b:0:cols-1}…"; pad=0
-  else
-    pad=$(( cols - ${#b} ))
-  fi
-  printf '%s%s%*s' "$pfx" "$b" "$pad" ''
-}
-dirty_cell() { # dirty_cell <dirty|·> — a six-COLUMN cell; printf pads by bytes,
-               # and `·` is two bytes wide but one column, so %-6s comes up short.
-  case "$1" in
-    dirty) printf 'dirty ' ;;
-    *)     printf '·     ' ;;
-  esac
-}
 lane_label() { # lane_label <repo-dir> — the name this table calls that repo
   case "$1" in
     "$CONSUMER") echo consumer ;;   # ~/.config/nix, outside the workshop dir
@@ -1245,7 +1286,13 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
   # The rows are scruff's registry (lane_rows), never `git worktree list`. Live
   # lanes print first, then stale branches, then parked lanes — a registry row
   # whose checkout scruff removed, which is a resumable session, not a leak.
-  local wt_lines="" parked_lines="" any_stale=0 any_lane=0 any_spawned=0
+  #
+  # Both blocks are collected as FOUR CELLS PER ROW in these two arrays and
+  # replayed into `ui_trow` at the end, because the table buffers one row list
+  # and this loop is filling two. (Four is the column count; the replay strides
+  # by it. An array of arrays is the shape bash does not have.)
+  local -a live_rows=() parked_rows=()
+  local any_stale=0 any_lane=0 any_spawned=0
   # lane_rows hands the tree over already ordered, parent then children — but
   # this loop then SPLITS its rows into two blocks, so a live child of a parked
   # parent would draw a `└` as the first line of the table with nothing above
@@ -1263,28 +1310,35 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
     [ -n "$up" ] && ed=$(( up + 1 ))
     shown["$blk$wt"]=$ed
     [ "$ed" -gt 0 ] && any_spawned=1
-    local label repo_c; label="$(lane_label "$repo")"; printf -v repo_c '%-12s' "$label"
-    # Lane names are long by design (they carry a uniquifying suffix), so clamp
-    # like status_running does — one name must not shear the whole table.
-    # branch_cell owns the clamp now, because the width an indented row has
-    # left is smaller than 32.
+    local label; label="$(lane_label "$repo")"
+    # The registry's branch is the fallback; a live checkout is asked directly.
+    [ -d "$wt" ] && branch="$(wt_branch "$wt")"
+    # The indent is CONTENT, not padding: `└ ` says this lane was spawned from
+    # the one above it, and the column's own budget then measures and pads the
+    # whole cell. Nothing here clamps the name — `ui_col branch … right` is
+    # what gives up the tail when the window is short, and it is the window
+    # that decides, not a number typed here.
+    local bcell="$branch"
+    [ "$ed" -ge 1 ] && printf -v bcell '%*s└ %s' "$(( (ed - 1) * 2 ))" '' "$branch"
+    local dcell
     if [ -d "$wt" ]; then
       any_lane=1
-      branch="$(wt_branch "$wt")"
-      local dirty dcol dirty_c where
+      local dirty where
       dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
-      dcol="$C_MUT"; [ "$dirty" = dirty ] && dcol="$C_WARN"
-      dirty_c="$(dirty_cell "$dirty")"
+      # The one column whose meaning changes per ROW: amber while a lane has
+      # uncommitted work, muted when it doesn't. A role per row is `ui_cell`,
+      # never an escape written into the cell — an escape is counted as width
+      # and shears every column after it.
+      if [ "$dirty" = dirty ]; then ui_cell dcell warn dirty
+      else ui_cell dcell muted '·'; fi
       # Abbreviate for the COLUMN only — every git call above wants the real
       # path, and bash doesn't expand a tilde living inside a variable.
       where="$wt"; case "$wt" in "$HOME"/*) where="~${wt#"$HOME"}" ;; esac
-      wt_lines+="$(printf '  %s%s%s %s %s%s%s %s%s%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$(branch_cell "$ed" "$branch")" \
-        "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$where" "$C_OFF")"$'\n'
+      live_rows+=("$label" "$bcell" "$dcell" "$where")
     else
-      parked_lines+="$(printf '  %s%s%s %s %s%s%s %s(parked — '"'"'scruff %s'"'"' to resume, or open a PR / delete)%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$(branch_cell "$ed" "$branch")" \
-        "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$lane_name" "$C_OFF")"$'\n'
+      ui_cell dcell muted '·'
+      parked_rows+=("$label" "$bcell" "$dcell" \
+        "(parked — 'scruff $lane_name' to resume, or open a PR / delete)")
     fi
   done <<<"$(lane_rows)"
   local name b
@@ -1295,17 +1349,29 @@ lane_table() { # lane_table — the agent-lanes section of `bench status`, or
       git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b" && continue
       branch_is_parked "$name" "$b" && continue
       any_stale=1
-      local repo_c; printf -v repo_c '%-12s' "$name"
-      wt_lines+="$(printf '  %s%s%s %s %s%s%s %s(stale branch — no checkout, no registry row; open a PR or delete)%s' \
-        "$C_REPO" "$repo_c" "$C_OFF" "$(branch_cell 0 "$b")" \
-        "$C_MUT" "$(dirty_cell '·')" "$C_OFF" "$C_MUT" "$C_OFF")"$'\n'
+      local dcell; ui_cell dcell muted '·'
+      live_rows+=("$name" "$b" "$dcell" \
+        "(stale branch — no checkout, no registry row; open a PR or delete)")
     done
   done
-  [ -n "$wt_lines$parked_lines" ] || return 0
+  [ "${#live_rows[@]}" -gt 0 ] || [ "${#parked_rows[@]}" -gt 0 ] || return 0
   echo
   say "agent lanes (scruff's registry — isolated checkouts; open a PR to land, never push to main)"
-  printf '  %s%-12s %-32s %-6s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "where" "$C_OFF"
-  printf '%s%s' "$wt_lines" "$parked_lines"
+  # `where` is the one column that gives up its FRONT: every lane checkout
+  # shares the same `~/.cache/scruff/<repo>/` prefix, so cutting the other end
+  # leaves every row looking identical.
+  ui_col repo    8 1 subject right
+  ui_col branch  8 3 body    right
+  ui_col dirty   5 1 muted   never
+  ui_col where  12 3 path    left
+  local i
+  for (( i = 0; i < ${#live_rows[@]}; i += 4 )); do
+    ui_trow "${live_rows[$i]}" "${live_rows[$((i+1))]}" "${live_rows[$((i+2))]}" "${live_rows[$((i+3))]}"
+  done
+  for (( i = 0; i < ${#parked_rows[@]}; i += 4 )); do
+    ui_trow "${parked_rows[$i]}" "${parked_rows[$((i+1))]}" "${parked_rows[$((i+2))]}" "${parked_rows[$((i+3))]}"
+  done
+  ui_table_data 2 1
   # shellcheck disable=SC2016  # backticks are literal markdown, not command substitution
   [ "$any_spawned" = 1 ] && printf '  %s↳ └ = spawned from the lane above it — own branch and PR, and that pane closing never reaps it%s\n' "$C_MUT" "$C_OFF"
   # shellcheck disable=SC2016
@@ -1337,22 +1403,23 @@ status_running() { # the receipt a `try switch` left — FIRST section, because 
   local repo src branch dirty when="" gone=0
   when="$(printf '%s\n' "$body" | sed -n 's/^when\t//p')"
   warn "running LOCAL code — activated ${when:-at an unknown time}. The lock edges below do NOT describe this machine."
-  printf '  %s%-12s %-32s %-6s %s%s\n' "$C_MUT" "repo" "branch" "tree" "built from" "$C_OFF"
+  # `built from` gives up its FRONT: these are all agent checkouts under one
+  # `~/.cache/scruff/` prefix, and cutting the other end makes every row look
+  # the same. Nothing clamps the branch here any more — the column's `right`
+  # says which end it gives up and the window says when.
+  ui_col repo    6 1 subject right
+  ui_col branch  8 3 body    right
+  ui_col tree    4 1 muted   never
+  ui_col "built from" 12 3 path left
   while IFS=$'\t' read -r repo src branch dirty; do
     case "$repo" in when|host|system|'') continue ;; esac
-    local where="$src" dcol="$C_MUT"
-    [ "$dirty" = dirty ] && dcol="$C_WARN"
+    local where="$src" dcell
     if [ ! -d "$src" ]; then where="$src  (gone)"; gone=1; fi
-    # Clamp the branch so one long agent name can't shear the columns — the
-    # same rule the release watch's job names follow.
-    [ "${#branch}" -gt 32 ] && branch="${branch:0:31}…"
-    local repo_c branch_c dirty_c
-    printf -v repo_c '%-12s' "$repo"; printf -v branch_c '%-32s' "$branch"
-    printf -v dirty_c '%-6s' "$([ "$dirty" = dirty ] && echo dirty || echo '·')"
-    printf '  %s%s%s %s %s%s%s %s%s%s\n' \
-      "$C_REPO" "$repo_c" "$C_OFF" "$branch_c" \
-      "$dcol" "$dirty_c" "$C_OFF" "$C_MUT" "$where" "$C_OFF"
+    if [ "$dirty" = dirty ]; then ui_cell dcell warn dirty
+    else ui_cell dcell muted '·'; fi
+    ui_trow "$repo" "$branch" "$dcell" "$where"
   done <<<"$body"
+  ui_table_data 2 1
   [ "$gone" = 1 ] && hint "a source checkout is gone (worktree reaped) — the running system itself is safe (the system profile GC-roots it), but nothing can rebuild it from source any more"
   hint "bench rebuild returns to the pinned build · land the branch via its PR, then bench ship, to make this reproducible"
   echo
@@ -1361,15 +1428,26 @@ status_running() { # the receipt a `try switch` left — FIRST section, because 
 cmd_status() {
   status_running
   say "repos"
-  printf '  %s%-12s %-8s %-7s %s%s\n' "$C_MUT" "repo" "branch" "dirty" "vs origin" "$C_OFF"
+  # `↑` and `↓` are the column HEADS rather than a prefix on every number: the
+  # glyph is the label, so the cell is the count and the count alone, which is
+  # what lets the two columns budget down to their real width. The hints under
+  # the table say what each one means.
+  ui_col repo   6 1 subject right
+  ui_col branch 6 2 body    right
+  ui_col dirty  5 1 muted   never
+  ui_col "↑"    1 1 muted   never
+  ui_col "↓"    1 1 muted   never
   local any_dirty=0 any_ahead=0 any_behind=0
   # LOCK_ONLY rides along: the edge report below can say `haus → trill` is
   # STALE, and a reader whose next question is "what IS trill's checkout doing"
   # should not have to leave this screen to find out.
   for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
-    [ -d "$dir/.git" ] || { printf '  %s%-12s%s %s(missing — bench clone)%s\n' \
-      "$C_REPO" "$name" "$C_OFF" "$C_MUT" "$C_OFF"; continue; }
+    if [ ! -d "$dir/.git" ]; then
+      local miss; ui_cell miss muted "(missing — bench clone)"
+      ui_trow "$name" "$miss"
+      continue
+    fi
     local branch dirty ahead behind
     branch="$(git -C "$dir" branch --show-current)"
     dirty="$(git -C "$dir" status --porcelain | wc -l | tr -d ' ')"
@@ -1377,18 +1455,20 @@ cmd_status() {
     git -C "$dir" fetch -q --tags 2>/dev/null || true
     ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
     behind="$(git -C "$dir" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
-    # Pre-pad each cell, THEN wrap in colour, so widths hold with or without ANSI.
-    # Clean tree → sage dot; dirty → amber count. Unpushed (↑) / behind (↓) glow
-    # amber only when non-zero, so a synced repo reads as a quiet row of zeros.
-    local repo_c dirty_c; printf -v repo_c '%-12s' "$name"; printf -v dirty_c '%-7s' "$dirty"
-    local dcol="$C_OK"; [ "$dirty" = "·" ] || { dcol="$C_WARN"; any_dirty=1; }
-    local acol="$C_MUT"; [ "$ahead"  = "0" ] || { acol="$C_WARN"; any_ahead=1; }
-    local bcol="$C_MUT"; [ "$behind" = "0" ] || { bcol="$C_WARN"; any_behind=1; }
-    printf '  %s%s%s %-8s %s%s%s %s↑%s%s %s↓%s%s\n' \
-      "$C_REPO" "$repo_c" "$C_OFF" "$branch" \
-      "$dcol" "$dirty_c" "$C_OFF" \
-      "$acol" "$ahead" "$C_OFF" "$bcol" "$behind" "$C_OFF"
+    # The three cells whose colour changes per ROW, and so the three that carry
+    # their own role rather than their column's. Clean tree → sage dot; dirty →
+    # amber count. Unpushed (↑) / behind (↓) glow amber only when non-zero, so
+    # a synced repo reads as a quiet row of zeros.
+    local dirty_c ahead_c behind_c
+    if [ "$dirty" = "·" ]; then ui_cell dirty_c ok "$dirty"
+    else ui_cell dirty_c warn "$dirty"; any_dirty=1; fi
+    if [ "$ahead" = "0" ]; then ui_cell ahead_c muted "$ahead"
+    else ui_cell ahead_c warn "$ahead"; any_ahead=1; fi
+    if [ "$behind" = "0" ]; then ui_cell behind_c muted "$behind"
+    else ui_cell behind_c warn "$behind"; any_behind=1; fi
+    ui_trow "$name" "$branch" "$dirty_c" "$ahead_c" "$behind_c"
   done
+  ui_table_data 2 1
   [ "$any_dirty"  = 1 ] && hint "dirty: commit in that repo (bench ship refuses a dirty tree)"
   [ "$any_ahead"  = 1 ] && hint "↑ unpushed: bench ship (pushes, then ripples the locks downstream)"
   [ "$any_behind" = 1 ] && hint "↓ behind origin: bench pull <repo> (or bare bench pull for all)"
@@ -1405,31 +1485,40 @@ cmd_status() {
   # and print a headless row.
   local layer; layer="$(lock_layer_input)"
   [ -n "$layer" ] || { layer="$LAYER_INPUT_ASSUMED"; assumed=1; }
+  # `have` and `want` are the two claims every row makes, whether they hold revs
+  # or slugs, so they are two columns rather than a sentence with two colours
+  # inside it. Both are `never`: a rev cut to `9f8e7…` is a lie with a mark on
+  # it, exactly like an abbreviated duration, so the budget reserves their real
+  # width and the table stacks rather than shorten one.
+  ui_col ""      1 1 body    never
+  ui_col edge   10 3 subject right
+  ui_col state   5 1 body    never
+  ui_col have    7 1 body    never
+  ui_col want    7 1 ok      never
+  ui_col note    0 3 muted   right
   for edge in "${EDGES[@]}"; do
     read -r holder input source <<<"$edge"
     [ "$input" = "@layer" ] && input="$layer"
-    local want have label slug want_slug
+    local want have label slug want_slug mark state have_c
     want="$(head_rev "$source")"
     have="$(locked_rev "$holder" "$input")"
     label="$holder → $input"
     [ "$holder" = "consumer" ] && label="you → $input"
     if [ "$have" = "$want" ]; then
-      printf '  %s✓%s %-22s %scurrent%s (%s%s%s)\n' \
-        "$C_OK" "$C_OFF" "$label" "$C_MUT" "$C_OFF" "$C_MUT" "${have:0:7}" "$C_OFF"
+      ui_cell mark ok '✓'; ui_cell state muted current; ui_cell have_c muted "${have:0:7}"
+      ui_trow "$mark" "$label" "$state" "$have_c"
     elif [ "$(rev_on_main "$source" "$have")" = "no" ]; then
       # Worse than stale, and a different fix. `bench ship` is not a no-op here
       # — it repins to the upstream's main HEAD like any other edge — but that
       # SILENTLY DROPS the unmerged work this lock was pinned at, which is
       # nobody's intent when the pin was deliberate. So report it as its own
       # thing rather than letting it wear STALE's "just ship it" hint.
-      printf '  %s⚠%s %-22s %sOFF-MAIN%s: locked %s%s%s is not on %s'"'"'s main, local %s%s%s\n' \
-        "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
-        "$C_WARN" "${have:0:7}" "$C_OFF" "$source" "$C_OK" "${want:0:7}" "$C_OFF"
+      ui_cell mark warn '⚠'; ui_cell state warn OFF-MAIN; ui_cell have_c warn "${have:0:7}"
+      ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}" "not on $source's main"
       offmain=1
     else
-      printf '  %s⚠%s %-22s %sSTALE%s: locked %s%s%s, local %s%s%s\n' \
-        "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
-        "$C_MUT" "${have:0:7}" "$C_OFF" "$C_OK" "${want:0:7}" "$C_OFF"
+      ui_cell mark warn '⚠'; ui_cell state warn STALE; ui_cell have_c muted "${have:0:7}"
+      ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}"
       stale=1
     fi
     # The rev is only half of what a lock records, and nothing here ever compared
@@ -1444,18 +1533,30 @@ cmd_status() {
     slug="$(locked_slug "$holder" "$input")"
     want_slug="$(gh_repo "$source")"
     if [ -n "$slug" ] && [ "$slug" != "$want_slug" ]; then
-      printf '  %s⚠%s %-22s %sRENAMED%s: fetches %s%s%s, which is %s%s%s now — only GitHub'"'"'s redirect makes that resolve\n' \
-        "$C_WARN" "$C_OFF" "$label" "$C_WARN" "$C_OFF" \
-        "$C_WARN" "$slug" "$C_OFF" "$C_OK" "$want_slug" "$C_OFF"
+      # The same two columns, holding the other kind of claim: what the lock
+      # FETCHES against what that repo is called now.
+      ui_cell mark warn '⚠'; ui_cell state warn RENAMED; ui_cell have_c warn "$slug"
+      ui_trow "$mark" "$label" "$state" "$have_c" "$want_slug" \
+        "only GitHub's redirect makes that resolve"
       renamed=1
     fi
   done
+  ui_table_data 2 0
   [ "$assumed" = 1 ] && hint "couldn't read a haus input out of $CONSUMER/flake.lock, so the row above assumes it's called '$LAYER_INPUT_ASSUMED'. bench overrides inputs by name and Nix ignores an unknown one silently, so if that's wrong, 'bench try' builds the pinned layer while announcing your branch."
   [ "$renamed" = 1 ] && hint "RENAMED: fix the url in that flake.nix — one word, coupled to nothing (the input's NAME is a separate question, and bench derives that; see lock_layer_input). Nothing is broken today; it breaks the day something else claims the old slug, and then it breaks as a fetch failure with no clue where the name came from."
   [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
   [ "$offmain" = 1 ] && hint "OFF-MAIN: that rev lives on an unmerged branch — it stops resolving the moment the branch is deleted on merge, and the downstream repo then can't fetch its input at all. Land the upstream PR, then \`bench ship\` re-pins at the merge commit. Shipping FIRST also works and is usually wrong: it repins to main and silently drops the unmerged work."
   echo
   say "release edges (what new users actually get)"
+  # Same shape as the lock edges: the tag and the distance are each their own
+  # claim, so each is its own cell with its own role rather than a colour
+  # buried mid-sentence. The `cut …` line is a row with the first four cells
+  # empty, which is what puts it under the audience it belongs to.
+  ui_col ""      1 1 body    never
+  ui_col repo    6 1 subject right
+  ui_col release 7 1 body    never
+  ui_col state  10 2 body    right
+  ui_col "who gets it" 12 3 muted right
   local rel_stale=0
   for name in pounce perch trill haus scruff; do
     local dir tag behind audience cut
@@ -1487,24 +1588,28 @@ cmd_status() {
       # existed, and nothing moves them until a tag does.
       local nofallback="falls back to main"
       [ "$name" = scruff ] && nofallback="stays on whatever was last published by hand"
-      printf '  %s⚠%s %-22s no release yet — %s %s\n' \
-        "$C_WARN" "$C_OFF" "$name" "$audience" "$nofallback"
-      printf '      %scut the first release: %s%s\n' "$C_MUT" "$cut" "$C_OFF"
+      local mark state
+      ui_cell mark warn '⚠'; ui_cell state warn "no release yet"
+      ui_trow "$mark" "$name" "" "$state" "$audience $nofallback"
+      # release stamps the version itself; nothing to bump by hand first.
+      ui_trow "" "" "" "" "cut the first release: $cut"
       rel_stale=1
       continue
     fi
     behind="$(commits_since "$name" "$tag")"
+    local mark state rel_c
     if [ "$behind" = "0" ]; then
-      printf '  %s✓%s %-22s %s%s%s is current with main\n' \
-        "$C_OK" "$C_OFF" "$name" "$C_OK" "$tag" "$C_OFF"
+      ui_cell mark ok '✓'; ui_cell rel_c ok "$tag"; ui_cell state muted "current with main"
+      ui_trow "$mark" "$name" "$rel_c" "$state"
     else
-      printf '  %s⚠%s %-22s %s%s%s is %s%s%s commit(s) behind main — %s get the old one\n' \
-        "$C_WARN" "$C_OFF" "$name" "$C_MUT" "$tag" "$C_OFF" "$C_WARN" "$behind" "$C_OFF" "$audience"
-      # release stamps the version itself; nothing to bump by hand first.
-      printf '      %scut a release: %s%s\n' "$C_MUT" "$cut" "$C_OFF"
+      ui_cell mark warn '⚠'; ui_cell rel_c muted "$tag"
+      ui_cell state warn "$behind commit(s) behind"
+      ui_trow "$mark" "$name" "$rel_c" "$state" "$audience get the old one"
+      ui_trow "" "" "" "" "cut a release: $cut"
       rel_stale=1
     fi
   done
+  ui_table_data 2 0
 
   echo
   # OFF-MAIN ranks above STALE: a stale lock is behind, an off-main one is
@@ -1621,11 +1726,17 @@ active_banner() { # the loud "you are running unpushed code" block, post-switch
   local body; body="$(read_activation)" || return 0
   local repo src branch dirty
   warn "this machine is now running LOCAL code, not what any flake.lock pins:"
+  # `ui_table`, not `ui_table_data`: this block is part of what the tool is
+  # SAYING — it sits between a `warn` and a `hint` and belongs on their stream.
+  # `bench status`'s version of the same rows is the report and goes to fd 1.
+  ui_col repo   6 1 subject right
+  ui_col branch 8 3 body    right
+  ui_col tree   4 1 muted   never
   while IFS=$'\t' read -r repo src branch dirty; do
     case "$repo" in when|host|system|'') continue ;; esac
-    printf '      %s%-10s%s %s %s(%s)%s\n' \
-      "$C_REPO" "$repo" "$C_OFF" "$branch" "$C_MUT" "$dirty" "$C_OFF"
+    ui_trow "$repo" "$branch" "($dirty)"
   done <<<"$body"
+  ui_table 6 0
   hint "bench status will keep saying so · bench rebuild returns to the pinned build"
 }
 
@@ -1746,6 +1857,18 @@ cleanup_batch() { # remove every integration worktree + the scratch dir (EXIT tr
   return 0
 }
 
+batch_dropped_table() { # batch_dropped_table <cells-var> — three cells a row
+  local -n __drop="$1"
+  local i
+  ui_col repo  6 1 subject right
+  ui_col pr    4 1 muted   never
+  ui_col what 12 4 body    right
+  for (( i = 0; i < ${#__drop[@]}; i += 3 )); do
+    ui_trow "${__drop[$i]}" "${__drop[$((i+1))]}" "${__drop[$((i+2))]}"
+  done
+  ui_table_data 6 0
+}
+
 cmd_try_batch() {
   local do_switch=""
   if [ "${1:-}" = "switch" ]; then do_switch=1; shift; fi
@@ -1778,6 +1901,12 @@ cmd_try_batch() {
   BATCH_SCRATCH="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/bench-batch.XXXXXX")" && pwd -P)"
   trap cleanup_batch EXIT
 
+  # Both lists are collected as CELLS — four per checklist row, three per
+  # dropped one — and replayed into a table at the end, because the row a PR
+  # contributes is not drawn where it is discovered: `dropped` is printed from
+  # two different places, and the checklist only after the whole batch builds.
+  # (An array of arrays is the shape bash does not have; the replay strides by
+  # the column count.)
   local -a checklist=() dropped=()
   local batched=0
   local repo
@@ -1805,21 +1934,18 @@ cmd_try_batch() {
       [ -n "$num" ] || continue
       if ! git -C "$wtdir" rev-parse -q --verify "origin/$head^{commit}" >/dev/null 2>&1; then
         warn "$repo: can't find origin/$head (fork PR?) — skipping #$num."
-        dropped+=("$(printf '      %-10s #%-4s %s' "$repo" "$num" "$title")")
-        dropped+=("$(printf '                  fork PR (head not on origin) — %s' "$url")")
+        dropped+=("$repo" "#$num" "$title" "" "" "fork PR (head not on origin) — $url")
         continue
       fi
       if git -C "$wtdir" merge --no-edit "origin/$head" >/dev/null 2>&1; then
-        checklist+=("$(printf '  %s[ ]%s %s%-10s%s #%-4s %s' \
-          "$C_WARN" "$C_OFF" "$C_REPO" "$repo" "$C_OFF" "$num" "$title")")
-        checklist+=("$(printf '                  %s%s%s' "$C_MUT" "$url" "$C_OFF")")
+        local box; ui_cell box warn '[ ]'
+        checklist+=("$box" "$repo" "#$num" "$title" "" "" "" "$url")
         included=$((included + 1))
         batched=$((batched + 1))
       else
         git -C "$wtdir" merge --abort 2>/dev/null || true
         warn "$repo: dropping #$num ($head) — it conflicts with the batch; test it on its own."
-        dropped+=("$(printf '      %-10s #%-4s %s' "$repo" "$num" "$title")")
-        dropped+=("$(printf '                  conflicts with the batch — %s' "$url")")
+        dropped+=("$repo" "#$num" "$title" "" "" "conflicts with the batch — $url")
       fi
     done <<<"$prs"
 
@@ -1833,7 +1959,7 @@ cmd_try_batch() {
   if [ "${#BATCH_SRC[@]}" -eq 0 ]; then
     if [ "${#dropped[@]}" -gt 0 ]; then
       warn "every open PR was dropped from the batch (conflicts/forks) — nothing to build:"
-      printf '%s\n' "${dropped[@]}"
+      batch_dropped_table dropped
       warn "test each on its own branch (bench try from its worktree)."
     else
       say "no open PRs to batch — nothing to do (plain 'bench try' tests the pinned tree)."
@@ -1867,17 +1993,26 @@ cmd_try_batch() {
 
   echo
   say "test checklist — verify each PR (steps are in its body), then merge only the winners:"
-  printf '%s\n' "${checklist[@]}"
+  ui_col ""     3 1 body    never
+  ui_col repo   6 1 subject right
+  ui_col pr     4 1 muted   never
+  ui_col what   12 4 body    right
+  local i
+  for (( i = 0; i < ${#checklist[@]}; i += 4 )); do
+    ui_trow "${checklist[$i]}" "${checklist[$((i+1))]}" \
+      "${checklist[$((i+2))]}" "${checklist[$((i+3))]}"
+  done
+  ui_table_data 2 0
   if [ "${#dropped[@]}" -gt 0 ]; then
     echo
     warn "dropped from the batch — NOT built above; test each on its own branch:"
-    printf '%s\n' "${dropped[@]}"
+    batch_dropped_table dropped
   fi
   echo
   warn "none of these are merged. gh pr merge the ones that pass; leave the rest open."
-  # NOT ${#checklist[@]}: the loop above pushes TWO entries per PR (the row and
-  # its URL line), so that number is double, and a banner you read while away
-  # from the terminal is the worst place to be off by a factor of two.
+  # NOT ${#checklist[@]}: that array holds CELLS, eight per PR (four columns
+  # over the row and its URL line), and a banner you read while away from the
+  # terminal is the worst place to be off by a factor of eight.
   BENCH_NOTIFY_SOURCE=try-batch notify "done" \
     "batch built — $batched PR(s) to verify" \
     "${do_switch:+Activated. }Nothing merged; the checklist is in this shell."
@@ -3250,10 +3385,33 @@ earshot_conflicts() { # earshot_conflicts <main> <a-rev> <b-rev> — merge-tree'
 
 # Lane names carry a uniquifying suffix and are long by design; one of them must
 # not shear the whole table (the same clamp status_running uses).
-earshot_clamp() {
-  local s="$1" w="$2"
-  if [ "${#s}" -gt "$w" ]; then s="${s:0:$((w - 1))}…"; fi
-  printf '%s' "$s"
+earshot_body_table() { # earshot_body_table <cells-var> — FOUR cells a row
+  # Both callers of this — the `--path` hook shape and the full report — draw
+  # the same table, and the rows are collected as cells across a loop that also
+  # decides whether either of them runs at all. (An array of arrays is the
+  # shape bash does not have; the replay strides by the column count.)
+  local -n __rows="$1"
+  local i
+  ui_col ""    1 1 body    never
+  ui_col lane 10 2 subject right
+  ui_col file  8 3 path    left
+  ui_col note  0 4 muted   right
+  for (( i = 0; i < ${#__rows[@]}; i += 4 )); do
+    ui_trow "${__rows[$i]}" "${__rows[$((i+1))]}" "${__rows[$((i+2))]}" "${__rows[$((i+3))]}"
+  done
+  ui_table_data 2 0
+}
+
+earshot_verdict_table() { # earshot_verdict_table <cells-var> — THREE cells a row
+  local -n __rows="$1"
+  local i
+  ui_col ""         1 1 body    never
+  ui_col lane      10 2 subject right
+  ui_col conflicts 12 5 body    right
+  for (( i = 0; i < ${#__rows[@]}; i += 3 )); do
+    ui_trow "${__rows[$i]}" "${__rows[$((i+1))]}" "${__rows[$((i+2))]}"
+  done
+  ui_table_data 2 0
 }
 
 cmd_overlap() {
@@ -3308,7 +3466,8 @@ cmd_overlap() {
   my_lane="$(printf '%s\n' "$rows" | awk -F'\t' -v p="$top" '$3 == p { print $1; exit }')"
   [ -n "$my_lane" ] || my_lane="${my_branch#worktree-}"
 
-  local n_other=0 loud=0 quiet=0 body="" verdict=""
+  local n_other=0 loud=0 quiet=0
+  local -a body=() verdict=()
   local lane branch path side sdir sref findings level file detail
   while IFS=$'\t' read -r lane branch path; do
     [ -n "$lane" ] || continue
@@ -3332,16 +3491,16 @@ cmd_overlap() {
     # this tool ends on would have stated something false. Two signals
     # disagreeing is the information; one of them going quiet because the other
     # did is the averaging this block exists to refuse.
-    local mt; mt="$(earshot_conflicts "$main_dir" "$my_head" "$branch")"
+    local mt mark fcell; mt="$(earshot_conflicts "$main_dir" "$my_head" "$branch")"
     if [ -n "$mt" ]; then
-      verdict+="$(printf '  %s✗%s  %-18s %s' "$C_ERR" "$C_OFF" \
-        "$(earshot_clamp "$lane" 18)" "$(printf '%s' "$mt" | tr '\n' ' ')")"$'\n'
+      ui_cell mark err '✗'
+      verdict+=("$mark" "$lane" "$(printf '%s' "$mt" | tr '\n' ' ')")
     fi
 
     if [ -z "$findings" ]; then
       if [ "$brief" = 1 ] && [ -z "$only" ]; then
-        body+="$(printf '  %s·%s  %-18s %snothing shared%s' \
-          "$C_MUT" "$C_OFF" "$(earshot_clamp "$lane" 18)" "$C_MUT" "$C_OFF")"$'\n'
+        ui_cell mark muted '·'; ui_cell fcell muted 'nothing shared'
+        body+=("$mark" "$lane" "$fcell" "")
       fi
       continue
     fi
@@ -3349,15 +3508,17 @@ cmd_overlap() {
     local lane_loud=0
     while IFS=$'\t' read -r level file detail; do
       [ -n "$file" ] || continue
+      # The mark and the filename are the two cells whose colour changes per
+      # ROW — amber where the edits are in the same hunk, muted where they only
+      # share a file — so both carry their own role rather than the column's.
       if [ "$level" = hunk ]; then
         lane_loud=1; loud=$((loud + 1))
-        body+="$(printf '  %s⚠%s  %-18s %s%s%s  %s%s%s' \
-          "$C_WARN" "$C_OFF" "$(earshot_clamp "$lane" 18)" \
-          "$C_WARN" "$file" "$C_OFF" "$C_MUT" "$detail" "$C_OFF")"$'\n'
+        ui_cell mark warn '⚠'; ui_cell fcell warn "$file"
+        body+=("$mark" "$lane" "$fcell" "$detail")
       else
         quiet=$((quiet + 1))
-        body+="$(printf '  %s·%s  %-18s %s%s — elsewhere in the file%s' \
-          "$C_MUT" "$C_OFF" "$(earshot_clamp "$lane" 18)" "$C_MUT" "$file" "$C_OFF")"$'\n'
+        ui_cell mark muted '·'; ui_cell fcell muted "$file"
+        body+=("$mark" "$lane" "$fcell" "elsewhere in the file")
       fi
     done <<<"$findings"
 
@@ -3371,19 +3532,26 @@ cmd_overlap() {
       # A lane with no commits past the base has no intent to read — its last
       # commit is the ancestor's, and printing that quotes the shared history
       # back at you as if it were the neighbour's plan.
+      # A lane's intent is prose ABOUT the rows above it, not a fourth finding,
+      # so it lands in the note column with the first three cells empty — under
+      # the detail it annotates rather than beside the marks.
       if [ -n "$tip" ] && [ "$tip" != "$base" ]; then
         subject="$(git -C "$main_dir" log -1 --format=%s "$branch" 2>/dev/null)" || subject=""
+        # printf, not an interpolation: the curly quotes are literal text, and
+        # a bare one inside a double-quoted string reads as a typo to the
+        # linter — which is a fair reading, since it usually is one.
         if [ -n "$subject" ]; then
-          body+="$(printf '     %s“%s”%s' "$C_MUT" "$subject" "$C_OFF")"$'\n'
+          local quoted; printf -v quoted '“%s”' "$subject"
+          body+=("" "" "" "$quoted")
         fi
       else
-        body+="$(printf '     %s(uncommitted work only — no commits yet)%s' "$C_MUT" "$C_OFF")"$'\n'
+        body+=("" "" "" "(uncommitted work only — no commits yet)")
       fi
       if [ -n "$base" ]; then
         ms="$(earshot_size "$main_dir" "$base" "$my_head" "$top" "")"
         ts="$(earshot_size "$main_dir" "$base" "$branch" "$sdir" "$sref")"
-        body+="$(printf '     %s↳ %s%s' "$C_MUT" \
-          "$(earshot_order "$main_dir" "$my_branch" "$ms" "$branch" "$ts" "$lane" "$my_lane")" "$C_OFF")"$'\n'
+        body+=("" "" "" \
+          "↳ $(earshot_order "$main_dir" "$my_branch" "$ms" "$branch" "$ts" "$lane" "$my_lane")")
       fi
     fi
 
@@ -3407,20 +3575,20 @@ cmd_overlap() {
   local mt_main=""
   if [ -n "$mainref" ]; then mt_main="$(earshot_conflicts "$main_dir" "$my_head" "$mainref")"; fi
   if [ -n "$mt_main" ]; then
-    verdict+="$(printf '  %s✗%s  %-18s %s' "$C_ERR" "$C_OFF" \
-      "$(earshot_clamp "$mainref" 18)" "$(printf '%s' "$mt_main" | tr '\n' ' ')")"$'\n'
+    local mark_main; ui_cell mark_main err '✗'
+    verdict+=("$mark_main" "$mainref" "$(printf '%s' "$mt_main" | tr '\n' ' ')")
   fi
 
   local rc=0
   if [ "$quiet" -gt 0 ]; then rc=3; fi
-  if [ "$loud" -gt 0 ] || [ -n "$verdict" ]; then rc=4; fi
+  if [ "$loud" -gt 0 ] || [ "${#verdict[@]}" -gt 0 ]; then rc=4; fi
 
   # --path is the hook-shaped form: when the file is clear, the answer is
   # silence. Anything that prints on a clear file gets muted within a day.
   if [ -n "$only" ]; then
-    if [ -z "$body$verdict" ]; then return 0; fi
-    printf '%s' "$body"
-    if [ -n "$verdict" ]; then printf '%s' "$verdict"; fi
+    if [ "${#body[@]}" -eq 0 ] && [ "${#verdict[@]}" -eq 0 ]; then return 0; fi
+    [ "${#body[@]}" -gt 0 ] && earshot_body_table body
+    [ "${#verdict[@]}" -gt 0 ] && earshot_verdict_table verdict
     return "$rc"
   fi
 
@@ -3433,11 +3601,11 @@ cmd_overlap() {
   else
     say "earshot — $n_other other lane(s) on $repo_label; $loud in your way, $quiet nearby"
   fi
-  printf '%s' "$body"
-  if [ -n "$verdict" ]; then
+  [ "${#body[@]}" -gt 0 ] && earshot_body_table body
+  if [ "${#verdict[@]}" -gt 0 ]; then
     printf '\n'
     warn "merge-tree already conflicts (committed work only):"
-    printf '%s' "$verdict"
+    earshot_verdict_table verdict
     hint "rebase onto main once the other branch lands — never merge main into yours"
   elif [ "$brief" != 1 ]; then
     local against="every lane"
@@ -3457,7 +3625,8 @@ earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> <brief> — lan
     names+=("$lane"); branches+=("$branch"); paths+=("$path")
   done <<<"$rows"
 
-  local n=${#names[@]} i j rc=0 body=""
+  local n=${#names[@]} i j rc=0
+  local -a body=()
   if [ "$n" -lt 2 ]; then
     # --path is the hook-shaped form wherever it is run from: silence is the
     # answer when nothing is wrong, here as much as inside a lane.
@@ -3474,23 +3643,33 @@ earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> <brief> — lan
       while IFS=$'\t' read -r level file detail; do
         [ -n "$file" ] || continue
         if [ "$level" = hunk ]; then
-          mark="${C_WARN}⚠${C_OFF}"; note="$detail"; rc=4
+          ui_cell mark warn '⚠'; note="$detail"; rc=4
         else
-          mark="${C_MUT}·${C_OFF}"; note="elsewhere in the file"
+          ui_cell mark muted '·'; note="elsewhere in the file"
           if [ "$rc" != 4 ]; then rc=3; fi
         fi
-        body+="$(printf '  %s  %-18s %s %-18s %s%s — %s%s' "$mark" \
-          "$(earshot_clamp "${names[$i]}" 18)" "${C_MUT}↔${C_OFF}" "$(earshot_clamp "${names[$j]}" 18)" \
-          "$C_MUT" "$file" "$note" "$C_OFF")"$'\n'
+        body+=("$mark" "${names[$i]}" "${names[$j]}" "$file" "$note")
       done <<<"$findings"
     done
   done
-  if [ -z "$body" ]; then
+  if [ "${#body[@]}" -eq 0 ]; then
     if [ -z "$only" ]; then say "earshot — $n lanes on $label, no two of them in the same file"; fi
     return 0
   fi
   if [ -z "$only" ]; then say "earshot — $n lanes on $label, pairs that share a file"; fi
-  printf '%s' "$body"
+  # `↔` is the column head rather than a glyph repeated on every row: the two
+  # lane names are two columns, and what sits between them is the same on all
+  # of them, which is what a head is for.
+  ui_col ""    1 1 body    never
+  ui_col lane 10 2 subject right
+  ui_col "↔"  10 2 subject right
+  ui_col file  8 3 path    left
+  ui_col note  0 3 muted   right
+  for (( i = 0; i < ${#body[@]}; i += 5 )); do
+    ui_trow "${body[$i]}" "${body[$((i+1))]}" "${body[$((i+2))]}" \
+      "${body[$((i+3))]}" "${body[$((i+4))]}"
+  done
+  ui_table_data 2 1
   if [ -z "$only" ] && [ "$brief" != 1 ]; then
     hint "the ⚠ pairs are the ones try-batch would drop — land one, rebase the other"
   fi
