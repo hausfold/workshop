@@ -744,13 +744,21 @@ EDGES=(
   # It is in the array anyway because `bench status` reads EDGES whole, and
   # reporting a pin that has fallen behind is the entire value: scruff's own
   # snug pin sat three weeks stale drawing a mark snug had already deleted, and
-  # nothing in the family was looking. `ship_stale_hint` is what keeps the row
-  # from telling you to run a verb that cannot fix it.
+  # nothing in the family was looking. `walked_holder` is what keeps the row from
+  # telling you to run a verb that cannot fix it, and what keeps `ship_scope`
+  # from growing through it.
   #
-  # `bench try` does not reach it either: its `--override-input snug` is applied
-  # to the CONSUMER flake, and factory's own snug input does not follow it — so
-  # a snug worktree is felt through haus's bash callers and not through
-  # factory's. Feel a snug change in factory from factory's own checkout.
+  # `bench try` does not reach it either: it overrides `<layer-input>/snug`, i.e.
+  # snug as haus sees it, and factory's flake resolves its own snug input — so a
+  # snug worktree is felt through haus's bash callers and not through factory's.
+  # Feel a snug change in factory from factory's own checkout.
+  #
+  # ⚠️ haus deliberately does NOT add `inputs.factory.inputs.snug.follows`. It
+  # would guarantee one palette on a haus machine, and it would make this row
+  # describe something nobody builds: factory's own pin is what a standalone
+  # `nix run github:hausfold/factory` gets, and a row that reports a pin the
+  # machine overrides is a check passing while the thing it protects rots. The
+  # two revs drifting apart is what the STALE row is FOR.
   "factory snug snug"
   "haus factory factory"
   "consumer @layer haus"
@@ -1561,7 +1569,7 @@ cmd_status() {
   for edge in "${EDGES[@]}"; do
     read -r holder input source <<<"$edge"
     [ "$input" = "@layer" ] && input="$layer"
-    local want have label slug want_slug mark state have_c
+    local want have label slug want_slug mark state have_c onmain="" ustate=""
     want="$(head_rev "$source")"
     have="$(locked_rev "$holder" "$input")"
     label="$holder → $input"
@@ -1569,7 +1577,7 @@ cmd_status() {
     if [ "$have" = "$want" ]; then
       ui_cell mark ok '✓'; ui_cell state muted current; ui_cell have_c muted "${have:0:7}"
       ui_trow "$mark" "$label" "$state" "$have_c"
-    elif [ "$(rev_on_main "$source" "$have")" = "no" ]; then
+    elif onmain="$(rev_on_main "$source" "$have")"; [ "$onmain" = "no" ] && walked_holder "$holder"; then
       # Worse than stale, and a different fix. `bench ship` is not a no-op here
       # — it repins to the upstream's main HEAD like any other edge — but that
       # SILENTLY DROPS the unmerged work this lock was pinned at, which is
@@ -1583,10 +1591,15 @@ cmd_status() {
       ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}"
       stale=1
     else
-      # Same staleness, different fix, so it must not wear STALE's hint: `bench
-      # ship` walks FAMILY and this holder is not in it, so the verb the hint
-      # names would run to completion and leave the row exactly as it is.
-      ui_cell mark warn '⚠'; ui_cell state warn STALE; ui_cell have_c muted "${have:0:7}"
+      # Both shapes land here, and the STATE still has to be told apart even
+      # though the fix is one: OFF-MAIN means the pin stops resolving the day
+      # that branch is deleted, which is news whoever fixes it needs. What is
+      # shared is that neither named hint applies — OFF-MAIN's "land the
+      # upstream PR, then `bench ship` re-pins" is as wrong as STALE's "bench
+      # ship" in a repo the walk never reaches. Both would run to completion and
+      # leave the row exactly as it is.
+      ustate=STALE; [ "$onmain" = "no" ] && ustate=OFF-MAIN
+      ui_cell mark warn '⚠'; ui_cell state warn "$ustate"; ui_cell have_c muted "${have:0:7}"
       ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}" "$holder's own PR — bench never pushes it"
       stale_unwalked=1
     fi
@@ -1614,7 +1627,7 @@ cmd_status() {
   [ "$assumed" = 1 ] && hint "couldn't read a haus input out of $CONSUMER/flake.lock, so the row above assumes it's called '$LAYER_INPUT_ASSUMED'. bench overrides inputs by name and Nix ignores an unknown one silently, so if that's wrong, 'bench try' builds the pinned layer while announcing your branch."
   [ "$renamed" = 1 ] && hint "RENAMED: fix the url in that flake.nix — one word, coupled to nothing (the input's NAME is a separate question, and bench derives that; see lock_layer_input). Nothing is broken today; it breaks the day something else claims the old slug, and then it breaks as a fetch failure with no clue where the name came from."
   [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
-  [ "$stale_unwalked" = 1 ] && hint "STALE in a repo bench does not push: no verb covers it — bump the pin in that repo's own branch and land it through its PR, the way every other change to it lands."
+  [ "$stale_unwalked" = 1 ] && hint "the row marked \"…'s own PR\": that holder isn't one bench walks, so no verb covers it — neither ship nor try re-pins it. Bump it in that repo's own branch and land it through its PR, the way every other change to it lands."
   [ "$offmain" = 1 ] && hint "OFF-MAIN: that rev lives on an unmerged branch — it stops resolving the moment the branch is deleted on merge, and the downstream repo then can't fetch its input at all. Land the upstream PR, then \`bench ship\` re-pins at the merge commit. Shipping FIRST also works and is usually wrong: it repins to main and silently drops the unmerged work."
   echo
   say "release edges (what new users actually get)"
@@ -1701,7 +1714,7 @@ cmd_status() {
   elif [ "$stale" = "1" ]; then
     warn "stale lock edges above — see the ↳ fix under that section."
   elif [ "$stale_unwalked" = "1" ]; then
-    warn "a lock edge is stale in a repo bench does not push — see the ↳ fix under that section."
+    warn "a lock edge is behind in a repo bench does not push — see the ↳ fix under that section."
   elif [ "$rel_stale" = "1" ]; then
     warn "locks are current, but a release is behind — ship is done, releasing is the last mile (↳ above)."
   else
@@ -2107,6 +2120,10 @@ cmd_try_batch() {
 # `ship_scope pounce` prints pounce, haus, consumer, and `ship_scope trill`
 # prints haus, trill, consumer (trill's position is cosmetic: it isn't in
 # FAMILY, so the walk never pushes it — only haus's lock for it moves).
+#
+# The closure grows only through holders cmd_ship actually walks. `factory snug
+# snug` is the one edge that fails that test, so `ship_scope snug` is haus, snug,
+# consumer and not haus, snug, factory, consumer — see the 🚨 in the loop.
 ship_scope() {
   local -a set=("$@")
   local grew=1 edge holder input source n m hit
@@ -2118,6 +2135,17 @@ ship_scope() {
       [ -n "$hit" ] || continue
       hit=""; for n in "${set[@]}"; do [ "$n" = "$holder" ] && { hit=1; break; }; done
       [ -n "$hit" ] && continue
+      # 🚨 A holder cmd_ship never walks joins nothing. Adding it would buy one
+      # line of printed scope and cost a bump nobody asked for: membership here
+      # is also read as "this repo's work is in scope", and the bump loop then
+      # matches every OTHER edge in a walked repo whose source is that name. So
+      # `bench ship snug` — which cannot touch factory's own snug pin — would
+      # ALSO run `nix flake update factory` in haus and carry every factory
+      # commit on main into the next rebuild. That is exactly what the loop's
+      # own comment forbids: bumping a bystander edge in the same repo ships
+      # work nobody named. Naming the repo outright still puts it in the set,
+      # because `set` starts as the arguments.
+      walked_holder "$holder" || continue
       set+=("$holder"); grew=1
     done
   done
