@@ -30,7 +30,7 @@ to widen the filter that judges it. `factory config path` is where it lives.
 | excluded | `ops` · `website` · `producer-desktop` |
 | after a merge | `bench pull` then `bench ship`, in `~/code/workshop` |
 | budget feed | `~/.cache/claude-statusline/usage-claude.tsv` |
-| everything else | factory's own defaults — `factory config print` shows the effective policy, so *unset* is always distinguishable from *set to the default* |
+| everything else | factory's own defaults — `factory config print` shows the effective policy *plus the floor a config cannot lower*, so what it prints is what `factory tier` will actually do |
 
 **`ops` is excluded because it is the private one.** It holds the name register
 and real people's names, and which names are *free* is the sensitive half —

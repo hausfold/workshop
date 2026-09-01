@@ -84,8 +84,9 @@ the shell ones drive, and the layer puts it on your PATH) and 🏭
 [factory](https://github.com/hausfold/factory) (merge the pull requests code
 alone can vouch for, while nobody is watching — the layer puts it on your PATH
 too). For all three, `bench try` builds your branch and `bench ship` ripples the
-lock, while `bench status` and `ship` leave their git state alone. They land
-through their own PRs.
+lock, while `bench ship` never pushes them — they land through their own PRs.
+(`bench status` still prints a read-only row for each, because a STALE edge's
+next question is what that checkout is doing.)
 
 Three more ride along with no lock edge at all, so the ripple never walks them:
 🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you

@@ -97,8 +97,8 @@ list`. git's answer is "what trees exist", which includes hand-made ones (a
 scratch checkout for a before/after compare, a `/tmp` tree) that scruff never made
 and `scruff reap` will never sweep; listing those as lanes would make the two
 tools look permanently out of sync. bench keeps the rows whose repo sits
-under the workshop dir — family or not, so `trill`, `snug`, `hausfold.co` and
-the workshop itself all count — plus the host config (`~/.config/nix`, shown as
+under the workshop dir — family or not, so `trill`, `snug`, `factory`,
+`hausfold.co` and the workshop itself all count — plus the host config (`~/.config/nix`, shown as
 `consumer`). A lane in an unrelated repo on the same machine is scruff's business,
 not bench's. Use `scruff child` for cross-repo work and it lands in that table;
 a raw `git worktree add` is invisible to both bench and the bar.
@@ -238,9 +238,10 @@ On another machine, or after shipping from elsewhere:
 ## Releasing
 
 Five repos are releasable — pounce, perch, trill, haus (the layer) and scruff —
-each with a real audience. **snug is deliberately not one of them**: every
-consumer pins it by rev as a flake input, so a tag would name nothing anyone
-fetches, and `bench release snug` refuses. Four are CalVer; **scruff alone is semver**, and that
+each with a real audience. **snug and factory are deliberately not two more**:
+every consumer pins each by rev as a flake input, so a tag would name nothing
+anyone fetches, and `bench release` refuses either. (A standalone `factory` user
+clones the repo; there is no artifact to publish.) Four are CalVer; **scruff alone is semver**, and that
 split is the only thing about releasing you have to hold in your head.
 
 Versions are **date-based** (CalVer): a release is stamped with the day it's cut
@@ -320,14 +321,14 @@ opening a fresh one each run.
 
 Three things about its repo list are deliberate and get "tidied" wrong:
 
-- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug` and `hausfold.co` —
-  repos with docs and an audience that `FAMILY` doesn't cover. Docs coverage and
-  lock coverage are different questions. `bench clone`/`pull` plant and refresh
-  all three for the same reason. `hausfold.co` has no flake input at all;
-  `trill` and `snug` each have one
-  (`haus → trill`) without being family, so `try`/`try-batch` DO build it from a
-  local checkout while `ship`/`status` still don't walk its git state — see
-  bench's 🚨 by `FAMILY` for the three-list split.
+- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug`, `factory` and
+  `hausfold.co` — repos with docs and an audience that `FAMILY` doesn't cover.
+  Docs coverage and lock coverage are different questions. `bench clone`/`pull`
+  plant and refresh all four for the same reason. `hausfold.co` has no flake
+  input at all; `trill`, `snug` and `factory` each have one
+  (`haus → trill`, `haus → snug`, `haus → factory`) without being family, so
+  `try`/`try-batch` DO build them from a local checkout, and `ship` still never
+  pushes them — see bench's 🚨 by `FAMILY` for the three-list split.
 - **A missing checkout and an unswept repo look identical in the output**, so
   `docs-since` warns loudly for both (`no checkout at …`, and either
   `first sweep — no watermark, reading its FULL history` or `watermark … is gone
