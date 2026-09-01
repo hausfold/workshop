@@ -149,6 +149,8 @@ that would drift from it.
 capped fixer lanes on red CI, write the handover. **The skill ships with the
 tool** and arrives on this machine through haus, so there is no copy in
 `.agents/skills/` to keep in step. `factory skill` prints the other one.
+Drive it from a terminal pane rather than the desktop app — the budget feed
+above is why.
 
 A live lease is the user's standing go-ahead for **tier-1** merges exactly as
 the policy decides them — see the night-shift row in
