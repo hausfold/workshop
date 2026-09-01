@@ -8,16 +8,16 @@
 #
 #   nix-instantiate --eval --strict --json script/probes/pack-priority.nix
 #   nix-instantiate --eval --strict --json script/probes/pack-priority.nix \
-#     --arg rice /Users/you/code/workshop/hausfold     # from a worktree
+#     --arg haus /Users/you/code/workshop/hausfold     # from a worktree
 #
-# (`nix eval --file` does not apply `--arg`, and the rice path has to be an
+# (`nix eval --file` does not apply `--arg`, and the haus path has to be an
 # argument because a workshop worktree cannot see the sibling repos.)
 #
-# No darwin system, no build: this evaluates the rice's PURE-LIB option surface
+# No darwin system, no build: this evaluates haus's PURE-LIB option surface
 # (modules/options-modules.nix — the same thing options-json and
 # data-only-surface read) with the real packs/writing.nix and a fake host, so it
 # runs in seconds and would run on Linux CI. That is a finding in itself: the
-# readiness test evaluates each rice alone, and testing two overlapping ones is
+# readiness test evaluates each desktop alone, and testing two overlapping ones is
 # the same machinery with a second module in the list.
 #
 # ---- what it found, 2026-08-04 ----------------------------------------------
@@ -44,16 +44,16 @@
 # takes arguments, and mkDefault is lib.mkDefault. Whatever ships has to be
 # applied at the import seam.
 {
-  rice ? ../../haus,
+  haus ? ../../haus,
 }:
 let
-  # The rice's pinned nixpkgs, so the module-system semantics under test are the
-  # ones the rice actually evaluates with. (getFlake refuses a linked worktree —
-  # pass `--arg rice <main checkout>` from one.)
-  lib = (builtins.getFlake (toString rice)).inputs.nixpkgs.lib;
+  # haus's pinned nixpkgs, so the module-system semantics under test are the
+  # ones haus actually evaluates with. (getFlake refuses a linked worktree —
+  # pass `--arg haus <main checkout>` from one.)
+  lib = (builtins.getFlake (toString haus)).inputs.nixpkgs.lib;
 
-  optionModules = import (rice + "/modules/options-modules.nix");
-  packData = import (rice + "/packs/writing.nix");
+  optionModules = import (haus + "/modules/options-modules.nix");
+  packData = import (haus + "/packs/writing.nix");
 
   evalWith =
     mods:

@@ -207,10 +207,10 @@ wins, rather than colliding with it.
 ```sh
 nix-instantiate --eval --strict --json script/probes/pack-priority.nix
 nix-instantiate --eval --strict --json script/probes/pack-priority.nix \
-  --arg rice ~/code/workshop/hausfold      # from a workshop worktree
+  --arg haus ~/code/workshop/haus      # from a workshop worktree
 ```
 
-No machine, no darwin system, no build — it evaluates the rice's pure-lib option
+No machine, no darwin system, no build — it evaluates haus's pure-lib option
 surface with the real `packs/writing.nix` and a fake host, in seconds. It is
 here because it belongs to the same family as the rest: **the obvious answer is
 the one that fails silently.** `mkDefault` on the whole `roster` attrset looks
@@ -220,24 +220,24 @@ in the file header.
 
 ## `preset-composition.nix` — the other half of the same question
 
-What happens when two whole **rices** meet, rather than a pack and a host.
+What happens when two whole **desktops** meet, rather than a pack and a host.
 `lib.pack` fixed host-vs-pack; this measures the case the roadmap left open and
 the one a gallery produces.
 
 ```sh
 nix-instantiate --eval --strict --json script/probes/preset-composition.nix \
-  --arg rice ~/code/workshop/hausfold
+  --arg haus ~/code/workshop/haus
 ```
 
 All six pairs of the four shipped presets, both escape hatches, and two candidate
 seams. Same family lesson as the rest of this shelf, twice: **the assumption
 nobody ran was wrong** (overlap isn't collision, and the conflict error names
-both files), and **the quiet outcome is the dangerous one** — two rices' list
+both files), and **the quiet outcome is the dangerous one** — two desktops' list
 options merge with no error at all, so a pair that "composes" may just be one
 that blends.
 
-✅ **The pinnable subset of this moves into the rice** as `nix flake check`'s
-`preset-composition` (rice#239, merged 2026-08-06), so the pairs the
+✅ **The pinnable subset of this moves into haus** as `nix flake check`'s
+`preset-composition` (haus#239, merged 2026-08-06), so the pairs the
 docs advertise as stackable can't quietly stop stacking. The probe stays for the questions a golden table
 can't ask — it prints resolved values and the `compose []` ordering experiment,
 which is what you want the first time, not the hundredth.
@@ -251,7 +251,7 @@ macOS bump too** — two of its rows are nix-darwin defaults (`dock.tilesize`,
 
 ```sh
 nix-instantiate --eval --strict --json script/probes/scale-reach.nix \
-  --arg rice ~/code/workshop/hausfold
+  --arg haus ~/code/workshop/haus
 ```
 
 Evidence for two claims about `haus.ui.scale` that nobody had measured — that every point-valued option is silently coupled to
@@ -261,7 +261,7 @@ does and doesn't move. Both turned out to be one measurement apart:
 - **the point-valued surface is ONE option** (`fonts.mono.size`). Six numeric
   leaves in the 130 the options page renders (plus four internal mirrors it
   doesn't), and the rest are multipliers, ids, an ordering and a percent —
-  every other point-valued number in the rice is internal to a module;
+  every other point-valued number in haus is internal to a module;
 - **that one can't clip while prowl tiles it** — floating windows and
   `prowl.enable = false` are the precondition, and it's read off the code. The
   coupling only bites something that *sizes itself* in points, which is pounce
@@ -271,7 +271,7 @@ does and doesn't move. Both turned out to be one measurement apart:
   and a ceiling reads as `PARTIAL` under `accent-reach`'s vocabulary while being
   the deliberate answer.
 
-✅ The pinnable subset shipped the same day as the rice's `scale-reach` check —
+✅ The pinnable subset shipped the same day as haus's `scale-reach` check —
 four scales, `moves` / `ceiling` / `pinned`, darwin-guarded beside `accent-reach`.
 This file keeps the census and the resolved values.
 

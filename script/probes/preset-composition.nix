@@ -1,17 +1,17 @@
-# preset-composition — what happens when two RICES meet, and whether the fix
+# preset-composition — what happens when two DESKTOPS meet, and whether the fix
 # that worked for packs transfers.
 #
-# Evidence for the option surface's composition limit. rice#222 closed it for
+# Evidence for the option surface's composition limit. haus#222 closed it for
 # packs: `haus.lib.pack` stamps `mkDefault` per leaf at the import seam, so
 # a consumer's own host outranks a pack silently and two packs still collide
 # loudly. The gap it left, named in the roadmap, is **preset vs preset** — and
 # the gallery a launch produces is a pile of presets, not packs.
 #
 #   nix-instantiate --eval --strict --json script/probes/preset-composition.nix \
-#     --arg rice /Users/you/code/workshop/hausfold
+#     --arg haus /Users/you/code/workshop/hausfold
 #
 # (Same shape as pack-priority.nix: `nix eval --file` ignores `--arg`, and the
-# rice path has to be an argument because a workshop worktree cannot see the
+# haus path has to be an argument because a workshop worktree cannot see the
 # sibling repos. `nix-instantiate` needs the arg explicitly too — it will not
 # auto-call the default.)
 #
@@ -20,7 +20,7 @@
 # data-only-surface / packs.
 #
 # ✅ 2026-08-06: it does. The measurements below become `preset-composition` in
-# the rice's own `nix flake check` (rice#239, open when this was written) — the six pairs, the three host
+# haus's own `nix flake check` (haus#239, open when this was written) — the six pairs, the three host
 # cases and the two silent merges, as a golden table. This file stays the SCRATCH
 # version: it prints the whole shape (overlaps, resolved values, option 4's
 # ordering experiment) rather than the subset worth pinning, which is what you
@@ -45,20 +45,20 @@
 #   colliding pair, both mkDefault   still conflict on 4 — peers stay peers
 #   compose [ everyday minimal ]     composes; minimal's rooms win…
 #   compose [ minimal everyday ]     …and everyday's win in the other order
-#   two rices authoring tour steps   BOTH steps, concatenated, reverse import
+#   two desktops authoring tour steps   BOTH steps, concatenated, reverse import
 #                                    order, no error and no warning
-#   two rices naming different apps  both apps, merged
+#   two desktops naming different apps  both apps, merged
 #
 # The six lines that changed the roadmap:
 #
-#   1. OVERLAP IS NOT COLLISION. Two rices that set the same option to the SAME
+#   1. OVERLAP IS NOT COLLISION. Two desktops that set the same option to the SAME
 #      value compose fine — `mergeEqualOption` accepts identical definitions.
 #      Every documented "these two happen not to overlap" is really "they never
 #      disagree", which is a much weaker requirement and a much better story.
 #   2. THE ERROR IS BETTER THAN THE ROADMAP CLAIMED — it names the option, both
-#      FILES and `mkForce`, as long as the rice arrives as a path. A seam that
-#      transforms a rice (lib.pack does) erases the filename to <unknown-file>,
-#      which is a one-line fix (`_file`) — shipped as rice#228, with a third
+#      FILES and `mkForce`, as long as the desktop arrives as a path. A seam that
+#      transforms a desktop (lib.pack does) erases the filename to <unknown-file>,
+#      which is a one-line fix (`_file`) — shipped as haus#228, with a third
 #      rule in the `packs` check, since nothing locally would notice it regress.
 #   3. THE PACK ESCAPE HATCH DOES NOT TRANSFER. A plain host assignment settles
 #      a pack-vs-pack collision (both packs are mkDefault, the host outranks
@@ -67,10 +67,10 @@
 #      point they hit it.
 #   4. PRESETS AT mkDefault WOULD NOT HELP EITHER. Two equal-priority defaults
 #      conflict exactly like two equal-priority values. Option 1 fixes
-#      host-vs-rice, never rice-vs-rice.
+#      host-vs-desktop, never desktop-vs-desktop.
 #   5. …but PRIORITY BY LIST POSITION DOES, and it is one `mkOverride` at the
 #      seam. Stamping descending priorities across `compose [ a b ]` makes
-#      "the later one wins" TRUE — the model rice#203 refuted as a description
+#      "the later one wins" TRUE — the model haus#203 refuted as a description
 #      of the module system is implementable as a mechanism on top of it.
 #      Measured both directions, so it is order and not luck. What it yields is
 #      a BLEND, not a winner: `compose [ everyday minimal ]` keeps everyday's
@@ -80,14 +80,14 @@
 #      no warning at all. Composition has two failure modes, and the roadmap
 #      only ever described the loud one.
 {
-  rice ? ../../haus,
+  haus ? ../../haus,
 }:
 let
-  # The rice's pinned nixpkgs, so the module-system semantics under test are the
-  # ones the rice actually evaluates with.
-  lib = (builtins.getFlake (toString rice)).inputs.nixpkgs.lib;
+  # haus's pinned nixpkgs, so the module-system semantics under test are the
+  # ones haus actually evaluates with.
+  lib = (builtins.getFlake (toString haus)).inputs.nixpkgs.lib;
 
-  optionModules = import (rice + "/modules/options-modules.nix");
+  optionModules = import (haus + "/modules/options-modules.nix");
 
   presetNames = [
     "full"
@@ -95,7 +95,7 @@ let
     "everyday"
     "large-print"
   ];
-  preset = n: import (rice + "/presets/${n}.nix");
+  preset = n: import (haus + "/presets/${n}.nix");
 
   surface = lib.evalModules {
     specialArgs.lib = lib;
@@ -107,8 +107,8 @@ let
     modules = optionModules ++ mods;
   }).config;
 
-  # ---- reading a rice as data ------------------------------------------------
-  # The paths a rice actually defines. Stops at anything that isn't a plain
+  # ---- reading a desktop as data ---------------------------------------------
+  # The paths a desktop actually defines. Stops at anything that isn't a plain
   # attrset, so a list-valued option (everyday's tour.steps) is one path rather
   # than a walk into its elements.
   defPaths =
@@ -148,12 +148,12 @@ let
     };
 
   # ---- priority, applied at the seam ---------------------------------------
-  # A rice is data, so it can no more lower its own priority than a pack can
+  # A desktop is data, so it can no more lower its own priority than a pack can
   # (checkRice throws on a file that takes arguments, and mkDefault is
-  # lib.mkDefault). Whatever ships is applied TO a rice by whoever imports it.
+  # lib.mkDefault). Whatever ships is applied TO a desktop by whoever imports it.
   #
   # pack-priority.nix hand-rolled two levels of mapAttrs because it only ever
-  # had to walk `roster`. A rice sets arbitrary paths, so the wrapper has to
+  # had to walk `roster`. A desktop sets arbitrary paths, so the wrapper has to
   # find the option boundary rather than count levels — wrap ABOVE it and you
   # replace a value instead of setting a priority, which is the silent
   # three-quarters-of-the-pack-vanishes failure that probe found.
@@ -187,16 +187,16 @@ let
     in
     { haus = goAttrs surface.options.haus data.haus; };
 
-  # "Imported later wins", implemented rather than asserted: each rice in the
+  # "Imported later wins", implemented rather than asserted: each desktop in the
   # list is stamped one priority weaker than the one after it, so the last
   # definition of any option outranks every earlier one and non-overlapping
   # fields all survive.
   composeList =
-    rices:
+    desktops:
     let
-      n = builtins.length rices;
+      n = builtins.length desktops;
     in
-    lib.imap0 (i: r: atPriority (900 + (n - i)) r) rices;
+    lib.imap0 (i: r: atPriority (900 + (n - i)) r) desktops;
 
   # ---- the compositions ------------------------------------------------------
   pairs = lib.concatMap (
@@ -249,7 +249,7 @@ let
   named = name: attrs: { inherit name; } // attrs;
 
   # ---- the options that DON'T conflict, which is its own hazard -------------
-  # Two rices authoring a tour, and two rices naming apps. Neither errors.
+  # Two desktops authoring a tour, and two desktops naming apps. Neither errors.
   riceTourA.haus.tour.steps = [
     {
       hint = "A";
@@ -274,7 +274,7 @@ let
   };
 in
 {
-  # Each rice alone — the readiness test, which is the thing that already passes.
+  # Each desktop alone — the readiness test, which is the thing that already passes.
   alone = map (n: named n (compose [ (preset n) ] (pathsOf (preset n)))) presetNames;
 
   # Every pair of the four shipped presets.
@@ -324,7 +324,7 @@ in
         };
     in
     [
-      (look "two rices each authoring one tour step"
+      (look "two desktops each authoring one tour step"
         [
           riceTourA
           riceTourB
@@ -335,7 +335,7 @@ in
           "steps"
         ]
       )
-      (look "two rices naming DIFFERENT apps"
+      (look "two desktops naming DIFFERENT apps"
         [
           riceRosterA
           riceRosterB
@@ -347,14 +347,14 @@ in
       )
     ];
 
-  # Option 4: priority by list position, so the LAST rice wins.
+  # Option 4: priority by list position, so the LAST desktop wins.
   ordered =
     let
       run =
-        rices:
+        desktops:
         let
-          paths = lib.concatMap (r: pathsOf r) rices;
-          config = evalWith (composeList rices);
+          paths = lib.concatMap (r: pathsOf r) desktops;
+          config = evalWith (composeList desktops);
           failing = builtins.filter (p: !(readPath config p).ok) paths;
         in
         {

@@ -14,7 +14,7 @@
 #   1. `systemsetup` has NO power-source selector. Every verb in its man page
 #      is source-blind, while macOS stores battery and AC settings separately
 #      (and this machine's differ). "Sleep at 5 min on battery, never on AC" —
-#      the only opinion a laptop rice actually has — is not expressible.
+#      the only opinion a laptop desktop actually has — is not expressible.
 #   2. nix-darwin sends every systemsetup call to `&> /dev/null`. A refusal,
 #      a typo'd value, an unsupported verb: all identical to success.
 #
@@ -32,7 +32,7 @@ plist=/Library/Preferences/com.apple.PowerManagement.plist
 say "A. The typed surface, and how it is implemented"
 cat <<'EOF'
   <nix-darwin>/modules/power/sleep.nix + default.nix (nix-darwin's own tree, NOT
-  the rice's modules/), in system.activationScripts.power:
+  haus's modules/), in system.activationScripts.power:
 
     systemsetup -setComputerSleep '<minutes|Never>'          &> /dev/null
     systemsetup -setDisplaySleep '<minutes|Never>'           &> /dev/null
@@ -186,7 +186,7 @@ state() {
 # WHICH SOURCES did a write reach? The interesting answer is neither "both"
 # nor "none" but "one" — a source-blind CLI that quietly writes a single
 # profile makes the setting depend on how the laptop was plugged in when the
-# rebuild ran, which is a determinism bug a rice cannot see.
+# rebuild ran, which is a determinism bug a desktop cannot see.
 where_landed() {  # $1 asked-for value, $2 AC now, $3 battery now
   if [ "$2" = "$1" ] && [ "$3" = "$1" ]; then printf '✓ landed on BOTH sources'
   elif [ "$2" = "$1" ]; then printf '⚠️  landed on AC ONLY — battery untouched'
@@ -242,7 +242,7 @@ case "$pmset_ok:$ss_sources" in
   yes:both)
     printf '    systemsetup works and is simply source-blind: one call, both profiles.\n'
     printf '    Usable, but it cannot express battery-vs-AC, which is the only opinion\n'
-    printf '    a laptop rice has. Build on pmset for that; the typed options are fine\n'
+    printf '    a laptop desktop has. Build on pmset for that; the typed options are fine\n'
     printf '    for a symmetric value.\n' ;;
   yes:none)
     printf '    pmset lands and systemsetup does not: systemsetup is BROKEN on 26 and\n'
@@ -269,7 +269,7 @@ cat <<'EOF'
   wake for network    sudo pmset -a womp 1
 
   All of these are root-only CLI writes into a root-owned plist. A curated
-  `haus.power.*` would therefore be a `pmset` activation step of the rice's
+  `haus.power.*` would therefore be a `pmset` activation step of haus's
   own — not a `system.defaults` group — which puts it in the same family as
   `security.firewall` (socketfilterfw) rather than the same family as
   hotCorners/screenshots/menuBar.

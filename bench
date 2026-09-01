@@ -182,7 +182,7 @@ FAMILY=(nebelung pounce perch scruff haus)
 # and for the layer it isn't.
 GH_ORG="hausfold"
 
-# The family repos that are flake INPUTS of the rice, so `overrides()` can point
+# The family repos that are flake INPUTS of haus, so `overrides()` can point
 # them at a local checkout. perch is an Xcode app whose flake wraps a CI-built
 # *release* binary (macOS 26 blocks a from-source Nix build), so a plain override
 # still installs the last released .app — but for a local SOURCE branch bench
@@ -1606,7 +1606,7 @@ cmd_status() {
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
-      perch)     audience="brew + the rice's flake pin" ;;
+      perch)     audience="brew + haus's flake pin" ;;
       # No cask yet — the `trill` token in hausfold/homebrew-tap is free and
       # unclaimed, so the flake pin is trill's ONLY release consumer today. Say
       # so rather than copying perch's line: a row claiming brew installs that
@@ -1615,7 +1615,7 @@ cmd_status() {
       trill)     audience="the layer's flake pin (haus.trill.enable)" ;;
       haus)      audience="hausfold.co/hacker.sh (the desktop)" ;;
       # scruff is the only one whose release lands OUTSIDE our own infrastructure:
-      # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. The rice pins scruff's
+      # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. haus pins scruff's
       # main, so this machine sees a scruff commit via the lock edge above — but
       # everyone consuming an SDK sees only what was last released.
       scruff)    audience="npm/PyPI/crates/SwiftPM/go get" ;;
@@ -2273,8 +2273,8 @@ cmd_ship() {
 # The worktree lifecycle — create on `claude --worktree`, save-on-close, and
 # list/resume — used to live here, but it isn't family business: it's a standalone,
 # repo-agnostic product now, `scruff` (its own repo, ejected from the incubator
-# 2026-08-03), which the RICE takes as a flake input and ships on PATH, wired into
-# Claude Code's WorktreeCreate/WorktreeRemove hooks — because the rice already
+# 2026-08-03), which haus takes as a flake input and ships on PATH, wired into
+# Claude Code's WorktreeCreate/WorktreeRemove hooks — because haus already
 # ships the agent keybinds. bench no longer owns it — not every machine that runs
 # `scruff` has bench. To see or resume parked/live agent worktrees across ALL repos,
 # run `scruff` (or `scruff <name>`); its predecessor `wt` is frozen but still reads the
