@@ -40,35 +40,59 @@ place a merge nobody read could put a line somewhere it may not go.
 `website` is archived. `producer-desktop` is nobody's night-shift business.
 
 **`hausfold.co` is deliberately NOT excluded.** Its `main` deploys the public
-site, so a docs merge there is a *publish* — but factory's own floor already
-denies `content/`, which is the half that deploys. What is left in that repo is
-ordinary contributor prose, and gating the repo rather than the paths would be a
+site, so a docs merge there is a *publish* — but nothing that publishes is
+reachable. `content/` is denied by factory's floor, and the site's other served
+routes are hand-written under `src/app/`, which is neither prose nor markdown,
+so `tier1.allow` never matches them. What is left is that repo's README and
+`docs/`, the contributor half. Gating the repo rather than the paths would be a
 second, weaker copy of a rule the tool already enforces.
 
 **`afterMerge` is the lock ripple, and it is why the merge cannot end at the
 merge.** The repos form a chain of pinned flake inputs (the README's "one
 gotcha"), so a commit is invisible downstream until each `flake.lock` moves.
-`bench pull` first, because a lock bump computed from a checkout that is behind
-origin pins the pre-merge rev and reports success; `bench ship` second, which is
-the ripple itself. A failure in either lands as `after-merge-failed` naming
-which command stopped — the first leaves the checkouts behind with nothing
-shipped, the second leaves them current with the edges stale, and the morning's
-move differs.
+`bench ship` is that ripple, and it carries its own guard: it fast-forwards
+every checkout an edge reads before it computes a single rev, and dies rather
+than bump a lock from a diverged tree.
+
+`bench pull` runs first for the four checkouts that guard never reaches — the
+workshop itself, `org-profile`, `homebrew-tap` and `hausfold.co`. None of them
+is on the ship chain, and the workshop is the one that bites: a docs PR merged
+*here* leaves this checkout behind by exactly the squash commit, which is how a
+merged PR ambushes the next push.
+
+**Only `bench ship` can end the chain.** A checkout that won't fast-forward is a
+warning inside `bench pull`, which exits 0 regardless, so as long as both
+commands ran at all it is the ripple `after-merge-failed` names — and the stderr
+it quotes is what says which morning this is. Ship refuses a dirty tree before
+it advances anything, dies on a checkout that has diverged, and fails the ripple
+itself last. Only the third leaves the merges landed, the checkouts current and
+the edges stale, and only the third is `bench status` for the edge that didn't
+move and a second `bench ship`; the other two want the tree cleared first.
 
 ## Overnight on a closed lid
 
-macOS sleeps on lid-close regardless of `caffeinate` — `awake 3h` says so in its
-own help. The lever that crosses a lid close is `pmset disablesleep`, and haus
-owns it: **`haus.power.lidAwake`**, off by default because closing the lid is
-the one gesture everybody reads as "stop". A shift wants `while = "always"`; the
-default `while = "agents"` holds only while an agent is mid-turn and lingers 5
-minutes after, so it drops in every one of the loop's ~20 minute gaps.
-`requirePower` defaults true, so the Mac has to be plugged in.
+factory's README asks for `disablesleep`; on this machine that lever is haus's.
+**`haus.power.lidAwake`** is off by default because closing the lid is the one
+gesture everybody reads as "stop", and **this host turns it on** —
+`enable = true`, `while = "always"`, in `hosts/mbp/default.nix`'s power block —
+so a shift asks for nothing the host file has not already granted.
+`requirePower` stays at its default, which keeps unplugging as the way to say
+stop, and `maxHold` does not apply here: the 8-hour cap is a failsafe for an
+agent hold that leaked, and `always` has no signal to leak, so a 12-hour shift
+is not cut off at hour 8.
 
-Running without it costs coverage, not correctness. The watchdog counts only
-awake time, so a shift on a suspending laptop gets fewer passes, and a foreman
-that dies is still caught — just after 90 minutes of *its* time rather than 90
-minutes of the clock's.
+**`haus.ai.keepAwake` is not the shift's lever, and that is deliberate.** It is
+the AI room's profile and means "while my agents work" at both its stops — even
+`lid`, which switches `haus.power.lidAwake` on at `mkDefault`, rides the agents
+signal rather than becoming an unconditional hold. That signal lingers 5 minutes
+past the last turn, so it drops in every one of the loop's ~20 minute gaps. The
+power room's `while = "always"` has to be named directly, which is what the host
+file does.
+
+This host grants the lever, so a shift here never has to weigh what a suspending
+machine costs it. On a host that does not, factory's README has that — *When the
+foreman dies* — and it stays there rather than being copied to a second place
+that would drift from it.
 
 ## Driving it
 
