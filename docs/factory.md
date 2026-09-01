@@ -1,10 +1,10 @@
 # The factory — the night shift, as this org runs it
 
 **What runs when nobody is at the keyboard.** The bottleneck it removes is the
-human merge: on an ordinary week this org lands ~300 PRs across its ten repos
-and every one of them waits for a person. The factory merges the fraction a filter can vouch for,
-watches each default branch's CI, and leaves everything with taste in it for the
-morning.
+human merge: on an ordinary week this org lands ~300 PRs across the thirteen
+repos in scope, and every one of them waits for a person. The factory merges
+the fraction a filter can vouch for, watches each default branch's CI, and
+leaves everything with taste in it for the morning.
 
 **The tool is [hausfold/factory](https://github.com/hausfold/factory)** — one
 CLI, a machine-local JSON policy and a log. Its README is the manual: the four
@@ -68,6 +68,39 @@ it advances anything, dies on a checkout that has diverged, and fails the ripple
 itself last. Only the third leaves the merges landed, the checkouts current and
 the edges stale, and only the third is `bench status` for the edge that didn't
 move and a second `bench ship`; the other two want the tree cleared first.
+
+## The docs sweep is not the intake
+
+The obvious customer for a filter that admits docs-only PRs is `/docs-sync`,
+which lands one PR per affected repo most days and writes nothing but prose. It
+is refused every night, in every repo, by one of two independent rules. The
+sweep pushes `docs-sync-<date>` branches
+([its `SKILL.md`](../.agents/skills/docs-sync/SKILL.md)) where `tier1.head` is
+`^worktree-`; and paths are judged before the head is, so what `factory tier`
+prints for one of these is usually a filename rather than the branch.
+
+**Widening `tier1.head` would buy back about one PR a week, and would not touch
+what refuses the rest.** Of the 42 sweep PRs merged since 2026-08-01 across the
+twelve repos the sweep walks that are also in scope (`DOCS_REPOS` less `ops`),
+8 are path-clean — two of those eight from before the site moved out of this
+repo, a layout that no longer exists. Of the 34 refused on paths, 26 hit the
+floor, carrying an `AGENTS.md`, a `CLAUDE.md`, a `SKILL.md` under `.agents/` or
+`content/` on hausfold.co; the other 8 simply carried a file `tier1.allow` does
+not match at all — a `.nix` module whose comment the sweep corrected, a
+Homebrew cask, a Swift test, and four `.mdx` pages from when the site still
+lived here. Measured against policy digest `02d23a29`, which is the instrument
+those numbers are a reading from: a config change moves them.
+
+That is not a filter tuned wrong. **A docs sweep's job includes keeping the
+agent-instruction files current, and those files are the authority an unread
+merge must not be able to edit.** The sweep and the floor want the same files
+for opposite reasons, and the floor wins — which leaves the sweep waiting for
+the morning, where a change to what agents are told belongs.
+
+What the shift lives on instead is the lane: a `worktree-*` branch, one agent,
+one subject, already through the pre-PR assurance pass. `^worktree-` is not a
+naming convention the policy happens to match on — it is the shape that arrives
+with a reviewer.
 
 ## Overnight on a closed lid
 
