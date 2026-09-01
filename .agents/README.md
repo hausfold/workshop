@@ -97,8 +97,8 @@ allows, and add a row.
 ## The rest of the family
 
 Every repo carries this layer: `haus`, `nebelung`, `pounce`, `perch`, `scruff`,
-`trill`, `snug`, `hausfold.co`, `org-profile` (the `hausfold/.github` repo),
-`homebrew-tap`, and the consumer config (`~/.config/nix`). Each keeps its
+`trill`, `snug`, `factory`, `hausfold.co`, `org-profile` (the `hausfold/.github`
+repo), `homebrew-tap`, and the consumer config (`~/.config/nix`). Each keeps its
 **own** rules — only the shape is shared. The differences worth knowing:
 
 - **`org-profile` and `homebrew-tap` have no `.agents/setup.sh`.** Neither is a

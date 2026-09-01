@@ -76,13 +76,17 @@ Five repos share the lock chain above:
 - 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the silver-mist palette underneath all of it.
 - 🐈 [**scruff**](https://github.com/hausfold/scruff) — worktree lanes, so parallel coding agents never fight over a checkout.
 
-Two more are on the lock chain as inputs of `haus`, without being family:
-🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor)
-and 🐈 [snug](https://github.com/hausfold/snug) (how every one of these tools
+Three more are on the lock chain as inputs of `haus`, without being family:
+🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor),
+🐈 [snug](https://github.com/hausfold/snug) (how every one of these tools
 puts a line in your terminal — one Go package the Go tools import, one binary
-the shell ones drive, and the layer puts it on your PATH). For both, `bench try`
-builds your branch and `bench ship` ripples the lock, while `bench status` and
-`ship` leave their git state alone. They land through their own PRs.
+the shell ones drive, and the layer puts it on your PATH) and 🏭
+[factory](https://github.com/hausfold/factory) (merge the pull requests code
+alone can vouch for, while nobody is watching — the layer puts it on your PATH
+too). For all three, `bench try` builds your branch and `bench ship` ripples the
+lock, while `bench ship` never pushes them — they land through their own PRs.
+(`bench status` still prints a read-only row for each, because a STALE edge's
+next question is what that checkout is doing.)
 
 Three more ride along with no lock edge at all, so the ripple never walks them:
 🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you
@@ -114,7 +118,7 @@ lands on `main`.
 - [the three CLIs](./docs/workflows.md#the-three-clis) — `haus` vs `bench` vs `scruff`
 - [the agent surface](./docs/agent-surface.md) — what every tool here owes a coding agent
 - [the agent's own Mac](./docs/agent-vm.md) — a headless macOS a lane can drive, so it never takes your screen
-- [the factory](./docs/factory.md) — the night shift: docs-only PRs merge themselves under a lease you grant
+- [the factory](./docs/factory.md) — the night shift: docs-only PRs merge themselves under a lease you grant. The tool is [hausfold/factory](https://github.com/hausfold/factory); this page is the policy it runs under here
 - [bug reports](./docs/bug-reports.md) — one issue form per repo, generated from one table
 - [drift](./docs/drift.md) — the shapes a write-up goes wrong in, and what catches each
 - [AGENTS.md](./AGENTS.md) — where a change goes, and the one instruction file every agent reads

@@ -257,7 +257,8 @@ a guard living only in the derivation runs nowhere that matters. The script
 `script/check-skills.sh` is the pattern.
 
 Each repo's build files follow that repo's own convention — `nix/skill.nix` in
-perch, trill, scruff and nebelung, `pkgs/pounce-skill/default.nix` in pounce. Only
+perch, trill, scruff, nebelung and factory, `pkgs/pounce-skill/default.nix` in
+pounce. Only
 the package *name* and the output *layout* are fixed. haus is the one variant:
 its skill source is `modules/ai/agents/SKILL.md` and its derivation is flat.
 
@@ -277,6 +278,8 @@ pane with no context:
 | trill | "tell me when this build finishes" |
 | scruff | "what agent worktrees do I have open?" |
 | scruff · handoff | "hand this off to a fresh session" / "spawn an agent to do this" |
+| factory | "merge the safe PRs" / "why didn't #212 merge?" |
+| factory · nightshift | "keep shipping while I'm asleep" / "take the shift for 12h" |
 | haus | "make my terminal font bigger" |
 | nebelung | "what's the hex for the background colour?" |
 
