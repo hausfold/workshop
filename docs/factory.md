@@ -69,6 +69,22 @@ itself last. Only the third leaves the merges landed, the checkouts current and
 the edges stale, and only the third is `bench status` for the edge that didn't
 move and a second `bench ship`; the other two want the tree cleared first.
 
+**The budget feed is haus's, not factory's.** Nothing here writes that TSV.
+haus's `modules/ai/statusline.sh` stashes the account's 5-hour and weekly
+percentages on every Claude Code statusline render — the client hands both to
+each render, so the primary source is also the cheapest there is: no keychain
+read, no API call. `modules/ai/statusline-refresh.sh` fills the hole under it,
+polling `api.anthropic.com/api/oauth/usage` on a 120-second TTL, kicked by the
+bar's own pill rather than by a session.
+
+The hole is that a statusline is a TUI feature, **which is why the shift keeps
+its own feed fresh by being one**. The Claude Code macOS app renders none and
+pushes nothing; and what gates the pull is not its caller but its bearer — the
+`Claude Code-credentials` keychain item, which the macOS app never writes and a
+terminal `claude` renews in place whenever a pane runs, good for about nine
+hours after the last one. A foreman that was not a pane would spend against
+percentages from whenever one last was.
+
 ## The docs sweep is not the intake
 
 The obvious customer for a filter that admits docs-only PRs is `/docs-sync`,
