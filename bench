@@ -753,12 +753,14 @@ EDGES=(
   # snug worktree is felt through haus's bash callers and not through factory's.
   # Feel a snug change in factory from factory's own checkout.
   #
-  # ⚠️ haus deliberately does NOT add `inputs.factory.inputs.snug.follows`. It
-  # would guarantee one palette on a haus machine, and it would make this row
-  # describe something nobody builds: factory's own pin is what a standalone
-  # `nix run github:hausfold/factory` gets, and a row that reports a pin the
-  # machine overrides is a check passing while the thing it protects rots. The
-  # two revs drifting apart is what the STALE row is FOR.
+  # ⚠️ haus does not add `inputs.factory.inputs.snug.follows` today, and that is
+  # an OPEN question rather than a settled one. Without it, haus's snug and
+  # factory's can pin different revs and the machine carries two `share/ui.sh` —
+  # `haus` and `factory` painting from different palettes on the same screen,
+  # which this row is what surfaces. With it, one palette is guaranteed and this
+  # row stops describing what the machine builds: factory's own pin would then
+  # only be what a standalone `nix run github:hausfold/factory` gets. Decide it
+  # here, in one place, rather than discovering it from a screen.
   "factory snug snug"
   "haus factory factory"
   "consumer @layer haus"
