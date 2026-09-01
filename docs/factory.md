@@ -1,7 +1,7 @@
 # The factory — the night shift, as this org runs it
 
 **What runs when nobody is at the keyboard.** The bottleneck it removes is the
-human merge: on an ordinary week this org lands ~300 PRs across the thirteen
+human merge: on an ordinary week this org lands ~300 PRs across the twelve
 repos in scope, and every one of them waits for a person. The factory merges
 the fraction a filter can vouch for, watches each default branch's CI, and
 leaves everything with taste in it for the morning.
@@ -27,7 +27,7 @@ to widen the filter that judges it. `factory config path` is where it lives.
 | | |
 |---|---|
 | scope | `orgs: ["hausfold"]` — every repo in the org, so a new one is covered the day it exists rather than the day somebody remembers this list |
-| excluded | `ops` · `website` · `producer-desktop` |
+| excluded | `.github` · `ops` · `website` · `producer-desktop` |
 | after a merge | `bench pull` then `bench ship`, in `~/code/workshop` |
 | budget feed | `~/.cache/claude-statusline/usage-claude.tsv` |
 | everything else | factory's own defaults — `factory config print` shows the effective policy *plus the floor a config cannot lower*, so what it prints is what `factory tier` will actually do |
@@ -46,6 +46,41 @@ routes are hand-written under `src/app/`, which is neither prose nor markdown,
 so `tier1.allow` never matches them. What is left is that repo's README and
 `docs/`, the contributor half. Gating the repo rather than the paths would be a
 second, weaker copy of a rule the tool already enforces.
+
+**`.github` is excluded because everything the filter can reach in it is the
+org's front page.** That repo is the workshop's `org-profile` checkout, and its
+whole tier-1 surface is one file — `profile/README.md`, which is what
+github.com/hausfold renders. Nothing else in the tree is even a candidate:
+`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.agents/README.md` and everything under
+`.github/` are floored, and `profile/assets/*.png` is not prose. Four of the 26
+PRs the repo has ever merged clear paths, head and author together, and all
+four change that one file and nothing else — which products the page sells,
+whether the family calls itself pre-release. A front page is nothing but
+positioning, which is the work with taste in it that the top of this page
+leaves for the morning.
+
+**It is also the one repo where excluding it and denying a path are the same
+rule.** hausfold.co keeps its place in scope because `content/` is a real seam
+between the published half and the contributor half. `.github` has no such
+seam: a `deny` of `^profile/` would be that seam spelled as one repo's
+directory name, and it would land on any other repo that ever grew one.
+
+**An exclusion is not only "don't merge here" — it is "don't look here."** One
+filtered repo list feeds the merge walk and the default-branch CI watch alike,
+so an excluded repo's red `main` goes unreported too. `.github` ships no
+workflow, so that costs nothing here — and it is the second reason hausfold.co
+could not have been excluded instead of floored: its `main` is the deploy, and
+a red one there is exactly what a night pass exists to catch.
+
+**Two other repos in scope have a single README for a tier-1 surface, and both
+stay.** `homebrew-tap` is CI-owned, but a formula and a cask are Ruby, so the
+filter reaches only the tap card. `scruff-swift` is the generated SwiftPM
+mirror that [`AGENTS.md`](../AGENTS.md) says is never hand-edited: a commit
+landing only there makes the next `sync-mirror.sh` push a non-fast-forward, so
+the next release stops at the mirror step. It stays in scope because that
+failure is loud and arrives before SwiftPM sees anything, and because no PR has
+ever been opened against the mirror — an exclusion should name a decision, not
+a hypothesis.
 
 **`afterMerge` is the lock ripple, and it is why the merge cannot end at the
 merge.** The repos form a chain of pinned flake inputs (the README's "one
@@ -96,16 +131,16 @@ sweep pushes `docs-sync-<date>` branches
 prints for one of these is usually a filename rather than the branch.
 
 **Widening `tier1.head` would buy back about one PR a week, and would not touch
-what refuses the rest.** Of the 42 sweep PRs merged since 2026-08-01 across the
-twelve repos the sweep walks that are also in scope (`DOCS_REPOS` less `ops`),
-8 are path-clean — two of those eight from before the site moved out of this
-repo, a layout that no longer exists. Of the 34 refused on paths, 26 hit the
-floor, carrying an `AGENTS.md`, a `CLAUDE.md`, a `SKILL.md` under `.agents/` or
-`content/` on hausfold.co; the other 8 simply carried a file `tier1.allow` does
-not match at all — a `.nix` module whose comment the sweep corrected, a
-Homebrew cask, a Swift test, and four `.mdx` pages from when the site still
-lived here. Measured against policy digest `02d23a29`, which is the instrument
-those numbers are a reading from: a config change moves them.
+what refuses the rest.** Of the 41 sweep PRs merged since 2026-08-01 across the
+eleven repos the sweep walks that are also in scope (`DOCS_REPOS` less `ops`
+and `org-profile`), 7 are path-clean — two of those seven from before the site
+moved out of this repo, a layout that no longer exists. Of the 34 refused on
+paths, 26 hit the floor, carrying an `AGENTS.md`, a `CLAUDE.md`, a `SKILL.md`
+under `.agents/` or `content/` on hausfold.co; the other 8 simply carried a
+file `tier1.allow` does not match at all — a `.nix` module whose comment the
+sweep corrected, a Homebrew cask, a Swift test, and four `.mdx` pages from when
+the site still lived here. Measured against policy digest `7de05b3b`, which is
+the instrument those numbers are a reading from: a config change moves them.
 
 That is not a filter tuned wrong. **A docs sweep's job includes keeping the
 agent-instruction files current, and those files are the authority an unread
