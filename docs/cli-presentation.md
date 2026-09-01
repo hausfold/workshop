@@ -414,6 +414,17 @@ palette; no hand-picked 256-colour index survives in one. The installers and
 the maintenance scripts still hold theirs, deliberately — see **Where the
 standard stops**.
 
+**Reaching ui.sh is three different questions and each caller answers its own.**
+`bench` finds it in the snug **checkout** (`repo_dir snug`), because the
+workshop has one by construction. haus and factory read a **store path** off
+their own snug input, injected as `HAUS_UI_SH` and `FACTORY_UI_SH` — a haus or
+factory user has no checkout. scruff has neither question: it imports the Go
+package. What every one of them shares is the DEGRADATION: the variable naming
+nothing, or the checkout being absent, must leave the tool printing plain marked
+text rather than dying. factory is the sharpest case — it has to install with a
+`git clone` and a symlink on a machine with no Nix at all — and a change that
+makes any verb *need* snug has broken that install.
+
 | caller | how it reaches the runtime |
 | --- | --- |
 | `scruff`'s `internal/ui` | imports `github.com/hausfold/snug`. No process, no protocol |
@@ -422,6 +433,7 @@ standard stops**.
 | haus's `focus` and `github-signal` | ui.sh in their own shell, a third way in: neither is behind the `haus` wrapper, so `focus` takes the path as a build-time substitution and `github-signal` takes it prepended by its derivation. `focus` sources it LAZILY, inside the two verbs that draw a table, because the bar drives that script on a timer. Both check `BASH_VERSINFO` first — ui.sh is bash 4+ and macOS's `/bin/bash` is 3.2, where it half-loads |
 | haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
 | haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
+| `factory` | ui.sh at `FACTORY_UI_SH`, set by its own flake's `makeWrapper` at snug's store path. **No coprocess and no binary on PATH** — the binary's one advantage over the fallback is a live region, and no factory verb draws one: each prints its report and stops. Its own `lib/ui.sh` is the adapter, separate from `lib/common.sh` because `factory --help` has to draw without `jq` |
 
 haus's suite enforces this, with **two bans of different strengths, and the
 difference is the point.** Over `haus.sh` and `haus-show.sh` it fails on *any*

@@ -738,6 +738,20 @@ EDGES=(
   "haus scruff scruff"
   "haus trill trill"
   "haus snug snug"
+  # ⚠️ The only edge whose HOLDER bench does not walk. factory is a lock SOURCE,
+  # not a FAMILY repo, so `cmd_ship`'s `for name in FAMILY consumer` never
+  # reaches it and this pin moves in factory's own pull request, never here.
+  # It is in the array anyway because `bench status` reads EDGES whole, and
+  # reporting a pin that has fallen behind is the entire value: scruff's own
+  # snug pin sat three weeks stale drawing a mark snug had already deleted, and
+  # nothing in the family was looking. `ship_stale_hint` is what keeps the row
+  # from telling you to run a verb that cannot fix it.
+  #
+  # `bench try` does not reach it either: its `--override-input snug` is applied
+  # to the CONSUMER flake, and factory's own snug input does not follow it — so
+  # a snug worktree is felt through haus's bash callers and not through
+  # factory's. Feel a snug change in factory from factory's own checkout.
+  "factory snug snug"
   "haus factory factory"
   "consumer @layer haus"
 )
@@ -762,6 +776,18 @@ for _edge in "${EDGES[@]}"; do
   [ -n "$_found" ] || LOCK_ONLY+=("$_source")
 done
 unset _edge _holder _input _source _found _name
+
+# walked_holder <name> — does `cmd_ship` ever visit this repo as a holder?
+#
+# Its loop is `for name in "${FAMILY[@]}" consumer`, so an edge held by a
+# LOCK_ONLY repo is reported and never bumped. Asked here rather than spelled as
+# a list, because the answer IS that loop and a second copy of it would be one
+# more thing to keep in step.
+walked_holder() {
+  local n
+  for n in "${FAMILY[@]}" consumer; do [ "$n" = "$1" ] && return 0; done
+  return 1
+}
 
 host_name() { # the darwinConfiguration to build in the consumer flake
   if [ -n "${HAUS_HOST:-}" ]; then echo "$HAUS_HOST"; return; fi
@@ -1509,7 +1535,7 @@ cmd_status() {
 
   echo
   say "lock edges (is anyone consuming an old version of anyone?)"
-  local stale=0 offmain=0 renamed=0 assumed=0
+  local stale=0 stale_unwalked=0 offmain=0 renamed=0 assumed=0
   # `status` reads, it doesn't build, so it resolves the consumer's input name
   # WITHOUT resolve_layer_input's die: an unreadable consumer must not cost you
   # the rest of the report (every other edge here is still true), and a `die`
@@ -1552,10 +1578,17 @@ cmd_status() {
       ui_cell mark warn '⚠'; ui_cell state warn OFF-MAIN; ui_cell have_c warn "${have:0:7}"
       ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}" "not on $source's main"
       offmain=1
-    else
+    elif walked_holder "$holder"; then
       ui_cell mark warn '⚠'; ui_cell state warn STALE; ui_cell have_c muted "${have:0:7}"
       ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}"
       stale=1
+    else
+      # Same staleness, different fix, so it must not wear STALE's hint: `bench
+      # ship` walks FAMILY and this holder is not in it, so the verb the hint
+      # names would run to completion and leave the row exactly as it is.
+      ui_cell mark warn '⚠'; ui_cell state warn STALE; ui_cell have_c muted "${have:0:7}"
+      ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}" "$holder's own PR — bench never pushes it"
+      stale_unwalked=1
     fi
     # The rev is only half of what a lock records, and nothing here ever compared
     # the other half. An edge fetching a repo under a name it no longer has reads
@@ -1581,6 +1614,7 @@ cmd_status() {
   [ "$assumed" = 1 ] && hint "couldn't read a haus input out of $CONSUMER/flake.lock, so the row above assumes it's called '$LAYER_INPUT_ASSUMED'. bench overrides inputs by name and Nix ignores an unknown one silently, so if that's wrong, 'bench try' builds the pinned layer while announcing your branch."
   [ "$renamed" = 1 ] && hint "RENAMED: fix the url in that flake.nix — one word, coupled to nothing (the input's NAME is a separate question, and bench derives that; see lock_layer_input). Nothing is broken today; it breaks the day something else claims the old slug, and then it breaks as a fetch failure with no clue where the name came from."
   [ "$stale" = 1 ] && hint "STALE: bench ship (if the upstream work is committed) · bench try to feel it locally first, nothing pushed"
+  [ "$stale_unwalked" = 1 ] && hint "STALE in a repo bench does not push: no verb covers it — bump the pin in that repo's own branch and land it through its PR, the way every other change to it lands."
   [ "$offmain" = 1 ] && hint "OFF-MAIN: that rev lives on an unmerged branch — it stops resolving the moment the branch is deleted on merge, and the downstream repo then can't fetch its input at all. Land the upstream PR, then \`bench ship\` re-pins at the merge commit. Shipping FIRST also works and is usually wrong: it repins to main and silently drops the unmerged work."
   echo
   say "release edges (what new users actually get)"
@@ -1666,6 +1700,8 @@ cmd_status() {
     warn "a lock edge is pinned OFF-MAIN above — land that upstream PR before anything else ships."
   elif [ "$stale" = "1" ]; then
     warn "stale lock edges above — see the ↳ fix under that section."
+  elif [ "$stale_unwalked" = "1" ]; then
+    warn "a lock edge is stale in a repo bench does not push — see the ↳ fix under that section."
   elif [ "$rel_stale" = "1" ]; then
     warn "locks are current, but a release is behind — ship is done, releasing is the last mile (↳ above)."
   else

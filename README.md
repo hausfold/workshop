@@ -18,9 +18,10 @@ nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your 
 theme        palette    layer    host file         darwin-rebuild
 ```
 
-That's the spine, not the whole graph: `perch`, `trill`, `scruff` and `snug` are
-inputs of `haus` too, and `nebelung` is one a second time, directly rather than
-through pounce. Eight edges in all — `bench`'s `EDGES` has the list.
+That's the spine, not the whole graph: `perch`, `trill`, `scruff`, `snug` and
+`factory` are inputs of `haus` too, `nebelung` is one a second time, directly
+rather than through pounce, and `factory` takes `snug` for itself. Ten edges in
+all — `bench`'s `EDGES` has the list.
 
 A flake input is not "whatever's on GitHub right now" — it's one exact commit,
 frozen in `flake.lock`. That's what makes a rebuild reproducible, and it's the
