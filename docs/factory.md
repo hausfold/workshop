@@ -178,6 +178,68 @@ machine costs it. On a host that does not, factory's README has that — *When t
 foreman dies* — and it stays there rather than being copied to a second place
 that would drift from it.
 
+## When main goes red
+
+**The shift's fixer lane is the GitHub pill's "Fix with AI", without the
+click.** `haus-fix-github` already turns a red default branch into one
+background agent lane, and a `CI-RED <repo> <url>` line is its contract already
+filled in — the verdict is `ci`, the selector is the default branch, and the URL
+carries the repo:
+
+```sh
+haus-fix-github main ci "$url"
+```
+
+Calling that rather than improvising a spawn is the decision this page owns.
+Resolving the local checkout, picking a client and cleaning up a lane the open
+seam refused are all haus's to document and to change, and none of them is worth
+a foreman re-deriving in prose at 3 a.m. A repo with no local checkout gets a
+banner and no lane, which is the whole of what the shift can do about a red
+branch it cannot reach.
+
+**What stays the foreman's is everything before the spawn.** The binary's own
+guard is a short lock against a double-click; the night's counters — the budget
+verdict, how many lanes this repo has already had, whether this head SHA has had
+its turn — are the nightshift skill's, read out of the shift log. That is why
+the log gets a line even when the answer is no: nothing else knows a lane was
+considered. Calling the binary twice in a night is safe on its own terms,
+because `scruff spawn` takes the next free name where `scruff child` would
+refuse — a spawner has nobody to tell.
+
+**The spawn is a background one, and that is not a nicety.** The machine is
+somebody's desk whether or not they are asleep at it, so a lane must not raise a
+window or take focus, and `HAUS_LANE_BACKGROUND=1` is what the binary already
+sets. The receipt is a banner — `--source haus.github.fix`, the string
+`~/.config/trill/rules.json` matches if a night of them is too many — and the
+lane's row in the agents pill.
+
+**The lane is a Claude Code one here, which is what keeps it from stalling
+unattended.** Those panes run in permission mode `auto`, and the only hook that
+re-raises a prompt is `agent-desktop-guard`, which fires on calls that move the
+pointer, take focus or redraw the desktop — nothing a CI fix has reason to do.
+The binary falls back to whichever client is actually installed, so this holds
+because `haus.ai.default` is `claude` on this machine, not because an unattended
+lane is safe in general.
+
+**It can build; it cannot activate.** The repo's own tests run in the lane's
+checkout and `bench try` builds against its branch, but `bench try switch` is
+refused to an agent in a worktree unless told `BENCH_AGENT_SWITCH=1`, and the
+shift never sets it — activation is machine-wide and serial. A red `main` that
+only reproduces on activation is therefore diagnosed and proposed, never
+confirmed; the confirmation is the morning's.
+
+**The fixer's own PR gets no special treatment, and for a CI fix that is
+arithmetic rather than a rule.** Its head matches `^worktree-` and its author
+is `@me`, so only the paths decide — and a red default branch in this family is
+a bats failure, a shellcheck finding, a nix eval, or a Go or Swift test, none
+of which `^docs/` or `\.md$` matches. What would *not* wait is a check whose
+fix is markdown. The family's docs-shaped checks point at files the floor
+denies anyway: factory's `check-skills.sh` at `ai/SKILL.md`, haus's painter and
+installer-palette counts at `.sh` files — but that is where those tests happen
+to point, not a guarantee. A check that reddened over a `docs/` page would let
+the shift merge the fix to the thing that made it red, unread. Worth knowing
+before writing one.
+
 ## Driving it
 
 `/nightshift` is the foreman: grant the lease, loop `factory shift`, spawn
