@@ -418,7 +418,8 @@ standard stops**.
 | --- | --- |
 | `scruff`'s `internal/ui` | imports `github.com/hausfold/snug`. No process, no protocol |
 | `bench` | sources `$(repo_dir snug)/share/ui.sh`, and opens one `snug run` coprocess for a command that draws a live region. Its tables are `ui_col` + `ui_trow` + `ui_table_data`; a clone with no snug checkout at all — which is what its own CI is — falls back to a renderer in `bench` that lays the same columns out at their natural widths, the answer the budget gives a stream with no window anyway |
-| haus's `haus.sh` and `haus-show.sh` | ui.sh at `HAUS_UI_SH`, injected by `modules/core`; the `haus rebuild` phase painter is a coprocess |
+| haus's `haus.sh` and `haus-show.sh` | ui.sh at `HAUS_UI_SH`, injected by `modules/core`; the `haus rebuild` phase painter is a coprocess. Its tables are `ui_col` + `ui_trow` + `ui_table_data`, and what is left in a format string is the no-ui.sh fallback plus two named exceptions — `haus-show`'s `field`, a one-row label rather than a table, and `haus set`'s picker, whose padding is the parse contract that recovers the chosen path out of `gum filter`'s answer |
+| haus's `focus` and `github-signal` | ui.sh in their own shell, a third way in: neither is behind the `haus` wrapper, so `focus` takes the path as a build-time substitution and `github-signal` takes it prepended by its derivation. `focus` sources it LAZILY, inside the two verbs that draw a table, because the bar drives that script on a timer. Both check `BASH_VERSINFO` first — ui.sh is bash 4+ and macOS's `/bin/bash` is 3.2, where it half-loads |
 | haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
 | haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
 
@@ -652,6 +653,14 @@ this section, not by quietly converting a file.
   narration is gated with it on fd 1 and only `die` draws on fd 2. One gate
   asked about both streams is how `bootstrap.sh | tee log` comes out either
   escape-littered or silently monochrome.
+- **A row nothing draws on a terminal — out, and not for any reason above.**
+  haus's `modules/terminal/scripts/find.sh` pads its rows for `fzf`, which owns
+  the window and does its own cutting, and haus's `haus set` picker pads for
+  `gum filter` the same way — there the padding is load-bearing twice over,
+  because the chosen LINE comes back and the path is recovered by splitting on
+  the first space. A bar plugin's `printf` has no terminal on the far end at
+  all. None of these is a report; a budget applied to any of them takes a
+  window away from whatever actually owns it.
 - **The maintenance and probe scripts — out, permanently, by decision.**
   `haus`'s `script/build-golden-vm.sh`, trill's `scripts/dev-install.sh`, and
   this repo's `script/issue-labels.sh` and `script/probes/*.sh`. These do *not*
