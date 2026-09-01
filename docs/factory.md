@@ -1,8 +1,8 @@
 # The factory — the night shift, as this org runs it
 
 **What runs when nobody is at the keyboard.** The bottleneck it removes is the
-human merge: on an ordinary week this org lands ~100 PRs and every one of them
-waits for a person. The factory merges the fraction a filter can vouch for,
+human merge: on an ordinary week this org lands ~300 PRs across its ten repos
+and every one of them waits for a person. The factory merges the fraction a filter can vouch for,
 watches each default branch's CI, and leaves everything with taste in it for the
 morning.
 
