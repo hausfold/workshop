@@ -35,8 +35,8 @@
 # 🚨 They are NO LONGER THE SAME LIST, so read the one you mean. FAMILY is the
 # repos bench WALKS; OVERRIDABLE is the repos that are a flake input and can be
 # redirected at a local checkout. trill is in the second and not the first, and
-# snug joined it there — so a fallback copied from the wrong one now offers a
-# repo bench would reject, or hides two it would accept.
+# snug and factory joined it there — so a fallback copied from the wrong one now
+# offers a repo bench would reject, or hides three it would accept.
 _bench_array() {
   local name=$1; shift
   local script=${BENCH_SCRIPT:-${functions_source[_bench]:A:h}/bench}
@@ -107,7 +107,7 @@ _bench() {
           # `switch` only in first position (`cmd_try_batch` in `bench`);
           # everything after it is repos, and only OVERRIDABLE ones — bench
           # warns and skips anything else.
-          local -a batchable=( $(_bench_array OVERRIDABLE nebelung pounce perch scruff haus trill snug) )
+          local -a batchable=( $(_bench_array OVERRIDABLE nebelung pounce perch scruff haus trill snug factory) )
           local -a left=( ${batchable:|typed} )
           local -a bmode=(
             'switch:build AND activate the integration tree'
@@ -138,11 +138,11 @@ _bench() {
           # Named repos narrow the ripple to themselves plus their downstream
           # closure along EDGES (`cmd_ship` in `bench`). Shippable = FAMILY
           # plus the lock-only sources plus the consumer. LOCK_ONLY is DERIVED
-          # from EDGES at runtime, so no sed can read it out — trill and snug
-          # are hand-copied here, like pull's extras, and rot the same way.
+          # from EDGES at runtime, so no sed can read it out — trill, snug and
+          # factory are hand-copied here, like pull's extras, and rot the same way.
           local -a shippable=(
             $(_bench_array FAMILY nebelung pounce perch scruff haus)
-            trill snug consumer
+            trill snug factory consumer
           )
           local -a left=( ${shippable:|typed} )
           _describe -t repos 'shippable repo' left && ret=0
@@ -150,14 +150,14 @@ _bench() {
 
         pull)
           # The pullable set is a superset of FAMILY (`cmd_pull` in `bench`):
-          # workshop itself, plus the repos bench doesn't walk. That used to
-          # read "the repos that aren't flake inputs", which trill and snug both
-          # break — they ARE inputs and still aren't FAMILY. Hand-copied, so it
+          # workshop itself, plus the repos bench doesn't walk. It is not "the
+          # repos that aren't flake inputs" — trill, snug and factory all break
+          # that: they ARE inputs and still aren't FAMILY. Hand-copied, so it
           # rots: bench warns on anything not in its own list.
           local -a pullable=(
             workshop
             $(_bench_array FAMILY nebelung pounce perch scruff haus)
-            org-profile homebrew-tap trill snug hausfold.co consumer
+            org-profile homebrew-tap trill snug factory hausfold.co consumer
           )
           local -a left=( ${pullable:|typed} )
           _describe -t repos 'pullable repo' left && ret=0
@@ -165,9 +165,10 @@ _bench() {
 
         release)
           # Releasable = the repos `version_file()` knows.
-          # snug is deliberately absent: it carries a VERSION file but no
-          # version_file() arm and no release workflow, so it has no tagged
-          # release yet and `bench release snug` is not a thing to offer.
+          # snug and factory are deliberately absent: each carries a VERSION
+          # file but no version_file() arm and no release workflow, so neither
+          # has a tagged release and `bench release <either>` is not a thing to
+          # offer. Both are taken by rev wherever they are consumed.
           #
           # The VERSION argument is deliberately NOT completed. For every repo
           # but scruff the version is today's date and "typed by nobody"
@@ -217,18 +218,18 @@ _bench() {
           elif [[ "$words[2]" == --mark && "$words[CURRENT-1]" == --mark ]]; then
             _describe -t flags 'flag' qual && ret=0
           else
-            # DOCS_REPOS is FAMILY plus six repos that carry docs without
+            # DOCS_REPOS is FAMILY plus seven repos that carry docs without
             # being repos bench walks. bench composes it the same way —
             # `DOCS_REPOS=(workshop "${FAMILY[@]}" …)` — which is why one sed
             # can't read it whole: the nested expansion comes back literal.
-            # FAMILY is still read out of the script; only the six are copied,
+            # FAMILY is still read out of the script; only the seven are copied,
             # and `ops` went missing from that copy for as long as this comment
             # said five while listing four. It is private, which is a reason to
             # be careful with what a sweep carries OUT of it, not a reason for
             # `bench docs-since ops` to have no completion.
             local -a docs_repos=(
               workshop $(_bench_array FAMILY nebelung pounce perch scruff haus)
-              org-profile homebrew-tap trill snug hausfold.co ops
+              org-profile homebrew-tap trill snug factory hausfold.co ops
             )
             # Subtract what's already typed, like every other repo arm here.
             local -a left=( ${docs_repos:|typed} )

@@ -5,6 +5,7 @@
 # (`hausfold/hausfold.co`, not in FAMILY). Two different repos; each directory
 # is named for its own. A pre-rename spelling reappearing here means something
 # re-cloned the layer under a name `bench` will not find.
+/factory/
 /haus/
 /hausfold.co/
 /homebrew-tap/

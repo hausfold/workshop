@@ -1,31 +1,22 @@
 # Verify the workshop's code artifacts on every push and PR:
-#   • bench             — the family CLI (bats unit suite + shellcheck)
-#   • script/factory-*  — the night shift (bats unit suite + shellcheck)
+#   • bench — the family CLI (bats unit suite + shellcheck)
 #
 # This is the gate the repo was missing: nothing checked behavior before.
 #
-# The factory scripts are here because what goes wrong with them is not a
-# crash. `factory-shift` runs unattended and its product is a log read hours
-# later, so its worst output is a pass that could not see and said nothing,
-# which reads exactly like a quiet night. `test/factory-shift.bats` stubs
-# `gh`, `trill`, `bench`, `factory-tier` and `date` so those passes are
-# observable.
+# `bench` is the only thing here with behavior to check. Two other bodies of
+# shell were in this job and now live in the repos that ship them, for the same
+# reason each time — the caller that most needs a thing cannot reach it from a
+# workshop checkout:
 #
-# `factory-tier` is the one whose output causes something with no
-# undo-by-default, and its bad day is quieter still: a deny clause that stops
-# matching has no symptom until a PR a person meant to see merges at 3 a.m.
-# `test/factory-tier.bats` stubs `gh` and runs the real jq filter — a case per
-# clause, each written so that deleting the clause fails it.
-#
-# `factory-watchdog` is the same argument one layer down, and its silence is
-# harder still: it fires only when the foreman is gone, so nobody ever sees it
-# work on a good night. `test/factory-watchdog.bats` writes lease files and
-# ages logs directly to make every stall shape observable on a runner.
-#
-# `lib/ui.sh` was here too until 2026-08-27 and is now hausfold/snug's
-# `share/ui.sh`, tested by snug's own `bash` job. It moved because `haus.sh` is
-# read into a store binary and a haus user has no workshop checkout, so the
-# caller that most needed the fallback could never have sourced it from here.
+#   • `lib/ui.sh` is hausfold/snug's `share/ui.sh`, tested by snug's own `bash`
+#     job. `haus.sh` is read into a store binary and a haus user has no workshop
+#     checkout, so the caller that most needed the fallback could never have
+#     sourced it from here.
+#   • `script/factory-*` is hausfold/factory, whose CI runs the same 87 bats
+#     cases plus shellcheck. The night shift is a thing a machine RUNS, not a
+#     thing this directory contains: haus puts `factory` on PATH, so the tool
+#     has to be testable and installable without this repo. `docs/factory.md`
+#     is now the policy it runs under here, and nothing in it is executable.
 name: Tests
 
 on:
@@ -35,16 +26,13 @@ on:
 
 jobs:
   bench:
-    name: bench + factory (bats + shellcheck)
+    name: bench (bats + shellcheck)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # jq is named rather than assumed present: `factory-tier`'s filter IS a
-      # jq program, so a runner image that dropped it would turn every case in
-      # its suite into an error rather than a failure.
-      - name: Install bats + shellcheck + jq
-        run: sudo apt-get update && sudo apt-get install -y bats shellcheck jq
+      - name: Install bats + shellcheck
+        run: sudo apt-get update && sudo apt-get install -y bats shellcheck
       # The versions are printed because they are not pinned, and apt's
       # shellcheck disagrees with a newer one about which checks are on by
       # default: SC2015 on `A && B || C` fires here and not under 0.11.0, so
@@ -54,10 +42,8 @@ jobs:
       - name: shellcheck
         run: |
           shellcheck --version
-          shellcheck bench script/factory-lease script/factory-shift \
-            script/factory-tier script/factory-watchdog
+          shellcheck bench
       - name: bats
         run: |
           bats --version
-          bats test/bench.bats test/factory-tier.bats test/factory-shift.bats \
-            test/factory-watchdog.bats
+          bats test/bench.bats
