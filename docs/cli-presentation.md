@@ -1,8 +1,9 @@
 # How the family's CLIs put a line on screen
 
 The one presentation standard for every tool the workshop ships **that draws on a
-terminal** — `bench`, `haus` and `scruff`. It lives here, beside `agent-surface.md`
-and `drift.md`, because it binds every repo and belongs to none of them.
+terminal** — `bench`, `haus`, `scruff` and `factory`. It lives here, beside
+`agent-surface.md` and `drift.md`, because it binds every repo and belongs to
+none of them.
 
 Where it *stops* — trill's CLI, pounce's command scripts, the maintenance
 scripts, and the installers, which are out of the *runtime* but not the
@@ -361,6 +362,12 @@ repo-agnostic, its own flake input, shipped on `PATH` by the layer. It exists:
   `PATH` unconditionally beside `trill` and `haus-notify`. **Not pounce's
   command scripts** — see **Where the standard stops**; they have no terminal on
   the far end and must never grow one.
+- A shell caller that draws no live region needs only the fallback, and
+  `factory` is the one that says so: the binary's single advantage over
+  `share/ui.sh` is a region repainted from a coprocess, and every factory verb
+  prints its report and stops. It reads ui.sh off its own snug input and never
+  looks for `bin/snug`. Driving the binary is not the marker of compliance —
+  resolving the palette from snug is.
 
 Two dependencies, and the second choice went the other way from what this file
 first recorded. **`x/ansi` (charm's ANSI-aware string layer) plus `x/term` — 9
