@@ -41,26 +41,30 @@ lane. What it buys is that a report from a stranger arrives in a shape.
 
 ## The in-product door
 
-Every app in the family that a stranger can *click* carries one row that opens
-its own bug form, with the diagnostics field already answered. Nothing about the
-forms changes; what goes is the trip — "open github.com/hausfold, pick the right
-repo out of all of them, find its Issues tab" — for anyone already inside the
-app that just broke.
+Everything in the family a stranger has in front of them carries one door onto
+its own bug form, with the diagnostics field already answered: a menu row and a
+palette row where there is an app to click, a verb where the thing that broke is
+a command. Nothing about the forms changes; what goes is the trip — "open
+github.com/hausfold, pick the right repo out of all of them, find its Issues
+tab" — for anyone already inside the thing that just broke.
 
 | | where the door is | what it prefills |
 |---|---|---|
 | **perch** | menu bar ▸ *Report a Bug…* | version · macOS + build · Mac model · install cohort |
 | **trill** | menu bar ▸ *Report a Bug…* · `trill report [--print]` | the same four, plus whether the notification store it audits could be read |
 | **pounce** | palette ▸ *Report Pounce Issue* · Settings ▸ app menu ▸ *Report a Bug…* · `pounce report [--print]` | the same four, plus the whole `pounce doctor` report |
-| **haus** | palette ▸ *Report haus Issue* — a bash script haus ships (`modules/launcher/commands/report-issue-haus.sh`) that the launcher room layers into pounce, so it exists only where both are installed; haus has no `report` verb | ⚠️ **a `?title=&body=` skeleton, which is points 1, 2 and 4 all at once**: it walks past the form, it puts words in the reporter's mouth (`what` comes pre-blocked out), and its footer is `scutil --get LocalHostName`, which on a stock Mac is the owner's name, landing in a public issue. The fix is the other three doors' shape — `?template=bug.yml`, `diagnostics` alone, and nothing in it a person would want back |
+| **haus** | palette ▸ *Report haus Issue* · `haus report [--print]` | the pinned haus revision · macOS + build · Mac model · the selected desktop, plus the whole `haus doctor` report, with the reporter's home directory rewritten to `~` |
 | everything else | *(no door yet — the workshop, scruff and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
 
 Each app implements its own `BugReport` — pounce installs standalone and perch
 is sandboxed, so there is nothing to share a library through. haus's is a fourth
-copy in a fourth language, for a fifth reason: it is a palette script, and the
-door runs in a process neither repo compiled. What they share is
-this page. Four things are the standard, and each of them is a bug that fails
-**silently** if you get it wrong:
+copy and the only one that isn't Swift, for a reason of its own: what it reports
+on is a *machine*, not a bundle, so the door is a verb of the CLI that already
+drives that machine (`cmd_report` in `modules/core/haus.sh`), and the palette row
+is one `exec` into it. That verb is also what gives the `curl | bash` user a
+door, which a palette script could never be: it exists only where pounce does.
+What they share is this page. Four things are the standard, and each of them is
+a bug that fails **silently** if you get it wrong:
 
 1. **`?template=bug.yml`, never `?title=&body=`.** A `body=` prefill opens
    GitHub's *blank* editor and walks straight past the form — its fields, the
@@ -85,16 +89,34 @@ this page. Four things are the standard, and each of them is a bug that fails
    `~` before the doctor report goes anywhere), nothing off the user's shelf or
    inbox. **Nothing is sent until the reporter presses Submit** — the door opens
    a page, it does not file anything. It is not quite *"it only reads"*, the
-   promise the doctor hints make: a menu row whose block overran the URL writes
-   the block to the pasteboard, because a menu has nowhere else to put it. That
-   is the door's one write, it is the reporter's own clipboard, and for pounce
-   it is a live path rather than a guard rail.
+   promise the doctor hints make: a door whose block overran the URL writes the
+   block to the pasteboard when it has nowhere else to put it — a menu row, or
+   haus's palette row, which has a stdout nobody will ever read. That is the
+   door's one write, it is the reporter's own clipboard, and for pounce and haus
+   it is a live path rather than a guard rail. **A clipboard write nobody is told
+   about is that same silent failure one layer along**, so it comes with a
+   banner: haus's palette row raises one through `haus-notify`, because the
+   person is about to be looking at a form whose diagnostics field is empty. A
+   CLI with a terminal in front of it writes nothing at all — the block is
+   already on stdout, and `haus report --print` stays off the clipboard even
+   when it overflows, because a caller asking for the text is a caller with
+   somewhere to put it.
 
-And one size limit: GitHub serves a URL of about 8 KB and refuses past it, so
-each door drops the prefill above ~6 KB and puts the block on the pasteboard (a
-menu row) or on stdout (a CLI) instead. For perch and trill that is a guard rail
-against a block that grows later; for pounce it is a live path, because doctor
-grows a line per binding.
+And one size limit: each door drops the prefill above ~6 KB of URL and puts the
+block on the pasteboard (a menu row) or on stdout (a CLI) instead. For perch and
+trill that is a guard rail against a block that grows later; for pounce and haus
+it is a live path, because both doctors grow a line per thing they check: a
+finished hacker machine's `haus doctor` is 4.6 KB of text, which is ~6.9 KB once
+percent-encoded, so most haus reports take that branch rather than the prefill.
+
+⚠️ **The ~8 KB GitHub 414s past is not the number that bites first.** A reporter
+who is signed OUT is bounced to `/login?return_to=<the whole URL again>`, and
+that redirect breaks earlier — with a **500**, GitHub's own error page, for
+exactly the person filing their first issue. Measured against the real form
+(2026-09-01, `haus`): 6.6 KB of URL redirects fine, 6.9 KB of URL comes back
+500, and the raw 414 doesn't start until 8.3 KB. ~6 KB is the margin that covers
+both. (That the encoded block above is also ~6.9 KB is arithmetic, not the same
+number: one is a block, this is a whole URL.)
 
 **A door and its hint are one artifact, and nothing checks that.** Each repo's
 `DIAG_HINT` leads with the door — *"pounce report fills this in for you"* — so a
@@ -176,7 +198,7 @@ the vocabulary; they have one audience.)
 | **generator** | renders four YAML files into ten repos from one table | [`script/issue-templates.sh`](../script/issue-templates.sh) |
 | **GitHub state** | the labels the forms apply, and the security destination they link | [`script/issue-labels.sh`](../script/issue-labels.sh) |
 | **gate** | the only thing that notices when a repo stops matching | [`.github/workflows/issue-templates.yml`](../.github/workflows/issue-templates.yml) |
-| **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/`; haus's is a palette script, `haus/modules/launcher/commands/report-issue-haus.sh` |
+| **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/`; haus's is a CLI verb, `haus/modules/core/haus.sh`'s `cmd_report`, with `modules/launcher/commands/report-issue-haus.sh` as the one-line palette row into it |
 
 **Why a generator.** Four forms hand-maintained across ten repos fails silently
 and asymmetrically: the day pounce's bug form asks for something haus's doesn't,
