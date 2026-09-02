@@ -288,5 +288,27 @@ however complete its SKILL.md is.
 
 ---
 
-Where each tool currently stands against A1–A5, and the order the gaps close in,
-is `todo/agent-surface.md` in [hausfold/ops](https://github.com/hausfold/ops).
+## Where each tool stands
+
+Every tool in the family meets A1–A5. What keeps each answer true is a test in
+that tool's own repo, not this page — a surface an agent reads and a person
+almost never does breaks silently, so none of it is held by convention:
+
+| tool | what holds it |
+|---|---|
+| **haus** | `test/agent-surface.bats` — that `haus skill` prints the *rendered* store copy and never the `@hausVersion@` template beside it, that `skill install` refuses a read-only Nix symlink in words naming `haus.ai.skill` rather than dying on `EPERM`, and that `haus get --json` emits `{path, defined, value}` so a reset is distinguishable from a set |
+| **pounce** | `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, and `json_tests.swift` for the read verbs |
+| **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted |
+| **trill** | `TrillTests/SkillVerbTests.swift` and `CLILinkTests.swift` |
+| **scruff** | `internal/commands/doctor_test.go` and `agent_test.go` |
+| **factory** | `--json` on every verb, and `test/presentation.bats` for how they draw |
+| **nebelung** | the palette files generate both the ports and the skill, so there is nothing to drift |
+
+A2 is a contract on **read** verbs, not a blanket flag: a verb that changes the
+machine or draws a report for a person does not owe an agent JSON. The
+requirement is that an agent can read every answer as data, not that every
+invocation is machine-shaped.
+
+nebelung is n/a on A1, A3 and A5 by decision rather than by omission — it has no
+UI, no binary and no runtime, and the JSON that would be a command's answer is
+already the product.
