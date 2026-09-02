@@ -136,11 +136,12 @@ config change moves that half.)
 three surfaces nobody writes by hand.** `^docs/` and `\.md$` are shapes; neither
 is a claim about prose. Across the twelve repos in scope `docs/` holds 27
 markdown files and four JSON, and all four JSON are haus's `docs/site-data/` —
-9,625 lines of the `haus.*` option surface and the tiling binding table, `nix
-build .#site-data` committed so hausfold.co can render its options reference
-without Nix. The other two are markdown, so they match wherever they sit:
-nebelung's `docs/ports.md` and the port board inside its own `README.md`, both
-written by `scripts/gen-ports-doc.mjs` out of `ports.meta.json`.
+9,625 lines of the `haus.*` option surface, the tiling binding table and the
+launch keys, `nix build .#site-data` committed so hausfold.co can render its
+options reference without Nix. The other two are markdown, so they match
+wherever they sit: nebelung's `docs/ports.md` and the port board inside its
+own `README.md`, both written by `scripts/gen-ports-doc.mjs` out of
+`ports.meta.json`.
 
 **What keeps each of them honest is a drift check in the repo that holds it,
 never the filter.** haus's `site-data-current` diffs the committed directory
@@ -160,28 +161,30 @@ regeneration rides with whatever caused it — a `.nix` module, a
 `ports.meta.json` — and neither matches `tier1.allow`, so the PR is refused on a
 path before its size, its base, its head or its author is asked about. What
 *could* arrive alone is the catch-up regen for a `main` that merged red, and
-that one is the merge tier 1 is for: haus's own failure text says the fix is
-mechanical and never prose.
+that one is the merge tier 1 is for: what the check prints when it goes red is
+that nothing in the directory is hand-written, so the fix is to regenerate and
+commit.
 
 **`maxLines` is not what defends any of it, and the numbers say so plainly.**
-The median `docs/site-data/` commit moves 8 lines and the 90th percentile 169;
-two of the 148 clear 2000. Widen the frame and it is emptier still — 205 merged
+The median `docs/site-data/` commit moves 9 lines and the 90th percentile 169;
+two of the 148 clear 2000. Widen the frame and it is emptier still — 223 merged
 PRs across the twelve since 2026-06-01 carry nothing but files that clear the
 paths, and the largest of them is 1,019 lines, so the cap has yet to be the
 reason for anything. It stops a whole-file regeneration and waves the one-option
 one through, which is the right way round for a size limit and the wrong thing
-to lean on. (Counted 2026-09-02 against policy digest `7de05b3b`.)
+to lean on. (Every count in this block was taken 2026-09-02, against policy
+digest `7de05b3b`.)
 
 **Merging a regenerated `site-data` is still not a publish.** hausfold.co
-renders `content/docs/haus/reference/options.mdx` from a *checkout* of haus at
-build time, and its drift workflow's push and pull-request triggers are
-path-filtered to the generator, that page and itself — so a merge here leaves
-the site's page stale rather than red, and the change reaches the public one as
-the Monday cron's long-lived `ci/options-drift` PR. That is one of the five
-non-`@me` pull requests counted above, and it is turned away on `content/`
-before its `ci/` head is ever read. The family's third generated doc surface is
-the one the floor already denies — for the publish reason, not the generated
-one.
+renders `content/docs/haus/reference/options.mdx` out of a *checkout* of haus
+and commits the result; the site's build is a plain `next build` over that
+committed page, and the drift workflow's push and pull-request triggers name
+only the generator, that page and itself — so a merge here leaves the site's
+page stale rather than red, and the change reaches the public one as the Monday
+cron's long-lived `ci/options-drift` PR. Two of the five non-`@me` pull requests
+counted above are that PR, and both are turned away on `content/` before the
+`ci/` head is ever read. The family's fourth generated doc surface is the one
+the floor already denies — for the publish reason, not the generated one.
 
 **`afterMerge` is the lock ripple, and it is why the merge cannot end at the
 merge.** The repos form a chain of pinned flake inputs (the README's "one
