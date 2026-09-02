@@ -48,3 +48,4 @@ jobs:
         run: |
           bats --version
           bats test/bench.bats
+          bats test/design-palette.bats
