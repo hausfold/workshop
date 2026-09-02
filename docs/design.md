@@ -12,14 +12,15 @@ Three scopes this file deliberately does not own:
 |---|---|
 | how a **CLI** draws — colour roles, glyphs, columns | **snug**'s `README.md` and `AGENTS.md`, the terminal presentation standard (see the routing table's row) |
 | how **hausfold.co** implements this — greyscale at rest, borrowed colour, the one sanctioned motion | that repo's `AGENTS.md` |
-| the palette **tokens** themselves | **nebelung**. The values below are vendored from `tokens/nebelung.css` and nebelung stays the source of truth — resync this file when the palette moves. A web artifact can load the served copy at `https://hausfold.co/hausfold.css` |
+| the palette **tokens** themselves | **nebelung**. The values below are vendored from its `palette/nebelung.hex.json` (rendered for CSS as `dist/css/nebelung-mocha.css`) and nebelung stays the source of truth — `test/design-palette.bats` diffs every hex in this file back against it. A web page can load the served copy at `https://hausfold.co/hausfold.css` |
 
 ## Theme
 
 - **Silver-mist.** Dark, low-contrast, everywhere — a silver-mist Catppuccin
   Mocha variant, named for the Nebelung cat: grey, in fog.
-- **Dark only.** Never invert to a light theme. The one sanctioned light
-  artifact is nebelung's own latte banner (values under its mark below).
+- **Dark only.** Never invert a product artifact to a light theme. The
+  sanctioned light artifacts are the org's light square and nebelung's latte
+  banner, drawn from the latte flavor of the same tokens.
 - **Elevation is surface steps** — base → surface0 → surface1 — never shadows.
 - **Accents are pastel and light**: text, icons and borders on dark surfaces,
   or fills with dark (crust) text on top.
@@ -53,7 +54,7 @@ Three scopes this file deliberately does not own:
 | `--nebelung-yellow` | `#f7e2b5` | **trill's product colour**; `--nebelung-warning` |
 | `--nebelung-green` | `#abe1a6` | **perch's product colour**; `--nebelung-success` |
 | `--nebelung-teal` | `#9be0d5` | `--nebelung-info` |
-| `--nebelung-sky` | `#91dbe8` | retired with trill's Messages-era mark; not reassigned |
+| `--nebelung-sky` | `#91dbe8` | retired, never reassigned — a trill asset holding sky is stale |
 | `--nebelung-sapphire` | `#7dc6e7` | reserved |
 | `--nebelung-blue` | `#8db4f3` | reserved — blue is the hue nebelung exists to strip out; never an accent |
 | `--nebelung-lavender` | `#b5bff8` | link hover on working canvases |
@@ -68,29 +69,29 @@ Semantic aliases: `--nebelung-bg` → base · `--nebelung-bg-alt` → mantle ·
 
 | Product | Token | Hex | Status |
 |---|---|---|---|
-| hausfold (org) | none | — | the org has no hue; its wordmark is `--nebelung-text` on crust |
+| hausfold (org) | none | — | no single hue: the wordmark is `--nebelung-text` on crust, and the wedge-fan mark sweeps all six accents |
 | haus | none yet | — | undecided |
 | nebelung | `--nebelung-mauve` | `#c9a8f1` | decided (latte `#8545e3`) |
 | pounce | `--nebelung-peach` | `#f5b58e` | decided |
 | perch | `--nebelung-green` | `#abe1a6` | decided |
-| trill | `--nebelung-yellow` | `#f7e2b5` | decided (was sky; retired with the Messages pivot) |
+| trill | `--nebelung-yellow` | `#f7e2b5` | decided |
 | scruff | `--nebelung-maroon` | `#e6a3ad` | provisional — hausfold.co's pick, not yet carried into the logo system. Deliberately maroon and **not pink** |
 | snug | none yet | — | undecided |
 
 Rules:
 
-- Every colour is `var(--nebelung-*)`. A hardcoded hex is a defect — the one
-  standing exception is the latte banner, until latte tokens exist.
+- Every colour is `var(--nebelung-*)` — a light artifact resolves the same
+  tokens in the latte flavor. A hardcoded hex is a defect.
 - Mauve is the accent. No hue competes with it as a CTA.
-- **Each product owns one hue and no two share one.** When trill pivoted,
-  sky was retired rather than reused.
+- **Each product owns one hue and no two share one.** A hue that falls out
+  of use (sky) is retired, never reassigned.
 
 ## Typography
 
 - Brand face: **Space Grotesk** (Google Fonts, weights 400;500;600;700) on
   every deliverable — banners, OG cards, the logo sheet.
-- **Wordmarks are lowercase**, weight 600, +0.06em tracking: `hausfold`,
-  `nebelung`, `pounce`, `trill`, `perch`.
+- **Wordmarks are lowercase**, weight 600, +0.06em tracking — every one of
+  them, `hausfold` through `snug`.
 - UPPERCASE is reserved for eyebrows, taglines and footers, always
   wide-tracked (0.14–0.24em). Never for a wordmark.
 
@@ -144,9 +145,10 @@ palette shapes that carry the story, at the same weight as its siblings.
 `M -4 66 Q 18 56 38 64 Q 62 73 82 63 Q 94 58 106 64 L 106 104 L -4 104 Z`
 in `surface1`; fog layer 2
 `M -4 80 Q 22 71 46 78 Q 72 86 106 76 L 106 104 L -4 104 Z`
-in `surface2` @ 0.7. Latte variant (the one light artifact): tile `#f1f1f1`,
-ears `#8545e3`, fog `#c0c0c0` / `#b0b0b0` @ 0.7, banner ground `#e0e0e0` —
-fog surfaces step darker instead of lighter.
+in `surface2` @ 0.7. Latte variant: tile latte base `#f1f1f1`, ears latte
+mauve `#8545e3`, fog latte surface1 `#c0c0c0` / latte surface2 `#b0b0b0`
+@ 0.7, banner ground latte crust `#e0e0e0` — fog surfaces step darker
+instead of lighter.
 
 **pounce** — *mid-pounce over the prompt bar.* Ears peach,
 `translate(14 4) scale(0.72) rotate(12 50 35)`. Prompt bar
@@ -162,9 +164,17 @@ peach. Tagline: `SUMMON, AIM, POUNCE`.
 scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
 `surface1` rotated −11°, `rect 46,64 42×48 rx 6` green rotated 7°.
 
-**hausfold, haus, scruff, snug** — no mark exists. Set the wordmark alone;
-never invent a mark. (The logo sheet holds the org's place with a 150×150
-dashed placeholder: `1px dashed` `surface2`, radius 24, on `base`.)
+**hausfold (org)** — *the wedge-fan disc*: a circle of thin wedges sweeping
+all six accents, the one mark outside the ears system and the one that
+holds colour at rest. Sources: this repo's `assets/hausfold-dark-square.svg`
+and `assets/hausfold-light-square.svg`; hausfold.co's favicon carries the
+same fan, generated from nebelung's port. The logo sheet holds a 150×150
+dashed placeholder (`1px dashed` `surface2`, radius 24, on `base`) for an
+ears-family org mark; until one is ratified, the wedge fan is the org's
+mark.
+
+**haus, scruff, snug** — no mark exists. Set the wordmark alone; never
+invent a mark.
 
 ### Lockups
 
@@ -213,18 +223,20 @@ its mark; the bar for a second one is owned in that repo's `AGENTS.md`.)
 
 Current gaps, stated so nobody fills them by improvising:
 
-- **Marks** for hausfold (org), haus, scruff and snug.
-- **Light theme** beyond nebelung's six latte values.
+- **Marks in the ears system** for the org, haus, scruff and snug — the org
+  has the wedge fan meanwhile; the other three set the wordmark alone.
+- **Light-theme artifacts** beyond the org's light square and nebelung's
+  latte banner — the latte token sheet exists; artifacts drawn from it
+  mostly don't.
 - **Clearspace and minimum sizes** — smallest size rendered so far is 62px;
   nothing smaller is proven.
 - **An icon set** beyond the logo marks.
 - **Spacing scale, grid, motion** for anything bigger than the lockups above.
 
-Not yet settled (two candidates exist; the first named is the standard until
-ratified): trill's card-wears-the-ears mark vs. the fused single-silhouette
-icon-master candidate; perch's clipped square mark vs. its re-laid-out banner
-variant; `NO NOISE, JUST A TRILL` vs. `NOTIFICATIONS, FILTERED`; scruff's
-maroon (held by hausfold.co, not yet drawn into the logo system).
+Where the design project holds a second candidate — trill's fused
+single-silhouette icon master, perch's re-laid-out banner variant, the
+`NOTIFICATIONS, FILTERED` tagline — the geometry written above is the
+standard until this file changes.
 
 ## Agent quick reference
 
