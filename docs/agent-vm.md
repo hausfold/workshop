@@ -54,6 +54,37 @@ What holds, measured:
 - **The guest is auto-logged-in at the console**, with WindowServer, Dock and
   the bar running.
 
+## Driving the keyboard: three things that read as "the feature is broken"
+
+Every one of these was measured while pressing a desktop's whole keymap in a
+guest, and each first showed up as a *finding about the desktop* that turned out
+to be a fact about the harness.
+
+- **AppleScript `keystroke` puts `1 . / - =` on the NUMERIC KEYPAD.** Those
+  characters exist twice on a US layout, and System Events resolves them to the
+  keypad key code — which no window-manager binding names. So every one of them
+  reads as "unbound" on a machine where they are plainly bound, and only those
+  five, which looks exactly like a real bug in the punctuation half of a keymap.
+  Resolve the character yourself against the live layout (`UCKeyTranslate` over
+  the main block only) and post a `CGEvent`.
+- **A synthesized function key needs `maskSecondaryFn`.** `key code 123` (left
+  arrow) and `key code 79` (F18, which is what a Caps-Lock leader is remapped to)
+  reach nothing without it and work with it. Arrows and F-keys carry that flag on
+  a real keyboard; a CGEvent does not add it for you. AppleScript's own
+  `key code` does, which is why the two disagree.
+- **One unanswered Automation prompt wedges System Events for EVERY caller.**
+  The first time an app asks to control System Events — AeroSpace opening System
+  Settings, pounce raising a window — the modal blocks every `osascript` on the
+  machine, including the one you wrote to dismiss modals. Answer it with a
+  synthesized click (`CGEvent`, which needs nothing from System Events), and keep
+  the hot path off AppleScript entirely so a wedge stalls the sweeper and not the
+  run.
+
+**Read the layout, don't recall it.** `TISCopyCurrentKeyboardLayoutInputSource`
++ `UCKeyTranslate` over the ~48 main-block key codes, in all four
+plain/⇧/⌥/⌥⇧ states, is ~60 lines of Swift and settles what a key prints without
+a single guess. Every AZERTY claim worth writing down came out of that table.
+
 ## TCC prompts fire — they just don't block
 
 The operation succeeds *and* a permission dialog appears. Both. The guest's
