@@ -158,7 +158,7 @@ theirs and it is expensive**, and the expensive version ends in no report at all
 | pounce | `pounce doctor` |
 | trill | the environment its menu row fills in, plus `trill doctor` for a double-banner report |
 | workshop | `bench status` |
-| perch | version + macOS + Mac model — **no doctor exists** |
+| perch | the first two lines of `perch doctor` — **that output is sliced, not pasted whole** |
 | scruff | `scruff --version` + OS + which client spawned the lane |
 | nebelung, hausfold.co | *(field omitted entirely)* |
 
@@ -166,10 +166,28 @@ A repo with no diagnostic command gets **no field**, rather than a field asking
 for something that doesn't exist. A form that tells a reporter to run `nebelung
 doctor` teaches them the project doesn't know itself.
 
+perch is the one repo that asks for a **slice**. `perch doctor`'s header pair
+carries the four facts the field wants — version, install cohort, macOS build,
+Mac model — while the check rows under it name folders on the reporter's own
+Mac. The block lands in a public issue, so the hint asks for the two lines and
+says to leave the rest unless one of those rows is the bug. Ask for a whole
+output only where the whole output is safe to publish.
+
+perch's hint is also the only one that keeps a **route for a reporter with no
+CLI**: `perch` reaches PATH through the cask, the flake or haus, and a copy
+dragged out of the ZIP has none of them until its owner runs the `ln -s`. So the
+hint names Settings' sidebar as the fallback. A by-hand instruction that assumes
+an install cohort is a dead end for the cohorts it left out.
+
 Each hint says what the command does *not* do — *it only reads; it changes
-nothing, prompts for nothing, and sends nothing anywhere.* **If a doctor ever
-grows a write, that sentence is a lie in ten repos and this table is where to
-come.**
+nothing, prompts for nothing, and sends nothing anywhere.* **A doctor that grows
+a write makes that sentence a lie, and this table is where to come.** `perch
+doctor` is the one that has: its liveness check knocks on the running app
+through the group-container mailbox, which opens a request directory and closes
+it again. Nothing of the reporter's changes and nothing survives the call, but
+*"it only reads"* is not the sentence to make about it — so perch's hint says
+what the knock is instead. Claim read-only where it is true; describe the write
+where it isn't.
 
 ### Task = the PR body, written first — and it says out loud that it's ours
 
