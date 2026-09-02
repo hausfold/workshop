@@ -584,15 +584,53 @@ gh_repo() { # gh_repo <name> — the owner/repo a workshop checkout came from
 
 head_rev() { git -C "$(repo_dir "$1")" rev-parse HEAD 2>/dev/null || echo "?"; }
 
-locked_rev() { # locked_rev <repo> <input> — what rev <repo>'s flake.lock pins <input> at
-  python3 - "$(repo_dir "$1")/flake.lock" "$2" <<'EOF'
+lock_lookup() { # lock_lookup <repo> <input> <rev|slug> — one field of the node <repo>'s lock pins <input> at
+  # ⚠️ Never index `nodes` by the input's NAME. A node is named for whichever
+  # input claimed that name FIRST, and a transitive one can get there ahead of
+  # the root's own: the day haus took `factory`, factory's snug became node
+  # `snug` and haus's direct snug — the pin every edge here is about — became
+  # `snug_2`. Both readers then answered with factory's rev, so a `bench ship`
+  # that had already bumped haus's snug correctly went on to call the edge
+  # stale, spend three api.github.com retries on it, and die telling the user to
+  # bump by hand an edge that was already current. `bench status` said STALE
+  # forever after. Nothing about haus's flake.nix changed to cause it — a
+  # SECOND holder of the same input, in another repo, renumbered the nodes here.
+  #
+  # The root node's `inputs` map is the only thing that says which node an input
+  # name means. A value in it is either a node name or a `follows` PATH — input
+  # names walked from the root — so resolving one is recursive. Falling back to
+  # the bare name keeps a lock with no root node readable rather than silently
+  # "?", which is also what the older single-node fixtures test.
+  python3 - "$(repo_dir "$1")/flake.lock" "$2" "$3" <<'EOF'
 import json, sys
+
+def deref(lock, key):
+    if isinstance(key, str):
+        return key
+    node = lock["root"]
+    for seg in key:
+        node = deref(lock, lock["nodes"][node]["inputs"][seg])
+    return node
+
 try:
     lock = json.load(open(sys.argv[1]))
-    print(lock["nodes"][sys.argv[2]]["locked"]["rev"])
+    name = sys.argv[2]
+    root = lock["nodes"].get(lock.get("root", "root"), {}).get("inputs", {})
+    node = lock["nodes"][deref(lock, root[name]) if name in root else name]
+    if sys.argv[3] == "rev":
+        print(node["locked"]["rev"])
+    else:
+        src = node.get("original") or node.get("locked") or {}
+        if src.get("type") == "github" and src.get("owner") and src.get("repo"):
+            print("%s/%s" % (src["owner"], src["repo"]))
 except Exception:
-    print("?")
+    if sys.argv[3] == "rev":
+        print("?")
 EOF
+}
+
+locked_rev() { # locked_rev <repo> <input> — what rev <repo>'s flake.lock pins <input> at
+  lock_lookup "$1" "$2" rev
 }
 
 locked_slug() { # locked_slug <repo> <input> — the owner/repo that lock FETCHES <input> from
@@ -601,16 +639,7 @@ locked_slug() { # locked_slug <repo> <input> — the owner/repo that lock FETCHE
   # the one every future `nix flake update` re-resolves, so it's the one a
   # rename strands. Empty for anything that isn't a github: input (a `path:`
   # override, a plain git url) — those have no slug to be wrong about.
-  python3 - "$(repo_dir "$1")/flake.lock" "$2" <<'EOF'
-import json, sys
-try:
-    node = json.load(open(sys.argv[1]))["nodes"][sys.argv[2]]
-    src = node.get("original") or node.get("locked") or {}
-    if src.get("type") == "github" and src.get("owner") and src.get("repo"):
-        print("%s/%s" % (src["owner"], src["repo"]))
-except Exception:
-    pass
-EOF
+  lock_lookup "$1" "$2" slug
 }
 
 # ── the consumer's name for the layer input ───────────────────────────────────

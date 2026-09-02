@@ -104,6 +104,39 @@ JSON
   [ "$output" = "?" ]
 }
 
+# A node is named for whichever input claimed the name FIRST, so a TRANSITIVE
+# input can hold the bare name while the root's own input of the same name is
+# `snug_2`. That is the real shape: haus takes snug directly AND through
+# factory, and reading `nodes["snug"]` answered with factory's pin — so ship
+# bumped haus's snug correctly and then called the edge stale and died.
+
+@test "locked_rev reads the node the ROOT names, not the one that took the name" {
+  mkdir -p "$ROOT/haus"
+  cat >"$ROOT/haus/flake.lock" <<'JSON'
+{ "root": "root",
+  "nodes": {
+    "root":    { "inputs": { "factory": "factory", "snug": "snug_2" } },
+    "factory": { "inputs": { "snug": "snug" }, "locked": { "rev": "fac7001" } },
+    "snug":    { "locked": { "rev": "old1111" } },
+    "snug_2":  { "locked": { "rev": "new2222" } } } }
+JSON
+  run locked_rev haus snug
+  [ "$output" = "new2222" ]
+}
+
+@test "locked_rev walks a follows path to the node it ends at" {
+  mkdir -p "$ROOT/haus"
+  cat >"$ROOT/haus/flake.lock" <<'JSON'
+{ "root": "root",
+  "nodes": {
+    "root":    { "inputs": { "factory": "factory", "snug": [ "factory", "snug" ] } },
+    "factory": { "inputs": { "snug": "snug_2" }, "locked": { "rev": "fac7001" } },
+    "snug_2":  { "locked": { "rev": "old1111" } } } }
+JSON
+  run locked_rev haus snug
+  [ "$output" = "old1111" ]
+}
+
 # ── rev_on_main: is a locked rev actually on the upstream's main? ──────────────
 #
 # Three-valued on purpose. `no` is the hazard (a lock pinned at an unmerged PR
@@ -593,6 +626,20 @@ JSON
   run locked_slug consumer mydesktop
   [ "$output" = "hausfold/hausfold" ]
   [ "$output" != "$(gh_repo haus)" ]   # …which is what bench status reports on
+}
+
+@test "locked_slug reads the same node locked_rev does, not the name-holder" {
+  mkdir -p "$ROOT/haus"
+  cat >"$ROOT/haus/flake.lock" <<'JSON'
+{ "root": "root",
+  "nodes": {
+    "root":    { "inputs": { "factory": "factory", "snug": "snug_2" } },
+    "factory": { "inputs": { "snug": "snug" } },
+    "snug":    { "original": { "type": "github", "owner": "someone", "repo": "fork" } },
+    "snug_2":  { "original": { "type": "github", "owner": "hausfold", "repo": "snug" } } } }
+JSON
+  run locked_slug haus snug
+  [ "$output" = "hausfold/snug" ]
 }
 
 @test "locked_slug stays silent for inputs with no slug to be wrong about" {
