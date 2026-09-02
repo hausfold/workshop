@@ -27,17 +27,17 @@ to widen the filter that judges it. `factory config path` is where it lives.
 | | |
 |---|---|
 | scope | `orgs: ["hausfold"]` — every repo in the org, so a new one is covered the day it exists rather than the day somebody remembers this list |
-| excluded | `.github` · `ops` · `website` · `producer-desktop` |
+| excluded | `.github` · `ops` · `producer-desktop`, and `website`, which cannot fire — below |
 | after a merge | `bench pull` then `bench ship`, in `~/code/workshop` |
 | budget feed | `~/.cache/claude-statusline/usage-claude.tsv` |
 | everything else | factory's own defaults — `factory config print` shows the effective policy *plus the floor a config cannot lower*, so what it prints is what `factory tier` will actually do |
 
-**`ops` is excluded because it is the private one.** It holds the name register
+**`ops` is excluded for what is in it.** It holds the name register
 and real people's names, and which names are *free* is the sensitive half —
 `AGENTS.md`'s routing row is the whole argument. A docs-shaped PR there is
 exactly the kind the filter would otherwise wave through, and it is the one
 place a merge nobody read could put a line somewhere it may not go.
-`website` is archived. `producer-desktop` is nobody's night-shift business.
+`producer-desktop` is nobody's night-shift business.
 
 **`hausfold.co` is deliberately NOT excluded.** Its `main` deploys the public
 site, so a docs merge there is a *publish* — but nothing that publishes is
@@ -81,6 +81,39 @@ the next release stops at the mirror step. It stays in scope because that
 failure is loud and arrives before SwiftPM sees anything, and because no PR has
 ever been opened against the mirror — an exclusion should name a decision, not
 a hypothesis.
+
+**By that rule the fourth exclusion is the one to look at, because it cannot
+fire.** `scope.archived` is `false` — factory's own default, never written into
+this file — so a pass lists the org with `--no-archived`, and
+`hausfold/website` is archived. The exclusions are matched against the fifteen
+names that come back, so three of the four ever match. Sixteen repos less four
+exclusions and fifteen less three are both twelve, which is the number at the
+top of this page and the number a pass actually walks — the count is not wrong,
+only its derivation, and an arithmetic that agrees with itself is why the
+derivation goes unchecked. The effective policy does not settle it either:
+`factory config print` reports how many exclusions are *written*, not how many
+can match, and its scope line does not carry `archived`. (Read 2026-09-02
+against policy digest `7de05b3b`.)
+
+**It stays, because the archive flag is revocable and the claim resting on it
+is not.** `website` is one of the org's two private repos, `ops` the other, and
+both being out is what makes "all twelve repos in scope are public" true
+further down this page. That flag is org state rather than policy: flipping it
+moves no digest and changes no line of `factory config print`, so with no
+`exclude` entry an un-archive would make scope thirteen repos, one of them
+private, and that sentence false the same night. It is also the distinction the
+rule above needs — "no PR has ever been opened against the mirror" is not
+something anyone can flip, and an archive flag is, so the fourth entry names a
+decision where excluding the mirror would still be hypothesising. Deleting it
+would move the digest to `86b2f74a` and could not change a verdict tonight;
+what it changes is the night after somebody un-archives.
+
+**What it would be guarding is one README.** There is no `docs/`, so `^docs/`
+never applies, and the only markdown beside the floored `AGENTS.md` and
+`CLAUDE.md` is that README. The repo ships no workflow either, so the "don't
+look here" half costs what it costs in `.github` — nothing. A single private
+front page is a small thing to hold out of reach, and the clause that holds it
+there costs nothing to leave in.
 
 **`requireGreen` stays at `if-present`, and here that is a decision about three
 repos rather than a setting.** Nine of the twelve run a `pull_request` workflow
