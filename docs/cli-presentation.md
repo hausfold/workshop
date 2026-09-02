@@ -426,9 +426,15 @@ standard stops**.
 workshop has one by construction. haus and factory read a **store path** off
 their own snug input, injected as `HAUS_UI_SH` and `FACTORY_UI_SH` — a haus or
 factory user has no checkout. scruff has neither question: it imports the Go
-package. What every one of them shares is the DEGRADATION: the variable naming
-nothing, or the checkout being absent, must leave the tool printing plain marked
-text rather than dying. factory is the sharpest case — it has to install with a
+package. A haus binary with no wrapper above it to inherit the variable from
+answers the same question its own way rather than adding a fourth: `focus` and
+`haus-secret` take the store path as a build-time substitution, `github-signal`
+takes it prepended by its derivation, and the three scripts that are neither
+resolve it off `command -v snug`.
+
+What every one of them shares is the DEGRADATION: the variable naming nothing,
+or the checkout being absent, must leave the tool printing plain marked text
+rather than dying. factory is the sharpest case — it has to install with a
 `git clone` and a symlink on a machine with no Nix at all — and a change that
 makes any verb *need* snug has broken that install.
 
@@ -438,6 +444,7 @@ makes any verb *need* snug has broken that install.
 | `bench` | sources `$(repo_dir snug)/share/ui.sh`, and opens one `snug run` coprocess for a command that draws a live region. Its tables are `ui_col` + `ui_trow` + `ui_table_data`; a clone with no snug checkout at all — which is what its own CI is — falls back to a renderer in `bench` that lays the same columns out at their natural widths, the answer the budget gives a stream with no window anyway |
 | haus's `haus.sh` and `haus-show.sh` | ui.sh at `HAUS_UI_SH`, injected by `modules/core`; the `haus rebuild` phase painter is a coprocess. Its tables are `ui_col` + `ui_trow` + `ui_table_data`, and what is left in a format string is the no-ui.sh fallback plus two named exceptions — `haus-show`'s `field`, a one-row label rather than a table, and `haus set`'s picker, whose padding is the parse contract that recovers the chosen path out of `gum filter`'s answer |
 | haus's `focus` and `github-signal` | ui.sh in their own shell, a third way in: neither is behind the `haus` wrapper, so `focus` takes the path as a build-time substitution and `github-signal` takes it prepended by its derivation. `focus` sources it LAZILY, inside the two verbs that draw a table, because the bar drives that script on a timer. Both check `BASH_VERSINFO` first — ui.sh is bash 4+ and macOS's `/bin/bash` is 3.2, where it half-loads |
+| haus's `haus-secret` | ui.sh substituted at build time, the way `focus` takes it — a launchd agent, `haus doctor` and a person at a prompt all exec it directly, so there is no wrapper above it. Sourced LAZILY and only from the paths that draw: the hot path is a room reading one value at boot, which `exec`s secretspec without touching the painter. The one caller here that draws **no table** — its `--list` is blocks, because `why` is a paragraph and `obtain` is a URL or another sentence, and a column holding either cuts the only part worth reading. It declines the fold in exactly one place, an `obtain` with no whitespace in it: `ui_fold` hard-breaks a word wider than the line, which is right for prose and fatal for the URL somebody is about to copy, so a lone token is printed whole and left to the terminal — which wraps without putting a newline in the buffer |
 | haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
 | haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
 | `factory` | ui.sh at `FACTORY_UI_SH`, set by its own flake's `makeWrapper` at snug's store path. **No coprocess and no binary on PATH** — the binary's one advantage over the fallback is a live region, and no factory verb draws one: each prints its report and stops. Its own `lib/ui.sh` is the adapter, separate from `lib/common.sh` because `factory --help` has to draw without `jq` |
