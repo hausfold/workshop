@@ -254,6 +254,42 @@ for, at its sharpest — several squashes at once with nobody awake to close a
 pane — and the comment where it does that subtraction is the whole argument. The
 sweep is `scruff reap`, which is not one of the `afterMerge` commands.
 
+**`budget` is the one clause that throttles the shift rather than filtering
+it, and this config sets a single key in it.** `mode` is `metered` and every
+threshold is factory's own default; `feed` is the only line that is not a
+restatement of one, and it is what decides whether the gate can ever say yes —
+metered with no feed is a permanent refusal. **It gates nothing about
+merging.** `factory-shift` computes the verdict, logs it, and never branches on
+it again; merging gates on the lease alone, so a pass whose feed has vanished
+still merges every tier-1 PR it finds. The verdict is advice to the foreman,
+which is the same division the fixer lane is drawn on further down — the
+arithmetic here, the judgement there.
+
+**The dials are deliberately not repeated on this page, and that is enforced
+where they live.** One of factory's bats cases greps its README and
+`lib/common.sh` together, so a retuned `ceiling`, `reserve` or `fixer` cannot
+land in one without the other. Nothing reaches across repos to pin a third
+copy, and a page stating last quarter's dial would look exactly like this one.
+What is left to own here is what those defaults come to on this machine.
+
+**Folded together they are a single line that rises ten points a day.**
+`reserve` is the human's and drains evenly with the clock, so what the factory
+may spend is `ceiling − fixer − reserve × (days left ÷ 7)` — a cap that starts
+at `ceiling − fixer − reserve` on the reset instant and reaches `ceiling −
+fixer` in the week's last hour. On the defaults that is 20 rising to 90, ten
+points a day. factory's suite pins the reset-instant edge with a frozen clock
+because it is reachable no other way: integer division drops the reserve a point
+one second later, so the cap is 20 for exactly one second and 21 for the 8,640
+after it. Read here at 02:53 on 2026-09-02, three days before this account's
+reset — week 20%, reserve 30 pts, headroom 45 — `fixer: yes`.
+
+**The 5-hour window is tested first, and it is the half that answers for the
+shift's own spend.** `window5hMax` outranks the weekly line, though the weekly
+numbers are computed and printed beside the refusal either way, so a log line
+never carries only half the reading. The foreman is a Claude Code pane looping
+on a cadence, so its own turns land in the account window it is reading: the
+throttle meters the thing spending through it.
+
 **The budget feed is haus's, not factory's.** Nothing here writes that TSV.
 haus's `modules/ai/statusline.sh` stashes the account's 5-hour and weekly
 percentages on every Claude Code statusline render — the client hands both to
@@ -269,6 +305,43 @@ pushes nothing; and what gates the pull is not its caller but its bearer — the
 terminal `claude` renews in place whenever a pane runs, good for about nine
 hours after the last one. A foreman that was not a pane would spend against
 percentages from whenever one last was.
+
+**A feed that stops does not mis-spend for long; it stops the gate.** The
+5-hour reset stamp is bounded to the window it names, so a row can be at most
+five hours stale — in practice whatever was left of that window when it was
+written — before `left5` goes negative and the pass says `5-hour reset stamp
+unusable`. A GUI-driven day therefore costs the shift its fixer lanes rather
+than its accuracy, and costs them quietly: the budget line is a `warn` in the
+shift log and none of factory's six cards. A red `main` on such a night still
+draws its own fault card and gets no lane — which looks like the no-checkout
+ending further down and is not it: that one leaves a `haus.github.fix` banner
+behind, and this one never calls the binary at all. The log is the only place
+the red branch and the reason nothing was spawned on it sit together.
+
+**Nine columns are written and four are read, and neither repo names the
+other.** haus's row is `5h% · week% · 5h reset · week reset · written ·
+provider · model · provider id · last burned`, and haus documents it as the
+writer for the bar's `aiUsage` pill, which reads all nine. factory takes the
+first four positionally and drops the rest into `_rest`. The prefix is the safe
+half to lean on: the columns that could have gone empty are 7 and 8, which
+haus fills with a literal `claude` and `anthropic` for its own reader's sake
+(the comment beside that `printf` says why), and the four factory reads default
+to `0` on both writers and are never blank. What nothing on either side checks
+is the ORDER, and two percentages that swap places are both integers under
+100.
+
+**The `-claude` in that path is load-bearing, and the sibling feeds beside it
+say so.** `budget.feed` reads like a port any usage feed could fill; the
+arithmetic behind it is written for Anthropic's two windows, with 18000 and
+604800 as literals. Pointed at either of this machine's other two rows the gate
+produces no verdict at all: `usage-codex.tsv` carries a weekly reset fourteen
+days out, which the weekly bound rejects before the 5-hour one — also `0` — is
+read, and `usage-opencode.tsv` reports `0.00`, which is not digits. Both answer
+`fixer: no (budget unknown)`, and would answer it every pass forever. The
+constraint and the right choice coincide — a fixer lane here is a Claude Code
+lane, so Claude's account is the one to meter — which is exactly why nothing
+has had to notice the constraint. (Run 2026-09-02 against all three feeds, on a
+throwaway config.)
 
 ## The docs sweep is not the intake
 
