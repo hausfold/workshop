@@ -18,9 +18,10 @@ nebelung ──► pounce ──► haus ──► ~/.config/nix ──► your 
 theme        palette    layer    host file         darwin-rebuild
 ```
 
-That's the spine, not the whole graph: `perch`, `trill`, `scruff` and `snug` are
-inputs of `haus` too, and `nebelung` is one a second time, directly rather than
-through pounce. Eight edges in all — `bench`'s `EDGES` has the list.
+That's the spine, not the whole graph: `perch`, `trill`, `scruff`, `snug` and
+`factory` are inputs of `haus` too, `nebelung` is one a second time, directly
+rather than through pounce, and `factory` takes `snug` for itself. Ten edges in
+all — `bench`'s `EDGES` has the list.
 
 A flake input is not "whatever's on GitHub right now" — it's one exact commit,
 frozen in `flake.lock`. That's what makes a rebuild reproducible, and it's the
@@ -84,9 +85,14 @@ the shell ones drive, and the layer puts it on your PATH) and 🏭
 [factory](https://github.com/hausfold/factory) (merge the pull requests code
 alone can vouch for, while nobody is watching — the layer puts it on your PATH
 too). For all three, `bench try` builds your branch and `bench ship` ripples the
-lock, while `bench ship` never pushes them — they land through their own PRs.
-(`bench status` still prints a read-only row for each, because a STALE edge's
-next question is what that checkout is doing.)
+lock haus holds for them, while `bench ship` never pushes them — they land
+through their own PRs. (`bench status` still prints a read-only row for each,
+because a STALE edge's next question is what that checkout is doing.)
+
+⚠️ One edge is outside even that: `factory → snug`, factory's own pin for the
+presentation runtime. Its HOLDER is not a repo `bench ship` walks, so nothing
+here re-pins it and `bench try` does not reach inside factory's flake either.
+`bench status` reports it and says whose PR it belongs to.
 
 Three more ride along with no lock edge at all, so the ripple never walks them:
 🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you

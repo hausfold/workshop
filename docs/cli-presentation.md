@@ -1,8 +1,9 @@
 # How the family's CLIs put a line on screen
 
 The one presentation standard for every tool the workshop ships **that draws on a
-terminal** — `bench`, `haus` and `scruff`. It lives here, beside `agent-surface.md`
-and `drift.md`, because it binds every repo and belongs to none of them.
+terminal** — `bench`, `haus`, `scruff` and `factory`. It lives here, beside
+`agent-surface.md` and `drift.md`, because it binds every repo and belongs to
+none of them.
 
 Where it *stops* — trill's CLI, pounce's command scripts, the maintenance
 scripts, and the installers, which are out of the *runtime* but not the
@@ -361,6 +362,12 @@ repo-agnostic, its own flake input, shipped on `PATH` by the layer. It exists:
   `PATH` unconditionally beside `trill` and `haus-notify`. **Not pounce's
   command scripts** — see **Where the standard stops**; they have no terminal on
   the far end and must never grow one.
+- A shell caller that draws no live region needs only the fallback, and
+  `factory` is the one that says so: the binary's single advantage over
+  `share/ui.sh` is a region repainted from a coprocess, and every factory verb
+  prints its report and stops. It reads ui.sh off its own snug input and never
+  looks for `bin/snug`. Driving the binary is not the marker of compliance —
+  resolving the palette from snug is.
 
 Two dependencies, and the second choice went the other way from what this file
 first recorded. **`x/ansi` (charm's ANSI-aware string layer) plus `x/term` — 9
@@ -414,6 +421,17 @@ palette; no hand-picked 256-colour index survives in one. The installers and
 the maintenance scripts still hold theirs, deliberately — see **Where the
 standard stops**.
 
+**Reaching ui.sh is three different questions and each caller answers its own.**
+`bench` finds it in the snug **checkout** (`repo_dir snug`), because the
+workshop has one by construction. haus and factory read a **store path** off
+their own snug input, injected as `HAUS_UI_SH` and `FACTORY_UI_SH` — a haus or
+factory user has no checkout. scruff has neither question: it imports the Go
+package. What every one of them shares is the DEGRADATION: the variable naming
+nothing, or the checkout being absent, must leave the tool printing plain marked
+text rather than dying. factory is the sharpest case — it has to install with a
+`git clone` and a symlink on a machine with no Nix at all — and a change that
+makes any verb *need* snug has broken that install.
+
 | caller | how it reaches the runtime |
 | --- | --- |
 | `scruff`'s `internal/ui` | imports `github.com/hausfold/snug`. No process, no protocol |
@@ -422,6 +440,7 @@ standard stops**.
 | haus's `focus` and `github-signal` | ui.sh in their own shell, a third way in: neither is behind the `haus` wrapper, so `focus` takes the path as a build-time substitution and `github-signal` takes it prepended by its derivation. `focus` sources it LAZILY, inside the two verbs that draw a table, because the bar drives that script on a timer. Both check `BASH_VERSINFO` first — ui.sh is bash 4+ and macOS's `/bin/bash` is 3.2, where it half-loads |
 | haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
 | haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
+| `factory` | ui.sh at `FACTORY_UI_SH`, set by its own flake's `makeWrapper` at snug's store path. **No coprocess and no binary on PATH** — the binary's one advantage over the fallback is a live region, and no factory verb draws one: each prints its report and stops. Its own `lib/ui.sh` is the adapter, separate from `lib/common.sh` because `factory --help` has to draw without `jq` |
 
 haus's suite enforces this, with **two bans of different strengths, and the
 difference is the point.** Over `haus.sh` and `haus-show.sh` it fails on *any*
@@ -600,10 +619,10 @@ straight off the store path, with no copy and nothing to drift.
 
 ## Where the standard stops
 
-Four surfaces are **deliberately** outside it, and not all in the same way: two
-are out entirely, one is out of the *runtime* but not the *palette*, and one is
-out of everything. Each is a decision, not a backlog — re-open one by editing
-this section, not by quietly converting a file.
+Five surfaces are **deliberately** outside it, and not all in the same way:
+three are out entirely, one is out of the *runtime* but not the *palette*, and
+one is out of everything. Each is a decision, not a backlog — re-open one by
+editing this section, not by quietly converting a file.
 
 - **trill's `trill` CLI — plain, and staying plain.** It draws no colour at all,
   and that is settled rather than pending. It is Swift, so it cannot import

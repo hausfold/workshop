@@ -488,6 +488,24 @@ JSON
   [ "$output" = $'scruff\nhaus\nsnug\nconsumer' ]
 }
 
+@test "ship_scope does not grow through a holder cmd_ship never walks" {
+  # `factory snug snug` is that edge: factory holds a lock on snug and is a lock
+  # SOURCE rather than a FAMILY repo, so cmd_ship's `for name in FAMILY consumer`
+  # never reaches it. Adding it to the scope would buy one printed line and cost
+  # a bump nobody asked for — membership is also read as "this repo's work is in
+  # scope", so `bench ship snug` would go on to run `nix flake update factory`
+  # in haus and carry every factory commit on main into the next rebuild.
+  run ship_scope snug
+  [ "$output" = $'haus\nsnug\nconsumer' ]
+}
+
+@test "ship_scope still reaches a repo named outright, walked or not" {
+  # The skip above is about GROWING the closure, not about the arguments: naming
+  # factory is how you ship haus's lock for it, and that has to keep working.
+  run ship_scope factory
+  [ "$output" = $'haus\nfactory\nconsumer' ]
+}
+
 @test "ship_in_scope lets everything through when no repos were named" {
   local -a SHIP_SCOPE=()
   ship_in_scope nebelung
