@@ -305,7 +305,7 @@ look before trusting a claim about what a tool answers:
 | **scruff** | `script/check-skills.sh`, run from both `nix/skill.nix` and `.github/workflows/check.yml` — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap. It is the pattern the section above names |
 | **factory** | its own `script/check-skills.sh`, which folds a `>-` description before measuring it rather than demanding one physical line |
 | **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted |
-| **pounce** | `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, and `json_tests.swift` for the shared `--json` writer — stable key order, unescaped slashes, a `schema` key on every record |
+| **pounce** | three, and the first is the A4 shape half: `script/check-skills.sh`, run from both `pkgs/pounce-skill/default.nix` and `.github/workflows/build.yml`, which DISCOVERS `ai/*/SKILL.md` rather than listing them. Then `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, and `json_tests.swift` for the shared `--json` writer — stable key order, unescaped slashes, a `schema` key on every record |
 | **trill** | `TrillTests/SkillVerbTests.swift` and `CLILinkTests.swift` |
 | **nebelung** | five `grep` guards in `nix/skill.nix` over the hand-written `ai/SKILL.md`. Only `references/palette.md` is generated, from `palette/*.hex.json` — the split is the A4 rule below about what may be prose and what must be rendered |
 
