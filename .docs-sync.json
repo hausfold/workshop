@@ -1,54 +1,54 @@
 {
   "repos": {
     "workshop": {
-      "read": "ff7c37edbd5def484e080ecbae03fcf53c92d6d3",
-      "landed": "36553eb7adab98b55fa347e056617679495c7fcc",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "ed77c06ffccba9d6f4d0fc95efac81d5a8b2f1ab",
+      "landed": "ff7c37edbd5def484e080ecbae03fcf53c92d6d3",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "nebelung": {
-      "read": "1502ee2aeed31594f88d066580821bc24012284f",
-      "landed": "1502ee2aeed31594f88d066580821bc24012284f",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "45b1e6b45a9122ceab9162595d2bc1a730ae1eed",
+      "landed": "45b1e6b45a9122ceab9162595d2bc1a730ae1eed",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "pounce": {
-      "read": "060b1c2d39185806c319efc4c5b2bafef69705e8",
-      "landed": "060b1c2d39185806c319efc4c5b2bafef69705e8",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "c0e958c42022b80e0924479f841d28febae838e9",
+      "landed": "c0e958c42022b80e0924479f841d28febae838e9",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "haus": {
-      "read": "9196447ad2b9bc8d8a5685175997e22a9dc360d2",
+      "read": "02834ef26a869fd1cf8877fa48341f9725209a6e",
       "landed": "9196447ad2b9bc8d8a5685175997e22a9dc360d2",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "org-profile": {
       "read": "4e075deca3aee5de739b9dda90cac89d2dcdcc97",
       "landed": "4e075deca3aee5de739b9dda90cac89d2dcdcc97",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "homebrew-tap": {
-      "read": "daf67319b692023ebac5d41f7d61236329dd74f2",
-      "landed": "daf67319b692023ebac5d41f7d61236329dd74f2",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "0dafec4062c47a7a7ed1364ce9d83f7e1ce428d8",
+      "landed": "0dafec4062c47a7a7ed1364ce9d83f7e1ce428d8",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "perch": {
-      "read": "108c1e61584c586c823e55635eaac28ccc8c799f",
-      "landed": "108c1e61584c586c823e55635eaac28ccc8c799f",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "5c1bc0e65fd02e8f12cd60242169f85c907c81c9",
+      "landed": "5c1bc0e65fd02e8f12cd60242169f85c907c81c9",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "scruff": {
-      "read": "c38c64a6935c99a6ed08f321fe3b6d6a61c74a58",
-      "landed": "c38c64a6935c99a6ed08f321fe3b6d6a61c74a58",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "3f092db09bb8dd75425299bdde5a5019ff43ac01",
+      "landed": "3f092db09bb8dd75425299bdde5a5019ff43ac01",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "trill": {
-      "read": "9f48f2c0cf46c6f37b787ac0bc5186c570884762",
-      "landed": "9f48f2c0cf46c6f37b787ac0bc5186c570884762",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "8c7a5fcdc7a7b4181062c8ff6e4e18baa30fbe4c",
+      "landed": "8c7a5fcdc7a7b4181062c8ff6e4e18baa30fbe4c",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "hausfold.co": {
-      "read": "f2024ef3864ea57acbd3dacd2ea3607e77b8801d",
-      "landed": "8d26091a9b28880be721cb61a2ecb0c704e10188",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "1b4296d4db77fc7b79ee8c5d54e902873be1b52d",
+      "landed": "f2024ef3864ea57acbd3dacd2ea3607e77b8801d",
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "ops": {
       "read": "d4f1f2c051490662a0956da9d5d3774619aca121",
@@ -56,17 +56,17 @@
       "read_at": "2026-08-26T21:21:17+00:00"
     },
     "snug": {
-      "read": "a6d2210022324e9c6b2f95f9be44ff6cffc7f4fc",
+      "read": "d4da663fa9d45cae43f3ecfd5b3a3a683a223e7d",
       "landed": "",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read_at": "2026-09-02T21:28:13+00:00"
     },
     "factory": {
-      "read": "040fd90fd4b7f75c91064852d89c862c473f2211",
-      "landed": "040fd90fd4b7f75c91064852d89c862c473f2211",
-      "read_at": "2026-09-01T21:19:36+00:00"
+      "read": "6d761726ca3dd187fe6033b8ff5687198e0fa152",
+      "landed": "6d761726ca3dd187fe6033b8ff5687198e0fa152",
+      "read_at": "2026-09-02T21:28:13+00:00"
     }
   },
-  "last_run": "2026-09-01T21:19:36+00:00",
+  "last_run": "2026-09-02T21:28:13+00:00",
   "comments": {
     "done": [
       "haus/flake.nix"
