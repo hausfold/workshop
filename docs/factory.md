@@ -133,6 +133,17 @@ itself last. Only the third leaves the merges landed, the checkouts current and
 the edges stale, and only the third is `bench status` for the edge that didn't
 move and a second `bench ship`; the other two want the tree cleared first.
 
+**The merge is a squash, so the lanes outlive it.** `mergeMethod` is `squash`,
+factory's own default and the family's method everywhere: a merged lane's own
+commits stay unreachable from main, so its local branch survives its PR and its
+merge base stays where it was. `afterMerge` catches the checkouts up and stops
+there; factory merges through the forge and knows nothing about lanes, so a
+morning after a productive night opens on a registry still holding the night's
+landed ones. That is the condition `bench overlap`'s per-side subtraction exists
+for, at its sharpest — several squashes at once with nobody awake to close a
+pane — and the comment where it does that subtraction is the whole argument. The
+sweep is `scruff reap`, which is not one of the `afterMerge` commands.
+
 **The budget feed is haus's, not factory's.** Nothing here writes that TSV.
 haus's `modules/ai/statusline.sh` stashes the account's 5-hour and weekly
 percentages on every Claude Code statusline render — the client hands both to
