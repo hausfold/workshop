@@ -2441,11 +2441,12 @@ EOF
 # ── snug's bash painter ──────────────────────────────────────────────────────
 
 @test "bench sources snug's share/ui.sh out of the snug checkout" {
-  # The wiring every drawn line depends on, and the reason the file lives in
-  # snug rather than here (docs/cli-presentation.md, **Why the fallback lives in
-  # snug**): `repo_dir snug` is the whole lookup, so a
-  # renamed path or a `repo_dir` arm that stopped answering fails HERE rather
-  # than the first time bench tries to draw a row.
+  # The wiring every drawn line depends on. ui.sh lives in snug rather than here
+  # because it is GENERATED beside palette.go from one token list, and a copy
+  # that drew a different colour from the binary would be worse than no copy at
+  # all. `repo_dir snug` is the whole lookup, so a renamed path or a `repo_dir`
+  # arm that stopped answering fails HERE rather than the first time bench tries
+  # to draw a row.
   mkdir -p "$ROOT/snug/share"
   cat > "$ROOT/snug/share/ui.sh" <<'UI'
 ui_say() { printf 'FIXTURE %s\n' "$*"; }
