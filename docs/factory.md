@@ -82,6 +82,35 @@ failure is loud and arrives before SwiftPM sees anything, and because no PR has
 ever been opened against the mirror — an exclusion should name a decision, not
 a hypothesis.
 
+**`requireGreen` stays at `if-present`, and here that is a decision about three
+repos rather than a setting.** Nine of the twelve run a `pull_request` workflow
+with no path filter at all, so every PR reports checks whatever it changed — a
+docs-only PR against `haus` runs the same bats suite a module change does, and
+`always` would not alter a single verdict there. The other three can present a
+tier-1 PR that reports nothing, and they are the three whose tier-1 surface
+this page has already had to reason about.
+
+Two of them ship no workflow: `homebrew-tap`, whose CI lives in the repos that
+push to it, and the `scruff-swift` mirror. **hausfold.co is the one that is not
+obvious.** All six of its PR-triggered workflows are path-filtered, and no
+filter names its `README.md` or its root `docs/`. What they watch is the
+published half and the build around it — `content/`, `src/`, `public/`,
+`worker.js`, `scripts/`, `test/`, the wrangler and Next configs, and each
+workflow's own file — which is the half tier 1 could never reach anyway:
+`content/` because the floor denies it, the rest because `tier1.allow` matches
+neither a `.ts` route nor a `.mjs` script. The two lists are drawn for opposite
+reasons and land on the same line, so the surface left to tier 1 is exactly the
+surface no workflow watches — and a green there would have meant a preview
+worker deployed, not a word being right.
+
+**`always` would not make those three safer; it would refuse them
+permanently.** The setting can require that a check exists, not that a relevant
+one ran — so where no workflow will ever trigger, the choice is not between a
+verified merge and an unverified one but between merging a README and never
+merging one. What stands in for CI in those repos is the `^worktree-` head: a
+lane that came through the pre-PR assurance pass. That is the reviewer the
+policy leans on everywhere; in these three it is the only one.
+
 **`afterMerge` is the lock ripple, and it is why the merge cannot end at the
 merge.** The repos form a chain of pinned flake inputs (the README's "one
 gotcha"), so a commit is invisible downstream until each `flake.lock` moves.
