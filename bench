@@ -2952,7 +2952,9 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # public repo. It holds the name register, the gap list and real people's names.
 # It has no flake edge and nothing to build, so it appears here and nowhere else
 # in bench except `clone` and `pull` — which plant and refresh the checkout this
-# list reads, and skip it without a word on a machine that has no access to it.
+# list reads. A bare `bench pull` skips it without a word on a machine that has
+# no access to it; `bench pull ops` there says so, because a repo you named
+# doing nothing quietly reads as a pull that worked.
 DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug factory hausfold.co ops)
 
 # Two watermarks per repo, and the GAP between them is the whole point:

@@ -472,8 +472,13 @@ JSON
 }
 
 @test "bench pull skips a missing ops in silence, so a machine without access still pulls" {
+  # The fixture that isn't `ops` is the load-bearing half: without a repo that
+  # DOES get pulled, an empty $output passes this whether the loop walked
+  # anything or not.
+  mkmain nebelung
   run cmd_pull
   [ "$status" -eq 0 ]
+  [[ "$output" == *"pulling nebelung"* ]]
   [[ "$output" != *ops* ]]
 }
 
@@ -482,6 +487,18 @@ JSON
   [ "$status" -eq 0 ]
   [[ "$output" == *"no checkout at $ROOT/ops"* ]]
   [[ "$output" != *"pulling ops"* ]]
+}
+
+@test "the missing-checkout warning explains ops, and only ops" {
+  # Delete the `[ "$name" = ops ]` guard and every missing repo starts claiming
+  # it needs credentials. The pair is what holds the clause to the one repo it
+  # is true of.
+  run cmd_pull ops
+  [[ "$output" == *"(private,"* ]]
+  run cmd_pull nebelung
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no checkout at $ROOT/nebelung"* ]]
+  [[ "$output" != *"(private,"* ]]
 }
 
 @test "the unknown-repo hint offers ops, so pullable is one list and not two" {
