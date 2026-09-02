@@ -132,6 +132,57 @@ would otherwise have been merged unread. (Counted 2026-09-01 against policy
 digest `7de05b3b` — which clause stops a PR is a property of the policy, so a
 config change moves that half.)
 
+**`tier1.allow` stays at its default, and in this family that default reaches
+three surfaces nobody writes by hand.** `^docs/` and `\.md$` are shapes; neither
+is a claim about prose. Across the twelve repos in scope `docs/` holds 27
+markdown files and four JSON, and all four JSON are haus's `docs/site-data/` —
+9,625 lines of the `haus.*` option surface and the tiling binding table, `nix
+build .#site-data` committed so hausfold.co can render its options reference
+without Nix. The other two are markdown, so they match wherever they sit:
+nebelung's `docs/ports.md` and the port board inside its own `README.md`, both
+written by `scripts/gen-ports-doc.mjs` out of `ports.meta.json`.
+
+**What keeps each of them honest is a drift check in the repo that holds it,
+never the filter.** haus's `site-data-current` diffs the committed directory
+against the derivation, and it sits in the all-systems check set rather than
+being darwin-gated like the `*-reach` checks beside it, so `nix flake check`
+runs it *built* on the Linux runner every PR takes. nebelung re-renders both of
+its surfaces in `test/ports.test.mjs` and fails on a stale one, under the `node
+--test` its `unit` job runs. Both repos are in the nine that report checks on
+every PR, so `if-present` is the clause carrying all three. The one file in
+`docs/site-data/` the check excludes is its `README.md`, which is the one file
+in there a person wrote.
+
+**The shape that would reach tier 1 has never been pushed.** Of the 148 commits
+that touched `docs/site-data/` since 2026-06-01, not one touched it alone, and
+the same holds for all eight that have ever touched `docs/ports.md`: a
+regeneration rides with whatever caused it — a `.nix` module, a
+`ports.meta.json` — and neither matches `tier1.allow`, so the PR is refused on a
+path before its size, its base, its head or its author is asked about. What
+*could* arrive alone is the catch-up regen for a `main` that merged red, and
+that one is the merge tier 1 is for: haus's own failure text says the fix is
+mechanical and never prose.
+
+**`maxLines` is not what defends any of it, and the numbers say so plainly.**
+The median `docs/site-data/` commit moves 8 lines and the 90th percentile 169;
+two of the 148 clear 2000. Widen the frame and it is emptier still — 205 merged
+PRs across the twelve since 2026-06-01 carry nothing but files that clear the
+paths, and the largest of them is 1,019 lines, so the cap has yet to be the
+reason for anything. It stops a whole-file regeneration and waves the one-option
+one through, which is the right way round for a size limit and the wrong thing
+to lean on. (Counted 2026-09-02 against policy digest `7de05b3b`.)
+
+**Merging a regenerated `site-data` is still not a publish.** hausfold.co
+renders `content/docs/haus/reference/options.mdx` from a *checkout* of haus at
+build time, and its drift workflow's push and pull-request triggers are
+path-filtered to the generator, that page and itself — so a merge here leaves
+the site's page stale rather than red, and the change reaches the public one as
+the Monday cron's long-lived `ci/options-drift` PR. That is one of the five
+non-`@me` pull requests counted above, and it is turned away on `content/`
+before its `ci/` head is ever read. The family's third generated doc surface is
+the one the floor already denies — for the publish reason, not the generated
+one.
+
 **`afterMerge` is the lock ripple, and it is why the merge cannot end at the
 merge.** The repos form a chain of pinned flake inputs (the README's "one
 gotcha"), so a commit is invisible downstream until each `flake.lock` moves.
