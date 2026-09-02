@@ -239,8 +239,8 @@ refuse — a spawner has nobody to tell.
 somebody's desk whether or not they are asleep at it, so a lane must not raise a
 window or take focus, and `HAUS_LANE_BACKGROUND=1` is what the binary already
 sets. The receipt is a banner — `--source haus.github.fix`, the string
-`~/.config/trill/rules.json` matches if a night of them is too many — and the
-lane's row in the agents pill.
+`~/.config/trill/rules.json` matches on — and the lane's row in the agents
+pill. What a rule there costs is below.
 
 **The lane is a Claude Code one here, which is what keeps it from stalling
 unattended.** Those panes run in permission mode `auto`, and the only hook that
@@ -268,6 +268,61 @@ installer-palette counts at `.sh` files — but that is where those tests happen
 to point, not a guarantee. A check that reddened over a `docs/` page would let
 the shift merge the fix to the thing that made it red, unread. Worth knowing
 before writing one.
+
+## What a night puts on screen
+
+**Two `--source` strings are the shift's own, and a spawned lane adds two that
+are not.** The shift's are `factory` and `haus.github.fix`; a fixer lane then
+draws under `haus.lane` and `claude`, which belong to the lane machinery and
+carry every other lane with them. Nothing routes any of the four until
+`~/.config/trill/rules.json` names one, because no match means banner. `bench`
+is the reasonable guess that is wrong: `afterMerge` runs `bench pull` and `bench
+ship`, and bench cards only from `try` and `rebuild` and notifies only from
+`try-batch` and `release`, none of which a pass runs.
+
+**`factory` is every card the shift itself draws** — the policy's
+`notify.source`, behind the one `trill send` in factory's `lib/common.sh` that
+all six call sites reach. Five are `fault`: the pass aborted, a default branch
+found red (that one carries the failed run's URL), the after-merge ripple
+failed, and the watchdog's two — the shift stalled, and the shift died with the
+lease revoked. The sixth is the only `done`, the count of tier-1 PRs a pass
+merged.
+
+**Dropping that source costs nothing the shift log does not already hold.**
+Every one of the six has a `say` or a `note` beside it, the red branch's URL
+included, so `{"match": {"source": "factory"}, "delivery": "drop"}` loses the
+interruption and keeps the record — and the handover is written from the log,
+not from the screen. The card worth splitting off first is the `done`, the only
+non-fault of the six: a rule matching `kind` ahead of a broader one tallies the
+merges into a digest and leaves the five faults to bang on the door. A Focus is
+not that dial. trill's shipped `focus` block already inboxes a `done` and
+banners a `fault`, which is the shape but not the tally, and only for as long as
+a Focus is on.
+
+**`haus.github.fix` is the fixer lane's, and silencing it is not only a night's
+decision.** The same binary is behind the GitHub pill's *Fix with AI*, so a rule
+there covers a click at the keyboard exactly as it covers the 3 a.m. spawn. Nor
+is it reachable from a rule on `haus`: trill matches `source` exactly, so the
+dotted name is a convention this family writes rather than a namespace trill
+walks.
+
+**It is also the source where `drop` genuinely loses something.**
+`haus-fix-github` forks its work and exits 0 before any of it happens, so no
+caller learns the outcome from a status — and three of the endings that produce
+no lane leave nothing behind but the card: nothing in `haus.ai.clients` on
+`PATH`, no local checkout of the repo, and a lane already running under the
+lock. Only the spawn failures reach `~/.local/state/haus/github-fix.log`. For
+those three the banner is the entire record, against a shift log whose last word
+on the subject is that a lane was asked for. `inbox` or a digest keeps them
+findable where `drop` does not.
+
+**The other two are the lane's, and a rule on either reaches well past the
+night.** `haus.lane` is how a lane that could not be tiled says so, and one of
+its two cards exists for the silent birth this spawn uses — the lane opened out
+of sight. `claude` is scruff's per-lane fin: an `ask` when a lane blocks on a
+question, a `done` when it finishes a turn. Both fire for every lane on this
+machine, the ones spawned at the keyboard included, so quieting a loud night
+through either is quieting the lanes themselves.
 
 ## Driving it
 
