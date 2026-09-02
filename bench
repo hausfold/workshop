@@ -2431,7 +2431,11 @@ cmd_pull() {
     # a private repo safe to list — but a repo you NAMED doing nothing at all
     # looks like a pull that worked. Say which one, and where it isn't.
     if [ ! -d "$dir/.git" ]; then
-      [ -n "$named" ] && warn "$name: no checkout at $dir — \`bench clone\` plants it (ops needs credentials)"
+      if [ -n "$named" ]; then
+        local why=""
+        [ "$name" = ops ] && why=" (private, so a machine without the credentials never got one)"
+        warn "$name: no checkout at $dir — \`bench clone\` plants it$why"
+      fi
       continue
     fi
     say "pulling ${name}…"
