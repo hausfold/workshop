@@ -61,7 +61,7 @@ meta() {
       BLURB="Something about the desktop doesn't work"
       DOCS="https://hausfold.co/docs/haus"
       DIAG="haus doctor"
-      DIAG_HINT="Paste the output of \`haus doctor\`. It only reads — it changes nothing, prompts for nothing, and sends nothing anywhere."
+      DIAG_HINT="**\`haus report\` fills this in for you** — so does *Report haus Issue* in the palette. Both open this form with the report already here, or hand you the block to paste when it is too long to ride in a link, and send nothing until you press Submit. By hand: paste the output of \`haus doctor\`. It only reads — it changes nothing, prompts for nothing, and sends nothing anywhere."
       AREAS=(
         "installing — the one-liner, bootstrap, first rebuild"
         "rebuild, update or rollback"
