@@ -134,10 +134,14 @@ Rules that follow from the shape:
 - **A second skill has to be ABOUT the tool.** If it would read the same with
   the tool's name swapped out, it is a personal workflow file and belongs in the
   user's own config.
-- **The description is ONE physical line, and at least 80 characters.** A YAML
-  folded scalar (`>-` plus an indented body) is valid YAML and every build guard
-  here rejects it on purpose: the guards are `grep`, and a description that
-  needs a parser is one that can silently stop being checked.
+- **The description is at least 80 characters, and the guard reads its
+  content.** Most guards here demand ONE physical line and reject a YAML folded
+  scalar (`>-` plus an indented body) on purpose: they are `grep`, and a
+  description that needs a parser is one that can silently stop being checked.
+  factory's takes the other trade deliberately — it folds the block back into
+  one string first, so a description long enough to route on stays readable in
+  the file — and says so where it sits. Either is compliant; an unguarded
+  description is not.
 - **The skill's `name:` key must match the directory it installs into.** A
   mismatch installs a skill under a name nothing ever asks for.
 - **Name the failure, not just the feature.** A skill whose `description`
@@ -288,27 +292,30 @@ however complete its SKILL.md is.
 
 ---
 
-## Where each tool stands
+## What holds each tool to this
 
-Every tool in the family meets A1–A5. What keeps each answer true is a test in
-that tool's own repo, not this page — a surface an agent reads and a person
-almost never does breaks silently, so none of it is held by convention:
+These are surfaces an agent reads and a person almost never does, so every way
+they break is silent and none of it can be held by convention. Each repo names
+its own guard — that column is the durable half of this table, and the place to
+look before trusting a claim about what a tool answers:
 
-| tool | what holds it |
+| tool | its guard |
 |---|---|
 | **haus** | `test/agent-surface.bats` — that `haus skill` prints the *rendered* store copy and never the `@hausVersion@` template beside it, that `skill install` refuses a read-only Nix symlink in words naming `haus.ai.skill` rather than dying on `EPERM`, and that `haus get --json` emits `{path, defined, value}` so a reset is distinguishable from a set |
-| **pounce** | `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, and `json_tests.swift` for the read verbs |
+| **scruff** | `script/check-skills.sh`, run from both `nix/skill.nix` and `.github/workflows/check.yml` — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap. It is the pattern the section above names |
+| **factory** | its own `script/check-skills.sh`, which folds a `>-` description before measuring it rather than demanding one physical line |
 | **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted |
+| **pounce** | `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, and `json_tests.swift` for the shared `--json` writer — stable key order, unescaped slashes, a `schema` key on every record |
 | **trill** | `TrillTests/SkillVerbTests.swift` and `CLILinkTests.swift` |
-| **scruff** | `internal/commands/doctor_test.go` and `agent_test.go` |
-| **factory** | `--json` on `lease status`, `shift`, `tier`, `watchdog` and `config print`, and `test/presentation.bats` for how they draw |
-| **nebelung** | the palette files generate both the ports and the skill, so there is nothing to drift |
+| **nebelung** | five `grep` guards in `nix/skill.nix` over the hand-written `ai/SKILL.md`. Only `references/palette.md` is generated, from `palette/*.hex.json` — the split is the A4 rule below about what may be prose and what must be rendered |
 
-A2 is a contract on **read** verbs, not a blanket flag: a verb that changes the
-machine or draws a report for a person does not owe an agent JSON. The
-requirement is that an agent can read every answer as data, not that every
-invocation is machine-shaped.
+Two scope lines that the requirements imply and nobody should have to infer:
 
-nebelung is n/a on A1, A3 and A5 by decision rather than by omission — it has no
-UI, no binary and no runtime, and the JSON that would be a command's answer is
-already the product.
+**A2 binds read verbs, not every invocation.** A verb that changes the machine
+or draws a report for a person to read does not owe an agent JSON — `haus
+doctor` and `factory doctor` are both prose. The requirement is that an agent
+can read every *answer* as data.
+
+**nebelung is n/a on A1, A3 and A5 by decision, not omission** — no UI, no
+binary, no runtime, and the JSON that would be a command's answer is already the
+product.
