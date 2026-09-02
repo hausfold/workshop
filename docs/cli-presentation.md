@@ -429,8 +429,11 @@ factory user has no checkout. scruff has neither question: it imports the Go
 package. A haus binary with no wrapper above it to inherit the variable from
 answers the same question its own way rather than adding a fourth: `focus` and
 `haus-secret` take the store path as a build-time substitution, `github-signal`
-takes it prepended by its derivation, and the three scripts that are neither
-resolve it off `command -v snug`.
+and `awake` take it prepended by their derivations, and the three scripts that
+are neither resolve it off `command -v snug`. Prepending and substituting are
+equally correct and the choice is local: a script that is ALREADY a
+`@placeholder@` template takes another hole (`focus`, `haus-secret`), and one
+that is read whole takes the line of shell (`github-signal`, `awake`).
 
 What every one of them shares is the DEGRADATION: the variable naming nothing,
 or the checkout being absent, must leave the tool printing plain marked text
@@ -445,6 +448,7 @@ makes any verb *need* snug has broken that install.
 | haus's `haus.sh` and `haus-show.sh` | ui.sh at `HAUS_UI_SH`, injected by `modules/core`; the `haus rebuild` phase painter is a coprocess. Its tables are `ui_col` + `ui_trow` + `ui_table_data`, and what is left in a format string is the no-ui.sh fallback plus two named exceptions — `haus-show`'s `field`, a one-row label rather than a table, and `haus set`'s picker, whose padding is the parse contract that recovers the chosen path out of `gum filter`'s answer |
 | haus's `focus` and `github-signal` | ui.sh in their own shell, a third way in: neither is behind the `haus` wrapper, so `focus` takes the path as a build-time substitution and `github-signal` takes it prepended by its derivation. `focus` sources it LAZILY, inside the two verbs that draw a table, because the bar drives that script on a timer. Both check `BASH_VERSINFO` first — ui.sh is bash 4+ and macOS's `/bin/bash` is 3.2, where it half-loads |
 | haus's `haus-secret` | ui.sh substituted at build time, the way `focus` takes it — a launchd agent, `haus doctor` and a person at a prompt all exec it directly, so there is no wrapper above it. Sourced LAZILY and only from the paths that draw: the hot path is a room reading one value at boot, which `exec`s secretspec without touching the painter. The one caller here that draws **no table** — its `--list` is blocks, because `why` is a paragraph and `obtain` is a URL or another sentence, and a column holding either cuts the only part worth reading. It declines the fold in exactly one place, an `obtain` with no whitespace in it: `ui_fold` hard-breaks a word wider than the line, which is right for prose and fatal for the URL somebody is about to copy, so a lone token is printed whole and left to the terminal — which wraps without putting a newline in the buffer |
+| haus's `awake` | ui.sh prepended by its derivation. The only caller here that is also a DATA SOURCE, and its conversion is shaped by that: `awake status --raw` answers the bar's coffee pill on every tick with `mode<TAB>remaining<TAB>until`, so `raw_status` and the launchd controller never reach `ui_load` at all — an escape or a mark in those three fields breaks the pill silently, and reading a thousand lines of bash to print them is a cost paid forever. What DOES draw is one sentence, printed by every prose verb: `status` says it having changed nothing, `awake 3h` and `awake off` say it having just made it true. It is the one binary in the family whose confirmations stay on **fd 1** — it has no narration to separate a report from, and the bar's popup rows have run `awake 1h >/dev/null` since before there was a painter |
 | haus's `statusline.sh` and `image-preview.sh` | ui.sh roles only — neither draws a live region |
 | haus's `lane-open.sh` | resolves `HAUS_UI_SH` and injects it into the snippet the lane's own shell runs; nothing in the script sources ui.sh itself |
 | `factory` | ui.sh at `FACTORY_UI_SH`, set by its own flake's `makeWrapper` at snug's store path. **No coprocess and no binary on PATH** — the binary's one advantage over the fallback is a live region, and no factory verb draws one: each prints its report and stops. Its own `lib/ui.sh` is the adapter, separate from `lib/common.sh` because `factory --help` has to draw without `jq` |
@@ -626,10 +630,19 @@ straight off the store path, with no copy and nothing to drift.
 
 ## Where the standard stops
 
-Five surfaces are **deliberately** outside it, and not all in the same way:
-three are out entirely, one is out of the *runtime* but not the *palette*, and
-one is out of everything. Each is a decision, not a backlog — re-open one by
-editing this section, not by quietly converting a file.
+Eight surfaces are **deliberately** outside it, and not all in the same way:
+six are out entirely, one is out of the *runtime* but not the *palette*, and one
+is out of everything. Each is a decision, not a backlog — re-open one by editing
+this section, not by quietly converting a file.
+
+**The reasons do not collapse into one.** Three of the eight are out because
+nothing on the far end of them is a terminal, and it is tempting to write that
+as the section's rule. It is not: the installers and the maintenance scripts are
+read by PEOPLE at real terminals, and they are exempt for reasons of their own —
+one about *when* they run, one about *who* reads them. A single "nobody reads
+these as a report" test would be false about a third of the list and would let
+the next borderline file in under a claim nobody checked. Every bullet carries
+its own reason, and a new surface joins the one whose reason actually fits it.
 
 - **trill's `trill` CLI — plain, and staying plain.** It draws no colour at all,
   and that is settled rather than pending. It is Swift, so it cannot import
@@ -637,11 +650,31 @@ editing this section, not by quietly converting a file.
   protocol as a coprocess. That is possible — it is what the protocol is for —
   but it is a *feature* somebody would have to want, not a sweep somebody
   forgot, and nobody wants it. Do not file it as debt.
+
+  **haus's ten one-file Swift helpers are out on the same import, and mostly on
+  a second reason too.** `hausax`, `hausdisp`, `hausocr`, `hausrect`,
+  `haustabs`, `floatpin`, `floatring`, `barpop`, `barvitals` and
+  `haus-github-receiver` are compiled with `xcrun swiftc` against AppKit; not
+  one of them can reach a Go package either. Six of the ten would have nothing
+  to say if they could — `floatpin`, `floatring` and `barpop` draw on the SCREEN
+  and write no terminal line at all, and `hausrect`, `barvitals` and `haustabs`
+  emit machine input (see the stdout bullet below). `hausdisp` is the one worth
+  naming individually: **`hausdisp list` is a real listing a real person reads**,
+  once, to find a monitor's UUID before they can write the `haus.displays`
+  option that uses it. It stays plain anyway, and the reason is trill's exactly
+  — a coprocess is a feature nobody has asked for, and this listing is read once
+  per monitor per lifetime. Not debt. `hausax` straddles the same way and lands
+  the same place: bare, it prints a JSON state document (see the table below),
+  but `hausax input-sources --all` is a plain list a person reads, and
+  `modules/core` names it in the hint on a bad-input-source warning.
 - **pounce's command scripts — permanently out.** A command's stdout is the
   *launcher's* input, parsed by the app; there is no terminal on the other end of
   it and an escape there is a bug, not a style. The `# pounce:` header comments
   are its whole presentation contract. This is why they are clean today and why
-  nothing should ever make them otherwise.
+  nothing should ever make them otherwise. It is the oldest instance of the rule
+  the stdout bullet below generalises, and it is stated twice on purpose: a
+  palette command is written by somebody reading *that* file's header, not this
+  section's.
 - **The installers — exempt from the RUNTIME, not from the palette.** `haus`'s
   `bootstrap.sh` (the standalone `curl | bash`, on a Mac with no nix at all) and
   `haus-activate.sh` (handed a reset environment by `sudo`, as root, to activate
@@ -687,6 +720,75 @@ editing this section, not by quietly converting a file.
   the first space. A bar plugin's `printf` has no terminal on the far end at
   all. None of these is a report; a budget applied to any of them takes a
   window away from whatever actually owns it.
+- **stdout that is another program's input — out, by construction.** The
+  generalisation of pounce's rule, and the biggest group on this list. Every one
+  of these writes fd 1 for a parser, so an escape is not a style question but a
+  corrupted field:
+
+  | surface | what is on fd 1 | who reads it |
+  | --- | --- | --- |
+  | `awake status --raw` | `mode<TAB>remaining<TAB>until` | the bar's coffee pill, with `IFS=$'\t' read` and `cut -f1` |
+  | `scruff-cache` | `scruff --json`, or a cache path, or an age in seconds | the bar's agents pill, the Lanes palette, `lane-cwd.sh` |
+  | `agent-state` | the agent-state TSV | the bar's agents pill |
+  | `hausrect` | `id x y width height` per window | `tiling-mode.sh`, sizing a grid |
+  | `barvitals` | a few TSV lines, one sample | the cpu and memory pills AND their dropdowns, from one run |
+  | `hausocr` | the recognized text, nothing else | `pbcopy`, via the `copy-text` palette command |
+  | `hausax` | a JSON state document | the theme room's activation, which `jq`s `.appearance` out of it |
+  | `haustabs` | 4-byte-length-prefixed JSON | Firefox's native-messaging protocol — an escape here is a framing error, not a smudge |
+  | `agent-desktop-guard` | the PreToolUse hook's JSON verdict | Claude Code, which re-opens a permission prompt on it |
+
+  `awake` is in this table AND in the caller table above, which is the point of
+  keeping the two: the rule is per-STREAM inside a binary, not per-binary. Its
+  prose verbs draw and its `--raw` never loads the painter at all.
+
+  **`haus-fix` and `haus-fix-github` belong here for a subtler reason: their fd 1
+  is a SUBPROCESS's.** `haus-fix` runs the agent under `tee` when it has a
+  terminal, so fd 1 is the transcript — anything haus printed there would
+  interleave with the client's own output — and the prompt itself reaches fd 1
+  only under `--dry-run`, where the whole point is a clean document to read or
+  pipe. `haus-fix-github` writes no report on fd 1 at all: its prompt is a
+  command substitution piped into `scruff spawn --prompt-file -`. Neither is
+  silent toward a person; both talk through `haus-notify`, because both are
+  usually spawned from a trill pill with no terminal anywhere near them. That is
+  where their presentation lives, and `haus-notify` is not this standard's
+  surface.
+
+- **Surfaces with no terminal on either end — out, and nothing to convert.**
+  Listed rather than left implicit, because "it must have been missed" is the
+  only other reading:
+
+  - **They draw on the screen.** `floatpin`, `floatring` and `barpop` are AppKit
+    processes that place an outline, pin a window or watch for a click. None
+    writes a terminal line.
+  - **They hand a line to something that draws it.** `haus-notify` puts a line
+    on SCREEN through trill or Apple's banner; `modules/core/trill.sh` is a
+    wrapper that resolves the bundle and `exec`s. `haus-notify`'s only terminal
+    writes are refusals on fd 2, and the family rule about them is elsewhere —
+    a flag it does not know is warned about and DROPPED rather than refused,
+    because a haus bug must not cost the user the message haus was sending.
+  - **They write a log or a file, detached.** `lidawake` (and
+    `haus-agent-awake`, the same script under a second name) is a root daemon
+    whose output is timestamped lines in `/var/log`; `haus-github-receiver` sits
+    behind a cloudflared tunnel; `statusline-refresh` is run DETACHED by
+    `statusline.sh` and writes a TSV that `statusline.sh` renders — the render
+    is the surface, and it is in the caller table above. `portless` is a
+    third-party npm daemon and not ours to convert at all.
+
+- **`portless-lane` — the one genuinely borderline file, and it stays out.** It
+  is bash, it is on `PATH`, a person runs it by hand, and it prints three lines
+  for that person: a `die`, a best-effort warning, and the confirmation
+  `portless-lane: <name>.localhost -> :<port>` — all on fd 2. By every test
+  above it is eligible, and saying otherwise would be the exemption list turning
+  into a place to hide things. Two reasons it is out anyway, and they only work
+  together. Its three lines are a **preamble to somebody else's output**: it
+  hands the terminal to `portless run <cmd>`, whose dev server owns both streams
+  for the rest of the session. And the file **has a deletion date written into
+  its own header** — vercel-labs/portless#398 adds `--prefix`, which is this
+  shim's entire job done one level down, and when the pin moves past it the file
+  goes and `lane-open.sh` exports `PORTLESS_PREFIX` instead. Converting a file
+  scheduled for deletion is the clearest case of work nobody is owed. If that PR
+  stalls and the shim outlives it, this bullet is the thing to re-open.
+
 - **The maintenance and probe scripts — out, permanently, by decision.**
   `haus`'s `script/build-golden-vm.sh`, trill's `scripts/dev-install.sh`, and
   this repo's `script/issue-labels.sh` and `script/probes/*.sh`. These do *not*
