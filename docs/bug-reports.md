@@ -158,13 +158,20 @@ theirs and it is expensive**, and the expensive version ends in no report at all
 | pounce | `pounce doctor` |
 | trill | the environment its menu row fills in, plus `trill doctor` for a double-banner report |
 | workshop | `bench status` |
-| perch | version + macOS + Mac model — **no doctor exists** |
+| perch | the first two lines of `perch doctor` — **that output is sliced, not pasted whole** |
 | scruff | `scruff --version` + OS + which client spawned the lane |
 | nebelung, hausfold.co | *(field omitted entirely)* |
 
 A repo with no diagnostic command gets **no field**, rather than a field asking
 for something that doesn't exist. A form that tells a reporter to run `nebelung
 doctor` teaches them the project doesn't know itself.
+
+perch is the one repo that asks for a **slice**. `perch doctor`'s header pair
+carries the four facts the field wants — version, install cohort, macOS build,
+Mac model — and every check row under it names a folder on the reporter's own
+Mac. The block lands in a public issue, so the hint asks for the two lines and
+says to leave the rest unless one of those rows is the bug. Ask for a whole
+output only where the whole output is safe to publish.
 
 Each hint says what the command does *not* do — *it only reads; it changes
 nothing, prompts for nothing, and sends nothing anywhere.* **If a doctor ever
