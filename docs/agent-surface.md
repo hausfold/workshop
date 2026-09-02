@@ -301,7 +301,7 @@ almost never does breaks silently, so none of it is held by convention:
 | **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted |
 | **trill** | `TrillTests/SkillVerbTests.swift` and `CLILinkTests.swift` |
 | **scruff** | `internal/commands/doctor_test.go` and `agent_test.go` |
-| **factory** | `--json` on every verb, and `test/presentation.bats` for how they draw |
+| **factory** | `--json` on `lease status`, `shift`, `tier`, `watchdog` and `config print`, and `test/presentation.bats` for how they draw |
 | **nebelung** | the palette files generate both the ports and the skill, so there is nothing to drift |
 
 A2 is a contract on **read** verbs, not a blanket flag: a verb that changes the
