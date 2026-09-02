@@ -2971,10 +2971,9 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # footing — overridable, a lock source, not FAMILY — and is here because its
 # AGENTS.md and README ARE the presentation standard now: they carry both what a
 # line looks like and how it is DRAWN. factory is on that same footing and is here because its
-# README is the night shift's whole manual now: `docs/factory.md` here is only
-# the policy this org runs it under, so a sweep that skipped factory would be
-# skipping the document the pointer points AT. hausfold.co is unchanged: no
-# flake input at all.
+# README is the night shift's whole manual — there is no second half in this
+# repo's docs/ any more, so a sweep that skipped factory would be skipping the
+# only document there is. hausfold.co is unchanged: no flake input at all.
 #
 # 🔒 `ops` is the PRIVATE one, and it is in this list on a ONE-WAY basis: the
 # sweep reconciles the files in it, and may never carry a line out of it into a

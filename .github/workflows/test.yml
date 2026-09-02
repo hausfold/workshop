@@ -15,8 +15,9 @@
 #   • `script/factory-*` is hausfold/factory, whose CI runs the same 87 bats
 #     cases plus shellcheck. The night shift is a thing a machine RUNS, not a
 #     thing this directory contains: haus puts `factory` on PATH, so the tool
-#     has to be testable and installable without this repo. `docs/factory.md`
-#     is now the policy it runs under here, and nothing in it is executable.
+#     has to be testable and installable without this repo. Nothing about the
+#     night shift is left here to test — the manual is factory's own README and
+#     the layer's levers are haus's `docs/night-shift.md`.
 name: Tests
 
 on:
