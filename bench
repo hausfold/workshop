@@ -2398,10 +2398,21 @@ cmd_pull() {
   # SAME name in this array twice and had `bench pull` fast-forward one checkout
   # under the other's identity. §10 moved the layer to `$ROOT/haus` and the two
   # names no longer share a prefix — which removes the trap, not the rule.
-  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug factory hausfold.co consumer)
+  #
+  # 🔒 `ops` rides along at the end, and it is the ONE repo here allowed to be
+  # absent. It is PRIVATE — cloned only where the credentials are — so the
+  # `.git` guard in the loop below IS the access check: a machine without it
+  # skips the repo instead of failing a pull whose real job is the family. It
+  # has no flake edge and nothing to build; it is here because `DOCS_REPOS`
+  # reads it, and a stale checkout makes the sweep reconcile yesterday's
+  # register while reporting it clean. `bench clone` plants it on the same
+  # terms.
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug factory hausfold.co ops consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
+  local named=""
   if [ "$#" -gt 0 ]; then
+    named=1
     local a; local -a want=()
     for a in "$@"; do
       if printf '%s\n' "${repos[@]}" | grep -qx "$a"; then
@@ -2416,7 +2427,13 @@ cmd_pull() {
   local name
   for name in "${repos[@]}"; do
     local dir; dir="$(repo_dir "$name")"
-    [ -d "$dir/.git" ] || continue
+    # A missing checkout is silence on a bare `bench pull` — that is what makes
+    # a private repo safe to list — but a repo you NAMED doing nothing at all
+    # looks like a pull that worked. Say which one, and where it isn't.
+    if [ ! -d "$dir/.git" ]; then
+      [ -n "$named" ] && warn "$name: no checkout at $dir — \`bench clone\` plants it (ops needs credentials)"
+      continue
+    fi
     say "pulling ${name}…"
     git -C "$dir" pull --ff-only || warn "$name: couldn't fast-forward; resolve by hand"
   done
@@ -2930,7 +2947,8 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # sweep reconciles the files in it, and may never carry a line out of it into a
 # public repo. It holds the name register, the gap list and real people's names.
 # It has no flake edge and nothing to build, so it appears here and nowhere else
-# in bench except `clone`.
+# in bench except `clone` and `pull` — which plant and refresh the checkout this
+# list reads, and skip it without a word on a machine that has no access to it.
 DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug factory hausfold.co ops)
 
 # Two watermarks per repo, and the GAP between them is the whole point:
