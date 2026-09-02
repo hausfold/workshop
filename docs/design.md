@@ -4,7 +4,10 @@
 anyone, human or agent, making a thing that carries the brand: a logo, a
 banner, an OG card, a README hero, a one-off page.** Binds every repo in the
 family. The master SVG sources live in the *Logo system* design project;
-exported PNGs land in each repo's own assets.
+exported PNGs land in each repo's own assets. Served publicly at
+`https://hausfold.co/design.md` — the site's Worker proxies this file from
+main, so it stays at `docs/design.md`; moving or renaming it breaks that
+URL.
 
 Three scopes this file deliberately does not own:
 
