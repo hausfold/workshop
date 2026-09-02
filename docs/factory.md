@@ -111,6 +111,27 @@ merging one. What stands in for CI in those repos is the `^worktree-` head: a
 lane that came through the pre-PR assurance pass. That is the reviewer the
 policy leans on everywhere; in these three it is the only one.
 
+**`authors` stays `["@me"]`, the one clause in the policy that asks *who*.**
+Everything else tier 1 weighs is the shape of a pull request — its paths, its
+size, its base, its head, its checks — and a shape is something anyone with a
+fork can produce. All twelve repos in scope are public, and nothing ahead of
+this clause distinguishes a fork's head from the repo's own, so a branch named
+`worktree-typo` clears `tier1.head` exactly as a lane does. That is the
+condition the head rests on everywhere else on this page: as the stand-in for
+CI in the three repos above, and as the shape that arrives with a reviewer
+further down, `^worktree-` is a claim about who pushed it — and this clause is
+the only thing checking.
+
+**It has never refused a PR, which is the reason to write it down rather than
+the reason to drop it.** Across the org's sixteen repos, five PRs to date are
+not `@me`'s: all five a CI bot's, in two repos that are in scope, and each
+turned away a clause earlier — three on a denied path, two on a `ci/` head. So
+no verdict in any log names an author, and `*` reads as free: same repos, same
+counts, a new digest. The first PR this clause ever refuses is the one that
+would otherwise have been merged unread. (Counted 2026-09-01 against policy
+digest `7de05b3b` — which clause stops a PR is a property of the policy, so a
+config change moves that half.)
+
 **`afterMerge` is the lock ripple, and it is why the merge cannot end at the
 merge.** The repos form a chain of pinned flake inputs (the README's "one
 gotcha"), so a commit is invisible downstream until each `flake.lock` moves.
