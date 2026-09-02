@@ -10,7 +10,7 @@ description: >-
 
 # Docs sync — reconcile the docs with what actually shipped
 
-Code moves across eleven repos all day; the docs don't follow on their own. Once a day
+Code moves across twelve repos all day; the docs don't follow on their own. Once a day
 this sweep reads what landed, decides what it broke or bloated, fixes it in the right
 place, and opens a PR.
 
@@ -23,19 +23,19 @@ a skipped no-op costs nothing.
 everything a *user* experiences. READMEs, `AGENTS.md` and in-repo docs serve contributors
 and agents. When the two disagree, the site wins and the repo doc gets corrected.
 
-## Step 0 — in a cloud container, plant the other eleven repos
+## Step 0 — in a cloud container, plant the other twelve repos
 
 Skip this on Julien's Mac; the checkouts are already there.
 
 ```bash
 ./.agents/setup.sh              # Determinate Nix + the proxy CA; no-ops if Nix exists
 command -v python3 gh || echo "MISSING — the watermark needs python3, Step 6 needs gh"
-./bench clone                   # the eleven others, at the dir names bench expects
+./bench clone                   # the twelve others, at the dir names bench expects
 git config --global user.name  "docs-sync"
 git config --global user.email "docs-sync@hausfold.co"
 ```
 
-Three layout facts are load-bearing and none is guessable: the eleven live **inside** the
+Three layout facts are load-bearing and none is guessable: the twelve live **inside** the
 workshop checkout as gitignored subdirectories (`<workshop>/haus`, …), `org-profile`'s
 directory is `org-profile` while its remote is `hausfold/.github`, and **`ops` is
 private**, so its clone needs credentials and warns rather than dying without them.
@@ -48,10 +48,10 @@ container.
 > package, a shipped page all make a claim in there wrong, and fixing that is this sweep's
 > job. Nothing flows **out**. Never quote, summarise or paraphrase a line from `ops` into a
 > public repo's PR, doc or issue, and never let a finding about `ops` appear in another
-> repo's PR body. If `ops` can't be cloned, say so in Step 8 and sweep the other eleven.
+> repo's PR body. If `ops` can't be cloned, say so in Step 8 and sweep the other twelve.
 
 > 🚨 **Repos pre-cloned elsewhere get `mv`d into place, never symlinked.** `.gitignore`
-> spells the ten with trailing slashes (`/haus/`), which match a directory and not a
+> spells every one of them with a trailing slash (`/haus/`), which matches a directory and not a
 > symlink to one — so a symlinked checkout stops being ignored and `git add -A` stages it.
 
 > 🚨 **A pre-cloned container also lies about `main`, and Step 7 believes it.** Those
