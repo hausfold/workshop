@@ -103,7 +103,7 @@ meta() {
       BLURB="Something about the shelf doesn't work"
       DOCS="https://hausfold.co/docs/perch"
       DIAG="perch doctor"
-      DIAG_HINT="**Perch's menu bar ▸ Report a Bug… fills this in for you** — it opens this form with the version, your macOS build, your Mac model and how this copy was installed already here, and sends nothing until you press Submit. By hand: run \`perch doctor\` and paste its first two lines, which carry those same four facts — the rows under them name folders on your own Mac, so leave those out unless one of them is what broke. It only reads — it changes nothing, starts nothing, and sends nothing anywhere."
+      DIAG_HINT="**Perch's menu bar ▸ Report a Bug… fills this in for you** — it opens this form with the version, your macOS build, your Mac model and how this copy was installed already here, and sends nothing until you press Submit. By hand: run \`perch doctor\` and paste its first two lines, which carry those same four facts — the rows under them name folders on your own Mac, so leave those out unless one of them is what broke. No \`perch\` on your PATH? Settings has the version at the bottom of its sidebar; add your macOS version and Mac model. \`doctor\` reads your Mac and knocks once to see whether Perch is awake — it starts nothing, changes no setting of yours, and sends nothing anywhere."
       AREAS=(
         "dragging files in"
         "dragging files out"
