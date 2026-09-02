@@ -52,10 +52,13 @@ app that just broke.
 | **perch** | menu bar ▸ *Report a Bug…* | version · macOS + build · Mac model · install cohort |
 | **trill** | menu bar ▸ *Report a Bug…* · `trill report [--print]` | the same four, plus whether the notification store it audits could be read |
 | **pounce** | palette ▸ *Report Pounce Issue* · Settings ▸ app menu ▸ *Report a Bug…* · `pounce report [--print]` | the same four, plus the whole `pounce doctor` report |
-| everything else | *(no door yet — haus, the workshop, scruff and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
+| **haus** | palette ▸ *Report haus Issue* — a bash script haus ships (`modules/launcher/commands/report-issue-haus.sh`) that the launcher room layers into pounce, so it exists only where both are installed; haus has no `report` verb | ⚠️ **a `?title=&body=` skeleton, which is points 1, 2 and 4 all at once**: it walks past the form, it puts words in the reporter's mouth (`what` comes pre-blocked out), and its footer is `scutil --get LocalHostName`, which on a stock Mac is the owner's name, landing in a public issue. The fix is the other three doors' shape — `?template=bug.yml`, `diagnostics` alone, and nothing in it a person would want back |
+| everything else | *(no door yet — the workshop, scruff and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
 
 Each app implements its own `BugReport` — pounce installs standalone and perch
-is sandboxed, so there is nothing to share a library through. What they share is
+is sandboxed, so there is nothing to share a library through. haus's is a fourth
+copy in a fourth language, for a fifth reason: it is a palette script, and the
+door runs in a process neither repo compiled. What they share is
 this page. Four things are the standard, and each of them is a bug that fails
 **silently** if you get it wrong:
 
@@ -173,7 +176,7 @@ the vocabulary; they have one audience.)
 | **generator** | renders four YAML files into ten repos from one table | [`script/issue-templates.sh`](../script/issue-templates.sh) |
 | **GitHub state** | the labels the forms apply, and the security destination they link | [`script/issue-labels.sh`](../script/issue-labels.sh) |
 | **gate** | the only thing that notices when a repo stops matching | [`.github/workflows/issue-templates.yml`](../.github/workflows/issue-templates.yml) |
-| **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/` |
+| **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/`; haus's is a palette script, `haus/modules/launcher/commands/report-issue-haus.sh` |
 
 **Why a generator.** Four forms hand-maintained across ten repos fails silently
 and asymmetrically: the day pounce's bug form asks for something haus's doesn't,
