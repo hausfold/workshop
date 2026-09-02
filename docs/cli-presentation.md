@@ -619,10 +619,10 @@ straight off the store path, with no copy and nothing to drift.
 
 ## Where the standard stops
 
-Four surfaces are **deliberately** outside it, and not all in the same way: two
-are out entirely, one is out of the *runtime* but not the *palette*, and one is
-out of everything. Each is a decision, not a backlog — re-open one by editing
-this section, not by quietly converting a file.
+Five surfaces are **deliberately** outside it, and not all in the same way:
+three are out entirely, one is out of the *runtime* but not the *palette*, and
+one is out of everything. Each is a decision, not a backlog — re-open one by
+editing this section, not by quietly converting a file.
 
 - **trill's `trill` CLI — plain, and staying plain.** It draws no colour at all,
   and that is settled rather than pending. It is Swift, so it cannot import
