@@ -122,7 +122,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 
 | Check | The failure it catches |
 |---|---|
-| **Routing** | the change is in the wrong repo — a color hex landing in `hausfold` (the rice) instead of `nebelung`, launchd logic in `pounce` instead of the rice, site copy in `hausfold` instead of `hausfold.co`. The workshop's routing table decides, and "it works here" is not a defence. |
+| **Routing** | the change is in the wrong repo — a color hex landing in `haus` instead of `nebelung`, launchd logic in `pounce` instead of `haus`, site copy in `haus` instead of `hausfold.co`. The workshop's routing table decides, and "it works here" is not a defence. |
 | **Docs drift** | a renamed/added nix option, keybind, CLI flag or user-visible behavior with no matching edit in `hausfold.co/content/docs/` (the SOT), its `haus/reference/options.mdx`, `haus/rooms/windows.mdx`, or the repo's README. An option a user can set and can't discover is a bug. |
 | **Atomicity** | a breaking `haus.*` option rename split across PRs. The consumer edit + lock bump must ride in the **same** PR — `bench ship` can't split them, so a split leaves `main` broken mid-ripple. |
 | **Hotkey drift** | a new keybind colliding with an existing one across AeroSpace(windows) / pounce / macOS symbolic hotkeys. Collisions are silent: the loser just stops firing. |
@@ -133,7 +133,7 @@ pass hunts the **family invariants**, the ones that only bite after merge:
 Two properties that make this worth doing rather than ritual:
 
 - **It reads the reviewed repo's own `AGENTS.md`**, not the workshop's. A `pounce` PR is
-  judged by pounce's boundary rules; a rice PR by the rice's. If a repo has no `AGENTS.md`
+  judged by pounce's boundary rules; a `haus` PR by haus's. If a repo has no `AGENTS.md`
   (scruff was that repo until [scruff#31](https://github.com/hausfold/scruff/pull/31)), pass the
   workshop's routing table plus that repo's `README.md` and design docs instead, and say in
   the PR body that the pass ran without a repo boundary doc. Don't skip the pass over a

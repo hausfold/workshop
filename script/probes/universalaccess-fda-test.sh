@@ -120,7 +120,7 @@ else
   cat <<'EOF'
   ⚠️  WRITES BUT DOES NOT TAKE EFFECT — same shape as com.apple.Accessibility.
      → The plist accepts the value and macOS ignores it, which is the worst
-       failure mode for a shared rice: it looks applied and isn't.
+       failure mode for a shared desktop: it looks applied and isn't.
      → The five options stay unusable in practice. Consider whether a logout is
        required before calling this final (re-run after logging out).
 EOF

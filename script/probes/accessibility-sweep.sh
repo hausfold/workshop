@@ -9,7 +9,7 @@
 #
 # Two keys here are the point of the whole exercise and are NOT typed by
 # nix-darwin — if they hold up they're reachable via CustomUserPreferences, and
-# the large-print/high-contrast rice gains a system-level half it currently
+# the large-print/high-contrast desktop gains a system-level half it currently
 # assumes it cannot have:
 #
 #   increaseContrast   — the high-contrast lever

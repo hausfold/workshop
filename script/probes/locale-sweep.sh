@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Locale / input sources — the §5.6 group that blocks every non-English rice,
+# Locale / input sources — the §5.6 group that blocks every non-English desktop,
 # spiked the way §4 spiked universalaccess.
 #
 # Four questions, in the order they bite:
@@ -109,7 +109,7 @@ cat <<'EOF'
   something on their own — force24 the hour format, AppleMetricUnits the
   measurement system, AppleTemperatureUnit the temperature unit. The fourth,
   `AppleMeasurementUnits`, moves NOTHING any oracle here can see, and it is the
-  one with the friendly Inches/Centimeters enum — the key a rice reaches for
+  one with the friendly Inches/Centimeters enum — the key a desktop reaches for
   first. macOS writes all three together when you change the region, so setting
   the obvious-looking one alone leaves a plist that reads right and a machine
   that ignores it. That is this section's "second key makes the first a lie".

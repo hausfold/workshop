@@ -88,7 +88,7 @@ cat <<'EOF'
   The mapping is exponential: stored = e^(slider − 1), i.e. slider = 1 + ln(v).
   So 0.5 is 31%, not 50%, and everything at or below e^-1 ≈ 0.3679 is silence.
   nix-darwin's docstring lists 75/50/25% as magic constants without saying the
-  shape, which is exactly how a rice ends up shipping "half volume" that isn't.
+  shape, which is exactly how a desktop ends up shipping "half volume" that isn't.
 
   The <deleted> row is the group's default policy, measured rather than assumed:
   removing the key returns the alert volume to the OS default (100), NOT to the

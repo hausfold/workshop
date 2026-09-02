@@ -9,14 +9,14 @@
 # paragraph.
 #
 #   nix-instantiate --eval --strict --json script/probes/scale-reach.nix \
-#     --arg rice /Users/you/code/workshop/hausfold
+#     --arg haus /Users/you/code/workshop/hausfold
 #
 # (Same argument convention as pack-priority.nix / preset-composition.nix: a
 # workshop worktree cannot see the sibling repos, and `nix eval --file` ignores
 # `--arg`.)
 #
 # Unlike those two this is NOT pure lib — `numeric` is, but `reach` evaluates
-# four whole darwin systems, so it is a macOS-only probe and its rice-side
+# four whole darwin systems, so it is a macOS-only probe and its haus-side
 # descendant is darwin-guarded beside `accent-reach`. Four evaluations run in
 # well under a minute warm.
 #
@@ -36,14 +36,14 @@
 #
 #    So §5.2's "audit `fonts.*.size` and prowl's gaps" was aimed one layer off:
 #    prowl's gaps are not an option at all. Every other point-valued number in
-#    the rice — the gaps, the Dock tile, the bar's type, pounce's panel widths —
+#    haus — the gaps, the Dock tile, the bar's type, pounce's panel widths —
 #    is INTERNAL, computed from `ui.scale` inside a module. A rule about the
 #    option surface therefore governs a set of size one.
 #
 # 2. AND THAT ONE CANNOT CLIP *WHILE PROWL TILES IT* — read from the code, not
 #    measured here, and the precondition is load-bearing: a tiled Ghostty at a
 #    bigger font buys fewer columns, never a window wider than the screen, but a
-#    FLOATING window (prowl's float rules, a zscratch throwaway) or a rice with
+#    FLOATING window (prowl's float rules, a zscratch throwaway) or a desktop with
 #    `prowl.enable = false` has no such guarantee. The failure the coupling
 #    actually produces needs something that SIZES ITSELF in points, and the
 #    family has three:
@@ -64,11 +64,11 @@
 #    PARTIAL while being the deliberate answer §5.2 argued for. Hence four scales
 #    (1.0, 1.4, and two past every ceiling) and a `ceiling` verdict.
 #
-# ✅ The pinnable subset shipped as the rice's `nix flake check` `scale-reach`
+# ✅ The pinnable subset shipped as haus's `nix flake check` `scale-reach`
 # the same day. This file stays the scratch version: it prints the numeric-leaf
 # census and the resolved values, which is what you want the first time.
 {
-  rice ? ../../haus,
+  haus ? ../../haus,
   scales ? [
     1.0
     1.4
@@ -78,7 +78,7 @@
 }:
 
 let
-  flake = builtins.getFlake (toString rice);
+  flake = builtins.getFlake (toString haus);
   lib = flake.inputs.nixpkgs.lib;
 
   # ---- 1. the numeric census (pure lib, no system) ---------------------------
@@ -89,7 +89,7 @@ let
     lib.optionAttrSetToDocList
       (lib.evalModules {
         specialArgs.lib = lib;
-        modules = import "${toString rice}/modules/options-modules.nix";
+        modules = import "${toString haus}/modules/options-modules.nix";
       }).options;
   numeric = map (o: "${o.name} :: ${o.type}") (
     builtins.filter (

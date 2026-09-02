@@ -2,7 +2,7 @@
 
 ## The policy: media is marketing, not documentation
 
-This project moves fast. Every rice tweak, palette nudge, or bar rework dates a
+This project moves fast. Every desktop tweak, palette nudge, or bar rework dates a
 screenshot — so illustrated docs rot faster than the prose they sit next to. The
 rule that keeps them honest:
 
@@ -27,7 +27,7 @@ stranger seeing it cold — the highest-reach, most-shareable moment of its repo
 | # | Asset | File | The one surface it serves | Why it earns the slot |
 |---|---|---|---|---|
 | 1 | **Pounce demo** | *unshot* (`pounce/assets/demo.webp` is the slot, and is empty) | pounce README | ⌘Space launcher in motion — the "wait, that's *native*?" clip. Most viral single asset in the family. ⚠️ **Nothing is wired**: that README is text + badges, and the file has never existed. |
-| 2 | **Desktop hero** | `haus/assets/hero.png` | the launch posts — r/unixporn, Show HN, the one-pager, the reel's poster; **the haus README carries no capture today** | For a rice, the screenshot *is* the pitch — one clean tiled desktop + bar. ⚠️ **A frame that carries a wordmark, an org name, a username, an uptime or a battery percentage is disqualified** — the brand moves and the rest names the shooter. ⚠️ **A Ghostty window IS a pane**, with no tab bar or keybind hint strip of its own, so a bare shell photographs as an empty rectangle and the window needs a TUI in it. The shipped frame: Zen on `github.com/hausfold` (grey and pink via the `github` entry in `haus.zen.userStyles`) beside Ghostty running lazygit over an unstaged `haus.focus.scenes` tree, Pounce mid-search on **Spawn Agent**, both bars on. Two costs to respect — lazygit's **Log/Commits** panel renders `Author: … <email>` and is disqualifying for a public asset (**Files** is not), and a ~34-column pane wraps past ~40 characters, so config being shown off must be written short. ⚠️ **Two things in the frame are the shooter's host, not the desktop** — `haus.zen.userStyles` defaults to `[ ]` and `haus.bar.bottom.enable` to `false`, and `desktops/hacker.nix` sets neither, so a fresh install has an unthemed browser and one bar. Launch-post copy that leads with this image has to say so. `hausfold/ops`'s `todo/launch-phase-1.md` carries the full measurement. Nothing in the family renders it; the consumers are r/unixporn, the Show HN, the creator one-pager and the reel's poster frame. |
+| 2 | **Desktop hero** | `haus/assets/hero.png` | the launch posts — r/unixporn, Show HN, the one-pager, the reel's poster; **the haus README carries no capture today** | For a desktop, the screenshot *is* the pitch — one clean tiled desktop + bar. ⚠️ **A frame that carries a wordmark, an org name, a username, an uptime or a battery percentage is disqualified** — the brand moves and the rest names the shooter. ⚠️ **A Ghostty window IS a pane**, with no tab bar or keybind hint strip of its own, so a bare shell photographs as an empty rectangle and the window needs a TUI in it. The shipped frame: Zen on `github.com/hausfold` (grey and pink via the `github` entry in `haus.zen.userStyles`) beside Ghostty running lazygit over an unstaged `haus.focus.scenes` tree, Pounce mid-search on **Spawn Agent**, both bars on. Two costs to respect — lazygit's **Log/Commits** panel renders `Author: … <email>` and is disqualifying for a public asset (**Files** is not), and a ~34-column pane wraps past ~40 characters, so config being shown off must be written short. ⚠️ **Two things in the frame are the shooter's host, not the desktop** — `haus.zen.userStyles` defaults to `[ ]` and `haus.bar.bottom.enable` to `false`, and `desktops/hacker.nix` sets neither, so a fresh install has an unthemed browser and one bar. Launch-post copy that leads with this image has to say so. `hausfold/ops`'s `todo/launch-phase-1.md` carries the full measurement. Nothing in the family renders it; the consumers are r/unixporn, the Show HN, the creator one-pager and the reel's poster frame. |
 | 3 | ~~**OG social card**~~ | `assets/site/social/og.png` | ~~share-link thumbnail~~ — **nothing** | hausfold.co ships **no** `og:image`, deliberately. The file is kept (evergreen wordmark), the slot is not. Re-earning it means hausfold.co deciding it wants social cards. |
 | 4 | **Landing reel** *(optional)* | *unshot* | the hausfold.co landing page | At most ONE muted ~30–60s stitch, poster = the desktop hero. A single film, never a menu of clips. ⚠️ hausfold.co's landing page carries no hero background, so nothing is waiting on it. |
 
@@ -66,7 +66,7 @@ to "fill in" the set; the set is the four above.
 3. Add a row here and name the single surface it serves. If you can't name one, don't shoot it.
 
 **Staging still matters for the shots that survive** — consistency is what makes
-a rice read as *designed*, not *dumped*. Before capturing #1, #2 or #4:
+a desktop read as *designed*, not *dumped*. Before capturing #1, #2 or #4:
 
 - A Nebelung wallpaper on `base #202020`; accent **`pink`**, not the option's
   default mauve — `hausfold.co` sets `--a-haus: var(--nebelung-pink)` and
