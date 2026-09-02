@@ -154,10 +154,14 @@ _bench() {
           # repos that aren't flake inputs" — trill, snug and factory all break
           # that: they ARE inputs and still aren't FAMILY. Hand-copied, so it
           # rots: bench warns on anything not in its own list.
+          # `ops` is offered like the rest even though it is private and may not
+          # be on this machine: bench skips a checkout that isn't there, and a
+          # completion that hid it would make the one repo you have to remember
+          # by hand the only one you can't Tab to.
           local -a pullable=(
             workshop
             $(_bench_array FAMILY nebelung pounce perch scruff haus)
-            org-profile homebrew-tap trill snug factory hausfold.co consumer
+            org-profile homebrew-tap trill snug factory hausfold.co ops consumer
           )
           local -a left=( ${pullable:|typed} )
           _describe -t repos 'pullable repo' left && ret=0

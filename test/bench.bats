@@ -457,6 +457,57 @@ JSON
   done
 }
 
+# ── bench pull: the one checkout it is allowed not to find ───────────────────
+# `ops` is in the pull set so the docs sweep never reconciles yesterday's
+# register — and it is the only repo there that may legitimately be absent,
+# being private and cloned only where the credentials are. "No .git, no pull" is
+# what makes listing it safe; the warning on the NAMED form is what keeps that
+# guard from reading as a pull that worked.
+
+@test "bench pull walks the private ops checkout when it is there" {
+  mkmain ops
+  run cmd_pull
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"pulling ops"* ]]
+}
+
+@test "bench pull skips a missing ops in silence, so a machine without access still pulls" {
+  # The fixture that isn't `ops` is the load-bearing half: without a repo that
+  # DOES get pulled, an empty $output passes this whether the loop walked
+  # anything or not.
+  mkmain nebelung
+  run cmd_pull
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"pulling nebelung"* ]]
+  [[ "$output" != *ops* ]]
+}
+
+@test "bench pull ops names the path it isn't at, rather than doing nothing quietly" {
+  run cmd_pull ops
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no checkout at $ROOT/ops"* ]]
+  [[ "$output" != *"pulling ops"* ]]
+}
+
+@test "the missing-checkout warning explains ops, and only ops" {
+  # Delete the `[ "$name" = ops ]` guard and every missing repo starts claiming
+  # it needs credentials. The pair is what holds the clause to the one repo it
+  # is true of.
+  run cmd_pull ops
+  [[ "$output" == *"(private,"* ]]
+  run cmd_pull nebelung
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no checkout at $ROOT/nebelung"* ]]
+  [[ "$output" != *"(private,"* ]]
+}
+
+@test "the unknown-repo hint offers ops, so pullable is one list and not two" {
+  run cmd_pull nosuchrepo
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"unknown repo 'nosuchrepo'"* ]]
+  [[ "$output" == *ops* ]]
+}
+
 # ── ship_scope: the downstream closure a `bench ship <repo>` walks ────────────
 
 @test "ship_scope of pounce is pounce plus everything that consumes it, in walk order" {

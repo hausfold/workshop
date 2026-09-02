@@ -193,8 +193,10 @@ gotcha"), so a commit is invisible downstream until each `flake.lock` moves.
 every checkout an edge reads before it computes a single rev, and dies rather
 than bump a lock from a diverged tree.
 
-`bench pull` runs first for the four checkouts that guard never reaches — the
-workshop itself, `org-profile`, `homebrew-tap` and `hausfold.co`. None of them
+`bench pull` runs first for the checkouts that guard never reaches — the
+workshop itself, `org-profile`, `homebrew-tap` and `hausfold.co`, plus the
+private `ops`, which the shift never merges into and which pull skips outright
+where it isn't cloned. None of them
 is on the ship chain, and the workshop is the one that bites: a docs PR merged
 *here* leaves this checkout behind by exactly the squash commit, which is how a
 merged PR ambushes the next push.

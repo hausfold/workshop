@@ -337,7 +337,11 @@ Three things about its repo list are deliberate and get "tidied" wrong:
   name register, the gap list and real testers' names, and a repo renamed or a
   package published leaves a claim in there wrong — so the sweep reconciles it.
   It may never carry a line *out* of `ops` into a public repo. It is private, so
-  its clone needs credentials and warns rather than dying without them.
+  its clone needs credentials and warns rather than dying without them, and
+  `bench pull` refreshes it wherever that clone exists — a bare pull skipping it
+  in silence where it doesn't, which is what makes a private repo safe to list
+  at all. `bench pull ops` on a machine without one says so rather than
+  succeeding at nothing.
 
 The sweep never lands on `main` — one PR per affected repo, each commit carrying
 a `Docs-Sync:` trailer so tomorrow's run doesn't read today's output as its input.
