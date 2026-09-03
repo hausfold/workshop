@@ -17,5 +17,6 @@ The list closes the day the early alpha goes public. After that the door is the
 public one, and being early stops meaning anything if the list keeps admitting
 people.
 
-Each tester's name sits in the `THANKS.md` of the repo they tested, in the order
-they reported, and only in the form they chose to put it there.
+Each tester chooses how they appear in the `THANKS.md` of the repo they tested:
+a name, a handle, a link, or nothing at all. The order is the order they reported
+in, and it stays that way.
