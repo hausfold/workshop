@@ -12,12 +12,13 @@
 #     job. `haus.sh` is read into a store binary and a haus user has no workshop
 #     checkout, so the caller that most needed the fallback could never have
 #     sourced it from here.
-#   • `script/factory-*` is hausfold/factory, whose CI runs the same 87 bats
-#     cases plus shellcheck. The night shift is a thing a machine RUNS, not a
+#   • `script/factory-*` is hausfold/factory, whose CI runs that suite plus
+#     shellcheck. The night shift is a thing a machine RUNS, not a
 #     thing this directory contains: haus puts `factory` on PATH, so the tool
 #     has to be testable and installable without this repo. Nothing about the
 #     night shift is left here to test — the manual is factory's own README and
-#     the layer's levers are haus's `docs/night-shift.md`.
+#     the layer's levers are the site's `docs/haus/night-shift` plus haus's
+#     `docs/night-shift-internals.md`.
 name: Tests
 
 on:
