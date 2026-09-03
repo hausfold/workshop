@@ -35,17 +35,26 @@ ssh admin@192.168.64.5 '/usr/bin/osascript \
 
 What holds, measured:
 
-- **`No route to host` on port 22 does not mean the guest is stuck.** It is
-  equally the signature of a host-side `bridge100` fault: host→guest *unicast*
-  is dropped while the guest is fully booted and answering. Discriminate before
-  you go hunting for a console — `ping -c3 192.168.64.255` and watch for a reply
-  from the guest's own address. A broadcast reply, with 100% loss on the unicast
-  ping to that same address, is a bridge fault rather than a stalled boot, and
-  nothing at the guest's screen will fix it: stop every VM and reset vmnet
-  (`sudo ifconfig bridge100 down && sudo ifconfig bridge100 up`), or reboot the
-  host. Check the cheap things first — `arp -an` against
-  `/var/db/dhcpd_leases`, and `ifconfig bridge100`'s own address cache — but
-  note that both can be perfectly correct while unicast still goes nowhere.
+- **`No route to host` on port 22 has three causes, and only one is the guest.**
+  Run `ping -c3 192.168.64.255` and read the answer three ways. **A reply from
+  the guest's own address, with 100% loss on the unicast ping to that same
+  address**, is a host-side `bridge100` fault: the guest is fully booted and
+  answering, and host→guest unicast alone is being dropped, so nothing at the
+  guest's screen can help. **No reply at all, within the first minute of boot**,
+  is just the boot window — wait, and see *The "Nix Store" disk-unlock modal*
+  below before concluding anything. **No reply after that** is the guest.
+  Check `arp -an` against `/var/db/dhcpd_leases`, and `ifconfig bridge100`'s own
+  address cache, but do not stop when they look right: both can be exactly
+  correct while unicast still goes nowhere. The broadcast test assumes the guest
+  answers subnet-broadcast ICMP, which `haus-golden` does; an image that has
+  turned it off will read as the third case whatever is true.
+
+  ⚠️ **The cure is machine-wide, so it is the user's, not yours.** A vmnet reset
+  (`sudo ifconfig bridge100 down && sudo ifconfig bridge100 up`, every VM
+  stopped first) drops networking for every guest on the box, and with a cap of
+  two the other one is quite likely another lane's. `sudo` here prompts for a
+  password, so an unattended pane hangs on it rather than failing. Hand the user
+  the command, or ask for the reboot; do not run either yourself.
 - **Passwordless SSH works** — the key is in the guest.
 - **`screencapture -x` over SSH returns real pixels**, no GUI session juggling.
   `launchctl asuser 501` is *not* needed and in fact fails (`Could not switch to
@@ -177,8 +186,9 @@ IntErr=2` — no crypto-user hint), and the dialog sits on the desktop forever.
 
 **Nothing is actually blocked.** `determinate-nixd`'s `systems.determinate.nix-store`
 daemon mounts `/nix` itself from the keychain ~41s after boot, and passwordless
-SSH is reachable the whole time — a clone that "needs the screen to boot" was a
-misread of the ~40s boot window. But a stale password modal on a lane's first
+SSH is reachable the whole time. The modal never has to be answered for a lane
+to connect; what it costs is the ~40s of boot window, which reads like a clone
+that needs the screen. But a stale password modal on a lane's first
 screenshot is still a wrong answer, so the golden image **decrypts the volume**
 (`diskutil apfs decryptVolume`, online, ~1 min for a ~12GB store — the step is
 in `build-golden-vm.sh` 2.5). A decrypted volume cannot prompt: measured, zero
@@ -212,9 +222,12 @@ unattended run, not for the VM.
 
 ## Constraints worth knowing before "a VM per lane"
 
-**Two guests, machine-wide — that is the cap, not disk and not RAM.** `tart run`
-refuses a third outright (*"The number of VMs exceeds the system limit"*, naming
-the two already up), on a 32 GB M4 with memory half free. So "a VM per lane" is
+**A guest count is the cap, not disk and not RAM — measured here as two.**
+`tart run` refuses a third outright (*"The number of VMs exceeds the system
+limit"*, naming the two already up) on this 32 GB M4, with memory half free at
+the time — so the number is this Mac's, pinned the same way the Tahoe note below
+is, and worth re-measuring on a host with different memory before relying on it.
+Whatever it is, it is small and it binds first. So "a VM per lane" is
 false past the second lane, and a leaked VM does not cost disk so much as half
 the lane capacity: two of them and the backend is full with nothing running that
 anyone wants.
