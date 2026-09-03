@@ -162,7 +162,7 @@ worktree that spawned a child-repo worktree opens the PR in that child repo). Gi
 body a **cold thread can boot from**: the session that wrote this code will be gone by the
 time it's feel-tested (panes close, worktrees get reaped), so if a bug turns up, the
 recovery context has to live in `gh pr view` — not in a transcript that no longer exists.
-Don't `--fill` from commit messages; write the distillation:
+Don't `--fill` from commit messages; write the distillation.
 
 ```bash
 git push -u origin HEAD
@@ -183,6 +183,20 @@ and `path:line` anchors for the load-bearing bits>
 MD
 gh pr merge --squash --delete-branch
 ```
+
+**A change someone has to LOOK at gets a picture — opt-in, not a step.** Where the
+alternative is me feeling it by hand (a bar layout, a palette hue, a tiling gap, the notch
+shelf, a banner), add one flag to that same `gh pr create`:
+
+```bash
+             --attach "$(haus-vm-shot <lane>)#the bar, after"
+```
+
+Take the frame from a lane's headless guest, never from this screen. `haus-vm-shot` prints
+one line, the host path of a PNG, so it substitutes straight in. Needs gh ≥ 2.99.0: check
+`gh --version`, and when it isn't there, say so and hand me the path rather than hunting
+for another way to upload. Why this is opt-in rather than standard, and what makes a frame
+worthless, is [`docs/agent-vm.md`](../../../docs/agent-vm.md).
 
 The **Verify** block is the single source of truth for the test steps: Step 7's verify-list
 and `bench try-batch`'s checklist both send me back to it, so write the checks *here, once*,

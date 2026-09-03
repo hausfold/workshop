@@ -11,6 +11,7 @@ the screen — take a VM.*
 |---|---|
 | `scruff runtime up\|enter\|down <lane> --backend <id>` | generic: loads `~/.config/scruff/adapters/runtime/<id>.toml`, renders each argv element through `text/template` with the lane vars, execs it. Never automatic — create/reap never touch a backend |
 | the `tart` adapter | `haus.ai.enable` writes `~/.config/scruff/adapters/runtime/tart.toml` + `~/.config/haus/runtime/tart-adapter.sh` (from `modules/ai/runtime/tart-adapter.sh`). The script does the multi-step dance scruff's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
+| `haus-vm-shot <lane> [dest.png]` | the capture half, which is not scruff's business: `tart ip` → `screencapture -x` on the guest → `scp` back → print the host path, one line, nothing else. `haus.ai.enable` puts it on PATH; it is one `exec` into the same adapter's `shot` subcommand, so the `scruff-<lane>` naming has one home. `test/vm-shot.bats` in haus pins what a human never sees: the one-line stdout, the silent `-x`, the `scruff-<lane>` VM name, the guest-side `rm`, and a failure that prints no path |
 | the golden image | `haus`'s `script/build-golden-vm.sh` — clone the base, run a **pinned-tag** `bootstrap.sh` (never the floating `hausfold.co/hacker.sh`, which resolves the latest release and drifts), switch, stop, leave a tagged image lanes clone in seconds |
 
 ## The loop
@@ -24,6 +25,7 @@ scruff runtime down  my-lane --backend tart   # delete the clone
 and, for the half that is not scruff's business:
 
 ```sh
+haus-vm-shot scratch                               # the three below, as one verb, guest tidied after
 tart ip scratch                                    # 192.168.64.5
 ssh admin@192.168.64.5 '/usr/sbin/screencapture -x /tmp/s.png'
 scp admin@192.168.64.5:/tmp/s.png "$SCRATCHPAD/"   # real pixels, 2048×1536
@@ -53,6 +55,42 @@ What holds, measured:
   Pounce palette.
 - **The guest is auto-logged-in at the console**, with WindowServer, Dock and
   the bar running.
+
+## Getting the picture out: it goes in the pull request
+
+Attaching a file needs **gh 2.99.0 or newer** (`gh --version`; 2.98.0 has no
+`--attach` at all, and nixpkgs has not shipped 2.99.0 to this machine yet, so
+check before you write the command). `--attach` is on `pr` and `issue` ×
+`create`, `edit` and `comment`; it is repeatable, up to 50 files a command, and
+alt text follows the path after `#`. `haus-vm-shot`'s one-line stdout is shaped
+for the substitution:
+
+```sh
+gh pr create  --base main --title "…" --body-file - \
+              --attach "$(haus-vm-shot my-lane)#the bar, after"
+gh pr comment 42 --attach "$(haus-vm-shot my-lane)#⌘Space, no filter flash"
+```
+
+Images cap at 10 MB. A body reference like `![alt](./shot.png)` is rewritten in
+place to point at the uploaded asset; an attachment the body never mentions is
+appended. GitHub Enterprise Server is not supported. The release that shipped
+the flag names OAuth and classic personal access tokens as what it
+authenticates with and says nothing about fine-grained ones, so treat a job
+running on a fine-grained token or a workflow's `GITHUB_TOKEN` as unproven
+rather than as working.
+
+**It is opt-in, per PR, and the cost is not the camera.** A capture is seconds;
+a capture that shows *your* change needs `haus rebuild` inside the guest first,
+which is minutes — so a screenshot earns its place only where the alternative is
+a human feeling the change by hand. The visual repos (haus's bar and tiling,
+nebelung's palette, pounce, perch, trill) are where that is true; a docs or
+script PR gets nothing from a photograph of a desktop. A CLI change needs no
+picture and no VM: paste the real output into the body as a fenced block.
+
+The dialog problem is what makes this fail badly rather than obviously: an
+unanswered modal does not block the capture (see *What the golden image has to
+do about dialogs*, below), so the PR gets a picture that is 40% alert and 0%
+evidence. Look at the frame before you upload it.
 
 ## Driving the keyboard: three things that read as "the feature is broken"
 
