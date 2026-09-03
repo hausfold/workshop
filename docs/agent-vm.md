@@ -35,18 +35,17 @@ ssh admin@192.168.64.5 '/usr/bin/osascript \
 
 What holds, measured:
 
-- **A fresh clone stops at a disk-unlock modal before SSH exists.** The base
-  image's `Nix Store` APFS volume is FileVault-encrypted (`disk2s7`), and every
-  clone comes up with `/nix` unmounted and *"Enter a password to unlock the
-  disk 'Nix Store'"* on the guest's console — port 22 gives `No route to host`
-  (not a refusal) until the modal is answered, which reads like a dead network
-  but is a stalled boot. Typing the guest admin password (`admin`) mounts the
-  volume and SSH answers within seconds; the passphrase is already in the
-  guest's System keychain (`security find-generic-password -s "Nix Store"`), so
-  this is a boot-time mount gap, being fixed in the image
-  (`haus`'s `script/build-golden-vm.sh`). Until it lands, a headless lane needs
-  one answer at a console (`tart run` headful) before `scruff runtime enter`
-  will ever connect.
+- **`No route to host` on port 22 does not mean the guest is stuck.** It is
+  equally the signature of a host-side `bridge100` fault: host→guest *unicast*
+  is dropped while the guest is fully booted and answering. Discriminate before
+  you go hunting for a console — `ping -c3 192.168.64.255` and watch for a reply
+  from the guest's own address. A broadcast reply, with 100% loss on the unicast
+  ping to that same address, is a bridge fault rather than a stalled boot, and
+  nothing at the guest's screen will fix it: stop every VM and reset vmnet
+  (`sudo ifconfig bridge100 down && sudo ifconfig bridge100 up`), or reboot the
+  host. Check the cheap things first — `arp -an` against
+  `/var/db/dhcpd_leases`, and `ifconfig bridge100`'s own address cache — but
+  note that both can be perfectly correct while unicast still goes nowhere.
 - **Passwordless SSH works** — the key is in the guest.
 - **`screencapture -x` over SSH returns real pixels**, no GUI session juggling.
   `launchctl asuser 501` is *not* needed and in fact fails (`Could not switch to
@@ -213,10 +212,23 @@ unattended run, not for the VM.
 
 ## Constraints worth knowing before "a VM per lane"
 
-**Disk is the cap, not RAM.** A full macOS clone is tens of GB. `tart clone` is
-APFS copy-on-write (cheap at creation, grows as the guest writes) and `tart
-suspend` beats a cold boot. A `scruff runtime` verb reporting what a lane's
-backend costs would be worth more than a concurrency guard.
+**Two guests, machine-wide — that is the cap, not disk and not RAM.** `tart run`
+refuses a third outright (*"The number of VMs exceeds the system limit"*, naming
+the two already up), on a 32 GB M4 with memory half free. So "a VM per lane" is
+false past the second lane, and a leaked VM does not cost disk so much as half
+the lane capacity: two of them and the backend is full with nothing running that
+anyone wants.
+
+That is what makes the asymmetry in `scruff runtime` expensive. `up` clones and
+boots; nothing reaps. A lane that dies without its `down` leaves a live headless
+guest holding a slot, and once its lane directory is gone there is nothing left
+on the machine that knows to clean it up — `tart list` is the only place it
+shows. A concurrency guard, or a `runtime` verb that reaps by lane, is worth
+more here than a cost-reporting one.
+
+Disk is the cheap axis by comparison: a full macOS clone is tens of GB, but
+`tart clone` is APFS copy-on-write (cheap at creation, grows as the guest
+writes) and `tart suspend` beats a cold boot.
 
 **The base OS is one decision, recorded in one place.** Every measurement here
 was taken on Tahoe; an adapter header naming a Sequoia base pulls a second ~30 GB
