@@ -215,6 +215,14 @@ the tool. haus's own skill stays file-by-file because `this-machine.md` is
 rendered per host; a tool's skill has no per-host half, so it is one directory
 symlink.
 
+**haus ships two of them**, and the second is the layer's own second skill
+rather than a tool's: `hausfold`, which routes a complaint about anything in the
+family into an issue or a pull request in the repo that owns it — the family's
+`docs/bug-reports.md`, *The agent route*. It is a sibling directory and not a
+page of the `haus` skill for the A4 reason above: a client routes on a skill's
+own `description`, and *"why does the shelf keep dropping things"* names no
+room, no option and not haus.
+
 ⚠️ A host that hand-wires `~/.claude/skills/<name>` for a skill of the same name
 must drop it in the **same rebuild** — two definitions of one `home.file` path
 is a home-manager *eval* conflict, not a last-wins.
@@ -264,7 +272,9 @@ Each repo's build files follow that repo's own convention — `nix/skill.nix` in
 perch, trill, scruff, nebelung and factory, `pkgs/pounce-skill/default.nix` in
 pounce. Only
 the package *name* and the output *layout* are fixed. haus is the one variant:
-its skill source is `modules/ai/agents/SKILL.md` and its derivation is flat.
+its first skill's source is `modules/ai/agents/SKILL.md` and lands at `$out/SKILL.md`
+rather than under a directory named for it; the second, `hausfold`, sits at
+`$out/hausfold/SKILL.md` the way every other repo lays every skill out.
 
 ## How we know it works
 
@@ -285,6 +295,7 @@ pane with no context:
 | factory | "merge the safe PRs" / "why didn't #212 merge?" |
 | factory · nightshift | "keep shipping while I'm asleep" / "take the shift for 12h" |
 | haus | "make my terminal font bigger" |
+| haus · hausfold | "this is annoying, can you tell them" / "I wish the shelf did X" |
 | nebelung | "what's the hex for the background colour?" |
 
 A tool that needs a second turn to get the flags right has not met the standard,
@@ -301,7 +312,7 @@ look before trusting a claim about what a tool answers:
 
 | tool | its guard |
 |---|---|
-| **haus** | two, because its skill is a TEMPLATE. `modules/ai/agents/skill.nix` carries the A4 shape guards INLINE — frontmatter, `name: haus` against the install directory, the description's length, the 150-line cap, plus two only a template needs: no surviving `@placeholder@`, and no `references/` pointer the skill doesn't ship. They read the RENDERED `$out`, so a substitution that quietly stopped matching is caught rather than measured away, and they are inline rather than a script because this repo's CI runs `nix flake check` (whose `agent-skill` builds them) instead of scruff's Nix-free one. `test/agent-surface.bats` covers the VERB: that `haus skill` prints the rendered store copy and never the `@hausVersion@` template beside it, that `skill install` refuses a read-only Nix symlink in words naming `haus.ai.skill` rather than dying on `EPERM`, and that `haus get --json` emits `{path, defined, value}` so a reset is distinguishable from a set |
+| **haus** | two, because its skill is a TEMPLATE. `modules/ai/agents/skill.nix` carries the A4 shape guards INLINE, as a function run once per skill it ships — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap, plus two only a template needs: no surviving `@placeholder@`, and no `references/` pointer the skill doesn't ship. They read the RENDERED `$out`, so a substitution that quietly stopped matching is caught rather than measured away, and they are inline rather than a script because this repo's CI runs `nix flake check` (whose `agent-skill` builds them) instead of scruff's Nix-free one. `test/agent-surface.bats` covers the VERB: that `haus skill` prints the rendered store copy and never the `@hausVersion@` template beside it, that `skill install` refuses a read-only Nix symlink in words naming `haus.ai.skill` rather than dying on `EPERM`, and that `haus get --json` emits `{path, defined, value}` so a reset is distinguishable from a set |
 | **scruff** | `script/check-skills.sh`, run from both `nix/skill.nix` and `.github/workflows/check.yml` — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap. It is the pattern the section above names |
 | **factory** | its own `script/check-skills.sh`, which folds a `>-` description before measuring it rather than demanding one physical line |
 | **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted |
