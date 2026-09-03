@@ -58,9 +58,9 @@ What holds, measured:
 
 ## Getting the picture out: it goes in the pull request
 
-Attaching a file needs **gh 2.99.0 or newer** (`gh --version`; 2.98.0 has no
-`--attach` at all, and nixpkgs has not shipped 2.99.0 to this machine yet, so
-check before you write the command). `--attach` is on `pr` and `issue` ×
+Attaching a file needs **gh 2.99.0 or newer**. Check `gh --version` before you
+write the command: 2.98.0 has no `--attach` at all, and what any machine has is
+whatever its nixpkgs pin carries. `--attach` is on `pr` and `issue` ×
 `create`, `edit` and `comment`; it is repeatable, up to 50 files a command, and
 alt text follows the path after `#`. `haus-vm-shot`'s one-line stdout is shaped
 for the substitution:
