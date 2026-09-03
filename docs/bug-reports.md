@@ -54,7 +54,7 @@ tab" — for anyone already inside the thing that just broke.
 | **trill** | menu bar ▸ *Report a Bug…* · `trill report [--print]` | the same four, plus whether the notification store it audits could be read |
 | **pounce** | palette ▸ *Report Pounce Issue* · Settings ▸ app menu ▸ *Report a Bug…* · `pounce report [--print]` | the same four, plus the whole `pounce doctor` report |
 | **haus** | palette ▸ *Report haus Issue* · `haus report [--print]` | the pinned haus revision · macOS + build · Mac model · the selected desktop, plus the whole `haus doctor` report, with the reporter's home directory rewritten to `~` |
-| everything else | *(no door yet — the workshop, scruff and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in)* | |
+| everything else | *(no door of its own — the workshop, scruff and snug are CLIs with no `report` verb; nebelung and hausfold.co have forms and nothing to put a row in. An agent still reaches all ten forms — see* The agent route *below)* | |
 
 Each app implements its own `BugReport` — pounce installs standalone and perch
 is sandboxed, so there is nothing to share a library through. haus's is a fourth
@@ -130,6 +130,55 @@ So the discipline is the whole guard: add or remove a door, and the hint is the
 second half of the change, in the same round. Another known hole, stated rather
 than papered over — and the same shape as the one below, a check that passes
 while the thing it protects rots.
+
+## The agent route
+
+**A fifth way in, and the only one that is neither a click nor a verb.** A haus
+machine with `haus.ai.skill` on (the default) installs a `hausfold` agent skill
+beside the `haus` one, into every client it manages — the source is
+`hausfold/haus`'s `modules/ai/agents/hausfold/SKILL.md`. It exists because of
+where the sentence actually gets said: a user who is annoyed says it to the
+agent in the pane, not to a menu bar, and then it dies in a scrollback. The
+skill turns that sentence into a filed issue, or into a pull request when they
+would rather fix it. It is also the only route to the repos with no door of
+their own.
+
+Its `description` is what does the work, for the A4 reason in
+`docs/agent-surface.md`: a client matches a skill's frontmatter and nothing
+else, so the description is written for someone who is annoyed rather than for
+someone configuring a Mac.
+
+Four rules:
+
+1. **Nothing is filed without an explicit yes**, and the draft is shown in full
+   first — the diagnostics block included. A door opens a page and waits for
+   Submit; an agent with `gh` can file in one call, so the consent that the
+   Submit button carried has to be asked for out loud.
+2. **The report is the user's words**, not a tidied paraphrase. The bug form
+   says verbatim beats tidy for the same reason.
+3. **Offer once, then let it go.** An agent that raises feedback twice is the
+   next thing worth reporting.
+4. **Read the block before attaching it.** The `--print` blocks are already safe
+   to publish; anything the agent adds is not.
+
+**An agent may prefill every field, where an app door may prefill only
+`diagnostics`.** That is not the rule bending, it is the rule's reason arriving
+at a different answer: the objection to a prefilled *What happened?* is that the
+app is putting words in the reporter's mouth, and here the words are the
+reporter's own, read back to them before anything is sent.
+
+Two consequences worth stating rather than discovering:
+
+- **`gh` walks past the form, so the form's shape has to be reproduced by
+  hand — and the bug and idea shapes differ.** Different fields, and different
+  labels: `bug`/`triage` against `idea`/`triage`. Labels are also the half that
+  fails quietly, because a form applies them as the repo while the API applies
+  them as the account: a reporter with no triage rights gets none. The issue
+  still lands, which is the trade — an unlabelled report beats an unsent one.
+- **A door that moves now has a third place to change.** The verb, its repo's
+  `DIAG_HINT`, and this skill's table all name it, and only the first two are in
+  the same repo. Nothing checks any of the three against each other; see *The
+  in-product door*.
 
 ## The four decisions
 
@@ -217,6 +266,7 @@ the vocabulary; they have one audience.)
 | **GitHub state** | the labels the forms apply, and the security destination they link | [`script/issue-labels.sh`](../script/issue-labels.sh) |
 | **gate** | the only thing that notices when a repo stops matching | [`.github/workflows/issue-templates.yml`](../.github/workflows/issue-templates.yml) |
 | **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/`; haus's is a CLI verb, `haus/modules/core/haus.sh`'s `cmd_report`, with `modules/launcher/commands/report-issue-haus.sh` as the one-line palette row into it |
+| **the agent route** | the skill that turns "this is annoying" into a filed issue, on every haus machine | `haus/modules/ai/agents/hausfold/SKILL.md`, installed beside the `haus` skill by `haus.ai.skill` |
 
 **Why a generator.** Four forms hand-maintained across ten repos fails silently
 and asymmetrically: the day pounce's bug form asks for something haus's doesn't,
@@ -287,4 +337,7 @@ destination.
 
 ⚠️ Changing a `DIAG_HINT` that names an in-product door? The door is in that
 app's own repo, and only `--check` notices when the two stop agreeing — so both
-halves move in the same round. See *The in-product door*.
+halves move in the same round. See *The in-product door*. A door that is added,
+renamed or dropped is a **third** edit as well: the `hausfold` skill's table
+names every one of them, and it is in `haus` whatever app the door belongs to.
+See *The agent route*.
