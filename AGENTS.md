@@ -3,8 +3,15 @@
 **The hausfold workshop** — the parent directory holding every repo in the
 **hausfold** family, plus `bench`, the script that moves changes between them.
 This repo owns the README, this file, `bench` (+ `_bench`, its zsh completion),
-`docs/`, `script/`, `assets/`, `test/`, `.agents/` and `LICENSE`. The
-subdirectories are independent git repos.
+`docs/`, `script/`, `assets/`, `test/`, `.agents/`, `FOUNDING.md` and `LICENSE`.
+The subdirectories are independent git repos.
+
+⚠️ **`FOUNDING.md` is public on purpose and does not route to `ops`.** It is the
+standing promise made to the early-alpha testers, and a promise kept in a private
+repo is four different memories of what a DM said. The *roster* stays in `ops`;
+only the wording lives here, and no name ever does — a tester's name goes public
+only in the `THANKS.md` of the repo they tested, in the form they chose, and only
+because they put it there themselves.
 
 **This file is the one set of instructions, for every agent** — Claude Code,
 Codex, OpenCode, Cursor, Copilot alike, directly or through a one-line pointer.
