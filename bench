@@ -195,6 +195,13 @@ GH_ORG="hausfold"
 # `ensure_trill_dev_app` builds a signed .app in your login session and injects
 # it through trill's `prebuilt` input.
 #
+# pounce needs the same dev-app machinery for a different reason: Nix builds it
+# from source fine, but what the layer installs is the CI-built release
+# (`pounce-app`, pinned by pounce's nix/release.nix) — a plain override would
+# still test the pinned release, not the branch. So `ensure_pounce_dev_app`
+# builds the source branch's from-source package, re-signs it in your login
+# session, and injects it through pounce's `prebuilt` input.
+#
 # snug is here on trill's footing (not in FAMILY) but needs none of that
 # machinery: it is a plain Go flake that builds from source in Nix on every
 # platform, so a bare `--override-input` is the whole story. `bench try` from a
@@ -1127,15 +1134,17 @@ overrides() { # every family input redirected at the local checkouts
   # The scruff row read the same rule from the other end while haus's INPUT was
   # `scruff` (hausfold/haus#538) and the repo was still `hausfold/holt`. Input,
   # repo and checkout all say `scruff` now. Spell them apart regardless.
-  local perch_prebuilt="" trill_prebuilt="" layer
+  local perch_prebuilt="" trill_prebuilt="" pounce_prebuilt="" layer
   layer="$(layer_input)"
   [ -n "$PERCH_DEV_APP_DIR" ] \
     && perch_prebuilt=" --override-input $layer/perch/prebuilt path:$PERCH_DEV_APP_DIR"
   [ -n "$TRILL_DEV_APP_DIR" ] \
     && trill_prebuilt=" --override-input $layer/trill/prebuilt path:$TRILL_DEV_APP_DIR"
+  [ -n "$POUNCE_DEV_APP_DIR" ] \
+    && pounce_prebuilt=" --override-input $layer/pounce/prebuilt path:$POUNCE_DEV_APP_DIR"
   echo "--override-input $layer path:$(local_src haus) \
         --override-input $layer/nebelung path:$(local_src nebelung) \
-        --override-input $layer/pounce path:$(local_src pounce) \
+        --override-input $layer/pounce path:$(local_src pounce)$pounce_prebuilt \
         --override-input $layer/perch path:$(local_src perch)$perch_prebuilt \
         --override-input $layer/trill path:$(local_src trill)$trill_prebuilt \
         --override-input $layer/scruff path:$(local_src scruff) \
@@ -1264,6 +1273,61 @@ ensure_trill_dev_app() {
   TRILL_DEV_APP_DIR="$out"
   say "trill: dev app built (com.hausfold.trill.debug); its own bundle id keeps it"
   say "       off the installed app's Full Disk Access row."
+}
+
+# pounce is the fourth dev-app case, and the odd one: Nix builds it from source
+# fine (plain swiftc), but what the layer INSTALLS is the CI-built release app
+# (pounce-app, pinned by nix/release.nix) — so a plain --override-input would
+# still test the pinned release, not the branch. When there's local pounce
+# SOURCE to feel-test, build the from-source package and re-sign it in your
+# login session, then inject it through pounce's `prebuilt` input the same way
+# perch's and trill's dev apps travel. The stable signing identity matters here
+# like it does for trill: lane chords, auto-paste and the ⌘-chord taps are all
+# Accessibility-gated, and an ad-hoc build would drop those grants for the
+# whole feel-test. (No identity on the machine: warn, build ad-hoc anyway —
+# unlike trill, most of the palette is still testable without Accessibility.)
+POUNCE_DEV_APP_DIR=""
+ensure_pounce_dev_app() {
+  local src; src="$(local_src pounce)"
+  [ "$src" = "$ROOT/pounce" ] && return 0             # no local pounce source → release
+  [ -n "$POUNCE_DEV_APP_DIR" ] && return 0            # already built this run
+  [ -f "$src/flake.nix" ] || return 0
+
+  # Same (pwd -P) temp-dir dance as the other dev apps: Nix's path: fetcher
+  # rejects a symlinked component, and the out-link must not live inside a
+  # store path either.
+  local out; out="$(cd "$(mktemp -d "${TMPDIR:-/private/tmp}/bench-pounce-dev.XXXXXX")" && pwd -P)"
+
+  say "pounce: building the dev app from $src"
+  if ! (cd "$src" && nix build --out-link "$out/result" ".#pounce" >/dev/null); then
+    die "pounce dev build failed — run 'nix build .#pounce' in $src by hand to see why."
+  fi
+  /usr/bin/ditto "$out/result/Applications/Pounce.app" "$out/Pounce.app"
+  # The store copy is read-only throughout, and ditto preserves that — codesign
+  # needs to rewrite the seal inside the binary and Info.plist, so make the
+  # copy writable first (the same dance the impure sign path it replaces did).
+  /bin/chmod -R u+w "$out/Pounce.app"
+  rm -f "$out/result"
+
+  # Re-sign with a stable identity when one exists. The bundle keeps its own
+  # identifier (com.hausfold.pounce), so the grant row stays the installed
+  # app's row rather than a separate debug one.
+  local ident
+  ident="$(security find-identity -v -p codesigning 2>/dev/null \
+             | sed -n 's/.*"\(Developer ID Application[^"]*\)".*/\1/p' | head -1)"
+  [ -n "$ident" ] || ident="$(security find-identity -v -p codesigning 2>/dev/null \
+             | sed -n 's/.*"\(Apple Development[^"]*\)".*/\1/p' | head -1)"
+  if [ -n "$ident" ]; then
+    if ! /usr/bin/codesign --force --sign "$ident" "$out/Pounce.app"; then
+      die "pounce: re-signing the dev app with '$ident' failed — check the keychain prompt wasn't denied."
+    fi
+    POUNCE_DEV_APP_DIR="$out"
+    say "pounce: dev app built and signed ($ident)"
+  else
+    warn "pounce: no codesigning identity in the keychain — the dev daemon runs ad-hoc-signed,"
+    warn "        so its Accessibility-gated features (lane chords, auto-paste) are dead for this build."
+    POUNCE_DEV_APP_DIR="$out"
+  fi
 }
 
 # Release bookkeeping. Releases are what users actually consume — pounce via
@@ -1917,6 +1981,7 @@ cmd_try() {
   local host; host="$(host_name)"
   ensure_perch_dev_app   # if perch is the local source, build + inject its dev app
   ensure_trill_dev_app   # ditto trill — the other Xcode app Nix can't build
+  ensure_pounce_dev_app  # ditto pounce — the layer installs its release app, not a store build
   say "building $host against the LOCAL checkouts (uncommitted edits included)…"
   # Opt-in here and nowhere else: an override leaves the flake unlocked, so the
   # card's `--dry-run` is a second FULL evaluation (9.1s cold / 4.2s warm,
@@ -2095,6 +2160,7 @@ cmd_try_batch() {
 
   ensure_perch_dev_app   # if perch's PRs were batched, build + inject its dev app
   ensure_trill_dev_app   # ditto trill
+  ensure_pounce_dev_app  # ditto pounce
   say "building $host against ${#BATCH_SRC[@]} batched integration tree(s)…"
   # A failed batch build is the walk-away outcome most worth interrupting
   # someone for, and `set -e` would otherwise take the whole script down in
