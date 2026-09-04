@@ -54,7 +54,24 @@ What holds, measured:
   stopped first) drops networking for every guest on the box, and with a cap of
   two the other one is quite likely another lane's. `sudo` here prompts for a
   password, so an unattended pane hangs on it rather than failing. Hand the user
-  the command, or ask for the reboot; do not run either yourself.
+  the command, or ask for the reboot; do not run either yourself. **The reboot is
+  the one with a measured result behind it** — after one, a bare `tahoe-base`
+  clone answered unicast at 0% loss and took SSH on the first try (2026-09-04).
+  The vmnet reset is the smaller blast radius and the reboot is the known cure,
+  so say which you are asking for and why.
+- **Never pipe `scruff runtime up`, or capture it in `$(…)`.** The tart adapter
+  backgrounds `tart run` (`haus`'s `modules/ai/runtime/tart-adapter.sh:40`) with
+  no redirection, so that child inherits the adapter's stdout and holds the write
+  end of your pipe open for the whole life of the guest. Your reader therefore
+  never sees EOF: `| tail` and `$(…)` hang with **no output at all**, and `| tee`
+  hangs after printing everything. Meanwhile the guest is up — the adapter had
+  already echoed its `… is up at <ip>` line. Let it write straight to the
+  terminal, or redirect to a file, and read the guest's real state from `tart
+  list` and `tart ip` rather than from whether the command returned. Two things
+  make this worth naming rather than living with: the adapter can end the hazard
+  by redirecting that line 40 into a lane log, and its `tart ip --wait 60`
+  ceiling means a boot slower than a minute exits non-zero having printed nothing
+  either — same silence, opposite cause.
 - **Passwordless SSH works** — the key is in the guest.
 - **`screencapture -x` over SSH returns real pixels**, no GUI session juggling.
   `launchctl asuser 501` is *not* needed and in fact fails (`Could not switch to
