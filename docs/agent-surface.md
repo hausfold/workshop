@@ -63,17 +63,16 @@ version that answers `skill`.
 `install` writes `<skills-dir>/<name>/SKILL.md` — one directory per skill, named
 for the skill rather than the tool — and refuses rather than clobbers: if the
 target exists and differs, it says so and prints the diff path. **On a haus
-machine it refuses outright**, because those directories are read-only Nix
-symlinks and haus has already installed the skill. Say that in the refusal;
-don't make the user work it out from an `EPERM`.
+machine it writes nothing**, because those directories are read-only Nix
+symlinks and haus has already installed the skill. Say that, in a sentence
+naming `haus.ai.skill`; don't make the user work it out from an `EPERM`.
 
-Three more rules bind `install`, and each was found by running the verb rather
-than reading it — six implementations diverged three ways on every one:
+Three more rules bind `install`:
 
 - **A target left alone is a non-zero exit: the tool's own *refused* code.** A
   file that exists and differs, and a file the tool could not write, are the
   caller's request not honoured. The run still visits every other target (a
-  read-only first client must not cost the three after it), then exits the
+  read-only first client must not cost the ones after it), then exits the
   code the tool's exit table (A2) already reserves for *understood, and
   declined* — never 0, and never its usage code, because "you asked wrong" and
   "I declined to overwrite" send an agent down different paths. Which number
@@ -340,12 +339,12 @@ look before trusting a claim about what a tool answers:
 
 | tool | its guard |
 |---|---|
-| **haus** | two, because its skill is a TEMPLATE. `modules/ai/agents/skill.nix` carries the A4 shape guards INLINE, as a function run once per skill it ships — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap, plus two only a template needs: no surviving `@placeholder@`, and no `references/` pointer the skill doesn't ship. They read the RENDERED `$out`, so a substitution that quietly stopped matching is caught rather than measured away, and they are inline rather than a script because this repo's CI runs `nix flake check` (whose `agent-skill` builds them) instead of scruff's Nix-free one. `test/agent-surface.bats` covers the VERB: that `haus skill` prints the rendered store copy and never the `@hausVersion@` template beside it, that `skill install` refuses a read-only Nix symlink in words naming `haus.ai.skill` rather than dying on `EPERM`, and that `haus get --json` emits `{path, defined, value}` so a reset is distinguishable from a set |
-| **scruff** | `script/check-skills.sh`, run from both `nix/skill.nix` and `.github/workflows/check.yml` — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap. It is the pattern the section above names |
-| **factory** | its own `script/check-skills.sh`, which folds a `>-` description before measuring it rather than demanding one physical line |
-| **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted |
-| **pounce** | three, and the first is the A4 shape half: `script/check-skills.sh`, run from both `pkgs/pounce-skill/default.nix` and `.github/workflows/build.yml`, which DISCOVERS `ai/*/SKILL.md` rather than listing them. Then `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, and `json_tests.swift` for the shared `--json` writer — stable key order, unescaped slashes, a `schema` key on every record |
-| **trill** | `TrillTests/SkillVerbTests.swift` and `CLILinkTests.swift` |
+| **haus** | two, because its skill is a TEMPLATE. `modules/ai/agents/skill.nix` carries the A4 shape guards INLINE, as a function run once per skill it ships — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap, plus two only a template needs: no surviving `@placeholder@`, and no `references/` pointer the skill doesn't ship. They read the RENDERED `$out`, so a substitution that quietly stopped matching is caught rather than measured away, and they are inline rather than a script because this repo's CI runs `nix flake check` (whose `agent-skill` builds them) instead of scruff's Nix-free one. `test/agent-surface.bats` covers the VERB: that `haus skill` prints the rendered store copy and never the `@hausVersion@` template beside it, that `skill install` meets a read-only Nix symlink with a sentence naming `haus.ai.skill` and exit 0 rather than dying on `EPERM`, the three install rules above (exit 2 on a file left alone, `--dir` with `--client`, an empty or missing value), and that `haus get --json` emits `{path, defined, value}` so a reset is distinguishable from a set |
+| **scruff** | `script/check-skills.sh`, run from both `nix/skill.nix` and `.github/workflows/check.yml` — frontmatter, the `name:` key against the install directory, the description's length, the 150-line cap. It is the pattern the section above names. `test/scruff.bats` pins the verb, the three install rules above included |
+| **factory** | its own `script/check-skills.sh`, which folds a `>-` description before measuring it rather than demanding one physical line. `test/agent-surface.bats` pins the verb, the three install rules above included |
+| **perch** | `scripts/embed-skills.sh --check`, run in `.github/workflows/build.yml`: the build fails when `PerchCLI/GeneratedSkills.swift` and `ai/**/SKILL.md` have drifted. `scripts/check-cli-surface.sh`, run in the same workflow against the Release binary, pins the verb's bytes and exit codes, the three install rules above included |
+| **pounce** | three, and the first is the A4 shape half: `script/check-skills.sh`, run from both `pkgs/pounce-skill/default.nix` and `.github/workflows/build.yml`, which DISCOVERS `ai/*/SKILL.md` rather than listing them. Then `pkgs/pounce/tests/skill_tests.swift` for the one trailing byte that makes the embedded skill byte-identical to the packaged one, the install decision, and the three install rules above as a pure parse and a pure exit code; and `json_tests.swift` for the shared `--json` writer — stable key order, unescaped slashes, a `schema` key on every record |
+| **trill** | `TrillTests/SkillVerbTests.swift` (the verb, the three install rules above included) and `CLILinkTests.swift` |
 | **nebelung** | five `grep` guards in `nix/skill.nix` over the hand-written `ai/SKILL.md`. Only `references/palette.md` is generated, from `palette/*.hex.json` — the split is the A4 rule below about what may be prose and what must be rendered |
 
 Two scope lines that the requirements imply and nobody should have to infer:
