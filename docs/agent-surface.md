@@ -67,6 +67,34 @@ machine it refuses outright**, because those directories are read-only Nix
 symlinks and haus has already installed the skill. Say that in the refusal;
 don't make the user work it out from an `EPERM`.
 
+Three more rules bind `install`, and each was found by running the verb rather
+than reading it — six implementations diverged three ways on every one:
+
+- **A target left alone is a non-zero exit: the tool's own *refused* code.** A
+  file that exists and differs, and a file the tool could not write, are the
+  caller's request not honoured. The run still visits every other target (a
+  read-only first client must not cost the three after it), then exits the
+  code the tool's exit table (A2) already reserves for *understood, and
+  declined* — never 0, and never its usage code, because "you asked wrong" and
+  "I declined to overwrite" send an agent down different paths. Which number
+  that is belongs to each tool's table, not to this document. **A symlink is
+  not a refusal.** It is the end state holding — on a haus machine,
+  `haus.ai.skill`'s own install; elsewhere, whatever manages that link — so it
+  is named and left alone, and a run that finds only symlinks says so and
+  exits 0. A non-zero there would have every agent on a normal haus machine
+  report a broken command and retry with more force, against a directory where
+  force corrupts a generation.
+- **`--dir` and `--client` together are refused.** Two answers to "where",
+  where only one can be honoured; ranking them silently writes somewhere the
+  caller named a different path for. A usage error, before anything is
+  written.
+- **A flag with a missing or empty value is refused.** `--dir` as the last
+  word, `--dir ""`, and the same for `--client`. An empty value is an unset
+  shell variable, not a request — `--dir "$scratch"` with `scratch` unset — and
+  falling through to discovery there writes into every agent client on the
+  machine while the caller believes it named one throwaway path. A usage error
+  naming the flag, before anything is written.
+
 The verb is `skill`, not `agent`: every client calls these things skills, and in
 this family `agent` already means a launchd agent.
 
