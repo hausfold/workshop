@@ -12,9 +12,8 @@ anywhere."* Anything that already has a copy in `../` — `media/stills/*`,
 
 | Path | What it is |
 |---|---|
-| `logos/` | a sidebar mark and the per-product wordmarks |
+| `logos/` | the per-product wordmarks |
 | `app-icons/` | the app tiles for an "your apps, declared" strip |
-| `social/og.png` | a site-wide OG card |
 | `social/perch-og.png` | perch's own card |
 | `macbook-pro-orthographic.svg` | the laptop frame a drawn product demo sits in |
 | `tap-caps.webp`, `theming.webp` | two inline demo clips |
