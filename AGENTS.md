@@ -480,9 +480,10 @@ for building or switching.
   ever typed by hand. Ship first, then release (the date-stamp moves HEAD, so
   `bench ship` again afterward — or `bench release <repo> --ship`). **`bench
   release` BLOCKS** until the CI run finishes, drawing its jobs live, and exits
-  non-zero if the run goes red. That wait is load-bearing: perch's run commits
-  `nix/release.nix` back to the repo, so returning early would leave a checkout
-  behind origin and a `bench ship` that ripples a superseded rev. It
+  non-zero if the run goes red. That wait is load-bearing: perch's run and
+  pounce's both commit `nix/release.nix` back to the repo, so returning early
+  would leave a checkout behind origin and a `bench ship` that ripples a
+  superseded rev. It
   fast-forwards for you when the run goes green. Never hand-bump the formula's
   url/sha lines.
 - **`scruff` is the one semver repo, and it's forced, not chosen:** `./bench
