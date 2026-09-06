@@ -173,7 +173,9 @@ components:
 anyone, human or agent, making a thing that carries the brand.** A logo, a
 banner, an OG card, a README hero, a one-off web page. It binds every repo in
 the family. The master SVG sources live in the *Logo system* design project;
-exported PNGs land in each repo's own assets. Served publicly at
+exported PNGs land in each repo's own assets, and
+[`assets/README.md`](../assets/README.md) indexes them: the media kit,
+which `https://hausfold.co/brand` 301s onto. This file is served publicly at
 `https://hausfold.co/design.md`. The site's Worker proxies this file from
 main, so it stays at `docs/design.md`; moving or renaming it breaks that URL.
 
@@ -614,6 +616,10 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 Current gaps, stated so nobody fills them by improvising:
 
 - **Marks for scruff and snug.** Both set the wordmark alone.
+- **SVG masters in git for the product marks.** Only the house's two
+  squares are SVG; every product mark is a PNG export, and the design
+  project holds the source. The geometry under *Components* is what a
+  repo rebuilds from until an SVG lands beside each PNG.
 - **Light-theme artifacts** beyond the org's light square and nebelung's
   latte banner. The latte token sheet exists; artifacts drawn from it mostly
   don't.
