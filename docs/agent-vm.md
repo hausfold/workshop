@@ -12,7 +12,7 @@ the screen — take a VM.*
 | `scruff runtime up\|enter\|down <lane> --backend <id>` | generic: loads `~/.config/scruff/adapters/runtime/<id>.toml`, renders each argv element through `text/template` with the lane vars, execs it. Never automatic — create/reap never touch a backend |
 | the `tart` adapter | `haus.ai.enable` writes `~/.config/scruff/adapters/runtime/tart.toml` + `~/.config/haus/runtime/tart-adapter.sh` (from `modules/ai/runtime/tart-adapter.sh`). The script does the multi-step dance scruff's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
 | `haus-vm-shot <lane> [dest.png]` | the capture half, which is not scruff's business: `tart ip` → `screencapture -x` on the guest → `scp` back → print the host path, one line, nothing else. `haus.ai.enable` puts it on PATH; it is one `exec` into the same adapter's `shot` subcommand, so the `scruff-<lane>` naming has one home. `test/vm-shot.bats` in haus pins what a human never sees: the one-line stdout, the silent `-x`, the `scruff-<lane>` VM name, the guest-side `rm`, and a failure that prints no path |
-| the golden image | `haus`'s `script/build-golden-vm.sh` — clone the base, run a **pinned-tag** `bootstrap.sh` (never the floating `hausfold.co/hacker.sh`, which resolves the latest release and drifts), switch, stop, leave a tagged image lanes clone in seconds |
+| the golden image | `haus`'s `script/build-golden-vm.sh` — clone the base, grow its disk to 90 GB (the base's is 50, and a raised house fills 45), run a **pinned-tag** `bootstrap.sh` (never the floating `hausfold.co/hacker.sh`, which resolves the latest release and drifts), switch, stop, leave a tagged image lanes clone in seconds |
 
 ## The loop
 
@@ -259,6 +259,21 @@ more here than a cost-reporting one.
 Disk is the cheap axis by comparison: a full macOS clone is tens of GB, but
 `tart clone` is APFS copy-on-write (cheap at creation, grows as the guest
 writes) and `tart suspend` beats a cold boot.
+
+The guest's own disk is the one that bites. The cirruslabs base ships a 50 GB
+disk and a raised house fills 45 of it, so a clone that inherits the base's
+size has about 5 GB to work with, and `haus update` fills that the first time
+nixpkgs moves. `build-golden-vm.sh` therefore grows the disk to 90 GB right
+after `tart clone` (`--disk-size`, default 90). The guest half of that is the
+base's tart-guest-agent daemon: at every boot it grows the partition and then
+the APFS container out to the disk, on its own schedule. That schedule is the
+trap. The Nix installer adds a volume to the same container, and on the one
+bake where the two overlapped, diskmanagementd deadlocked for good: partition
+grown, container not, the installer stuck at "Create an encrypted APFS
+volume", every new ssh session hung behind them (2026-09-05). The script now
+waits for `df /` to report the grown size before it runs bootstrap. Anything
+else that boots a freshly resized guest and touches its disk wants the same
+wait.
 
 **The base OS is one decision, recorded in one place.** Every measurement here
 was taken on Tahoe; an adapter header naming a Sequoia base pulls a second ~30 GB
