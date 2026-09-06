@@ -319,8 +319,7 @@ pane with no context:
 | trill | "tell me when this build finishes" |
 | scruff | "what agent worktrees do I have open?" |
 | scruff · handoff | "hand this off to a fresh session" / "spawn an agent to do this" |
-| factory | "merge the safe PRs" / "why didn't #212 merge?" |
-| factory · nightshift | "keep shipping while I'm asleep" / "take the shift for 12h" |
+| factory | "merge the safe PRs" / "why didn't #212 merge?" / "keep shipping while I'm asleep" |
 | haus | "make my terminal font bigger" |
 | haus · hausfold | "this is annoying, can you tell them" / "I wish the shelf did X" |
 | nebelung | "what's the hex for the background colour?" |
