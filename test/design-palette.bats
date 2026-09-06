@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
-# docs/design.md vendors nebelung hexes and hausfold.co's page numbers, and
+# docs/design.md and assets/README.md (the media kit) vendor nebelung hexes;
+# the doc also vendors hausfold.co's page numbers, and
 # AGENTS.md's rule is that nothing is inlined without a drift test — this is
 # that test. Every hex in the doc is diffed back against nebelung's
 # palette/*.hex.json, and every literal the page register quotes (measure,
@@ -14,6 +15,7 @@ palette_dir=""
 setup() {
   WORKSHOP="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
   DOC="$WORKSHOP/docs/design.md"
+  KIT="$WORKSHOP/assets/README.md"
   palette_dir="$BATS_TMPDIR/design-palette"
   mkdir -p "$palette_dir"
   local common neb_dir f
@@ -57,6 +59,41 @@ text = open(doc).read()
 bad = sorted({h.lower() for h in re.findall(r"#([0-9a-fA-F]{6})\b", text)} - values)
 if bad:
     print("hexes in design.md that are no nebelung token value:", ", ".join("#" + b for b in bad))
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "every hex in the media kit's README is a nebelung token value" {
+  run python3 - "$KIT" "$palette_dir" <<'PY'
+import json, re, sys
+doc, pdir = sys.argv[1], sys.argv[2]
+values = set()
+for f in ("nebelung.hex.json", "nebelung-latte.hex.json"):
+    values |= {v.lower() for v in json.load(open(f"{pdir}/{f}")).values()}
+text = open(doc).read()
+bad = sorted({h.lower() for h in re.findall(r"#([0-9a-fA-F]{6})\b", text)} - values)
+if bad:
+    print("hexes in assets/README.md that are no nebelung token value:", ", ".join("#" + b for b in bad))
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "the media kit's colour table matches nebelung's mocha palette" {
+  run python3 - "$KIT" "$palette_dir" <<'PY'
+import json, re, sys
+doc, pdir = sys.argv[1], sys.argv[2]
+mocha = {k: v.lower() for k, v in json.load(open(f"{pdir}/nebelung.hex.json")).items()}
+text = open(doc).read()
+pairs = re.findall(r"`([a-z0-9]+)`\s*\|\s*`#([0-9a-fA-F]{6})`", text)
+if len(pairs) < 12:
+    print(f"only {len(pairs)} token|hex pairs parsed — the kit's colour table changed shape; fix this regex with it")
+    sys.exit(1)
+bad = [(n, h) for n, h in pairs if mocha.get(n) != h.lower()]
+if bad:
+    for n, h in bad:
+        print(f"{n}: assets/README.md says #{h}, nebelung says #{mocha.get(n, '<no such token>')}")
     sys.exit(1)
 PY
   [ "$status" -eq 0 ] || { echo "$output"; false; }
