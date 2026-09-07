@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <!-- nebelung, the standard tile. Nebel: ears sinking into grey fog.
+       Source of record for this mark: the PNGs beside it render from this file.
+       Shapes, colour roles and the rules they answer to are in the brand kit's
+       docs/design.md, under Components. The ears are the family path, used
+       verbatim: move, scale or recolour them, never redraw them. -->
+  <clipPath id="nebelung-tile"><rect width="100" height="100" rx="24"/></clipPath>
+  <g clip-path="url(#nebelung-tile)">
+    <rect width="100" height="100" fill="#343434"/>
+    <g fill="#c9a8f1" transform="translate(10 12) scale(0.8)">
+      <path d="M 18 13 Q 34 18 47 24 Q 34 35 30.5 57 Q 20 34 18 13 Z"/>
+      <path d="M 82 13 Q 66 18 53 24 Q 66 35 69.5 57 Q 80 34 82 13 Z"/>
+    </g>
+    <path fill="#494949" d="M -4 66 Q 18 56 38 64 Q 62 73 82 63 Q 94 58 106 64 L 106 104 L -4 104 Z"/>
+    <path fill="#5c5c5c" opacity="0.7" d="M -4 80 Q 22 71 46 78 Q 72 86 106 76 L 106 104 L -4 104 Z"/>
+  </g>
+</svg>

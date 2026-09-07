@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
-# docs/design.md and assets/README.md (the media kit) vendor nebelung hexes;
+# docs/design.md, assets/README.md (the media kit) and the mark SVGs beside it
+# vendor nebelung hexes;
 # the doc also vendors hausfold.co's page numbers, and
 # AGENTS.md's rule is that nothing is inlined without a drift test — this is
 # that test. Every hex in the doc is diffed back against nebelung's
@@ -75,6 +76,89 @@ text = open(doc).read()
 bad = sorted({h.lower() for h in re.findall(r"#([0-9a-fA-F]{6})\b", text)} - values)
 if bad:
     print("hexes in assets/README.md that are no nebelung token value:", ", ".join("#" + b for b in bad))
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "a mark SVG spends only nebelung tokens, and only its own accent" {
+  run python3 - "$WORKSHOP/assets" "$palette_dir" <<'PY'
+import glob, json, os, re, sys
+adir, pdir = sys.argv[1], sys.argv[2]
+values = set()
+for f in ("nebelung.hex.json", "nebelung-latte.hex.json"):
+    values |= {v.lower() for v in json.load(open(f"{pdir}/{f}")).values()}
+# The house's two squares are exempt: their ring is ninety wedges of colour
+# interpolated between two accents, so those fills are deliberately not tokens.
+files = [f for f in sorted(glob.glob(f"{adir}/*.svg"))
+         if not os.path.basename(f).startswith("hausfold-")]
+if not files:
+    print(f"no mark SVGs found in {adir}; this test has lost its subject")
+    sys.exit(1)
+# "One hue per product" is measurable: every accent a mark spends has to be its
+# own. The neutrals are the ramp; everything else in the palette is an accent.
+NEUTRAL = {"text", "subtext1", "subtext0", "overlay2", "overlay1", "overlay0",
+           "surface2", "surface1", "surface0", "base", "mantle", "crust"}
+mocha = {k: v.lower() for k, v in json.load(open(f"{pdir}/nebelung.hex.json")).items()}
+accents = {v for k, v in mocha.items() if k not in NEUTRAL}
+own = {p: mocha[t] for p, t in
+       (("nebelung", "mauve"), ("pounce", "peach"), ("perch", "green"),
+        ("trill", "yellow"), ("scruff", "maroon"))}
+bad = []
+for f in files:
+    base = os.path.basename(f)
+    mine = own.get(base.split("-")[0])
+    for h in sorted({h.lower() for h in re.findall(r"#([0-9a-fA-F]{6})\b", open(f).read())}):
+        if h not in values:
+            bad.append(f"{base}: #{h} is no nebelung token value")
+        elif mine and h in accents and h != mine:
+            bad.append(f"{base}: #{h} is another product's accent, not its own #{mine}")
+if bad:
+    print("colour in a mark SVG that the standard does not allow it:")
+    for b in bad:
+        print("  " + b)
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "every shape a mark SVG draws is written out in design.md" {
+  run python3 - "$WORKSHOP/assets" "$DOC" <<'PY'
+import glob, os, re, sys
+adir, doc = sys.argv[1], sys.argv[2]
+# design.md is the public standard and prints each mark's geometry as text; the
+# SVG beside the PNG is the source of record. This is the seam between them:
+# every path, transform, tile radius and alpha step in the SVG has to be written
+# out in the doc. It runs one way only, and it reads no fills; colour is the
+# test above. The house's two squares are exempt: their ring is ninety wedges of
+# interpolated colour that design.md states as a rule rather than as ninety
+# paths. Its glyph path IS written out, but spaced differently there, so the
+# exemption is the whole file rather than the ring alone.
+text = re.sub(r"\s+", " ", open(doc).read())
+files = [f for f in sorted(glob.glob(f"{adir}/*.svg"))
+         if not os.path.basename(f).startswith("hausfold-")]
+if not files:
+    print(f"no mark SVGs found in {adir}; this test has lost its subject")
+    sys.exit(1)
+bad = []
+for f in files:
+    svg = open(f).read()
+    for attr in ("d", "transform"):
+        for v in re.findall(rf'\b{attr}="([^"]+)"', svg):
+            if re.sub(r"\s+", " ", v).strip() not in text:
+                bad.append(f"{os.path.basename(f)}: {attr}=\"{v}\"")
+    # the tile's corner radius, which design.md fixes at 24
+    for v in re.findall(r'<clipPath[^>]*>\s*<rect[^>]*\brx="([^"]+)"', svg):
+        if v != "24":
+            bad.append(f"{os.path.basename(f)}: tile radius {v}, and design.md says 24")
+    # every alpha step, which the doc writes as "@ 0.7", "@ 0.45"
+    for v in re.findall(r'\bopacity="([^"]+)"', svg):
+        if f"@ {v}" not in text:
+            bad.append(f"{os.path.basename(f)}: opacity {v} is in no stanza as @ {v}")
+if bad:
+    print("geometry in a mark SVG that design.md does not write out:")
+    for b in bad:
+        print("  " + b)
     sys.exit(1)
 PY
   [ "$status" -eq 0 ] || { echo "$output"; false; }
