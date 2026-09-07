@@ -172,18 +172,40 @@ components:
 **How hausfold and its products look off the terminal: the standard for
 anyone, human or agent, making a thing that carries the brand.** A logo, a
 banner, an OG card, a README hero, a one-off web page. It binds every repo in
-the family. The master SVG sources live in the *Logo system* design project;
-exported PNGs land in each repo's own assets, and
-[`assets/README.md`](../assets/README.md) indexes them: the media kit,
-which `https://hausfold.co/brand` 301s onto. This file is served publicly at
-`https://hausfold.co/design.md`. The site's Worker proxies this file from
-main, so it stays at `docs/design.md`; moving or renaming it breaks that URL.
+the family. Where a mark has an SVG, that SVG is its source of record and the
+PNGs beside it render from it: this repo's `assets/` for the house and
+nebelung, each product's own `assets/` for the rest, all of it indexed in
+[`assets/README.md`](../assets/README.md), the media kit that
+`https://hausfold.co/brand` 301s onto. The *Logo system* design project is
+where a mark is drawn and redrawn; it is not where the current one lives. Which
+marks still have no SVG is under *Not yet defined*.
+This file is served publicly at `https://hausfold.co/design.md`. The site's
+Worker proxies this file from main, so it stays at `docs/design.md`; moving or
+renaming it breaks that URL.
 
 The front matter above is the token half, in the DESIGN.md format Google
 Stitch published (`npx @google/design.md lint docs/design.md` reads it). The
 prose below is the decisions. Where the two disagree, the prose is wrong and
 gets fixed; where prose and the design project disagree, the prose is the
-standard until this file changes.
+standard until this file changes; and where a mark's SVG and the geometry
+printed below disagree, the SVG is the mark and the printed geometry is what
+gets corrected. The rules here still say what a mark may *be* — a radius, a
+token, a minimum width — and an SVG that breaks one of those is wrong however
+current it is.
+
+The geometry under *Components* is a second telling of what the mark SVGs
+already hold, kept because this file is the public standard and a mark has to
+be readable as text. It is not a licence to let the two drift: a change to a
+mark changes the SVG and this file in the same commit.
+
+`test/design-palette.bats` holds part of that seam, and only part. For
+nebelung's two tiles it checks that every path, transform, tile radius and
+alpha step in the SVG is written out in the stanza here, and that the file
+spends nebelung tokens and no other product's accent. It runs one way, it does
+not check that a token is in the *role* the stanza gives it, and it reaches
+neither the house's two squares — whose ring is ninety interpolated wedges — nor
+pounce's, perch's and trill's SVGs, which sit in their own repos with no
+equivalent harness. Everything outside that is on the reader.
 
 Three scopes this file deliberately does not own:
 
@@ -495,7 +517,8 @@ in `surface1`; fog layer 2
 in `surface2` @ 0.7. Latte variant: tile latte base `#f1f1f1`, ears latte
 mauve `#8545e3`, fog latte surface1 `#c0c0c0` / latte surface2 `#b0b0b0`
 @ 0.7, banner ground latte crust `#e0e0e0`. Fog surfaces step darker
-instead of lighter.
+instead of lighter, in the inverted tile as well as the latte one: there
+fog 1 is `surface0` and fog 2 is `mantle` @ 0.45 over it.
 
 **pounce**: *mid-pounce over the prompt bar.* Ears peach,
 `translate(14 4) scale(0.72) rotate(12 50 35)`. Prompt bar
@@ -616,10 +639,10 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 Current gaps, stated so nobody fills them by improvising:
 
 - **Marks for scruff and snug.** Both set the wordmark alone.
-- **SVG masters in git for the product marks.** Only the house's two
-  squares are SVG; every product mark is a PNG export, and the design
-  project holds the source. The geometry under *Components* is what a
-  repo rebuilds from until an SVG lands beside each PNG.
+- **SVG masters in git for pounce, perch and trill.** The house's two
+  squares and nebelung's two tiles are SVG; those three products are PNG
+  only. Until each has its SVG, the geometry under *Components* is what
+  that repo rebuilds from.
 - **Light-theme artifacts** beyond the org's light square and nebelung's
   latte banner. The latte token sheet exists; artifacts drawn from it mostly
   don't.
