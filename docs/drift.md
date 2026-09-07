@@ -138,3 +138,21 @@ refusal — and by making the verdict itself the artifact, in the file that hold
 the numbers, so a case can be written for the yes. The tell is a condition whose
 two sides are a monotonic quantity and a monotonic clock: those cross once, and
 then never again until something resets.
+
+**A standard that specifies the happy path and leaves the refusal unstated, so
+every implementation invents one and its own suite pins the invention.** A3 of
+`docs/agent-surface.md` fixed what `skill install` writes, where, and that it
+refuses rather than clobbers, and said nothing about the exit code of a run that
+left a file alone, about `--dir` and `--client` together, or about a flag handed
+no value. Six tools implemented it and diverged three ways on each: `haus` exited
+0 after refusing, `scruff` 2, `trill` and `factory` 3; `haus` and `pounce` ranked
+`--dir` over `--client` silently; `pounce` and `perch` took `--dir ""` as a path.
+Every one was green, because a repo's suite pins the answer that repo chose, and
+the caller the contract exists for — an agent branching on the code — is in
+neither repo. The direction matters: the six answers are each defensible, so
+nothing reads as a bug until somebody lines them up. **Caught by** asking of a
+cross-repo standard what it says about the case where the tool *declines*, and
+writing one conformance fixture per implementation from the standard's own words
+rather than from the implementation in front of you. The tell is a rule whose
+verbs are all about the success path, in a document every repo cites and none
+tests against.
