@@ -27,7 +27,8 @@ wiring lives in [`.agents/`](./.agents/README.md).
 and its descriptions follow `bench`'s usage header (`bench:2-54`). Only `FAMILY`
 and `OVERRIDABLE` are sed'd out of the script at completion time, and they
 differ — trill, snug and factory are overridable, not family. Hand-copied:
-`pull`'s nine repos bench doesn't walk, `ship`'s four extras (trill, snug,
+`pull`'s nine repos bench doesn't walk (not "the non-flake ones" — trill, snug
+and factory are inputs, and `ops` is private), `ship`'s four extras (trill, snug,
 factory, consumer; `LOCK_ONLY` derives from `EDGES` at runtime), `release`'s
 five (`version_file`'s arms), `docs-since`'s seven non-family repos, and both
 fallbacks. Add a repo to `version_file` and the completion silently omits it.
@@ -46,7 +47,7 @@ client's wiring — project rules go in the former.
 | the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) | `./haus`, the layer `hausfold/haus` — the directory is named for its repo, not its desktop |
 | the org's GitHub front page | `./org-profile`, the checkout of `hausfold/.github` (`bench clone` maps the alias; `./.github` here is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is not `FAMILY`**: in `OVERRIDABLE`, `EDGES` (`haus → trill`, gating `haus.notifications.compositor`), `DOCS_REPOS`, `bench clone`, `bench pull`. `bench ship` ripples its lock but never pushes it — it lands through its own PRs. `bench release trill` (CalVer, notarized ZIP, CI-owned `nix/release.nix` pin) |
-| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). Trill's footing, two edges: `haus → snug`, which `bench ship` ripples, and `factory → snug`, which moves only in factory's own PR — `bench try`'s `--override-input` does not reach inside factory's flake. **Its README and `AGENTS.md` ARE the family's presentation standard.** Not releasable: consumers pin it by rev, `bench release snug` refuses, and `VERSION` only names the derivation (`snug-0.1.0`) |
+| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). Trill's footing, two edges: `haus → snug`, which `bench ship` ripples, and `factory → snug`, which moves only in factory's own PR — `bench try`'s `--override-input` does not reach inside factory's flake. **Its README and `AGENTS.md` ARE the family's presentation standard.** Not releasable: consumers pin it by rev, `bench release snug` refuses, and `VERSION` only names the derivation (`snug-0.1.0`). *How* a line is drawn is snug's repo; *whether* a tool should print it is that tool's |
 | scruff — the worktree-lifecycle substrate | `./scruff` ([hausfold/scruff](https://github.com/hausfold/scruff)). A flake input of haus, on PATH; ⌘↵ runs `scruff new` for every client, and Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks call `scruff hook create` / `scruff hook remove` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
@@ -56,7 +57,7 @@ client's wiring — project rules go in the former.
 | **how one of our CLIs looks on screen** — a colour, a glyph, a column, a spinner | snug's own `README.md` and `AGENTS.md` are the standard; this repo's `docs/design.md` is the brand's, not the CLI's. Roles resolve against **nebelung**, never a hand-picked 256-colour index, and columns are budgeted with `ui_col` + `ui_trow` + `ui_table_data`, never `%-44s`. In scope: `bench`; haus's `haus.sh`, `haus-show.sh`, `focus`, `github-signal`, `haus-secret`, `awake` (prose only — `status --raw` skips the painter), `statusline.sh`, `image-preview.sh`, `lane-open.sh`; scruff; factory (`share/ui.sh` off `FACTORY_UI_SH`, plain text without it). Named exceptions: `haus-show`'s `field`, `haus set`'s picker padding (counted by haus's `test/phase-painter.bats`), the statusline's row tint. **Installers are exempt from the runtime, not the palette** — `bootstrap.sh` and `haus-activate.sh` inline snug's numbers, `haus/test/installer-palette.bats` diffs them back, and **nothing is inlined without a drift test**. Out by settled decision: maintenance and probe scripts (haus's `script/build-golden-vm.sh`, trill's `scripts/dev-install.sh`, this repo's `script/issue-labels.sh` and `script/probes/*.sh`); trill's CLI, pounce's commands and haus's ten one-file Swift helpers; anything whose stdout is another program's input (`awake --raw`, `agent-state`, `scruff-cache`, `hausrect`, `barvitals`, `hausocr`, `hausax`, `haustabs`, `agent-desktop-guard`, `haus-vm-shot`, `haus-fix`/`haus-fix-github`); rows not drawn on a terminal at all — haus's `find.sh` pads for `fzf`, which owns the window and cuts its own, and a bar plugin's `printf` is read by sketchybar; and anything with no terminal at either end (`floatpin`, `floatring`, `barpop`, `haus-notify`, `trill.sh`, `lidawake`, `haus-github-receiver`, `statusline-refresh`, `portless`, `haus-nix-gc`, `portless-lane`). **Do not collapse those into one "nobody reads these" rule** — the installers and the maintenance scripts ARE read by people at real terminals, and their exemptions rest on when they run and who reads them. **This row owns that scope** — re-open an exemption here, never by quietly converting a file |
 | **how the brand looks off the terminal** — a logo, a lockup, a hue, an OG card | [`docs/design.md`](docs/design.md), the brand's visual system and binding on every repo: two registers (the house is grey and borrows, a product owns one hue), two surfaces (an artifact is Space Grotesk and dark only, a page is the Mac's own faces in both themes). A desktop never has a mark. Front matter is Google Stitch's DESIGN.md format (`npx @google/design.md lint docs/design.md`). Values resolve against **nebelung**; hausfold.co's implementation is its own `AGENTS.md`; the master SVGs live in the *Logo system* design project. The exports are indexed in [`assets/README.md`](assets/README.md), the public media kit hausfold.co's `/brand` 301s onto — a mark that moves, moves there too, and `test/design-palette.bats` diffs its hexes against nebelung as it does the doc's |
 | **how an agent learns to drive one of our tools** — the `ai/SKILL.md` (and sibling `ai/<name>/SKILL.md`) an end user's agent loads, the `<tool> skill` verb, `--json`/exit codes | the tool's OWN repo, to [`docs/agent-surface.md`](docs/agent-surface.md). A `SKILL.md` is for an agent *using* the tool with no checkout, `AGENTS.md` for one working *on* it. Which skills a machine gets is `./haus`'s `haus.ai.skill` |
-| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels, the security link | **the generator, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into ten repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half — a form's `labels:` are silently dropped if the label is missing, and the security link 404s until private vulnerability reporting is on. Design, four fields on purpose: [`docs/bug-reports.md`](docs/bug-reports.md). A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps. The in-product door is each app's own repo (perch's and trill's *Report a Bug…*, `trill report`, `pounce report`, `haus report` — `haus/modules/core/haus.sh`'s `cmd_report`, `exec`'d by `modules/launcher/commands/report-issue-haus.sh`); it and that repo's `DIAG_HINT` change in the same round, since `--check` compares only generator to YAML. Third half: `haus/modules/ai/agents/hausfold/SKILL.md`, naming each repo's diagnostics verb — three edits per verb. Its rules are `docs/bug-reports.md`'s *The agent route*: an explicit yes before anything is filed, offer once, the user's own words, read the block before attaching it |
+| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels, the security link | **the generator, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into ten repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half — a form's `labels:` are silently dropped if the label is missing, and the security link 404s until private vulnerability reporting is on. Design, four fields on purpose: [`docs/bug-reports.md`](docs/bug-reports.md). A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. The in-product door is each app's own repo (perch's and trill's *Report a Bug…*, `trill report`, `pounce report`, `haus report` — `haus/modules/core/haus.sh`'s `cmd_report`, `exec`'d by `modules/launcher/commands/report-issue-haus.sh`); it and that repo's `DIAG_HINT` change in the same round, since `--check` compares only generator to YAML. Third half: `haus/modules/ai/agents/hausfold/SKILL.md`, naming each repo's diagnostics verb — three edits per verb. Its rules are `docs/bug-reports.md`'s *The agent route*: an explicit yes before anything is filed, offer once, the user's own words, read the block before attaching it |
 | **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, only there: `curl -fsSL https://hausfold.co/hacker.sh \| bash`. The *script* is `./haus`'s `bootstrap.sh` |
 | the hausfold.co site | `./hausfold.co` ([hausfold/hausfold.co](https://github.com/hausfold/hausfold.co)), **public**, keep the `.co`. Next 16 + Fumadocs, statically exported onto a Cloudflare Worker, deployed by CI on push to its `main`; `worker.js` serves the installer, download and release-metadata routes. `bench clone` fetches it; not a flake input, not `FAMILY` |
 | the hausfold **name register**, the launch plan, anything still to be decided | [hausfold/ops](https://github.com/hausfold/ops), **private**: `PRESENCE.md` for the register, `todo/` for every open workstream. **Never copy it, or a summary of it, into this repo** — which names are *free* is the sensitive half; trademark findings are public records and fine. In `DOCS_REPOS`, `bench clone` and `bench pull [ops]` only, both needing its credentials — clone warns when it can't fetch, pull skips a checkout that isn't there; the dir is `.gitignore`d |
@@ -104,8 +105,12 @@ invisible downstream until each `flake.lock` moves. **Never hand-walk that
 ripple, and never suggest it** — `bench` does it:
 
 - `bench status` — what this machine is running, every stale lock edge, dirty
-  or unpushed repo and agent lane (scruff's registry, never `git worktree
-  list`). It flags an **OFF-MAIN** edge, a lock pinned at a rev not on that
+  or unpushed repo and agent lane — scruff's registry, never `git worktree
+  list`, filtered to the workshop dir plus the host config, so a hand-run
+  `git worktree add` is not in it at all. It also prints a read-only row for
+  every lock source that is not `FAMILY` (trill, snug, factory), because a
+  STALE edge's next question is what that checkout is doing. It flags an
+  **OFF-MAIN** edge, a lock pinned at a rev not on that
   repo's `main` — what a hand-run `nix flake update` in a PR produces. It
   resolves until the branch is deleted on merge, after which the downstream repo
   can't fetch its input at all. Land the upstream PR first, or shipping repins
@@ -146,7 +151,8 @@ ripple, and never suggest it** — `bench` does it:
 ⌘↵ runs `scruff new` for whichever client `haus.ai.default` names (`claude`,
 `codex`, `opencode`, `pi`) — never `claude --worktree`, which skips scruff's
 `[hooks] open`. The checkout is `~/.cache/scruff/<repo>/<name>` on branch
-`worktree-<name>`, outside the repo so `bench try`'s `path:` overrides never
+`worktree-<name>`, branched from the repo's **local HEAD** and outside the repo
+so `bench try`'s `path:` overrides never
 swallow it; closing a pane parks the dirty tree as a `wip:` commit and reaps
 only merged branches. (A machine older than scruff 1.1.0 keeps its whole base at
 `~/.cache/claude-worktrees`; `scruff doctor --migrate-base` moves it, refusing
@@ -177,8 +183,8 @@ In a worktree (`git rev-parse --git-common-dir` points outside your toplevel):
   instruction IS the user request to spawn it; with no subagent, say so.
 - PR body: **What / Why / Verify / Watch out** (ship skill Step 3), so a bug
   found later is recoverable from `gh pr view` alone.
-- `/ship` ([`.agents/skills/ship/SKILL.md`](./.agents/skills/ship/SKILL.md))
-  finishes the job: merge, `bench ship`, merge and `git worktree remove` every
+- `/ship` ([`.agents/skills/ship/SKILL.md`](./.agents/skills/ship/SKILL.md) —
+  with no `/ship`, read the file and follow it) finishes the job: merge, `bench ship`, merge and `git worktree remove` every
   child worktree this session made, then — once nothing ≥3/5 needs attention,
   and without waiting on CI unless CI is the point — `cd "$main" && bench try
   switch`, report, stop. It never opens or closes a pane.
@@ -195,9 +201,13 @@ In a worktree (`git rev-parse --git-common-dir` points outside your toplevel):
   Commit, push and PR there without asking; after merge, `git -C
   "$workshop_root/<repo>" worktree remove …`. Report repo, branch and PR.
 
-From the workshop's **main checkout** none of that applies: `cd` into a child
-and commit / push / ship under its own rules, since gitignored up here says
-nothing about git ops down there.
+From the workshop's **main checkout** the worktree restrictions lift: `cd` into
+a child and commit / push / ship under its own rules, since gitignored up here
+says nothing about git ops down there. **Landing still goes through the PR** —
+`gh pr merge`, never a local `git merge` + push to `main`. Asked for the whole
+flow, batch-test first: `bench try-batch [switch]` feels every open PR in one
+rebuild, main untouched; then merge only what passed, `bench ship` the ripple,
+rebuild. Once the user has asked, don't re-confirm each repo word for word.
 
 ## Cloud sessions
 
