@@ -3,12 +3,12 @@
 Logos, banners and colours for hausfold and the things it makes, with the rules
 for using them. `hausfold.co/brand` lands here.
 
-Where a mark has an SVG, that SVG is its source of record and the PNGs beside
-it render from it: this repository's `assets/` for the house and nebelung, each
-product's own for the rest. This page is the index, so there is one place to
-look. The *Logo system* design project is where a mark is drawn and redrawn; it
-is not where the current one lives. Every measurement behind them (the ears,
-the tile, the lockups, the type) is in
+A mark's SVG is its source of record and the PNGs beside it render from it:
+this repository's `assets/` for the house and nebelung, each product's own for
+the rest. This page is the index, so there is one place to look. The *Logo
+system* design project is where a mark is drawn and redrawn; it is not where
+the current one lives. Every measurement behind them (the ears, the tile, the
+lockups, the type) is in
 [`docs/design.md`](../docs/design.md), the visual standard, served at
 [hausfold.co/design.md](https://hausfold.co/design.md).
 
@@ -31,9 +31,9 @@ each own one hue and wear the family's cat ears on a tile.
 | **hausfold**, the org | none of its own; the ring of all six accents | [`hausfold-dark-square.svg`](./hausfold-dark-square.svg) and [`.png`](./hausfold-dark-square.png), 2048², on crust. [`hausfold-light-square.svg`](./hausfold-light-square.svg) and [`.png`](./hausfold-light-square.png), on the site's paper. The padded square for avatars and social profiles. The favicon, where the house fills the tile, is [`favicon.svg`](https://github.com/hausfold/hausfold.co/blob/main/public/favicon.svg) in the site's repository |
 | **haus**, the layer, and every desktop | none | No mark, by decision. The wordmark alone; in a README the house glyph may stand in front of it: `⌂ haus` |
 | **nebelung** | mauve | [`nebelung-square.svg`](./nebelung-square.svg) and [`.png`](./nebelung-square.png), 512². [`nebelung-square-inverted.svg`](./nebelung-square-inverted.svg) and [`.png`](./nebelung-square-inverted.png). Banner [`nebelung-banner.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner.png), 800×232, and its light version, [`nebelung-banner-latte.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner-latte.png), 1600×464 |
-| **pounce** | peach | [`pounce-square.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.png) and [`pounce-square-inverted.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.png), 2048². Banner [`pounce-banner-rounded.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-banner-rounded.png), 1200×348 |
-| **perch** | green | [`perch-square.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square.png) and [`perch-square-inverted.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.png), 592². Banner [`perch-banner.png`](https://github.com/hausfold/perch/blob/main/assets/perch-banner.png), 1200×348. [`perch-icon-master.png`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-master.png), 2048², is the app icon's source |
-| **trill** | yellow | [`trill-icon-master.png`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.png), 2048², the mark on its tile and the app icon's source. Banner [`trill-banner.png`](https://github.com/hausfold/trill/blob/main/assets/trill-banner.png), 1200×348. No inverted tile yet |
+| **pounce** | peach | [`pounce-square.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.png), 2048². [`pounce-square-inverted.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.png). Banner [`pounce-banner-rounded.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-banner-rounded.png), 1200×348 |
+| **perch** | green | [`perch-square.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square.png), 592². [`perch-square-inverted.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.png). Banner [`perch-banner.png`](https://github.com/hausfold/perch/blob/main/assets/perch-banner.png), 1200×348. [`perch-icon-master.png`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-master.png), 2048², is the app icon's source |
+| **trill** | yellow | [`trill-icon-master.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.png), 2048², the mark on its tile and the app icon's source. Banner [`trill-banner.png`](https://github.com/hausfold/trill/blob/main/assets/trill-banner.png), 1200×348. No inverted tile yet |
 | **scruff** | maroon | No mark yet. The wordmark alone |
 | **snug** | none yet | No mark yet. The wordmark alone |
 
@@ -99,11 +99,10 @@ something. `design.md` has the long one.
 Stated so nobody fills a gap by improvising; `design.md` keeps the full list
 under *Not yet defined*.
 
-- **SVG masters for pounce, perch and trill.** The house and nebelung are in
-  git as SVG; those three are PNG only, and their geometry is written out in
-  `design.md` so a mark can be rebuilt from the text.
-- **Marks for scruff and snug**, a hue for snug, and inverted or light tiles
-  for every product.
+- **Marks for scruff and snug**, a hue for snug, an inverted tile for trill,
+  and light tiles for every product.
+- **An SVG for `perch-icon-master.png`.** Every other mark here renders from
+  its SVG; perch's app-icon source is the one still drawn only as a PNG.
 - **Clearspace and minimum sizes.** The smallest proven ears are 62px, the
   smallest proven house 16px.
 - **Screenshots.** None live here. [`SHOTLIST.md`](./SHOTLIST.md) is the

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
-# docs/design.md, assets/README.md (the media kit) and the mark SVGs beside it
-# vendor nebelung hexes;
-# the doc also vendors hausfold.co's page numbers, and
+# docs/design.md, assets/README.md (the media kit) and the mark SVGs — the two
+# here, and pounce's, perch's and trill's in their own repos — vendor nebelung
+# hexes; the doc also vendors hausfold.co's page numbers, and
 # AGENTS.md's rule is that nothing is inlined without a drift test — this is
 # that test. Every hex in the doc is diffed back against nebelung's
 # palette/*.hex.json, and every literal the page register quotes (measure,
@@ -12,6 +12,17 @@
 # the upstream moved: re-vendor the doc's values, never the other way around.
 
 palette_dir=""
+marks_dir=""
+
+# The product marks that live in their own repos. The two nebelung tiles are in
+# this repo's assets/ and need no fetching.
+PRODUCT_MARKS=(
+  pounce/pounce-square
+  pounce/pounce-square-inverted
+  perch/perch-square
+  perch/perch-square-inverted
+  trill/trill-icon-master
+)
 
 setup() {
   WORKSHOP="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
@@ -46,6 +57,26 @@ setup() {
         -o "$out" 2>/dev/null || true
     fi
     [ -s "$out" ] || skip "no hausfold.co checkout and no network for $f"
+  done
+  marks_dir="$palette_dir/marks"
+  mkdir -p "$marks_dir"
+  local mark repo repo_dir
+  for mark in "${PRODUCT_MARKS[@]}"; do
+    repo="${mark%%/*}"
+    f="${mark##*/}.svg"
+    repo_dir=""
+    [ -n "$common" ] && repo_dir="$(dirname "$common")/$repo/assets"
+    # A checkout is re-read every time: BATS_TMPDIR outlives the run, and a
+    # cached copy would keep this green through the very edit it exists to
+    # catch. Only the download is cached, and only against the eight setups
+    # one `bats` invocation of this file runs.
+    if [ -n "$repo_dir" ] && [ -f "$repo_dir/$f" ]; then
+      cp "$repo_dir/$f" "$marks_dir/$f"
+    elif [ ! -s "$marks_dir/$f" ]; then
+      curl -fsSL "https://raw.githubusercontent.com/hausfold/$repo/main/assets/$f" \
+        -o "$marks_dir/$f" 2>/dev/null || true
+    fi
+    [ -s "$marks_dir/$f" ] || skip "no $repo checkout and no network for $f"
   done
 }
 
@@ -82,18 +113,18 @@ PY
 }
 
 @test "a mark SVG spends only nebelung tokens, and only its own accent" {
-  run python3 - "$WORKSHOP/assets" "$palette_dir" <<'PY'
+  run python3 - "$palette_dir" "$WORKSHOP/assets" "$marks_dir" <<'PY'
 import glob, json, os, re, sys
-adir, pdir = sys.argv[1], sys.argv[2]
+pdir, adirs = sys.argv[1], sys.argv[2:]
 values = set()
 for f in ("nebelung.hex.json", "nebelung-latte.hex.json"):
     values |= {v.lower() for v in json.load(open(f"{pdir}/{f}")).values()}
 # The house's two squares are exempt: their ring is ninety wedges of colour
 # interpolated between two accents, so those fills are deliberately not tokens.
-files = [f for f in sorted(glob.glob(f"{adir}/*.svg"))
+files = [f for d in adirs for f in sorted(glob.glob(f"{d}/*.svg"))
          if not os.path.basename(f).startswith("hausfold-")]
 if not files:
-    print(f"no mark SVGs found in {adir}; this test has lost its subject")
+    print(f"no mark SVGs found in {adirs}; this test has lost its subject")
     sys.exit(1)
 # "One hue per product" is measurable: every accent a mark spends has to be its
 # own. The neutrals are the ramp; everything else in the palette is an accent.
@@ -123,9 +154,9 @@ PY
 }
 
 @test "every shape a mark SVG draws is written out in design.md" {
-  run python3 - "$WORKSHOP/assets" "$DOC" <<'PY'
+  run python3 - "$DOC" "$WORKSHOP/assets" "$marks_dir" <<'PY'
 import glob, os, re, sys
-adir, doc = sys.argv[1], sys.argv[2]
+doc, adirs = sys.argv[1], sys.argv[2:]
 # design.md is the public standard and prints each mark's geometry as text; the
 # SVG beside the PNG is the source of record. This is the seam between them:
 # every path, transform, tile radius and alpha step in the SVG has to be written
@@ -135,10 +166,10 @@ adir, doc = sys.argv[1], sys.argv[2]
 # paths. Its glyph path IS written out, but spaced differently there, so the
 # exemption is the whole file rather than the ring alone.
 text = re.sub(r"\s+", " ", open(doc).read())
-files = [f for f in sorted(glob.glob(f"{adir}/*.svg"))
+files = [f for d in adirs for f in sorted(glob.glob(f"{d}/*.svg"))
          if not os.path.basename(f).startswith("hausfold-")]
 if not files:
-    print(f"no mark SVGs found in {adir}; this test has lost its subject")
+    print(f"no mark SVGs found in {adirs}; this test has lost its subject")
     sys.exit(1)
 bad = []
 for f in files:

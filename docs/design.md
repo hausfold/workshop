@@ -172,15 +172,14 @@ components:
 **How hausfold and its products look off the terminal: the standard for
 anyone, human or agent, making a thing that carries the brand.** A logo, a
 banner, an OG card, a README hero, a one-off web page. It binds every repo in
-the family. Where a mark has an SVG, that SVG is its source of record and the
-PNGs beside it render from it: this repo's `assets/` for the house and
-nebelung, each product's own `assets/` for the rest, all of it indexed in
+the family. A mark's SVG is its source of record and the PNGs beside it render
+from it: this repo's `assets/` for the house and nebelung, each product's own
+`assets/` for the rest, all of it indexed in
 [`assets/README.md`](../assets/README.md), the media kit that
 `https://hausfold.co/brand` 301s onto. The *Logo system* design project is
-where a mark is drawn and redrawn; it is not where the current one lives. Which
-marks still have no SVG is under *Not yet defined*.
-This file is served publicly at `https://hausfold.co/design.md`. The site's
-Worker proxies this file from main, so it stays at `docs/design.md`; moving or
+where a mark is drawn and redrawn; it is not where the current one lives. This
+file is served publicly at `https://hausfold.co/design.md`. The site's Worker
+proxies this file from main, so it stays at `docs/design.md`; moving or
 renaming it breaks that URL.
 
 The front matter above is the token half, in the DESIGN.md format Google
@@ -198,14 +197,14 @@ already hold, kept because this file is the public standard and a mark has to
 be readable as text. It is not a licence to let the two drift: a change to a
 mark changes the SVG and this file in the same commit.
 
-`test/design-palette.bats` holds part of that seam, and only part. For
-nebelung's two tiles it checks that every path, transform, tile radius and
+`test/design-palette.bats` holds part of that seam, and only part. For every
+product mark — nebelung's two tiles here, pounce's, perch's and trill's read
+out of their own repos — it checks that every path, transform, tile radius and
 alpha step in the SVG is written out in the stanza here, and that the file
 spends nebelung tokens and no other product's accent. It runs one way, it does
-not check that a token is in the *role* the stanza gives it, and it reaches
-neither the house's two squares — whose ring is ninety interpolated wedges — nor
-pounce's, perch's and trill's SVGs, which sit in their own repos with no
-equivalent harness. Everything outside that is on the reader.
+not check that a token is in the *role* the stanza gives it, and it does not
+reach the house's two squares, whose ring is ninety interpolated wedges.
+Everything outside that is on the reader.
 
 Three scopes this file deliberately does not own:
 
@@ -532,7 +531,8 @@ peach. Tagline: `SUMMON, AIM, POUNCE`.
 
 **perch**: *two files, fanned out.* Ears green, `translate(4 19)
 scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
-`surface1` rotated −11°, `rect 46,64 42×48 rx 6` green rotated 7°.
+`surface1` under `rotate(-11 31 91)`, `rect 46,64 42×48 rx 6` green under
+`rotate(7 67 88)`.
 
 **hausfold (org)**: the house, under *Shapes*. On a tile its ground is
 crust, never `surface0`.
@@ -639,10 +639,10 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 Current gaps, stated so nobody fills them by improvising:
 
 - **Marks for scruff and snug.** Both set the wordmark alone.
-- **SVG masters in git for pounce, perch and trill.** The house's two
-  squares and nebelung's two tiles are SVG; those three products are PNG
-  only. Until each has its SVG, the geometry under *Components* is what
-  that repo rebuilds from.
+- **An SVG for perch's icon master.** Every other mark renders from its SVG;
+  `perch-icon-master.png`, the source perch's app icon is cut from, is the one
+  still drawn only as a PNG.
+- **An inverted tile for trill.** Every other product mark has one.
 - **Light-theme artifacts** beyond the org's light square and nebelung's
   latte banner. The latte token sheet exists; artifacts drawn from it mostly
   don't.
