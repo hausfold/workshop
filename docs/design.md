@@ -502,7 +502,12 @@ The rule is measurable. In the 100-unit box:
   `surface1`/`surface2`.
 - **Inverted**: tile in the product colour; ears and shapes `surface0` (logo
   sheet) or `crust` (banners carrying a tagline). Small accents inside
-  inverted shapes keep the product colour; parts that were gray dim to 0.45.
+  inverted shapes keep the product colour. A gray dims to 0.45, and what it
+  dims *to* depends on what it sits on: over the tile ground it stays
+  `surface0` (perch's back card), and over another inverted shape it steps
+  darker to `mantle`, because `surface0` at 0.45 over `surface0` is
+  `surface0` and the shape disappears (nebelung's second fog, trill's text
+  lines).
 - A shape that bleeds off the tile is clipped by the tile's own rounded rect.
 
 ### The marks
@@ -530,10 +535,8 @@ peach. Tagline: `SUMMON, AIM, POUNCE`.
 `translate(14 0) scale(0.72)`; notification card `rect 14,52 72×34 rx 10` in
 `surface1`; dot `circle 26,63 r 4.5` yellow; text lines `rect 36,59 38×5` and
 `rect 36,69 26×5` (rx 2.5) in `surface2`. Inverted: ears and card
-`surface0`, the dot still yellow, and the two text lines `mantle` @ 0.45 —
-a gray sitting on an inverted shape steps darker, as nebelung's second fog
-layer does, rather than dimming into the shape under it. Tagline:
-`NO NOISE, JUST A TRILL`.
+`surface0`, the dot still yellow, the two text lines `mantle` @ 0.45 over the
+card. Tagline: `NO NOISE, JUST A TRILL`.
 
 **perch**: *two files, fanned out.* Ears green, `translate(4 19)
 scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
@@ -643,8 +646,9 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 ## Not yet defined
 
 Current gaps, stated so nobody fills them by improvising. A gap here is a
-decision someone owes, not a file to go and draw: the first two are refused on
-sight under *Reflexes to refuse* until this section changes.
+decision someone owes, not a file to go and draw: *Reflexes to refuse* turns
+the first two away on sight, so closing either one takes an edit there as well
+as here.
 
 - **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
   is not on this list — it is house register, and never gets one.

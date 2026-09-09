@@ -159,13 +159,17 @@ tests against.
 
 **A per-item `skip` in `setup()` blanks every test in the file, and reads
 green.** `test/design-palette.bats` copies each mark named in `PRODUCT_MARKS`
-out of its repo, falling back to GitHub raw, and skips when one cannot be
-found — so naming `trill-square-inverted` here before trill's own PR had landed
-turned all eight tests into `ok … # skip`, the seven with nothing to do with
-that file included. A suite that guards the doc, the media kit and five other
-marks stopped guarding any of them, and `bats` exited 0. The direction is what
+out of its repo, falling back to GitHub raw, and skipped when one could not be
+found. Name a mark that is not yet on its upstream's `main` and all eight tests
+print `ok … # skip` — the six that never open a mark included — so the doc's
+hexes, the media kit's, the latte citations, the page register and the other
+seven mark SVGs stop being checked, and `bats` exits 0. The direction is what
 makes it worth a line: a missing input should narrow a suite, never silence it,
-and the silence arrives exactly when someone is adding coverage rather than
-removing it. **Caught by** reading the skip *reasons* on a green run instead of
-the exit code — every line naming the same missing file is the tell — and by
-ordering the merge upstream-first, so the input exists before the list names it.
+and the silence arrives exactly when someone is *adding* coverage rather than
+removing it. Ordering the merge upstream-first is the answer, but only as a
+gate: **a "must not merge without X" that lives only in a note is not a gate**
+is already on this shelf, and a comment beside `PRODUCT_MARKS` would have been
+that note. The two tests that read marks now fail by name on a partial set, and
+the file skips only where it can reach no mark at all. **Caught by** reading
+the skip *reasons* on a green run instead of the exit code — every line naming
+the same missing file is the tell.

@@ -99,7 +99,8 @@ something. `design.md` has the long one.
 
 Stated so nobody fills a gap by improvising; `design.md` keeps the full list
 under *Not yet defined*. Each one is a decision someone owes, not a file to go
-and draw: the first two are refused on sight until `design.md` says otherwise.
+and draw: `design.md` turns the first two away on sight, under *Reflexes to
+refuse*.
 
 - **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
   is not waiting on one — it is house register, so it gets the wordmark alone
