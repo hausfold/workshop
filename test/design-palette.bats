@@ -22,6 +22,7 @@ PRODUCT_MARKS=(
   perch/perch-square
   perch/perch-square-inverted
   trill/trill-icon-master
+  trill/trill-square-inverted
 )
 
 setup() {
@@ -60,7 +61,10 @@ setup() {
   done
   marks_dir="$palette_dir/marks"
   mkdir -p "$marks_dir"
-  local mark repo repo_dir
+  # Set for the two tests that read marks; the other six do not, and a mark
+  # they never open must not decide their outcome.
+  MARKS_MISSING=""
+  local mark repo repo_dir resolved=0
   for mark in "${PRODUCT_MARKS[@]}"; do
     repo="${mark%%/*}"
     f="${mark##*/}.svg"
@@ -69,15 +73,33 @@ setup() {
     # A checkout is re-read every time: BATS_TMPDIR outlives the run, and a
     # cached copy would keep this green through the very edit it exists to
     # catch. Only the download is cached, and only against the eight setups
-    # one `bats` invocation of this file runs.
-    if [ -n "$repo_dir" ] && [ -f "$repo_dir/$f" ]; then
-      cp "$repo_dir/$f" "$marks_dir/$f"
+    # one `bats` invocation of this file runs. A checkout that is here answers
+    # for itself, so a file it does not have clears the cached copy too.
+    if [ -n "$repo_dir" ] && [ -d "$repo_dir" ]; then
+      if [ -f "$repo_dir/$f" ]; then cp "$repo_dir/$f" "$marks_dir/$f"; else rm -f "$marks_dir/$f"; fi
     elif [ ! -s "$marks_dir/$f" ]; then
       curl -fsSL "https://raw.githubusercontent.com/hausfold/$repo/main/assets/$f" \
         -o "$marks_dir/$f" 2>/dev/null || true
     fi
-    [ -s "$marks_dir/$f" ] || skip "no $repo checkout and no network for $f"
+    if [ -s "$marks_dir/$f" ]; then resolved=$((resolved + 1)); else MARKS_MISSING="$MARKS_MISSING $repo/$f"; fi
   done
+  # ONE mark going missing while the rest resolve means PRODUCT_MARKS names a
+  # file that is on no upstream `main` yet — the two mark tests fail for it,
+  # loudly, and the other six still run. Skipping instead would blank all eight,
+  # this diff's own claims included; that is the shape docs/drift.md parks under
+  # "Seen once", and a note is not a gate. The only skip left is the machine
+  # that can reach NOTHING: no sibling checkouts and no network.
+  [ "$resolved" -gt 0 ] || skip "no mark SVG is reachable: no sibling checkouts and no network"
+}
+
+# The two tests below open the marks; they refuse to pass on a partial set.
+assert_every_mark_present() {
+  [ -z "$MARKS_MISSING" ] || {
+    echo "PRODUCT_MARKS names a mark that is in no sibling checkout and on no"
+    echo "upstream main:$MARKS_MISSING"
+    echo "Land the mark's own repo first, then bench pull, then this."
+    false
+  }
 }
 
 @test "every hex in design.md is a nebelung token value (mocha or latte)" {
@@ -113,6 +135,7 @@ PY
 }
 
 @test "a mark SVG spends only nebelung tokens, and only its own accent" {
+  assert_every_mark_present
   run python3 - "$palette_dir" "$WORKSHOP/assets" "$marks_dir" <<'PY'
 import glob, json, os, re, sys
 pdir, adirs = sys.argv[1], sys.argv[2:]
@@ -154,6 +177,7 @@ PY
 }
 
 @test "every shape a mark SVG draws is written out in design.md" {
+  assert_every_mark_present
   run python3 - "$DOC" "$WORKSHOP/assets" "$marks_dir" <<'PY'
 import glob, os, re, sys
 doc, adirs = sys.argv[1], sys.argv[2:]
