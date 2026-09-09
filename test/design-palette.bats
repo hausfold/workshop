@@ -22,6 +22,7 @@ PRODUCT_MARKS=(
   perch/perch-square
   perch/perch-square-inverted
   trill/trill-icon-master
+  trill/trill-square-inverted
 )
 
 setup() {

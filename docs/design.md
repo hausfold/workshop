@@ -231,8 +231,8 @@ Two registers, and every artifact belongs to exactly one:
 
 | Register | Who | Colour | Mark |
 |---|---|---|---|
-| **The house** | hausfold the org, haus the layer, every desktop (`hacker`, `everyday`, `minimal`, `blank`), hausfold.co | grey at rest; colour is borrowed from a product, never owned. The hacker desktop holds pink as an *accent* (the site's `--a-hacker`, the docs' error callouts, the hero's themed browser) and nothing else | the house `⌂`, the org's mark. **A desktop never has a mark**, and neither does haus |
-| **The products** | nebelung, pounce, perch, trill, scruff, snug | one hue each, no two the same | the family ears on a tile, where a mark exists (nebelung, pounce, trill, perch). scruff and snug set the wordmark alone |
+| **The house** | hausfold the org, haus the layer, snug the runtime, every desktop (`hacker`, `everyday`, `minimal`, `blank`), hausfold.co | grey at rest; colour is borrowed from a product, never owned. The hacker desktop holds pink as an *accent* (the site's `--a-hacker`, the docs' error callouts, the hero's themed browser) and nothing else | the house `⌂`, the org's mark. **A desktop never has a mark**, and neither does haus or snug |
+| **The products** | nebelung, pounce, perch, trill, scruff | one hue each, no two the same | the family ears on a tile, where a mark exists (nebelung, pounce, trill, perch). scruff sets the wordmark alone |
 
 Two surfaces, and every deliverable is one or the other:
 
@@ -284,13 +284,13 @@ Semantic aliases: `--nebelung-bg` → base · `--nebelung-bg-alt` → mantle ·
 |---|---|---|---|---|
 | hausfold (org) | house | none | | no hue of its own. The wordmark is `--nebelung-text` on crust; the house glyph is grey at rest and sweeps all six accents when it shows colour |
 | haus | house | none | | no hue of its own. Its docs tree wears mauve because the layer ships nebelung: borrowed, and it stays nebelung's |
+| snug | house | none | | no hue and no mark, by decision. The family pins it by rev and `bench release snug` refuses: it is the runtime under our CLIs, not something anyone installs, so it sets the wordmark alone like haus |
 | hacker (desktop) | house | `--nebelung-pink` | `#f2c4e5` | an accent only. The other desktops hold none |
 | nebelung | product | `--nebelung-mauve` | `#c9a8f1` | decided (latte `#8545e3`) |
 | pounce | product | `--nebelung-peach` | `#f5b58e` | decided |
 | perch | product | `--nebelung-green` | `#abe1a6` | decided |
 | trill | product | `--nebelung-yellow` | `#f7e2b5` | decided |
 | scruff | product | `--nebelung-maroon` | `#e6a3ad` | provisional: hausfold.co's pick, not yet carried into the logo system. Deliberately maroon and **not pink** |
-| snug | product | none yet | | undecided |
 
 **The ring** is those six accents in one fixed order, read clockwise from
 twelve: mauve, maroon, green, yellow, peach, pink (nebelung, scruff, perch,
@@ -302,7 +302,9 @@ Rules:
 - Every colour is `var(--nebelung-*)`. A hardcoded hex is a defect.
 - Mauve is the accent. No hue competes with it as a CTA.
 - **Each product owns one hue and no two share one.** A hue that falls out
-  of use (sky) is retired, never reassigned. There is no seventh accent.
+  of use (sky) is retired, never reassigned. There is no seventh accent, and
+  the six are spoken for. snug is house register precisely so that it never
+  needs one.
 - **The house borrows.** A house surface shows a product's hue only while
   pointing at that product; at rest it is grey.
 
@@ -527,7 +529,11 @@ peach. Tagline: `SUMMON, AIM, POUNCE`.
 **trill**: *the card wears the ears.* Ears yellow,
 `translate(14 0) scale(0.72)`; notification card `rect 14,52 72×34 rx 10` in
 `surface1`; dot `circle 26,63 r 4.5` yellow; text lines `rect 36,59 38×5` and
-`rect 36,69 26×5` (rx 2.5) in `surface2`. Tagline: `NO NOISE, JUST A TRILL`.
+`rect 36,69 26×5` (rx 2.5) in `surface2`. Inverted: ears and card
+`surface0`, the dot still yellow, and the two text lines `mantle` @ 0.45 —
+a gray sitting on an inverted shape steps darker, as nebelung's second fog
+layer does, rather than dimming into the shape under it. Tagline:
+`NO NOISE, JUST A TRILL`.
 
 **perch**: *two files, fanned out.* Ears green, `translate(4 19)
 scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
@@ -537,10 +543,10 @@ scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
 **hausfold (org)**: the house, under *Shapes*. On a tile its ground is
 crust, never `surface0`.
 
-**No mark, by decision**: haus, and every desktop. They set the wordmark
-alone, with the house glyph in front of it where a README wants a glyph.
-**No mark yet**: scruff and snug set the wordmark alone until one is
-ratified. An emoji is not a stand-in for a mark on any of them.
+**No mark, by decision**: haus, snug, and every desktop. They set the
+wordmark alone, with the house glyph in front of it where a README wants a
+glyph. **No mark yet**: scruff sets the wordmark alone until one is ratified.
+An emoji is not a stand-in for a mark on any of them.
 
 ### Lockups
 
@@ -636,13 +642,12 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 
 ## Not yet defined
 
-Current gaps, stated so nobody fills them by improvising:
+Current gaps, stated so nobody fills them by improvising. A gap here is a
+decision someone owes, not a file to go and draw: the first two are refused on
+sight under *Reflexes to refuse* until this section changes.
 
-- **Marks for scruff and snug.** Both set the wordmark alone.
-- **An SVG for perch's icon master.** Every other mark renders from its SVG;
-  `perch-icon-master.png`, the source perch's app icon is cut from, is the one
-  still drawn only as a PNG.
-- **An inverted tile for trill.** Every other product mark has one.
+- **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
+  is not on this list — it is house register, and never gets one.
 - **Light-theme artifacts** beyond the org's light square and nebelung's
   latte banner. The latte token sheet exists; artifacts drawn from it mostly
   don't.

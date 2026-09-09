@@ -156,3 +156,16 @@ writing one conformance fixture per implementation from the standard's own words
 rather than from the implementation in front of you. The tell is a rule whose
 verbs are all about the success path, in a document every repo cites and none
 tests against.
+
+**A per-item `skip` in `setup()` blanks every test in the file, and reads
+green.** `test/design-palette.bats` copies each mark named in `PRODUCT_MARKS`
+out of its repo, falling back to GitHub raw, and skips when one cannot be
+found — so naming `trill-square-inverted` here before trill's own PR had landed
+turned all eight tests into `ok … # skip`, the seven with nothing to do with
+that file included. A suite that guards the doc, the media kit and five other
+marks stopped guarding any of them, and `bats` exited 0. The direction is what
+makes it worth a line: a missing input should narrow a suite, never silence it,
+and the silence arrives exactly when someone is adding coverage rather than
+removing it. **Caught by** reading the skip *reasons* on a green run instead of
+the exit code — every line naming the same missing file is the tell — and by
+ordering the merge upstream-first, so the input exists before the list names it.

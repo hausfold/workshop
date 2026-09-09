@@ -20,9 +20,10 @@ lockups, the type) is in
   <img src="https://raw.githubusercontent.com/hausfold/trill/main/assets/trill-icon-master.png" alt="trill" height="88">
 </p>
 
-Two registers. **The house** (hausfold the org, haus the layer, every desktop,
-the site) is grey and borrows colour; its mark is the house. **The products**
-each own one hue and wear the family's cat ears on a tile.
+Two registers. **The house** (hausfold the org, haus the layer, snug the
+runtime, every desktop, the site) is grey and borrows colour; its mark is the
+house. **The products** each own one hue and wear the family's cat ears on a
+tile.
 
 ## Marks and banners
 
@@ -32,15 +33,15 @@ each own one hue and wear the family's cat ears on a tile.
 | **haus**, the layer, and every desktop | none | No mark, by decision. The wordmark alone; in a README the house glyph may stand in front of it: `⌂ haus` |
 | **nebelung** | mauve | [`nebelung-square.svg`](./nebelung-square.svg) and [`.png`](./nebelung-square.png), 512². [`nebelung-square-inverted.svg`](./nebelung-square-inverted.svg) and [`.png`](./nebelung-square-inverted.png). Banner [`nebelung-banner.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner.png), 800×232, and its light version, [`nebelung-banner-latte.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner-latte.png), 1600×464 |
 | **pounce** | peach | [`pounce-square.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.png), 2048². [`pounce-square-inverted.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.png). Banner [`pounce-banner-rounded.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-banner-rounded.png), 1200×348 |
-| **perch** | green | [`perch-square.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square.png), 592². [`perch-square-inverted.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.png). Banner [`perch-banner.png`](https://github.com/hausfold/perch/blob/main/assets/perch-banner.png), 1200×348. [`perch-icon-master.png`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-master.png), 2048², is the app icon's source |
-| **trill** | yellow | [`trill-icon-master.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.png), 2048², the mark on its tile and the app icon's source. Banner [`trill-banner.png`](https://github.com/hausfold/trill/blob/main/assets/trill-banner.png), 1200×348. No inverted tile yet |
+| **perch** | green | [`perch-square.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square.png), 592². [`perch-square-inverted.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.png). Banner [`perch-banner.png`](https://github.com/hausfold/perch/blob/main/assets/perch-banner.png), 1200×348. [`perch-icon-master.png`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-master.png), 2048², is the app icon's source, rendered from that same `perch-square.svg` |
+| **trill** | yellow | [`trill-icon-master.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.png), 2048², the mark on its tile and the app icon's source. [`trill-square-inverted.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-square-inverted.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-square-inverted.png), 2048². Banner [`trill-banner.png`](https://github.com/hausfold/trill/blob/main/assets/trill-banner.png), 1200×348 |
 | **scruff** | maroon | No mark yet. The wordmark alone |
-| **snug** | none yet | No mark yet. The wordmark alone |
+| **snug** | none, by decision | No mark. House register, like haus: the wordmark alone, and never a hue |
 
 A standard tile is the product colour on a `surface0` ground; an inverted tile
 is the ground in the product colour with the shapes in dark. Everything is
 drawn for a dark ground except the two named light files; a light set beyond
-those is not drawn yet.
+those is refused until `design.md` defines one.
 
 The pounce, perch and trill files live in those products' repositories, so a
 change to a mark lands next to the app it names and this page never carries a
@@ -86,7 +87,7 @@ something. `design.md` has the long one.
 - **Flat.** No strokes, no gradients, no shadow, no blur, no gloss.
 - **Wordmarks are lowercase**, in Space Grotesk on anything that is not a web
   page.
-- **One hue per product, and none for the house.** hausfold, haus and the
+- **One hue per product, and none for the house.** hausfold, haus, snug and the
   desktops stay grey. Do not colour the house, and do not give a desktop a
   mark.
 - **No emoji as a stand-in.** Where a mark does not exist (haus, a desktop,
@@ -97,17 +98,20 @@ something. `design.md` has the long one.
 ## Not here yet
 
 Stated so nobody fills a gap by improvising; `design.md` keeps the full list
-under *Not yet defined*.
+under *Not yet defined*. Each one is a decision someone owes, not a file to go
+and draw: the first two are refused on sight until `design.md` says otherwise.
 
-- **Marks for scruff and snug**, a hue for snug, an inverted tile for trill,
-  and light tiles for every product.
-- **An SVG for `perch-icon-master.png`.** Every other mark here renders from
-  its SVG; perch's app-icon source is the one still drawn only as a PNG.
+- **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
+  is not waiting on one — it is house register, so it gets the wordmark alone
+  and no hue, the way haus does.
+- **Light tiles.** Everything but the org's light square and nebelung's latte
+  banner is drawn for a dark ground.
 - **Clearspace and minimum sizes.** The smallest proven ears are 62px, the
   smallest proven house 16px.
-- **Screenshots.** None live here. [`SHOTLIST.md`](./SHOTLIST.md) is the
-  policy (media sells, docs stay text), and the one current hero shot is
+- **Screenshots.** None are part of the kit. [`SHOTLIST.md`](./SHOTLIST.md) is
+  the policy (media sells, docs stay text), and the one current hero shot is
   [`haus/assets/hero.png`](https://github.com/hausfold/haus/blob/main/assets/hero.png).
 
-[`drafts/`](./drafts) holds superseded candidates and [`site/`](./site) holds
-unwired images for hausfold.co. Neither is part of the kit.
+[`drafts/`](./drafts) holds superseded candidates, [`site/`](./site) unwired
+images for hausfold.co, and [`stills/`](./stills) the frames `SHOTLIST.md`
+delists but keeps as source material. None of the three is part of the kit.
