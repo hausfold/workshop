@@ -1,54 +1,54 @@
 {
   "repos": {
     "workshop": {
-      "read": "f7d0a9b65952adff11363c29b0dc8a0fcbcadddc",
-      "landed": "f7d0a9b65952adff11363c29b0dc8a0fcbcadddc",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "dcc714683d040bc12996a65a53704e483eac563b",
+      "landed": "dcc714683d040bc12996a65a53704e483eac563b",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "nebelung": {
       "read": "d6aba3c6808f56a76490bacd2d310c215777b6b8",
       "landed": "d6aba3c6808f56a76490bacd2d310c215777b6b8",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "pounce": {
-      "read": "6c61f9e757551d065792eb1d9c2e23160af5df51",
-      "landed": "6c61f9e757551d065792eb1d9c2e23160af5df51",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "69bee9ff0e7c8ae5c329474440d46a317597528e",
+      "landed": "69bee9ff0e7c8ae5c329474440d46a317597528e",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "haus": {
-      "read": "7e55fe05a9d16e6fd5fd264dc86ff7d915b7a4e9",
-      "landed": "7e55fe05a9d16e6fd5fd264dc86ff7d915b7a4e9",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "4f58e8d2a1f3ba3880b531da5b9c49d96c57f6f3",
+      "landed": "4f58e8d2a1f3ba3880b531da5b9c49d96c57f6f3",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "org-profile": {
       "read": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
       "landed": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "homebrew-tap": {
-      "read": "c5310362a667f329de842aa06d3047425012a9c8",
-      "landed": "c5310362a667f329de842aa06d3047425012a9c8",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "fad4b743395fce1e13b9f6ae99a3bb0aef8136f1",
+      "landed": "fad4b743395fce1e13b9f6ae99a3bb0aef8136f1",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "perch": {
-      "read": "00c73aa2c0bb1b45f1eb325e2216b7bcba499cfb",
+      "read": "7bb72b34765ae589c7ed1faa84906764fc74db58",
       "landed": "00c73aa2c0bb1b45f1eb325e2216b7bcba499cfb",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "scruff": {
-      "read": "c11e29503dab0fc5c0a3e89c387fbb5da70dc514",
-      "landed": "c11e29503dab0fc5c0a3e89c387fbb5da70dc514",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "bcf125467577d3433a217bdc4d33d6237efe28fe",
+      "landed": "bcf125467577d3433a217bdc4d33d6237efe28fe",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "trill": {
-      "read": "9badd350f300952aea26947204b4190ded414c30",
-      "landed": "9badd350f300952aea26947204b4190ded414c30",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "d47c60c0b8646fb8f2be4344a69de2f2c46236d1",
+      "landed": "d47c60c0b8646fb8f2be4344a69de2f2c46236d1",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "hausfold.co": {
-      "read": "984be1ed8c04024006d204799e8920487e37ba21",
-      "landed": "c98ca7e97ee5b373507c6c628e326c8b5cd80886",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read": "9408b9a3b8b5825f865e1376c0b7d806d45b6610",
+      "landed": "984be1ed8c04024006d204799e8920487e37ba21",
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "ops": {
       "read": "d4f1f2c051490662a0956da9d5d3774619aca121",
@@ -58,15 +58,15 @@
     "snug": {
       "read": "bb00e322178be3be75e25da586944dc78a9d2f5d",
       "landed": "",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read_at": "2026-09-10T21:18:54+00:00"
     },
     "factory": {
       "read": "7e2fac251adbde2162727a0d362e7a7bf664a23c",
       "landed": "7e2fac251adbde2162727a0d362e7a7bf664a23c",
-      "read_at": "2026-09-10T09:35:43+00:00"
+      "read_at": "2026-09-10T21:18:54+00:00"
     }
   },
-  "last_run": "2026-09-10T09:35:43+00:00",
+  "last_run": "2026-09-10T21:18:54+00:00",
   "comments": {
     "done": [
       "haus/flake.nix",
@@ -74,7 +74,8 @@
       "haus/modules/core/haus.sh",
       "hausfold.co/worker.js",
       "haus/modules/bar/default.nix",
-      "pounce/pkgs/pounce/State.swift"
+      "pounce/pkgs/pounce/State.swift",
+      "haus/modules/terminal/default.nix"
     ]
   }
 }
