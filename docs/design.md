@@ -506,7 +506,9 @@ The rule is measurable. In the 100-unit box:
 
 - Square, 100×100 viewBox, corner radius **24**.
 - **Standard**: tile `surface0`, ears in the product colour, story shapes in
-  `surface1`/`surface2`.
+  `surface1`/`surface2`. A mark may spend its hue inside the story as well:
+  as a small accent on a gray shape (pounce's caret, trill's dot), or as a
+  whole story shape drawn in it (perch's front card).
 - **Inverted**: tile in the product colour; ears and shapes `surface0` (logo
   sheet) or `crust` (banners carrying a tagline). Small accents inside
   inverted shapes keep the product colour. A gray dims to 0.45, and what it
@@ -523,7 +525,8 @@ The rule is measurable. In the 100-unit box:
   runs the other way, so the tile is `base`, its lightest neutral, and still
   sits a step above the ground the way `surface0` does on crust, while the
   story shapes turn round and step darker than the tile instead of lighter.
-  `surface2` is still the further of the two. Latte accents are saturated
+  `surface2` is still the further of the two, and whatever the standard tile
+  draws in the product colour stays in it. Latte accents are saturated
   rather than pastel, which is what makes them read here, and why a light
   artifact is latte while a light page is paper (*Colour on a page*). One
   drawing holds one set: never latte with paper, and never latte with mocha.
