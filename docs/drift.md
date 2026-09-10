@@ -173,3 +173,25 @@ that note. The two tests that read marks now fail by name on a partial set, and
 the file skips only where it can reach no mark at all. **Caught by** reading
 the skip *reasons* on a green run instead of the exit code — every line naming
 the same missing file is the tell.
+
+**A property nobody chose, promised by six write-ups that describe the build
+settings instead of the artifact.** Every `Perch.app` ever published carries an
+arm64 slice and no other, and six claims said any Mac: the flake's `systems`
+list, `meta.platforms`, the README, hausfold.co's perch index and install
+pages, and a cask whose silence about arch is itself a claim, where pounce's
+formula spells out `depends_on arch: :arm64`. On an Apple Silicon Mac
+`-destination 'platform=macOS'` matches two destinations, `arch:arm64` and
+`arch:x86_64` for one "My Mac"; xcodebuild takes the first and narrows the
+build to it, announcing that in every release run under "Using the first of
+multiple matching destinations". Signing, notarization, stapling, `spctl
+--assess` and the `codesign -R` requirement all pass afterwards, none of them
+being about arch, so the first reader of the actual property is a stranger
+whose Mac says "not supported on this Mac". Row 8 with the generator one level
+further out, and row 5 with its two layers a build apart. What makes it survive
+a careful check: the project declares no `ARCHS` at all, so `xcodebuild
+-showBuildSettings` resolves the universal `ARCHS_STANDARD` and *confirms* the
+claim, and only the command line that overrides it disagrees. **Caught by**
+`lipo -archs` on the published artifact rather than on the settings that were
+supposed to produce it, and by treating an ambient default as undeclared until
+something asserts it — a warning printed in every green run is not evidence
+anybody read it.
