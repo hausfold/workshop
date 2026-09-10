@@ -14,6 +14,16 @@
 palette_dir=""
 marks_dir=""
 
+# The three tests that read only this repo's own files. They fetch nothing, so
+# setup() returns before it can skip them on a palette, a stylesheet or a mark
+# it could not reach — the shape docs/drift.md parks under "a per-item skip in
+# setup() blanks every test in the file, and reads green".
+DOC_ONLY_TESTS=(
+  "design.md's clearspace ratios are what its own lockups measure"
+  "design.md's minimum sizes are the arithmetic its own geometry gives"
+  "the media kit's short version matches design.md"
+)
+
 # The product marks that live in their own repos. The two nebelung tiles are in
 # this repo's assets/ and need no fetching.
 PRODUCT_MARKS=(
@@ -30,6 +40,10 @@ setup() {
   WORKSHOP="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
   DOC="$WORKSHOP/docs/design.md"
   KIT="$WORKSHOP/assets/README.md"
+  local doc_only
+  for doc_only in "${DOC_ONLY_TESTS[@]}"; do
+    if [ "$BATS_TEST_DESCRIPTION" = "$doc_only" ]; then return 0; fi
+  done
   palette_dir="$BATS_TMPDIR/design-palette"
   mkdir -p "$palette_dir"
   local common neb_dir f
@@ -62,8 +76,8 @@ setup() {
   done
   marks_dir="$palette_dir/marks"
   mkdir -p "$marks_dir"
-  # Set for the two tests that read marks; the other six do not, and a mark
-  # they never open must not decide their outcome.
+  # Set for the two tests that read marks; the other six that get this far do
+  # not, and a mark they never open must not decide their outcome.
   MARKS_MISSING=""
   local mark repo repo_dir resolved=0
   for mark in "${PRODUCT_MARKS[@]}"; do
@@ -73,8 +87,8 @@ setup() {
     [ -n "$common" ] && repo_dir="$(dirname "$common")/$repo/assets"
     # A checkout is re-read every time: BATS_TMPDIR outlives the run, and a
     # cached copy would keep this green through the very edit it exists to
-    # catch. Only the download is cached, and only against the eight setups
-    # one `bats` invocation of this file runs. A checkout that is here answers
+    # catch. Only the download is cached, and only against the eight fetching
+    # setups one `bats` invocation of this file runs. A checkout that is here answers
     # for itself, so a file it does not have clears the cached copy too.
     if [ -n "$repo_dir" ] && [ -d "$repo_dir" ]; then
       if [ -f "$repo_dir/$f" ]; then cp "$repo_dir/$f" "$marks_dir/$f"; else rm -f "$marks_dir/$f"; fi
@@ -335,6 +349,164 @@ for said, literal, sheet in claims:
         bad.append(f"design.md no longer says {said!r}: update this test's table with the doc")
     elif literal not in sheet:
         bad.append(f"design.md says {said!r} but hausfold.co's stylesheet has no {literal!r}: re-vendor the doc")
+if bad:
+    print("\n".join(bad))
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "design.md's clearspace ratios are what its own lockups measure" {
+  run python3 - "$DOC" <<'PY'
+import re, sys
+text = open(sys.argv[1]).read()
+
+def section(head):
+    m = re.search(rf"^### {re.escape(head)}\n(.*?)(?=^### )", text, re.S | re.M)
+    return m.group(1) if m else ""
+
+locks = section("Lockups")
+stanza = section("Clearspace and minimum sizes")
+flat = re.sub(r"\s+", " ", stanza)  # the stanza rewraps; the sentence is one line
+if not locks or not stanza:
+    print("design.md lost '### Lockups' or '### Clearspace and minimum sizes': "
+          "the clearspace rule is derived from the first, so re-derive it")
+    sys.exit(1)
+
+def bullet(name):
+    m = re.search(rf"^- \*\*{re.escape(name)}\*\*(.*?)(?=^- \*\*|\Z)", locks, re.S | re.M)
+    return m.group(1) if m else ""
+
+def edges(name, b, mark):
+    """Every other clearance the bullet states, as (what it is, px)."""
+    out, pad = [], re.search(r"padding `?(?:(\d+) )?(\d+)`?", b)
+    if pad:
+        out.append(("its padding", int(pad.group(2))))
+    if name == "Banner":
+        h = re.search(r"^: \d+×(\d+)", b)
+        if h:  # the mark is centred in the height, not held off it by padding
+            out.append(("the air above and below it", (int(h.group(1)) - mark) / 2))
+    return out
+
+# (the lockup, how it names its mark, how it names its tightest neighbour,
+#  the noun the stanza uses for that mark)
+LOCKUPS = [
+    ("Banner",       r"mark (\d+)×", r"gap (\d+)",                        "mark"),
+    ("Family strip", r"at (\d+)×",   r"gap (\d+)",                        "tiles"),
+    ("OG card",      r"tile (\d+)×", r"×\d+, (\d+) from the text column", "tile"),
+]
+
+bad = []
+for name, mark_re, near_re, noun in LOCKUPS:
+    b = bullet(name)
+    m, n = re.search(mark_re, b), re.search(near_re, b)
+    if not (m and n):
+        bad.append(f"can't read {name}'s mark size or its tightest neighbour out of "
+                   f"design.md any more: the bullet moved, so re-derive its ratio")
+        continue
+    mark, near = int(m.group(1)), int(n.group(1))
+    floor = 0.2 * mark
+    ratio = near / mark
+    if ratio < 0.2:
+        bad.append(f"{name} clears only {ratio:.3f}× its {mark}px mark, under the 0.2× "
+                   f"floor the stanza sets: the lockup or the floor has to move")
+    said = f"{ratio:.3f}× its {mark}px {noun}"
+    if said not in flat:
+        bad.append(f"{name} now measures {said!r}, which the clearspace stanza "
+                   f"doesn't say: re-vendor the sentence from the lockup")
+    for what, px in edges(name, b, mark):
+        if px < floor:
+            bad.append(f"{name} leaves {px:g}px for {what}, under the {floor:g}px floor "
+                       f"its {mark}px mark asks for: the lockup or the floor has to move")
+if bad:
+    print("\n".join(bad))
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "design.md's minimum sizes are the arithmetic its own geometry gives" {
+  run python3 - "$DOC" <<'PY'
+import re, sys
+text = open(sys.argv[1]).read()
+
+def section(head):
+    m = re.search(rf"^### {re.escape(head)}\n(.*?)(?=^### )", text, re.S | re.M)
+    return m.group(1) if m else ""
+
+def wall(half):
+    """A house's wall thickness: how far its inner path sits inside its outer."""
+    out = re.search(r"`(M50 [^`]+Z)`\s*\n?\s*outside", half)
+    inn = re.search(r"`(M50 [^`]+Z)`\s*\n?\s*inside", half)
+    if not (out and inn):
+        return None
+    left = lambda p: min(float(x) for x in re.findall(r"L([\d.]+) ", p))
+    return round(left(inn.group(1)) - left(out.group(1)), 2)
+
+house = section("The house")
+favicon_half, _, padded_half = house.partition("The padded square")
+marks = section("The marks")
+stanza = section("Clearspace and minimum sizes")
+rows = {int(m.group(1)): m.group(0)
+        for m in re.finditer(r"^\| \*\*(\d+)px\*\* \|.*$", stanza, re.M)}
+caret = re.search(r"caret `rect [\d.,]+ ([\d.]+)×", marks)
+line1 = re.search(r"text lines `rect 36,(\d+) 38×(\d+)`", marks)
+line2 = re.search(r"`rect 36,(\d+) 26×\d+`", marks)
+
+# (what the raster has to hold, its width in the 100-unit box, the row it sets)
+INK = [
+    ("the favicon's walls", wall(favicon_half), 16),
+    ("walls",               wall(padded_half),  24),
+    ("pounce's caret",      float(caret.group(1)) if caret else None, 32),
+]
+if not (rows and line1 and line2) or any(u is None for _, u, _ in INK):
+    print("design.md's house paths, pounce's caret, trill's text lines or the "
+          "minimum-size table moved: re-derive the table from the new geometry")
+    sys.exit(1)
+
+bad = []
+for name, units, size in INK:
+    said = f"{units:g} units → {units * size / 100:.2f}px"
+    row = rows.get(size, "")
+    if name not in row or said not in row:
+        bad.append(f"the {size}px row should name {name} and read {said!r}: that "
+                   f"is what the geometry above it now gives")
+gap = int(line2.group(1)) - (int(line1.group(1)) + int(line1.group(2)))
+if f"{gap}-unit gap" not in rows.get(32, ""):
+    bad.append(f"trill's text lines are now {gap} units apart, which the 32px row "
+               f"doesn't say")
+if bad:
+    print("\n".join(bad))
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "the media kit's short version matches design.md" {
+  run python3 - "$DOC" "$KIT" <<'PY'
+import re, sys
+doc, kit = open(sys.argv[1]).read(), open(sys.argv[2]).read()
+stanza = re.search(r"^### Clearspace and minimum sizes\n(.*?)(?=^### )", doc, re.S | re.M)
+clear = re.search(r"^- \*\*Clearspace:.*?(?=^- \*\*)", kit, re.S | re.M)
+floors = re.search(r"^- \*\*Minimum size:.*?(?=^\n)", kit, re.S | re.M)
+if not (stanza and clear and floors):
+    print("design.md's clearspace stanza or the media kit's short version of it "
+          "moved: the kit vendors those numbers, so re-vendor them")
+    sys.exit(1)
+stanza = re.sub(r"\s+", " ", stanza.group(1))
+rasters = set(re.findall(r"\| \*\*(\d+)px\*\* \|", doc))
+
+# The kit states the rule in fewer words. Every ratio it quotes has to be one
+# the stanza measures, and every floor one the stanza's table defines.
+bad = []
+for ratio in sorted(set(re.findall(r"\d[\d.]*×", clear.group(0)))):
+    if ratio not in stanza:
+        bad.append(f"the media kit says {ratio!r}, which design.md's clearspace "
+                   f"stanza doesn't: the doc is the standard, so re-vendor the kit")
+for floor in sorted(set(re.findall(r"(\d+)px", floors.group(0)))):
+    if floor not in rasters:
+        bad.append(f"the media kit sets a {floor}px floor, which design.md's "
+                   f"minimum-size table has no row for: re-vendor the kit")
 if bad:
     print("\n".join(bad))
     sys.exit(1)
