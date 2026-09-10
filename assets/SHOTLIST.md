@@ -85,3 +85,10 @@ a desktop read as *designed*, not *dumped*. Before capturing #1, #2 or #4:
   `agents` and `github` pills stay in shot.
 - Default gaps (inner `10px` / outer `20px`); KeyCastr bottom-center for any video.
 - Record on the retina display, 60fps, export @2x; bump Ghostty to ~22px for video legibility.
+
+**That list runs as a script for #2**: [`script/shoot-hero.sh`](../script/shoot-hero.sh)
+drops the personal pills, offers the clock, writes the scene's untracked
+`scenes.nix`, fires a timed shutter and puts the machine back — then hands the
+file to a reader rather than declaring it shot. That last stage is the point: a
+disqualifier above is only ever findable by reading the capture back against
+this table, which is how the 2026-08-26 frame shipped carrying three.
