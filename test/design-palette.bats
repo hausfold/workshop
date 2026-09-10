@@ -21,6 +21,7 @@ PRODUCT_MARKS=(
   pounce/pounce-square-inverted
   perch/perch-square
   perch/perch-square-inverted
+  perch/perch-icon-ios
   trill/trill-icon-master
   trill/trill-square-inverted
 )
