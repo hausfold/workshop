@@ -14,14 +14,16 @@
 palette_dir=""
 marks_dir=""
 
-# The three tests that read only this repo's own files. They fetch nothing, so
-# setup() returns before it can skip them on a palette, a stylesheet or a mark
-# it could not reach — the shape docs/drift.md parks under "a per-item skip in
-# setup() blanks every test in the file, and reads green".
-DOC_ONLY_TESTS=(
+# The tests that fetch nothing — three that read only this repo's own files,
+# and one that reads the sibling checkouts if they are there. setup() returns
+# before it can skip any of them on a palette, a stylesheet or a mark it could
+# not reach — the shape docs/drift.md parks under "a per-item skip in setup()
+# blanks every test in the file, and reads green".
+NO_FETCH_TESTS=(
   "design.md's clearspace ratios are what its own lockups measure"
   "design.md's minimum sizes are the arithmetic its own geometry gives"
   "the media kit's short version matches design.md"
+  "PRODUCT_MARKS names every mark SVG in the sibling repos"
 )
 
 # The product marks that live in their own repos. nebelung's tiles are in this
@@ -29,20 +31,23 @@ DOC_ONLY_TESTS=(
 PRODUCT_MARKS=(
   pounce/pounce-square
   pounce/pounce-square-inverted
+  pounce/pounce-square-latte
   perch/perch-square
   perch/perch-square-inverted
+  perch/perch-square-latte
   perch/perch-icon-ios
   trill/trill-icon-master
   trill/trill-square-inverted
+  trill/trill-square-latte
 )
 
 setup() {
   WORKSHOP="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
   DOC="$WORKSHOP/docs/design.md"
   KIT="$WORKSHOP/assets/README.md"
-  local doc_only
-  for doc_only in "${DOC_ONLY_TESTS[@]}"; do
-    if [ "$BATS_TEST_DESCRIPTION" = "$doc_only" ]; then return 0; fi
+  local no_fetch
+  for no_fetch in "${NO_FETCH_TESTS[@]}"; do
+    if [ "$BATS_TEST_DESCRIPTION" = "$no_fetch" ]; then return 0; fi
   done
   palette_dir="$BATS_TMPDIR/design-palette"
   mkdir -p "$palette_dir"
@@ -113,6 +118,34 @@ assert_every_mark_present() {
     echo "PRODUCT_MARKS names a mark that is in no sibling checkout and on no"
     echo "upstream main:$MARKS_MISSING"
     echo "Land the mark's own repo first, then bench pull, then this."
+    false
+  }
+}
+
+@test "PRODUCT_MARKS names every mark SVG in the sibling repos" {
+  # The two mark tests open what this array names and nothing else, so a mark
+  # added upstream and forgotten here is a file with no drift test at all —
+  # green, and unguarded. This walks the other way: every *.svg in a sibling
+  # repo's assets/ has to be in the array. It reads checkouts only. There is
+  # nothing to enumerate over the network, because the array is itself what
+  # says which repos to look in, so a machine without them skips rather than
+  # grading a list against itself.
+  local root repo repo_dir f name missing="" found=0
+  root="$(dirname "$(git -C "$WORKSHOP" rev-parse --path-format=absolute --git-common-dir)")"
+  for repo in $(printf '%s\n' "${PRODUCT_MARKS[@]}" | cut -d/ -f1 | sort -u); do
+    repo_dir="$root/$repo/assets"
+    [ -d "$repo_dir" ] || continue
+    found=1
+    for f in "$repo_dir"/*.svg; do
+      [ -e "$f" ] || continue
+      name="$repo/$(basename "$f" .svg)"
+      printf '%s\n' "${PRODUCT_MARKS[@]}" | grep -qxF "$name" || missing="$missing $name"
+    done
+  done
+  [ "$found" = 1 ] || skip "no sibling checkout to enumerate marks from"
+  [ -z "$missing" ] || {
+    echo "a mark SVG in a sibling repo that PRODUCT_MARKS does not name:$missing"
+    echo "Add it to the array, so the two tests below open it too."
     false
   }
 }

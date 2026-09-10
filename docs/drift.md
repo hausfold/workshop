@@ -162,8 +162,8 @@ green.** `test/design-palette.bats` copies each mark named in `PRODUCT_MARKS`
 out of its repo, falling back to GitHub raw, and skipped when one could not be
 found. Name a mark that is not yet on its upstream's `main` and every test whose
 setup fetches prints `ok … # skip` — the six that never open a mark included — so the doc's
-hexes, the media kit's, the latte citations, the page register and the other
-seven mark SVGs stop being checked, and `bats` exits 0. The direction is what
+hexes, the media kit's, the latte citations, the page register and every other
+mark SVG stop being checked, and `bats` exits 0. The direction is what
 makes it worth a line: a missing input should narrow a suite, never silence it,
 and the silence arrives exactly when someone is *adding* coverage rather than
 removing it. Ordering the merge upstream-first is the answer, but only as a
