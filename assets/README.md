@@ -31,7 +31,7 @@ tile.
 |---|---|---|
 | **hausfold**, the org | none of its own; the ring of all six accents | [`hausfold-dark-square.svg`](./hausfold-dark-square.svg) and [`.png`](./hausfold-dark-square.png), 2048², on crust. [`hausfold-light-square.svg`](./hausfold-light-square.svg) and [`.png`](./hausfold-light-square.png), on the site's paper. The padded square for avatars and social profiles. The favicon, where the house fills the tile, is [`favicon.svg`](https://github.com/hausfold/hausfold.co/blob/main/public/favicon.svg) in the site's repository |
 | **haus**, the layer, and every desktop | none | No mark, by decision. The wordmark alone; in a README the house glyph may stand in front of it: `⌂ haus` |
-| **nebelung** | mauve | [`nebelung-square.svg`](./nebelung-square.svg) and [`.png`](./nebelung-square.png), 512². [`nebelung-square-inverted.svg`](./nebelung-square-inverted.svg) and [`.png`](./nebelung-square-inverted.png). Banner [`nebelung-banner.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner.png), 800×232, and its light version, [`nebelung-banner-latte.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner-latte.png), 1600×464 |
+| **nebelung** | mauve | [`nebelung-square.svg`](./nebelung-square.svg) and [`.png`](./nebelung-square.png), 512². [`nebelung-square-inverted.svg`](./nebelung-square-inverted.svg) and [`.png`](./nebelung-square-inverted.png). Light tile [`nebelung-square-latte.svg`](./nebelung-square-latte.svg) and [`.png`](./nebelung-square-latte.png), 512². Banner [`nebelung-banner.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner.png), 800×232, and its light version, [`nebelung-banner-latte.png`](https://github.com/hausfold/nebelung/blob/main/assets/nebelung-banner-latte.png), 1600×464 |
 | **pounce** | peach | [`pounce-square.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.png), 2048². [`pounce-square-inverted.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.png). Banner [`pounce-banner-rounded.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-banner-rounded.png), 1200×348 |
 | **perch** | green | [`perch-square.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square.png), 592². [`perch-square-inverted.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.png). Banner [`perch-banner.png`](https://github.com/hausfold/perch/blob/main/assets/perch-banner.png), 1200×348. [`perch-icon-master.png`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-master.png), 2048², is the macOS app icon's source, rendered from that same `perch-square.svg`. The iOS icon has its own, [`perch-icon-ios.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-ios.svg), 1024²: the same tile inset on a ground that bleeds to the edge, because iOS masks its own squircle and refuses an alpha channel |
 | **trill** | yellow | [`trill-icon-master.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.png), 2048², the mark on its tile and the app icon's source. [`trill-square-inverted.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-square-inverted.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-square-inverted.png), 2048². Banner [`trill-banner.png`](https://github.com/hausfold/trill/blob/main/assets/trill-banner.png), 1200×348 |
@@ -39,9 +39,10 @@ tile.
 | **snug** | none, by decision | No mark. House register, like haus: the wordmark alone, and never a hue |
 
 A standard tile is the product colour on a `surface0` ground; an inverted tile
-is the ground in the product colour with the shapes in dark. Everything is
-drawn for a dark ground except the two named light files; a light set beyond
-those is refused until `design.md` defines one.
+is the ground in the product colour with the shapes in dark. A light tile is
+that same drawing in nebelung's latte set, and there is no light inverted tile,
+because an inverted one already carries its own colour. The org's light square
+is the one file drawn in the site's paper palette instead of latte.
 
 The pounce, perch and trill files live in those products' repositories, so a
 change to a mark lands next to the app it names and this page never carries a
@@ -72,6 +73,13 @@ The ones a logo or a banner spends:
 | the second grey, for a lighter shape | `surface2` | `#5c5c5c` |
 | text, and the hausfold wordmark on an artifact | `text` | `#d7d7d7` |
 | muted text | `subtext0` | `#aeaeae` |
+
+A light tile takes the same shapes out of nebelung's latte set, where the
+ramp runs the other way: the tile is latte base `#f1f1f1`, the lightest
+neutral there, story shapes are latte surface1 `#c0c0c0` and latte surface2
+`#b0b0b0`, and the ground behind them is latte crust `#e0e0e0`. Each product
+keeps its own hue — latte mauve `#8545e3`, latte peach `#f66d2d`, latte green
+`#4a9e3a`, latte yellow `#d99137`, latte maroon `#de5059`.
 
 The six accents, in the order the house's ring turns through them: mauve,
 maroon, green, yellow, peach, pink. There is no seventh.
@@ -107,14 +115,12 @@ something. `design.md` has the long one.
 
 Stated so nobody fills a gap by improvising; `design.md` keeps the full list
 under *Not yet defined*. Each one is a decision someone owes, not a file to go
-and draw: `design.md` turns the first two away on sight, under *Reflexes to
+and draw: `design.md` turns the first away on sight, under *Reflexes to
 refuse*.
 
 - **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
   is not waiting on one — it is house register, so it gets the wordmark alone
   and no hue, the way haus does.
-- **Light tiles.** Everything but the org's light square and nebelung's latte
-  banner is drawn for a dark ground.
 - **Screenshots.** None are part of the kit. [`SHOTLIST.md`](./SHOTLIST.md) is
   the policy (media sells, docs stay text), and the one current hero shot is
   [`haus/assets/hero.png`](https://github.com/hausfold/haus/blob/main/assets/hero.png).

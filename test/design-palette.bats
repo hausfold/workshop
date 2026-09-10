@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# docs/design.md, assets/README.md (the media kit) and the mark SVGs — the two
+# docs/design.md, assets/README.md (the media kit) and the mark SVGs — the ones
 # here, and pounce's, perch's and trill's in their own repos — vendor nebelung
 # hexes; the doc also vendors hausfold.co's page numbers, and
 # AGENTS.md's rule is that nothing is inlined without a drift test — this is
@@ -24,8 +24,8 @@ DOC_ONLY_TESTS=(
   "the media kit's short version matches design.md"
 )
 
-# The product marks that live in their own repos. The two nebelung tiles are in
-# this repo's assets/ and need no fetching.
+# The product marks that live in their own repos. nebelung's tiles are in this
+# repo's assets/ and need no fetching.
 PRODUCT_MARKS=(
   pounce/pounce-square
   pounce/pounce-square-inverted
@@ -168,9 +168,16 @@ if not files:
 # own. The neutrals are the ramp; everything else in the palette is an accent.
 NEUTRAL = {"text", "subtext1", "subtext0", "overlay2", "overlay1", "overlay0",
            "surface2", "surface1", "surface0", "base", "mantle", "crust"}
-mocha = {k: v.lower() for k, v in json.load(open(f"{pdir}/nebelung.hex.json")).items()}
-accents = {v for k, v in mocha.items() if k not in NEUTRAL}
-own = {p: mocha[t] for p, t in
+# Both sets, because a light tile is latte: a latte accent in the wrong mark is
+# the same defect as a mocha one. No mocha accent is a latte neutral or the
+# reverse, so the union stays a clean partition. What it cannot tell is WHICH
+# set a file is drawn in — a mark spending its own hue out of both ramps at
+# once passes here, and "one drawing holds one set" is a rule the doc states
+# and no test measures.
+ramps = [{k: v.lower() for k, v in json.load(open(f"{pdir}/{f}")).items()}
+         for f in ("nebelung.hex.json", "nebelung-latte.hex.json")]
+accents = {v for r in ramps for k, v in r.items() if k not in NEUTRAL}
+own = {p: {r[t] for r in ramps} for p, t in
        (("nebelung", "mauve"), ("pounce", "peach"), ("perch", "green"),
         ("trill", "yellow"), ("scruff", "maroon"))}
 bad = []
@@ -180,8 +187,9 @@ for f in files:
     for h in sorted({h.lower() for h in re.findall(r"#([0-9a-fA-F]{6})\b", open(f).read())}):
         if h not in values:
             bad.append(f"{base}: #{h} is no nebelung token value")
-        elif mine and h in accents and h != mine:
-            bad.append(f"{base}: #{h} is another product's accent, not its own #{mine}")
+        elif mine and h in accents and h not in mine:
+            bad.append(f"{base}: #{h} is another product's accent, not one of its "
+                       f"own ({', '.join('#' + x for x in sorted(mine))})")
 if bad:
     print("colour in a mark SVG that the standard does not allow it:")
     for b in bad:
@@ -272,22 +280,28 @@ PY
   [ "$status" -eq 0 ] || { echo "$output"; false; }
 }
 
-@test "design.md's latte citations match nebelung's latte palette" {
-  run python3 - "$DOC" "$palette_dir" <<'PY'
-import json, re, sys
-doc, pdir = sys.argv[1], sys.argv[2]
+@test "the latte citations in design.md and the media kit match nebelung's latte palette" {
+  run python3 - "$palette_dir" "$DOC" "$KIT" <<'PYEOF'
+import json, os, re, sys
+pdir, files = sys.argv[1], sys.argv[2:]
 latte = {k: v.lower() for k, v in json.load(open(f"{pdir}/nebelung-latte.hex.json")).items()}
-text = open(doc).read()
-pairs = re.findall(r"latte\s+([a-z0-9]+)\s+`#([0-9a-fA-F]{6})`", text)
-if len(pairs) < 5:
-    print(f"only {len(pairs)} latte citations parsed — the latte spelling changed; fix this regex with it")
-    sys.exit(1)
-bad = [(n, h) for n, h in pairs if latte.get(n) != h.lower()]
+bad = []
+# Both write the light tile's colours out as "latte <token> `#hex`", and both
+# have to say what nebelung says. The floor is the count each one carries: a
+# citation that stops parsing is the spelling drifting, not a hex going right.
+for f, floor in zip(files, (9, 9)):
+    name = os.path.basename(f)
+    pairs = re.findall(r"latte\s+([a-z0-9]+)\s+`#([0-9a-fA-F]{6})`", open(f).read())
+    if len(pairs) < floor:
+        bad.append(f"only {len(pairs)} latte citations parsed out of {name}, and it "
+                   f"carries {floor}: the latte spelling changed; fix this regex with it")
+        continue
+    bad += [f"latte {n}: {name} says #{h}, nebelung says #{latte.get(n, '<no such token>')}"
+            for n, h in pairs if latte.get(n) != h.lower()]
 if bad:
-    for n, h in bad:
-        print(f"latte {n}: design.md says #{h}, nebelung says #{latte.get(n, '<no such token>')}")
+    print("\n".join(bad))
     sys.exit(1)
-PY
+PYEOF
   [ "$status" -eq 0 ] || { echo "$output"; false; }
 }
 
