@@ -8,11 +8,12 @@
 # WHY this is a script and not a checklist: the frame has to clear a
 # disqualifier list, and every item on that list is a different mechanism — a
 # haus option, a lazygit panel mode, a page scroll, the system clock. The
-# 2026-08-26 hero shipped carrying three of them (a 73% battery pill, a 4:22
-# clock, the lazygit Commits panel and its author column), because a
-# disqualifier is only findable by reading the capture back against the list
-# afterwards. So the list runs as stages, and the last stage hands the file to
-# a reader instead of declaring victory.
+# hero on disk carries four of them (a 73% battery pill, a clock that is not
+# 9:41, the lazygit Commits panel and its author column, and the org page's
+# contact line reading `jul…` beside the Pounce panel), because a disqualifier
+# is only findable by reading the capture back against the list afterwards. So
+# the list runs as stages, and the last stage hands the file to a reader
+# instead of declaring victory.
 #
 # It needs the screen and it needs a human. Nothing here runs unattended.
 set -euo pipefail
@@ -25,13 +26,29 @@ note()  { printf '%s      %s%s\n' "$d" "$1" "$r"; }
 warn()  { printf '%s      ! %s%s\n' "$y" "$1" "$r"; }
 ok()    { printf '%s      ✓ %s%s\n' "$g" "$1" "$r"; }
 pause() { read -r -p "      press ↵ when done (Ctrl-C to stop) "; }
-confirm(){ read -r -p "      type $1 to continue: " a; [ "$a" = "$1" ] || { echo "      stopped."; exit 1; }; }
+confirm(){ local a; read -r -p "      type $1 to continue: " a; [ "$a" = "$1" ] || { echo "      stopped."; exit 1; }; }
 
+# A picked ROW comes back bare, but Return on text that matched none comes back
+# as "<action>⇥<text>" (pounce's Entry.swift) — so strip anything up to a tab or
+# every `case` below reads a keystroke name instead of an answer. Esc is exit 1,
+# which every caller answers with its own default rather than dying under `set -e`.
 choose() { # choose "prompt" opt1 opt2 …
-  local p="$1"; shift
-  if command -v pounce >/dev/null 2>&1; then printf '%s\n' "$@" | pounce -p "$p"
-  else printf '%s\n' "      $p" >&2; select c in "$@"; do [ -n "$c" ] && { echo "$c"; return; }; done; fi
+  local p="$1" out; shift
+  if command -v pounce >/dev/null 2>&1; then out="$(printf '%s\n' "$@" | pounce -p "$p")" || return 1
+  else printf '%s\n' "      $p" >&2; select out in "$@"; do [ -n "$out" ] && break; done; fi
+  printf '%s' "${out##*$'\t'}"
 }
+
+# Set the moment anything about this Mac is not how it was found, cleared by
+# restore(). The trap is the only thing standing between a Ctrl-C and a machine
+# left with its pills off and its clock at 09:41.
+STAGED=0
+still_staged() {
+  [ "$STAGED" = "1" ] || return 0
+  printf '\n%s      ! this Mac is still staged. Put it back with:%s\n' "$y" "$r"
+  printf '%s        %s --restore%s\n\n' "$y" "$0" "$r"
+}
+trap still_staged EXIT
 
 STATE="${XDG_CACHE_HOME:-$HOME/.cache}/hausfold/shoot-hero"
 SHOT_DIR="${SHOT_DIR:-$HOME/Pictures/hausfold-hero}"
@@ -58,11 +75,13 @@ PILLS=(
   bar.bottom.items.aiUsage false
   bar.items.elgato false
   bar.bottom.items.elgato false
+  bar.items.harvest false
+  bar.bottom.items.harvest false
 )
 pill_paths() { local i; for ((i=0; i<${#PILLS[@]}; i+=2)); do printf '%s\n' "${PILLS[i]}"; done; }
 
 restore() {
-  local -a paths=(); while IFS= read -r p; do paths+=("$p"); done < <(pill_paths)
+  local p; local -a paths=(); while IFS= read -r p; do paths+=("$p"); done < <(pill_paths)
   note "haus reset ${paths[*]} — one rebuild, ~1 min"
   haus reset "${paths[@]}" || warn "haus reset said no — check 'haus get bar.battery.hideOver'"
   if [ -e "$SCENE_FILE" ]; then rm -f "$SCENE_FILE"; ok "removed $SCENE_FILE"; fi
@@ -71,13 +90,15 @@ restore() {
     sudo systemsetup -setusingnetworktime on >/dev/null && rm -f "$STATE/clock"
     ok "network time back on"
   fi
+  STAGED=0
   ok "machine restored"
 }
 
-if [ "${1:-}" = "--restore" ]; then
-  printf '%s\n' "${b}Putting the Mac back${r}"
-  restore; exit 0
-fi
+case "${1:-}" in
+  --restore) printf '%s\n' "${b}Putting the Mac back${r}"; restore; exit 0 ;;
+  "") ;;
+  *) echo "usage: $0 [--restore]"; exit 1 ;;
+esac
 
 printf '%s\n%s\n' "${b}Shooting the desktop hero${r}" \
   "${d}Ctrl-C any time. Re-running is safe and skips what is already done.${r}"
@@ -97,10 +118,14 @@ note "the shot is 3024×1964, the built-in retina panel, no external display in 
 
 stage "Drop the personal pills"
 if [ "$(haus get bar.battery.hideOver 2>/dev/null)" = "5" ]; then
+  STAGED=1
   ok "already staged (battery hideOver is 5)"
 else
-  note "battery pill hides over 5% · aiUsage and elgato off, both bars"
-  note "agents, github and media STAY — a desktop visibly doing work sells better"
+  STAGED=1
+  note "battery pill hides over 5% · aiUsage, elgato and harvest off, both bars"
+  note "everything else this host runs STAYS — agents, github, media, cpu,"
+  note "memory, caffeinate, calendar, trill. A desktop visibly doing work sells"
+  note "better than a staged one, and SHOTLIST says so"
   note "one rebuild, ~1 min"
   haus set "${PILLS[@]}"
   ok "pills staged — 'haus reset' puts them back, and stage 6 does it for you"
@@ -111,14 +136,17 @@ if [ "$(date +%H%M)" = "0941" ]; then
   ok "the clock already reads 9:41"
 else
   pick="$(choose "clock reads $(date '+%-H:%M') — SHOTLIST wants 9:41" \
-    "wait and shoot at 09:41" "set the clock to 09:41 now" "shoot with the real time")"
+    "wait and shoot at 09:41" "set the clock to 09:41 now" "shoot with the real time")" \
+    || pick="shoot with the real time"
   case "$pick" in
     set*)
       warn "this moves system time — launchd timers, git timestamps and TLS all see it"
       confirm CLOCK
+      # Marker first: a sudo that fails halfway still has to be undoable, and
+      # restore() keys on nothing else.
+      touch "$STATE/clock"; STAGED=1
       sudo systemsetup -setusingnetworktime off >/dev/null
       sudo date 0941 >/dev/null
-      touch "$STATE/clock"
       ok "clock set to 09:41 — stage 6 puts network time back"
       ;;
     wait*)
@@ -176,8 +204,8 @@ ok "scene staged"
 stage "Shoot it"
 mkdir -p "$SHOT_DIR"
 OUT="$SHOT_DIR/hero-$(date +%Y%m%d-%H%M%S).png"
-note "press ↵ and you have ${DELAY}s. The shutter SOUND is the signal — it is on"
-note "on purpose, so you know the frame is taken without watching this window."
+note "press ↵ and you have ${DELAY}s. The shutter SOUND is left on as the cue,"
+note "so you know the frame is taken without watching this window."
 note "in those ${DELAY}s: switch to the staged workspace · ⌘Space · type 's' ·"
 note "leave the pointer somewhere harmless · hold still."
 pause
@@ -193,7 +221,7 @@ ok "captured ${W}×${H} → $OUT"
 
 stage "Put the machine back"
 pick="$(choose "restore now, or leave it staged for another take?" \
-  "restore now" "leave it staged")"
+  "restore now" "leave it staged")" || pick="leave it staged"
 case "$pick" in
   restore*) restore ;;
   *) note "left staged. './script/shoot-hero.sh --restore' when you are done"
@@ -204,4 +232,6 @@ stage "Hand it to a reader"
 printf '\n%s✓ done.%s  the frame is at:\n\n      %s\n\n' "$g" "$r" "$OUT"
 note "paste that path to Claude and ask it to read the capture against"
 note "SHOTLIST row 2's disqualifier list before anything is committed."
-note "a capture nobody read back is how the last three shipped."
+note "a capture nobody read back is how the frame on disk shipped with four."
+note "⚠ with no Screen Recording permission this is a wallpaper-only PNG at the"
+note "right size and exit 0 — both checks above pass it. Look before you trust it."
