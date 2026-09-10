@@ -94,6 +94,14 @@ something. `design.md` has the long one.
   scruff, snug), the name is set in text.
 - **Radius 24 on the tile and the banner, 28 on the social card.** Copy the
   numbers in `design.md`; there is no grid behind them.
+- **Clearspace: 0.2× the mark's width, clear on every side.** No other ink
+  inside it; the mark's own silhouette used as ground texture doesn't count.
+  Every lockup in `design.md` already clears it, the OG card most tightly at
+  0.236×.
+- **Minimum size: 24px** for a tile whose story shape has to read, **16px**
+  where only the ears, the hue and the house-in-its-tile must. Under 16px, set
+  the wordmark instead. The full ladder, and what each raster buys, is in
+  `design.md`.
 
 ## Not here yet
 
@@ -107,8 +115,6 @@ refuse*.
   and no hue, the way haus does.
 - **Light tiles.** Everything but the org's light square and nebelung's latte
   banner is drawn for a dark ground.
-- **Clearspace and minimum sizes.** The smallest proven ears are 62px, the
-  smallest proven house 16px.
 - **Screenshots.** None are part of the kit. [`SHOTLIST.md`](./SHOTLIST.md) is
   the policy (media sells, docs stay text), and the one current hero shot is
   [`haus/assets/hero.png`](https://github.com/hausfold/haus/blob/main/assets/hero.png).

@@ -201,10 +201,14 @@ mark changes the SVG and this file in the same commit.
 product mark — nebelung's two tiles here, pounce's, perch's and trill's read
 out of their own repos — it checks that every path, transform, tile radius and
 alpha step in the SVG is written out in the stanza here, and that the file
-spends nebelung tokens and no other product's accent. It runs one way, it does
-not check that a token is in the *role* the stanza gives it, and it does not
-reach the house's two squares, whose ring is ninety interpolated wedges.
-Everything outside that is on the reader.
+spends nebelung tokens and no other product's accent. It also closes this file
+on itself: the clearspace ratios and the minimum-size table are re-derived from
+the *Lockups* bullets and from the house paths, caret and text lines written
+above, and the media kit's short version is diffed back against both. It runs
+one way, it does not check that a token is in the *role* the stanza gives it,
+and it reaches the house's two squares only through the four paths quoted
+here, never their ring of ninety interpolated wedges. Everything outside that
+is on the reader.
 
 Three scopes this file deliberately does not own:
 
@@ -575,6 +579,42 @@ An emoji is not a stand-in for a mark on any of them.
   gap 18; ghost ears 560×560 at top −150 / right −110 in `surface0` @ 0.55;
   footer `HAUSFOLD / NAME` bottom-left.
 
+### Clearspace and minimum sizes
+
+**Clearspace: 0.2× the mark's own width, on every side.** No other ink inside
+that band — another mark, a wordmark, running text, a rule, or the edge of the
+artwork. The mark's own silhouette used as ground texture is not ink, which is
+what lets the OG card's ghost ears (`surface0` @ 0.55 on crust) sit anywhere.
+The figure is read off the three lockups above, which already clear it as
+drawn: the banner's 20px gap is 0.323× its 62px mark, the family strip's 36px
+gap 0.409× its 88px tiles, and the OG card's 52px to the text column 0.236× its
+220px tile — the tightest clearance the family draws, and still clear.
+`test/design-palette.bats` re-derives every clearance those three bullets
+state, the padding around each mark included, so one that tightens reddens the
+test instead of quietly breaking the rule.
+
+**Minimum sizes are device pixels**, not points: a 16pt icon on a 2× display is
+a 32px raster and safe, and the same icon on a 1× display is the case that
+breaks. Unlike the clearspace figure these are not read off a shipped file —
+nothing in the family draws a mark below the banner's 62px — they are what the
+geometry above does to a raster, rendered at each size and read back.
+
+| raster | what reads |
+|---|---|
+| **16px** | the ears, the hue and the tile; the house only where it fills its tile (the favicon's walls, 10.8 units → 1.73px) |
+| **24px** | the story shape as a silhouette, and the padded square's house (walls 6.05 units → 1.45px) |
+| **32px** | the finest thing inside a story shape: pounce's caret in peach (3.5 units → 1.12px), and trill's two text lines, whose 5-unit gap only returns to the card colour here |
+
+**Under 16px there is no mark** — the wordmark alone, with the `⌂` glyph in
+front of it only where a house wordmark already takes one.
+
+One rule underneath that table: **a shape needs about a device pixel of ink to
+be itself** (units × size ÷ 100). Below that it survives only as a tint of what
+sits behind it, which is why 3.5 units is the floor under *What makes a mark
+quiet* and why nothing finer is drawn. Two shapes want more again: trill's
+lines sit 5 units apart, and at 24px that gap is a dip in the grey rather than
+the card showing through.
+
 ### Page pieces
 
 The parts a hausfold page is made of, as decisions. `hausfold.css` is the
@@ -644,6 +684,7 @@ and is refused on sight:
 - motion on load, a spinner, a scroll-driven effect, a scroll-snap point
 - an outline stroke, a notch, a cut-out, two-tone ears
 - a mark for haus, a desktop, scruff or snug
+- a mark under 16px, or one crowded tighter than 0.2× its own width
 
 ### Motion
 
@@ -665,9 +706,6 @@ as here.
 - **Light-theme artifacts** beyond the org's light square and nebelung's
   latte banner. The latte token sheet exists; artifacts drawn from it mostly
   don't.
-- **Clearspace and minimum sizes.** The smallest proven ears are 62px (the
-  banner); the smallest proven house is 16px (the favicon). Nothing smaller
-  is proven.
 - **An icon set** beyond the logo marks.
 - **A grid** for anything wider than one column, and **breakpoints** beyond
   the one at 30rem.
@@ -685,6 +723,7 @@ accents: mauve `#c9a8f1`, peach `#f5b58e`, yellow `#f7e2b5`, green `#abe1a6`,
 maroon `#e6a3ad`; pink `#f2c4e5` is the hacker desktop's accent only · the
 ring: mauve, maroon, green, yellow, peach, pink · the house is the org mark,
 the ears are the products' · **artifact**: Space Grotesk, dark only,
-wordmarks lowercase 600/+0.06em, radii 24/28 · **page**: New York + SF +
+wordmarks lowercase 600/+0.06em, radii 24/28 · marks: 0.2× clearspace, floors
+16/24/32 device px · **page**: New York + SF +
 SF Mono, both themes, greyscale at rest, one 41rem column leaning left,
 radius 3 · no shadows · no motion.
