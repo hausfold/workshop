@@ -509,6 +509,14 @@ The rule is measurable. In the 100-unit box:
   `surface0` and the shape disappears (nebelung's second fog, trill's text
   lines).
 - A shape that bleeds off the tile is clipped by the tile's own rounded rect.
+- **An iOS app icon keeps the tile's clip and loses its ground's radius**:
+  the ground bleeds square to all four edges and carries no alpha channel,
+  because iOS masks its own squircle over a square it requires to be opaque,
+  and our radius 24 would show through that mask as four transparent
+  notches. The shapes are still cut by the tile's rounded rect, as the
+  bullet above says. A mark whose shapes bleed is inset far enough that the
+  system's mask cannot clip them at 60 pt; how far is the mark's own number,
+  below.
 
 ### The marks
 
@@ -541,7 +549,9 @@ card. Tagline: `NO NOISE, JUST A TRILL`.
 **perch**: *two files, fanned out.* Ears green, `translate(4 19)
 scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
 `surface1` under `rotate(-11 31 91)`, `rect 46,64 42×48 rx 6` green under
-`rotate(7 67 88)`.
+`rotate(7 67 88)`. The iOS icon is that whole tile inset by
+`translate(9 9) scale(0.82)` on a full-bleed `surface0` ground, which is what
+keeps the lower card off the system's mask.
 
 **hausfold (org)**: the house, under *Shapes*. On a tile its ground is
 crust, never `surface0`.
@@ -627,7 +637,7 @@ and is refused on sight:
 - a hardcoded hex where a token exists
 - a light theme on an artifact beyond the two named ones, or a single theme on a page
 - a webfont on a page, or a system face on an artifact
-- a centred column, a hero band, a full-bleed background
+- a centred column, a hero band, a full-bleed page background
 - a wordmark in capitals, or an emoji standing in for a mark
 - radius 24 on a page, or radius 3 on a tile
 - a screenshot in a docs page, or a stock icon anywhere
