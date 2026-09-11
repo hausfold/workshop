@@ -81,7 +81,7 @@ setup() {
   done
   marks_dir="$palette_dir/marks"
   mkdir -p "$marks_dir"
-  # Set for the three tests that read marks; the other six that get this far do
+  # Set for the five tests that read marks; the other six that get this far do
   # not, and a mark they never open must not decide their outcome.
   MARKS_MISSING=""
   local mark repo repo_dir resolved=0
@@ -92,7 +92,7 @@ setup() {
     [ -n "$common" ] && repo_dir="$(dirname "$common")/$repo/assets"
     # A checkout is re-read every time: BATS_TMPDIR outlives the run, and a
     # cached copy would keep this green through the very edit it exists to
-    # catch. Only the download is cached, and only against the nine fetching
+    # catch. Only the download is cached, and only against the eleven fetching
     # setups one `bats` invocation of this file runs. A checkout that is here answers
     # for itself, so a file it does not have clears the cached copy too.
     if [ -n "$repo_dir" ] && [ -d "$repo_dir" ]; then
@@ -104,15 +104,15 @@ setup() {
     if [ -s "$marks_dir/$f" ]; then resolved=$((resolved + 1)); else MARKS_MISSING="$MARKS_MISSING $repo/$f"; fi
   done
   # ONE mark going missing while the rest resolve means PRODUCT_MARKS names a
-  # file that is on no upstream `main` yet — the three mark tests fail for it,
-  # loudly, and the other six still run. Skipping instead would blank all nine,
+  # file that is on no upstream `main` yet — the five mark tests fail for it,
+  # loudly, and the other six still run. Skipping instead would blank all eleven,
   # this diff's own claims included; that is the shape docs/drift.md parks under
   # "Seen once", and a note is not a gate. The only skip left is the machine
   # that can reach NOTHING: no sibling checkouts and no network.
   [ "$resolved" -gt 0 ] || skip "no mark SVG is reachable: no sibling checkouts and no network"
 }
 
-# The three tests below open the marks; they refuse to pass on a partial set.
+# The five tests below open the marks; they refuse to pass on a partial set.
 assert_every_mark_present() {
   [ -z "$MARKS_MISSING" ] || {
     echo "PRODUCT_MARKS names a mark that is in no sibling checkout and on no"
@@ -123,7 +123,7 @@ assert_every_mark_present() {
 }
 
 @test "PRODUCT_MARKS names every mark SVG in the sibling repos" {
-  # The three mark tests open what this array names and nothing else, so a mark
+  # The five mark tests open what this array names and nothing else, so a mark
   # added upstream and forgotten here is a file with no drift test at all —
   # green, and unguarded: docs/drift.md row 33, a check whose census is a
   # hand-maintained list. This walks the other way: every *.svg in a sibling
@@ -146,7 +146,7 @@ assert_every_mark_present() {
   [ "$found" = 1 ] || skip "no sibling checkout to enumerate marks from"
   [ -z "$missing" ] || {
     echo "a mark SVG in a sibling repo that PRODUCT_MARKS does not name:$missing"
-    echo "Add it to the array, so the three tests below open it too."
+    echo "Add it to the array, so the five tests below open it too."
     false
   }
 }
@@ -206,8 +206,8 @@ NEUTRAL = {"text", "subtext1", "subtext0", "overlay2", "overlay1", "overlay0",
 # the same defect as a mocha one. No mocha accent is a latte neutral or the
 # reverse, so the union stays a clean partition. What it cannot tell is WHICH
 # set a file is drawn in — a mark spending its own hue out of both ramps at
-# once passes here, and "one drawing holds one set" is a rule the doc states
-# and no test measures.
+# once passes here; that is "a mark SVG is drawn in one nebelung set" below,
+# and which ROLE each hex is in is the fill test below that.
 ramps = [{k: v.lower() for k, v in json.load(open(f"{pdir}/{f}")).items()}
          for f in ("nebelung.hex.json", "nebelung-latte.hex.json")]
 accents = {v for r in ramps for k, v in r.items() if k not in NEUTRAL}
@@ -391,6 +391,403 @@ if bad:
     if any(s[0] == "rect" and s[5] == "0" for v in says.values() for s in v):
         print("A rect the doc leaves at rx 0 takes its radius from the next "
               "trailing `(rx …)`, so check where that parenthetical sits.")
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "every fill in a mark SVG is the role design.md gives that shape" {
+  assert_every_mark_present
+  run python3 - "$DOC" "$palette_dir" "$WORKSHOP/assets" "$marks_dir" <<'PY'
+import glob, json, math, os, re, sys, xml.etree.ElementTree as ET
+doc, pdir, adirs = sys.argv[1], sys.argv[2], sys.argv[3:]
+# The two tests above read the marks' geometry and stop, which is why a mark
+# could be redrawn in the wrong greys and pass every check in this file: the
+# colour test asks only whether a hex is SOME nebelung token and not another
+# product's accent, never whether it is the token *The marks* names for that
+# shape. This is that seam. Each stanza writes the role beside the shape — `in
+# `surface1``, `peach`, `yellow` — and *The tile* says where a role lands on
+# each of the three variants, so the expected fill is one lookup per shape.
+#
+# The variants are not a rename. A light tile keeps each shape's POSITION in
+# the ramp: its ground is latte `base`, not latte `surface0`, because latte
+# runs the other way. An inverted tile recolours by rule rather than by token:
+# the ground takes the hue, the ears and the story shapes go `surface0` (or
+# `crust` under a tagline), and the doc's two exceptions both turn on one
+# question — what a shape sits ON. A small accent on a gray shape keeps the
+# product colour; a whole story shape drawn in the hue does not. A gray over
+# another inverted shape steps darker to `mantle` and dims, because `surface0`
+# at 0.45 over `surface0` is `surface0`. Both read here as containment in an
+# EARLIER shape whose standard role is a neutral, which is what "on a gray
+# shape" and "over another inverted shape" describe; a shape only half over
+# another is neither, and the doc does not rule on it.
+#
+# Bounding boxes are the geometry, and every one of them is a hull rather than
+# the shape: axis-aligned around a rotated rect's corners (perch's two cards
+# are both rotated), and around a path's control points, which is wider than
+# the curve. That is why containment and not overlap decides — nebelung's fog
+# and its ears overlap as hulls and touch nowhere as drawings. Whether a gray sitting on the
+# ground dims at all stays the drawing's call (perch's back card does, pounce's
+# prompt bar does not); only what it dims TO is a rule. The house's two squares
+# are exempt, as above.
+SVGNS = "{http://www.w3.org/2000/svg}"
+text = open(doc).read()
+
+def section(head):
+    m = re.search(rf"^### {re.escape(head)}\n(.*?)(?=^#{{2,3}} )", text, re.S | re.M)
+    return m.group(1) if m else ""
+
+def num(v):
+    return f"{float(v):g}"
+
+ramps = {n: {k: v.lower() for k, v in json.load(open(f"{pdir}/{f}")).items()}
+         for n, f in (("mocha", "nebelung.hex.json"), ("latte", "nebelung-latte.hex.json"))}
+NEUTRAL = {"text", "subtext1", "subtext0", "overlay2", "overlay1", "overlay0",
+           "surface2", "surface1", "surface0", "base", "mantle", "crust"}
+ACCENT = sorted(set(ramps["mocha"]) - NEUTRAL)
+# Three things the doc has to keep saying for a role to resolve at all: which
+# hue each product owns, which paths are the family ears, and how far a gray
+# dims when it steps darker.
+own = dict(re.findall(r"^\| ([a-z][a-z0-9.]*) \| product \| `--nebelung-([a-z0-9]+)` \|",
+                      text, re.M))
+ears_paths = {re.sub(r"\s+", " ", d).strip()
+              for d in re.findall(r"^(M [\d .QLZ]*?Z)", section("The ears"), re.M)}
+dims = re.search(r"gray dims to ([\d.]+)", section("The tile"))
+if len(own) < 5 or len(ears_paths) != 2 or not dims:
+    print("design.md's *Product colours* table, *The ears* paths or *The tile*'s dim "
+          "step stopped parsing: every role here resolves through those three, so "
+          "re-derive this test from wherever they went")
+    sys.exit(1)
+DIM = num(dims.group(1))
+
+# ---- the role each stanza gives each shape -----------------------------
+TOKEN = re.compile(
+    r"\b(?P<ears>[Ee]ars)\b"
+    r"|`(?P<path>M [^`]*?Z)`"
+    r"|rect (?P<rx>-?[\d.]+),(?P<ry>-?[\d.]+) (?P<rw>-?[\d.]+)×(?P<rh>-?[\d.]+)"
+    r"(?: rx (?P<rr>-?[\d.]+))?"
+    r"|circle (?P<cx>-?[\d.]+),(?P<cy>-?[\d.]+) r (?P<cr>-?[\d.]+)"
+    r"|\(rx (?P<setrx>-?[\d.]+)\)"
+    r"|`(?P<neutral>" + "|".join(sorted(NEUTRAL)) + r")`"
+    r"|\b(?P<accent>" + "|".join(ACCENT) + r")\b"
+    r"|@ (?P<alpha>\d+(?:\.\d+)?)")
+
+def roles(body):
+    """Every shape a stanza names, as key -> (role, alpha it is drawn at).
+
+    A role falls on every shape still waiting for one, so `rect … and rect …
+    (rx 2.5) in `surface2`` colours both lines; an `@ 0.45` falls on the run
+    the role just closed. A stanza writes its standard drawing first and its
+    inverted and latte exceptions after, in prose that names shapes rather
+    than spelling them out, so the FIRST role a shape is given is the one
+    kept and the exception sentences colour nothing.
+    """
+    entries, pending, rx_pending, last = [], [], [], []
+    for m in TOKEN.finditer(body):
+        if m.group("setrx") is not None:
+            for e in rx_pending:
+                e[0][5] = num(m.group("setrx"))
+            rx_pending = []
+        elif m.group("neutral") or m.group("accent"):
+            for e in pending:
+                e[1] = m.group("neutral") or m.group("accent")
+            last, pending = pending, []
+        elif m.group("alpha") is not None:
+            for e in last:
+                if e[2] is None:
+                    e[2] = num(m.group("alpha"))
+        else:
+            if m.group("ears"):
+                key = ["ears"]
+            elif m.group("path"):
+                key = ["path", re.sub(r"\s+", " ", m.group("path")).strip()]
+            elif m.group("rx") is not None:
+                key = ["rect"] + [num(m.group(g)) for g in ("rx", "ry", "rw", "rh")]
+                key.append(num(m.group("rr") or 0))
+            else:
+                key = ["circle"] + [num(m.group(g)) for g in ("cx", "cy", "cr")]
+            entries.append([key, None, None])
+            pending.append(entries[-1])
+            if m.group("rx") is not None and m.group("rr") is None:
+                rx_pending.append(entries[-1])
+    out = {}
+    for key, role, alpha in entries:
+        if role:
+            out.setdefault(tuple(key), (role, alpha))
+    return out
+
+parts = re.split(r"\*\*([^*]+)\*\*:", re.sub(r"\s+", " ", section("The marks")))
+says = {}
+for lead, body in zip(parts[1::2], parts[2::2]):
+    product = re.split(r"[^a-z]", lead.lower())[0]
+    for k, v in roles(body).items():
+        says.setdefault(product, {}).setdefault(k, v)
+count = sum(len(v) for v in says.values())
+if count < 14:
+    print(f"only {count} shape→role pairs parsed out of '### The marks', and it "
+          f"writes 14: the spelling changed; fix this regex with it")
+    sys.exit(1)
+
+# ---- what a mark actually paints, in paint order -----------------------
+def mul(m, n):
+    a, b, c, d, e, f = m
+    A, B, C, D, E, F = n
+    return (a*A + c*B, b*A + d*B, a*C + c*D, b*C + d*D, a*E + c*F + e, b*E + d*F + f)
+
+def ctm_of(s):
+    m = (1, 0, 0, 1, 0, 0)
+    for name, args in re.findall(r"(translate|scale|rotate|matrix)\(([^)]*)\)", s or ""):
+        v = [float(x) for x in re.split(r"[ ,]+", args.strip()) if x]
+        if name == "translate":
+            m = mul(m, (1, 0, 0, 1, v[0], v[1] if len(v) > 1 else 0))
+        elif name == "scale":
+            m = mul(m, (v[0], 0, 0, v[1] if len(v) > 1 else v[0], 0, 0))
+        elif name == "rotate":
+            r = math.radians(v[0])
+            rot = (math.cos(r), math.sin(r), -math.sin(r), math.cos(r), 0, 0)
+            m = mul(mul(mul(m, (1, 0, 0, 1, v[1], v[2])), rot), (1, 0, 0, 1, -v[1], -v[2])) \
+                if len(v) == 3 else mul(m, rot)
+        else:
+            m = mul(m, tuple(v))
+    return m
+
+def box(m, pts):
+    xs, ys = zip(*[(m[0]*x + m[2]*y + m[4], m[1]*x + m[3]*y + m[5]) for x, y in pts])
+    return (min(xs), min(ys), max(xs), max(ys))
+
+# A mark is drawn out of three primitives and nothing else. The list is a
+# census, so it is written as one: anything that is not a container and not on
+# it raises rather than being walked past, because an element this test never
+# opens is a fill that NOTHING in this file checks — test 4 sees a legal token,
+# test 5 reads only `d`, `transform` and `opacity`, and test 6 reads only rects
+# and circles. An `<ellipse>` would ship a whole undocumented shape into a mark
+# with every test green, which is docs/drift.md row 33 in the test that claims
+# to read every fill. Widening the vocabulary is a decision for *What makes a
+# mark quiet* first and this census second.
+SHAPES = ("rect", "circle", "path")
+CONTAINERS = ("svg", "g", "defs", "title", "desc", "metadata")
+
+def painted(path):
+    """Every filled element of a mark, in paint order, with its fill and its
+    opacity resolved down the groups and its box in the tile's own 100-unit
+    coordinates."""
+    out = []
+
+    def walk(el, ctm, fill, alpha):
+        tag = el.tag.replace(SVGNS, "")
+        if tag == "clipPath":  # the clip is the geometry test's, and paints nothing
+            return
+        ctm = mul(ctm, ctm_of(el.get("transform")))
+        fill = (el.get("fill") or fill or "").lower()
+        # a group's opacity dims everything under it, so a stanza's alpha is the
+        # product down the tree: `<g opacity="0.7">` around the ears is the same
+        # edit as putting it on each ear path, and has to read the same here
+        alpha = alpha * float(el.get("opacity", 1))
+        a = el.attrib
+        if tag == "rect":
+            key = ("rect",) + tuple(num(a.get(k, "0"))
+                                    for k in ("x", "y", "width", "height", "rx"))
+            x, y, w, h = (float(a.get(k, 0)) for k in ("x", "y", "width", "height"))
+            pts, d = [(x, y), (x + w, y), (x + w, y + h), (x, y + h)], None
+        elif tag == "circle":
+            key = ("circle",) + tuple(num(a.get(k, "0")) for k in ("cx", "cy", "r"))
+            cx, cy, r = (float(a.get(k, 0)) for k in ("cx", "cy", "r"))
+            pts = [(cx - r, cy - r), (cx + r, cy - r), (cx + r, cy + r), (cx - r, cy + r)]
+            d = None
+        elif tag == "path":
+            d = re.sub(r"\s+", " ", a["d"]).strip()
+            key = ("ears",) if d in ears_paths else ("path", d)
+            pts = [(float(x), float(y))
+                   for x, y in re.findall(r"(-?[\d.]+)[ ,](-?[\d.]+)", d)]
+        else:
+            if tag not in CONTAINERS:
+                raise ValueError(
+                    f"<{tag}> is a shape no test in this file reads, so every fill it "
+                    f"carries is unchecked: a mark is drawn in {', '.join(SHAPES)}, and "
+                    f"widening that is *What makes a mark quiet*'s call before it is "
+                    f"this census's")
+            for kid in el:
+                walk(kid, ctm, fill, alpha)
+            return
+        if not pts:
+            raise ValueError(f"no coordinates in {tag} {key}")
+        out.append({"key": key, "d": d, "fill": fill,
+                    "alpha": num(alpha), "box": box(ctm, pts)})
+
+    walk(ET.parse(path).getroot(), (1, 0, 0, 1, 0, 0), None, 1.0)
+    return out
+
+GROUND = ("rect", "0", "0", "100", "100", "0")
+
+def name(k):
+    if k == ("ears",):
+        return "the ears"
+    if k[0] == "path":
+        return f"path `{k[1][:40]}…`"
+    return f"{k[0]} {' '.join(k[1:])}"
+
+def inside(inner, outer):
+    return (outer[0] <= inner[0] and outer[1] <= inner[1]
+            and inner[2] <= outer[2] and inner[3] <= outer[3])
+
+files = [f for d in adirs for f in sorted(glob.glob(f"{d}/*.svg"))
+         if not os.path.basename(f).startswith("hausfold-")]
+if not files:
+    print(f"no mark SVGs found in {adirs}; this test has lost its subject")
+    sys.exit(1)
+
+bad = []
+for f in files:
+    base = os.path.basename(f)
+    product = base.split("-")[0]
+    said = says.get(product, {})
+    variant = ("inverted" if "-inverted" in base else
+               "latte" if "-latte" in base else "standard")
+    ramp = ramps["latte" if variant == "latte" else "mocha"]
+    if product not in own:
+        bad.append(f"{base} is a mark for {product}, which *Product colours* gives no "
+                   f"hue of its own: a mark and a row land together")
+        continue
+    hue = ramp[own[product]]
+    try:
+        els = painted(f)
+    except ValueError as e:
+        bad.append(f"{base}: {e}")
+        continue
+
+    def sits_on_gray(el, drawn_before):
+        for other in drawn_before:
+            if other["key"] != GROUND and said.get(other["key"], ("",))[0] in NEUTRAL \
+                    and inside(el["box"], other["box"]):
+                return True
+        return False
+
+    drew = set()
+    for i, el in enumerate(els):
+        got, alpha, what = el["fill"], el["alpha"], name(el["key"])
+        # no `fill` of its own and none down the groups: SVG paints that black
+        got = got or "unfilled, which SVG paints black"
+        if el["key"] == GROUND:
+            want = {"standard": ramp["surface0"], "latte": ramp["base"],
+                    "inverted": hue}[variant]
+            if got != f"#{want}":
+                bad.append(f"{base}: the tile ground is {got}, and *The tile* grounds "
+                           f"{'an' if variant == 'inverted' else 'a'} {variant} tile "
+                           f"in #{want}")
+            continue
+        drew.add(el["key"])
+        if el["key"] not in said:
+            bad.append(f"{base}: {what} is painted {got}, and {product}'s stanza gives "
+                       f"it no colour role")
+            continue
+        role, said_alpha = said[el["key"]]
+        if variant != "inverted":
+            if role in NEUTRAL and role not in ("surface1", "surface2"):
+                bad.append(f"{base}: {what} is drawn in `{role}`, and *The tile* only "
+                           f"places surface1 and surface2 on a {variant} tile: say "
+                           f"where this one lands before a mark spends it")
+                continue
+            if got != f"#{ramp[role]}":
+                bad.append(f"{base}: {what} is {got}, and {product}'s stanza draws it in "
+                           f"{role} — #{ramp[role]} in the "
+                           f"{'latte' if variant == 'latte' else 'mocha'} set")
+            if alpha != (said_alpha or "1"):
+                bad.append(f"{base}: {what} is at opacity {alpha}, and its stanza draws "
+                           f"it at {said_alpha or 'no alpha'}")
+            continue
+        # Whether a gray on an inverted tile dims is the drawing's call, but the
+        # bullet gives one step to dim BY, so a shape at any other alpha is a
+        # number nothing in the doc supports.
+        if alpha not in ("1", DIM):
+            bad.append(f"{base}: {what} is at opacity {alpha}, and the one step an "
+                       f"inverted tile dims by is {DIM}")
+        on_gray = sits_on_gray(el, els[:i])
+        if role in NEUTRAL and on_gray:
+            ok = {f"#{ramp['mantle']}"}
+            why = "`mantle`, because a gray over another inverted shape steps darker"
+            if alpha != DIM:
+                bad.append(f"{base}: {what} is at opacity {alpha}, and a gray over "
+                           f"another inverted shape dims to {DIM}")
+        elif role in NEUTRAL or not on_gray:
+            # `crust` is the other half of that bullet and belongs to a banner
+            # carrying a tagline (*Lockups*); every file this test opens is a
+            # tile, where crust is two rungs too dark rather than a second
+            # reading. A banner SVG landing in PRODUCT_MARKS reddens here, which
+            # is the right place to decide it.
+            ok = {f"#{ramp['surface0']}"}
+            why = ("`surface0` — the `crust` half of that bullet is a banner "
+                   "carrying a tagline, and this is a tile")
+        else:
+            ok = {f"#{hue}"}
+            why = f"{role}, because a small accent on a gray shape keeps the product colour"
+        if got not in ok:
+            bad.append(f"{base}: {what} is {got}, and an inverted tile makes it {why}")
+    if GROUND not in {e["key"] for e in els}:
+        bad.append(f"{base}: paints no 100×100 tile ground, so there is nothing for "
+                   f"*The tile*'s ground rule to be true of")
+    for k in sorted(said.keys() - drew):
+        bad.append(f"{base}: does not paint {name(k)}, which {product}'s stanza colours")
+    # Both ears carry one role and so collapse to one key above; *The ears* says
+    # the two paths are used verbatim in every product mark, which is a count.
+    if ("ears",) in said:
+        for d in sorted(ears_paths - {e["d"] for e in els}):
+            bad.append(f"{base}: draws no ear path `{d[:40]}…`, and *The ears* uses "
+                       f"both verbatim in every product mark")
+
+if bad:
+    print("a fill a mark SVG and design.md disagree about:")
+    for b in dict.fromkeys(bad):
+        print("  " + b)
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "a mark SVG is drawn in one nebelung set, the one its name claims" {
+  assert_every_mark_present
+  run python3 - "$palette_dir" "$WORKSHOP/assets" "$marks_dir" <<'PY'
+import glob, json, os, re, sys
+pdir, adirs = sys.argv[1], sys.argv[2:]
+# *The tile*'s light bullet ends "One drawing holds one set: never latte with
+# paper, and never latte with mocha". This is the latte-with-mocha half, which
+# the colour test above cannot reach: it unions both ramps and asks only
+# whether a hex is in the union, so a mocha grey under a latte accent satisfies
+# it twice over. The latte-with-paper half needs no test — paper is in neither
+# ramp, so the colour test already refuses it. The set a file is drawn in is
+# not in the file, so the filename is what claims it: a `-latte` mark is the
+# light tile, everything else is mocha.
+ramps = {n: {v.lower() for v in json.load(open(f"{pdir}/{f}")).values()}
+         for n, f in (("mocha", "nebelung.hex.json"), ("latte", "nebelung-latte.hex.json"))}
+# The two ramps share one value (mocha overlay0 is latte subtext0), so a fill
+# can be evidence for neither side. No mark can be drawn only in that one value
+# while every mark carries an accent, and no accent is shared — so the second
+# arm below is a floor under a drawing that could claim a set by its name
+# alone, not coverage of anything a mark does today.
+files = [f for d in adirs for f in sorted(glob.glob(f"{d}/*.svg"))
+         # The house's light square is drawn in hausfold.co's paper and light
+         # accents rather than in latte — *The house* says so — and both its
+         # squares spend ninety interpolated wedges that are in no ramp.
+         if not os.path.basename(f).startswith("hausfold-")]
+if not files:
+    print(f"no mark SVGs found in {adirs}; this test has lost its subject")
+    sys.exit(1)
+bad = []
+for f in files:
+    base = os.path.basename(f)
+    claimed = "latte" if "-latte" in base else "mocha"
+    other = "mocha" if claimed == "latte" else "latte"
+    fills = {h.lower() for h in re.findall(r'fill="#([0-9a-fA-F]{6})"', open(f).read())}
+    foreign = sorted(h for h in fills if h in ramps[other] and h not in ramps[claimed])
+    if foreign:
+        bad.append(f"{base} is the {claimed} drawing and spends "
+                   f"{', '.join('#' + h for h in foreign)} out of the {other} set")
+    elif not any(h in ramps[claimed] and h not in ramps[other] for h in fills):
+        bad.append(f"{base} is the {claimed} drawing and spends no colour that only "
+                   f"the {claimed} set has, so nothing here says which set it is in")
+if bad:
+    print("a mark SVG that does not hold one nebelung set:")
+    for b in bad:
+        print("  " + b)
     sys.exit(1)
 PY
   [ "$status" -eq 0 ] || { echo "$output"; false; }
