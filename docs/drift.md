@@ -169,3 +169,27 @@ apart. It survives a careful check because the project declares no `ARCHS`, so
 by** `lipo -archs` on the published artifact rather than on the settings meant to
 produce it, and by treating an ambient default as undeclared until something
 asserts it — a warning printed in every green run is not evidence anybody read it.
+
+**A fixture that carries a field on rows the real data never puts it on.** The
+family's docs-search tool promises breadcrumbs in its description and requires
+them in its `outputSchema`, and every surface reading that index — the MCP
+tool, the REST search, the A2A binding, the natural-language endpoint —
+answered `breadcrumbs: []` for every hit that was not one of 59 rows, from the
+day it shipped until the join landed. In the built index only a `type: 'page'`
+row carries the trail; the heading and text rows beneath it, all but 59 of the
+~4,970, carry a `page_id` and nothing else. All three of the suite's fixtures
+wrote `breadcrumbs` onto rows with neither field, a shape the index cannot
+produce, so the one assertion about it passed against data that could not
+occur, and two more results ranked as the tests said they would only because of
+a breadcrumb boost that was dead outside those same 59 rows. What makes it
+survive a careful check: the field is in the schema's `required` list and `[]`
+satisfies a required array, so a client validating every response it is handed
+passes this one every time; and the structured payload and the text block are
+the same object, so the two agreed with each other while both were empty. Row 8
+with the evidence invented rather than derived from the generator, and row 27's
+tail ("a fixture pins the SHAPE it was written for") without the falsification
+— nothing here was disproved later, the fixture was never the shape it stood in
+for. **Caught by** reading one real record out of the artifact a stub imitates,
+field by field, before trusting an assertion about any field the stub invents,
+and by treating a field that is empty in every production answer as a failing
+test rather than as the data being sparse.

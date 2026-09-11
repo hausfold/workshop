@@ -198,7 +198,10 @@ better: nothing to launch, nothing to authorize, identical in Claude Code,
 Codex, OpenCode, pi and a bare shell script, and it is the same surface a human
 uses, so it can't rot in a corner nobody runs. The case for MCP arrives when a
 **non-terminal** agent needs these tools; the CLI is the layer it would wrap
-anyway.
+anyway. The one server the family runs is that case and not this rule:
+hausfold.co serves `/mcp` for agents with no checkout and no shell, over the
+site's own public data — install commands, release metadata, a docs search —
+and reaches into no tool on anybody's Mac.
 
 **No agent-facing network surface.** No tool grows a socket for a remote model.
 
