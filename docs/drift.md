@@ -27,7 +27,7 @@ or removed. Count the rows, never increment a number written in prose.
 | 14 | a box ticked for work that is BUILT but not MERGED — row 1 with its clock reversed, and worse: it burns the check that was supposed to catch it | reading the PR's **state**, not its diff. A PR number in a tick is a promise; only `mergedAt` keeps it |
 | 15 | a claim naming a FUNCTION, check or format the repo has since retired — true about what shipped, false about what exists | grepping the repo for the **identifier**, not for the sentence. A rename that preserves the count is the dangerous one |
 | 16 | an IMPOSSIBILITY claim that is really a description of how the incumbent works — one premise stays true, a second is falsified by the same change, and the conclusion they carried is gone | asking what it would cost to do the thing ourselves, instead of why the existing route can't be reached. Wrong on the day it is written, and reads as a scoping decision |
-| 17 | a CORRECTION that reports itself as APPLIED — the paragraph says what the line "now reads" and the line was never touched | grepping the file for the string the correction quotes as its **result**, before your own prose adds a copy of it |
+| 17 | a CORRECTION that reports itself as APPLIED — the paragraph says what the line "now reads" and the line was never touched | grepping the file for the string the correction quotes as its **result**, before your own prose adds a copy of it. A reader who notices the two disagree believes the newer sentence |
 | 18 | an ENUMERATION written when a fix NARROWED an open limit — every member still true, the list no longer complete | asking what the seam actually BOUNDS, not spot-checking the members. It survives every check aimed at its members, because the error is the boundary they were drawn inside |
 | 19 | a rev that is true when MEASURED and false when PUBLISHED, spent on a NEGATIVE claim | writing the claim so a rev can bound it. *"haus was at `<rev>`"* stays true forever; *"no box could have closed"* is a statement about the future whose one job is to license not looking. The honest form: *no box had closed as of `<rev>`* |
 | 20 | a drift check REFRESHED where it fires — the snapshot tracks the data, the PROSE it protects does not, and green comes back with the lie intact | asking which COPIES the check compares, not whether it is green — a check whose remedy is *re-bless the snapshot* reports "the docs are current". The tell: a drift check that never fails twice for the same reason is not comparing the thing that drifts |
@@ -133,8 +133,10 @@ and `factory` 3; `haus` and `pounce` ranked `--dir` over `--client` silently;
 suite pins the answer that repo chose and the caller the contract exists for —
 an agent branching on the code — is in neither repo. **Caught by** asking of a
 cross-repo standard what it says about the case where the tool *declines*, and
-writing one conformance fixture per implementation from the standard's own words.
-The tell is a rule whose verbs are all about the success path.
+writing one conformance fixture per implementation from the standard's own
+words rather than from the implementation in front of you. The tell is a rule
+whose verbs are all about the success path, in a document every repo cites and
+none tests against.
 
 **A per-item `skip` in `setup()` blanks every test in the file, and reads green.**
 `test/design-palette.bats` copies each mark named in `PRODUCT_MARKS` out of its

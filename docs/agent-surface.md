@@ -294,8 +294,9 @@ a guard living only in the derivation runs nowhere that matters. The script
 **discovers** `ai/*/SKILL.md` rather than taking a list; scruff's
 `script/check-skills.sh` is the pattern.
 
-Each repo's build files follow its own convention (the guard table below names
-them); only the package *name* and the output *layout* are fixed. haus is the one
+Each repo's build files follow its own convention — `nix/skill.nix` in perch,
+trill, scruff, nebelung and factory, `pkgs/pounce-skill/default.nix` in pounce;
+only the package *name* and the output *layout* are fixed. haus is the one
 variant: its first skill's source is `modules/ai/agents/SKILL.md` and lands at
 `$out/SKILL.md` rather than under a directory named for it; the second,
 `hausfold`, sits at `$out/hausfold/SKILL.md` the way every other repo lays every

@@ -88,9 +88,9 @@ a bug that fails **silently** if you get it wrong:
    the reporter presses Submit** — the door opens a page, it does not file
    anything. One write breaks *"it only reads"*: a door whose block overran the
    URL puts it on the pasteboard, and **a clipboard write nobody is told about
-   is that same silent failure one layer along**, so haus's palette row raises a
-   banner through `haus-notify` — the person is about to meet a form whose
-   diagnostics field is empty. A CLI writes nothing at all: the block is already
+   is that same silent failure one layer along**, so it comes with a banner:
+   haus's palette row raises one through `haus-notify`, because the person is
+   about to meet a form whose diagnostics field is empty. A CLI writes nothing at all: the block is already
    on stdout, and `haus report --print` stays off the clipboard even when it
    overflows.
 

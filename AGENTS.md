@@ -103,7 +103,7 @@ is the one whose holder `bench ship` does not walk; that pin moves in factory's
 own PR, and `bench status` still reports it. A commit, even a pushed one, is
 invisible downstream until each `flake.lock` moves. **Never hand-walk that
 ripple, and never suggest it** — `bench` does it. Every verb is in the
-[README's table](README.md#start) and at length in
+[README's table](README.md#start), and the flows they belong to are at length in
 [`docs/workflows.md`](docs/workflows.md); five things about them bind an agent:
 
 - **`bench status` reads scruff's registry, never `git worktree list`**,
@@ -124,9 +124,12 @@ ripple, and never suggest it** — `bench` does it. Every verb is in the
   is cheap and safe: Ghostty applies config live, and every window's shell lives
   in a `zmx` session that outlives it, so windows, sessions and live agents stay
   put (`haus.terminal.restoreWindows` reopens one window per parked session).
-- **`bench ship` refuses to end on `shipped` if an edge didn't move** (three
-  `--refresh` retries 5s apart; a rev not on the upstream's `origin/main` fails
-  fast). Named repos narrow it to their downstream closure along `EDGES`.
+- **`bench ship` fast-forwards every checkout before it pushes**, and dies on a
+  diverged one rather than guessing. Then it pushes upstream→downstream with a
+  lock-bump commit at each hop, and refuses to end on `shipped` if an edge
+  didn't move (three `--refresh` retries 5s apart; a rev not on the upstream's
+  `origin/main` fails fast). Named repos narrow it to their downstream closure
+  along `EDGES`.
 
 `bench overlap` exits 0 clear · 3 same file · 4 same region, and the flow is
 [`/earshot`](./.agents/skills/earshot/SKILL.md). `bench release` is under
