@@ -130,8 +130,10 @@ hero per surface — and of the four assets its survivor table names, one is
 shot: [`haus/assets/hero.png`](https://github.com/hausfold/haus/blob/main/assets/hero.png).
 [`script/shoot-hero.sh`](../script/shoot-hero.sh) takes it and hands the frame
 to a reader to check against that table, rather than declaring it shot. It
-lives in `haus`, whose own `assets/README.md` writes down what is in the frame
-and what renders it: nothing does, there or on the site.
+lives in `haus`, whose own
+[`assets/README.md`](https://github.com/hausfold/haus/blob/main/assets/README.md)
+writes down what is in the frame and what renders it: nothing does, there or
+on the site.
 
 What else sits here is not kit either. [`drafts/`](./drafts) holds superseded
 candidates, [`site/`](./site) unwired images for hausfold.co, and
