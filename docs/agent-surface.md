@@ -262,9 +262,8 @@ only place a cask can talk to the user.
 
 - **`--help` is agent-readable prose.** Verbs first, flags second, exit codes
   listed.
-- **The repo's own `AGENTS.md`** covers agents working *on* the tool. Not a
-  substitute for the skill, which covers agents *using* it on a machine with no
-  checkout.
+- **The repo's own `AGENTS.md`** covers agents working *on* the tool — never a
+  substitute for the skill, which covers agents *using* it with no checkout.
 
 ## The shape of a compliant tool
 
@@ -282,10 +281,10 @@ only place a cask can talk to the user.
 <tool> skill install       writes every skill into every client found
 ```
 
-**The derivation's output is `$out/<tool>/SKILL.md`, not `$out/SKILL.md`** — one
-nesting level, named for the skill, so a consumer links a directory whose name
-is already right and the *tool* decides that name. A tool shipping more than one
-lays them out as siblings, and **every guard runs per skill**.
+**One nesting level, named for the skill**, so a consumer links a directory
+whose name is already right and the *tool* decides that name — never
+`$out/SKILL.md`. A tool shipping more than one lays them out as siblings, and
+**every guard runs per skill**.
 
 **The guards go in a script the repo's own CI runs, not in the `runCommand`
 body.** Every guard exists because the failure it catches is invisible at
@@ -295,13 +294,12 @@ a guard living only in the derivation runs nowhere that matters. The script
 **discovers** `ai/*/SKILL.md` rather than taking a list; scruff's
 `script/check-skills.sh` is the pattern.
 
-Each repo's build files follow that repo's own convention — `nix/skill.nix` in
-perch, trill, scruff, nebelung and factory, `pkgs/pounce-skill/default.nix` in
-pounce. Only
-the package *name* and the output *layout* are fixed. haus is the one variant:
-its first skill's source is `modules/ai/agents/SKILL.md` and lands at `$out/SKILL.md`
-rather than under a directory named for it; the second, `hausfold`, sits at
-`$out/hausfold/SKILL.md` the way every other repo lays every skill out.
+Each repo's build files follow its own convention (the guard table below names
+them); only the package *name* and the output *layout* are fixed. haus is the one
+variant: its first skill's source is `modules/ai/agents/SKILL.md` and lands at
+`$out/SKILL.md` rather than under a directory named for it; the second,
+`hausfold`, sits at `$out/hausfold/SKILL.md` the way every other repo lays every
+skill out.
 
 ## How we know it works
 
@@ -332,9 +330,8 @@ however complete its SKILL.md is.
 ## What holds each tool to this
 
 These are surfaces an agent reads and a person almost never does, so every way
-they break is silent and none of it can be held by convention. Each repo names
-its own guard — that column is the durable half of this table, and the place to
-look before trusting a claim about what a tool answers:
+they break is silent. The guard column is the durable half of this table, and the
+place to look before trusting a claim about what a tool answers:
 
 | tool | its guard |
 |---|---|
@@ -346,7 +343,7 @@ look before trusting a claim about what a tool answers:
 | **trill** | `TrillTests/SkillVerbTests.swift` (the verb, the three install rules above included) and `CLILinkTests.swift` |
 | **nebelung** | five `grep` guards in `nix/skill.nix` over the hand-written `ai/SKILL.md`. Only `references/palette.md` is generated, from `palette/*.hex.json` — the split is the A4 rule below about what may be prose and what must be rendered |
 
-Two scope lines that the requirements imply and nobody should have to infer:
+Two scope lines the requirements imply:
 
 **A2 binds read verbs, not every invocation.** A verb that changes the machine
 or draws a report for a person to read does not owe an agent JSON — `haus

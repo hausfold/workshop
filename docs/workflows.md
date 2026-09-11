@@ -43,6 +43,13 @@ real machine config against the **local checkouts**, uncommitted edits and all:
                        # pounce + its downstream consumers)
 ```
 
+`nebelung`, `pounce` and `haus` are repo names; your flake's INPUT name for the
+layer is your own, and `inputs.haus` is only what `bootstrap.sh` scaffolds.
+`bench` doesn't care which you picked — it reads the name out of your
+`flake.lock`. That matters because Nix does **not** fail an `--override-input`
+naming an input that isn't there, so a hardcoded guess would build the pinned
+layer while reporting your branch.
+
 ## Parallel agents
 
 **⌘↵** over a Ghostty window spawns an agent lane in its **own git
@@ -61,7 +68,8 @@ through. The `WorktreeCreate`/`WorktreeRemove` hooks in `~/.claude/settings.json
 still delegate to `scruff hook create` / `scruff hook remove`, so a hand-run
 `--worktree` is registered too — it just isn't what the chord does. Either way
 the plumbing is `scruff` — the standalone tool haus ships on `PATH`, **not** a
-`bench` command. That's what keeps `git status` and `bench try`'s overrides clean.
+`bench` command. Living outside the repos is what keeps `git status` clean and
+`bench try`'s `path:` overrides from swallowing a lane.
 `c` in a window's own shell runs the one agent allowed to edit the checkout
 you're looking at. There is no chord and no palette row for it — typing `c` is
 the whole interface.
