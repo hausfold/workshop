@@ -195,7 +195,10 @@ current it is.
 The geometry under *Components* is a second telling of what the mark SVGs
 already hold, kept because this file is the public standard and a mark has to
 be readable as text. It is not a licence to let the two drift: a change to a
-mark changes the SVG and this file in the same commit.
+mark changes the SVG and this file in the same commit for the house and
+nebelung, whose SVGs are here. A **product** mark lands in its own repo's PR
+**first** and here second, because `PRODUCT_MARKS` cannot reach a file that is
+on no upstream `main`, and says so by failing.
 
 `test/design-palette.bats` holds part of that seam, and only part. For every
 product mark — nebelung's tiles here, pounce's, perch's and trill's read
@@ -659,31 +662,7 @@ classes.
   SVG laptop frame, or shows nothing. Screenshots are governed by
   `assets/SHOTLIST.md` and no page carries one.
 
-## Do's and Don'ts
-
-- **Do** keep the ears path identical across products; move, scale and
-  recolour only.
-- **Do** keep every mark to the ears plus one gray story idea, within the
-  four-fill and 3.5-unit limits above.
-- **Do** stay dark on an artifact, or latte where a light one is wanted,
-  ship both themes on a page, step surfaces
-  for elevation, and spend accents as light strokes and fills on dark or
-  with crust text on top.
-- **Do** set Space Grotesk on an artifact and the Mac's own faces on a
-  page, and lowercase every wordmark on both.
-- **Do** lean a page's column left and hold it at 41rem.
-- **Don't** hardcode hex; resolve every colour through `var(--nebelung-*)`,
-  or on a page through the named tokens in `hausfold.css`.
-- **Don't** add fine detail: notches, cut-outs, multi-swatch strips, outline
-  strokes, two-tone ears.
-- **Don't** rotate the ears (pounce's 12° tilt is the one exception), outline
-  them, or carve them out of a filled shape.
-- **Don't** share a hue between products, or let anything compete with mauve
-  as the accent.
-- **Don't** give the house a hue, a desktop a mark, or a product without a
-  mark an improvised one.
-
-### Reflexes to refuse
+## Reflexes to refuse
 
 Generated design has habits. Each of these has been drafted at least once
 and is refused on sight:
@@ -707,7 +686,7 @@ and is refused on sight:
 - a mark for haus, a desktop, scruff or snug
 - a mark under 16px, or one crowded tighter than 0.2× its own width
 
-### Motion
+## Motion
 
 None in an artifact. On a page, nothing moves while you read. The one
 sanctioned motion in the family is the site's: the house glyph's ring turns

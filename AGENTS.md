@@ -55,9 +55,9 @@ client's wiring — project rules go in the former.
 | **how one of our tools puts a line on screen** | the tool's OWN repo, through **trill**, Apple's banner as fallback — never a bare `osascript -e 'display notification …'`: haus's `haus-notify` (`modules/core/haus-notify.sh`), pounce's per-command `notify()`, `bench`'s own, `scruff hook notify`. Every caller passes its own `--source`, the string `~/.config/trill/rules.json` matches on; no `haus.*` option gates it |
 | **a write-up that turned out to be wrong** — a stale claim, a check that passes while what it protects rots | [`docs/drift.md`](docs/drift.md): thirty-two numbered shapes and what catches each. **Row numbering is frozen** — cite by number. Append a shape, or park it under *Seen once, not yet a row* |
 | **how one of our CLIs looks on screen** — a colour, a glyph, a column, a spinner | snug's own `README.md` and `AGENTS.md` are the standard; this repo's `docs/design.md` is the brand's, not the CLI's. Roles resolve against **nebelung**, never a hand-picked 256-colour index, and columns are budgeted with `ui_col` + `ui_trow` + `ui_table_data`, never `%-44s`. In scope: `bench`; haus's `haus.sh`, `haus-show.sh`, `focus`, `github-signal`, `haus-secret`, `awake` (prose only — `status --raw` skips the painter), `statusline.sh`, `image-preview.sh`, `lane-open.sh`; scruff; factory (`share/ui.sh` off `FACTORY_UI_SH`, plain text without it). Named exceptions: `haus-show`'s `field`, `haus set`'s picker padding (counted by haus's `test/phase-painter.bats`), the statusline's row tint. **Installers are exempt from the runtime, not the palette** — `bootstrap.sh` and `haus-activate.sh` inline snug's numbers, `haus/test/installer-palette.bats` diffs them back, and **nothing is inlined without a drift test**. Out by settled decision: maintenance and probe scripts (haus's `script/build-golden-vm.sh`, trill's `scripts/dev-install.sh`, this repo's `script/issue-labels.sh` and `script/probes/*.sh`, plus `script/shoot-hero.sh` — which is read at a real terminal, and is out for a different reason: it runs mid-shoot from whatever checkout is to hand, including a lane worktree where the sibling `snug` that `ui_load` reads is not there at all); trill's CLI, pounce's commands and haus's ten one-file Swift helpers; anything whose stdout is another program's input (`awake --raw`, `agent-state`, `scruff-cache`, `hausrect`, `barvitals`, `hausocr`, `hausax`, `haustabs`, `agent-desktop-guard`, `haus-vm-shot`, `haus-fix`/`haus-fix-github`); rows not drawn on a terminal at all — haus's `find.sh` pads for `fzf`, which owns the window and cuts its own, and a bar plugin's `printf` is read by sketchybar; and anything with no terminal at either end (`floatpin`, `floatring`, `barpop`, `haus-notify`, `trill.sh`, `lidawake`, `haus-github-receiver`, `statusline-refresh`, `portless`, `haus-nix-gc`, `portless-lane`). **Do not collapse those into one "nobody reads these" rule** — the installers and the maintenance scripts ARE read by people at real terminals, and their exemptions rest on when they run and who reads them. **This row owns that scope** — re-open an exemption here, never by quietly converting a file |
-| **how the brand looks off the terminal** — a logo, a lockup, a hue, an OG card | [`docs/design.md`](docs/design.md), the brand's visual system and binding on every repo: two registers (the house is grey and borrows, a product owns one hue), two surfaces (an artifact is Space Grotesk and dark, or latte where it is light; a page is the Mac's own faces in both themes). A desktop never has a mark. Front matter is Google Stitch's DESIGN.md format (`npx @google/design.md lint docs/design.md`). Values resolve against **nebelung**; hausfold.co's implementation is its own `AGENTS.md`. **A mark's source of record is its SVG in git** — this repo's `assets/` for the house and nebelung, the product's own for the rest, PNGs rendered from it; the *Logo system* design project is where a mark is drawn and redrawn, not where the current one lives. The doc prints the same geometry because it is the public standard, so a change to a mark changes both: in one commit for the house and nebelung, whose SVGs are here, and for a product mark in that product's PR **first**, then here — `PRODUCT_MARKS` cannot reach a file that is on no upstream `main`, and says so by failing. All of it is indexed in [`assets/README.md`](assets/README.md), the public media kit hausfold.co's `/brand` 301s onto — a mark that moves, moves there too, and `test/design-palette.bats` diffs its hexes against nebelung as it does the doc's, plus every path, transform, tile radius and alpha step in every product mark — nebelung's here, pounce's, perch's and trill's read out of their own repos — against the doc's stanza. The same file closes the doc on itself: the clearspace ratios and the minimum-size table are re-derived from the doc's own *Lockups* bullets and geometry, and the kit's short version of both is diffed back against them |
+| **how the brand looks off the terminal** — a logo, a lockup, a hue, an OG card | [`docs/design.md`](docs/design.md), the brand's visual system and binding on every repo: two registers (the house is grey and borrows, a product owns one hue), two surfaces (an artifact is Space Grotesk and dark, or latte where it is light; a page is the Mac's own faces in both themes). A desktop never has a mark. Values resolve against **nebelung**; hausfold.co's implementation is its own `AGENTS.md`. A mark's source of record is its SVG in git, indexed in [`assets/README.md`](assets/README.md), the public media kit hausfold.co's `/brand` 301s onto; `test/design-palette.bats` holds the seam. Which commit a mark change lands in, and the order a product mark's two PRs take, are in the doc's own lede |
 | **how an agent learns to drive one of our tools** — the `ai/SKILL.md` (and sibling `ai/<name>/SKILL.md`) an end user's agent loads, the `<tool> skill` verb, `--json`/exit codes | the tool's OWN repo, to [`docs/agent-surface.md`](docs/agent-surface.md). A `SKILL.md` is for an agent *using* the tool with no checkout, `AGENTS.md` for one working *on* it. Which skills a machine gets is `./haus`'s `haus.ai.skill` |
-| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels, the security link | **the generator, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into ten repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half — a form's `labels:` are silently dropped if the label is missing, and the security link 404s until private vulnerability reporting is on. Design, four fields on purpose: [`docs/bug-reports.md`](docs/bug-reports.md). A hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps — edit the table, re-run, ship each repo. The in-product door is each app's own repo (perch's and trill's *Report a Bug…*, `trill report`, `pounce report`, `haus report` — `haus/modules/core/haus.sh`'s `cmd_report`, `exec`'d by `modules/launcher/commands/report-issue-haus.sh`); it and that repo's `DIAG_HINT` change in the same round, since `--check` compares only generator to YAML. Third half: `haus/modules/ai/agents/hausfold/SKILL.md`, naming each repo's diagnostics verb — three edits per verb. Its rules are `docs/bug-reports.md`'s *The agent route*: an explicit yes before anything is filed, offer once, the user's own words, read the block before attaching it |
+| **what a stranger meets when something we made breaks** — an issue form's fields, the chooser, the labels, the security link | **the generator, never the rendered file**: [`script/issue-templates.sh`](script/issue-templates.sh) writes `.github/ISSUE_TEMPLATE/` into ten repos from one table, and [`script/issue-labels.sh`](script/issue-labels.sh) is its GitHub-side half. Edit the table, re-run, ship each repo — a hand-edit in a child repo is invisible until the weekly `issue-templates` workflow sweeps. Design, the in-product doors, and the three edits any door costs: [`docs/bug-reports.md`](docs/bug-reports.md). Its *The agent route* binds every agent here — an explicit yes before anything is filed, offer once, the user's own words, read the block before attaching it |
 | **the install one-liner** — the URL, which desktop it resolves, the ref pinning | `./hausfold.co`'s `worker.js`, only there: `curl -fsSL https://hausfold.co/hacker.sh \| bash`. The *script* is `./haus`'s `bootstrap.sh` |
 | the hausfold.co site | `./hausfold.co` ([hausfold/hausfold.co](https://github.com/hausfold/hausfold.co)), **public**, keep the `.co`. Next 16 + Fumadocs, statically exported onto a Cloudflare Worker, deployed by CI on push to its `main`; `worker.js` serves the installer, download and release-metadata routes. `bench clone` fetches it; not a flake input, not `FAMILY` |
 | the hausfold **name register**, the launch plan, anything still to be decided | [hausfold/ops](https://github.com/hausfold/ops), **private**: `PRESENCE.md` for the register, `todo/` for every open workstream. **Never copy it, or a summary of it, into this repo** — which names are *free* is the sensitive half; trademark findings are public records and fine. In `DOCS_REPOS`, `bench clone` and `bench pull [ops]` only, both needing its credentials — clone warns when it can't fetch, pull skips a checkout that isn't there; the dir is `.gitignore`d |
@@ -102,67 +102,50 @@ The repos are a chain of pinned flake inputs: the spine
 is the one whose holder `bench ship` does not walk; that pin moves in factory's
 own PR, and `bench status` still reports it. A commit, even a pushed one, is
 invisible downstream until each `flake.lock` moves. **Never hand-walk that
-ripple, and never suggest it** — `bench` does it:
+ripple, and never suggest it** — `bench` does it. Every verb is in the
+[README's table](README.md#start), and the flows they belong to are at length in
+[`docs/workflows.md`](docs/workflows.md); five things about them bind an agent:
 
-- `bench status` — what this machine is running, every stale lock edge, dirty
-  or unpushed repo and agent lane — scruff's registry, never `git worktree
-  list`, filtered to the workshop dir plus the host config, so a hand-run
-  `git worktree add` is not in it at all. It also prints a read-only row for
-  every lock source that is not `FAMILY` (trill, snug, factory), because a
-  STALE edge's next question is what that checkout is doing. It flags an
-  **OFF-MAIN** edge, a lock pinned at a rev not on that
-  repo's `main` — what a hand-run `nix flake update` in a PR produces. It
-  resolves until the branch is deleted on merge, after which the downstream repo
-  can't fetch its input at all. Land the upstream PR first, or shipping repins
-  to main and silently drops that work.
-- `bench try [switch]` — build, and with `switch` activate, this machine against
-  the local checkouts (`--override-input`), no pushes; from a lane it
-  substitutes that worktree, so `try switch` feels ONE unmerged branch. The gate
-  is who, not where: an agent is refused a worktree `switch` unless
-  `BENCH_AGENT_SWITCH=1`.
-- `bench rebuild` — put the pinned build back. It draws a trill card while
-  building (`BENCH_NO_BANNER=1` off); `try` draws one only under
-  `BENCH_BANNER=1`. Activating a terminal edit is cheap and safe: Ghostty
-  applies config live, and every window's shell lives in a `zmx` session that
-  outlives it, so windows, sessions and live agents stay put
-  (`haus.terminal.restoreWindows` reopens one window per parked session).
-- `bench try-batch [switch] [repo…]` — every open PR merged onto a throwaway
-  tree per repo and built in ONE rebuild, main untouched; merge only what
-  passes its checklist.
-- `bench try lane [switch]` — that, plus every repo a `scruff child` spawned
-  from this pane, in one rebuild. Same gate.
-- `bench overlap [--brief] [--path <f>]` — where the other lanes' edits and
-  yours land in the same region, read from the object store. Advisory; exit 0
-  clear · 3 same file · 4 same region. Flow:
-  [`/earshot`](./.agents/skills/earshot/SKILL.md).
-- `bench ship [repo…]` — fast-forward every checkout, then push
-  upstream→downstream with a lock-bump commit at each hop. Refuses to end on
-  `shipped` if an edge didn't move (three `--refresh` retries 5s apart; a rev
-  not on the upstream's `origin/main` fails fast). Named repos narrow it to
-  their downstream closure along `EDGES`.
-- `bench pull [repo…]` — fast-forward the checkouts, or the named ones;
-  `bench clone` fetches a family repo missing here.
-- `bench docs-since [--mark [--pending <repo>…] | --landed [<repo>…]]` —
-  commits since the docs were reconciled; the input to `/docs-sync`.
-- `bench release <repo> [version] [--ship]` — under **Rules** below.
+- **`bench status` reads scruff's registry, never `git worktree list`**,
+  filtered to the workshop dir plus the host config, so a hand-run
+  `git worktree add` is not in it at all. It prints a read-only row for every
+  lock source that is not `FAMILY` (trill, snug, factory), because a STALE
+  edge's next question is what that checkout is doing.
+- ⚠️ **An OFF-MAIN edge is a lock pinned at a rev not on that repo's `main`** —
+  what a hand-run `nix flake update` in a PR produces. It resolves until the
+  branch is deleted on merge, after which the downstream repo can't fetch its
+  input at all. Land the upstream PR first, or shipping repins to main and
+  silently drops that work.
+- **`try switch` is gated on who, not where**: an agent is refused a worktree
+  `switch` unless `BENCH_AGENT_SWITCH=1`. `bench try lane [switch]` takes the
+  same gate.
+- **`bench rebuild` draws a trill card while building** (`BENCH_NO_BANNER=1`
+  off); `try` draws one only under `BENCH_BANNER=1`. Activating a terminal edit
+  is cheap and safe: Ghostty applies config live, and every window's shell lives
+  in a `zmx` session that outlives it, so windows, sessions and live agents stay
+  put (`haus.terminal.restoreWindows` reopens one window per parked session).
+- **`bench ship` fast-forwards every checkout before it pushes**, and dies on a
+  diverged one rather than guessing. Then it pushes upstream→downstream with a
+  lock-bump commit at each hop, and refuses to end on `shipped` if an edge
+  didn't move (three `--refresh` retries 5s apart; a rev not on the upstream's
+  `origin/main` fails fast). Named repos narrow it to their downstream closure
+  along `EDGES`.
+
+`bench overlap` exits 0 clear · 3 same file · 4 same region, and the flow is
+[`/earshot`](./.agents/skills/earshot/SKILL.md). `bench release` is under
+**Rules** below.
 
 ## Agent worktrees
 
-⌘↵ runs `scruff new` for whichever client `haus.ai.default` names (`claude`,
-`codex`, `opencode`, `pi`) — never `claude --worktree`, which skips scruff's
-`[hooks] open`. The checkout is `~/.cache/scruff/<repo>/<name>` on branch
-`worktree-<name>`, branched from the repo's **local HEAD** and outside the repo
-so `bench try`'s `path:` overrides never
-swallow it; closing a pane parks the dirty tree as a `wip:` commit and reaps
-only merged branches. (A machine older than scruff 1.1.0 keeps its whole base at
-`~/.cache/claude-worktrees`; `scruff doctor --migrate-base` moves it, refusing
-with exit 2 while anything stands in the base — so run it from a pane that is
-not a lane. One agent per window editing the real checkout is `c` in that
-window's own shell.) `scruff` lists the lanes, `scruff <name>` (or
-`scruff <repo>/<name>`) resumes one, `scruff reap` sweeps landed ones, and
-`scruff reship [name]` pushes commits made after the PR merged (`live+N`).
-**`scruff park [label]` / `scruff unpark` replace `git stash`** — one stash
-stack is shared by every worktree of a repo.
+The mechanics — ⌘↵, `scruff new`, the checkout at
+`~/.cache/scruff/<repo>/<name>` on `worktree-<name>`, resume, reap, reship — are
+[`docs/workflows.md`](docs/workflows.md)'s *Parallel agents*. Three things bind
+you before you read it: **`scruff park [label]` / `scruff unpark` replace `git
+stash`**, because one stash stack is shared by every worktree of a repo;
+`scruff <name>` (or `scruff <repo>/<name>`) resumes a lane; and a machine older
+than scruff 1.1.0 keeps its whole base at `~/.cache/claude-worktrees`, which
+`scruff doctor --migrate-base` moves, refusing with exit 2 while anything stands
+in the base — so run it from a pane that is not a lane.
 
 In a worktree (`git rev-parse --git-common-dir` points outside your toplevel):
 

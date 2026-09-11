@@ -5,10 +5,8 @@
 
 <sub>**pre-release** · every path that could lose your work is either reversible by design or stops to ask you first. that's the intent, not a warranty — run it on a machine you can afford to rebuild, and tell us what breaks.</sub>
 
-Five of them are Nix flakes, each pinning the ones upstream of it. Split a desktop
-across five repos and you buy yourself a daily annoyance: nothing you write is
-visible to its own neighbour until a lock file says so. `bench` is what makes
-that chain feel like one codebase — build your real Mac against your
+Five of them are Nix flakes, each pinning the ones upstream of it. `bench` is
+what makes that chain feel like one codebase — build your real Mac against your
 uncommitted edits, then push a change the whole way down.
 
 ## the one gotcha
@@ -30,12 +28,7 @@ downstream.** A one-hex-digit colour tweak in nebelung reaches your Mac only
 after three lock files move behind it.
 
 Never walk that by hand. `./bench ship` does it in order; `./bench status`
-names every pin that's fallen behind. (Those are repo names. Your flake's INPUT
-name for the layer is your own — `inputs.haus` is what `bootstrap.sh` scaffolds.
-`bench` doesn't care which you pick: it reads
-the name out of your `flake.lock`. That matters because Nix does **not** fail an
-override naming an input that isn't there, so a hardcoded guess would build the
-pinned layer while reporting your branch.)
+names every pin that's fallen behind.
 
 ## start
 
@@ -50,8 +43,7 @@ git clone https://github.com/hausfold/workshop && cd workshop
 ./bench ship pounce    # …narrowed to pounce + whatever consumes it, other edges untouched
 ```
 
-`try` is the one that earns the repo. It builds your actual machine config out
-of your local, uncommitted checkouts — so you never push to find out whether
+`try` is the one that earns the repo: you never push to find out whether
 something works, and `main` never holds code nobody has felt.
 
 | `./bench …` | |
@@ -59,13 +51,13 @@ something works, and `main` never holds code nobody has felt.
 | `status` | what's activated right now (the pinned build, or the branch a `try switch` put on it), every git and lock edge, every release edge |
 | `try [switch]` | build (and activate) against the local checkouts — worktree-aware, so it can build ONE unmerged branch |
 | `try lane [switch]` | same, plus every repo a `scruff child` spawned from this pane — a cross-repo lane in one rebuild |
-| `try-batch [switch]` | every **open PR** merged onto a throwaway tree per repo and built together in ONE rebuild, `main` untouched |
-| `ship` | push in dependency order, rippling each `flake.lock` |
+| `try-batch [switch] [repo…]` | every **open PR** merged onto a throwaway tree per repo and built together in ONE rebuild, `main` untouched |
+| `ship [repo…]` | push in dependency order, rippling each `flake.lock`; a repo narrows it to its downstream closure |
 | `rebuild` | the plain pinned rebuild — the normal day |
-| `pull` · `clone` | fast-forward every repo · fetch the ones you're missing |
-| `release <repo> [version]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for scruff, which takes semver because five SDK registries share the number |
-| `overlap [--brief\|--path <f>]` | what the OTHER agent lanes on this repo have already changed, and where their edits and yours land in the same region — measured from the shared object store, never declared |
-| `docs-since [--mark [--pending <repo>…] \| --landed <repo>…]` | every commit since the docs were last reconciled, plus what a repo has read but not landed — the input to the scheduled docs sweep |
+| `pull [repo…]` · `clone` | fast-forward every repo · fetch the ones you're missing |
+| `release <repo> [version] [--ship]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for scruff, which takes semver because five SDK registries share the number |
+| `overlap [--brief] [--path <f>]` | what the OTHER agent lanes on this repo have already changed, and where their edits and yours land in the same region — measured from the shared object store, never declared |
+| `docs-since [--mark [--pending <repo>…] \| --landed [<repo>…]]` | every commit since the docs were last reconciled, plus what a repo has read but not landed — the input to the scheduled docs sweep |
 
 ## the family
 

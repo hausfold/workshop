@@ -7,9 +7,8 @@ there.
 
 There is no telemetry in anything we ship and there never will be, so **the
 issue form is the entire feedback channel** — not one of several, the only one.
-The form is a product surface, it has to work for someone who has never opened
-an issue before, and every field it asks for is a field that can lose us the
-report.
+It is a product surface, and it has to work for someone who has never opened an
+issue before.
 
 ## What a reporter sees
 
@@ -30,7 +29,7 @@ And three contact links on the chooser that are *not* forms:
   report that turns out to be documented is still a docs bug, so file it anyway.*
 - **Made by us, but a different tool?** → the org page, which **lists** the
   repos. ⚠️ That link is a directory, not a door — `github.com/hausfold` has no
-  **New issue** button. So it offers listing and nothing more; the permission to
+  **New issue** button, so it offers listing and nothing more. The permission to
   file in the wrong place belongs on the **bug form**, which is a place you can
   actually file, and is already the first thing that form says. A contact link
   can only honestly offer what its destination can do.
@@ -44,9 +43,8 @@ lane. What it buys is that a report from a stranger arrives in a shape.
 Everything in the family a stranger has in front of them carries one door onto
 its own bug form, with the diagnostics field already answered: a menu row and a
 palette row where there is an app to click, a verb where the thing that broke is
-a command. Nothing about the forms changes; what goes is the trip — "open
-github.com/hausfold, pick the right repo out of all of them, find its Issues
-tab" — for anyone already inside the thing that just broke.
+a command. The forms don't change; what goes is the trip — "open
+github.com/hausfold, pick the right repo, find its Issues tab".
 
 | | where the door is | what it prefills |
 |---|---|---|
@@ -69,8 +67,8 @@ a bug that fails **silently** if you get it wrong:
 1. **`?template=bug.yml`, never `?title=&body=`.** A `body=` prefill opens
    GitHub's *blank* editor and walks straight past the form — its fields, the
    "wrong repo? file it anyway" preamble, the `bug`/`triage` labels. An issue is
-   still filed, so nothing anywhere fails. A door built this way delivers a
-   shapeless report every time and never tells you it did.
+   still filed, so a door built this way delivers a shapeless report every time
+   and never tells you it did.
 
 2. **Only `diagnostics` is prefilled.** `what` is the report, `area` is the
    reporter's guess, `anything` is optional by design — filling any of them in
@@ -86,50 +84,42 @@ a bug that fails **silently** if you get it wrong:
 4. **Nothing in the block should want redacting.** It lands in a public issue,
    and a field the app filled in is a weaker kind of consent than one the
    reporter typed. No bundle paths, no home directory (pounce rewrites it to
-   `~` before the doctor report goes anywhere), nothing off the user's shelf or
-   inbox. **Nothing is sent until the reporter presses Submit** — the door opens
-   a page, it does not file anything. It is not quite *"it only reads"*, the
-   promise the doctor hints make: a door whose block overran the URL writes the
-   block to the pasteboard when it has nowhere else to put it — a menu row, or
-   haus's palette row, which has a stdout nobody will ever read. That is the
-   door's one write, it is the reporter's own clipboard, and for pounce and haus
-   it is a live path rather than a guard rail. **A clipboard write nobody is told
-   about is that same silent failure one layer along**, so it comes with a
-   banner: haus's palette row raises one through `haus-notify`, because the
-   person is about to be looking at a form whose diagnostics field is empty. A
-   CLI with a terminal in front of it writes nothing at all — the block is
-   already on stdout, and `haus report --print` stays off the clipboard even
-   when it overflows, because a caller asking for the text is a caller with
-   somewhere to put it.
+   `~` first), nothing off the user's shelf or inbox. **Nothing is sent until
+   the reporter presses Submit** — the door opens a page, it does not file
+   anything. One write breaks *"it only reads"*: a door whose block overran the
+   URL puts it on the pasteboard, and **a clipboard write nobody is told about
+   is that same silent failure one layer along**, so it comes with a banner:
+   haus's palette row raises one through `haus-notify`, because the person is
+   about to meet a form whose diagnostics field is empty. A CLI writes nothing at all: the block is already
+   on stdout, and `haus report --print` stays off the clipboard even when it
+   overflows.
 
-And one size limit: each door drops the prefill above ~6 KB of URL and puts the
-block on the pasteboard (a menu row) or on stdout (a CLI) instead. For perch and
+**The size limit is ~6 KB of URL**, above which each door drops the prefill and
+puts the block on the pasteboard (a menu row) or on stdout (a CLI). For perch and
 trill that is a guard rail against a block that grows later; for pounce and haus
-it is a live path, because both doctors grow a line per thing they check: a
-finished hacker machine's `haus doctor` is 4.6 KB of text, which is ~6.9 KB once
-percent-encoded, so most haus reports take that branch rather than the prefill.
+it is a live path, because both doctors grow a line per thing they check — a
+finished hacker machine's `haus doctor` is 4.6 KB of text, ~6.9 KB once
+percent-encoded, so most haus reports take that branch.
 
 ⚠️ **The ~8 KB GitHub 414s past is not the number that bites first.** A reporter
 who is signed OUT is bounced to `/login?return_to=<the whole URL again>`, and
 that redirect breaks earlier — with a **500**, GitHub's own error page, for
 exactly the person filing their first issue. Measured against the real form
-(2026-09-01, `haus`): 6.6 KB of URL redirects fine, 6.9 KB of URL comes back
-500, and the raw 414 doesn't start until 8.3 KB. ~6 KB is the margin that covers
-both. (That the encoded block above is also ~6.9 KB is arithmetic, not the same
+(2026-09-01, `haus`): 6.6 KB of URL redirects fine, 6.9 KB comes back 500, and
+the raw 414 doesn't start until 8.3 KB. ~6 KB is the margin that covers both.
+(That the encoded block above is also ~6.9 KB is arithmetic, not the same
 number: one is a block, this is a whole URL.)
 
 **A door and its hint are one artifact, and nothing checks that.** Each repo's
 `DIAG_HINT` leads with the door — *"pounce report fills this in for you"* — so a
-reporter who arrived the long way learns the short one. `--check` does **not**
-catch it when they stop agreeing: it compares the generator's output to each
-repo's rendered YAML, and it knows nothing about whether the menu row still
-exists. Delete `trill report` tomorrow and the hint renders byte-identical and
-the gate stays green, while the form promises a verb that is gone.
-
-So the discipline is the whole guard: add or remove a door, and the hint is the
-second half of the change, in the same round. Another known hole, stated rather
-than papered over — and the same shape as the one below, a check that passes
-while the thing it protects rots.
+reporter who arrived the long way learns the short one. `--check` compares the
+generator's output to each repo's rendered YAML and knows nothing about whether
+the menu row still exists: delete `trill report` tomorrow and the hint renders
+byte-identical, the gate stays green, and the form promises a verb that is gone.
+So a door that is added, renamed or dropped is **three** edits in the same round,
+and only the first two are in one repo: the verb, that repo's `DIAG_HINT`, and
+the `hausfold` skill's table, which is in `haus` whatever app the door belongs
+to. Known hole, stated rather than papered over.
 
 ## The agent route
 
@@ -137,11 +127,10 @@ while the thing it protects rots.
 machine with `haus.ai.skill` on (the default) installs a `hausfold` agent skill
 beside the `haus` one, into every client it manages — the source is
 `hausfold/haus`'s `modules/ai/agents/hausfold/SKILL.md`. It exists because of
-where the sentence actually gets said: a user who is annoyed says it to the
-agent in the pane, not to a menu bar, and then it dies in a scrollback. The
-skill turns that sentence into a filed issue, or into a pull request when they
-would rather fix it. It is also the only route to the repos with no door of
-their own.
+where the sentence gets said: a user who is annoyed says it to the agent in the
+pane, not to a menu bar, and it dies in a scrollback. The skill turns that
+sentence into a filed issue, or a pull request when they would rather fix it,
+and it is the only route to the repos with no door of their own.
 
 Its `description` is what does the work, for the A4 reason in
 `docs/agent-surface.md`: a client matches a skill's frontmatter and nothing
@@ -167,18 +156,12 @@ at a different answer: the objection to a prefilled *What happened?* is that the
 app is putting words in the reporter's mouth, and here the words are the
 reporter's own, read back to them before anything is sent.
 
-Two consequences worth stating rather than discovering:
-
-- **`gh` walks past the form, so the form's shape has to be reproduced by
-  hand — and the bug and idea shapes differ.** Different fields, and different
-  labels: `bug`/`triage` against `idea`/`triage`. Labels are also the half that
-  fails quietly, because a form applies them as the repo while the API applies
-  them as the account: a reporter with no triage rights gets none. The issue
-  still lands, which is the trade — an unlabelled report beats an unsent one.
-- **A door that moves now has a third place to change.** The verb, its repo's
-  `DIAG_HINT`, and this skill's table all name it, and only the first two are in
-  the same repo. Nothing checks any of the three against each other; see *The
-  in-product door*.
+**`gh` walks past the form, so the form's shape has to be reproduced by hand —
+and the bug and idea shapes differ.** Different fields, and different labels:
+`bug`/`triage` against `idea`/`triage`. Labels are the half that fails quietly,
+because a form applies them as the repo while the API applies them as the
+account: a reporter with no triage rights gets none. The issue still lands,
+which is the trade — an unlabelled report beats an unsent one.
 
 ## The four decisions
 
@@ -218,8 +201,8 @@ doctor` teaches them the project doesn't know itself.
 perch is the one repo that asks for a **slice**. `perch doctor`'s header pair
 carries the four facts the field wants — version, install cohort, macOS build,
 Mac model — while the check rows under it name folders on the reporter's own
-Mac. The block lands in a public issue, so the hint asks for the two lines and
-says to leave the rest unless one of those rows is the bug. Ask for a whole
+Mac, and the block lands in a public issue. So the hint asks for the two lines
+and says to leave the rest unless one of those rows is the bug: ask for a whole
 output only where the whole output is safe to publish.
 
 perch's hint is also the only one that keeps a **route for a reporter with no
@@ -232,11 +215,11 @@ Each hint says what the command does *not* do — *it only reads; it changes
 nothing, prompts for nothing, and sends nothing anywhere.* **A doctor that grows
 a write makes that sentence a lie, and this table is where to come.** `perch
 doctor` is the one that has: its liveness check knocks on the running app
-through the group-container mailbox, which opens a request directory and closes
-it again. Nothing of the reporter's changes and nothing survives the call, but
-*"it only reads"* is not the sentence to make about it — so perch's hint says
-what the knock is instead. Claim read-only where it is true; describe the write
-where it isn't.
+through the group-container mailbox, opening a request directory and closing it
+again. Nothing of the reporter's changes and nothing survives the call, but
+*"it only reads"* is still the wrong sentence, so perch's hint describes the
+knock instead. Claim read-only where it is true; describe the write where it
+isn't.
 
 ### Task = the PR body, written first — and it says out loud that it's ours
 
@@ -268,10 +251,10 @@ the vocabulary; they have one audience.)
 | **the doors** | the menu row / CLI verb in each app that opens the form prefilled | each app's own `BugReport` — perch `Perch/Platform/`, trill `Trill/Platform/`, pounce `pkgs/pounce/`; haus's is a CLI verb, `haus/modules/core/haus.sh`'s `cmd_report`, with `modules/launcher/commands/report-issue-haus.sh` as the one-line palette row into it |
 | **the agent route** | the skill that turns "this is annoying" into a filed issue, on every haus machine | `haus/modules/ai/agents/hausfold/SKILL.md`, installed beside the `haus` skill by `haus.ai.skill` |
 
-**Why a generator.** Four forms hand-maintained across ten repos fails silently
-and asymmetrically: the day pounce's bug form asks for something haus's doesn't,
-a reporter's answer depends on which repo they happened to land in, and nothing
-anywhere fails. `--check` is the thing that fails. Every rendered file carries
+**Why a generator.** Four forms hand-maintained across ten repos drift
+asymmetrically: the day pounce's bug form asks for something haus's doesn't, a
+reporter's answer depends on which repo they landed in, and nothing anywhere
+fails. `--check` is the thing that fails. Every rendered file carries
 `Generated by workshop/script/issue-templates.sh — edit the generator, not
 this.` as its first line; that is advisory, the gate is the check.
 
@@ -298,8 +281,7 @@ render**, falling back to a blank issue with no message.
 
 ⚠️ **A hand-edit landing in a child repo is invisible until the next run here.**
 That repo's own CI knows nothing about the generator. The weekly schedule bounds
-the window; the header comment bounds the mistake. Neither is a gate. Known
-hole, stated rather than papered over.
+the window; the header comment bounds the mistake. Neither is a gate.
 
 ## The org-wide fallback
 
@@ -335,9 +317,5 @@ destination.
 4. Commit **in each repo you touched** — this is ten repos, and `bench ship`
    refuses dirty trees on purpose.
 
-⚠️ Changing a `DIAG_HINT` that names an in-product door? The door is in that
-app's own repo, and only `--check` notices when the two stop agreeing — so both
-halves move in the same round. See *The in-product door*. A door that is added,
-renamed or dropped is a **third** edit as well: the `hausfold` skill's table
-names every one of them, and it is in `haus` whatever app the door belongs to.
-See *The agent route*.
+⚠️ A `DIAG_HINT` that names an in-product door is one of the three edits under
+*The in-product door*; make all three in the same round.
