@@ -636,6 +636,8 @@ for f in files:
     drew = set()
     for i, el in enumerate(els):
         got, alpha, what = el["fill"], el["alpha"], name(el["key"])
+        # no `fill` of its own and none down the groups: SVG paints that black
+        got = got or "unfilled, which SVG paints black"
         if el["key"] == GROUND:
             want = {"standard": ramp["surface0"], "latte": ramp["base"],
                     "inverted": hue}[variant]
