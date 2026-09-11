@@ -208,12 +208,13 @@ circle is the same shape at the same numbers in both, and that the file spends
 nebelung tokens and no other product's accent. It also closes this file on
 itself: the clearspace ratios and the minimum-size table are re-derived from
 the *Lockups* bullets and from the house paths, caret and text lines written
-above, and the media kit's short version is diffed back against both. Only the
-rect-and-circle check reads both ways; the rest read a mark and ask this file
-about it. It does not check that a token is in the *role* the stanza gives it,
-or that one drawing holds one set, and it reaches the house's two squares only
-through the four paths quoted here, never their ring of ninety interpolated
-wedges. Everything outside that is on the reader.
+above, and the media kit's short version is diffed back against both. Of the
+checks that open a mark, only the rect-and-circle one reads both ways; the
+others read the SVG and ask this file about it, never the reverse. It does not
+check that a token is in the *role* the stanza gives it, or that one drawing
+holds one set, and it reaches the house's two squares only through the four
+paths quoted here, never their ring of ninety interpolated wedges. Everything
+outside that is on the reader.
 
 Three scopes this file deliberately does not own:
 

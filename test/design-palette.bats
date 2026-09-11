@@ -308,9 +308,11 @@ def phrase(s):
 
 # a shape phrase, or the trailing "(rx 2.5)" that sets the radius for a run of
 # rects — which is how the doc writes trill's two text lines
-TOKEN = re.compile(r"rect ([\d.]+),([\d.]+) ([\d.]+)×([\d.]+)(?: rx ([\d.]+))?"
-                   r"|circle ([\d.]+),([\d.]+) r ([\d.]+)"
-                   r"|\(rx ([\d.]+)\)")
+# A shape bleeds off the tile — nebelung's fog runs -4 to 106 — so every
+# coordinate here is signed, on both sides.
+TOKEN = re.compile(r"rect (-?[\d.]+),(-?[\d.]+) (-?[\d.]+)×(-?[\d.]+)(?: rx (-?[\d.]+))?"
+                   r"|circle (-?[\d.]+),(-?[\d.]+) r (-?[\d.]+)"
+                   r"|\(rx (-?[\d.]+)\)")
 
 def written(body):
     """Every shape a stanza writes out, as (kind, numbers…)."""
@@ -332,17 +334,19 @@ def written(body):
 def drawn(svg):
     """The same, out of a mark. Every other element is a path or a group."""
     # the tile's clip is the test above's, and the tile ground is a rule in
-    # *The tile* rather than a rect any stanza writes out
+    # *The tile* rather than a rect any stanza writes out — but only while it
+    # is square-cornered: a rounded ground is what that bullet forbids an iOS
+    # icon, so it comes back through here as a shape no stanza writes
     body = re.sub(r"<clipPath.*?</clipPath>", "", svg, flags=re.S)
     out = set()
     for kind, keys in (("rect", ("x", "y", "width", "height", "rx")),
                        ("circle", ("cx", "cy", "r"))):
         for tag in re.findall(rf"<{kind}\b[^>]*>", body):
             a = dict(re.findall(r'\b([a-z-]+)="([^"]+)"', tag))
-            vals = tuple(a.get(k, "0") for k in keys)
-            if kind == "rect" and vals[:4] == ("0", "0", "100", "100"):
+            vals = tuple(num(a.get(k, "0")) for k in keys)
+            if kind == "rect" and vals == ("0", "0", "100", "100", "0"):
                 continue
-            out.add((kind,) + tuple(num(v) for v in vals))
+            out.add((kind,) + vals)
     return out
 
 # Each stanza leads with the product in bold, and each mark's filename leads
@@ -362,27 +366,31 @@ files = [f for d in adirs for f in sorted(glob.glob(f"{d}/*.svg"))
 if not files:
     print(f"no mark SVGs found in {adirs}; this test has lost its subject")
     sys.exit(1)
-bad, marks = [], {}
+# Every variant of a mark is the same drawing — inverted and latte recolour
+# it, the iOS icon insets it — so each file answers for the whole stanza, and
+# a shape dropped from one variant alone is as red as one dropped from all.
+bad, named = [], set()
 for f in files:
     base = os.path.basename(f)
     product = base.split("-")[0]
-    mine = drawn(open(f).read())
-    marks.setdefault(product, set()).update(mine)
+    named.add(product)
+    said, mine = says.get(product, set()), drawn(open(f).read())
     bad += [f"{base} draws {phrase(s)}, which {product}'s stanza does not write out"
-            for s in sorted(mine - says.get(product, set()))]
+            for s in sorted(mine - said)]
+    bad += [f"{base} does not draw {phrase(s)}, which {product}'s stanza writes out"
+            for s in sorted(said - mine)]
 for product, said in sorted(says.items()):
-    if not said:
-        continue
-    if product not in marks:
-        bad.append(f"design.md's {product} stanza writes shapes and no mark SVG is "
-                   f"named for it: the stanza's lead or the filenames moved")
-        continue
-    bad += [f"design.md writes {product} {phrase(s)}, which no {product} mark draws"
-            for s in sorted(said - marks[product])]
+    if said and product not in named:
+        bad.append(f"design.md's {product} stanza writes shapes and no mark SVG "
+                   f"here is named for it: the house's two squares are exempt by "
+                   f"name, so anything else is the lead or the filenames moving")
 if bad:
     print("a shape that design.md and the mark SVGs spell differently:")
     for b in bad:
         print("  " + b)
+    if any(s[0] == "rect" and s[5] == "0" for v in says.values() for s in v):
+        print("A rect the doc leaves at rx 0 takes its radius from the next "
+              "trailing `(rx …)`, so check where that parenthetical sits.")
     sys.exit(1)
 PY
   [ "$status" -eq 0 ] || { echo "$output"; false; }
