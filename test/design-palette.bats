@@ -125,7 +125,8 @@ assert_every_mark_present() {
 @test "PRODUCT_MARKS names every mark SVG in the sibling repos" {
   # The two mark tests open what this array names and nothing else, so a mark
   # added upstream and forgotten here is a file with no drift test at all —
-  # green, and unguarded. This walks the other way: every *.svg in a sibling
+  # green, and unguarded: docs/drift.md row 33, a check whose census is a
+  # hand-maintained list. This walks the other way: every *.svg in a sibling
   # repo's assets/ has to be in the array. It reads checkouts only. There is
   # nothing to enumerate over the network, because the array is itself what
   # says which repos to look in, so a machine without them skips rather than
