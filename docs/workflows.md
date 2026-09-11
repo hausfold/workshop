@@ -135,13 +135,14 @@ Two signals, on purpose:
 
 - **the hunk index** — every lane's changed line ranges since the common ancestor,
   in the *ancestor's* coordinates (the one numbering two diverging trees share),
-  including **uncommitted and untracked** work, and minus whatever **main landed**
-  into that side since the ancestor (a squash merge puts the ancestor behind main,
-  and the lane that was squashed would otherwise claim every line it shipped for as
-  long as its branch exists). `⚠` means the same region, within
-  git's own 3-line context; `·` means the same file, somewhere else in it. Co-editing
-  a long shared file is normal here, and a tool that shouted about it would be muted
-  inside a day.
+  including **uncommitted and untracked** work, minus whatever **main landed** into
+  that side since the ancestor, and minus any lane **whose work is already in main**.
+  (A squash merge puts the ancestor behind main and leaves the lane's own commits
+  unreachable from it, so a shipped branch would otherwise claim every line it shipped
+  for as long as it exists — and squash is what `/ship` runs.) `⚠` means the same
+  region, within git's own 3-line context; `·` means the same file, somewhere else in
+  it. Co-editing a long shared file is normal here, and a tool that shouted about it
+  would be muted inside a day.
 - **`git merge-tree`** — a real three-way merge of the two branches, no working tree
   touched. Exact, but committed work only. Reported apart from the index, never folded
   into it: the two disagreeing is information.

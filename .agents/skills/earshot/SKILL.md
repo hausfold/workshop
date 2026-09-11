@@ -60,6 +60,14 @@ forty times a turn is one you stop reading.
 Exit codes: **0** clear · **3** same file · **4** same region. `--path` prints nothing
 at all on a clear file, which is what makes it usable as a reflex.
 
+**A lane with nothing left to land is left out entirely.** A branch outliving its own
+merge is the normal state here — `gh pr merge --squash` writes a brand-new commit, so a
+shipped branch is never an ancestor of main and an unreaped one measures as live for as
+long as it exists. Overlap reads *content*, not ancestry: merge the lane into main in
+the object store, and if main's tree doesn't move there is nothing there to collide
+with. A lane that shipped and then kept committing — `scruff reship`'s `live+N` — is
+still holding those commits, and stays.
+
 ## What to do about a `⚠`
 
 In order of preference — the first one that applies:
@@ -104,12 +112,11 @@ know better; just say why in the PR body.
   That's the whole scoping rule, and it needs no flag.
 - **Uncommitted work in a lane whose checkout is gone.** A parked lane is read from its
   branch, so only its commits are visible.
-- **A merged lane that never rebased is still quietly present.** What main landed is
-  subtracted from a side only when that side actually CONTAINS main's commit — subtracting
-  from a lane that never rebased would delete work it really did author. So a lane whose
-  PR was squash-merged and then left alone can still show as a `·` on a file main has
-  since moved past. The loud half is gone; a `·` there may mean nothing is left to
-  coordinate. `git diff origin/main <branch>` settles it in one line.
+- **A lane that shipped and kept going shows its landed lines too.** `scruff reship`'s
+  `live+N` is a live lane and is measured as one, from the merge base — which puts the
+  work it already landed back into its claim, alongside the commits it really is still
+  holding. It over-claims, in the safe direction. `git diff origin/main <branch>` says
+  what is actually left.
 
 ## From the main checkout
 

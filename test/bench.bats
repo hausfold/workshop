@@ -2284,6 +2284,142 @@ mkoverlap() { # a repo with lanes: snug (uncommitted, line 12), far (line 50),
   [[ "$output" == *"rival"* ]]
 }
 
+@test "cmd_overlap stays quiet about a squash-merged lane whose file you took over" {
+  # The M-block's blind spot, and the ordinary shape of a follow-up lane: cut
+  # from a lane that just shipped, carrying on in the file it landed. Taking
+  # main's work out of the READER cannot reach this — the reader's own edit
+  # coalesces with the landed hunk into one range whose boundaries no longer
+  # match main's, so it survives the subtraction — and the merged lane, never
+  # having rebased, goes on claiming every line it landed for as long as its
+  # branch exists. Measured 2026-09-11: workshop lane `light-tiles-dark-2` drew
+  # a ⚠ and a landing order against `light-tiles-dark`, squash-merged as
+  # workshop#567, over a region the two sides agreed on to the character.
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-rival
+  git -C "$OV/repo" commit -qam "squash: rival's line 10, as a new commit"
+  git -C "$OV/repo" worktree add -q -b worktree-follow "$OV/lanes/follow" main
+  # Line 11, ADJACENT to the landed hunk on purpose: that is what coalesces the
+  # two into one range and defeats the exact-range subtraction, which is what
+  # makes the symptom the LOUD one — the ⚠ and the landing order that were
+  # reported. Three lines clear and the same bug is still here, quieter: a `·`
+  # on doc.md and exit 3, because the merged lane goes on claiming the file
+  # either way.
+  setline "$OV/lanes/follow/doc.md" 11 11-follow
+  mkregistry "$WT_REGISTRY" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude" \
+    "follow $OV/repo worktree-follow $OV/lanes/follow $OV/repo claude"
+  cd "$OV/lanes/follow"
+  run cmd_overlap
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"doc.md"* ]]
+  [[ "$output" != *"lands first"* ]]
+  [[ "$output" == *"no other lanes"* ]]   # a branch with nothing to land is not one
+}
+
+@test "cmd_overlap sees the squash on origin/main, not just the local main" {
+  # The production shape, and the one the fixture above cannot reach: the squash
+  # lands on the REMOTE ref when a sibling merges its PR, and the local main
+  # doesn't hear about it until someone runs `bench pull`. A content check that
+  # only ever consulted the local main would go on warning about a lane that
+  # shipped for as long as this checkout stayed behind — which is most of the
+  # time, since nothing pulls on your behalf.
+  mkoverlap
+  git -C "$OV/repo" worktree add -q -b tmp-origin "$OV/lanes/tmporigin" main
+  setline "$OV/lanes/tmporigin/doc.md" 10 10-rival     # rival's edit, to the character
+  git -C "$OV/lanes/tmporigin" commit -qam "squash: rival's line 10, as a new commit"
+  git -C "$OV/repo" update-ref refs/remotes/origin/main tmp-origin
+  git -C "$OV/repo" worktree remove --force "$OV/lanes/tmporigin"
+  git -C "$OV/repo" branch -qD tmp-origin
+  # The follow-up lane is cut from origin/main — local main is still at the base.
+  git -C "$OV/repo" worktree add -q -b worktree-follow "$OV/lanes/follow" origin/main
+  setline "$OV/lanes/follow/doc.md" 11 11-follow
+  mkregistry "$WT_REGISTRY" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude" \
+    "follow $OV/repo worktree-follow $OV/lanes/follow $OV/repo claude"
+  cd "$OV/lanes/follow"
+  run cmd_overlap
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"lands first"* ]]
+  [[ "$output" == *"no other lanes"* ]]
+}
+
+@test "cmd_overlap keeps a squash-merged lane that kept committing" {
+  # `scruff reship`'s live+N, and the reason the check is content and not the
+  # forge: a MERGED PR is on its own no reason to drop a lane. The commits made
+  # after it have no remote and no PR, and they collide like any others. The
+  # fixture is the previous test's to the line — rival's later commit is the
+  # only difference between silence and a ⚠.
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-rival
+  git -C "$OV/repo" commit -qam "squash: rival's line 10, as a new commit"
+  setline "$OV/lanes/rival/doc.md" 11 11-rival-after
+  git -C "$OV/lanes/rival" commit -qam "rival: kept going after the merge"
+  git -C "$OV/repo" worktree add -q -b worktree-follow "$OV/lanes/follow" main
+  setline "$OV/lanes/follow/doc.md" 11 11-follow
+  mkregistry "$WT_REGISTRY" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude" \
+    "follow $OV/repo worktree-follow $OV/lanes/follow $OV/repo claude"
+  cd "$OV/lanes/follow"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"rival"* ]]
+  [[ "$output" == *"doc.md"* ]]
+}
+
+@test "cmd_overlap keeps a landed lane that is still holding uncommitted work" {
+  # merge-tree is committed work only, and the half it cannot see is the half a
+  # lane spends most of its life in. A branch whose every commit landed but whose
+  # checkout is dirty is a live lane, so the content check asks git status before
+  # it calls one spent — and only then, because a lane with real commits has
+  # already failed the merge-tree above and never reaches the expensive half.
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-rival
+  git -C "$OV/repo" commit -qam "squash: rival's line 10, as a new commit"
+  setline "$OV/lanes/rival/doc.md" 11 11-rival-uncommitted   # never committed
+  git -C "$OV/repo" worktree add -q -b worktree-follow "$OV/lanes/follow" main
+  setline "$OV/lanes/follow/doc.md" 11 11-follow
+  mkregistry "$WT_REGISTRY" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude" \
+    "follow $OV/repo worktree-follow $OV/lanes/follow $OV/repo claude"
+  cd "$OV/lanes/follow"
+  run cmd_overlap
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"rival"* ]]
+}
+
+@test "cmd_overlap from the MAIN checkout leaves a landed lane out of the pairs" {
+  # The matrix counts the lanes it is about to pair, so a landed one has to go
+  # before the count, not after the findings — "3 lanes, no two of them in the
+  # same file" would be promising lanes that aren't there.
+  mkoverlap
+  setline "$OV/repo/doc.md" 10 10-rival
+  git -C "$OV/repo" commit -qam "squash: rival's line 10, as a new commit"
+  cd "$OV/repo"
+  run cmd_overlap
+  [ "$status" -eq 3 ]                       # snug ↔ far, 38 lines apart
+  [[ "$output" == *"2 lanes"* ]]
+  [[ "$output" != *"rival"* ]]
+}
+
+@test "cmd_overlap counts a lane that has not started yet, landed or not" {
+  # Spent is for work that LANDED, not for work that never happened. A branch
+  # with no commits of its own merges into main without moving its tree — the
+  # very answer a squash-merged branch gives — so the content check has to ask
+  # whether there was ever anything here first. Without that, a just-spawned
+  # neighbour drops out of the roll call `--brief` exists to be, and a lane that
+  # has not started is exactly the one worth knowing about before you plan.
+  mkoverlap
+  git -C "$OV/repo" worktree add -q -b worktree-fresh "$OV/lanes/fresh" main
+  mkregistry "$WT_REGISTRY" \
+    "fresh $OV/repo worktree-fresh $OV/lanes/fresh $OV/repo claude" \
+    "rival $OV/repo worktree-rival $OV/lanes/rival $OV/repo claude"
+  cd "$OV/lanes/rival"
+  run cmd_overlap --brief
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"1 other lane"* ]]
+  [[ "$output" == *"fresh"* ]]
+}
+
 @test "cmd_overlap does not subtract a lane's own edit that main happens to match" {
   # Per-side, never global: an unrebased lane did not inherit main's commit, so
   # none of main's work is in its diff to take out — and a global subtraction

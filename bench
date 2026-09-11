@@ -3530,6 +3530,79 @@ earshot_landed() { # earshot_landed <main> <base> <side-rev> — main's landed r
   done | LC_ALL=C sort -u
 }
 
+# earshot_spent — has this side anything left to give main at all?
+#
+# `--is-ancestor` answers that for a fast-forward or a merge commit and gets it
+# wrong for the merge this family actually uses. `gh pr merge --squash` writes a
+# BRAND-NEW commit, so a lane's tip is never an ancestor of main however
+# completely its work landed, and an unreaped branch goes on measuring as live
+# for as long as it exists. Squash is what `/ship` runs, which makes this every
+# lane spawned from a lane that just shipped. Measured 2026-09-11: workshop lane
+# `light-tiles-dark-2` drew a ⚠ against `light-tiles-dark` — squash-merged as
+# workshop#567 the same morning — and a landing order for a branch with nothing
+# left to land, over a region whose content the two sides agreed on exactly.
+#
+# Content, not ancestry, and not the forge: merge this side into main in the
+# object store and ask whether main's tree moved. Nothing moved means nothing to
+# land — as true of a squash merge as of a rebase somebody did elsewhere, and
+# neither will ever be merged again. Offline, no `gh pr view` per lane, and no
+# network to be wrong about.
+#
+# The M-block above is the other half of the squash story and stays: it takes
+# main's work out of a side that INHERITED it. This takes out a side that
+# AUTHORED it — the case no subtraction can reach, because an unrebased lane
+# never carried main's commit, and the reader's own edits coalesce with the
+# landed hunk into boundaries the exact-range subtraction cannot match.
+#
+# What it must never call spent is `scruff reship`'s `live+N`: a merged PR with
+# commits made after it. A three-way merge sees those and answers for itself —
+# but merge-tree cannot see a working tree, so a live checkout is asked
+# `git status` first and anything uncommitted or untracked keeps the lane. That
+# check runs second because it is the expensive one and most lanes never reach
+# it: a lane with real work fails the merge-tree above and is gone by then.
+#
+# Memoised because the reader is one side of every pair and the matrix form
+# compares every lane with every other. A subshell INHERITS the memo and cannot
+# write back to it, and every consumer below sits in a command substitution, so
+# an answer is reused only if the parent shell measured it first — which is what
+# the warm-up in cmd_overlap and the enumeration in earshot_matrix are doing.
+declare -gA EARSHOT_SPENT_MEMO=()   # "main<TAB>dir<TAB>ref" → 0 spent · 1 holding
+
+earshot_spent() { # earshot_spent <main> <dir> [ref] — nothing left to land?
+  local main="$1" dir="$2" ref="${3:-}" key rev tip tree merged rc=1
+  key="$main"$'\t'"$dir"$'\t'"$ref"
+  if [ -n "${EARSHOT_SPENT_MEMO["$key"]+set}" ]; then return "${EARSHOT_SPENT_MEMO["$key"]}"; fi
+  if [ -n "$ref" ]; then
+    rev="$(git -C "$main" rev-parse --verify --quiet "$ref" 2>/dev/null)" || rev=""
+  else
+    rev="$(git -C "$dir" rev-parse --verify --quiet HEAD 2>/dev/null)" || rev=""
+  fi
+  if [ -n "$rev" ]; then
+    for tip in origin/main main; do
+      tree="$(git -C "$main" rev-parse --verify --quiet "$tip^{tree}" 2>/dev/null)" || continue
+      [ -n "$tree" ] || continue
+      # A branch with no commits main hasn't got has nothing to be spent OF: it
+      # is a lane that has not started yet, or one that merged by fast-forward.
+      # Either way it is already silent by construction — the merge base IS its
+      # tip, so it claims no ranges and can conflict with nobody — and calling
+      # it spent would only take a just-spawned neighbour out of the roll call
+      # `--brief` exists to be, which is the one lane worth knowing about before
+      # you plan. Spent is for work that LANDED, not work that never happened.
+      [ "$(git -C "$main" rev-list --count "$tip..$rev" 2>/dev/null || echo 0)" != 0 ] || continue
+      # A conflict exits non-zero, and a side that conflicts with main is
+      # holding something main hasn't got — the loudest possible "not spent".
+      merged="$(git -C "$main" merge-tree --write-tree "$tip" "$rev" 2>/dev/null)" || continue
+      [ "${merged%%$'\n'*}" = "$tree" ] || continue
+      # Committed work is all in. A live checkout can still be holding the half
+      # merge-tree structurally cannot see.
+      if [ -z "$ref" ] && [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then break; fi
+      rc=0; break
+    done
+  fi
+  EARSHOT_SPENT_MEMO["$key"]="$rc"
+  return "$rc"
+}
+
 # A side's own work: what it changed since the base, minus what main landed
 # INTO it. One stream with a leading `M` block rather than awk's two-file
 # idiom, and for the same reason range_compare gives below — a set that is
@@ -3537,6 +3610,11 @@ earshot_landed() { # earshot_landed <main> <base> <side-rev> — main's landed r
 # carry it either: awk reads escape sequences in a -v value, so a multi-line
 # range set passed that way arrives as a syntax error rather than as data.)
 earshot_unlanded() { # earshot_unlanded <main> <base> <side-rev> <dir> [ref]
+  # A side with nothing left to land holds none of what it changed since the
+  # base — main does. Asked before the subtraction rather than folded into it
+  # because there is nothing here to subtract FROM: every range this side has
+  # is main's own copy, under a lane's name.
+  if earshot_spent "$1" "$4" "${5:-}"; then return 0; fi
   { earshot_landed "$1" "$2" "$3" | sed 's/^/M\t/'
     side_ranges "$4" "$2" "${5:-}" | sed 's/^/S\t/'
   } | awk -F'\t' '
@@ -3712,6 +3790,12 @@ cmd_overlap() {
   my_lane="$(printf '%s\n' "$rows" | awk -F'\t' -v p="$top" '$3 == p { print $1; exit }')"
   [ -n "$my_lane" ] || my_lane="${my_branch#worktree-}"
 
+  # Warm the memo for the reader out here, in the parent shell. Every
+  # earshot_pair below runs inside a command substitution, and a subshell can
+  # read the memo but never add to it — so the one side that appears in every
+  # pair is the one side that would otherwise be measured again for every lane.
+  earshot_spent "$main_dir" "$top" "" || true
+
   local n_other=0 loud=0 quiet=0
   local -a body=() verdict=() intent=()
   local lane branch path side sdir sref findings level file detail
@@ -3721,10 +3805,17 @@ cmd_overlap() {
     [ "$branch" != "$my_branch" ] || continue
     # A registry row whose branch is gone is a corpse, not a lane.
     git -C "$main_dir" rev-parse --verify --quiet "$branch" >/dev/null 2>&1 || continue
-    n_other=$((n_other + 1))
 
     side="$(earshot_side "$path" "$branch" "$main_dir")"
     sdir="${side%%$'\t'*}"; sref="${side#*$'\t'}"
+    # A branch whose work is already in main is a corpse too. Dropped whole
+    # rather than merely emptied of ranges: a merge-tree verdict against a branch nobody
+    # will ever merge again is the same false alarm wearing the other glyph,
+    # and the true half of what it reports — your work against main's copy of
+    # theirs — is what the origin/main verdict at the bottom says, attributed
+    # to main, where it can be acted on.
+    if earshot_spent "$main_dir" "$sdir" "$sref"; then continue; fi
+    n_other=$((n_other + 1))
     findings="$(earshot_pair "$main_dir" "$top" "" "$my_head" "$sdir" "$sref" "$branch" "$only")"
 
     # The merge-tree verdict is computed for EVERY lane, before the empty-index
@@ -3867,10 +3958,14 @@ cmd_overlap() {
 earshot_matrix() { # earshot_matrix <main> <rows> <label> <only> <brief> — lane vs lane
   local main="$1" rows="$2" label="$3" only="$4" brief="$5"
   local names=() branches=() paths=()
-  local lane branch path
+  local lane branch path side
   while IFS=$'\t' read -r lane branch path; do
     [ -n "$lane" ] || continue
     git -C "$main" rev-parse --verify --quiet "$branch" >/dev/null 2>&1 || continue
+    # A branch whose work is already in main cannot be half of a live pair —
+    # and counting it would make `$n` below promise lanes that aren't there.
+    side="$(earshot_side "$path" "$branch" "$main")"
+    if earshot_spent "$main" "${side%%$'\t'*}" "${side#*$'\t'}"; then continue; fi
     names+=("$lane"); branches+=("$branch"); paths+=("$path")
   done <<<"$rows"
 
