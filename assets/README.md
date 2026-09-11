@@ -136,7 +136,4 @@ and what renders it: nothing does, there or on the site.
 What else sits here is not kit either. [`drafts/`](./drafts) holds superseded
 candidates, [`site/`](./site) unwired images for hausfold.co, and
 [`stills/`](./stills) the frames `SHOTLIST.md` delists but keeps as source
-material. [`ripple.webp`](./ripple.webp) is the chain diagram the policy
-exempts as a concept sketch, and it is stale where it sits: the loop names
-`nebelhaus`, calls a desktop a rice, and labels pounce the palette. It goes
-nowhere until it is redrawn.
+material.

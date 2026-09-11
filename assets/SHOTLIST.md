@@ -14,8 +14,9 @@ rule that keeps them honest:
 - **One hero per surface, max** — chosen by payoff × reach × virality, not by
   "this feature deserves a picture too."
 - **Evergreen graphics are exempt** because they don't depict a UI that can
-  drift: wordmark **banners/logos**, the **OG social card**, and the **`ripple`
-  chain diagram** (a concept sketch, not a screenshot). Keep those anywhere.
+  drift: wordmark **banners/logos**, the **OG social card**, and a **concept
+  sketch** — a drawing of how the lock ripple works, say, rather than a capture
+  of it happening. Keep those anywhere.
 
 If a shot isn't in the survivor table below, it isn't wired into anything.
 
