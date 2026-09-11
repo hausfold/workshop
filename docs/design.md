@@ -213,7 +213,7 @@ ratios and the minimum-size table are re-derived from the *Lockups* bullets
 and from the house paths, caret and text lines written above, and the media
 kit's short version is diffed back against both. Of the checks that open a
 mark, the rect-and-circle one and the fill one read both ways; the others read
-the SVG and ask this file about it, never the reverse. Three things it still
+the SVG and ask this file about it, never the reverse. Some of what it still
 leaves to the reader: the house's two squares, which it reaches only through
 the four paths quoted here and never their ring of ninety interpolated wedges;
 whether a gray on an inverted tile dims at all, which is the drawing's call
