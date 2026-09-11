@@ -115,17 +115,27 @@ something. `design.md` has the long one.
 ## Not here yet
 
 Stated so nobody fills a gap by improvising; `design.md` keeps the full list
-under *Not yet defined*. Each one is a decision someone owes, not a file to go
-and draw: `design.md` turns the first away on sight, under *Reflexes to
-refuse*.
+under *Not yet defined*. Each is a decision someone owes, not a file to go and
+draw — this one `design.md` turns away on sight, under *Reflexes to refuse*.
 
 - **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
   is not waiting on one — it is house register, so it gets the wordmark alone
   and no hue, the way haus does.
-- **Screenshots.** None are part of the kit. [`SHOTLIST.md`](./SHOTLIST.md) is
-  the policy (media sells, docs stay text), and the one current hero shot is
-  [`haus/assets/hero.png`](https://github.com/hausfold/haus/blob/main/assets/hero.png).
 
-[`drafts/`](./drafts) holds superseded candidates, [`site/`](./site) unwired
-images for hausfold.co, and [`stills/`](./stills) the frames `SHOTLIST.md`
-delists but keeps as source material. None of the three is part of the kit.
+## Not the kit
+
+**No screenshot is part of it**, by decision rather than by gap.
+[`SHOTLIST.md`](./SHOTLIST.md) is the policy — media sells, docs stay text, one
+hero per surface — and of the four assets its survivor table names, one is
+shot: [`haus/assets/hero.png`](https://github.com/hausfold/haus/blob/main/assets/hero.png).
+[`script/shoot-hero.sh`](../script/shoot-hero.sh) takes it and hands the frame
+to a reader to check against that table, rather than declaring it shot. It
+lives in `haus`, whose own
+[`assets/README.md`](https://github.com/hausfold/haus/blob/main/assets/README.md)
+writes down what is in the frame and what renders it: nothing does, there or
+on the site.
+
+What else sits here is not kit either. [`drafts/`](./drafts) holds superseded
+candidates, [`site/`](./site) unwired images for hausfold.co, and
+[`stills/`](./stills) the frames `SHOTLIST.md` delists but keeps as source
+material.
