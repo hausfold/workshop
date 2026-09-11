@@ -81,7 +81,7 @@ setup() {
   done
   marks_dir="$palette_dir/marks"
   mkdir -p "$marks_dir"
-  # Set for the two tests that read marks; the other six that get this far do
+  # Set for the three tests that read marks; the other six that get this far do
   # not, and a mark they never open must not decide their outcome.
   MARKS_MISSING=""
   local mark repo repo_dir resolved=0
@@ -92,7 +92,7 @@ setup() {
     [ -n "$common" ] && repo_dir="$(dirname "$common")/$repo/assets"
     # A checkout is re-read every time: BATS_TMPDIR outlives the run, and a
     # cached copy would keep this green through the very edit it exists to
-    # catch. Only the download is cached, and only against the eight fetching
+    # catch. Only the download is cached, and only against the nine fetching
     # setups one `bats` invocation of this file runs. A checkout that is here answers
     # for itself, so a file it does not have clears the cached copy too.
     if [ -n "$repo_dir" ] && [ -d "$repo_dir" ]; then
@@ -104,15 +104,15 @@ setup() {
     if [ -s "$marks_dir/$f" ]; then resolved=$((resolved + 1)); else MARKS_MISSING="$MARKS_MISSING $repo/$f"; fi
   done
   # ONE mark going missing while the rest resolve means PRODUCT_MARKS names a
-  # file that is on no upstream `main` yet — the two mark tests fail for it,
-  # loudly, and the other six still run. Skipping instead would blank all eight,
+  # file that is on no upstream `main` yet — the three mark tests fail for it,
+  # loudly, and the other six still run. Skipping instead would blank all nine,
   # this diff's own claims included; that is the shape docs/drift.md parks under
   # "Seen once", and a note is not a gate. The only skip left is the machine
   # that can reach NOTHING: no sibling checkouts and no network.
   [ "$resolved" -gt 0 ] || skip "no mark SVG is reachable: no sibling checkouts and no network"
 }
 
-# The two tests below open the marks; they refuse to pass on a partial set.
+# The three tests below open the marks; they refuse to pass on a partial set.
 assert_every_mark_present() {
   [ -z "$MARKS_MISSING" ] || {
     echo "PRODUCT_MARKS names a mark that is in no sibling checkout and on no"
@@ -123,7 +123,7 @@ assert_every_mark_present() {
 }
 
 @test "PRODUCT_MARKS names every mark SVG in the sibling repos" {
-  # The two mark tests open what this array names and nothing else, so a mark
+  # The three mark tests open what this array names and nothing else, so a mark
   # added upstream and forgotten here is a file with no drift test at all —
   # green, and unguarded: docs/drift.md row 33, a check whose census is a
   # hand-maintained list. This walks the other way: every *.svg in a sibling
@@ -146,7 +146,7 @@ assert_every_mark_present() {
   [ "$found" = 1 ] || skip "no sibling checkout to enumerate marks from"
   [ -z "$missing" ] || {
     echo "a mark SVG in a sibling repo that PRODUCT_MARKS does not name:$missing"
-    echo "Add it to the array, so the two tests below open it too."
+    echo "Add it to the array, so the three tests below open it too."
     false
   }
 }
@@ -269,6 +269,118 @@ for f in files:
             bad.append(f"{os.path.basename(f)}: opacity {v} is in no stanza as @ {v}")
 if bad:
     print("geometry in a mark SVG that design.md does not write out:")
+    for b in bad:
+        print("  " + b)
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "every rect and circle a mark SVG draws is the one design.md writes out" {
+  assert_every_mark_present
+  run python3 - "$DOC" "$WORKSHOP/assets" "$marks_dir" <<'PY'
+import glob, os, re, sys
+doc, adirs = sys.argv[1], sys.argv[2:]
+# The test above matches whole attribute strings, which is why it reads `d` and
+# `transform` and stops: a rect is five attributes in the SVG and one phrase in
+# the doc, and neither is a substring of the other, so a shape resized in place
+# passed it and the colour test both. This is that seam, for the two primitives
+# that are numbers rather than a path. *The marks* spells each one out — `rect
+# x,y w×h rx r`, `circle x,y r n` — which makes both directions checkable: no
+# mark draws a shape its own stanza doesn't write, and no stanza writes one no
+# mark draws. The house's two squares are exempt as above.
+text = open(doc).read()
+section = re.search(r"^### The marks\n(.*?)(?=^### )", text, re.S | re.M)
+if not section:
+    print("design.md lost '### The marks', which is where every shape's numbers "
+          "are written out: re-derive this test from wherever they went")
+    sys.exit(1)
+# the stanzas rewrap, and a phrase can wrap with them
+section = re.sub(r"\s+", " ", section.group(1))
+
+def num(v):
+    return f"{float(v):g}"
+
+def phrase(s):
+    if s[0] == "rect":
+        return f"rect {s[1]},{s[2]} {s[3]}×{s[4]} rx {s[5]}"
+    return f"circle {s[1]},{s[2]} r {s[3]}"
+
+# a shape phrase, or the trailing "(rx 2.5)" that sets the radius for a run of
+# rects — which is how the doc writes trill's two text lines
+TOKEN = re.compile(r"rect ([\d.]+),([\d.]+) ([\d.]+)×([\d.]+)(?: rx ([\d.]+))?"
+                   r"|circle ([\d.]+),([\d.]+) r ([\d.]+)"
+                   r"|\(rx ([\d.]+)\)")
+
+def written(body):
+    """Every shape a stanza writes out, as (kind, numbers…)."""
+    out, pending = [], []
+    for m in TOKEN.finditer(body):
+        if m.group(9):
+            for r in pending:
+                r[5] = num(m.group(9))
+            pending = []
+        elif m.group(6):
+            out.append(["circle"] + [num(g) for g in m.group(6, 7, 8)])
+        else:
+            r = ["rect"] + [num(g) for g in m.group(1, 2, 3, 4)] + [num(m.group(5) or 0)]
+            out.append(r)
+            if m.group(5) is None:
+                pending.append(r)  # an rx the doc states once, after the run
+    return {tuple(r) for r in out}
+
+def drawn(svg):
+    """The same, out of a mark. Every other element is a path or a group."""
+    # the tile's clip is the test above's, and the tile ground is a rule in
+    # *The tile* rather than a rect any stanza writes out
+    body = re.sub(r"<clipPath.*?</clipPath>", "", svg, flags=re.S)
+    out = set()
+    for kind, keys in (("rect", ("x", "y", "width", "height", "rx")),
+                       ("circle", ("cx", "cy", "r"))):
+        for tag in re.findall(rf"<{kind}\b[^>]*>", body):
+            a = dict(re.findall(r'\b([a-z-]+)="([^"]+)"', tag))
+            vals = tuple(a.get(k, "0") for k in keys)
+            if kind == "rect" and vals[:4] == ("0", "0", "100", "100"):
+                continue
+            out.add((kind,) + tuple(num(v) for v in vals))
+    return out
+
+# Each stanza leads with the product in bold, and each mark's filename leads
+# with the same word: that is the whole mapping between the two.
+parts = re.split(r"\*\*([^*]+)\*\*:", section)
+says = {}
+for lead, body in zip(parts[1::2], parts[2::2]):
+    says.setdefault(re.split(r"[^a-z]", lead.lower())[0], set()).update(written(body))
+count = sum(len(v) for v in says.values())
+if count < 8:
+    print(f"only {count} shapes parsed out of '### The marks', and it writes 8: "
+          f"the spelling changed; fix this regex with it")
+    sys.exit(1)
+
+files = [f for d in adirs for f in sorted(glob.glob(f"{d}/*.svg"))
+         if not os.path.basename(f).startswith("hausfold-")]
+if not files:
+    print(f"no mark SVGs found in {adirs}; this test has lost its subject")
+    sys.exit(1)
+bad, marks = [], {}
+for f in files:
+    base = os.path.basename(f)
+    product = base.split("-")[0]
+    mine = drawn(open(f).read())
+    marks.setdefault(product, set()).update(mine)
+    bad += [f"{base} draws {phrase(s)}, which {product}'s stanza does not write out"
+            for s in sorted(mine - says.get(product, set()))]
+for product, said in sorted(says.items()):
+    if not said:
+        continue
+    if product not in marks:
+        bad.append(f"design.md's {product} stanza writes shapes and no mark SVG is "
+                   f"named for it: the stanza's lead or the filenames moved")
+        continue
+    bad += [f"design.md writes {product} {phrase(s)}, which no {product} mark draws"
+            for s in sorted(said - marks[product])]
+if bad:
+    print("a shape that design.md and the mark SVGs spell differently:")
     for b in bad:
         print("  " + b)
     sys.exit(1)
