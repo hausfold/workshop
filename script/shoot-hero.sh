@@ -85,6 +85,7 @@ restore() {
   note "haus reset ${paths[*]} — one rebuild, ~1 min"
   haus reset "${paths[@]}" || warn "haus reset said no — check 'haus get bar.battery.hideOver'"
   if [ -e "$SCENE_FILE" ]; then rm -f "$SCENE_FILE"; ok "removed $SCENE_FILE"; fi
+  rm -f "$STATE/hero-lazygit.yml"
   if [ -e "$STATE/clock" ]; then
     note "putting the clock back on network time (sudo)"
     sudo systemsetup -setusingnetworktime on >/dev/null && rm -f "$STATE/clock"
@@ -114,6 +115,7 @@ note "the frame is disqualified by ANY of these — assets/SHOTLIST.md row 2:"
 note "  · a wordmark, an org name, a username, an uptime, a battery percentage"
 note "  · lazygit's Log/Commits panel (its author column). Files is fine"
 note "  · a clock that is not 9:41"
+note "  · this script's own settings/*.nix visible in lazygit's file tree"
 note "the shot is 3024×1964, the built-in retina panel, no external display in play"
 
 stage "Drop the personal pills"
@@ -187,16 +189,40 @@ cat > "$SCENE_FILE" <<'SCENE'
 }
 SCENE
 ok "wrote $SCENE_FILE — untracked, so no build ever sees it"
+
+# `+` (half-screen) hides the Commits panel's author column, but it does it by
+# widening the file tree, which squeezes the diff panel to ~22 columns — every
+# line of nix then wraps, and the panel the frame is FOR becomes the ugliest
+# thing in it. Accordion mode shrinks the unfocused side panels to their title
+# line instead: same author column gone, diff panel untouched. An overlay file
+# keeps it out of the user's own lazygit config.
+cat > "$STATE/hero-lazygit.yml" <<'LG'
+gui:
+  expandFocusedSidePanel: true
+  showCommandLog: false
+LG
+LG_FILES="$STATE/hero-lazygit.yml"
+LG_USER="$(lazygit --print-config-dir 2>/dev/null)/config.yml"
+[ -f "$LG_USER" ] && LG_FILES="$LG_USER,$LG_FILES"
+LG_CMD="lazygit -ucf \"$LG_FILES\""
+printf '%s' "$LG_CMD" | pbcopy
+ok "lazygit command copied — ⌘V it in the staged pane"
 note "opening github.com/hausfold"
 open -a Zen "https://github.com/hausfold" 2>/dev/null || open "https://github.com/hausfold"
 note "now set the frame, left to right:"
 note "  1. Zen on github.com/hausfold — SCROLL until the ✉ contact line is gone."
 note "     Half-behind the Pounce panel is not gone; it read 'jul…' last time."
-note "  2. Ghostty right, lazygit over your ~/.config/nix tree."
-note "     Focus Files (press 2), then '+' ONCE for half-screen: Commits and"
-note "     Stash leave the frame, the diff stays. Select scenes.nix so the"
-note "     right-hand panel shows it."
-note "  3. Both bars on. No external display. Music pill is fine; pause it if"
+note "  2. Ghostty right. ⌘V the copied command and run it over your"
+note "     ~/.config/nix tree, then press 2 to focus Files. Everything else"
+note "     collapses to a title line, so no author column is in shot."
+note "  3. In that tree, select the 'settings' folder and press ← to collapse"
+note "     it. Those files are THIS SCRIPT's staging — a frame that shows"
+note "     bar.battery.hideOver.nix is a frame explaining how it was faked."
+note "     Then select scenes.nix so the diff panel carries it."
+note "  4. ⌘Space, type 's' so Spawn Agent is the selected row — that is the"
+note "     frame row 2 describes. An empty palette shows the action tiles"
+note "     instead; either can ship, but row 2 has to match whichever does."
+note "  5. Both bars on. No external display. Music pill is fine; pause it if"
 note "     the track name is not one you want on Hacker News."
 pause
 ok "scene staged"
@@ -204,6 +230,10 @@ ok "scene staged"
 stage "Shoot it"
 mkdir -p "$SHOT_DIR"
 OUT="$SHOT_DIR/hero-$(date +%Y%m%d-%H%M%S).png"
+# Pounce draws the top clipboard entry in the palette, so the clipboard is IN
+# the frame. Leave something we chose there rather than the lazygit command.
+printf '%s' "https://hausfold.co" | pbcopy
+note "clipboard set to hausfold.co — it shows in Pounce's palette"
 note "press ↵ and you have ${DELAY}s. The shutter SOUND is left on as the cue,"
 note "so you know the frame is taken without watching this window."
 note "in those ${DELAY}s: switch to the staged workspace · ⌘Space · type 's' ·"
