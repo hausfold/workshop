@@ -204,17 +204,22 @@ on no upstream `main`, and says so by failing.
 product mark — nebelung's tiles here, pounce's, perch's and trill's read out
 of their own repos — it checks that every path, transform, tile radius and
 alpha step in the SVG is written out in the stanza here, that every rect and
-circle is the same shape at the same numbers in both, and that the file spends
-nebelung tokens and no other product's accent. It also closes this file on
-itself: the clearspace ratios and the minimum-size table are re-derived from
-the *Lockups* bullets and from the house paths, caret and text lines written
-above, and the media kit's short version is diffed back against both. Of the
-checks that open a mark, only the rect-and-circle one reads both ways; the
-others read the SVG and ask this file about it, never the reverse. It does not
-check that a token is in the *role* the stanza gives it, or that one drawing
-holds one set, and it reaches the house's two squares only through the four
-paths quoted here, never their ring of ninety interpolated wedges. Everything
-outside that is on the reader.
+circle is the same shape at the same numbers in both, that the file spends
+nebelung tokens and no other product's accent, that it holds one set rather
+than mixing latte with mocha, and that every fill is the *role* its stanza
+names for that shape, resolved through *The tile* for whichever of the three
+variants the file is. It also closes this file on itself: the clearspace
+ratios and the minimum-size table are re-derived from the *Lockups* bullets
+and from the house paths, caret and text lines written above, and the media
+kit's short version is diffed back against both. Of the checks that open a
+mark, the rect-and-circle one and the fill one read both ways; the others read
+the SVG and ask this file about it, never the reverse. Three things it still
+leaves to the reader: the house's two squares, which it reaches only through
+the four paths quoted here and never their ring of ninety interpolated wedges;
+whether a gray on an inverted tile dims at all, which is the drawing's call
+where only what it dims *to* is a rule; and a shape lying half over another,
+since "on a gray shape" reads as containment and the bullet below does not
+rule on a half. Everything outside that is on the reader.
 
 Three scopes this file deliberately does not own:
 
