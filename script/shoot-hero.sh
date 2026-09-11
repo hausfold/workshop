@@ -8,12 +8,11 @@
 # WHY this is a script and not a checklist: the frame has to clear a
 # disqualifier list, and every item on that list is a different mechanism — a
 # haus option, a lazygit panel mode, a page scroll, the system clock. The
-# hero on disk carries four of them (a 73% battery pill, a clock that is not
-# 9:41, the lazygit Commits panel and its author column, and the org page's
-# contact line reading `jul…` beside the Pounce panel), because a disqualifier
-# is only findable by reading the capture back against the list afterwards. So
-# the list runs as stages, and the last stage hands the file to a reader
-# instead of declaring victory.
+# frame this replaced carried four of them at once — a battery percentage, a
+# 4:22 clock, an email-bearing panel and a half-covered contact line — because
+# a disqualifier is only findable by reading the capture back against the list
+# afterwards. So the list runs as stages, and the last stage hands the file to
+# a reader instead of declaring victory.
 #
 # It needs the screen and it needs a human. Nothing here runs unattended.
 set -euo pipefail
@@ -85,7 +84,6 @@ restore() {
   note "haus reset ${paths[*]} — one rebuild, ~1 min"
   haus reset "${paths[@]}" || warn "haus reset said no — check 'haus get bar.battery.hideOver'"
   if [ -e "$SCENE_FILE" ]; then rm -f "$SCENE_FILE"; ok "removed $SCENE_FILE"; fi
-  rm -f "$STATE/hero-lazygit.yml"
   if [ -e "$STATE/clock" ]; then
     note "putting the clock back on network time (sudo)"
     sudo systemsetup -setusingnetworktime on >/dev/null && rm -f "$STATE/clock"
@@ -113,8 +111,9 @@ done
 ok "haus, lazygit, pounce, screencapture, sips all here"
 note "the frame is disqualified by ANY of these — assets/SHOTLIST.md row 2:"
 note "  · a STALE wordmark or org name, a username, an uptime, a battery %"
-note "  · lazygit's Log/Commits panel (its author column). Files is fine"
-note "  · a clock that is not 9:41"
+note "  · a SELECTED commit — lazygit then puts Author: … <email> in the main"
+note "    panel. The Commits rows themselves are initials, and are fine"
+note "  · a clock that says something about you. 9:41 by convention"
 note "  · this script's own settings/*.nix visible in lazygit's file tree"
 note "the shot is 3024×1964, the built-in retina panel, no external display in play"
 
@@ -190,36 +189,16 @@ cat > "$SCENE_FILE" <<'SCENE'
 SCENE
 ok "wrote $SCENE_FILE — untracked, so no build ever sees it"
 
-# `+` (half-screen) hides the Commits panel's author column, but it does it by
-# widening the file tree, which squeezes the diff panel to ~22 columns — every
-# line of nix then wraps, and the panel the frame is FOR becomes the ugliest
-# thing in it. Accordion mode shrinks the unfocused side panels to their title
-# line instead: same author column gone, diff panel untouched. An overlay file
-# keeps it out of the user's own lazygit config.
-cat > "$STATE/hero-lazygit.yml" <<'LG'
-gui:
-  expandFocusedSidePanel: true
-  showCommandLog: false
-LG
-LG_FILES="$STATE/hero-lazygit.yml"
-LG_USER="$(lazygit --print-config-dir 2>/dev/null)/config.yml"
-[ -f "$LG_USER" ] && LG_FILES="$LG_USER,$LG_FILES"
-LG_CMD="lazygit -ucf \"$LG_FILES\""
-printf '%s' "$LG_CMD" | pbcopy
-ok "lazygit command copied — ⌘V it in the staged pane"
-note "  $LG_CMD"
-warn "QUIT the lazygit you already have open first (q). Pasting into a"
-warn "running one does nothing, and a plain lazygit puts the Commits panel"
-warn "and its author column back in the frame."
 note "opening github.com/hausfold"
 open -a Zen "https://github.com/hausfold" 2>/dev/null || open "https://github.com/hausfold"
 note "now set the frame, left to right:"
 note "  1. Zen on github.com/hausfold — SCROLL until the ✉ contact line is gone."
-note "     Half-behind the Pounce panel is not gone; it read 'jul…' last time."
-note "  2. Ghostty right. In your ~/.config/nix tree: q out of lazygit if it"
-note "     is running, ⌘V, ↵. Then press 2 to focus Files — every other side"
-note "     panel folds to a title line, so no author column is in shot."
-note "     If [4]-Commits still shows rows, you are on a plain lazygit."
+note "     Half-behind the Pounce panel is not gone — that still reads 'jul…'."
+note "  2. Ghostty right, lazygit over your ~/.config/nix tree, normal screen"
+note "     mode — NOT '+', which widens the tree and squeezes the diff panel"
+note "     until every line of nix wraps. Press 2 to focus Files."
+note "     ⚠ do not select a COMMIT: lazygit then draws Author: … <email> in"
+note "     the main panel, and an email in frame is the one hard strike."
 note "  3. \`haus set\` wrote its overrides into hosts/mbp/settings/, which is"
 note "     the very tree you are photographing — a frame showing"
 note "     bar.battery.hideOver.nix is a frame explaining how it was faked."
@@ -238,7 +217,7 @@ stage "Shoot it"
 mkdir -p "$SHOT_DIR"
 OUT="$SHOT_DIR/hero-$(date +%Y%m%d-%H%M%S).png"
 # Pounce draws the top clipboard entry in the palette, so the clipboard is IN
-# the frame. Leave something we chose there rather than the lazygit command.
+# the frame. Put something chosen there rather than whatever was last copied.
 printf '%s' "https://hausfold.co" | pbcopy
 note "clipboard set to hausfold.co — it shows in Pounce's palette"
 note "press ↵ and you have ${DELAY}s. The shutter SOUND is left on as the cue,"
