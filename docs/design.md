@@ -201,17 +201,20 @@ nebelung, whose SVGs are here. A **product** mark lands in its own repo's PR
 on no upstream `main`, and says so by failing.
 
 `test/design-palette.bats` holds part of that seam, and only part. For every
-product mark — nebelung's tiles here, pounce's, perch's and trill's read
-out of their own repos — it checks that every path, transform, tile radius and
-alpha step in the SVG is written out in the stanza here, and that the file
-spends nebelung tokens and no other product's accent. It also closes this file
-on itself: the clearspace ratios and the minimum-size table are re-derived from
+product mark — nebelung's tiles here, pounce's, perch's and trill's read out
+of their own repos — it checks that every path, transform, tile radius and
+alpha step in the SVG is written out in the stanza here, that every rect and
+circle is the same shape at the same numbers in both, and that the file spends
+nebelung tokens and no other product's accent. It also closes this file on
+itself: the clearspace ratios and the minimum-size table are re-derived from
 the *Lockups* bullets and from the house paths, caret and text lines written
-above, and the media kit's short version is diffed back against both. It runs
-one way, it does not check that a token is in the *role* the stanza gives it,
-and it reaches the house's two squares only through the four paths quoted
-here, never their ring of ninety interpolated wedges. Everything outside that
-is on the reader.
+above, and the media kit's short version is diffed back against both. Of the
+checks that open a mark, only the rect-and-circle one reads both ways; the
+others read the SVG and ask this file about it, never the reverse. It does not
+check that a token is in the *role* the stanza gives it, or that one drawing
+holds one set, and it reaches the house's two squares only through the four
+paths quoted here, never their ring of ninety interpolated wedges. Everything
+outside that is on the reader.
 
 Three scopes this file deliberately does not own:
 

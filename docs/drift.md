@@ -149,7 +149,7 @@ should narrow a suite, never silence it, and the silence arrives exactly when
 someone is *adding* coverage. Ordering the merge upstream-first is the answer
 only as a gate: **a "must not merge without X" that lives only in a note is not a
 gate** is already on this shelf, and a comment beside `PRODUCT_MARKS` would have
-been that note. The two mark tests now fail by name on a partial set. **Caught
+been that note. The three mark tests now fail by name on a partial set. **Caught
 by** reading the skip *reasons* on a green run instead of the exit code.
 
 **A property nobody chose, promised by six write-ups that describe the build
