@@ -36,7 +36,7 @@ a `v*` tag, they publish something that cannot be withdrawn, and none of the
 is not exempt** — a floating action on the job that signs and notarises what
 users install is the worst place in the repo to have one.
 
-## Four rules
+## Five rules
 
 **1. Ask the runner image before you ask a package manager.** `shellcheck`,
 `jq`, `git`, `node`, `npm`, `go` and `python` are already on `ubuntu-latest`.
@@ -111,6 +111,57 @@ rather than a thing to copy.
 
 **4. Pin third-party actions to a tag.** `@main` is whatever that vendor
 pushed this morning, running on the machine that compiles what we ship.
+
+**5. Group parallel jobs by what they need, never by how many steps each
+has.** The gate is the longest job rather than the total, so a split is worth
+exactly what it takes off the longest one. Everything else it does is cost:
+each job pays checkout and its own tool install over again, and where runners
+queue it takes a slot to do that on.
+
+haus's shell half is where the family measured it. It was fifty steps in one
+job at 2m28s, which made it the slowest gate we had. Grouped by what a suite
+needs it is four jobs — `lint` the runner image alone, and the one of the four
+that needs no `bats`; `draw` bats plus snug's `share/ui.sh` at the rev
+`flake.lock` pins; `agents` and `rooms` bats and the image — and the longest of
+them is 58s. That half went 2m28s → 58s and the whole `check` run 2m30s →
+1m43s; the nix half's own split took it down again from there.
+
+Fifty jobs would have been slower than one. Checkout plus `sudo npm install -g
+bats` is about 4s a job, more than most of those suites take to run, and that
+fixed cost is what a step is measured against before it earns a job of its own:
+under it, join an existing job. It is not one number across a repo — haus's nix
+half measures against a ~35s cache restore instead, which is *The Nix store
+cache* below.
+
+Count enters in one place only, and as a tiebreaker. `agents` and `rooms` both
+want bats and nothing else, so the cut between them is by subject — the AI room
+and the two surfaces an agent reads through it, against every other room — and
+a suite that could sit in either goes to whichever is shorter that week. Both
+halves still have to clear the fixed cost, which at 53s and 58s against ~4s
+they do. That is size settling a toss-up, not size drawing the line.
+
+The rest of the family's splits are needs. `scruff` runs four SDKs in one Linux
+job, each with its own toolchain setup in front of it, and gives Swift a job of
+its own only because it wants a Mac. `snug`'s three ubuntu jobs are three
+toolchains — Go, bats with shellcheck, Nix — and the bash one is Linux-only
+because `share/ui.sh` needs bash 4 while macOS ships 3.2, a need that decides
+*where* a job runs and not only whether it exists.
+
+A need also survives as a boundary in a way it does not as a comment. Every
+suite in haus's `draw` reads what that job fetches before any of them runs, and
+one that runs without the painter skips rather than fails, which reads as a
+pass. Keeping them below that fetch used to be three "MUST stay below" comments
+spread through one long job; as a job boundary it is the one form of the rule
+that appending a step in the wrong place cannot break. The other half is still
+the reader's: a painter suite added to `agents` or `rooms` goes green having
+checked nothing, so the grouping has to be got right when a suite is ADDED, and
+`draw` still marks the order inside itself.
+
+**The failure mode is a split balanced by step count.** It buys a runner
+request per job and moves the gate nowhere, because the steps it shifted off
+the longest job were not what made it the longest. If you cannot name which job
+was the gate before and which is after, the split has not been measured — only
+spread.
 
 ## The Nix store cache
 
@@ -187,10 +238,9 @@ overlap heavily, all of them carrying nixpkgs, and the weekly reset bounds the
 total exactly as it did with one.
 
 **Splitting a job pays the restore again, which is what decides the split.**
-haus's is ~35s. That makes it the number a step is measured against before it
-earns a job of its own: a step worth less than the restore in front of it
-belongs in an existing job, because the gate is the longest job and not the
-total. On haus only `haus add` clears it.
+haus's is ~35s, and that is this half's fixed cost under rule 5 — the number a
+step is measured against before it earns a job of its own. Only `haus add`
+clears it.
 
 **Read the ceiling off the entry, not off the store.** GitHub's 10 GB is
 compressed cache bytes, and a Nix store compresses hard. The action logs

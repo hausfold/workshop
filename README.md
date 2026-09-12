@@ -118,7 +118,7 @@ lands on `main`.
 - [the agent's own Mac](./docs/agent-vm.md) — a headless macOS a lane can drive, so it never takes your screen
 - [the factory](https://github.com/hausfold/factory) — the night shift: docs-only PRs merge themselves under a lease you grant. Its README is the manual and the policy is machine-local (`factory config print`); the levers it reaches for here are [hausfold.co/docs/haus/night-shift](https://hausfold.co/docs/haus/night-shift), and the seams under them are [`haus/docs/night-shift-internals.md`](https://github.com/hausfold/haus/blob/main/docs/night-shift-internals.md)
 - [bug reports](./docs/bug-reports.md) — one issue form per repo, generated from one table
-- [CI](./docs/ci.md) — one gate per repo, and the four rules that keep a push cheap to check
+- [CI](./docs/ci.md) — one gate per repo, and the five rules that keep a push cheap to check
 - [drift](./docs/drift.md) — the shapes a write-up goes wrong in, and what catches each
 - [AGENTS.md](./AGENTS.md) — where a change goes, and the one instruction file every agent reads
 
