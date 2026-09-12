@@ -12,7 +12,7 @@ the screen — take a VM.*
 | `scruff runtime up\|enter\|down <lane> --backend <id>` | generic: loads `~/.config/scruff/adapters/runtime/<id>.toml`, renders each argv element through `text/template` with the lane vars, execs it. Never automatic — create/reap never touch a backend |
 | the `tart` adapter | `haus.ai.enable` writes `~/.config/scruff/adapters/runtime/tart.toml` + `~/.config/haus/runtime/tart-adapter.sh` (from `modules/ai/runtime/tart-adapter.sh`). The script does the multi-step dance scruff's single-argv contract can't: `tart clone` → `tart run --no-graphics --dir=work:<lane path>` backgrounded → `tart ip --wait` → `ssh admin@$ip` |
 | `haus-vm-shot <lane> [dest.png]` | the capture half, which is not scruff's business: `tart ip` → `screencapture -x` on the guest → `scp` back → print the host path, one line, nothing else. `haus.ai.enable` puts it on PATH; it is one `exec` into the same adapter's `shot` subcommand, so the `scruff-<lane>` naming has one home. `test/vm-shot.bats` in haus pins what a human never sees: the one-line stdout, the silent `-x`, the `scruff-<lane>` VM name, the guest-side `rm`, and a failure that prints no path |
-| the golden image | `haus`'s `script/build-golden-vm.sh` — clone the base, grow its disk to 90 GB (the base's is 50, and a raised house fills 45), run a **pinned-tag** `bootstrap.sh` (never the floating `hausfold.co/hacker.sh`, which resolves the latest release and drifts), switch, stop, leave a tagged image lanes clone in seconds |
+| the golden image | `haus`'s `script/build-golden-vm.sh` — clone the base, grow its disk to 90 GB (the base's is 50, and a raised house fills 45), put Gatekeeper back (the base ships it off, and App-Store-only underneath), run a **pinned-tag** `bootstrap.sh` (never the floating `hausfold.co/hacker.sh`, which resolves the latest release and drifts), switch, stop, leave a tagged image lanes clone in seconds |
 
 ## The loop
 
@@ -162,6 +162,66 @@ lets a grant be written rather than merely requested. A golden image built any
 other way — a hand-installed macOS, an MDM-managed one — does not inherit it,
 and the same commands then *do* block on a modal nobody can click. **Write that
 down before someone "cleans up" the base image.**
+
+## Gatekeeper in the base is wrong twice, and the second one lies about your app
+
+The cirruslabs base is a CI worker image, so it ships Gatekeeper off. That is
+two separate settings, and only the first is obvious:
+
+1. **assessments off wholesale** — `spctl --status` reads `assessments
+   disabled`. A Developer ID app opened here raises **no dialog at all**.
+2. **underneath that, the policy DB has the Developer ID rules disabled** —
+   the "App Store" setting, not the "App Store and identified developers"
+   every real Mac ships with. Turn assessments back on and a signed,
+   notarized app is refused as **"not downloaded from the App Store"**.
+
+Neither state is what a user sees, so neither is evidence. The second is the
+expensive one: it reads as a signing or notarization fault in the app under
+test, and the app is fine. It cost perch's 2026-09-11 release a day.
+
+**The DB is not where you think, and the wrong path is booby-trapped.** On
+macOS 26 there is no `/var/db/SystemPolicy` — the file is
+`/var/db/SystemPolicyConfiguration/SystemPolicy`. Reading the old path gets
+you nothing, and *writing* it (a `sudo cp` of `.SystemPolicy-default`, say)
+silently creates a decoy that syspolicyd never reads, so the symptom does not
+move and you conclude the image is damaged. It is not damaged; it is
+configured. `ls` the directory, not the glob: `/var/db/SystemPolicy*` matches
+`SystemPolicyConfiguration/` and lists its contents, which looks like the
+answer and is not.
+
+Check the rules rather than the summary line:
+
+```sh
+sudo sqlite3 /var/db/SystemPolicyConfiguration/SystemPolicy \
+  'SELECT id, label, disabled FROM authority WHERE label LIKE "%Developer ID%";'
+```
+
+**Restoring it is a write, not a click.** `spctl --enable --label "Developer
+ID"` is how this was spelled until macOS 15 removed the subcommand, so the
+rows go in directly — legal for the same reason the TCC insert above is: SIP
+is off in this base.
+
+```sh
+sudo spctl --global-enable          # --master-enable on older releases
+sudo sqlite3 /var/db/SystemPolicyConfiguration/SystemPolicy \
+  "UPDATE authority SET disabled = 0 WHERE label IN ('Developer ID', 'Notarized Developer ID');"
+sudo killall syspolicyd
+spctl --status --verbose            # assessments enabled / developer id enabled
+```
+
+Measured on Tahoe 26.6.2, 2026-09-12: it reads back correct with no reboot,
+and survives one. `Unnotarized Developer ID` and `Testflight` stay disabled —
+they are disabled on a stock Mac too, and enabling them would make the image
+lie in the other direction. `haus`'s `script/build-golden-vm.sh` does this as
+step 1.6, before bootstrap, so a base that has moved fails in a minute rather
+than forty.
+
+⚠️ **A first-open test needs a bare base clone, not the golden image.** The
+golden has haus on it, and haus installs `/Applications/Perch.app` with its
+LaunchServices registrations already made — so the one thing the test is
+looking for, a virgin first launch, cannot happen there. Clone `tahoe-base`,
+apply the block above, and test on that. The clone is copy-on-write and costs
+seconds.
 
 ## What the golden image has to do about dialogs
 
