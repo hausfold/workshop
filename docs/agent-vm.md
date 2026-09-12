@@ -216,6 +216,41 @@ lie in the other direction. `haus`'s `script/build-golden-vm.sh` does this as
 step 1.6, before bootstrap, so a base that has moved fails in a minute rather
 than forty.
 
+**What a correct first open looks like, measured 2026-09-12.** Bare base
+clone, Gatekeeper restored, perch v2026.09.11-2 fetched through Safari from
+`hausfold.co/download/perch`:
+
+> **"Perch" is an app downloaded from the Internet. Are you sure you want to
+> open it?**
+> Safari downloaded this file today at 7:41 AM. Apple checked it for malicious
+> software and none was detected.  ·  [Cancel] [Open]
+
+That is the pass. "Unidentified developer" or "not downloaded from the App
+Store" is a fail, and on this image the second one means step 1.6 did not run,
+not that the app is unsigned. `spctl -a -t exec -vv` is the non-visual half of
+the same answer and does not need a screen: `accepted` /
+`source=Notarized Developer ID`.
+
+Three things the run turned up that cost time if you meet them cold:
+
+- **Safari asks before it downloads.** "Do you want to allow downloads on
+  release-assets.githubusercontent.com?" — GitHub's release redirect, so the
+  host in the prompt is never the one you typed. It is not a Safari *sheet*;
+  `sheet 1 of window 1` throws `Invalid index`, and pressing Return over an
+  activated Safari is what gets past it.
+- **Safari expands the zip for you**, so what lands is `~/Downloads/Perch.app`
+  and not the archive. Quarantine on it reads `0083;…;Safari;…`, and rises to
+  `00c3` once the dialog is answered — a cheap way to prove the approval was
+  recorded without taking a second picture.
+- **Installing with `cp`/`ditto` translocates the app.** It runs from
+  `/private/var/folders/…/AppTranslocation/…/d/Perch.app`, read-only and at a
+  path that changes per launch, which breaks anything that registers itself by
+  location. A Finder *move* is what avoids it, which is why the canonical
+  install is a drag and why a scripted `ditto` is not a substitute for one.
+  The Gatekeeper dialog is identical either way — it keys on the quarantine
+  xattr — so this changes what you can conclude about the app, not about
+  Gatekeeper.
+
 ⚠️ **A first-open test needs a bare base clone, not the golden image.** The
 golden has haus on it, and haus installs `/Applications/Perch.app` with its
 LaunchServices registrations already made — so the one thing the test is
