@@ -29,7 +29,7 @@ So this skill is about the two things `bench` deliberately doesn't decide:
 | `perch` | CalVer | `bench release perch` | Homebrew tap + the layer's flake pin |
 | `trill` | CalVer | `bench release trill` | the layer's flake pin (`haus.notifications.compositor`) |
 | `haus` | CalVer | `bench release haus` | `hausfold.co/hacker.sh` |
-| `scruff` | **semver** | `bench release scruff <X.Y.Z>` | npm, PyPI, crates.io, SwiftPM, the Go proxy |
+| `scruff` | **semver** | `bench release scruff <X.Y.Z>` | npm, PyPI, crates.io, SwiftPM, the Go proxy, the Homebrew tap |
 
 CalVer repos take **no** version argument — the date IS the version, and `bench` refuses an
 argument to make that unarguable. scruff takes one and refuses to run without it.
