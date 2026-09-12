@@ -13,7 +13,7 @@ by not paying twice for the same one.
 
 | repo | workflow | where it runs | what it can only prove there |
 | --- | --- | --- | --- |
-| `haus` | `check` | ubuntu ×2 | evaluating a whole darwin system, plus twenty-four platform-independent flake checks; the shell half is bats and shellcheck |
+| `haus` | `check` | ubuntu ×5 | evaluating a whole darwin system, plus twenty-four platform-independent flake checks; the shell half is bats and shellcheck, in four jobs grouped by what a suite needs — the lint, the suites that read snug's painter, the agent surface, every other room |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
 | `perch` | `build` | macOS ×2, ubuntu | Xcode test + analyze + Release, the arm64 slice guard, and the iOS companion; the skill guards are the one job off the Mac |
 | `trill` | `build` | macOS | Xcode test + analyze + Release, and the no-instrumentation guard on the built bundle |
