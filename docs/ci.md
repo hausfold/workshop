@@ -22,12 +22,15 @@ by not paying twice for the same one.
 | `nebelung` | `check` | ubuntu ×2 | that `dist/` and `preview/` still equal what the flake renders |
 | `factory` | `Tests` | ubuntu | bats over the shift, the tier filter, the watchdog and the lease |
 | workshop | `Tests` | ubuntu | `bench` itself — bats plus shellcheck |
+| `homebrew-tap` | `check` | macOS | that `Formula/scruff.rb` still installs: `brew style`, `brew audit --online`, a source build and its test block. The tap's one entry that compiles rather than placing a notarized `.app`, and no machine in the family has Homebrew on it to try that locally |
 | workshop | `issue templates` | ubuntu | that ten repos still match one generator; weekly, because the child half can only be caught by a sweep |
 | `hausfold.co` | `Docs`, `Preview`, `Deploy`, `Worker`, `DNS`, `Palette`, the preview sweep and four drift jobs | ubuntu | the site builds, its tables still match the data the layer publishes, and its palette still matches nebelung's |
 
-`homebrew-tap`, `org-profile`, `producer-desktop` and `scruff-swift` have no
-gate: the first three carry no code of their own that a test could fail, and
-the fourth is a generated mirror. `ops` runs a scheduled `scoreboard` and
+`org-profile`, `producer-desktop` and `scruff-swift` have no gate: the first
+two carry no code of their own that a test could fail, and the third is a
+generated mirror. `homebrew-tap` was on that list until it took a formula that
+builds; pounce's and perch's entries still carry nothing a test could fail,
+which is why the gate above reaches only the third. `ops` runs a scheduled `scoreboard` and
 nothing on a push.
 
 Release workflows are a different animal and are not on this list: they fire on

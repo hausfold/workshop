@@ -2624,11 +2624,17 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # hands you a shell where `bench ship` would ripple a rev CI is about to
 # supersede. Blocking, then fast-forwarding, closes that window.
 #
-# There is exactly ONE workflow to watch — each repo's `release`, holding 1–3
-# jobs (haus: publish; pounce: publish + bump-tap; perch: those plus
-# bump-flake). The tap bump is a plain push into homebrew-tap, which has no
-# workflows of its own, so when this run goes green the release IS live —
-# nothing further to chase.
+# There is exactly ONE workflow to watch — each repo's `release` (haus: publish;
+# pounce: publish + bump-tap; perch: those plus bump-flake; scruff: a stamp
+# check, the reused PR gate, and one job per SDK plus bump-tap). The tap bump is
+# a plain push into homebrew-tap, so when this run goes green the release IS
+# live — nothing further to chase.
+#
+# The tap does have a gate of its own now (`brew install` over scruff's formula,
+# the one entry that compiles), and that push fires it. It is still nothing to
+# chase: Homebrew reads the formula off the tap's main branch the moment it
+# lands, so a red run there is a formula bug to fix and never a half-published
+# release.
 
 WATCH_FRAME_S=0.1         # one spinner frame — 10 fps, so a 10-glyph cycle = 1s
 WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
