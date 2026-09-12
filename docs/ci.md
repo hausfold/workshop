@@ -125,13 +125,27 @@ The key is `flake.lock` plus every `*.nix`, so a lock bump or a module edit
 pays full price and nothing else does. On haus that key sits behind a
 **lineage** prefix as well — see the creep below.
 
-**`save: ${{ github.event_name != 'pull_request' }}` is the line that matters
+**`save: ${{ github.ref == 'refs/heads/main' }}` is the line that matters
 most, and it is not the default.** GitHub's ref scoping governs *reads*: a
 branch may read its base's cache, which is what lets a PR restore what `main`
 saved. It says nothing about writes. Left on the default, every PR uploads its
 own multi-gigabyte copy scoped to `refs/pull/N/merge`, two open PRs push the
 repo past GitHub's 10 GB budget, and its LRU eviction takes the `main` entry
 the whole thing exists for.
+
+**The test reads the ref and not the event, and rule 2 is why.** Writing it
+`github.event_name != 'pull_request'` bounds the case it was reaching for and
+leaves the other one open: a `workflow_dispatch` — which rule 2 requires of
+every workflow here, as the only way a branch with no PR gets checked at all —
+is not a pull request, so a dispatch from a feature branch passes that test and
+uploads a multi-gigabyte entry scoped to that branch. Only that branch can
+restore it, and no run on `main` can purge it, because the sweep below is
+scoped to the run's own ref too; it sits against the budget until GitHub evicts
+it at seven days. The ref form says what the event form meant — a push to main
+writes, everything else only reads.
+
+It is one such line in nebelung and three in haus, one per nix job; *One key
+per JOB* below is what makes it three.
 
 **What bounds the store is `purge`, not a size cap.** `purge: true` with
 `purge-prefixes: nix-<os>-` and `purge-created: 0` sweeps every older entry
@@ -161,10 +175,10 @@ save that no longer fits means every run pays full price again, the exact
 surprise the arrangement exists to avoid. So haus's prefix carries an ISO week
 and the nixpkgs rev, and a change in either starts a new lineage: the first
 main push of the week builds cold, saves a fresh half-gigabyte entry, and the
-`purge-prefixes` sweep — still the broad `nix-<os>-` — deletes the lineage it
-replaces. One cold run a week is the whole cost, plus any PR opened in the gap
-before that push. The nixpkgs rev is in there because a bump is the one change
-that would union a second stdenv onto the first.
+`purge-prefixes` sweep — broader than the key, so it reaches across lineages —
+deletes the lineage it replaces. One cold run a week is the whole cost, plus
+any PR opened in the gap before that push. The nixpkgs rev is in there because
+a bump is the one change that would union a second stdenv onto the first.
 
 nebelung needs none of it — its key moves only when the lock or a `.nix` file
 does, which is seldom — so it keeps the plain prefix.
