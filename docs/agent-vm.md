@@ -249,7 +249,16 @@ Three things the run turned up that cost time if you meet them cold:
   install is a drag and why a scripted `ditto` is not a substitute for one.
   The Gatekeeper dialog is identical either way — it keys on the quarantine
   xattr — so this changes what you can conclude about the app, not about
-  Gatekeeper.
+  Gatekeeper. What it *does* invalidate is anything that reads the app's
+  path: a translocated perch registers a login item whose URL points into the
+  per-launch mount, so a login-item check passes and then points at a path
+  that will not exist next boot. **Stripping the quarantine xattr before the
+  copy** (`xattr -d com.apple.quarantine`, the scripted stand-in for a user's
+  Open click) also avoids translocation, and is what makes a `ditto` install
+  safe to draw conclusions from — measured both ways, 2026-09-12:
+  `perch doctor` read `/Applications/Perch.app` and BTM's login item URL was
+  `file:///Applications/Perch.app/`. Keep the quarantine and script the copy
+  and you get neither.
 
 ⚠️ **A first-open test needs a bare base clone, not the golden image.** The
 golden has haus on it, and haus installs `/Applications/Perch.app` with its
