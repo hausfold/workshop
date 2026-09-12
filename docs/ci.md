@@ -13,7 +13,7 @@ by not paying twice for the same one.
 
 | repo | workflow | where it runs | what it can only prove there |
 | --- | --- | --- | --- |
-| `haus` | `check` | ubuntu ×5 | evaluating a whole darwin system, plus twenty-four platform-independent flake checks; the shell half is bats and shellcheck, in four jobs grouped by what a suite needs — the lint, the suites that read snug's painter, the agent surface, every other room |
+| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, plus twenty-nine platform-independent flake checks. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
 | `perch` | `build` | macOS ×2, ubuntu | Xcode test + analyze + Release, the arm64 slice guard, and the iOS companion; the skill guards are the one job off the Mac |
 | `trill` | `build` | macOS | Xcode test + analyze + Release, and the no-instrumentation guard on the built bundle |
@@ -169,6 +169,29 @@ that would union a second stdenv onto the first.
 nebelung needs none of it — its key moves only when the lock or a `.nix` file
 does, which is seldom — so it keeps the plain prefix.
 
+**One key per JOB, the moment a repo's nix half is more than one job.** haus's
+is three, and three jobs on one primary key race on `main` in two ways, both
+silent. The *save*: whichever job reaches its post phase first writes the
+entry and the others are refused it as already present — and their stores are
+not each other's, so the losers come back to a store missing what they need
+and rebuild it every run, which reads not as a race but as a cache that
+quietly stopped paying. The *purge*: `purge-primary-key: never` protects only
+a job's own key, so three jobs sweeping the broad `nix-<os>-` prefix together
+each delete the other two's fresh entries.
+
+So haus's job token sits between the OS and the week — `nix-<os>-<job>-<ISO
+week>-<nixpkgs rev>-<hash>` — and each job purges `nix-<os>-<job>-` alone. The
+weekly reset still works inside each family, and no job can reach another's.
+Three entries per lineage rather than one, which the budget carries: they
+overlap heavily, all of them carrying nixpkgs, and the weekly reset bounds the
+total exactly as it did with one.
+
+**Splitting a job pays the restore again, which is what decides the split.**
+haus's is ~35s. That makes it the number a step is measured against before it
+earns a job of its own: a step worth less than the restore in front of it
+belongs in an existing job, because the gate is the longest job and not the
+total. On haus only `haus add` clears it.
+
 **Read the ceiling off the entry, not off the store.** GitHub's 10 GB is
 compressed cache bytes, and a Nix store compresses hard. The action logs
 `Current store size in bytes` on the runs that save — 1.6 GiB for haus, 4.2
@@ -181,13 +204,17 @@ hausfold/<repo>` is the number that counts, and
 **A restore is not free, and that is the whole test**: not whether a job
 builds something, but whether what the restore removes is bigger than the
 restore. haus's half-gigabyte entry comes back in ~35s and takes `nix eval`
-from 55s to 9s and `nix flake check` from 37s to 1s. It is on those two repos because
-that is where the trade lands:
+from 55s to 6s and `nix flake check` from 37s to 1s. ⚠️ Those are the two
+numbers a reader most often mixes: 55 and 37 are the COLD figures for those
+steps and are not additive with the warm ones, so any re-measure starts by
+reading the "Restore the Nix store" step. 30s-plus means warm; under a second
+means the key missed and everything below it paid full price. It is on those
+two repos because that is where the trade lands:
 
 - `nebelung` builds **whiskers**, a Rust CLI that is not in `cache.nixos.org`
   and that moves only when the lock does, while the palette under it changes
   every PR.
-- `haus` evaluates nixpkgs and then *builds* twenty-four check derivations, and
+- `haus` evaluates nixpkgs and then *builds* twenty-nine check derivations, and
   most PRs touch none of their inputs.
 
 It is **not** on the repos that build their own Swift on a Mac. There the
