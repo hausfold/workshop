@@ -76,6 +76,15 @@ own headline — it takes a deliberate button press, so it stays.
 That block is the floor, not the whole `on:`. `scruff`'s `check.yml` also
 carries `workflow_call`, because its release workflow calls the gate at a tag.
 
+The one line that may be dropped is `workflow_dispatch`, and only by a
+workflow triggered by `pull_request` alone: it narrowed no `push`, so it took
+nothing away to hand back. `hausfold.co`'s `preview.yml` is the family's only
+one. It deploys a preview Worker named from `github.event.pull_request.number`
+and keys its concurrency group on the same number, and both its jobs are gated
+on `head.repo.full_name`, so a branch with no PR has nothing there for it to
+check. Adding the line would hand someone a button whose run groups as
+`preview-` with both jobs skipped, which is a worse answer than no button.
+
 **3. Cancel a superseded PR run.** A second push to a branch has already made
 the first run's answer worthless, and the abandoned run still holds its
 runners. On the macOS ones that is a queue slot the next PR waits behind, which
@@ -104,10 +113,14 @@ cancel there would be a half-published release.
 its workflows carry a `paths:` filter, so a PR that touches no content runs no
 content check. That is the rule the rest of the family has the least of — most
 of these gates are small enough that a filter would cost more reading than it
-saves, but it is the first thing to reach for when one is not. Its drift jobs
-are also the place rules 2 and 3 are least applied (`push:` with `paths:` and
-no `branches:`, and no `concurrency` at all), which is a thing to fix there
-rather than a thing to copy.
+saves, but it is the first thing to reach for when one is not. Its four drift
+jobs are where a filter is paired with the thing that covers for it: each
+checks the site's copy against a checkout of `hausfold/haus`, and a `paths:`
+filter cannot see a change made in another repo. So each carries a weekly
+`schedule:` beside its filtered `push` and `pull_request` — the filter keeps
+the gate quiet while only this site moves, and the cron is the half that
+catches an upstream that moved without it. The pairing is what to copy; the
+rest of that repo is read the same as any other against the five rules.
 
 **4. Pin third-party actions to a tag.** `@main` is whatever that vendor
 pushed this morning, running on the machine that compiles what we ship.
@@ -187,13 +200,13 @@ entry the whole thing exists for.
 **The test reads the ref and not the event, and rule 2 is why.**
 `github.event_name != 'pull_request'` bounds only one of the two cases a write
 can come from. A `workflow_dispatch` — which rule 2 requires of every workflow
-here, as the only way a branch with no PR gets checked at all — is not a pull
-request, so a dispatch from a feature branch passes that test and saves a whole
-store scoped to that branch. No run on `main` can purge it, because the sweep
-below is scoped to the run's own ref too; GitHub drops a cache only after seven
-days with nothing reading it, and every further dispatch from that branch
-restarts that clock. The ref form is the one that says it: a push to main
-writes, everything else only reads.
+whose `push` was narrowed to `main`, as the only way a branch with no PR gets
+checked at all — is not a pull request, so a dispatch from a feature branch
+passes that test and saves a whole store scoped to that branch. No run on
+`main` can purge it, because the sweep below is scoped to the run's own ref
+too; GitHub drops a cache only after seven days with nothing reading it, and
+every further dispatch from that branch restarts that clock. The ref form is
+the one that says it: a push to main writes, everything else only reads.
 
 It is one such line in nebelung and three in haus, one per nix job; *One key
 per JOB* below is why no two of them share a key.
