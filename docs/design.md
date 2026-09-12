@@ -201,8 +201,8 @@ nebelung, whose SVGs are here. A **product** mark lands in its own repo's PR
 on no upstream `main`, and says so by failing.
 
 `test/design-palette.bats` holds part of that seam, and only part. For every
-product mark — nebelung's tiles here, pounce's, perch's and trill's read out
-of their own repos — it checks that every path, transform, tile radius and
+product mark — nebelung's tiles here, pounce's, perch's, trill's and
+scruff's read out of their own repos — it checks that every path, transform, tile radius and
 alpha step in the SVG is written out in the stanza here, that every rect and
 circle is the same shape at the same numbers in both, that the file spends
 nebelung tokens and no other product's accent, that it holds one set rather
@@ -247,7 +247,7 @@ Two registers, and every artifact belongs to exactly one:
 | Register | Who | Colour | Mark |
 |---|---|---|---|
 | **The house** | hausfold the org, haus the layer, snug the runtime, every desktop (`hacker`, `everyday`, `minimal`, `blank`), hausfold.co | grey at rest; colour is borrowed from a product, never owned. The hacker desktop holds pink as an *accent* (the site's `--a-hacker`, the docs' error callouts, the hero's themed browser) and nothing else | the house `⌂`, the org's mark. **A desktop never has a mark**, and neither does haus or snug |
-| **The products** | nebelung, pounce, perch, trill, scruff | one hue each, no two the same | the family ears on a tile, where a mark exists (nebelung, pounce, trill, perch). scruff sets the wordmark alone |
+| **The products** | nebelung, pounce, perch, trill, scruff | one hue each, no two the same | the family ears on a tile, one each |
 
 Two surfaces, and every deliverable is one or the other:
 
@@ -277,7 +277,7 @@ Two surfaces, and every deliverable is one or the other:
 | `--nebelung-pink` | `#f2c4e5` | **the hacker desktop's accent**, and the docs' error callouts. An accent, not a product colour, and never a mark |
 | `--nebelung-mauve` | `#c9a8f1` | **nebelung's product colour**; `--nebelung-accent`; link colour; what `/docs/haus` wears, borrowed |
 | `--nebelung-red` | `#ed8fa9` | `--nebelung-danger` only |
-| `--nebelung-maroon` | `#e6a3ad` | hausfold.co's provisional pick for scruff (see the product table) |
+| `--nebelung-maroon` | `#e6a3ad` | **scruff's product colour** |
 | `--nebelung-peach` | `#f5b58e` | **pounce's product colour** |
 | `--nebelung-yellow` | `#f7e2b5` | **trill's product colour**; `--nebelung-warning` |
 | `--nebelung-green` | `#abe1a6` | **perch's product colour**; `--nebelung-success` |
@@ -305,7 +305,7 @@ Semantic aliases: `--nebelung-bg` → base · `--nebelung-bg-alt` → mantle ·
 | pounce | product | `--nebelung-peach` | `#f5b58e` | decided (latte peach `#f66d2d`) |
 | perch | product | `--nebelung-green` | `#abe1a6` | decided (latte green `#4a9e3a`) |
 | trill | product | `--nebelung-yellow` | `#f7e2b5` | decided (latte yellow `#d99137`) |
-| scruff | product | `--nebelung-maroon` | `#e6a3ad` | provisional: hausfold.co's pick, not yet carried into the logo system. Deliberately maroon and **not pink** (latte maroon `#de5059`) |
+| scruff | product | `--nebelung-maroon` | `#e6a3ad` | decided (latte maroon `#de5059`). Deliberately maroon and **not pink** |
 
 **The ring** is those six accents in one fixed order, read clockwise from
 twelve: mauve, maroon, green, yellow, peach, pink (nebelung, scruff, perch,
@@ -506,8 +506,9 @@ The rule is measurable. In the 100-unit box:
 - **At most four fills**: the tile, the product colour, `surface1`,
   `surface2`. A product-colour accent inside a gray shape (pounce's caret,
   trill's dot) counts as the product colour.
-- **One story shape**, or one shape in two layers (nebelung's fog, perch's
-  two cards). A third idea is a second draft.
+- **One story shape**, or one shape repeated (nebelung's two fog layers,
+  perch's two cards, scruff's three lanes). A third *idea* is a second draft;
+  another instance of the same one is not.
 - Detail is what gets a draft rejected: notches, cut-outs, swatch strips,
   outline strokes, two-tone ears.
 
@@ -586,13 +587,20 @@ scale(0.72)`. Cards clipped to the tile: `rect 10,68 42×46 rx 6` in
 `translate(9 9) scale(0.82)` on a full-bleed `surface0` ground, which is what
 keeps the lower card off the system's mask.
 
+**scruff**: *a lane per agent.* Ears maroon, `translate(14 4)
+scale(0.72)`. Three lanes across the foot of the tile: the two parked ones
+`rect 21,56 14×32` and `rect 65,56 14×32` (rx 7) in `surface1`, and the live
+one between them `rect 43,56 14×32 rx 7` maroon. Inverted: ears and the live
+lane `surface0`, the two parked lanes that same `surface0` @ 0.45, because
+they sit on the tile ground rather than on another shape. Tagline:
+`A LANE PER AGENT`.
+
 **hausfold (org)**: the house, under *Shapes*. On a tile its ground is
 crust, never `surface0`.
 
 **No mark, by decision**: haus, snug, and every desktop. They set the
 wordmark alone, with the house glyph in front of it where a README wants a
-glyph. **No mark yet**: scruff sets the wordmark alone until one is ratified.
-An emoji is not a stand-in for a mark on any of them.
+glyph. An emoji is not a stand-in for a mark on any of them.
 
 ### Lockups
 
@@ -691,7 +699,7 @@ and is refused on sight:
 - a screenshot in a docs page, or a stock icon anywhere
 - motion on load, a spinner, a scroll-driven effect, a scroll-snap point
 - an outline stroke, a notch, a cut-out, two-tone ears
-- a mark for haus, a desktop, scruff or snug
+- a mark for haus, a desktop or snug
 - a mark under 16px, or one crowded tighter than 0.2× its own width
 
 ## Motion
@@ -705,11 +713,9 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 ## Not yet defined
 
 Current gaps, stated so nobody fills them by improvising. A gap here is a
-decision someone owes, not a file to go and draw: *Reflexes to refuse* turns
-the first away on sight, so closing it takes an edit there as well as here.
+decision someone owes, not a file to go and draw. Where a reflex refuses the
+thing a gap describes, closing that gap takes an edit there as well as here.
 
-- **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
-  is not on this list — it is house register, and never gets one.
 - **An icon set** beyond the logo marks.
 - **A grid** for anything wider than one column, and **breakpoints** beyond
   the one at 30rem.

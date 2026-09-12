@@ -39,6 +39,9 @@ PRODUCT_MARKS=(
   trill/trill-icon-master
   trill/trill-square-inverted
   trill/trill-square-latte
+  scruff/scruff-square
+  scruff/scruff-square-inverted
+  scruff/scruff-square-latte
 )
 
 setup() {
@@ -356,8 +359,8 @@ says = {}
 for lead, body in zip(parts[1::2], parts[2::2]):
     says.setdefault(re.split(r"[^a-z]", lead.lower())[0], set()).update(written(body))
 count = sum(len(v) for v in says.values())
-if count < 8:
-    print(f"only {count} shapes parsed out of '### The marks', and it writes 8: "
+if count < 11:
+    print(f"only {count} shapes parsed out of '### The marks', and it writes 11: "
           f"the spelling changed; fix this regex with it")
     sys.exit(1)
 
@@ -523,9 +526,9 @@ for lead, body in zip(parts[1::2], parts[2::2]):
     for k, v in roles(body).items():
         says.setdefault(product, {}).setdefault(k, v)
 count = sum(len(v) for v in says.values())
-if count < 14:
+if count < 18:
     print(f"only {count} shape→role pairs parsed out of '### The marks', and it "
-          f"writes 14: the spelling changed; fix this regex with it")
+          f"writes 18: the spelling changed; fix this regex with it")
     sys.exit(1)
 
 # ---- what a mark actually paints, in paint order -----------------------

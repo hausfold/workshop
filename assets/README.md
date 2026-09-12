@@ -18,6 +18,7 @@ lockups, the type) is in
   <img src="https://raw.githubusercontent.com/hausfold/pounce/main/assets/pounce-square.png" alt="pounce" height="88">
   <img src="https://raw.githubusercontent.com/hausfold/perch/main/assets/perch-square.png" alt="perch" height="88">
   <img src="https://raw.githubusercontent.com/hausfold/trill/main/assets/trill-icon-master.png" alt="trill" height="88">
+  <img src="https://raw.githubusercontent.com/hausfold/scruff/main/assets/scruff-square.png" alt="scruff" height="88">
 </p>
 
 Two registers. **The house** (hausfold the org, haus the layer, snug the
@@ -35,7 +36,7 @@ tile.
 | **pounce** | peach | [`pounce-square.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square.png), 2048². [`pounce-square-inverted.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-inverted.png). Light tile [`pounce-square-latte.svg`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-latte.svg) and [`.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-square-latte.png), 2048². Banner [`pounce-banner-rounded.png`](https://github.com/hausfold/pounce/blob/main/assets/pounce-banner-rounded.png), 1200×348 |
 | **perch** | green | [`perch-square.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square.png), 592². [`perch-square-inverted.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-inverted.png). Light tile [`perch-square-latte.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-square-latte.svg) and [`.png`](https://github.com/hausfold/perch/blob/main/assets/perch-square-latte.png), 592². Banner [`perch-banner.png`](https://github.com/hausfold/perch/blob/main/assets/perch-banner.png), 1200×348. [`perch-icon-master.png`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-master.png), 2048², is the macOS app icon's source, rendered from that same `perch-square.svg`. The iOS icon has its own, [`perch-icon-ios.svg`](https://github.com/hausfold/perch/blob/main/assets/perch-icon-ios.svg), 1024²: the same tile inset on a ground that bleeds to the edge, because iOS masks its own squircle and refuses an alpha channel |
 | **trill** | yellow | [`trill-icon-master.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-icon-master.png), 2048², the mark on its tile and the app icon's source. [`trill-square-inverted.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-square-inverted.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-square-inverted.png), 2048². Light tile [`trill-square-latte.svg`](https://github.com/hausfold/trill/blob/main/assets/trill-square-latte.svg) and [`.png`](https://github.com/hausfold/trill/blob/main/assets/trill-square-latte.png), 2048². Banner [`trill-banner.png`](https://github.com/hausfold/trill/blob/main/assets/trill-banner.png), 1200×348 |
-| **scruff** | maroon | No mark yet. The wordmark alone |
+| **scruff** | maroon | [`scruff-square.svg`](https://github.com/hausfold/scruff/blob/main/assets/scruff-square.svg) and [`.png`](https://github.com/hausfold/scruff/blob/main/assets/scruff-square.png), 2048². [`scruff-square-inverted.svg`](https://github.com/hausfold/scruff/blob/main/assets/scruff-square-inverted.svg) and [`.png`](https://github.com/hausfold/scruff/blob/main/assets/scruff-square-inverted.png). Light tile [`scruff-square-latte.svg`](https://github.com/hausfold/scruff/blob/main/assets/scruff-square-latte.svg) and [`.png`](https://github.com/hausfold/scruff/blob/main/assets/scruff-square-latte.png), 2048². Banner [`scruff-banner.png`](https://github.com/hausfold/scruff/blob/main/assets/scruff-banner.png), 1200×348, and its inverted version, [`scruff-banner-inverted.png`](https://github.com/hausfold/scruff/blob/main/assets/scruff-banner-inverted.png), which carries the tagline |
 | **snug** | none, by decision | No mark. House register, like haus: the wordmark alone, and never a hue |
 
 A standard tile is the product colour on a `surface0` ground; an inverted tile
@@ -45,10 +46,10 @@ inverted tile, because an inverted one already carries its own colour. The
 org's light square is the one file drawn in the site's paper palette instead
 of latte.
 
-The pounce, perch and trill files live in those products' repositories, so a
-change to a mark lands next to the app it names and this page never carries a
-stale copy. nebelung's tiles live here because the palette repository holds
-only its banners.
+The pounce, perch, trill and scruff files live in those products'
+repositories, so a change to a mark lands next to the thing it names and this
+page never carries a stale copy. nebelung's tiles live here because the
+palette repository holds only its banners.
 
 ## Colours
 
@@ -100,7 +101,7 @@ something. `design.md` has the long one.
   desktops stay grey. Do not colour the house, and do not give a desktop a
   mark.
 - **No emoji as a stand-in.** Where a mark does not exist (haus, a desktop,
-  scruff, snug), the name is set in text.
+  snug), the name is set in text.
 - **Radius 24 on the tile and the banner, 28 on the social card.** Copy the
   numbers in `design.md`; there is no grid behind them.
 - **Clearspace: 0.2× the mark's width, clear on every side.** No other ink
@@ -111,16 +112,6 @@ something. `design.md` has the long one.
   where only the ears, the hue and the house-in-its-tile must. Under 16px, set
   the wordmark instead. The full ladder, and what each raster buys, is in
   `design.md`.
-
-## Not here yet
-
-Stated so nobody fills a gap by improvising; `design.md` keeps the full list
-under *Not yet defined*. Each is a decision someone owes, not a file to go and
-draw — this one `design.md` turns away on sight, under *Reflexes to refuse*.
-
-- **A mark for scruff.** Maroon is its hue; the story shape is undecided. snug
-  is not waiting on one — it is house register, so it gets the wordmark alone
-  and no hue, the way haus does.
 
 ## Not the kit
 
