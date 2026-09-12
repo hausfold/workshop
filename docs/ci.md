@@ -60,10 +60,16 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 ```
 
 `branches: ['**']` fires the same workflow twice for every push to a PR branch
 — once as `push`, once as `pull_request` — for one commit and one answer.
+
+`workflow_dispatch` is the third line's whole job: narrowing `push` to `main`
+takes away the only way a branch with no PR yet was ever checked, and the
+dispatch button hands it back. Drop it and the gate is one run per commit *and*
+no run at all for work that isn't a PR.
 
 **3. Cancel a superseded PR run.** A second push to a branch has already made
 the first run's answer worthless, and the abandoned run still holds its
@@ -155,3 +161,31 @@ the fast half.
 both beat the GitHub cache on a cold store, and both mean an account, a token
 in nine repos, and a service that can be down when a PR cannot wait. The
 Actions cache is already there, already free, and already scoped per repo.
+
+That rules out a cache we *run*. A public, read-only `extra-substituters` entry
+for a dependency nixpkgs does not carry is a different trade and is allowed:
+no account, no token, and a substituter that is down falls back to building
+from source, which is what the run does today anyway.
+
+**No `paths-ignore` filter on a PR gate.** The idea is that a docs-only PR
+should skip the build. Measured against a real ignore list over each repo's
+last 40 merged PRs, the share that would actually skip is haus 1, trill 6,
+scruff 10, perch 11, nebelung 12 — a quarter at the top of the range and one
+PR in forty at the bottom, for a saving of two or three minutes each.
+
+That is not enough to buy what it costs, because prose here is *guarded*
+prose: `embed-skills.sh --check`, the two `check-skills.sh`, the generated
+issue forms. A filter is a second, silent copy of the answer to "which files
+does this job protect?", and the copy rots — that is `docs/drift.md`'s whole
+subject. Worse, scruff's release workflow reaches its gate through
+`workflow_call`, so a filter that skips a job on a docs path skips it for a
+tag too, publishing to registries that have no undo.
+
+Cache the slow step instead. It helps every PR rather than one in four, and a
+cold-cache miss still runs the real gate.
+
+The loose version of this measurement is how the idea keeps coming back. A
+classifier that counts `modules/**/*.md` and `dist/**/README.md` as docs says
+80%, which for haus is wrong by a factor of thirty. Run `gh pr diff
+--name-only` over real merged PRs against the actual list you would ship, or
+don't quote a number.
