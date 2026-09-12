@@ -481,6 +481,40 @@ Measured 2026-09-12, the day the cache first saved:
   lands in about a second on haus and nebelung;
   `DeterminateSystems/nix-installer-action` takes 8-9s on scruff and snug.
 
+Measured again 2026-09-12, after haus split its nix half into three jobs with a
+cache key each:
+
+- **an entry can carry what no job in it reads, and one run cannot show it.**
+  Each of the three jobs ran its real steps from an empty store, then again
+  restoring the live entry and reading nothing. Cold against warm, as nar:
+  `eval` 1100/1877 MiB, `checks` 1126/1826, `acquire` 685/1876 — **38-64% of
+  every restore never opened**. Diffing the three cold path lists splits that
+  in two: most is the work of the single job the three were split out of,
+  inherited through a transitional key prefix and cleared for good by one
+  lineage reset; about 496 MiB of `acquire`'s is in no job's cold store at all
+  — the same `-source` unpacked at a dozen revs plus 175 `.drv`s, which is the
+  ~24 MiB a save creep above, and it comes straight back;
+- **a restore scales with the entry, and a cached job can be slower than an
+  uncached one.** nebelung's 332 MiB entry comes back in 17s and haus's
+  600-odd MiB ones in 34-48s — about 0.05-0.06s per compressed MiB, slightly
+  worse as the entry grows. haus's `acquire` was at that point **faster with no
+  cache at all**, 44s cold against 54s at its warm best: the 233 MiB it needs
+  from `cache.nixos.org` costs less than the 637 MiB it holds from GitHub.
+  Entries then: haus 637 / 597 / 637 MiB, nebelung 332 MiB, 1.9 GB and 0.3 GB
+  of the 10 GB;
+- **a cold figure belongs to the job it was measured in.** `nix flake check`
+  was 37s cold behind a `nix eval` that had already paid for nixpkgs; as the
+  first step in a job of its own it is 57s. `nix eval`, first either way, is
+  55s in both. Nothing about the step changed.
+
+haus's answer was still to leave the workflow alone — past the reset its nix
+jobs drop under the same repo's shell jobs, so the seconds a narrower store
+could give back belong to a job nothing there would touch. The method, and why
+a narrower store is not the lever it looks like, is *The Nix store cache* in
+`docs/ci.md`. ⚠️ The snug bullet above reasons from "a 35s-class restore", and
+the scaling here says an entry that size would not be one — that inference is
+retired, not the measurement under it.
+
 ⚠️ Section 1 is wall clock as GitHub recorded it, so a queued runner and a slow
 mirror are in it — read the min, not the avg, for what the work costs. Section 2
 is one run, the newest, because step names move. The cache figures above are one

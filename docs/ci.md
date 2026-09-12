@@ -129,9 +129,10 @@ them is 58s. That half went 2m28s → 58s and the whole `check` run 2m30s →
 Fifty jobs would have been slower than one. Checkout plus `sudo npm install -g
 bats` is about 4s a job, more than most of those suites take to run, and that
 fixed cost is what a step is measured against before it earns a job of its own:
-under it, join an existing job. It is not one number across a repo — haus's nix
-half measures against a ~35s cache restore instead, which is *The Nix store
-cache* below.
+under it, join an existing job. It is not one number across a repo, and on a repo that
+caches its store it is not one number across a week either — haus's nix half
+measures against a cache restore, which scales with what the entry happens to
+be carrying. *The Nix store cache* below.
 
 Count enters in one place only, and as a tiebreaker. `agents` and `rooms` both
 want bats and nothing else, so the cut between them is by subject — the AI room
@@ -253,28 +254,44 @@ overlap heavily, all of them carrying nixpkgs, and the weekly reset bounds the
 total exactly as it did with one.
 
 **Splitting a job pays the restore again, which is what decides the split.**
-haus's is ~35s, and that is this half's fixed cost under rule 5 — the number a
-step is measured against before it earns a job of its own. Only `haus add`
-clears it.
+That restore is this half's fixed cost under rule 5 — the number a step is
+measured against before it earns a job of its own — and haus's is ~35s.
+
+⚠️ It is not a constant, and reading it as one sets the bar wrong in both
+directions. A restore scales with the entry: 332 MiB comes back in 17s and
+600-odd MiB in 34-48s, roughly 0.05-0.06s per compressed MiB. So the bar is
+per JOB, it is lowest on the first run of a lineage and climbs as the entry
+creeps through the week, and a job whose entry is carrying another job's work
+is measuring against a bar nothing could clear. Read the restore step of the
+run in front of you.
 
 **Read the ceiling off the entry, not off the store.** GitHub's 10 GB is
 compressed cache bytes, and a Nix store compresses hard. The action logs
-`Current store size in bytes` on the runs that save — 1.6 GiB for haus, 4.2
-GiB for nebelung — and those went up as a 472 MiB entry and a 1.2 GiB one.
-`du -sh /nix/store` is higher again: six times the entry on haus, four on
-nebelung, which is why no job prints it. `gh cache list --repo
+`Current store size in bytes` on the runs that save — nar totals, which go out
+as an entry several times smaller. `du -sh /nix/store` reads high in the other
+direction, which is why no job prints it: reading the ceiling off `du` is how
+several times of headroom came to look like pressure. `gh cache list --repo
 hausfold/<repo>` is the number that counts, and
-`script/probes/ci-cache-value.sh` puts it beside the job times.
+`script/probes/ci-cache-value.sh` puts it beside the job times. The sizes
+themselves move week to week and are not quoted here — `script/probes/README.md`
+carries them, stamped.
 
 **A restore is not free, and that is the whole test**: not whether a job
 builds something, but whether what the restore removes is bigger than the
-restore. haus's half-gigabyte entry comes back in ~35s and takes `nix eval`
-from 55s to 6s and `nix flake check` from 37s to 1s. ⚠️ Those are the two
-numbers a reader most often mixes: 55 and 37 are the COLD figures for those
-steps and are not additive with the warm ones, so any re-measure starts by
-reading the "Restore the Nix store" step. 30s-plus means warm; under a second
-means the key missed and everything below it paid full price. It is on those
-two repos because that is where the trade lands:
+restore. haus's entry comes back in ~35s and takes `nix eval` from 55s to 6s
+and `nix flake check` from 57s to 1s. ⚠️ Those are the two numbers a reader
+most often mixes: 55 and 57 are the COLD figures for those steps and are not
+additive with the warm ones, so any re-measure starts by reading the "Restore
+the Nix store" step. 30s-plus means warm; under a second means the key missed
+and everything below it paid full price.
+
+⚠️ A cold figure also belongs to the JOB it was measured in. `nix flake check`
+reads 37s cold behind a `nix eval` that has already paid for nixpkgs, and 57s
+as the first thing in a job of its own — the same step, and the split between
+them is the whole difference. Re-measure a cold number after any split, and
+never carry one across one.
+
+It is on those two repos because that is where the trade lands:
 
 - `nebelung` builds **whiskers**, a Rust CLI that is not in `cache.nixos.org`
   and that moves only when the lock does, while the palette under it changes
@@ -282,19 +299,49 @@ two repos because that is where the trade lands:
 - `haus` evaluates nixpkgs and then *builds* twenty-nine check derivations, and
   most PRs touch none of their inputs.
 
+**The trade has to be re-tested after the cache is in, and it can go
+negative.** The test above is usually run once, to decide whether to add a
+cache, and then never again — but an entry only grows, and a job whose store is
+bigger than the job is paying a restore for paths it never opens. Far enough
+along that is not a slow cache but a cache costing the gate more than no cache
+would: past a few hundred MiB, fetching what a job actually needs from
+`cache.nixos.org` is quicker than restoring what it holds from GitHub, and haus
+has had a job in that state.
+
+Seeing it takes running the job twice — once from an empty store, which is what
+the job needs, and once restoring the live entry and reading nothing, which is
+what the entry carries — and diffing the two path lists. That is a temporary
+workflow on a branch, not a probe flag, because it has to run the real steps;
+`script/probes/README.md` has the last one and what it found. Two causes with
+different lifetimes come out of it: work inherited from a job that has since
+been split, which one lineage reset clears for good, and the save creep, which
+comes straight back. Only the second is an argument for changing anything.
+
+⚠️ And before changing anything, re-check rule 5: the answer on haus was to
+leave it alone, because past the reset that half drops under the same repo's
+shell jobs and every second still on the table belongs to a job the change
+would not touch. Shave the pole, then re-measure which job that is — the answer
+moves.
+
 It is **not** on the repos that build their own Swift on a Mac. There the
 expensive derivation is the one whose source just changed, so a restore buys
 the dependencies and nothing else, and a large `/nix` restore on a macOS runner
 can cost more than it saves.
 
 `scruff` and `snug` run Linux `nix` jobs and are the case that had to be
-measured rather than reasoned about. Neither earns a cache. scruff's job is
+measured rather than reasoned about. Neither has one. scruff's job is
 ~28s beside a two-minute macOS test job in the same run, so even a free
 restore takes nothing off that gate. snug's ~41s *is* the longest job in its
 run, but only ~12s of it is store to restore — 216 MiB fetched from
 `cache.nixos.org` — and the rest is the installer and the two derivations the
-source change just invalidated. Against a 35s-class restore that is a slower
-gate, not a faster one.
+source change just invalidated, which no cache can hold.
+
+⚠️ One argument for snug does NOT hold, and it is the one that reads best:
+"against a 35s-class restore that is a slower gate" is a haus-sized restore
+applied to a snug-sized entry, and 216 MiB of nar would come back in well under
+the 12s of fetch it replaces. The verdict may still be right on the derivations
+alone, but that part is unmeasured. It is the first thing to re-run the probe
+against.
 Measure before adding it anywhere new: `script/probes/ci-cache-value.sh <repo>`.
 
 ## What we deliberately don't do
