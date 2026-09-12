@@ -48,8 +48,8 @@ of latte.
 
 The pounce, perch, trill and scruff files live in those products'
 repositories, so a change to a mark lands next to the thing it names and this
-page never carries a stale copy. nebelung's tiles live here because the palette repository holds
-only its banners.
+page never carries a stale copy. nebelung's tiles live here because the
+palette repository holds only its banners.
 
 ## Colours
 

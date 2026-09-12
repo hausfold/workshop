@@ -201,8 +201,8 @@ nebelung, whose SVGs are here. A **product** mark lands in its own repo's PR
 on no upstream `main`, and says so by failing.
 
 `test/design-palette.bats` holds part of that seam, and only part. For every
-product mark — nebelung's tiles here, pounce's, perch's and trill's read out
-of their own repos — it checks that every path, transform, tile radius and
+product mark — nebelung's tiles here, pounce's, perch's, trill's and
+scruff's read out of their own repos — it checks that every path, transform, tile radius and
 alpha step in the SVG is written out in the stanza here, that every rect and
 circle is the same shape at the same numbers in both, that the file spends
 nebelung tokens and no other product's accent, that it holds one set rather
@@ -506,8 +506,9 @@ The rule is measurable. In the 100-unit box:
 - **At most four fills**: the tile, the product colour, `surface1`,
   `surface2`. A product-colour accent inside a gray shape (pounce's caret,
   trill's dot) counts as the product colour.
-- **One story shape**, or one shape in two layers (nebelung's fog, perch's
-  two cards). A third idea is a second draft.
+- **One story shape**, or one shape repeated (nebelung's two fog layers,
+  perch's two cards, scruff's three lanes). A third *idea* is a second draft;
+  another instance of the same one is not.
 - Detail is what gets a draft rejected: notches, cut-outs, swatch strips,
   outline strokes, two-tone ears.
 
@@ -712,8 +713,8 @@ has to clear the bar hausfold.co's `AGENTS.md` sets, in that repo.
 ## Not yet defined
 
 Current gaps, stated so nobody fills them by improvising. A gap here is a
-decision someone owes, not a file to go and draw: *Reflexes to refuse* turns
-the first away on sight, so closing it takes an edit there as well as here.
+decision someone owes, not a file to go and draw. Where a reflex refuses the
+thing a gap describes, closing that gap takes an edit there as well as here.
 
 - **An icon set** beyond the logo marks.
 - **A grid** for anything wider than one column, and **breakpoints** beyond
