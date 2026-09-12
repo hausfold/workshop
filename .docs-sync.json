@@ -1,54 +1,54 @@
 {
   "repos": {
     "workshop": {
-      "read": "92ebffae3de3535b34f7728b7aa3c5df59ecca6d",
+      "read": "f3df17cfe9d6209340819cc7587f37ffe2a9a4dc",
       "landed": "92ebffae3de3535b34f7728b7aa3c5df59ecca6d",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "nebelung": {
-      "read": "b97da4dc7b7747d3c0438f9d82a84744a3da6c23",
-      "landed": "b97da4dc7b7747d3c0438f9d82a84744a3da6c23",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "6e729169de1bdf621d3bd4ce075f9dc5cf48fe1e",
+      "landed": "6e729169de1bdf621d3bd4ce075f9dc5cf48fe1e",
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "pounce": {
-      "read": "ec2549c0b1c0f4b8186931cf2887060f246712a5",
-      "landed": "69bee9ff0e7c8ae5c329474440d46a317597528e",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "37cefdc072cccef7105c31ec023f47fd09fd7eec",
+      "landed": "37cefdc072cccef7105c31ec023f47fd09fd7eec",
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "haus": {
-      "read": "589c7cdbd1b27897346ae3046337e2affbdc4dee",
+      "read": "a32c27eb2d69f781fbd8ceca477dedf457f49f71",
       "landed": "589c7cdbd1b27897346ae3046337e2affbdc4dee",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "org-profile": {
       "read": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
       "landed": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "homebrew-tap": {
-      "read": "c63f75662228bc1c2fdf1cc7d2f76f0772599524",
-      "landed": "c63f75662228bc1c2fdf1cc7d2f76f0772599524",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "28fb4967c84c3def786b781855036165220022fb",
+      "landed": "28fb4967c84c3def786b781855036165220022fb",
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "perch": {
-      "read": "9bf5efd320f2a589c32dfbe2e8663d9338511e0c",
-      "landed": "9bf5efd320f2a589c32dfbe2e8663d9338511e0c",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "f4a84099a72c65de9cab8fcd14191ed99ff3bb7a",
+      "landed": "f4a84099a72c65de9cab8fcd14191ed99ff3bb7a",
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "scruff": {
-      "read": "953d2a219e51a400479a5598a59db2954196ac09",
-      "landed": "953d2a219e51a400479a5598a59db2954196ac09",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "035d7319cd22dedc119091c92f549a5e8a3beb16",
+      "landed": "035d7319cd22dedc119091c92f549a5e8a3beb16",
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "trill": {
-      "read": "0fc37ba8301e547da611d1ffac5e65d563549be3",
-      "landed": "0fc37ba8301e547da611d1ffac5e65d563549be3",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "8b3b49b58c7f8fedc255f004857aeda1959574fc",
+      "landed": "8b3b49b58c7f8fedc255f004857aeda1959574fc",
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "hausfold.co": {
-      "read": "8faa9fb660a0cda5d774f8c3c51e86e3b52e699b",
+      "read": "a45e661acb5ea3ccd46e70e074cb2e7adb308f30",
       "landed": "8faa9fb660a0cda5d774f8c3c51e86e3b52e699b",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "ops": {
       "read": "d4f1f2c051490662a0956da9d5d3774619aca121",
@@ -56,17 +56,17 @@
       "read_at": "2026-08-26T21:21:17+00:00"
     },
     "snug": {
-      "read": "f5cd919a7c3898726b781a5dc8cde739fbf7d2ce",
+      "read": "aa5ad6329a6fe37ed522066172a8fced5a507556",
       "landed": "",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read_at": "2026-09-12T21:22:51+00:00"
     },
     "factory": {
-      "read": "e564466ea4b009286774dfa114d593e75dc91499",
-      "landed": "e564466ea4b009286774dfa114d593e75dc91499",
-      "read_at": "2026-09-11T21:22:22+00:00"
+      "read": "a2ec3da7bbc1c630328a78a7cd83b06dd7165c12",
+      "landed": "a2ec3da7bbc1c630328a78a7cd83b06dd7165c12",
+      "read_at": "2026-09-12T21:22:51+00:00"
     }
   },
-  "last_run": "2026-09-11T21:22:22+00:00",
+  "last_run": "2026-09-12T21:22:51+00:00",
   "comments": {
     "done": [
       "haus/flake.nix",
