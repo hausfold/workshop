@@ -60,10 +60,21 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 ```
 
 `branches: ['**']` fires the same workflow twice for every push to a PR branch
 — once as `push`, once as `pull_request` — for one commit and one answer.
+
+`workflow_dispatch` is the third line's whole job: narrowing `push` to `main`
+takes away the only way a branch with no PR yet was ever checked, and the
+dispatch button hands it back. Drop it and the gate is one run per commit *and*
+no run at all for work that isn't a PR. Dispatching a branch and then opening a
+PR on the same tree does produce two runs, which is the one hole in the rule's
+own headline — it takes a deliberate button press, so it stays.
+
+That block is the floor, not the whole `on:`. `scruff`'s `check.yml` also
+carries `workflow_call`, because its release workflow calls the gate at a tag.
 
 **3. Cancel a superseded PR run.** A second push to a branch has already made
 the first run's answer worthless, and the abandoned run still holds its
@@ -155,3 +166,56 @@ the fast half.
 both beat the GitHub cache on a cold store, and both mean an account, a token
 in nine repos, and a service that can be down when a PR cannot wait. The
 Actions cache is already there, already free, and already scoped per repo.
+
+All three grounds are about a cache we would *rent and push to*, which is what
+Cachix's OSS tier and FlakeHub sell. Reading someone else's public cache is a
+different trade, and it is allowed: a read-only `extra-substituters` entry
+needs no account and no token, and a substituter Nix cannot reach is treated as
+absent, so the run builds from source exactly as it does today. It cannot turn
+a green PR red, only a fast one slow — which is why "can be down when a PR
+cannot wait" does not carry over. The trust question is real but bounded to one
+signing key for one path, so name the dependency and the key in the PR.
+
+**No `paths-ignore` on a repo's gate.** This is the denylist, and it is the
+opposite of the allowlist `paths:` above: a `paths:` says what one task
+workflow is *about*, and a `paths-ignore:` on the gate says which changes the
+whole repo will merge unchecked. The second is the one we don't write.
+
+The idea is that a docs-only PR should skip the build. Measured over each
+repo's last 40 merged PRs, against the ignore list a filter would actually
+ship —
+
+```
+docs/**  (except **/SKILL.md)
+README.md  AGENTS.md  CLAUDE.md  CHANGELOG.md  CONTRIBUTING.md
+SECURITY.md  THANKS.md  FOUNDING.md  LICENSE
+.github/ISSUE_TEMPLATE/**  .github/FUNDING*
+```
+
+— the share that would skip is haus 1, trill 6, scruff 10, perch 11,
+nebelung 12. A quarter at the top of the range, one PR in forty at the bottom,
+saving two or three minutes each.
+
+That does not buy what it costs. A filter is a second, silent copy of the
+answer to "which files does this job protect?", and the copy rots — that is
+`docs/drift.md`'s whole subject. Prose here is *guarded* prose, so the copy has
+real work to do and real ways to be wrong: `embed-skills.sh --check`, the two
+`check-skills.sh`, the generated issue forms.
+
+The sharp end is `scruff`, and only for one implementation. A `paths-ignore:`
+under its `on:` is harmless at a tag — a `workflow_call` invocation does not
+evaluate the called workflow's own triggers, so `release.yml` still runs the
+full gate. An in-job changed-files filter (`dorny/paths-filter` plus an `if:`)
+is evaluated every time the job runs, including that one, so *there* a docs
+path can skip a job for a tag that publishes to npm, PyPI and crates.io, none
+of which have an undo. If a filter is ever worth it somewhere, it goes on the
+trigger, never in the job.
+
+Cache the slow step instead. It helps every PR rather than one in four, and a
+cold miss still runs the real gate.
+
+The loose version of this measurement is how the idea keeps coming back. A
+classifier that counts `modules/**/*.md` and `dist/**/README.md` as docs says
+80%, which for haus is wrong by a factor of thirty. Re-run it against the list
+above with `gh pr list --state merged --limit 40 --json number,files`, or don't
+quote a number.
