@@ -269,6 +269,7 @@ argument for these three, to make that unarguable.
                             # hausfold.co/hacker.sh serves to new installs
 ./bench release scruff 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
                             # crates.io, SwiftPM, the Go proxy) share one number
+                            # — and CI repoints the homebrew formula too
 ```
 
 scruff is forced into semver, not styled into it: three registries already hold
@@ -394,4 +395,5 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
 8. **release** — `./bench release <repo>` stamps the version (today's date, or
    scruff's hand-picked semver) and tags it; CI does the rest (pounce: GitHub
    release + Homebrew formula; haus: the tag `hausfold.co/hacker.sh` serves to
-   new installs; scruff: five SDK registries). Always the user's call.
+   new installs; scruff: five SDK registries and the Homebrew formula). Always
+   the user's call.
