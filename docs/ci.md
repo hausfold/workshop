@@ -107,10 +107,12 @@ pushed this morning, running on the machine that compiles what we ship.
 [`nix-community/cache-nix-action`](https://github.com/nix-community/cache-nix-action),
 sitting behind `nixbuild/nix-quick-install-action` — one of the three
 installers that action documents itself as compatible with, and the fastest of
-them to land.
+them to land: about a second, against the eight or nine `scruff` and `snug`
+pay for `DeterminateSystems/nix-installer-action`.
 
 The key is `flake.lock` plus every `*.nix`, so a lock bump or a module edit
-pays full price and nothing else does.
+pays full price and nothing else does. On haus that key sits behind a
+**lineage** prefix as well — see the creep below.
 
 **`save: ${{ github.event_name != 'pull_request' }}` is the line that matters
 most, and it is not the default.** GitHub's ref scoping governs *reads*: a
@@ -120,16 +122,56 @@ own multi-gigabyte copy scoped to `refs/pull/N/merge`, two open PRs push the
 repo past GitHub's 10 GB budget, and its LRU eviction takes the `main` entry
 the whole thing exists for.
 
+**What bounds the store is `purge`, not a size cap.** `purge: true` with
+`purge-prefixes: nix-<os>-` and `purge-created: 0` sweeps every older entry
+under that prefix, so a repo holds one store entry per ref rather than one per
+key it has ever had. The sweep runs **after** the save, not before — it takes
+what was created before the post phase, which the entry just written is not —
+so an old and a new multi-gigabyte entry do both sit against the budget for
+the length of an upload. `purge-primary-key: never` governs the other pass,
+the one that does run first, and keeps it off the entry being reused when the
+key already hits. Both are scoped to the run's own ref, which is why a PR run
+can never reach the entry `main` saved.
+
 **No `gc-max-store-size-*` is set either, which is also not the obvious
 choice.** The action collects garbage before saving, and `keep-outputs` does
 not rescue you: `nix build` roots its own outputs through `./result` but not
 the flake inputs, and a job that only evaluates (`nix eval`, `nix flake check`)
-creates no root at all — so a collector run before the save takes exactly the
-paths the next run wants. The store is saved whole instead, and each job prints
-`du -sh /nix/store` so the creep that buys is readable rather than arriving as
-a surprise eviction.
+creates no root at all — and neither does one whose every `nix build` is
+`--no-link`, so a collector run before the save takes exactly the paths the
+next run wants. The store is saved whole instead, which means a restore unions
+and each save carries forward everything the last one held.
 
-It is on those two repos because that is where it pays:
+**Which is why haus's store has a lineage, and resets it weekly.** Its entry
+went 472 → 614 MiB over its first six saves, about 24 MiB a save, on a key
+that moves with nearly every push to main — a dozen or more a day. At that
+rate 10 GB is weeks out, not years, and arriving there is not a warning: a
+save that no longer fits means every run pays full price again, the exact
+surprise the arrangement exists to avoid. So haus's prefix carries an ISO week
+and the nixpkgs rev, and a change in either starts a new lineage: the first
+main push of the week builds cold, saves a fresh half-gigabyte entry, and the
+`purge-prefixes` sweep — still the broad `nix-<os>-` — deletes the lineage it
+replaces. One cold run a week is the whole cost, plus any PR opened in the gap
+before that push. The nixpkgs rev is in there because a bump is the one change
+that would union a second stdenv onto the first.
+
+nebelung needs none of it — its key moves only when the lock or a `.nix` file
+does, which is seldom — so it keeps the plain prefix.
+
+**Read the ceiling off the entry, not off the store.** GitHub's 10 GB is
+compressed cache bytes, and a Nix store compresses hard. The action logs
+`Current store size in bytes` on the runs that save — 1.6 GiB for haus, 4.2
+GiB for nebelung — and those went up as a 472 MiB entry and a 1.2 GiB one.
+`du -sh /nix/store` is higher again: six times the entry on haus, four on
+nebelung, which is why no job prints it. `gh cache list --repo
+hausfold/<repo>` is the number that counts, and
+`script/probes/ci-cache-value.sh` puts it beside the job times.
+
+**A restore is not free, and that is the whole test**: not whether a job
+builds something, but whether what the restore removes is bigger than the
+restore. haus's half-gigabyte entry comes back in ~35s and takes `nix eval`
+from 55s to 9s and `nix flake check` from 37s to 1s. It is on those two repos because
+that is where the trade lands:
 
 - `nebelung` builds **whiskers**, a Rust CLI that is not in `cache.nixos.org`
   and that moves only when the lock does, while the palette under it changes
@@ -140,7 +182,17 @@ It is on those two repos because that is where it pays:
 It is **not** on the repos that build their own Swift on a Mac. There the
 expensive derivation is the one whose source just changed, so a restore buys
 the dependencies and nothing else, and a large `/nix` restore on a macOS runner
-can cost more than it saves. Measure before adding it anywhere new.
+can cost more than it saves.
+
+`scruff` and `snug` run Linux `nix` jobs and are the case that had to be
+measured rather than reasoned about. Neither earns a cache. scruff's job is
+~28s beside a two-minute macOS test job in the same run, so even a free
+restore takes nothing off that gate. snug's ~41s *is* the longest job in its
+run, but only ~12s of it is store to restore — 216 MiB fetched from
+`cache.nixos.org` — and the rest is the installer and the two derivations the
+source change just invalidated. Against a 35s-class restore that is a slower
+gate, not a faster one.
+Measure before adding it anywhere new: `script/probes/ci-cache-value.sh <repo>`.
 
 ## What we deliberately don't do
 
