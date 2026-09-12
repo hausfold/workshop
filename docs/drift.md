@@ -193,3 +193,15 @@ for. **Caught by** reading one real record out of the artifact a stub imitates,
 field by field, before trusting an assertion about any field the stub invents,
 and by treating a field that is empty in every production answer as a failing
 test rather than as the data being sparse.
+
+**An instrument added to make a cost readable, reading a unit the budget it
+guards does not count.** A CI job printed `du -sh /nix/store` so the store's
+growth toward GitHub's 10 GB cache ceiling would show up as a number rather
+than as an eviction. That ceiling counts the compressed cache entry: 472 MiB
+where `du` read 2.8 G. Nothing the line printed was false and nothing about the
+store was misreported — it simply could not be compared with the figure it
+existed to warn about, and it showed six times the pressure the repo was under,
+in the direction that provokes a fix nobody needs. **Caught by** measuring the
+same quantity through both instruments once, on real data, and reading the
+ratio: a stable factor between a gauge and the budget it is checked against is
+a unit error, not headroom.

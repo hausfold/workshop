@@ -2,10 +2,11 @@
 
 Re-runnable evidence for haus's [`docs/macos-settings.md`](https://github.com/hausfold/haus/blob/main/docs/macos-settings.md).
 The matrix is one macOS release away from being wrong — rerun these on every bump.
-(Six probes here aren't about macOS at all — `pack-priority.nix`,
+(Seven probes here aren't about macOS at all — `pack-priority.nix`,
 `preset-composition.nix`, `scale-reach.nix`, `namespace-collision.nix`,
-`source-shapes.sh` and `machine-diff.sh`, at the bottom — but they earn the same
-shelf: a claim in a docs file, with the command that proves it beside it.)
+`source-shapes.sh`, `machine-diff.sh` and `ci-cache-value.sh`, at the bottom —
+but they earn the same shelf: a claim in a docs file, with the command that
+proves it beside it.)
 
 ```sh
 swift script/probes/accessibility-effective.swift   # effective a11y state (NSWorkspace)
@@ -426,3 +427,64 @@ Nix's defaults rather than of every Nix. One trap it hit while being written is
 worth keeping: `lib.getAttrFromPath` **`abort`s** on a missing attribute, and
 `abort` is not something `tryEval` catches — so the probe for "this attribute is
 absent" died of the absence it was measuring, and walks the tree by hand instead.
+
+
+## `ci-cache-value.sh` — what a CI job costs, and what the store cache holds
+
+```sh
+./script/probes/ci-cache-value.sh                    # haus, nebelung, scruff, snug
+./script/probes/ci-cache-value.sh snug               # one repo
+RUNS=20 ./script/probes/ci-cache-value.sh haus       # a wider sample
+BRANCH=worktree-x ./script/probes/ci-cache-value.sh nebelung
+```
+
+Evidence for [`docs/ci.md`](../../docs/ci.md)'s *The Nix store cache*, which put
+`cache-nix-action` on haus and nebelung and left two questions to measurement:
+whether scruff's and snug's `nix` jobs earn one too, and whether the store
+creeps toward GitHub's 10 GB per-repo ceiling. Three sections per repo, all out
+of the GitHub API and none of it guessed: job wall clock over the last N runs,
+the step breakdown of whichever job actually runs nix, and the cache entries the
+repo is holding with their real sizes.
+
+Measured 2026-09-12, the day the cache first saved:
+
+- **The instrument the jobs carried read the wrong number.** `du -sh /nix/store`
+  printed 2.8 G for haus and 4.9 G for nebelung; the entries that count against
+  the 10 GB ceiling are **472 MiB** and **1.2 GiB**. The action's own `Current
+  store size in bytes` (nar totals, 1.59 GiB and 4.16 GiB) sits between the
+  two. About six times of headroom was reading as pressure, so the `du` steps
+  went and the doc points at `gh cache list` instead;
+- **a restore is not free, and the test is the ratio.** haus's 472 MiB entry
+  comes back in **35s**, and takes `nix eval` from 55s to 9s and `nix flake
+  check` from 37s to 1s. Nothing about "this job builds something" predicts
+  that;
+- **scruff: no.** Its `nix` job is 28s (8s installer, 13s `vendorHash`) beside a
+  138s macOS test job in the same run. Even a free restore takes nothing off
+  that gate;
+- **snug: no, and it is the closer call.** Its `nix` job is 41s and *is* the
+  longest in its run — but 9s is the installer, 12s is 216 MiB fetched from
+  `cache.nixos.org`, and the rest builds the two derivations the source change
+  just invalidated. A 35s-class restore replacing a 12s CDN fetch is a slower
+  gate;
+- **the store creeps, and faster than it looks.** `purge` holds each repo to
+  one store entry per ref — sweeping after the save, not before — so what grows
+  is that single entry: haus's first six saves went 472, 507, 514, 546, 576,
+  614 MiB, because a restore unions and nothing collects. About 24 MiB a save,
+  on a key that moves with nearly every push to main, of which haus took 13 a
+  day over the preceding week — 10 GB is weeks out, not years, which is what
+  put an ISO week and the nixpkgs rev into haus's cache prefix. The drip is
+  family revs (`flake.lock` alone moved 445 times in the preceding 90 days,
+  though its nixpkgs rev not once) and the step change would be a nixpkgs bump
+  unioning a second stdenv onto the first. nebelung, whose lock did not move at
+  all in those 90 days, is not in the same position;
+- **the family runs two Nix installers 8s apart.** `nix-quick-install-action`
+  lands in about a second on haus and nebelung;
+  `DeterminateSystems/nix-installer-action` takes 8-9s on scruff and snug.
+
+⚠️ Section 1 is wall clock as GitHub recorded it, so a queued runner and a slow
+mirror are in it — read the min, not the avg, for what the work costs. Section 2
+is one run, the newest, because step names move. The cache figures above are one
+measurement each, taken the morning the first entries were saved, so rerun
+before trusting the creep line — that is what the probe is for. Nothing here
+covers a macOS runner: no repo caches a store on one, and what a restore costs
+there is the open question if one ever should.
