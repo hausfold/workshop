@@ -23,7 +23,7 @@ by not paying twice for the same one.
 | `factory` | `Tests` | ubuntu | bats over the shift, the tier filter, the watchdog and the lease |
 | workshop | `Tests` | ubuntu | `bench` itself — bats plus shellcheck |
 | workshop | `issue templates` | ubuntu | that ten repos still match one generator; weekly, because the child half can only be caught by a sweep |
-| `hausfold.co` | `Docs`, `Preview`, `Deploy`, `Worker`, the drift jobs | ubuntu | the site builds, and its tables still match the data the layer publishes |
+| `hausfold.co` | `Docs`, `Preview`, `Deploy`, `Worker`, `DNS`, `Palette`, the preview sweep and four drift jobs | ubuntu | the site builds, its tables still match the data the layer publishes, and its palette still matches nebelung's |
 
 `homebrew-tap`, `org-profile`, `producer-desktop` and `scruff-swift` have no
 gate: the first three carry no code of their own that a test could fail, and
@@ -32,7 +32,9 @@ nothing on a push.
 
 Release workflows are a different animal and are not on this list: they fire on
 a `v*` tag, they publish something that cannot be withdrawn, and none of the
-speed rules below are worth a risk there.
+**speed** rules below are worth a risk there. **Rule 4 is not a speed rule and
+is not exempt** — a floating action on the job that signs and notarises what
+users install is the worst place in the repo to have one.
 
 ## Four rules
 
@@ -70,19 +72,31 @@ is most of what a Mac job's start time is.
 
 ```yaml
 concurrency:
-  group: <workflow>-${{ github.ref }}
+  group: <workflow>-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 ```
 
-Only PR runs cancel. A push to `main` is a distinct commit whose tick someone
-may need to read back, and `scruff`'s `check` is called by its release workflow
-at a tag, where a cancel would be a half-published release.
+**Only a PR run is ever in a shared group**, and the ternary is the whole
+point of the line. Keying every event on `github.ref` would put all main pushes
+in one group, where two things go wrong even with cancelling off: they
+serialize, and GitHub cancels a *pending* run outright when a newer one joins
+the group. Three merges inside one build's wall clock would then leave the
+middle commit with no run at all — the exact tick the rule is protecting.
+Everything that is not a PR keys on the commit instead, so it gets a group of
+its own and cancels nothing.
 
-`hausfold.co` is the repo that already does all four, and one more besides:
-every workflow there carries a `paths:` filter, so a PR that touches no content
-runs no content check. That is the rule the rest of the family has the least of
-— most of these gates are small enough that a filter would cost more reading
-than it saves, but it is the first thing to reach for when one is not.
+The same reasoning is why `scruff`'s `check` is safe: its release workflow
+calls it at a tag, a called run reports the caller's event (`push`), and a
+cancel there would be a half-published release.
+
+`hausfold.co` is where to look for the rule that is NOT on this list: most of
+its workflows carry a `paths:` filter, so a PR that touches no content runs no
+content check. That is the rule the rest of the family has the least of — most
+of these gates are small enough that a filter would cost more reading than it
+saves, but it is the first thing to reach for when one is not. Its drift jobs
+are also the place rules 2 and 3 are least applied (`push:` with `paths:` and
+no `branches:`, and no `concurrency` at all), which is a thing to fix there
+rather than a thing to copy.
 
 **4. Pin third-party actions to a tag.** `@main` is whatever that vendor
 pushed this morning, running on the machine that compiles what we ship.
@@ -96,11 +110,24 @@ installers that action documents itself as compatible with, and the fastest of
 them to land.
 
 The key is `flake.lock` plus every `*.nix`, so a lock bump or a module edit
-pays full price and nothing else does. The cache is saved on `main` and
-restored by PRs: GitHub scopes a cache to the ref that wrote it and lets a
-branch read its base's, so a PR never writes one. `gc-max-store-size-linux`
-keeps our store well under GitHub's 10 GB per-repo ceiling, so holding it never
-evicts another workflow's cache.
+pays full price and nothing else does.
+
+**`save: ${{ github.event_name != 'pull_request' }}` is the line that matters
+most, and it is not the default.** GitHub's ref scoping governs *reads*: a
+branch may read its base's cache, which is what lets a PR restore what `main`
+saved. It says nothing about writes. Left on the default, every PR uploads its
+own multi-gigabyte copy scoped to `refs/pull/N/merge`, two open PRs push the
+repo past GitHub's 10 GB budget, and its LRU eviction takes the `main` entry
+the whole thing exists for.
+
+**No `gc-max-store-size-*` is set either, which is also not the obvious
+choice.** The action collects garbage before saving, and `keep-outputs` does
+not rescue you: `nix build` roots its own outputs through `./result` but not
+the flake inputs, and a job that only evaluates (`nix eval`, `nix flake check`)
+creates no root at all — so a collector run before the save takes exactly the
+paths the next run wants. The store is saved whole instead, and each job prints
+`du -sh /nix/store` so the creep that buys is readable rather than arriving as
+a surprise eviction.
 
 It is on those two repos because that is where it pays:
 
