@@ -176,21 +176,36 @@ The key is `flake.lock` plus every `*.nix`, so a lock bump or a module edit
 pays full price and nothing else does. On haus that key sits behind a
 **lineage** prefix as well — see the creep below.
 
-**`save: ${{ github.event_name != 'pull_request' }}` is the line that matters
+**`save: ${{ github.ref == 'refs/heads/main' }}` is the line that matters
 most, and it is not the default.** GitHub's ref scoping governs *reads*: a
 branch may read its base's cache, which is what lets a PR restore what `main`
 saved. It says nothing about writes. Left on the default, every PR uploads its
-own multi-gigabyte copy scoped to `refs/pull/N/merge`, two open PRs push the
-repo past GitHub's 10 GB budget, and its LRU eviction takes the `main` entry
-the whole thing exists for.
+own gigabyte-class copy scoped to `refs/pull/N/merge`, a handful of open PRs
+push the repo past GitHub's 10 GB budget, and its LRU eviction takes the `main`
+entry the whole thing exists for.
+
+**The test reads the ref and not the event, and rule 2 is why.**
+`github.event_name != 'pull_request'` bounds only one of the two cases a write
+can come from. A `workflow_dispatch` — which rule 2 requires of every workflow
+here, as the only way a branch with no PR gets checked at all — is not a pull
+request, so a dispatch from a feature branch passes that test and saves a whole
+store scoped to that branch. No run on `main` can purge it, because the sweep
+below is scoped to the run's own ref too; GitHub drops a cache only after seven
+days with nothing reading it, and every further dispatch from that branch
+restarts that clock. The ref form is the one that says it: a push to main
+writes, everything else only reads.
+
+It is one such line in nebelung and three in haus, one per nix job; *One key
+per JOB* below is why no two of them share a key.
 
 **What bounds the store is `purge`, not a size cap.** `purge: true` with
-`purge-prefixes: nix-<os>-` and `purge-created: 0` sweeps every older entry
-under that prefix, so a repo holds one store entry per ref rather than one per
-key it has ever had. The sweep runs **after** the save, not before — it takes
-what was created before the post phase, which the entry just written is not —
-so an old and a new multi-gigabyte entry do both sit against the budget for
-the length of an upload. `purge-primary-key: never` governs the other pass,
+`purge-created: 0` and a `purge-prefixes` that is a prefix of the key
+(`nix-<os>-` on nebelung) sweeps every older entry under that prefix, so a repo
+holds one store entry per ref per prefix rather than one per key it has ever
+had. The sweep runs **after** the save, not before — it takes what was created
+before the post phase, which the entry just written is not — so an old and a
+new gigabyte-class entry do both sit against the budget for the length of an
+upload. `purge-primary-key: never` governs the other pass,
 the one that does run first, and keeps it off the entry being reused when the
 key already hits. Both are scoped to the run's own ref, which is why a PR run
 can never reach the entry `main` saved.
@@ -212,10 +227,10 @@ save that no longer fits means every run pays full price again, the exact
 surprise the arrangement exists to avoid. So haus's prefix carries an ISO week
 and the nixpkgs rev, and a change in either starts a new lineage: the first
 main push of the week builds cold, saves a fresh half-gigabyte entry, and the
-`purge-prefixes` sweep — still the broad `nix-<os>-` — deletes the lineage it
-replaces. One cold run a week is the whole cost, plus any PR opened in the gap
-before that push. The nixpkgs rev is in there because a bump is the one change
-that would union a second stdenv onto the first.
+`purge-prefixes` sweep — broader than the key, so it reaches across lineages —
+deletes the lineage it replaces. One cold run a week is the whole cost, plus
+any PR opened in the gap before that push. The nixpkgs rev is in there because
+a bump is the one change that would union a second stdenv onto the first.
 
 nebelung needs none of it — its key moves only when the lock or a `.nix` file
 does, which is seldom — so it keeps the plain prefix.
