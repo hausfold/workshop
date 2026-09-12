@@ -129,31 +129,32 @@ pays full price and nothing else does. On haus that key sits behind a
 most, and it is not the default.** GitHub's ref scoping governs *reads*: a
 branch may read its base's cache, which is what lets a PR restore what `main`
 saved. It says nothing about writes. Left on the default, every PR uploads its
-own multi-gigabyte copy scoped to `refs/pull/N/merge`, two open PRs push the
-repo past GitHub's 10 GB budget, and its LRU eviction takes the `main` entry
-the whole thing exists for.
+own gigabyte-class copy scoped to `refs/pull/N/merge`, a handful of open PRs
+push the repo past GitHub's 10 GB budget, and its LRU eviction takes the `main`
+entry the whole thing exists for.
 
-**The test reads the ref and not the event, and rule 2 is why.** Writing it
-`github.event_name != 'pull_request'` bounds the case it was reaching for and
-leaves the other one open: a `workflow_dispatch` — which rule 2 requires of
-every workflow here, as the only way a branch with no PR gets checked at all —
-is not a pull request, so a dispatch from a feature branch passes that test and
-uploads a multi-gigabyte entry scoped to that branch. Only that branch can
-restore it, and no run on `main` can purge it, because the sweep below is
-scoped to the run's own ref too; it sits against the budget until GitHub evicts
-it at seven days. The ref form says what the event form meant — a push to main
+**The test reads the ref and not the event, and rule 2 is why.**
+`github.event_name != 'pull_request'` bounds only one of the two cases a write
+can come from. A `workflow_dispatch` — which rule 2 requires of every workflow
+here, as the only way a branch with no PR gets checked at all — is not a pull
+request, so a dispatch from a feature branch passes that test and saves a whole
+store scoped to that branch. No run on `main` can purge it, because the sweep
+below is scoped to the run's own ref too; GitHub drops a cache only after seven
+days with nothing reading it, and every further dispatch from that branch
+restarts that clock. The ref form is the one that says it: a push to main
 writes, everything else only reads.
 
 It is one such line in nebelung and three in haus, one per nix job; *One key
-per JOB* below is what makes it three.
+per JOB* below is why no two of them share a key.
 
 **What bounds the store is `purge`, not a size cap.** `purge: true` with
-`purge-prefixes: nix-<os>-` and `purge-created: 0` sweeps every older entry
-under that prefix, so a repo holds one store entry per ref rather than one per
-key it has ever had. The sweep runs **after** the save, not before — it takes
-what was created before the post phase, which the entry just written is not —
-so an old and a new multi-gigabyte entry do both sit against the budget for
-the length of an upload. `purge-primary-key: never` governs the other pass,
+`purge-created: 0` and a `purge-prefixes` that is a prefix of the key
+(`nix-<os>-` on nebelung) sweeps every older entry under that prefix, so a repo
+holds one store entry per ref per prefix rather than one per key it has ever
+had. The sweep runs **after** the save, not before — it takes what was created
+before the post phase, which the entry just written is not — so an old and a
+new gigabyte-class entry do both sit against the budget for the length of an
+upload. `purge-primary-key: never` governs the other pass,
 the one that does run first, and keeps it off the entry being reused when the
 key already hits. Both are scoped to the run's own ref, which is why a PR run
 can never reach the entry `main` saved.
