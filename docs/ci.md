@@ -78,6 +78,12 @@ Only PR runs cancel. A push to `main` is a distinct commit whose tick someone
 may need to read back, and `scruff`'s `check` is called by its release workflow
 at a tag, where a cancel would be a half-published release.
 
+`hausfold.co` is the repo that already does all four, and one more besides:
+every workflow there carries a `paths:` filter, so a PR that touches no content
+runs no content check. That is the rule the rest of the family has the least of
+— most of these gates are small enough that a filter would cost more reading
+than it saves, but it is the first thing to reach for when one is not.
+
 **4. Pin third-party actions to a tag.** `@main` is whatever that vendor
 pushed this morning, running on the machine that compiles what we ship.
 
