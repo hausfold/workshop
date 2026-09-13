@@ -26,11 +26,11 @@ wiring lives in [`.agents/`](./.agents/README.md).
 `ln -s ~/code/workshop/_bench ~/.zsh-completions/_bench`; `exec zsh` reloads it,
 and its descriptions follow `bench`'s usage header (`bench:2-54`). Only `FAMILY`
 and `OVERRIDABLE` are sed'd out of the script at completion time, and they
-differ — trill, snug and factory are overridable, not family. Hand-copied:
-`pull`'s nine repos bench doesn't walk (not "the non-flake ones" — trill, snug
-and factory are inputs, and `ops` is private), `ship`'s four extras (trill, snug,
-factory, consumer; `LOCK_ONLY` derives from `EDGES` at runtime), `release`'s
-five (`version_file`'s arms), `docs-since`'s seven non-family repos, and both
+differ — trill and snug are overridable, not family; factory is both.
+Hand-copied: `pull`'s eight repos bench doesn't walk (not "the non-flake ones" —
+trill and snug are inputs, and `ops` is private), `ship`'s three extras (trill,
+snug, consumer; `LOCK_ONLY` derives from `EDGES` at runtime), `release`'s five
+(`version_file`'s arms), `docs-since`'s six non-family repos, and both
 fallbacks. Add a repo to `version_file` and the completion silently omits it.
 
 ## Master routing table
@@ -47,11 +47,11 @@ client's wiring — project rules go in the former.
 | the desktop: macOS defaults, tiling (`windows`), the menu bar (`bar`), the shell (`terminal`), Touch ID + firewall (`security`), Pounce wiring (`launcher`), the notch shelf (`shelf`), Focus/DND (`focus`) | `./haus`, the layer `hausfold/haus` — the directory is named for its repo, not its desktop |
 | the org's GitHub front page | `./org-profile`, the checkout of `hausfold/.github` (`bench clone` maps the alias; `./.github` here is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is not `FAMILY`**: in `OVERRIDABLE`, `EDGES` (`haus → trill`, gating `haus.notifications.compositor`), `DOCS_REPOS`, `bench clone`, `bench pull`. `bench ship` ripples its lock but never pushes it — it lands through its own PRs. `bench release trill` (CalVer, notarized ZIP, CI-owned `nix/release.nix` pin) |
-| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). Trill's footing, two edges: `haus → snug`, which `bench ship` ripples, and `factory → snug`, which moves only in factory's own PR — `bench try`'s `--override-input` does not reach inside factory's flake. **Its README and `AGENTS.md` ARE the family's presentation standard.** Not releasable: consumers pin it by rev, `bench release snug` refuses, and `VERSION` only names the derivation (`snug-0.1.0`). *How* a line is drawn is snug's repo; *whether* a tool should print it is that tool's |
+| **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). Trill's footing, two edges, both rippled by `bench ship`: `haus → snug`, and `factory → snug` — `bench ship snug` walks snug → factory → haus → consumer. `bench try` still doesn't reach inside factory's flake, so feel a snug change in factory from factory's own checkout. **Its README and `AGENTS.md` ARE the family's presentation standard.** Not releasable: consumers pin it by rev, `bench release snug` refuses, and `VERSION` only names the derivation (`snug-0.1.0`). *How* a line is drawn is snug's repo; *whether* a tool should print it is that tool's |
 | scruff — the worktree-lifecycle substrate | `./scruff` ([hausfold/scruff](https://github.com/hausfold/scruff)). A flake input of haus, on PATH; ⌘↵ runs `scruff new` for every client, and Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks call `scruff hook create` / `scruff hook remove` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
-| **the night shift** — the merge lease, tier 1, the runner that drives it | [hausfold/factory](https://github.com/hausfold/factory); its README is the manual, and haus puts it on `PATH` (`haus.ai.enable`) with its one skill, `/factory`. Trill's footing (`haus → factory`), plus the one edge bench does not walk (`factory → snug`), so `bench status`'s row names factory's own PR. Nothing about the shift lives here: the operator half is hausfold.co's `docs/haus/night-shift`, the seams `./haus`'s `docs/night-shift-internals.md`, the policy `factory config print` alone. A live lease (`factory lease status`) is the standing go-ahead for **tier-1** merges as `factory tier` decides them; the rest waits at "PR open" |
+| **the night shift** — the merge lease, tier 1, the runner that drives it | [hausfold/factory](https://github.com/hausfold/factory); its README is the manual, and haus puts it on `PATH` (`haus.ai.enable`) with its one skill, `/factory`. **In `FAMILY`, unlike trill and snug**, and for the one reason those two don't need: it HOLDS a lock (`factory → snug`) as well as being pinned by one (`haus → factory`), and a pin no verb moves only moves by hand. So `bench ship` walks, bumps and pushes factory like any other family repo — `FAMILY` lists it before `haus` so its own snug bump lands before haus's factory pin is read. Nothing about the shift lives here: the operator half is hausfold.co's `docs/haus/night-shift`, the seams `./haus`'s `docs/night-shift-internals.md`, the policy `factory config print` alone. A live lease (`factory lease status`) is the standing go-ahead for **tier-1** merges as `factory tier` decides them; the rest waits at "PR open" |
 | **how one of our tools puts a line on screen** | the tool's OWN repo, through **trill**, Apple's banner as fallback — never a bare `osascript -e 'display notification …'`: haus's `haus-notify` (`modules/core/haus-notify.sh`), pounce's per-command `notify()`, `bench`'s own, `scruff hook notify`. Every caller passes its own `--source`, the string `~/.config/trill/rules.json` matches on; no `haus.*` option gates it |
 | **a write-up that turned out to be wrong** — a stale claim, a check that passes while what it protects rots | [`docs/drift.md`](docs/drift.md): thirty-three numbered shapes and what catches each. **Row numbering is frozen** — cite by number. Append a shape, or park it under *Seen once, not yet a row* |
 | **how one of our CLIs looks on screen** — a colour, a glyph, a column, a spinner | snug's own `README.md` and `AGENTS.md` are the standard; this repo's `docs/design.md` is the brand's, not the CLI's. Roles resolve against **nebelung**, never a hand-picked 256-colour index, and columns are budgeted with `ui_col` + `ui_trow` + `ui_table_data`, never `%-44s`. In scope: `bench`; haus's `haus.sh`, `haus-show.sh`, `focus`, `github-signal`, `haus-secret`, `awake` (prose only — `status --raw` skips the painter), `statusline.sh`, `image-preview.sh`, `lane-open.sh`; scruff; factory (`share/ui.sh` off `FACTORY_UI_SH`, plain text without it). Named exceptions: `haus-show`'s `field`, `haus set`'s picker padding (counted by haus's `test/phase-painter.bats`), the statusline's row tint. **Installers are exempt from the runtime, not the palette** — `bootstrap.sh` and `haus-activate.sh` inline snug's numbers, `haus/test/installer-palette.bats` diffs them back, and **nothing is inlined without a drift test**. Out by settled decision: maintenance and probe scripts (haus's `script/build-golden-vm.sh`, trill's `scripts/dev-install.sh`, this repo's `script/issue-labels.sh` and `script/probes/*.sh`, plus `script/shoot-hero.sh` — which is read at a real terminal, and is out for a different reason: it runs mid-shoot from whatever checkout is to hand, including a lane worktree where the sibling `snug` that `ui_load` reads is not there at all); trill's CLI, pounce's commands and haus's ten one-file Swift helpers; anything whose stdout is another program's input (`awake --raw`, `agent-state`, `scruff-cache`, `hausrect`, `barvitals`, `hausocr`, `hausax`, `haustabs`, `agent-desktop-guard`, `haus-vm-shot`, `haus-fix`/`haus-fix-github`); rows not drawn on a terminal at all — haus's `find.sh` pads for `fzf`, which owns the window and cuts its own, and a bar plugin's `printf` is read by sketchybar; and anything with no terminal at either end (`floatpin`, `floatring`, `barpop`, `haus-notify`, `trill.sh`, `lidawake`, `haus-github-receiver`, `statusline-refresh`, `portless`, `haus-nix-gc`, `portless-lane`). **Do not collapse those into one "nobody reads these" rule** — the installers and the maintenance scripts ARE read by people at real terminals, and their exemptions rest on when they run and who reads them. **This row owns that scope** — re-open an exemption here, never by quietly converting a file |
@@ -100,18 +100,20 @@ The repos are a chain of pinned flake inputs: the spine
 `nebelung → pounce → haus → ~/.config/nix`, plus `perch`, `trill`, `scruff`,
 `snug`, `factory` and `nebelung` (directly) into `haus`, and `snug` into
 `factory` — **ten** lock edges, enumerated in `bench`'s `EDGES`. `factory → snug`
-is the one whose holder `bench ship` does not walk; that pin moves in factory's
-own PR, and `bench status` still reports it. A commit, even a pushed one, is
-invisible downstream until each `flake.lock` moves. **Never hand-walk that
-ripple, and never suggest it** — `bench` does it. Every verb is in the
+is the only one whose holder is neither the layer nor the machine, which is why
+`factory` is in `FAMILY`: a repo that holds a lock needs a verb to move it, and
+`bench ship snug` now runs snug → factory → haus → consumer in one go. A commit,
+even a pushed one, is invisible downstream until each `flake.lock` moves.
+**Never hand-walk that ripple, and never suggest it** — `bench` does it, every
+edge of it. Every verb is in the
 [README's table](README.md#start), and the flows they belong to are at length in
 [`docs/workflows.md`](docs/workflows.md); five things about them bind an agent:
 
 - **`bench status` reads scruff's registry, never `git worktree list`**,
   filtered to the workshop dir plus the host config, so a hand-run
   `git worktree add` is not in it at all. It prints a read-only row for every
-  lock source that is not `FAMILY` (trill, snug, factory), because a STALE
-  edge's next question is what that checkout is doing.
+  lock source that is not `FAMILY` (trill, snug), because a STALE edge's next
+  question is what that checkout is doing.
 - ⚠️ **An OFF-MAIN edge is a lock pinned at a rev not on that repo's `main`** —
   what a hand-run `nix flake update` in a PR produces. It resolves until the
   branch is deleted on merge, after which the downstream repo can't fetch its

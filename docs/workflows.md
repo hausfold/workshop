@@ -331,14 +331,16 @@ opening a fresh one each run.
 
 Three things about its repo list are deliberate and get "tidied" wrong:
 
-- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug`, `factory` and
-  `hausfold.co` — repos with docs and an audience that `FAMILY` doesn't cover.
-  Docs coverage and lock coverage are different questions. `bench clone`/`pull`
-  plant and refresh all four for the same reason. `hausfold.co` has no flake
-  input at all; `trill`, `snug` and `factory` each have one
-  (`haus → trill`, `haus → snug`, `haus → factory`) without being family, so
-  `try`/`try-batch` DO build them from a local checkout, and `ship` still never
-  pushes them — see bench's 🚨 by `FAMILY` for the three-list split.
+- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug` and `hausfold.co` —
+  repos with docs and an audience that `FAMILY` doesn't cover. Docs coverage and
+  lock coverage are different questions. `bench clone`/`pull` plant and refresh
+  all three for the same reason. `hausfold.co` has no flake input at all;
+  `trill` and `snug` each have one (`haus → trill`, `haus → snug`) without being
+  family, so `try`/`try-batch` DO build them from a local checkout, and `ship`
+  still never pushes them — see bench's 🚨 by `FAMILY` for the three-list split.
+  `factory` used to be a fourth name here and is in `FAMILY` now, so the list
+  picks it up through the expansion; it is on that chain because it HOLDS a lock
+  (`factory → snug`), which neither trill nor snug does.
 - **A missing checkout and an unswept repo look identical in the output**, so
   `docs-since` warns loudly for both (`no checkout at …`, and either
   `first sweep — no watermark, reading its FULL history` or `watermark … is gone

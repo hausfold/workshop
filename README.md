@@ -18,8 +18,9 @@ theme        palette    layer    host file         darwin-rebuild
 
 That's the spine, not the whole graph: `perch`, `trill`, `scruff`, `snug` and
 `factory` are inputs of `haus` too, `nebelung` is one a second time, directly
-rather than through pounce, and `factory` takes `snug` for itself. Ten edges in
-all — `bench`'s `EDGES` has the list.
+rather than through pounce, and `factory` takes `snug` for itself — the one edge
+whose holder is neither the layer nor your machine. Ten edges in all — `bench`'s
+`EDGES` has the list.
 
 A flake input is not "whatever's on GitHub right now" — it's one exact commit,
 frozen in `flake.lock`. That's what makes a rebuild reproducible, and it's the
@@ -61,30 +62,33 @@ something works, and `main` never holds code nobody has felt.
 
 ## the family
 
-Five repos share the lock chain above:
+Six repos share the lock chain above:
 
 - 🏠 [**haus**](https://github.com/hausfold/haus) — the whole desktop, one Nix flake: the nix-darwin layer, plus **hacker**, the desktop built on it. **start here.**
 - 🐾 [**pounce**](https://github.com/hausfold/pounce) — a keyboard-first command palette. every command is a file.
 - 🪺 [**perch**](https://github.com/hausfold/perch) — a file shelf that grows out of the notch.
 - 🌫️ [**nebelung**](https://github.com/hausfold/nebelung) — the silver-mist palette underneath all of it.
 - 🐈 [**scruff**](https://github.com/hausfold/scruff) — worktree lanes, so parallel coding agents never fight over a checkout.
+- 🏭 [**factory**](https://github.com/hausfold/factory) — merge the pull requests code alone can vouch for, while nobody is watching. the layer puts it on your PATH.
 
-Three more are on the lock chain as inputs of `haus`, without being family:
-🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor),
-🐈 [snug](https://github.com/hausfold/snug) (how every one of these tools
+factory is on that list for one reason the other five make invisible: it holds a
+lock of its own, `factory → snug`. A repo that only gets pinned can land its work
+through its own PRs and lose nothing; a repo that PINS something needs a verb to
+move that pin, or the pin only moves by hand.
+
+Two more are on the lock chain as inputs of `haus`, without being family:
+🔔 [trill](https://github.com/hausfold/trill) (a quiet notification compositor)
+and 🐈 [snug](https://github.com/hausfold/snug) (how every one of these tools
 puts a line in your terminal — one Go package the Go tools import, one binary
-the shell ones drive, and the layer puts it on your PATH) and 🏭
-[factory](https://github.com/hausfold/factory) (merge the pull requests code
-alone can vouch for, while nobody is watching — the layer puts it on your PATH
-too). For all three, `bench try` builds your branch and `bench ship` ripples the
-lock haus holds for them, while `bench ship` never pushes them — they land
-through their own PRs. (`bench status` still prints a read-only row for each,
-because a STALE edge's next question is what that checkout is doing.)
+the shell ones drive, and the layer puts it on your PATH). For both, `bench try`
+builds your branch and `bench ship` ripples the lock haus holds for them, while
+`bench ship` never pushes them — they land through their own PRs. (`bench status`
+still prints a read-only row for each, because a STALE edge's next question is
+what that checkout is doing.)
 
-⚠️ One edge is outside even that: `factory → snug`, factory's own pin for the
-presentation runtime. Its HOLDER is not a repo `bench ship` walks, so nothing
-here re-pins it and `bench try` does not reach inside factory's flake either.
-`bench status` reports it and says whose PR it belongs to.
+⚠️ `bench try` still doesn't reach inside factory's flake: it overrides snug as
+*haus* sees it, so a snug worktree is felt through haus's callers and not
+through factory's. Feel a snug change in factory from factory's own checkout.
 
 Three more ride along with no lock edge at all, so the ripple never walks them:
 🍺 [homebrew-tap](https://github.com/hausfold/homebrew-tap) (CI-owned — you

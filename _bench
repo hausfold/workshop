@@ -34,9 +34,10 @@
 #
 # 🚨 They are NO LONGER THE SAME LIST, so read the one you mean. FAMILY is the
 # repos bench WALKS; OVERRIDABLE is the repos that are a flake input and can be
-# redirected at a local checkout. trill is in the second and not the first, and
-# snug and factory joined it there — so a fallback copied from the wrong one now
-# offers a repo bench would reject, or hides three it would accept.
+# redirected at a local checkout. trill and snug are in the second and not the
+# first — so a fallback copied from the wrong one offers a repo bench would
+# reject, or hides two it would accept. factory is in BOTH, which is what makes
+# copying from the wrong one hard to notice.
 _bench_array() {
   local name=$1; shift
   local script=${BENCH_SCRIPT:-${functions_source[_bench]:A:h}/bench}
@@ -138,11 +139,12 @@ _bench() {
           # Named repos narrow the ripple to themselves plus their downstream
           # closure along EDGES (`cmd_ship` in `bench`). Shippable = FAMILY
           # plus the lock-only sources plus the consumer. LOCK_ONLY is DERIVED
-          # from EDGES at runtime, so no sed can read it out — trill, snug and
-          # factory are hand-copied here, like pull's extras, and rot the same way.
+          # from EDGES at runtime, so no sed can read it out — trill and snug are
+          # hand-copied here, like pull's extras, and rot the same way. factory
+          # was a third until it joined FAMILY, where the sed above finds it.
           local -a shippable=(
-            $(_bench_array FAMILY nebelung pounce perch scruff haus)
-            trill snug factory consumer
+            $(_bench_array FAMILY nebelung pounce perch scruff factory haus)
+            trill snug consumer
           )
           local -a left=( ${shippable:|typed} )
           _describe -t repos 'shippable repo' left && ret=0
@@ -151,17 +153,17 @@ _bench() {
         pull)
           # The pullable set is a superset of FAMILY (`cmd_pull` in `bench`):
           # workshop itself, plus the repos bench doesn't walk. It is not "the
-          # repos that aren't flake inputs" — trill, snug and factory all break
-          # that: they ARE inputs and still aren't FAMILY. Hand-copied, so it
-          # rots: bench warns on anything not in its own list.
+          # repos that aren't flake inputs" — trill and snug both break that:
+          # they ARE inputs and still aren't FAMILY. Hand-copied, so it rots:
+          # bench warns on anything not in its own list.
           # `ops` is offered like the rest even though it is private and may not
           # be on this machine: bench skips a checkout that isn't there, and a
           # completion that hid it would make the one repo you have to remember
           # by hand the only one you can't Tab to.
           local -a pullable=(
             workshop
-            $(_bench_array FAMILY nebelung pounce perch scruff haus)
-            org-profile homebrew-tap trill snug factory hausfold.co ops consumer
+            $(_bench_array FAMILY nebelung pounce perch scruff factory haus)
+            org-profile homebrew-tap trill snug hausfold.co ops consumer
           )
           local -a left=( ${pullable:|typed} )
           _describe -t repos 'pullable repo' left && ret=0
@@ -232,8 +234,8 @@ _bench() {
             # be careful with what a sweep carries OUT of it, not a reason for
             # `bench docs-since ops` to have no completion.
             local -a docs_repos=(
-              workshop $(_bench_array FAMILY nebelung pounce perch scruff haus)
-              org-profile homebrew-tap trill snug factory hausfold.co ops
+              workshop $(_bench_array FAMILY nebelung pounce perch scruff factory haus)
+              org-profile homebrew-tap trill snug hausfold.co ops
             )
             # Subtract what's already typed, like every other repo arm here.
             local -a left=( ${docs_repos:|typed} )
