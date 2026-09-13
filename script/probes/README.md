@@ -536,10 +536,16 @@ timestamps of run 34741464030's own job logs for everything below job level:
 - **a step can be a clock rather than a cost, and a job total cannot show it.**
   `draw`'s `rebuild fix CTA` step reports all 38 of its tests ok at 10.3s and
   then closes at 32.3s, because `test/rebuild-fix-cta.bats:268` stubs `trill` as
-  a `sleep 30` whose holder outlives the test by design and keeps the step's
-  stdout open. The signature is 32s ± 1s across all ten runs while the work
-  inside it varies. `draw` is a ~31s job without it, which changes no decision
-  here — `rooms` is what `agents` is measured against either way.
+  a `sleep 30` whose holder outlives the test by design. What it held open was
+  not that stub's stdout — `fault_hold` detaches with 0/1/2 on `/dev/null` — but
+  bats' fd 3, a dup of the RUNNER's stdout that every process in the detached
+  tree inherits. The signature is 32s ± 1s across all ten runs while the work
+  inside it varies. It changes no decision here — `rooms` is what `agents` is
+  measured against either way. ⚠️ The cause is fixed — `exec 3>&-` at the top of
+  that suite's `haus_sh`, the one process above the whole detached tree — so the
+  32.3s above is a record of this sample and not a live cost. Re-measuring
+  `draw` wants its own ten runs, never a number lifted from the run that fixed
+  it.
 
 Measured 2026-09-13, splitting snug's `nix build` at its own log's phase
 boundaries — 11 runs, 8 on `main` and 3 on PR branches, the split stable across

@@ -221,3 +221,25 @@ implied. **Caught by** splitting a step at the boundaries its own log prints
 before comparing any part of it with anything, and by treating "that part is
 unmeasured" as a bar on using the figure at all, not a caveat to publish beside
 it.
+
+**A cross-reference written by POSITION, in the same diff that moves what it
+points at.** A PR adding to the middle of `docs/ci.md`'s rule 5 also edited an
+earlier paragraph to point forward at the account it was adding: "the whole of
+what a job costs is nearer ten, and *the paragraph below this one* is the
+account". That account landed as a bullet, past two paragraphs and a lead-in,
+so a reader following the pointer arrives at the one about how job COUNT breaks
+a tie, which says nothing about ten seconds. It was wrong in the commit that
+wrote it — not made wrong later by the lane that landed into the same rule
+three minutes after. Everything a review looks for is right: the figure is
+right, the target exists, the target says what the pointer promises, and the
+stamped numbers were routed to `script/probes/**` exactly as the write-up rules
+ask. Only the word "below" is doing arithmetic, on a page the same diff changed
+underneath it, and the author is the one reader who cannot catch it — they read
+the paragraphs in the order they wrote them, not the order the file lands in.
+Row 12 is the neighbour and not the same: there a warning names the wrong line
+in a file it did not touch. **Caught by** resolving every relative pointer in a
+diff — "below", "above", "the paragraph after this" — against the rendered file
+rather than against the hunk, and by NAMING the target instead of placing it;
+`docs/ci.md` already had that form two paragraphs away (*The Nix store cache*
+below, *One key per JOB*). The tell is a pointer that identifies its target by
+distance, inside a PR that inserts anything at all between the two.
