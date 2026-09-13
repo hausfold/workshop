@@ -507,6 +507,35 @@ cache key each:
   first step in a job of its own it is 57s. `nix eval`, first either way, is
   55s in both. Nothing about the step changed.
 
+Measured 2026-09-13, on the shell half those nix jobs drop under — ten PR runs
+of haus's `check` for job totals through the jobs API, then the per-line
+timestamps of run 34741464030's own job logs for everything below job level:
+
+- **the shell half's pole has ~5s in it, and no fifth job can take more.**
+  `agents` 58s (min 53, max 63), `rooms` 53s (44-59), `draw` 53s (50-58), `lint`
+  23s (18-27). Splitting the pole is worth the distance to the runner-up and
+  stops there, so `agents` cut anywhere leaves `rooms` at 52.8s as the gate. The
+  gap, not the pole, is the number;
+- **a Linux job's fixed cost is ~10s, not the ~4s of its tool install.**
+  Checkout 1.7s and `npm install -g bats` 2.7s are the 4s `docs/ci.md` quotes;
+  the rest is ~2s from `created_at` to `started_at`, ~1s before the first step
+  runs, 0.6s of `Set up job` and ~2s from the last step to the job closing;
+- **`agents` has no separable chunk, but it is not flat either** — and the
+  second half of that sentence corrects a first draft of this entry. 238 tests,
+  median 0.087s, mean 0.190s: 19 tests at or over a second carry 21.7s, just
+  under half the job's 45.2s of test time, and the other 219 carry 23.5s
+  between them. The tail is deliberate (clock assertions in `vm-runtime.bats`
+  and `github-signal.bats`), it is spread across three suites, and taking all
+  of it would still leave `rooms` as the gate. "No hot spot" is a claim about
+  the SUITES — the largest is 14.5s of a ~50s job — never about the tests;
+- **a step can be a clock rather than a cost, and a job total cannot show it.**
+  `draw`'s `rebuild fix CTA` step reports all 38 of its tests ok at 10.3s and
+  then closes at 32.3s, because `test/rebuild-fix-cta.bats:268` stubs `trill` as
+  a `sleep 30` whose holder outlives the test by design and keeps the step's
+  stdout open. The signature is 32s ± 1s across all ten runs while the work
+  inside it varies. `draw` is a ~31s job without it, which changes no decision
+  here — `rooms` is what `agents` is measured against either way.
+
 haus's answer was still to leave the workflow alone — past the reset its nix
 jobs drop under the same repo's shell jobs, so the seconds a narrower store
 could give back belong to a job nothing there would touch. The method, and why
