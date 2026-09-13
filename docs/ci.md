@@ -109,6 +109,48 @@ The same reasoning is why `scruff`'s `check` is safe: its release workflow
 calls it at a tag, a called run reports the caller's event (`push`), and a
 cancel there would be a half-published release.
 
+
+**A run that produces no per-commit answer is outside what the rule is
+protecting.** Three workflows in the family key every run into one constant
+group with no `github.sha` in it, all in `hausfold.co`: `deploy.yml`,
+`dns.yml` and `preview-sweep.yml`, each group named for its own workflow.
+What a gate loses when an intermediate run is dropped is that commit's answer,
+which nothing else will produce. These three converge something outside the
+repo instead — the deployed site, the DNS zone, this repo's own preview
+Workers — and a converge has no answer to lose: the surviving run redoes the
+whole job from the current state, so a run skipped in the middle is one whose
+work the next one does anyway. For them the constant group is the point of the
+line rather than a cost of it, because what it serializes is the resource.
+
+**The property decides this, not the count.** Check for a `pull_request`
+trigger first: none of the three has one, and a workflow that does produces a
+per-commit answer for that run whatever else it does. `preview.yml` is the
+standing example — it deploys and tears down a preview Worker, as external as
+anything `deploy` touches, and still keys on
+`github.event.pull_request.number` and cancels, which is this rule's ternary
+with only the PR arm left. A fourth constant group, `pounce`'s job-level
+`bump-pin`, sits in a release workflow and is off this list entirely; its own
+comment makes the argument above.
+
+`cancel-in-progress` is then a second and separate question, about what a
+stopped run leaves behind. `deploy` cancels, a newer build superseding an
+older one outright. `dns` does not, because a converge stopped between two
+tables leaves the zone half-way between them. The preview sweep does not for a
+different reason: its deletes are independent and a Worker that is already
+gone counts as success, so nothing is left half-written. There is simply
+nothing for a later run to supersede — killing one only delays the deletions
+to the next cron, and a `dry_run` dispatch would otherwise take out a live
+sweep.
+
+The one place a constant group does cost something is `dns`'s scheduled
+`check`, the Monday comparison of the zone against the table, which shares the
+group with `publish`. A *pending* run is cancelled outright when a newer one
+joins, whatever `cancel-in-progress` says, so a check queued behind a running
+converge can be dropped — and that week's drift answer is produced by nothing
+else until the next Monday. One writer on the zone is worth more than one
+week's report. That is a trade made once, for a converge; it is not a reason
+to key a gate this way.
+
 `hausfold.co` is where to look for the rule that is NOT on this list: most of
 its workflows carry a `paths:` filter, so a PR that touches no content runs no
 content check. That is the rule the rest of the family has the least of — most
