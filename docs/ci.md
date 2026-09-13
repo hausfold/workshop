@@ -309,16 +309,18 @@ next run wants. The store is saved whole instead, which means a restore unions
 and each save carries forward everything the last one held.
 
 **Which is why haus's store has a lineage, and resets it weekly.** Its entry
-went 472 → 614 MiB over its first six saves, about 24 MiB a save, on a key
-that moves with nearly every push to main — a dozen or more a day. At that
-rate 10 GB is weeks out, not years, and arriving there is not a warning: a
-save that no longer fits means every run pays full price again, the exact
-surprise the arrangement exists to avoid. So haus's prefix carries an ISO week
-and the nixpkgs rev, and a change in either starts a new lineage: the first
-main push of the week builds cold, saves a fresh half-gigabyte entry, and the
-`purge-prefixes` sweep — broader than the key, so it reaches across lineages —
-deletes the lineage it replaces. One cold run a week is the whole cost, plus
-any PR opened in the gap before that push. The nixpkgs rev is in there because
+went 472 → 688 MiB over its first six saves — ~36 MiB a save, reconstructed
+from the size each saving run logs — on a key that three pushes in four move,
+and haus takes a dozen or more a day. At that rate 10 GB is weeks out, not
+years, and arriving there is not a warning: a save that no longer fits means
+every run pays full price again, the exact surprise the arrangement exists to
+avoid. So haus's prefix carries an ISO week and the nixpkgs rev, and a change
+in either starts a new lineage: the first main push of the week builds cold,
+saves fresh entries, and the `purge-prefixes` sweep — broader than the key, so
+it reaches across lineages — deletes the lineage it replaces. One cold run a
+week was the whole cost, plus any PR opened in the gap before that push; the
+split made that three entries and *One key per JOB* below says what it costs
+now. The nixpkgs rev is in there because
 a bump is the one change that would union a second stdenv onto the first.
 
 nebelung needs none of it — its key moves only when the lock or a `.nix` file
@@ -337,21 +339,42 @@ each delete the other two's fresh entries.
 So haus's job token sits between the OS and the week — `nix-<os>-<job>-<ISO
 week>-<nixpkgs rev>-<hash>` — and each job purges `nix-<os>-<job>-` alone. The
 weekly reset still works inside each family, and no job can reach another's.
-Three entries per lineage rather than one, which the budget carries: they
-overlap heavily, all of them carrying nixpkgs, and the weekly reset bounds the
-total exactly as it did with one.
+
+⚠️ **Three entries do not creep at one entry's rate, and the weekly reset no
+longer bounds them.** Measured over one whole haus lineage — eleven saves, ten
+intervals, each save logging the entry it uploaded — the three put on 30.8,
+13.4 and 30.2 MiB a save, so 74.4 MiB per push that saves against ~36 before
+the split. A lineage starts near 847 MiB cold and, with the 45 MiB
+nix-installer entry that counts against the same ceiling, clears 10 GiB at 126
+saves; haus's last five full weeks ran 145, 106, 128, 126 and 116 *saves*, so
+the median week lands on the line and three of the five go over — a W32-shaped
+week would end near 11.4 GB. The verdict does not turn on the cold start: at
+974 MiB the median week is 10.2 GB and at 600 it is 9.8.
+
+**So a weekly lineage is no longer short enough for three entries, and the
+cheapest fix is a half-week token** — the ISO week plus a first/second half,
+resetting Monday and Thursday, which puts even a W32-shaped lineage near 6.2
+GB. It costs a second cold run a week plus the PRs opened in the gap ahead of
+it, and the purge stays a sweep of the job prefix, so it still reaches across
+lineages. Named here because the arithmetic is the standard's; haus had not
+taken it as of 2026-09-13.
 
 **Splitting a job pays the restore again, which is what decides the split.**
 That restore is this half's fixed cost under rule 5 — the number a step is
-measured against before it earns a job of its own — and haus's is ~35s.
+measured against before it earns a job of its own — and haus's is 34-50s.
 
-⚠️ It is not a constant, and reading it as one sets the bar wrong in both
-directions. A restore scales with the entry: 332 MiB comes back in 17s and
-600-odd MiB in 34-48s, roughly 0.05-0.06s per compressed MiB. So the bar is
-per JOB, it is lowest on the first run of a lineage and climbs as the entry
-creeps through the week, and a job whose entry is carrying another job's work
-is measuring against a bar nothing could clear. Read the restore step of the
-run in front of you.
+⚠️ It is not a constant, but it does not scale with the entry either, and
+both readings set the bar wrong. Across 63 haus restores spanning 472-885 MiB
+— the whole life of that cache — the download-and-extract phase is 32.4s flat,
+Pearson r = -0.075, with the entries under 520 MiB averaging 33.5s against
+32.3s for those over 800. The step around it is 34-50s with no trend. What
+bounds it is path count and GitHub, not bytes, which is why nebelung's 332 MiB
+in 17s does not extrapolate onto a store that is mostly `.drv`s. So the bar is
+per JOB and roughly fixed, a lineage reset buys back store SIZE rather than
+seconds, and the number to quote is the restore step of the run in front of
+you. ⚠️ 472 MiB is as low as that fit reaches, and a reset — the half-week one
+above most of all — makes entries below it. Re-run the probe on the first cold
+run rather than extending the flat line down.
 
 **Read the ceiling off the entry, not off the store.** GitHub's 10 GB is
 compressed cache bytes, and a Nix store compresses hard. The action logs
@@ -392,11 +415,13 @@ It is on those two repos because that is where the trade lands:
 **The trade has to be re-tested after the cache is in, and it can go
 negative.** The test above is usually run once, to decide whether to add a
 cache, and then never again — but an entry only grows, and a job whose store is
-bigger than the job is paying a restore for paths it never opens. Far enough
-along that is not a slow cache but a cache costing the gate more than no cache
-would: past a few hundred MiB, fetching what a job actually needs from
-`cache.nixos.org` is quicker than restoring what it holds from GitHub, and haus
-has had a job in that state.
+bigger than the job is paying a restore for paths it never opens. That is not a
+slow cache but a cache costing the gate more than no cache would, and the
+restore being roughly FIXED is what makes it inevitable rather than gradual:
+the cost of the restore does not rise with the entry, so what decides it is how
+little of the entry the job opens. haus has had a job in that state — `acquire`
+needs 233 MiB from `cache.nixos.org` in 44s and pays ~32s of restore plus its
+own step to hold nearly a gigabyte.
 
 Seeing it takes running the job twice — once from an empty store, which is what
 the job needs, and once restoring the live entry and reading nothing, which is
@@ -438,12 +463,14 @@ run, but only ~12s of it is store to restore — 216 MiB fetched from
 `cache.nixos.org` — and the rest is the installer and the two derivations the
 source change just invalidated, which no cache can hold.
 
-⚠️ One argument for snug does NOT hold, and it is the one that reads best:
-"against a 35s-class restore that is a slower gate" is a haus-sized restore
-applied to a snug-sized entry, and 216 MiB of nar would come back in well under
-the 12s of fetch it replaces. The verdict may still be right on the derivations
-alone, but that part is unmeasured. It is the first thing to re-run the probe
-against.
+⚠️ The argument for snug that reads best — "against a 35s-class restore that
+is a slower gate" — was retired once for applying a haus-sized restore to a
+snug-sized entry, on the reading that 216 MiB would come back in well under the
+12s of fetch it replaces. The scaling that rested on is itself retired now (see
+the fit above), and it cuts the other way: a restore is ~32s roughly whatever
+the entry weighs, so a 12s CDN fetch is the cheaper half and the original
+verdict stands for a better reason than it was given. Still unmeasured on
+snug's own runner, and still the first thing to re-run the probe against.
 Measure before adding it anywhere new: `script/probes/ci-cache-value.sh <repo>`.
 
 ## What we deliberately don't do
