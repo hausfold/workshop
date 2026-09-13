@@ -519,6 +519,76 @@ retired, not the measurement under it.
 mirror are in it — read the min, not the avg, for what the work costs. Section 2
 is one run, the newest, because step names move. The cache figures above are one
 measurement each, taken the morning the first entries were saved, so rerun
-before trusting the creep line — that is what the probe is for. Nothing here
-covers a macOS runner: no repo caches a store on one, and what a restore costs
-there is the open question if one ever should.
+before trusting the creep line — that is what the probe is for.
+
+## The two macOS poles, step by step
+
+`docs/ci.md`'s *No third-party runner fleet* says most of the family's wall
+clock goes into the Mac jobs. That was read off run totals; this is what is
+under them. `pounce`'s pole runs nix, so the probe reaches it —
+`script/probes/ci-cache-value.sh pounce`, whose section 2 finds the right job on
+its own. `perch`'s runs no nix at all, so that section prints nothing for it and
+the jobs and steps come straight out of the API:
+
+```sh
+runs=$(gh api 'repos/hausfold/perch/actions/runs?event=pull_request&status=completed&per_page=8' \
+       --jq '.workflow_runs[].id')
+for id in $runs; do
+  gh api "repos/hausfold/perch/actions/runs/$id/jobs" --jq '
+    .jobs[] | "\(((.completed_at|fromdate)-(.started_at|fromdate)))s\t\(.name)",
+    (.steps[] | "  \(((.completed_at|fromdate)-(.started_at|fromdate)))s\t\(.name)")'
+done
+```
+
+Measured 2026-09-13, the last eight completed `pull_request` runs of each:
+
+- **the pole is one job in each repo, and it is never in doubt.** pounce's
+  `nix build (aarch64-darwin)` ran 175-248s (215s mean) against a 35-49s Swift
+  unit-test job and two Linux jobs at 6-15s and 3-6s; perch's `Native build and
+  tests` ran 124-230s (182s mean) against a 52-119s iOS build and a 3-6s Linux
+  job. Neither pole lost the title in any of the sixteen runs, so there is no
+  rule 5 regrouping of the *other* jobs left to make in either repo;
+- **less than half of pounce's pole is a compiler.** Step means: installer 65s,
+  then inside the one `nix build` — 28s of flake resolution and input fetch, 3s
+  substituting 37 paths (104.1 MiB download, 492.2 MiB unpacked), **102s of
+  `buildPhase`**, 5s of the twenty small command derivations; 9s of checkout,
+  set-up and post around all of it. The buildPhase figure is Nix's own
+  (`buildPhase completed in …`) and ran 78-127s, the widest spread in either
+  repo, which is the macOS runner rather than the source;
+- **`DeterminateSystems/nix-installer-action` is 65s on a macOS runner**, not
+  the 8-9s it takes on the Linux jobs above. Its own log itemises it: ~13s
+  creating an encrypted APFS volume for `/nix`, ~7s creating 32 build users,
+  **22.3s on "Configure Time Machine exclusions"** — 22.2-22.4s across all
+  eight runs, so a fixed cost and not load — and ~20s for the daemon, the zsh
+  hook, the launchctl plist and three shell self-tests. No input on the action
+  turns the Time Machine step off. pounce needs *that* installer specifically:
+  its workflow comment records that Determinate relaxes the macOS build sandbox
+  by default, which the impure `xcrun` build requires;
+- **perch compiles the same sources twice.** `Test` 99.5s mean = 70.4s building
+  the Debug target graph + 21.1s of `xcodebuild` starting the test host
+  (`IDETestOperationsObserverDebug: N elapsed`) + 6.1s of tests actually
+  executing. `Analyze` is 7.9s because it reuses that Debug `DerivedData`;
+  `Release build` is 50.9s and reuses none of it — its own `SwiftDriver`,
+  `SwiftCompile`, `Ld` and `GenerateDSYMFile` for Perch, PerchCLI and
+  PerchUpdater. 121s of the 182s is `swiftc`;
+- **perch's pole has a needs boundary and pounce's does not.** `Test` and
+  `Analyze` share one Debug `DerivedData`; `Release build` and the three bundle
+  guards share the Release build. Splitting there computes to ~119s beside ~71s
+  against today's 182s, with the 74s iOS job next in line. ⚠️ That is
+  arithmetic off these means and not a measurement — it wants a second macOS
+  runner per PR and a perch PR that runs it both ways. pounce's pole is one
+  installer and one `nix build`: nothing to cut.
+
+**This answers the macOS half of the question the sections above left open**,
+in the direction that closes it rather than opens it. No repo caches a store on
+a macOS runner, and pounce is the only one that could: everything a `/nix`
+entry would hold there is the 104 MiB it substitutes in ~3s, while the 65s
+installer and the 28s of flake resolution sit outside `/nix` entirely. There is
+no restore cheap enough to beat 3s, so what a restore *costs* on a macOS runner
+stays unmeasured and stops being a question this family needs answered.
+
+⚠️ The run spreads here are wall clock as GitHub recorded it, same as section 1.
+The shares are stable — Time Machine is 22.3s ±0.1s across eight runs — but the
+totals are not: perch's `Test` step ran 70s and 127s on two runs a day apart
+with no relevant source change between them. Compare shares across a
+re-measure, not absolute seconds.

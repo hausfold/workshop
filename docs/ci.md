@@ -388,8 +388,8 @@ moves.
 It is **not** on the repos that build their own Swift on a Mac. There the
 expensive derivation is the one whose source just changed, so a restore buys
 the dependencies and nothing else, and a large `/nix` restore on a macOS runner
-can cost more than it saves. `pounce` is now the measured case, and it
-clears by more than the argument claimed: those dependencies are 104 MiB, which
+can cost more than it saves. `pounce` is the measured case, and it clears by
+more than the argument claimed: those dependencies are 104 MiB, which
 `cache.nixos.org` substitutes in ~3s of a 215s job, and neither the ~65s
 installer nor the ~28s of flake resolution in front of them is in `/nix` at all.
 The most a store cache could reach there is under 2% of that gate. *No
@@ -420,16 +420,16 @@ wall clock actually goes. That makes the trade a vendor in the critical path of
 every merge, for minutes we do not pay for, on the half of CI that is already
 the fast half.
 
-**What those Mac jobs are made of.** The paragraph above was read off run
-totals, and nothing underneath them had been opened. Measured
-2026-09-13 over the last eight completed PR runs of `pounce` and `perch`, job
-by job and then step by step.
+**What those Mac jobs are made of.** That paragraph is a claim about steps, so
+here are the steps. The shares below are means over eight PR runs of each repo;
+`script/probes/README.md` carries the sample, stamped, and the commands that
+take it again.
 
 Both repos already sit where rule 5 wants them, which is why all of this is
 inside one job each: pounce's other three are a 40s Swift unit-test job on a
 Mac and two Linux jobs at ~12s and ~5s, against a 215s pole; perch's are a 74s
-iOS build and a ~5s Linux job against 182s. Neither pole has ever lost the
-title in these sixteen runs.
+iOS build and a ~5s Linux job against 182s. Neither pole loses the title in a
+single run of that sample.
 
 `pounce` — `nix build (aarch64-darwin)`, 215s mean, and under half of it is a
 compiler:
