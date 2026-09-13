@@ -515,6 +515,53 @@ a narrower store is not the lever it looks like, is *The Nix store cache* in
 the scaling here says an entry that size would not be one — that inference is
 retired, not the measurement under it.
 
+Measured 2026-09-13, reconstructing haus's whole W37 lineage from the run
+history — every saving run logs the entry it uploaded, so the chain of saves
+rebuilds exactly, purged entries and all:
+
+- **the three entries came back at their own key, and at the old job's size.**
+  Every restore since the split logs a key under its own job token, so nothing
+  is reading another job's entry. All three were nonetheless born at the one
+  pre-split entry's 577.0 MiB and saved 606.6 / 586.7 / 607.0 off it, exactly
+  as the workflow's banner predicted: the store is saved whole, so the split
+  becomes three sizes only at the next lineage reset;
+- **the creep is per SAVE, linear, and steeper than 24 MiB.** Ten saves over
+  the 19 hours from 2026-09-12T10:44, compressed: `eval` 606.6 → 915 (+30.8 a
+  save), `checks` 586.7 → 721 (+13.4), `acquire` 607.0 → 909 (+30.2) — 74.4 MiB
+  per push that saves, to ±1 MiB and with no saturation. The single pre-split
+  entry over the same reconstruction reads 472.1 → 687.6 in six, ~36 MiB a
+  save, so the 24 MiB above was low and the split doubled the slope rather than
+  tripling it — `checks` creeps at under half what the other two do;
+- ⚠️ **the unit is the save, not the day.** A push that leaves `flake.lock` and
+  every `*.nix` untouched hits the primary key and saves nothing: 80 of haus's
+  last 1048 main pushes touched one — 76%, steady across seven weeks. Reading
+  the creep per day is what made it look like 80-250 MiB an entry;
+- **the weekly reset no longer bounds it, and W37 is what makes it look like
+  it does.** A cold store of this shape compresses at ~3.4:1 — haus's very
+  first save put 1623.0 MiB of nar out as a 472.1 MiB entry — so a lineage
+  starts near 847 MiB across the three and clears 10 GiB at 126 saves. haus's
+  last five full weeks ran 145, 106, 128, 126 and 116 saves: the median lands
+  on the line and three of the five go over, a W32-shaped week ending near
+  11.4 GB. W37, the week this slope was reconstructed in, is the quiet outlier
+  at 67, which is why the live entries read as comfortable. The cold start is
+  the only projected term and it does not decide anything — at 974 MiB the
+  median week is 10.2 GB, at 600 it is 9.8. A half-week token (ISO week plus a
+  first/second half, resetting Monday and Thursday) puts even a W32-shaped
+  lineage near 6.2 GB for one more cold run a week;
+- ⚠️ **the restore does not scale with the entry, which retires the line
+  above.** Over 63 haus restores spanning 472-885 MiB — the whole life of that
+  cache, and a 1.9x range because the lineage prefix landing mid-morning on
+  2026-09-12 reset one entry from 687.6 to 471.9 MiB — the download-and-extract
+  phase is 32.4s flat: Pearson r = -0.075, entries under 520 MiB averaging
+  33.5s against 32.3s for those over 800, and the step around it 34-50s with no
+  trend. Path count and GitHub bound it, not bytes — which is why nebelung's
+  332 MiB in 17s never extrapolated onto a store that is mostly `.drv`s. So a
+  reset buys back store SIZE, not seconds, and the projection that it would
+  take `acquire`'s restore to ~10s has nothing behind it. 472 MiB is as low as
+  the evidence reaches and the post-reset entries land below it, so haus's
+  first run of W38 is still the one to read — it decides whether `acquire`
+  should keep a cache at all.
+
 ⚠️ Section 1 is wall clock as GitHub recorded it, so a queued runner and a slow
 mirror are in it — read the min, not the avg, for what the work costs. Section 2
 is one run, the newest, because step names move. The cache figures above are one

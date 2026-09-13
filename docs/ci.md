@@ -279,11 +279,12 @@ next run wants. The store is saved whole instead, which means a restore unions
 and each save carries forward everything the last one held.
 
 **Which is why haus's store has a lineage, and resets it weekly.** Its entry
-went 472 → 614 MiB over its first six saves, about 24 MiB a save, on a key
-that moves with nearly every push to main — a dozen or more a day. At that
-rate 10 GB is weeks out, not years, and arriving there is not a warning: a
-save that no longer fits means every run pays full price again, the exact
-surprise the arrangement exists to avoid. So haus's prefix carries an ISO week
+went 472 → 688 MiB over its first six saves — ~36 MiB a save, reconstructed
+from the size each saving run logs — on a key that three pushes in four move,
+and haus takes a dozen or more a day. At that rate 10 GB is weeks out, not
+years, and arriving there is not a warning: a save that no longer fits means
+every run pays full price again, the exact surprise the arrangement exists to
+avoid. So haus's prefix carries an ISO week
 and the nixpkgs rev, and a change in either starts a new lineage: the first
 main push of the week builds cold, saves a fresh half-gigabyte entry, and the
 `purge-prefixes` sweep — broader than the key, so it reaches across lineages —
@@ -307,21 +308,39 @@ each delete the other two's fresh entries.
 So haus's job token sits between the OS and the week — `nix-<os>-<job>-<ISO
 week>-<nixpkgs rev>-<hash>` — and each job purges `nix-<os>-<job>-` alone. The
 weekly reset still works inside each family, and no job can reach another's.
-Three entries per lineage rather than one, which the budget carries: they
-overlap heavily, all of them carrying nixpkgs, and the weekly reset bounds the
-total exactly as it did with one.
+
+⚠️ **Three entries do not creep at one entry's rate, and the first draft of
+this section said the reset bounds the total exactly as it did with one.**
+Measured over haus's whole W37 lineage — ten saves, each one logging the entry
+it uploaded — the three put on 30.8, 13.4 and 30.2 MiB a save, so 74.4 MiB per
+push that saves against ~36 before the split. That is enough to outgrow the
+week. A lineage starts near 847 MiB cold and clears 10 GiB at 126 saves;
+haus's last five full weeks ran 145, 106, 128, 126 and 116, so the median week
+lands on the line and three of the five go over — a W32-shaped week would end
+near 11.4 GB. The verdict does not turn on the cold start: at 974 MiB the
+median week is 10.2 GB and at 600 it is 9.8.
+
+**So a weekly lineage is no longer short enough for three entries, and the
+cheapest fix is a half-week token** — the ISO week plus a first/second half,
+resetting Monday and Thursday, which puts even a W32-shaped lineage near 6.2
+GB. It costs a second cold run a week plus the PRs opened in the gap ahead of
+it, and the purge stays a sweep of the job prefix, so it still reaches across
+lineages.
 
 **Splitting a job pays the restore again, which is what decides the split.**
 That restore is this half's fixed cost under rule 5 — the number a step is
 measured against before it earns a job of its own — and haus's is ~35s.
 
-⚠️ It is not a constant, and reading it as one sets the bar wrong in both
-directions. A restore scales with the entry: 332 MiB comes back in 17s and
-600-odd MiB in 34-48s, roughly 0.05-0.06s per compressed MiB. So the bar is
-per JOB, it is lowest on the first run of a lineage and climbs as the entry
-creeps through the week, and a job whose entry is carrying another job's work
-is measuring against a bar nothing could clear. Read the restore step of the
-run in front of you.
+⚠️ It is not a constant, but it does not scale with the entry either, and
+both readings set the bar wrong. Across 63 haus restores spanning 472-885 MiB
+— the whole life of that cache — the download-and-extract phase is 32.4s flat,
+Pearson r = -0.075, with the entries under 520 MiB averaging 33.5s against
+32.3s for those over 800. The step around it is 34-50s with no trend. What
+bounds it is path count and GitHub, not bytes, which is why nebelung's 332 MiB
+in 17s does not extrapolate onto a store that is mostly `.drv`s. So the bar is
+per JOB and roughly fixed, a lineage reset buys back store SIZE rather than
+seconds, and the number to quote is the restore step of the run in front of
+you.
 
 **Read the ceiling off the entry, not off the store.** GitHub's 10 GB is
 compressed cache bytes, and a Nix store compresses hard. The action logs
