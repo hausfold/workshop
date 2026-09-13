@@ -46,7 +46,7 @@
 #                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
-#                  tap bump (or, for scruff, five SDK publishes).
+#                  tap bump (scruff also publishes five SDKs).
 #                  --ship ripples the new lock edge downstream afterwards.
 #                  The version is today's date (YYYY.MM.DD, -N on a same-day
 #                  repeat) and typed by nobody — EXCEPT for scruff, which is
@@ -1330,10 +1330,10 @@ ensure_pounce_dev_app() {
   fi
 }
 
-# Release bookkeeping. Releases are what users actually consume — pounce via
-# the Homebrew tap, the desktop via hausfold.co/hacker.sh (which serves the
-# LATEST RELEASE's bootstrap, not main) — so a tag that falls behind main is
-# every bit as stale as a lock edge, just invisible without this.
+# Release bookkeeping. Releases are what users actually consume — pounce and
+# scruff via the Homebrew tap, the desktop via hausfold.co/hacker.sh (which
+# serves the LATEST RELEASE's bootstrap, not main) — so a tag that falls behind
+# main is every bit as stale as a lock edge, just invisible without this.
 latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if none
   git -C "$(repo_dir "$1")" tag --list 'v*' --sort=-v:refname 2>/dev/null | head -1
 }
@@ -1756,11 +1756,12 @@ cmd_status() {
       # catch. Add the cask and this audience string together, or not at all.
       trill)     audience="the layer's flake pin (haus.trill.enable)" ;;
       haus)      audience="hausfold.co/hacker.sh (the desktop)" ;;
-      # scruff is the only one whose release lands OUTSIDE our own infrastructure:
-      # five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy. haus pins scruff's
-      # main, so this machine sees a scruff commit via the lock edge above — but
-      # everyone consuming an SDK sees only what was last released.
-      scruff)    audience="npm/PyPI/crates/SwiftPM/go get" ;;
+      # scruff is the one whose release reaches furthest outside our own
+      # infrastructure: five SDKs on npm/PyPI/crates/SwiftPM/the Go proxy, plus
+      # its formula in the tap. haus pins scruff's main, so this machine sees a
+      # scruff commit via the lock edge above — but everyone consuming an SDK,
+      # or installing with brew, sees only what was last released.
+      scruff)    audience="brew + npm/PyPI/crates/SwiftPM/go get" ;;
     esac
     # CalVer needs no argument; scruff is semver, so the number is a judgement.
     cut="bench release $name"
@@ -2624,11 +2625,18 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # hands you a shell where `bench ship` would ripple a rev CI is about to
 # supersede. Blocking, then fast-forwarding, closes that window.
 #
-# There is exactly ONE workflow to watch — each repo's `release`, holding 1–3
-# jobs (haus: publish; pounce: publish + bump-tap; perch: those plus
-# bump-flake). The tap bump is a plain push into homebrew-tap, which has no
-# workflows of its own, so when this run goes green the release IS live —
-# nothing further to chase.
+# There is exactly ONE workflow to watch — each repo's `release` (haus: publish;
+# pounce: publish + bump-tap; perch: those plus bump-flake; scruff: a stamp
+# check, the reused PR gate, the GitHub release, one job per SDK, and bump-tap —
+# nine). The tap bump is
+# a plain push into homebrew-tap, so when this run goes green the release IS
+# live — nothing further to chase.
+#
+# The tap does have a gate of its own now (`brew install` over scruff's formula,
+# the one entry that compiles), and that push fires it. It is still nothing to
+# chase: Homebrew reads the formula off the tap's main branch the moment it
+# lands, so a red run there is a formula bug to fix and never a half-published
+# release.
 
 WATCH_FRAME_S=0.1         # one spinner frame — 10 fps, so a 10-glyph cycle = 1s
 WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
@@ -2886,8 +2894,9 @@ cmd_release() {
   # Cut a release: stamp today's date as the version, commit it into the repo's
   # own version source (so the tag can't drift from what the code says — CI
   # double-checks anyway), push, then tag v<version>. The tag push is the
-  # button; CI does the rest: GitHub release + source tarball + a version bump
-  # in homebrew-tap (which is CI-owned — never hand-bump it). No number is ever
+  # button; CI does the rest: GitHub release + source tarball + a bump in
+  # homebrew-tap (`version`/`sha256` for pounce and perch, `url`/`sha256` for
+  # scruff, which has no version line — all CI-owned, never hand-bumped). No number is ever
   # typed by hand — the date IS the version. Division of labor: feature commits
   # are yours, lock bumps are ship's, the date-stamp + tag are release's,
   # formula bumps are CI's.

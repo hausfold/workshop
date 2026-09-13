@@ -258,8 +258,9 @@ must drop it in the **same rebuild** — two definitions of one `home.file` path
 is a home-manager *eval* conflict, not a last-wins.
 
 **Standalone.** `<tool> skill install`, named in the README's install section
-one line after `brew install`. Homebrew casks get a `caveats` line — it's the
-only place a cask can talk to the user.
+one line after `brew install`. The tap entry carries a `caveats` line saying the
+same thing — perch's cask, scruff's formula — and for a cask that is the only
+place anything can talk to the user at all.
 
 ## The skill is not the only way in
 

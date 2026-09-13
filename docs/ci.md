@@ -23,12 +23,15 @@ by not paying twice for the same one.
 | `factory` | `Tests` | ubuntu | bats over the shift, the tier filter, the watchdog and the lease |
 | workshop | `Tests` | ubuntu | `bench` itself — bats plus shellcheck |
 | workshop | `issue templates` | ubuntu | that ten repos still match one generator; weekly, because the child half can only be caught by a sweep |
+| `homebrew-tap` | `check` | macOS | that `Formula/scruff.rb` still installs: `brew style`, `brew audit --online`, a source build and its test block. The tap's one entry that compiles rather than placing a notarized `.app`, and the one a bot rewrites unattended on every scruff release |
 | `hausfold.co` | `Docs`, `Preview`, `Deploy`, `Worker`, `DNS`, `Palette`, the preview sweep and four drift jobs | ubuntu | the site builds, its tables still match the data the layer publishes, and its palette still matches nebelung's |
 
-`homebrew-tap`, `org-profile`, `producer-desktop` and `scruff-swift` have no
-gate: the first three carry no code of their own that a test could fail, and
-the fourth is a generated mirror. `ops` runs a scheduled `scoreboard` and
-nothing on a push.
+`org-profile`, `producer-desktop` and `scruff-swift` have no gate: the first
+two carry no code of their own that a test could fail, and the third is a
+generated mirror. The tap's gate reaches `Formula/scruff.rb` alone — pounce's
+and perch's entries place an artifact their own release gate already built,
+signed and notarized, so there is nothing left there for a runner to fail.
+`ops` runs a scheduled `scoreboard` and nothing on a push.
 
 Release workflows are a different animal and are not on this list: they fire on
 a `v*` tag, they publish something that cannot be withdrawn, and none of the
