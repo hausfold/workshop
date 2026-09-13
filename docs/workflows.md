@@ -105,8 +105,8 @@ list`. git's answer is "what trees exist", which includes hand-made ones (a
 scratch checkout for a before/after compare, a `/tmp` tree) that scruff never made
 and `scruff reap` will never sweep; listing those as lanes would make the two
 tools look permanently out of sync. bench keeps the rows whose repo sits
-under the workshop dir — family or not, so `trill`, `snug`, `factory`,
-`hausfold.co` and the workshop itself all count — plus the host config (`~/.config/nix`, shown as
+under the workshop dir — family or not, so `trill`, `snug`, `hausfold.co` and
+the workshop itself all count — plus the host config (`~/.config/nix`, shown as
 `consumer`). A lane in an unrelated repo on the same machine is scruff's business,
 not bench's. Use `scruff child` for cross-repo work and it lands in that table;
 a raw `git worktree add` is invisible to both bench and the bar.
@@ -341,14 +341,16 @@ opening a fresh one each run.
 
 Three things about its repo list are deliberate and get "tidied" wrong:
 
-- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug`, `factory` and
-  `hausfold.co` — repos with docs and an audience that `FAMILY` doesn't cover.
-  Docs coverage and lock coverage are different questions. `bench clone`/`pull`
-  plant and refresh all four for the same reason. `hausfold.co` has no flake
-  input at all; `trill`, `snug` and `factory` each have one
-  (`haus → trill`, `haus → snug`, `haus → factory`) without being family, so
-  `try`/`try-batch` DO build them from a local checkout, and `ship` still never
-  pushes them — see bench's 🚨 by `FAMILY` for the three-list split.
+- **`DOCS_REPOS` is not `FAMILY`.** It adds `trill`, `snug` and `hausfold.co` —
+  repos with docs and an audience that `FAMILY` doesn't cover. Docs coverage and
+  lock coverage are different questions. `bench clone`/`pull` plant and refresh
+  all three for the same reason. `hausfold.co` has no flake input at all;
+  `trill` and `snug` each have one (`haus → trill`, `haus → snug`) without being
+  family, so `try`/`try-batch` DO build them from a local checkout, and `ship`
+  still never pushes them — see bench's 🚨 by `FAMILY` for the three-list split.
+  `factory` is not named here because `FAMILY` already covers it: it is on the
+  ship chain, being the one repo that HOLDS a lock (`factory → snug`) rather
+  than only being pinned by one.
 - **A missing checkout and an unswept repo look identical in the output**, so
   `docs-since` warns loudly for both (`no checkout at …`, and either
   `first sweep — no watermark, reading its FULL history` or `watermark … is gone

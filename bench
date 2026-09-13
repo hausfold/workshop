@@ -134,13 +134,18 @@ ensure_nix_path
 # scruff commit is invisible to this machine until haus's lock moves, exactly
 # like every other edge here.
 #
+# factory sits before haus for a reason none of the others has: it is the only
+# entry that HOLDS a lock of its own (`factory → snug`), so the walk has to reach
+# it before the repo that pins IT, or the ripple bumps haus's factory pin at a
+# factory HEAD that hasn't taken the new snug yet.
+#
 # FAMILY entries are REPO names, and `repo_dir` is the only thing that turns one
 # into a directory. Every entry maps straight to `$ROOT/<name>`: both org renames
 # — `hausfold/hausfold` → `hausfold/haus` (2026-08-11, decision 9) and
 # `hausfold/holt` → `hausfold/scruff` (2026-08-27) — moved the checkout too, so
 # no family arm survives in `repo_dir`. Its arms are the two names that are not
 # directories under ROOT at all: `consumer` and `workshop`.
-FAMILY=(nebelung pounce perch scruff haus)
+FAMILY=(nebelung pounce perch scruff factory haus)
 
 # 🚨 FAMILY is NOT "the repos with a flake input", and since trill it never was.
 # Three questions live in three lists here and they answer differently:
@@ -170,12 +175,23 @@ FAMILY=(nebelung pounce perch scruff haus)
 # on PATH, and its lock edge has to ripple. bench still does not walk it: it
 # lands through its own PRs. OVERRIDABLE + EDGES + DOCS_REPOS, not here.
 #
-# `factory` is the THIRD, and by now the shape needs no argument: the unattended
-# merge tool the layer ships on PATH beside scruff, an input and a lock source,
-# landing through its own PRs. OVERRIDABLE + EDGES + DOCS_REPOS, not here. Its
-# own night shift is what makes the distinction load-bearing rather than tidy —
-# a repo in FAMILY is one `bench ship` PUSHES, and pushing the tool that decides
-# what may merge is not something this verb should be able to do by accident.
+# `factory` arrived on that same footing and left it again, and WHY is the line
+# worth keeping: it is the only repo outside the spine that HOLDS a lock rather
+# than only being pinned by one. `factory → snug` has no other mover. A repo
+# bench doesn't walk can still be shipped by its own PRs, because a human wrote
+# the change and knows it's there; a LOCK nobody walks just rots, and the only
+# way to move it was `nix flake update snug` by hand in factory, a commit, and a
+# push — every time snug landed anything. That is the manual ripple this whole
+# script exists to delete, and it was being asked for once a week.
+#
+# The old argument against was that `bench ship` PUSHES a FAMILY repo, and
+# pushing the tool that decides what may merge shouldn't be something a verb
+# does by accident. It doesn't survive contact: bench only ever pushes commits
+# that are already committed in that checkout, it refuses a dirty tree, and it
+# refuses a diverged one. factory's AUTHORITY was never in the repo anyway —
+# `~/.config/factory/config.json` and the lease file are machine-local, and no
+# push moves either. So factory is FAMILY: walked, bumped, pushed, warned about
+# like the rest. trill and snug stay out, because neither holds a lock.
 
 # The org every checkout here came from, since the 2026-08-09 transfer. Pair it
 # with `gh_repo` below: a checkout's directory name is not always its repo name,
@@ -774,39 +790,40 @@ EDGES=(
   "haus scruff scruff"
   "haus trill trill"
   "haus snug snug"
-  # ⚠️ The only edge whose HOLDER bench does not walk. factory is a lock SOURCE,
-  # not a FAMILY repo, so `cmd_ship`'s `for name in FAMILY consumer` never
-  # reaches it and this pin moves in factory's own pull request, never here.
-  # It is in the array anyway because `bench status` reads EDGES whole, and
-  # reporting a pin that has fallen behind is the entire value: scruff's own
-  # snug pin sat three weeks stale drawing a mark snug had already deleted, and
-  # nothing in the family was looking. `walked_holder` is what keeps the row from
-  # telling you to run a verb that cannot fix it, and what keeps `ship_scope`
-  # from growing through it.
+  # The one edge whose holder is neither the layer nor the machine — and the
+  # reason factory is in FAMILY rather than on trill's and snug's footing. It
+  # used to be the row bench reported and no verb could fix, so the pin moved by
+  # hand (`nix flake update snug`, commit, push) every time snug landed. Now
+  # `cmd_ship` reaches factory like any other holder, which is also why FAMILY
+  # lists it BEFORE haus: the bump has to land in factory's HEAD before haus's
+  # factory pin is read.
   #
-  # `bench try` does not reach it either: it overrides `<layer-input>/snug`, i.e.
-  # snug as haus sees it, and factory's flake resolves its own snug input — so a
-  # snug worktree is felt through haus's bash callers and not through factory's.
-  # Feel a snug change in factory from factory's own checkout.
+  # ⚠️ `bench try` still does not reach it: it overrides `<layer-input>/snug`,
+  # i.e. snug as haus sees it, and factory's flake resolves its own snug input —
+  # so a snug worktree is felt through haus's bash callers and not through
+  # factory's. Feel a snug change in factory from factory's own checkout.
   #
   # ⚠️ haus does not add `inputs.factory.inputs.snug.follows` today, and that is
   # an OPEN question rather than a settled one. Without it, haus's snug and
   # factory's can pin different revs and the machine carries two `share/ui.sh` —
-  # `haus` and `factory` painting from different palettes on the same screen,
-  # which this row is what surfaces. With it, one palette is guaranteed and this
-  # row stops describing what the machine builds: factory's own pin would then
-  # only be what a standalone `nix run github:hausfold/factory` gets. Decide it
-  # here, in one place, rather than discovering it from a screen.
+  # `haus` and `factory` painting from different palettes on the same screen.
+  # Shipping now closes that window in one command instead of leaving it open
+  # until someone notices, but it does not close the question: with `follows`,
+  # one palette is guaranteed and factory's own pin would only be what a
+  # standalone `nix run github:hausfold/factory` gets — which factory's AGENTS.md
+  # says is a first-class way to run it. Decide it here, in one place, rather
+  # than discovering it from a screen.
   "factory snug snug"
   "haus factory factory"
   "consumer @layer haus"
 )
 
-# The lock SOURCES that aren't in FAMILY — trill, snug and factory (see the 🚨
-# block by FAMILY for why none of them is there). Derived from EDGES rather than
-# typed out, so it cannot drift from the graph it describes: a hand-kept fourth
-# list is the thing this whole comment is trying to stop happening again, and
-# each of snug and factory cost this line a word rather than an edit.
+# The lock SOURCES that aren't in FAMILY — trill and snug (see the 🚨 block by
+# FAMILY for why neither is there, and why factory left). Derived from EDGES
+# rather than typed out, so it cannot drift from the graph it describes: a
+# hand-kept fourth list is the thing this whole comment is trying to stop
+# happening again, and factory moving onto the ship chain cost this line nothing
+# at all — it simply stopped answering to the derivation.
 #
 # What it's for: every place that has to be true of a repo whose HEAD a lock
 # POINTS AT, as opposed to a repo bench manages. The ship chain's
@@ -829,6 +846,13 @@ unset _edge _holder _input _source _found _name
 # LOCK_ONLY repo is reported and never bumped. Asked here rather than spelled as
 # a list, because the answer IS that loop and a second copy of it would be one
 # more thing to keep in step.
+#
+# ⚠️ It answers YES for every holder in EDGES today — factory was the one that
+# didn't, and it is in FAMILY now. So the callers' false branches are unreached,
+# and they are kept rather than deleted: what they exist for is the next edge
+# whose holder isn't on the ship chain, and a status row that tells you to run a
+# verb which cannot fix it is worse than one that says so. Don't "simplify" this
+# to `return 0`.
 walked_holder() {
   local n
   for n in "${FAMILY[@]}" consumer; do [ "$n" = "$1" ] && return 0; done
@@ -1686,6 +1710,9 @@ cmd_status() {
       ui_trow "$mark" "$label" "$state" "$have_c" "${want:0:7}"
       stale=1
     else
+      # Unreached today — every holder in EDGES is walked (see walked_holder's
+      # ⚠️) — and correct the moment one isn't.
+      #
       # Both shapes land here, and the STATE still has to be told apart even
       # though the fix is one: OFF-MAIN means the pin stops resolving the day
       # that branch is deleted, which is news whoever fixes it needs. What is
@@ -2219,9 +2246,14 @@ cmd_try_batch() {
 # prints haus, trill, consumer (trill's position is cosmetic: it isn't in
 # FAMILY, so the walk never pushes it — only haus's lock for it moves).
 #
-# The closure grows only through holders cmd_ship actually walks. `factory snug
-# snug` is the one edge that fails that test, so `ship_scope snug` is haus, snug,
-# consumer and not haus, snug, factory, consumer — see the 🚨 in the loop.
+# The closure grows only through holders cmd_ship actually walks, which since
+# factory joined FAMILY is every holder in EDGES. `ship_scope snug` is therefore
+# factory, haus, snug, consumer — the WALK order above, not the dependency order
+# the ripple runs in (snug → factory → haus → consumer, which is how the docs
+# say it). snug trails the two holders that consume it because it is LOCK_ONLY
+# and this loop prints FAMILY first; cmd_ship reaches it in its own
+# fast-forward pass, before any bump. Two hops where there used to be one and a
+# note telling you to do the other by hand.
 ship_scope() {
   local -a set=("$@")
   local grew=1 edge holder input source n m hit
@@ -2233,16 +2265,20 @@ ship_scope() {
       [ -n "$hit" ] || continue
       hit=""; for n in "${set[@]}"; do [ "$n" = "$holder" ] && { hit=1; break; }; done
       [ -n "$hit" ] && continue
-      # 🚨 A holder cmd_ship never walks joins nothing. Adding it would buy one
-      # line of printed scope and cost a bump nobody asked for: membership here
-      # is also read as "this repo's work is in scope", and the bump loop then
-      # matches every OTHER edge in a walked repo whose source is that name. So
-      # `bench ship snug` — which cannot touch factory's own snug pin — would
-      # ALSO run `nix flake update factory` in haus and carry every factory
-      # commit on main into the next rebuild. That is exactly what the loop's
-      # own comment forbids: bumping a bystander edge in the same repo ships
-      # work nobody named. Naming the repo outright still puts it in the set,
-      # because `set` starts as the arguments.
+      # 🚨 A holder cmd_ship never walks joins nothing — the guard is still here
+      # even though no edge trips it today, because the alternative is a scope
+      # that grows through a repo the walk then skips: every downstream of it
+      # would be bumped against a HEAD that never moved, and the ripple would
+      # report shipped having pinned the old rev.
+      #
+      # It USED to exclude `factory snug snug`, and the cost of that exclusion
+      # was the point: `bench ship snug` stopped at haus, and factory's own snug
+      # pin stayed where it was until someone updated it by hand. Membership
+      # DOES also mean "this repo's work is in scope" — so `bench ship snug` now
+      # bumps haus's factory pin too, carrying whatever else is on factory's
+      # main. That is the same bargain every other edge here makes, and the
+      # alternative was an edge no verb could move. Naming the repo outright
+      # still puts it in the set, because `set` starts as the arguments.
       walked_holder "$holder" || continue
       set+=("$holder"); grew=1
     done
@@ -2310,9 +2346,10 @@ cmd_ship() {
   #
   # "${LOCK_ONLY[@]}" is why this loop is not just FAMILY: a repo whose HEAD an
   # edge READS has to be current here for exactly the reason above, whether or
-  # not bench walks it otherwise. trill, snug and factory are those repos, and
-  # they are the likeliest to be behind — none is on the ship chain, so nothing
-  # else in this verb ever touches their checkouts.
+  # not bench walks it otherwise. trill and snug are those repos, and they are
+  # the likeliest to be behind — neither is on the ship chain, so nothing else in
+  # this verb ever touches their checkouts. snug is also the one whose freshness
+  # a SECOND holder now depends on: factory's pin is bumped from this HEAD.
   for name in "${FAMILY[@]}" "${LOCK_ONLY[@]}" consumer; do
     ship_in_scope "$name" || continue
     local dir; dir="$(repo_dir "$name")"
@@ -2478,15 +2515,17 @@ cmd_pull() {
   # want a fresh local checkout: `bench status` diffs them, and a stale
   # homebrew-tap clone hides cask/formula bumps CI already pushed (the
   # "released but not installed" trap). Superset of cmd_ship's repo set.
-  # trill, snug, factory + hausfold.co ride along too: bench plants all four
-  # checkouts (cmd_clone) and the docs sweep reads all four (DOCS_REPOS), so a
-  # stale local copy makes the sweep reconcile yesterday's tree — and hausfold.co
-  # is the one repo here whose deploys happen on push, so stale there is a
-  # live-site footgun. All four stay out of FAMILY, but no longer for one reason:
-  # trill, snug and factory ARE flake inputs (see the 🚨 by FAMILY), so a stale
-  # checkout of any of them also makes `bench status` read a behind HEAD and call
-  # a landed rev unshipped. hausfold.co is the only one here with no flake edge
-  # at all.
+  # trill, snug + hausfold.co ride along too: bench plants all three checkouts
+  # (cmd_clone) and the docs sweep reads all three (DOCS_REPOS), so a stale local
+  # copy makes the sweep reconcile yesterday's tree — and hausfold.co is the one
+  # repo here whose deploys happen on push, so stale there is a live-site
+  # footgun. All three stay out of FAMILY, but no longer for one reason: trill
+  # and snug ARE flake inputs (see the 🚨 by FAMILY), so a stale checkout of
+  # either also makes `bench status` read a behind HEAD and call a landed rev
+  # unshipped. hausfold.co is the only one here with no flake edge at all.
+  # factory was the fourth name on this line until it joined FAMILY, where the
+  # expansion above now picks it up — adding it back would pull one checkout
+  # twice.
   #
   # It is spelled `hausfold.co`, and it must stay spelled in full. Between
   # §3.3's step 4 and §10 the layer's checkout was `$ROOT/hausfold`, one dot
@@ -2503,7 +2542,7 @@ cmd_pull() {
   # reads it, and a stale checkout makes the sweep reconcile yesterday's
   # register while reporting it clean. `bench clone` plants it on the same
   # terms.
-  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug factory hausfold.co ops consumer)
+  local -a repos=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug hausfold.co ops consumer)
   # `bench pull <repo>…` narrows to the named repos (what `bench status`'s
   # ↓-behind hint points you at); bare `bench pull` fast-forwards them all.
   local named=""
@@ -3066,8 +3105,8 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # two repos that carry docs without carrying a lock edge, and `ops`.
 #
 # 🚨 This list is NOT `FAMILY` plus trimmings, and must not be rewritten as one.
-# `trill`, `snug`, `factory` and `hausfold.co` are deliberately outside `FAMILY`
-# — but all four have a README, in-repo docs
+# `trill`, `snug` and `hausfold.co` are deliberately outside `FAMILY` — but all
+# three have a README, in-repo docs
 # and a live audience, so a sweep that skips them reports their docs clean for
 # as long as the omission lasts — silently, because a repo with no arm looks
 # exactly like a repo with nothing to say. trill was in that state from its
@@ -3081,10 +3120,11 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # this list keeps only its own. snug arrived (2026-08-27) already on trill's
 # footing — overridable, a lock source, not FAMILY — and is here because its
 # AGENTS.md and README ARE the presentation standard now: they carry both what a
-# line looks like and how it is DRAWN. factory is on that same footing and is here because its
-# README is the night shift's whole manual — there is no second half in this
-# repo's docs/ any more, so a sweep that skipped factory would be skipping the
-# only document there is. hausfold.co is unchanged: no flake input at all.
+# line looks like and how it is DRAWN. factory used to be named here on that
+# same footing; it is in FAMILY now and the expansion above covers it, which
+# changes nothing about the sweep — its README is still the night shift's whole
+# manual, there being no second half in this repo's docs/ any more. hausfold.co
+# is unchanged: no flake input at all.
 #
 # 🔒 `ops` is the PRIVATE one, and it is in this list on a ONE-WAY basis: the
 # sweep reconciles the files in it, and may never carry a line out of it into a
@@ -3094,7 +3134,7 @@ DOCS_STATE="$ROOT/.docs-sync.json"
 # list reads. A bare `bench pull` skips it without a word on a machine that has
 # no access to it; `bench pull ops` there says so, because a repo you named
 # doing nothing quietly reads as a pull that worked.
-DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug factory hausfold.co ops)
+DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap trill snug hausfold.co ops)
 
 # Two watermarks per repo, and the GAP between them is the whole point:
 #
@@ -3348,17 +3388,23 @@ cmd_clone() {
     fi
   done
 
-  # trill, snug, factory and hausfold.co are the odd ones out: same org as
-  # everything above, none of them in FAMILY, so `bench status`/`ship` never walk
-  # their git state. That is a different question from being a flake input, which
-  # the first three all are — inputs of the layer and lock SOURCES both (the 🚨
-  # by FAMILY is the whole argument). What that means HERE is that those three
-  # clones are load-bearing beyond the docs sweep: EDGES points haus's lock at
-  # `$ROOT/trill`, `$ROOT/snug` and `$ROOT/factory`, so a machine missing one
-  # gets a `?` rev on that edge rather than a ripple. hausfold.co is the plain
-  # case — no flake edge, cloned only because the docs sweep reads it
-  # (DOCS_REPOS), and a repo the sweep can't open is a blind spot it reports as
-  # clean.
+  # trill, snug and hausfold.co are the odd ones out: same org as everything
+  # above, none of them in FAMILY, so `bench status`/`ship` never walk their git
+  # state. That is a different question from being a flake input, which the first
+  # two are — inputs of the layer and lock SOURCES both (the 🚨 by FAMILY is the
+  # whole argument). What that means HERE is that those two clones are
+  # load-bearing beyond the docs sweep: EDGES points haus's lock at `$ROOT/trill`
+  # and `$ROOT/snug`, so a machine missing either gets a `?` rev on that edge
+  # rather than a ripple. hausfold.co is the plain case — no flake edge, cloned
+  # only because the docs sweep reads it (DOCS_REPOS), and a repo the sweep can't
+  # open is a blind spot it reports as clean. factory is planted by the loop
+  # above instead, FAMILY covering it — which also moves it onto that loop's
+  # stricter terms, where a failed clone is fatal rather than a warning. That
+  # follows from membership and nothing else: a missing factory is no worse to
+  # READ than a missing trill (both give a `?` rev on their edge), and the cost
+  # of the stricter loop is that a flaky clone there stops the bootstrap before
+  # trill, snug, hausfold.co and ops are planted. Re-running is the whole fix —
+  # every arm here is idempotent — so it is not worth a third loop.
   #
   # 🚨 It goes at $ROOT/hausfold.co, and the full spelling is the point. The
   # directory is named for its repo, which is the rule §3.1 settled. Shorten it
@@ -3382,7 +3428,7 @@ cmd_clone() {
   # credentials and will fail loudly on a machine or container without them.
   # That warn is correct. A sweep that silently skips it reports the register
   # clean forever.
-  for name in trill snug factory hausfold.co ops; do
+  for name in trill snug hausfold.co ops; do
     local dir; dir="$(repo_dir "$name")"
     if [ -d "$dir/.git" ]; then
       say "$name already here"

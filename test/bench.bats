@@ -476,6 +476,52 @@ JSON
   done
 }
 
+@test "every EDGES holder is one cmd_ship walks, so no lock can only move by hand" {
+  # The regression this exists for ran for weeks: `factory snug snug` was held
+  # by a repo outside FAMILY, so no verb re-pinned it — `bench status` reported
+  # the edge STALE and the only fix was `nix flake update snug` in factory, a
+  # commit and a push, by hand, every time snug landed. An edge whose holder the
+  # walk never reaches is a manual ripple with a warning attached.
+  #
+  # walked_holder's false branches stay (a future edge may legitimately be held
+  # by a repo bench doesn't push) — but adding one is a decision, and this is
+  # where it gets made rather than discovered off a status screen.
+  local edge holder input source
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    walked_holder "$holder" \
+      || { echo "EDGES holder '$holder' is not on the ship chain — '$edge' can only be bumped by hand"; return 1; }
+  done
+}
+
+@test "the ship walk is in dependency order — a holder never precedes its source" {
+  # cmd_ship bumps each holder's lock from the SOURCE's local HEAD, in the order
+  # `FAMILY consumer` lists them, so a holder walked before its source pins the
+  # rev that source had before this run touched it — and the run still prints
+  # "shipped". factory before haus is the live case: factory's snug bump has to
+  # land in factory's HEAD before haus's factory pin is read.
+  #
+  # This is a FORWARD guard, not a revert test — it fails on `… haus factory`
+  # and passes on a factory that has left FAMILY entirely, because the edge then
+  # has neither endpoint in the walk. The test above is what catches that.
+  local -a walk=("${FAMILY[@]}" consumer)
+  local edge holder input source n hi si i
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    hi=-1 si=-1 i=0
+    for n in "${walk[@]}"; do
+      [ "$n" = "$holder" ] && hi=$i
+      [ "$n" = "$source" ] && si=$i
+      i=$((i + 1))
+    done
+    # Sources outside the walk (trill, snug) are fast-forwarded in their own
+    # loop before any bump, so they have no position to compare.
+    [ "$si" -ge 0 ] && [ "$hi" -ge 0 ] || continue
+    [ "$si" -lt "$hi" ] \
+      || { echo "walk order puts holder '$holder' at or before its source '$source'"; return 1; }
+  done
+}
+
 @test "a lock source that bench does not walk is overridable, or bench try lies about it" {
   # `bench try` from a worktree of an EDGES source has to be able to redirect
   # that input, or it silently builds the PINNED repo while announcing your
@@ -568,26 +614,39 @@ JSON
 
 @test "ship_scope never emits a repo twice, however many named seeds converge on it" {
   # scruff and snug both ripple through haus; haus and consumer must appear once.
+  # snug reaches haus by two routes now — directly, and through factory's own
+  # pin — which is exactly the shape that would print a name twice.
   run ship_scope scruff snug
-  [ "$output" = $'scruff\nhaus\nsnug\nconsumer' ]
+  [ "$output" = $'scruff\nfactory\nhaus\nsnug\nconsumer' ]
 }
 
-@test "ship_scope does not grow through a holder cmd_ship never walks" {
-  # `factory snug snug` is that edge: factory holds a lock on snug and is a lock
-  # SOURCE rather than a FAMILY repo, so cmd_ship's `for name in FAMILY consumer`
-  # never reaches it. Adding it to the scope would buy one printed line and cost
-  # a bump nobody asked for — membership is also read as "this repo's work is in
-  # scope", so `bench ship snug` would go on to run `nix flake update factory`
-  # in haus and carry every factory commit on main into the next rebuild.
+@test "ship_scope grows through factory, so shipping snug moves factory's own pin" {
+  # `factory snug snug` is the edge no verb could move while factory sat outside
+  # FAMILY: `bench ship snug` stopped at haus and left factory pinning the old
+  # snug until someone ran `nix flake update snug` in it by hand. factory is on
+  # the ship chain now, so the closure runs snug → factory → haus → consumer.
   run ship_scope snug
-  [ "$output" = $'haus\nsnug\nconsumer' ]
+  [ "$output" = $'factory\nhaus\nsnug\nconsumer' ]
+}
+
+@test "ship_scope walks factory before haus, or the ripple pins a stale factory" {
+  # Order is not cosmetic here: cmd_ship bumps haus's factory pin from factory's
+  # local HEAD, so factory has to have taken its own snug bump first. Every
+  # emitted name is FAMILY's order, which is where the constraint is written.
+  run ship_scope snug
+  local out="$output"
+  [[ "$out" == *factory* ]]
+  local fi hi
+  fi=$(printf '%s\n' "$out" | grep -n '^factory$' | cut -d: -f1)
+  hi=$(printf '%s\n' "$out" | grep -n '^haus$' | cut -d: -f1)
+  [ "$fi" -lt "$hi" ]
 }
 
 @test "ship_scope still reaches a repo named outright, walked or not" {
-  # The skip above is about GROWING the closure, not about the arguments: naming
-  # factory is how you ship haus's lock for it, and that has to keep working.
+  # The guard in the loop is about GROWING the closure, not about the arguments:
+  # naming a repo puts it in the set whether or not any edge would have.
   run ship_scope factory
-  [ "$output" = $'haus\nfactory\nconsumer' ]
+  [ "$output" = $'factory\nhaus\nconsumer' ]
 }
 
 @test "ship_in_scope lets everything through when no repos were named" {
