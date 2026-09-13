@@ -229,9 +229,10 @@ spread.
 sitting behind `nixbuild/nix-quick-install-action` — one of the three
 installers that action documents itself as compatible with, and the fastest of
 them to land: about a second, against the eight or nine `scruff` and `snug`
-pay for `DeterminateSystems/nix-installer-action` — on Linux. That figure
-does not travel to a Mac, where the same action is ~65s; *No third-party
-runner fleet* below has the breakdown.
+pay for `DeterminateSystems/nix-installer-action` — on Linux. Neither figure
+travels to a Mac, and Determinate's is ~65s on one; *No third-party runner
+fleet* below has the breakdown, and nobody has measured quick-install there at
+all.
 
 The key is `flake.lock` plus every `*.nix`, so a lock bump or a module edit
 pays full price and nothing else does. On haus that key sits behind a
@@ -388,12 +389,19 @@ moves.
 It is **not** on the repos that build their own Swift on a Mac. There the
 expensive derivation is the one whose source just changed, so a restore buys
 the dependencies and nothing else, and a large `/nix` restore on a macOS runner
-can cost more than it saves. `pounce` is the measured case, and it clears by
-more than the argument claimed: those dependencies are 104 MiB, which
-`cache.nixos.org` substitutes in ~3s of a 215s job, and neither the ~65s
-installer nor the ~28s of flake resolution in front of them is in `/nix` at all.
-The most a store cache could reach there is under 2% of that gate. *No
-third-party runner fleet*, below.
+can cost more than it saves. `pounce` is the measured case and settles the
+derivations half of it outright: what `cache.nixos.org` substitutes there is
+104 MiB in ~3s of a 215s job, and no restore is cheap enough to beat 3s.
+
+⚠️ **3s is a floor on what a warm store would remove, not a ceiling.** A locked
+flake input's source tree is a store path like any other, so an unmeasured part
+of the ~28s of flake resolution in front of that substitution is restorable
+too — while nix's eval cache, which is not in `/nix`, is not. What is certainly
+outside a restore is the ~65s installer, and adding a cache here would have to
+move that number as well: `cache-nix-action` sits behind
+`nix-quick-install-action`, whose cost on a macOS runner nobody has measured.
+So the answer for pounce is still no and the question is now sharper rather
+than closed. *No third-party runner fleet*, below, has the breakdown.
 
 `scruff` and `snug` run Linux `nix` jobs and are the case that had to be
 measured rather than reasoned about. Neither has one. scruff's job is
@@ -439,7 +447,7 @@ compiler:
 | set up + checkout | 4s | 2% |
 | `DeterminateSystems/nix-installer-action` | 65s | 30% |
 | `nix build` — flake resolution and fetching the inputs | 28s | 13% |
-| `nix build` — substituting the darwin stdenv, 104 MiB | 3s | 2% |
+| `nix build` — substituting the darwin stdenv, 104 MiB | 3s | 1% |
 | **`nix build` — one `xcrun swiftc -O` over every source file** | **102s** | **47%** |
 | `nix build` — fixup and the small command derivations | 5s | 2% |
 | post and cleanup | 5s | 2% |
@@ -451,8 +459,9 @@ encrypted APFS volume for `/nix` on a VM with three minutes to live, ~7s
 creating thirty-two build users, **22.3s configuring Time Machine exclusions**
 — 22.2 to 22.4s across all eight runs, so a fixed cost rather than load, and
 nothing in the action's inputs exposes it — and ~20s for the daemon, the
-shell hooks and three self-tests. Everything after it, the entire darwin
-toolchain, arrives in ~3s.
+shell hooks and three self-tests. The darwin stdenv under it arrives in ~3s,
+and the compiler itself is the runner image's Xcode CLT, reached through
+`xcrun` and never built.
 
 The compile under that is one `/usr/bin/xcrun swiftc` over `*.swift` with `-O`
 (`pkgs/pounce/build.sh`): a single module, so nothing about it is incremental
@@ -467,7 +476,7 @@ in the job whose length is about pounce's own source.
 | set up, checkout, `xcodebuild -version` | 9s | 5% |
 | **`Test` — Debug compile of the target graph** | **70s** | **39%** |
 | `Test` — `xcodebuild` bringing the test host up | 21s | 12% |
-| `Test` — the tests executing | 6s | 3% |
+| `Test` — the tests executing, and the results written | 8s | 4% |
 | `Analyze` — incremental off the Debug `DerivedData` | 8s | 4% |
 | **`Release build` — the same sources, from nothing** | **51s** | **28%** |
 | the three guards on the Release bundle | 9s | 5% |
@@ -480,8 +489,8 @@ starting the test host before the first test runs, the figure
 **twice**: `Analyze` is nearly free because the three steps share one
 `-derivedDataPath` and it reads what `Test` already built, while `Release build`
 shares nothing with either — its own `SwiftDriver`, `SwiftCompile`, `Ld` and
-`GenerateDSYMFile` for all three targets. 121s of the 182s is `swiftc`, and 51s
-of that is the second configuration.
+`GenerateDSYMFile` for all three targets. 121s of the 182s is compiling and
+linking, and 51s of that is the second configuration.
 
 **So the verdict stands, and its reason is measured rather than inferred.** An
 x86-64 fleet can take none of the above. Not the compiles, which are `swiftc`
@@ -494,8 +503,9 @@ seconds, spread over three jobs that are not the gate in any run. That is the
 
 ⚠️ **It is also not all Xcode, and "irreducible" is a claim about steps that
 only one of these two supports.** pounce's pole is one installer and one
-`nix build`, and a single `swiftc` call does not divide — there is no boundary
-in it to find. perch's has one, and it is rule 5's kind rather than a step
+`nix build`, and one `swiftc` call does not divide into two jobs — there is no
+boundary in it for rule 5 to find, whatever levers the invocation itself may
+still have. perch's has one, and it is rule 5's kind rather than a step
 count: `Test` and `Analyze` share a Debug `DerivedData`, `Release build` and
 the three guards share the Release bundle, and nothing crosses. Split there and
 the arithmetic off these means is a ~119s job beside a ~71s one against today's
@@ -506,6 +516,13 @@ macOS runner on every PR, and it belongs in a perch PR that runs it both ways
 and reads the numbers back. It is named here because rule 5 asks you to say
 which job was the gate before and which is after, and perch is the repo where
 that question now has an answer.
+
+⚠️ **Two carries these numbers will not take.** pounce was measured on
+`macos-15` and perch on `macos-26`, and the installer figure above belongs to a
+runner image as much as to an action — re-read it rather than moving it. And
+`trill`'s gate is the same Xcode test + analyze + Release shape as perch's on
+the same kind of runner, so the double compile is very likely there too; it is
+**unmeasured**, and the boundary above is a claim about perch's jobs only.
 
 **No hosted binary cache.** Cachix's open-source tier and FlakeHub Cache would
 both beat the GitHub cache on a cold store, and both mean an account, a token

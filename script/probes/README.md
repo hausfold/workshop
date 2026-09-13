@@ -477,9 +477,11 @@ Measured 2026-09-12, the day the cache first saved:
   though its nixpkgs rev not once) and the step change would be a nixpkgs bump
   unioning a second stdenv onto the first. nebelung, whose lock did not move at
   all in those 90 days, is not in the same position;
-- **the family runs two Nix installers 8s apart.** `nix-quick-install-action`
-  lands in about a second on haus and nebelung;
+- **the family runs two Nix installers 8s apart, on Linux.**
+  `nix-quick-install-action` lands in about a second on haus and nebelung;
   `DeterminateSystems/nix-installer-action` takes 8-9s on scruff and snug.
+  Neither figure travels to a macOS runner — see *The two macOS poles* below,
+  where the same Determinate action is 65s.
 
 Measured again 2026-09-12, after haus split its nix half into three jobs with a
 cache key each:
@@ -540,7 +542,9 @@ for id in $runs; do
 done
 ```
 
-Measured 2026-09-13, the last eight completed `pull_request` runs of each:
+Measured 2026-09-13, the last eight completed `pull_request` runs of each.
+pounce's pole ran on `macos-15`, perch's on `macos-26`; the installer figure
+below belongs to a runner image as much as to an action:
 
 - **the pole is one job in each repo, and it is never in doubt.** pounce's
   `nix build (aarch64-darwin)` ran 175-248s (215s mean) against a 35-49s Swift
@@ -577,15 +581,22 @@ Measured 2026-09-13, the last eight completed `pull_request` runs of each:
   against today's 182s, with the 74s iOS job next in line. ⚠️ That is
   arithmetic off these means and not a measurement — it wants a second macOS
   runner per PR and a perch PR that runs it both ways. pounce's pole is one
-  installer and one `nix build`: nothing to cut.
+  installer and one `nix build`: nothing to cut. ⚠️ `trill`'s gate is the same
+  test + analyze + Release shape on the same kind of runner and is
+  **unmeasured** — the boundary is a claim about perch's jobs, not about the
+  shape wherever it appears.
 
-**This answers the macOS half of the question the sections above left open**,
-in the direction that closes it rather than opens it. No repo caches a store on
-a macOS runner, and pounce is the only one that could: everything a `/nix`
-entry would hold there is the 104 MiB it substitutes in ~3s, while the 65s
-installer and the 28s of flake resolution sit outside `/nix` entirely. There is
-no restore cheap enough to beat 3s, so what a restore *costs* on a macOS runner
-stays unmeasured and stops being a question this family needs answered.
+**This narrows the macOS half of the question the sections above left open.**
+No repo caches a store on a macOS runner, and pounce is the only one that
+could. The substitution a warm entry would replace there is 104 MiB in ~3s, and
+no restore beats 3s — that half is settled. ⚠️ But 3s is a floor, not a
+ceiling: a locked flake input's source tree is a store path too, so an
+unmeasured part of the 28s of flake resolution in front of it is restorable as
+well, while nix's eval cache, which lives outside `/nix`, is not. And the 65s
+installer would itself have to move, since `cache-nix-action` sits behind
+`nix-quick-install-action` and nobody has measured that installer on a Mac. The
+answer for pounce is still no; what a restore *costs* on a macOS runner is
+still open, and so now is what quick-install costs there.
 
 ⚠️ The run spreads here are wall clock as GitHub recorded it, same as section 1.
 The shares are stable — Time Machine is 22.3s ±0.1s across eight runs — but the
