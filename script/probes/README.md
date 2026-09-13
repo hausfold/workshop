@@ -443,8 +443,10 @@ Evidence for [`docs/ci.md`](../../docs/ci.md)'s *The Nix store cache*, which put
 whether scruff's and snug's `nix` jobs earn one too, and whether the store
 creeps toward GitHub's 10 GB per-repo ceiling. Three sections per repo, all out
 of the GitHub API and none of it guessed: job wall clock over the last N runs,
-the step breakdown of whichever job actually runs nix, and the cache entries the
-repo is holding with their real sizes.
+the step breakdown of whichever job actually runs nix — each nix step split
+again into evaluate / substitute / build, because a restore replaces the
+substitute row outright and the build row only where the change left the inputs
+alone — and the cache entries the repo is holding with their real sizes.
 
 Measured 2026-09-12, the day the cache first saved:
 
@@ -461,11 +463,12 @@ Measured 2026-09-12, the day the cache first saved:
 - **scruff: no.** Its `nix` job is 28s (8s installer, 13s `vendorHash`) beside a
   138s macOS test job in the same run. Even a free restore takes nothing off
   that gate;
-- **snug: no, and it is the closer call.** Its `nix` job is 41s and *is* the
-  longest in its run — but 9s is the installer, 12s is 216 MiB fetched from
-  `cache.nixos.org`, and the rest builds the two derivations the source change
-  just invalidated. A 35s-class restore replacing a 12s CDN fetch is a slower
-  gate;
+- **snug: no, and it looked like the closer call.** Its `nix` job is 41s and
+  *is* the longest in its run; 9s of that is the installer and the rest is one
+  `nix build` step that fetches 216 MiB from `cache.nixos.org` and then builds
+  the two derivations the source change just invalidated. How those seconds
+  divide inside the step is the 2026-09-13 measurement below, and it is what
+  settles the verdict;
 - **the store creeps, and faster than it looks.** `purge` holds each repo to
   one store entry per ref — sweeping after the save, not before — so what grows
   is that single entry: haus's first six saves went 472, 507, 514, 546, 576,
@@ -538,13 +541,54 @@ timestamps of run 34741464030's own job logs for everything below job level:
   inside it varies. `draw` is a ~31s job without it, which changes no decision
   here — `rooms` is what `agents` is measured against either way.
 
+Measured 2026-09-13, splitting snug's `nix build` at its own log's phase
+boundaries — 11 runs, 8 on `main` and 3 on PR branches, the split stable across
+all of them:
+
+- **snug: no, by 13s at best and ~29s typically, and the closeness was an
+  artifact.** The step divides into 6.5-14.2s evaluating nixpkgs, **2.3-3.5s**
+  substituting the 69 paths it needs (215.7 MiB at 60-95 MiB/s), and 12-15s
+  building the two derivations — ~6s of `go build`, ~7s of `go test`. Both take
+  the source as an input, so a source change invalidates both every run and the
+  build row is worth nothing to a restore — the difference from haus, whose
+  checks mostly survive a PR. What is restorable is that 215.7 MiB plus the 46.7
+  MiB nixpkgs `-source` the eval pulls, which is **262 MiB of download, 3-4s of
+  a 41s job**. The entry that would replace it is ~280 MiB — 719.6 MiB of
+  fetched paths unpacked plus the source's 202.8 MiB `NarSize` is ~922 MiB of
+  nar, at the 0.30 nar-to-entry ratio both cached repos show — which is below
+  where the flat-restore fit reaches, so the honest comparison is the measured
+  pair around it: 17s at nebelung's cheapest, 32.4s on haus. **17 − 3.5 = 13.5s
+  the wrong way on the best case, ~29s on the typical one**;
+- **the 12s was never the fetch.** It is `go build` plus `go test`, read off a
+  step named `nix build`. What generalises is that job length predicts nothing
+  about the restorable part — not that only downloads are restorable, which
+  would refuse haus its cache, whose whole case is the build row;
+- **scruff's `13s vendorHash` was the same misreading, and its verdict still
+  holds.** That step splits 8.6-11.2s evaluating, 2.1-2.7s substituting the
+  same 216 MiB and ~1s building. Nothing there is worth a restore either, and
+  the job sits beside a two-minute macOS test job regardless;
+- **the lever on snug's gate is not a cache.** `nix-quick-install-action` lands
+  in about a second on haus and nebelung where
+  `DeterminateSystems/nix-installer-action` takes 7-9s here — bigger than
+  anything a cache offers, and it is snug's workflow to change, not this
+  repo's;
+- **the probe prints the split now**, so the next verdict starts from it:
+  section 2 splits every nix step at the markers nix writes into the log, and
+  says which rows a restore replaces. It is still one run, the newest, like the
+  step list it sits under — the eleven-run stability above was eleven logs by
+  hand, and `RUNS=` does not reach section 2. Checked against all four repos and
+  against fixtures for the shapes they do not cover: a warm store reads
+  `nothing fetched`, a step that neither fetched nor built says it has nothing
+  to split, `gh`'s two log shapes (a real step name in field 2, or `UNKNOWN
+  STEP`) both close the last step at the post phase rather than swallowing it,
+  and a build before the fetch plan is attributed to the invocation it belongs
+  to.
+
 haus's answer was still to leave the workflow alone — past the reset its nix
 jobs drop under the same repo's shell jobs, so the seconds a narrower store
 could give back belong to a job nothing there would touch. The method, and why
 a narrower store is not the lever it looks like, is *The Nix store cache* in
-`docs/ci.md`. ⚠️ The snug bullet above reasons from "a 35s-class restore", and
-the scaling here says an entry that size would not be one — that inference is
-retired, not the measurement under it.
+`docs/ci.md`.
 
 Measured 2026-09-13, reconstructing haus's W37 lineages from the run history —
 every saving run logs the entry it uploaded, so the chain of saves rebuilds

@@ -387,14 +387,17 @@ hausfold/<repo>` is the number that counts, and
 themselves move week to week and are not quoted here — `script/probes/README.md`
 carries them, stamped.
 
-**A restore is not free, and that is the whole test**: not whether a job
-builds something, but whether what the restore removes is bigger than the
-restore. haus's entry comes back in ~35s and takes `nix eval` from 55s to 6s
-and `nix flake check` from 57s to 1s. ⚠️ Those are the two numbers a reader
-most often mixes: 55 and 57 are the COLD figures for those steps and are not
-additive with the warm ones, so any re-measure starts by reading the "Restore
-the Nix store" step. 30s-plus means warm; under a second means the key missed
-and everything below it paid full price.
+**A restore is not free, and that is the whole test**: not whether a job builds
+something, but whether what the restore removes is bigger than the restore. What
+it removes is two things: the bytes the job would have fetched — inside an eval
+step as readily as a build step — and the derivations whose inputs the change
+left alone. What it cannot remove is building the thing that just changed.
+haus's entry comes back in ~35s and takes `nix eval` from 55s to 6s and `nix
+flake check` from 57s to 1s. ⚠️ Those are the two numbers a reader most often
+mixes: 55 and 57 are the COLD figures for those steps and are not additive with
+the warm ones, so any re-measure starts by reading the "Restore the Nix store"
+step. 30s-plus means warm; under a second means the key missed and everything
+below it paid full price.
 
 ⚠️ A cold figure also belongs to the JOB it was measured in. `nix flake check`
 reads 37s cold behind a `nix eval` that has already paid for nixpkgs, and 57s
@@ -459,18 +462,32 @@ than closed. *No third-party runner fleet*, below, has the breakdown.
 measured rather than reasoned about. Neither has one. scruff's job is
 ~28s beside a two-minute macOS test job in the same run, so even a free
 restore takes nothing off that gate. snug's ~41s *is* the longest job in its
-run, but only ~12s of it is store to restore — 216 MiB fetched from
-`cache.nixos.org` — and the rest is the installer and the two derivations the
-source change just invalidated, which no cache can hold.
+run, which is the whole argument for caching it — and the argument dies on the
+phase split, because almost none of those seconds are store.
 
-⚠️ The argument for snug that reads best — "against a 35s-class restore that
-is a slower gate" — was retired once for applying a haus-sized restore to a
-snug-sized entry, on the reading that 216 MiB would come back in well under the
-12s of fetch it replaces. The scaling that rested on is itself retired now (see
-the fit above), and it cuts the other way: a restore is ~32s roughly whatever
-the entry weighs, so a 12s CDN fetch is the cheaper half and the original
-verdict stands for a better reason than it was given. Still unmeasured on
-snug's own runner, and still the first thing to re-run the probe against.
+**Split the step before you size the entry.** snug's `nix build` is 6.5-14.2s
+evaluating nixpkgs, **2.3-3.5s** substituting the 69 paths it needs (216 MiB
+from `cache.nixos.org` at 60-95 MiB/s), and 12-15s building two derivations —
+~6s of `go build`, ~7s of `go test`. Both take the source as an input, so the
+source change invalidates both on every run: snug's build row is worth nothing
+to a restore, and that is the whole difference from haus, whose twenty-nine
+checks mostly survive a PR untouched. What is left is the substitute row plus
+the 47 MiB nixpkgs `-source` the eval pulls — **262 MiB of download, 3-4s of a
+41s job**. That source arrives in under a second at the rate the substitute row
+runs at, so the rest of the eval row is evaluation, which no store holds.
+Against those 3-4s stands a restore: 32.4s flat on haus by the fit above, and
+17s at the family's cheapest, nebelung's — the nearest measured point to an
+entry of snug's size, and the one the fit says not to extrapolate past.
+**Thirteen seconds the wrong way on the best case the family has, twenty-nine on
+the typical one.** Across eleven runs, PR and main alike, the substitute row
+stayed inside 2.3-3.5s and the build row inside 11.7-15.4s.
+
+⚠️ **A long job is not evidence of a large restorable part.** snug's is the
+longest in its run and 3-4s of it is restorable, because a step is not a phase:
+`nix build` evaluates, substitutes and builds, and the seconds pile up in the
+two rows a restore cannot hand back. Read the phases, not the step —
+`ci-cache-value.sh` prints them, and labels which row is which.
+
 Measure before adding it anywhere new: `script/probes/ci-cache-value.sh <repo>`.
 
 ## What we deliberately don't do
