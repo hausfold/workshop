@@ -184,15 +184,15 @@ that needs no `bats`; `draw` bats plus snug's `share/ui.sh` at the rev
 them is 58s. That half went 2m28s → 58s and the whole `check` run 2m30s →
 1m43s; the nix half's own split took it down again from there.
 
-Fifty jobs would have been slower than one. Checkout plus `sudo npm install -g
-bats` is about 4s a job, more than most of those suites take to run, and a
-fixed cost like that is what a step is measured against before it earns a job of
-its own: under it, join an existing job. (Four seconds is the tool install
-alone; the whole of what a job costs is nearer ten, and the paragraph below
-this one is the account.) It is not one number across a repo, and on a repo that
-caches its store it is not one number across a week either — haus's nix half
-measures against a cache restore, which scales with what the entry happens to
-be carrying. *The Nix store cache* below.
+Fifty jobs would have been slower than one. A job on a Linux runner costs about
+ten seconds before a step of its own runs — checkout plus `sudo npm install -g
+bats` is about 4s of it, already more than most of those suites take to run —
+and the ten is what a step is measured against before it earns a job of its
+own: under it, join an existing job. *A job costs more than its tool install*,
+below, is the account of the rest. It is not one number across a repo, and on a
+repo that caches its store it is not one number across a week either — haus's
+nix half measures against a cache restore, which scales with what the entry
+happens to be carrying. *The Nix store cache* below.
 
 Count enters in one place only, and as a tiebreaker. `agents` and `rooms` both
 want bats and nothing else, so the cut between them is by subject — the AI room
@@ -209,14 +209,16 @@ alone. A pole five seconds clear of its runner-up has five seconds in it however
 the job is cut; the same pole twenty-five seconds clear has twenty-five. haus's
 `agents` is the worked example and the answer there was no —
 `.github/workflows/check.yml`'s shell-half banner carries that arithmetic, and
-`script/probes/README.md` the stamped figures.
+`script/probes/README.md` the stamped figures. A gap can also be wide enough
+that the question is worth asking and the answer comes out the other way:
+*What those Mac jobs are made of*, below, is the family's other worked example.
 
 Two things that measurement turned up, both of which generalise:
 
-- **A job costs more than its tool install.** Checkout plus `bats` is the ~4s
-  above, but a job also pays queueing, a lead-in before its first step runs,
-  `Set up job`, and a teardown after its last step — about ten seconds all told
-  on a Linux runner, not four. Measure a candidate against the ten.
+- **A job costs more than its tool install.** The rest of the ten above is
+  queueing, a lead-in before the first step runs, `Set up job`, and a teardown
+  after the last one. None of it shows in a step list, which is why the tool
+  install is the number that gets quoted and the wrong one to measure against.
 - **Read the runner-up before you trust it.** A step whose duration repeats to
   within a second across ten runs is a clock rather than a cost. haus had one: a
   stub that sleeps 30 and outlives the test that wanted it, holding the step's
@@ -504,11 +506,13 @@ here are the steps. The shares below are means over eight PR runs of each repo;
 `script/probes/README.md` carries the sample, stamped, and the commands that
 take it again.
 
-Both repos already sit where rule 5 wants them, which is why all of this is
-inside one job each: pounce's other three are a 40s Swift unit-test job on a
-Mac and two Linux jobs at ~12s and ~5s, against a 215s pole; perch's are a 74s
-iOS build and a ~5s Linux job against 182s. Neither pole loses the title in a
-single run of that sample.
+Rule 5's question about the *other* jobs is already answered in both repos.
+pounce's other three are a 40s Swift unit-test job on a Mac and two Linux jobs
+at ~12s and ~5s, against a 215s pole; perch's are a 74s iOS build and a ~5s
+Linux job against 182s. Neither pole loses the title in a single run of that
+sample, so no regrouping out there reaches either gate. Whether the poles
+themselves divide is the other half of rule 5's question, and these two repos
+answer it differently — *It is also not all Xcode*, below.
 
 `pounce` — `nix build (aarch64-darwin)`, 215s mean, and under half of it is a
 compiler:
