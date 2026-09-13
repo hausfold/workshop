@@ -500,6 +500,10 @@ JSON
   # rev that source had before this run touched it — and the run still prints
   # "shipped". factory before haus is the live case: factory's snug bump has to
   # land in factory's HEAD before haus's factory pin is read.
+  #
+  # This is a FORWARD guard, not a revert test — it fails on `… haus factory`
+  # and passes on a factory that has left FAMILY entirely, because the edge then
+  # has neither endpoint in the walk. The test above is what catches that.
   local -a walk=("${FAMILY[@]}" consumer)
   local edge holder input source n hi si i
   for edge in "${EDGES[@]}"; do

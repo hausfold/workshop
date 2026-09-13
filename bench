@@ -2248,9 +2248,12 @@ cmd_try_batch() {
 #
 # The closure grows only through holders cmd_ship actually walks, which since
 # factory joined FAMILY is every holder in EDGES. `ship_scope snug` is therefore
-# factory, haus, snug, consumer: snug moves, factory's pin follows, and haus's
-# factory pin follows THAT — two hops where there used to be one and a note
-# telling you to do the other by hand.
+# factory, haus, snug, consumer — the WALK order above, not the dependency order
+# the ripple runs in (snug → factory → haus → consumer, which is how the docs
+# say it). snug trails the two holders that consume it because it is LOCK_ONLY
+# and this loop prints FAMILY first; cmd_ship reaches it in its own
+# fast-forward pass, before any bump. Two hops where there used to be one and a
+# note telling you to do the other by hand.
 ship_scope() {
   local -a set=("$@")
   local grew=1 edge holder input source n m hit
@@ -3358,10 +3361,14 @@ cmd_clone() {
   # and `$ROOT/snug`, so a machine missing either gets a `?` rev on that edge
   # rather than a ripple. hausfold.co is the plain case — no flake edge, cloned
   # only because the docs sweep reads it (DOCS_REPOS), and a repo the sweep can't
-  # open is a blind spot it reports as clean. factory was a fourth name here
-  # until it joined FAMILY; the loop above plants it now, and on the stricter
-  # terms that loop uses — a failed clone there is fatal, because an edge holder
-  # bench cannot read is a ripple it cannot finish.
+  # open is a blind spot it reports as clean. factory is planted by the loop
+  # above instead, FAMILY covering it — which also moves it onto that loop's
+  # stricter terms, where a failed clone is fatal rather than a warning. That
+  # follows from membership and nothing else: a missing factory is no worse to
+  # READ than a missing trill (both give a `?` rev on their edge), and the cost
+  # of the stricter loop is that a flaky clone there stops the bootstrap before
+  # trill, snug, hausfold.co and ops are planted. Re-running is the whole fix —
+  # every arm here is idempotent — so it is not worth a third loop.
   #
   # 🚨 It goes at $ROOT/hausfold.co, and the full spelling is the point. The
   # directory is named for its repo, which is the rule §3.1 settled. Shorten it

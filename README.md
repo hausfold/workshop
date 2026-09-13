@@ -5,7 +5,7 @@
 
 <sub>**pre-release** · every path that could lose your work is either reversible by design or stops to ask you first. that's the intent, not a warranty — run it on a machine you can afford to rebuild, and tell us what breaks.</sub>
 
-Five of them are Nix flakes, each pinning the ones upstream of it. `bench` is
+Six of them are Nix flakes, each pinning the ones upstream of it. `bench` is
 what makes that chain feel like one codebase — build your real Mac against your
 uncommitted edits, then push a change the whole way down.
 
