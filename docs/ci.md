@@ -221,11 +221,15 @@ Two things that measurement turned up, both of which generalise:
   tool install is the number that gets quoted and the wrong one to measure
   against.
 - **Read the runner-up before you trust it.** A step whose duration repeats to
-  within a second across ten runs is a clock rather than a cost. haus had one: a
-  stub that sleeps 30 and outlives the test that wanted it, holding the step's
-  stdout open long after every test in it has reported ok. Padding like that
-  moves the gap in whichever direction the job carrying it sits, so it can argue
-  a split for or against on time nothing spent. `gh api
+  within a second across ten runs is a clock rather than a cost. haus had one,
+  and the mechanism generalises further than the instance: a test harness
+  prints on a descriptor above 2, anything detached under it inherits that
+  descriptor along with the rest, and a holder that outlives the harness goes
+  on holding the STEP open after every test has reported ok and the harness
+  itself has exited. The long sleep inside such a case is not the thing to
+  shorten — the inherited descriptor is the thing to close. Padding like that
+  moves the gap in whichever direction the job carrying it sits, so it can
+  argue a split for or against on time nothing spent. `gh api
   repos/<owner>/<repo>/actions/jobs/<id>/logs` timestamps every line, which is
   where a job total stops being the whole story.
 
