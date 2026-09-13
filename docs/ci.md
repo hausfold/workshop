@@ -199,6 +199,29 @@ a suite that could sit in either goes to whichever is shorter that week. Both
 halves still have to clear the fixed cost, which at 53s and 58s against ~4s
 they do. That is size settling a toss-up, not size drawing the line.
 
+**The fixed cost is the first gate, not the only one.** A suite can clear it
+comfortably and still be worth nothing to move, because a split is worth the
+distance to the *runner-up* and not one second more. haus's `agents` was
+measured for exactly that question in September 2026 and the answer was no: 58s
+against `rooms` at 53s caps the whole prize at 5.2s however the job is cut, and
+its 50s of suite time turned out to be 238 bats tests at a median of 0.087s —
+flat, one fork per test, nothing in it to take. Ten seconds of new job, of
+which checkout and bats are only ~4s and queueing, setup and teardown are the
+rest, to buy five seconds of gate and a fifth boundary to route every future
+suite through. So the number to re-measure is the **gap** between the pole and
+the job behind it, never the pole alone. A 58s pole over a 53s runner-up is not
+worth splitting; the same 58s over a 30s runner-up is worth it twice over.
+
+**And read the runner-up before you trust it.** haus's `draw` reports 53s, of
+which 22 are the job standing still. One of its tests stubs a command as `sleep
+30` and the process it is testing outlives the test on purpose, so the orphan
+holds the step's stdout open: every test reports ok at 22.7s and the step
+closes at 44.7s. A step whose duration is the same to within a second across
+ten runs is a clock rather than a cost, and comparing a suite against one is
+how a split gets justified by a number that was never work. `gh api
+repos/<owner>/<repo>/actions/jobs/<id>/logs` timestamps every line, which is
+where a job total stops being the whole story.
+
 The rest of the family's splits are needs. `scruff` runs four SDKs in one Linux
 job, each with its own toolchain setup in front of it, and gives Swift a job of
 its own only because it wants a Mac. `snug`'s three ubuntu jobs are three
