@@ -293,8 +293,10 @@ too; GitHub drops a cache only after seven days with nothing reading it, and
 every further dispatch from that branch restarts that clock. The ref form is
 the one that says it: a push to main writes, everything else only reads.
 
-It is one such line in nebelung and three in haus, one per nix job; *One key
-per JOB* below is why no two of them share a key.
+It is one such line in nebelung and two in haus, on `eval` and `checks`; *One
+key per JOB* below is why the two do not share a key. haus's third nix job,
+`acquire`, keeps no store at all — *The trade has to be re-tested* below is the
+measurement that took it away.
 
 **What bounds the store is `purge`, not a size cap.** `purge: true` with
 `purge-created: 0` and a `purge-prefixes` that is a prefix of the key
@@ -317,56 +319,59 @@ creates no root at all — and neither does one whose every `nix build` is
 next run wants. The store is saved whole instead, which means a restore unions
 and each save carries forward everything the last one held.
 
-**Which is why haus's store has a lineage, and resets it weekly.** Its entry
-went 472 → 688 MiB over its first six saves — ~36 MiB a save, reconstructed
-from the size each saving run logs — on a key that three pushes in four move,
-and haus takes a dozen or more a day. At that rate 10 GB is weeks out, not
-years, and arriving there is not a warning: a save that no longer fits means
-every run pays full price again, the exact surprise the arrangement exists to
-avoid. So haus's prefix carries an ISO week and the nixpkgs rev, and a change
-in either starts a new lineage: the first main push of the week builds cold,
-saves fresh entries, and the `purge-prefixes` sweep — broader than the key, so
-it reaches across lineages — deletes the lineage it replaces. One cold run a
-week was the whole cost, plus any PR opened in the gap before that push; the
-split made that three entries and *One key per JOB* below says what it costs
-now. The nixpkgs rev is in there because
-a bump is the one change that would union a second stdenv onto the first.
+**Which is why haus's store has a lineage, and resets it twice a week.** Its
+entry went 472 → 688 MiB over its first six saves — ~36 MiB a save,
+reconstructed from the size each saving run logs — on a key that three pushes
+in four move, and haus takes a dozen or more a day. At that rate 10 GB is weeks
+out, not years, and arriving there is not a warning: a save that no longer fits
+means every run pays full price again, the exact surprise the arrangement
+exists to avoid. So haus's prefix carries an ISO week, a first-or-second half
+of it off `date -u +%u`, and the nixpkgs rev; a change in any of the three
+starts a new lineage. The first main push of the half-week builds cold, saves
+fresh entries, and the `purge-prefixes` sweep — broader than the key, so it
+reaches across lineages — deletes the lineage it replaces. Two cold runs a week
+is the whole cost, plus any PR opened in the gap before each push. The nixpkgs
+rev is in there because a bump is the one change that would union a second
+stdenv onto the first.
 
 nebelung needs none of it — its key moves only when the lock or a `.nix` file
 does, which is seldom — so it keeps the plain prefix.
 
 **One key per JOB, the moment a repo's nix half is more than one job.** haus's
-is three, and three jobs on one primary key race on `main` in two ways, both
+is three, and jobs sharing one primary key race on `main` in two ways, both
 silent. The *save*: whichever job reaches its post phase first writes the
 entry and the others are refused it as already present — and their stores are
 not each other's, so the losers come back to a store missing what they need
 and rebuild it every run, which reads not as a race but as a cache that
 quietly stopped paying. The *purge*: `purge-primary-key: never` protects only
-a job's own key, so three jobs sweeping the broad `nix-<os>-` prefix together
-each delete the other two's fresh entries.
+a job's own key, so jobs sweeping the broad `nix-<os>-` prefix together each
+delete the others' fresh entries.
 
 So haus's job token sits between the OS and the week — `nix-<os>-<job>-<ISO
-week>-<nixpkgs rev>-<hash>` — and each job purges `nix-<os>-<job>-` alone. The
-weekly reset still works inside each family, and no job can reach another's.
+week><half>-<nixpkgs rev>-<hash>` — and each job purges `nix-<os>-<job>-`
+alone. The reset still works inside each family, and no job can reach
+another's.
 
-⚠️ **Three entries do not creep at one entry's rate, and the weekly reset no
-longer bounds them.** Measured over one whole haus lineage — eleven saves, ten
-intervals, each save logging the entry it uploaded — the three put on 30.8,
-13.4 and 30.2 MiB a save, so 74.4 MiB per push that saves against ~36 before
-the split. A lineage starts near 847 MiB cold and, with the 45 MiB
-nix-installer entry that counts against the same ceiling, clears 10 GiB at 126
+⚠️ **Entries do not creep at one entry's rate, and a weekly reset stops
+bounding them.** Measured over one whole haus lineage — eleven saves, ten
+intervals, each save logging the entry it uploaded — its three entries put on
+30.8, 13.4 and 30.2 MiB a save, so 74.4 MiB per push that saves against ~36
+before the split. That lineage started near 847 MiB cold and, with the 45 MiB
+nix-installer entry that counts against the same ceiling, cleared 10 GiB at 126
 saves; haus's last five full weeks ran 145, 106, 128, 126 and 116 *saves*, so
-the median week lands on the line and three of the five go over — a W32-shaped
-week would end near 11.4 GB. The verdict does not turn on the cold start: at
-974 MiB the median week is 10.2 GB and at 600 it is 9.8.
+the median week landed on the line and three of the five went over — a
+W32-shaped week would have ended near 11.4 GB. The verdict did not turn on the
+cold start: at 974 MiB the median week is 10.2 GB and at 600 it is 9.8.
 
-**So a weekly lineage is no longer short enough for three entries, and the
-cheapest fix is a half-week token** — the ISO week plus a first/second half,
-resetting Monday and Thursday, which puts even a W32-shaped lineage near 6.2
-GB. It costs a second cold run a week plus the PRs opened in the gap ahead of
-it, and the purge stays a sweep of the job prefix, so it still reaches across
-lineages. Named here because the arithmetic is the standard's; haus had not
-taken it as of 2026-09-13.
+**Two things answer that, and haus carries both.** Dropping `acquire`'s cache
+(below) takes 30.2 MiB a save and a cold 202.3 MiB out of the arithmetic as a
+side effect, leaving two entries at 44.2 a save off 670.6 cold — 10 GiB at 215
+saves against a median week's 126. And the reset is halved anyway, the ISO week
+plus a first-or-second half, which puts a median lineage at ~3.4 GB and a
+W32-shaped one at ~3.9. Belt and braces on purpose: the reset is the half that
+keeps working if a cached job is ever added back. The second reset costs one
+more cold run a week plus the PRs opened in the gap ahead of it, and the purge
+stays a sweep of the job prefix, so it still reaches across lineages.
 
 **Splitting a job pays the restore again, which is what decides the split.**
 That restore is this half's fixed cost under rule 5 — the number a step is
@@ -431,9 +436,14 @@ bigger than the job is paying a restore for paths it never opens. That is not a
 slow cache but a cache costing the gate more than no cache would, and the
 restore being roughly FIXED is what makes it inevitable rather than gradual:
 the cost of the restore does not rise with the entry, so what decides it is how
-little of the entry the job opens. haus has had a job in that state — `acquire`
-needs 233 MiB from `cache.nixos.org` in 44s and pays ~32s of restore plus its
-own step to hold nearly a gigabyte.
+little of the entry the job opens. haus had a job in that state and it is the
+worked example: `acquire` ran **45s cold against 71s warm** — 50s of restore in
+front of a 13s step — so its cache cost the run 26s every time it worked, on a
+job whose whole cold store is 202.3 MiB. A lineage reset would not have rescued
+it either, because the restore is the cost and the restore does not shrink with
+the entry. Its cache, its lineage step and its `actions: write` are all gone,
+and the nix half's gate went from 81s cold with `eval` and `acquire` tied on it
+to `eval`'s 71s alone.
 
 Seeing it takes running the job twice — once from an empty store, which is what
 the job needs, and once restoring the live entry and reading nothing, which is
@@ -444,11 +454,11 @@ different lifetimes come out of it: work inherited from a job that has since
 been split, which one lineage reset clears for good, and the save creep, which
 comes straight back. Only the second is an argument for changing anything.
 
-⚠️ And before changing anything, re-check rule 5: the answer on haus was to
-leave it alone, because past the reset that half drops under the same repo's
-shell jobs and every second still on the table belongs to a job the change
-would not touch. Shave the pole, then re-measure which job that is — the answer
-moves.
+⚠️ And before narrowing a store that *is* paying, re-check rule 5: the answer
+on haus's remaining two was to leave them alone, because past the reset that
+half drops under the same repo's shell jobs and every second still on the table
+belongs to a job the change would not touch. Shave the pole, then re-measure
+which job that is — the answer moves.
 
 It is **not** on the repos that build their own Swift on a Mac. There the
 expensive derivation is the one whose source just changed, so a restore buys
@@ -590,7 +600,7 @@ seconds, spread over three jobs that are not the gate in any run. That is the
 only one of these two supports.** pounce's pole is one installer and one
 `nix build`, and one `swiftc` call does not divide into two jobs — there is no
 boundary in it for rule 5 to find, whatever levers the invocation itself may
-still have. perch's has one, and it is rule 5's kind rather than a step
+still have. perch's had one, and it is rule 5's kind rather than a step
 count: `Test` and `Analyze` share a Debug `DerivedData`, `Release build` and
 the three guards share the Release bundle, and nothing crosses. perch was split
 there and then run both ways, so the paragraph that used to estimate this now
