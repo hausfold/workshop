@@ -120,6 +120,11 @@ ripple, and never suggest it** — `bench` does it. Every verb is in the
 - **`try switch` is gated on who, not where**: an agent is refused a worktree
   `switch` unless `BENCH_AGENT_SWITCH=1`. `bench try lane [switch]` takes the
   same gate.
+- **A scruff version has to FOLLOW the last tag**: `bench release scruff` takes
+  patch, minor or major off `latest_tag` and refuses everything else, because a
+  number that lands above the line (`1.3.61` for `1.3.6`) takes `@latest` on all
+  five registries and the Go proxy can never be made to forget it. Skipping
+  numbers on purpose is `BENCH_RELEASE_ANY=1` in front of the command.
 - **`bench rebuild` draws a trill card while building** (`BENCH_NO_BANNER=1`
   off); `try` draws one only under `BENCH_BANNER=1`. Activating a terminal edit
   is cheap and safe: Ghostty applies config live, and every window's shell lives

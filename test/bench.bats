@@ -1232,6 +1232,29 @@ SH
   [ "$output" = "$today-3" ]
 }
 
+# ── semver_next: the successor set `bench release scruff` is held to ───────────
+# The guard exists for the slip that a shape check can't see: 1.3.61 is a
+# well-formed X.Y.Z, strictly greater than 1.3.6, and once published it outranks
+# every real release after it on five registries that can't take one back.
+
+@test "semver_next offers patch, minor and major" {
+  run semver_next 1.3.6
+  [ "$output" = "1.3.7 1.4.0 2.0.0" ]
+}
+
+@test "semver_next carries into a two-digit component instead of string-sorting" {
+  run semver_next 0.9.9
+  [ "$output" = "0.9.10 0.10.0 1.0.0" ]
+}
+
+@test "semver_next reads a leading zero as decimal, not octal" {
+  # A `v1.2.08` tag would otherwise take the whole command down inside $(( )) —
+  # "value too great for base" — rather than refusing a number.
+  run semver_next 1.2.08
+  [ "$status" -eq 0 ]
+  [ "$output" = "1.2.9 1.3.0 2.0.0" ]
+}
+
 # ── the release watch: rendering a `gh run view` blob into job rows ────────────
 # Only the pure part is tested — turning CI's JSON into state/name/detail rows.
 # The paint loop needs a TTY and a live run, so it isn't reachable from here.

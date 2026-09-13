@@ -279,6 +279,16 @@ path to end in `/v2026` and change it every January. Deciding the bump means
 reading `git diff <last-tag>..main -- sdk/` against the published SDK surface;
 that judgement is what [`/release`](../.agents/skills/release/SKILL.md) is for.
 
+The number still has to be the NEXT one. `bench release scruff` takes only the
+three successors of the last tag — patch, minor or major — and refuses anything
+else, including a well-formed number that is merely *higher*. That is the slip
+worth a guard: `1.3.61` typed for `1.3.6` is valid semver, sorts above the whole
+line, and takes `@latest` on npm, PyPI, crates.io, SwiftPM and the Go proxy at
+once. npm gives you 72 hours to unpublish, crates.io and PyPI yank rather than
+delete, and the Go module mirror cannot forget a version at all — only a
+`retract` carried by a tag above the bad one moves it. Deliberately skipping
+numbers is `BENCH_RELEASE_ANY=1 bench release scruff <X.Y.Z>`.
+
 `bench release` **blocks** until the CI run finishes, drawing its jobs live, and
 exits non-zero if the run goes red. That wait is load-bearing: perch's run
 commits `nix/release.nix` back to the repo, so returning early would leave your
