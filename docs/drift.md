@@ -205,3 +205,19 @@ in the direction that provokes a fix nobody needs. **Caught by** measuring the
 same quantity through both instruments once, on real data, and reading the
 ratio: a stable factor between a gauge and the budget it is checked against is
 a unit error, not headroom.
+
+**A measurement taken off the step a number sits in, rather than the phase it
+belongs to — and a write-up that flags it as unmeasured and then argues from it
+anyway.** A cache verdict rested on "only ~12s of it is store to restore" for a
+job whose `nix build` step ran 23-30s. Split at the markers nix writes into its
+own log, that step was 6.5-14.2s evaluating, **2.3-3.5s** substituting the 216
+MiB the sentence was about, and 12-15s of `go build` and `go test`. The step
+name carried the misreading: everything under `nix build` read as Nix's own
+work. The doc's ⚠️ knew the argument above it was unmeasured and kept reasoning
+from the figure regardless, so the flag read as diligence while the number went
+on deciding. Nothing was disproved by it — the verdict came out the same, by 13s
+at the family's cheapest restore rather than by the coin flip the number
+implied. **Caught by** splitting a step at the boundaries its own log prints
+before comparing any part of it with anything, and by treating "that part is
+unmeasured" as a bar on using the figure at all, not a caveat to publish beside
+it.
