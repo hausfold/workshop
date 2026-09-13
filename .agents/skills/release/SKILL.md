@@ -51,15 +51,21 @@ Read the actual change, not the commit subjects:
 
 ```sh
 cd ~/code/workshop/scruff
-LAST=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo 0.1.0)
+LAST=$(git tag --list 'v*' --sort=-v:refname | head -1)   # what bench's guard compares against
 git log --oneline "$LAST"..main
 git diff "$LAST"..main -- sdk/
 ```
 
-`v1.1.0` is the newest tag, so `LAST` resolves and the `|| echo 0.1.0` fallback is dead
-weight kept for a repo that has never been tagged. (It was live once: the `0.1.0` on the
-registries was published by hand before this flow existed, and for that one cut you diffed
-against the commit that stamped it into the manifests instead.)
+Highest by version order, not most recent by topology. That is the basis `bench`'s
+successor guard measures your number from, so reading the diff against any other tag is
+how you come back with a number it refuses. `git describe --tags --abbrev=0` answers the
+other question — the newest tag *reachable* from HEAD — and the two agree right up until
+a tag is cut off a branch or a number lands out of order, which is exactly when you need
+them not to disagree.
+
+If `LAST` comes back empty the repo has never been tagged, and the diff to read is against
+the commit that stamped the version into the manifests: the `0.1.0` on the registries was
+published by hand before this flow existed.
 
 Judge it against the **published SDK surface**, not the CLI internals:
 
@@ -111,6 +117,10 @@ Then, for the repo you're cutting:
 - The work landed via its PR. Releasing an unmerged branch isn't a thing: `bench release`
   tags the checkout's HEAD, which should be `main` at origin.
 - For scruff, the number isn't already tagged. `bench` checks; you check first.
+- For scruff, the number **follows** the last tag: patch, minor or major, nothing
+  else. `bench` refuses the rest — a merely-higher number like `1.3.61` for `1.3.6`
+  takes `@latest` on all five registries, and the Go proxy can't be made to forget
+  one. Skipping numbers deliberately is `BENCH_RELEASE_ANY=1` in front of it.
 
 ## Run it
 
