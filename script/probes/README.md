@@ -515,9 +515,13 @@ a narrower store is not the lever it looks like, is *The Nix store cache* in
 the scaling here says an entry that size would not be one — that inference is
 retired, not the measurement under it.
 
-Measured 2026-09-13, reconstructing haus's whole W37 lineage from the run
-history — every saving run logs the entry it uploaded, so the chain of saves
-rebuilds exactly, purged entries and all:
+Measured 2026-09-13, reconstructing haus's W37 lineages from the run history —
+every saving run logs the entry it uploaded, so the chain of saves rebuilds
+exactly, purged entries and all. ⚠️ W37 holds three lineages, not one: the
+cache landed mid-morning on 2026-09-12 and saved 472.1 → 687.6 over six, the
+lineage prefix landing an hour later reset that to 471.9 and ran to 577.0, and
+the three-way split an hour after THAT started the three this section is
+about. "W37 ran 67 saves" below is the week; the slope is the third lineage:
 
 - **the three entries came back at their own key, and at the old job's size.**
   Every restore since the split logs a key under its own job token, so nothing
@@ -525,21 +529,24 @@ rebuilds exactly, purged entries and all:
   pre-split entry's 577.0 MiB and saved 606.6 / 586.7 / 607.0 off it, exactly
   as the workflow's banner predicted: the store is saved whole, so the split
   becomes three sizes only at the next lineage reset;
-- **the creep is per SAVE, linear, and steeper than 24 MiB.** Ten saves over
-  the 19 hours from 2026-09-12T10:44, compressed: `eval` 606.6 → 915 (+30.8 a
+- **the creep is per SAVE, linear, and steeper than 24 MiB.** Eleven saves
+  over the 19 hours from 2026-09-12T10:44 — the first of them the split's own,
+  so ten intervals — compressed: `eval` 606.6 → 915 (+30.8 a
   save), `checks` 586.7 → 721 (+13.4), `acquire` 607.0 → 909 (+30.2) — 74.4 MiB
   per push that saves, to ±1 MiB and with no saturation. The single pre-split
   entry over the same reconstruction reads 472.1 → 687.6 in six, ~36 MiB a
   save, so the 24 MiB above was low and the split doubled the slope rather than
   tripling it — `checks` creeps at under half what the other two do;
 - ⚠️ **the unit is the save, not the day.** A push that leaves `flake.lock` and
-  every `*.nix` untouched hits the primary key and saves nothing: 80 of haus's
-  last 1048 main pushes touched one — 76%, steady across seven weeks. Reading
+  every `*.nix` untouched hits the primary key and saves nothing: 793 of
+  haus's last 1048 main pushes touched one — 76%, steady across seven weeks.
+  Reading
   the creep per day is what made it look like 80-250 MiB an entry;
 - **the weekly reset no longer bounds it, and W37 is what makes it look like
   it does.** A cold store of this shape compresses at ~3.4:1 — haus's very
   first save put 1623.0 MiB of nar out as a 472.1 MiB entry — so a lineage
-  starts near 847 MiB across the three and clears 10 GiB at 126 saves. haus's
+  starts near 847 MiB across the three and, with the 45 MiB nix-installer
+  entry that counts against the same ceiling, clears 10 GiB at 126 saves. haus's
   last five full weeks ran 145, 106, 128, 126 and 116 saves: the median lands
   on the line and three of the five go over, a W32-shaped week ending near
   11.4 GB. W37, the week this slope was reconstructed in, is the quiet outlier
