@@ -185,9 +185,11 @@ them is 58s. That half went 2m28s → 58s and the whole `check` run 2m30s →
 1m43s; the nix half's own split took it down again from there.
 
 Fifty jobs would have been slower than one. Checkout plus `sudo npm install -g
-bats` is about 4s a job, more than most of those suites take to run, and that
-fixed cost is what a step is measured against before it earns a job of its own:
-under it, join an existing job. It is not one number across a repo, and on a repo that
+bats` is about 4s a job, more than most of those suites take to run, and a
+fixed cost like that is what a step is measured against before it earns a job of
+its own: under it, join an existing job. (Four seconds is the tool install
+alone; the whole of what a job costs is nearer ten, and the paragraph below
+this one is the account.) It is not one number across a repo, and on a repo that
 caches its store it is not one number across a week either — haus's nix half
 measures against a cache restore, which scales with what the entry happens to
 be carrying. *The Nix store cache* below.
@@ -196,31 +198,33 @@ Count enters in one place only, and as a tiebreaker. `agents` and `rooms` both
 want bats and nothing else, so the cut between them is by subject — the AI room
 and the two surfaces an agent reads through it, against every other room — and
 a suite that could sit in either goes to whichever is shorter that week. Both
-halves still have to clear the fixed cost, which at 53s and 58s against ~4s
-they do. That is size settling a toss-up, not size drawing the line.
+halves still have to clear the fixed cost, which at 53s and 58s they do
+several times over. That is size settling a toss-up, not size drawing the line.
 
 **The fixed cost is the first gate, not the only one.** A suite can clear it
 comfortably and still be worth nothing to move, because a split is worth the
-distance to the *runner-up* and not one second more. haus's `agents` was
-measured for exactly that question in September 2026 and the answer was no: 58s
-against `rooms` at 53s caps the whole prize at 5.2s however the job is cut, and
-its 50s of suite time turned out to be 238 bats tests at a median of 0.087s —
-flat, one fork per test, nothing in it to take. Ten seconds of new job, of
-which checkout and bats are only ~4s and queueing, setup and teardown are the
-rest, to buy five seconds of gate and a fifth boundary to route every future
-suite through. So the number to re-measure is the **gap** between the pole and
-the job behind it, never the pole alone. A 58s pole over a 53s runner-up is not
-worth splitting; the same 58s over a 30s runner-up is worth it twice over.
+distance to the *runner-up* and not one second more. So the number to measure is
+the **gap** between the longest job and the one behind it, never the longest job
+alone. A pole five seconds clear of its runner-up has five seconds in it however
+the job is cut; the same pole twenty-five seconds clear has twenty-five. haus's
+`agents` is the worked example and the answer there was no —
+`.github/workflows/check.yml`'s shell-half banner carries that arithmetic, and
+`script/probes/README.md` the stamped figures.
 
-**And read the runner-up before you trust it.** haus's `draw` reports 53s, of
-which 22 are the job standing still. One of its tests stubs a command as `sleep
-30` and the process it is testing outlives the test on purpose, so the orphan
-holds the step's stdout open: every test reports ok at 22.7s and the step
-closes at 44.7s. A step whose duration is the same to within a second across
-ten runs is a clock rather than a cost, and comparing a suite against one is
-how a split gets justified by a number that was never work. `gh api
-repos/<owner>/<repo>/actions/jobs/<id>/logs` timestamps every line, which is
-where a job total stops being the whole story.
+Two things that measurement turned up, both of which generalise:
+
+- **A job costs more than its tool install.** Checkout plus `bats` is the ~4s
+  above, but a job also pays queueing, a lead-in before its first step runs,
+  `Set up job`, and a teardown after its last step — about ten seconds all told
+  on a Linux runner, not four. Measure a candidate against the ten.
+- **Read the runner-up before you trust it.** A step whose duration repeats to
+  within a second across ten runs is a clock rather than a cost. haus had one: a
+  stub that sleeps 30 and outlives the test that wanted it, holding the step's
+  stdout open long after every test in it has reported ok. Padding like that
+  moves the gap in whichever direction the job carrying it sits, so it can argue
+  a split for or against on time nothing spent. `gh api
+  repos/<owner>/<repo>/actions/jobs/<id>/logs` timestamps every line, which is
+  where a job total stops being the whole story.
 
 The rest of the family's splits are needs. `scruff` runs four SDKs in one Linux
 job, each with its own toolchain setup in front of it, and gives Swift a job of
