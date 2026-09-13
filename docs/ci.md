@@ -306,9 +306,11 @@ never carry one across one.
 
 It is on those two repos because that is where the trade lands:
 
-- `nebelung` builds **whiskers**, a Rust CLI that is not in `cache.nixos.org`
-  and that moves only when the lock does, while the palette under it changes
-  every PR.
+- `nebelung` renders every port with **whiskers**, a Rust CLI in neither
+  nixpkgs nor `cache.nixos.org`, which moves only when the lock does while the
+  palette under it changes every PR. A hit costs nothing; a miss no longer
+  costs a rustc closure either, because that job reads catppuccin's own cachix
+  — *Reading someone else's public cache*, below.
 - `haus` evaluates nixpkgs and then *builds* twenty-nine check derivations, and
   most PRs touch none of their inputs.
 
@@ -375,10 +377,23 @@ All three grounds are about a cache we would *rent and push to*, which is what
 Cachix's OSS tier and FlakeHub sell. Reading someone else's public cache is a
 different trade, and it is allowed: a read-only `extra-substituters` entry
 needs no account and no token, and a substituter Nix cannot reach is treated as
-absent, so the run builds from source exactly as it does today. It cannot turn
-a green PR red, only a fast one slow — which is why "can be down when a PR
-cannot wait" does not carry over. The trust question is real but bounded to one
-signing key for one path, so name the dependency and the key in the PR.
+absent, so the run builds from source exactly as it would without one. It
+cannot turn a green PR red, only a fast one slow — which is why "can be down
+when a PR cannot wait" does not carry over.
+
+The family has one, and it is the shape to copy: `nebelung`'s build job adds
+`catppuccin.cachix.org` for whiskers, read-only, through `nix_conf` on the
+installer step. `extra-substituters` adds to `cache.nixos.org` rather than
+replacing it, and cachix answers Priority 41 against cache.nixos.org's 40, so
+it is asked second and nothing else moves cache. Coverage does not have to be
+total either: `x86_64-darwin` 404s there, which costs nothing while the Linux
+job is the only one that builds.
+
+⚠️ **What it is not is bounded to one path.** `trusted-public-keys` is a key
+list, not a per-path grant, so a key added for one dependency can supply *any*
+path that job substitutes. That is the whole cost, it is a real one, and it is
+why this stays a per-job `nix_conf` rather than anything repo-wide — name the
+dependency, the key and the job in the PR.
 
 **No `paths-ignore` on a repo's gate.** This is the denylist, and it is the
 opposite of the allowlist `paths:` above: a `paths:` says what one task
