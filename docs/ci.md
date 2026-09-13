@@ -185,14 +185,14 @@ them is 58s. That half went 2m28s → 58s and the whole `check` run 2m30s →
 1m43s; the nix half's own split took it down again from there.
 
 Fifty jobs would have been slower than one. A job on a Linux runner costs about
-ten seconds before a step of its own runs — checkout plus `sudo npm install -g
-bats` is about 4s of it, already more than most of those suites take to run —
-and the ten is what a step is measured against before it earns a job of its
-own: under it, join an existing job. *A job costs more than its tool install*,
-below, is the account of the rest. It is not one number across a repo, and on a
-repo that caches its store it is not one number across a week either — haus's
-nix half measures against a cache restore, which scales with what the entry
-happens to be carrying. *The Nix store cache* below.
+ten seconds of its own around the steps that do its work — checkout plus `sudo
+npm install -g bats` is about 4s of it, already more than most of those suites
+take to run — and the ten is what a step is measured against before it earns a
+job of its own: under it, join an existing job. *A job costs more than its tool
+install*, below, is the account of the rest. It is not one number across a
+repo, and on a repo that caches its store it is not one number across a week
+either — haus's nix half measures against a cache restore, which scales with
+what the entry happens to be carrying. *The Nix store cache* below.
 
 Count enters in one place only, and as a tiebreaker. `agents` and `rooms` both
 want bats and nothing else, so the cut between them is by subject — the AI room
@@ -210,15 +210,16 @@ the job is cut; the same pole twenty-five seconds clear has twenty-five. haus's
 `agents` is the worked example and the answer there was no —
 `.github/workflows/check.yml`'s shell-half banner carries that arithmetic, and
 `script/probes/README.md` the stamped figures. A gap can also be wide enough
-that the question is worth asking and the answer comes out the other way:
+that the question is worth asking and the arithmetic comes out the other way:
 *What those Mac jobs are made of*, below, is the family's other worked example.
 
 Two things that measurement turned up, both of which generalise:
 
 - **A job costs more than its tool install.** The rest of the ten above is
   queueing, a lead-in before the first step runs, `Set up job`, and a teardown
-  after the last one. None of it shows in a step list, which is why the tool
-  install is the number that gets quoted and the wrong one to measure against.
+  after the last one. Most of it shows nowhere in a step list, which is why the
+  tool install is the number that gets quoted and the wrong one to measure
+  against.
 - **Read the runner-up before you trust it.** A step whose duration repeats to
   within a second across ten runs is a clock rather than a cost. haus had one: a
   stub that sleeps 30 and outlives the test that wanted it, holding the step's
@@ -510,7 +511,7 @@ Rule 5's question about the *other* jobs is already answered in both repos.
 pounce's other three are a 40s Swift unit-test job on a Mac and two Linux jobs
 at ~12s and ~5s, against a 215s pole; perch's are a 74s iOS build and a ~5s
 Linux job against 182s. Neither pole loses the title in a single run of that
-sample, so no regrouping out there reaches either gate. Whether the poles
+sample, so no regrouping among them reaches either gate. Whether the poles
 themselves divide is the other half of rule 5's question, and these two repos
 answer it differently — *It is also not all Xcode*, below.
 
