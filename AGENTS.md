@@ -48,7 +48,7 @@ client's wiring — project rules go in the former.
 | the org's GitHub front page | `./org-profile`, the checkout of `hausfold/.github` (`bench clone` maps the alias; `./.github` here is the workshop's CI) |
 | the **trill** notification compositor (quiet banners, rules, `trill` CLI) | `./trill` ([hausfold/trill](https://github.com/hausfold/trill)). **A flake input that is not `FAMILY`**: in `OVERRIDABLE`, `EDGES` (`haus → trill`, gating `haus.notifications.compositor`), `DOCS_REPOS`, `bench clone`, `bench pull`. `bench ship` ripples its lock but never pushes it — it lands through its own PRs. `bench release trill` (CalVer, notarized ZIP, CI-owned `nix/release.nix` pin) |
 | **snug** — the terminal-presentation runtime (roles, glyphs, tables, live regions) | `./snug` ([hausfold/snug](https://github.com/hausfold/snug)). Trill's footing, two edges, both rippled by `bench ship`: `haus → snug`, and `factory → snug` — `bench ship snug` walks snug → factory → haus → consumer. `bench try` still doesn't reach inside factory's flake, so feel a snug change in factory from factory's own checkout. **Its README and `AGENTS.md` ARE the family's presentation standard.** Not releasable: consumers pin it by rev, `bench release snug` refuses, and `VERSION` only names the derivation (`snug-0.1.0`). *How* a line is drawn is snug's repo; *whether* a tool should print it is that tool's |
-| scruff — the worktree-lifecycle substrate | `./scruff` ([hausfold/scruff](https://github.com/hausfold/scruff)). A flake input of haus, on PATH; ⌘↵ runs `scruff new` for every client, and Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks call `scruff hook create` / `scruff hook remove` |
+| scruff — the worktree-lifecycle substrate | `./scruff` ([hausfold/scruff](https://github.com/hausfold/scruff)). A flake input of haus, on PATH; ⌘↵ runs `scruff new` for every client, and Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks call `scruff hook create` / `scruff hook remove`. **`scruff overlap` lives here too** — the earshot measuring (`internal/commands/overlap.go`, SPEC §7); `bench overlap` only forwards to it |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | **the night shift** — the merge lease, tier 1, the runner that drives it | [hausfold/factory](https://github.com/hausfold/factory); its README is the manual, and haus puts it on `PATH` (`haus.ai.enable`) with its one skill, `/factory`. **In `FAMILY`, unlike trill and snug**, and for the one reason those two don't need: it HOLDS a lock (`factory → snug`) as well as being pinned by one (`haus → factory`), and a pin no verb moves only moves by hand. So `bench ship` walks, bumps and pushes factory like any other family repo — `FAMILY` lists it before `haus` so its own snug bump lands before haus's factory pin is read. Nothing about the shift lives here: the operator half is hausfold.co's `docs/haus/night-shift`, the seams `./haus`'s `docs/night-shift-internals.md`, the policy `factory config print` alone. A live lease (`factory lease status`) is the standing go-ahead for **tier-1** merges as `factory tier` decides them; the rest waits at "PR open" |
@@ -139,7 +139,8 @@ edge of it. Every verb is in the
   `origin/main` fails fast). Named repos narrow it to their downstream closure
   along `EDGES`.
 
-`bench overlap` exits 0 clear · 3 same file · 4 same region, and the flow is
+`scruff overlap` (`bench overlap` forwards to it) exits 0 clear · 3 same file · 4
+same region, and the flow is
 [`/earshot`](./.agents/skills/earshot/SKILL.md). `bench release` is under
 **Rules** below.
 
@@ -164,7 +165,7 @@ In a worktree (`git rev-parse --git-common-dir` points outside your toplevel):
 - Build with `bench try` and stop; activation is the user's unless they asked.
   `bench ship` is fine from a worktree — it moves the *main* checkouts, never
   your branch, and never activates.
-- `bench overlap` at lane start, before a big edit to a shared file, and before
+- `scruff overlap` at lane start, before a big edit to a shared file, and before
   every `gh pr create`: `⚠` means
   move your edit or copy the printed landing order into **Watch out** verbatim;
   `·` needs nothing.
@@ -252,6 +253,6 @@ agent-proxy CA; idempotent, no-op on macOS. Each client fires it its own way
   cross-edit: a color hex in `haus`, or launchd logic in `pounce`, is the wrong
   repo even if it works.
 - The life of a change: **hack** (`worktree-*`) → **test** (`bench try`) →
-  **assure** (Step 2.5 + `bench overlap`) → **PR** → **batch-test** (`bench
+  **assure** (Step 2.5 + `scruff overlap`) → **PR** → **batch-test** (`bench
   try-batch`) → **merge** → **try switch** → **ship** → **release**. A lone
   editor on the main checkout can drive a small fix straight to ship.
