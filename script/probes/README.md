@@ -710,14 +710,13 @@ below belongs to a runner image as much as to an action:
   PerchUpdater. 121s of the 182s is `swiftc`;
 - **perch's pole has a needs boundary and pounce's does not.** `Test` and
   `Analyze` share one Debug `DerivedData`; `Release build` and the three bundle
-  guards share the Release build. Splitting there computes to ~119s beside ~71s
-  against today's 182s, with the 74s iOS job next in line. ⚠️ That is
-  arithmetic off these means and not a measurement — it wants a second macOS
-  runner per PR and a perch PR that runs it both ways. pounce's pole is one
-  installer and one `nix build`: nothing to cut. ⚠️ `trill`'s gate is the same
-  test + analyze + Release shape on the same kind of runner and is
-  **unmeasured** — the boundary is a claim about perch's jobs, not about the
-  shape wherever it appears.
+  guards share the Release build. Splitting there computed to ~119s beside ~71s
+  against today's 182s, with the 74s iOS job next in line — and that estimate
+  has since been run both ways, which is the section below. pounce's pole is
+  one installer and one `nix build`: nothing to cut. ⚠️ `trill`'s gate is the
+  same test + analyze + Release shape on the same kind of runner and is still
+  **unmeasured** — the boundary was a claim about perch's jobs, not about the
+  shape wherever it appears, and perch's answer does not carry to it.
 
 **This narrows the macOS half of the question the sections above left open.**
 No repo caches a store on a macOS runner, and pounce is the only one that
@@ -736,3 +735,80 @@ The shares are stable — Time Machine is 22.3s ±0.1s across eight runs — but
 totals are not: perch's `Test` step ran 70s and 127s on two runs a day apart
 with no relevant source change between them. Compare shares across a
 re-measure, not absolute seconds.
+
+## perch's split, run both ways
+
+The section above ended on an estimate: cut perch's pole at its
+`-derivedDataPath` and the arithmetic gives a ~119s job beside a ~71s one
+against 182s. This is that estimate run. perch#150 made the split, and it was
+then measured against the shape it replaced.
+
+**Method, and it is the part worth copying.** Seven pairs, alternating a
+pre-split ref with post-split `main`, `workflow_dispatch`, **one run at a time**
+so no two samples ever contended for a macOS slot and both arms saw the same
+runners. Fourteen runs, 2026-09-13, `macos-26`. The pre-split arm was the
+parent commit pushed to a throwaway branch and deleted afterwards — a tag or a
+branch is the only ref `gh workflow run` takes, so an arbitrary sha needs one
+either way.
+
+**Why not simply compare the arms.** The caveat directly above is worse than it
+reads. Across these fourteen runs `Test` alone ran **59-147s** with no source
+change — a 2.5× swing. The arm means are 164s pre against 141s post, and most
+of that 23s is which half-hour a run landed in. So the figure below compares
+**the two shapes inside each run**: for a pre-split run, what the split would
+have given that same run (`max` of its own Debug half, Release half and iOS
+job); for a post-split run, what one job would have cost it (its halves added).
+Runner speed multiplies both sides and cancels.
+
+- **the split takes a median 60s off the gate** — mean 58s, range 0-99s, n=14.
+  Against a 182s pole that is a third of it, and it is the number the estimate
+  was reaching for;
+- **the gate is named at both ends, which is what rule 5 asks.** Before:
+  `Native build and tests`, 7/7. After: `Debug tests and analyze`, 7/7 — it
+  never once lost the title to the Release half or to the iOS build. The gap to
+  whichever came second ran 1-94s, median 39s;
+- **a third concurrent macOS job does not queue behind the other two.** Mean
+  wait from created to started went **7.4s** across 14 macOS jobs pre-split to
+  **6.4s** across 21 post-split, range 5-10s. This was the one thing that could
+  have made the split a loss — `docs/ci.md` rule 3 is about exactly that slot —
+  and on a public repo it did not happen. It is the half of the trade that
+  belongs to the account rather than the workflow, so measure it again before
+  copying the split to a repo with different concurrency;
+- ⚠️ **once in seven it was worth nothing, and that is rule 5 rather than
+  noise.** One pre-split run had the iOS companion at 119s against a Debug half
+  of 71s: the companion was already the pole and the split would have bought
+  that run zero. One post-split run closed to a **1s** gap between its two
+  halves (Debug 121s, Release 120s) — the same fact from the other side. A
+  split is worth the distance to the runner-up and not one second more, so
+  there is no second cut to make inside perch's Debug half: whatever comes off
+  it lands on the iOS build.
+
+Per run, seconds. *gate* is what that run actually took; *other shape* is the
+counterfactual described above; *dbg* and *rel* are the two halves, measured
+where the run was split and summed from its steps where it was not:
+
+| arm | run | gate | other shape | dbg | rel | iOS |
+| --- | --- | --- | --- | --- | --- | --- |
+| PRE | 34743981707 | 201 | 146 | 146 | 64 | 99 |
+| POST | 34744129692 | 154 | 225 | 154 | 88 | 84 |
+| PRE | 34744266206 | 119 | 103 | 77 | 51 | 103 |
+| POST | 34744356694 | 134 | 217 | 134 | 99 | 108 |
+| PRE | 34744456404 | 162 | 112 | 112 | 62 | 106 |
+| POST | 34744578340 | 132 | 169 | 132 | 50 | 53 |
+| PRE | 34744680055 | 119 | 119 | 71 | 48 | 119 |
+| POST | 34744773410 | 121 | 220 | 121 | 120 | 83 |
+| PRE | 34744879439 | 183 | 128 | 128 | 67 | 70 |
+| POST | 34745016209 | 122 | 191 | 122 | 83 | 87 |
+| PRE | 34745118510 | 181 | 126 | 126 | 68 | 101 |
+| POST | 34745253329 | 183 | 256 | 183 | 89 | 84 |
+| PRE | 34745399260 | 185 | 120 | 120 | 75 | 112 |
+| POST | 34747425518 | 142 | 226 | 142 | 103 | 85 |
+
+⚠️ Both arms are `workflow_dispatch` runs, not `pull_request` ones, which is
+what makes them serialisable one at a time. Nothing in the workflow branches on
+the event, and the queue figures above are the reason to believe it did not
+matter — but the eight-run `pull_request` baseline in the section above is a
+different sample and the two should not be pooled.
+
+Take it again the same way: alternate the refs, one run in flight at a time,
+and read jobs and steps with the snippet in *The two macOS poles* above.

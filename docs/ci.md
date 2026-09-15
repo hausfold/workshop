@@ -15,7 +15,7 @@ by not paying twice for the same one.
 | --- | --- | --- | --- |
 | `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, plus twenty-nine platform-independent flake checks. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
-| `perch` | `build` | macOS ×2, ubuntu | Xcode test + analyze + Release, the arm64 slice guard, and the iOS companion; the skill guards are the one job off the Mac |
+| `perch` | `build` | macOS ×3, ubuntu | Xcode test + analyze on one Mac, Release plus the arm64 slice guard on another — cut at the `-derivedDataPath` the steps already divided on — and the iOS companion on a third; the skill guards are the one job off the Mac |
 | `trill` | `build` | macOS | Xcode test + analyze + Release, and the no-instrumentation guard on the built bundle |
 | `scruff` | `check` | ubuntu ×3, macOS ×2 | the acceptance suite on both OSes (occupancy and reflink diverge), five SDKs against one fixture, and `vendorHash` |
 | `snug` | `ci` | ubuntu ×3, macOS | the Go width sweeps on both OSes, the bash painter on Linux only (it needs bash 4), and `vendorHash` |
@@ -210,8 +210,10 @@ the job is cut; the same pole twenty-five seconds clear has twenty-five. haus's
 `agents` is the worked example and the answer there was no —
 `.github/workflows/check.yml`'s shell-half banner carries that arithmetic, and
 `script/probes/README.md` the stamped figures. A gap can also be wide enough
-that the question is worth asking and the arithmetic comes out the other way:
-*What those Mac jobs are made of*, below, is the family's other worked example.
+that the question is worth asking and the answer comes out the other way:
+*What those Mac jobs are made of*, below, is the family's other worked example,
+and perch's split is the one place in the family where a gate was cut in two
+and both shapes then measured against each other.
 
 Two things that measurement turned up, both of which generalise:
 
@@ -513,9 +515,9 @@ take it again.
 
 Rule 5's question about the *other* jobs is already answered in both repos.
 pounce's other three are a 40s Swift unit-test job on a Mac and two Linux jobs
-at ~12s and ~5s, against a 215s pole; perch's are a 74s iOS build and a ~5s
-Linux job against 182s. Neither pole loses the title in a single run of that
-sample, so no regrouping among them reaches either gate. Whether the poles
+at ~12s and ~5s, against a 215s pole; perch's were a 74s iOS build and a ~5s
+Linux job against a 182s one. Neither pole loses the title in a single run of
+that sample, so no regrouping among them reaches either gate. Whether the poles
 themselves divide is the other half of rule 5's question, and these two repos
 answer it differently — *It is also not all Xcode*, below.
 
@@ -549,7 +551,10 @@ and there is no target graph to spread across cores. Nix prints the figure
 itself (`buildPhase completed in …`, in the build log), and it is the only line
 in the job whose length is about pounce's own source.
 
-`perch` — `Native build and tests`, 182s mean, Xcode the whole way down:
+`perch` — `Native build and tests`, 182s mean, Xcode the whole way down. This
+is the shape **before** the split: one job, and the reason there is now more
+than one. Read it as the measurement that found the boundary, not as the
+workflow:
 
 | | mean | share |
 | --- | --- | --- |
@@ -587,15 +592,38 @@ only one of these two supports.** pounce's pole is one installer and one
 boundary in it for rule 5 to find, whatever levers the invocation itself may
 still have. perch's has one, and it is rule 5's kind rather than a step
 count: `Test` and `Analyze` share a Debug `DerivedData`, `Release build` and
-the three guards share the Release bundle, and nothing crosses. Split there and
-the arithmetic off these means is a ~119s job beside a ~71s one against today's
-182s, with the gate becoming the Debug half — ahead of the 74s iOS build, which
-is the job that would inherit the title next. That is an estimate assembled
-from measured parts and **not itself a measurement**: it asks for a second
-macOS runner on every PR, and it belongs in a perch PR that runs it both ways
-and reads the numbers back. It is named here because rule 5 asks you to say
-which job was the gate before and which is after, and perch is the repo where
-that question now has an answer.
+the three guards share the Release bundle, and nothing crosses. perch was split
+there and then run both ways, so the paragraph that used to estimate this now
+reports it: **a median 60s off the gate** (mean 58s, range 0-99s), and
+`Debug tests and analyze` took the title in all seven post-split runs, ahead of
+the iOS build that would inherit it next. Rule 5 asks which job was the gate
+before and which is after; for perch that is `Native build and tests` and then
+`Debug tests and analyze`, measured rather than reasoned.
+
+**The third macOS runner does not queue behind the other two**, which was the
+one thing that could have made the split a loss. Going from two concurrent
+macOS jobs to three, the mean wait from a job being created to it starting went
+7.4s to 6.4s — no serialization at all, on a public repo. Measure that before
+copying the split anywhere; it is the half of the trade that belongs to the
+account rather than to the workflow.
+
+⚠️ **An arm mean would have got this wrong, and by enough to matter.** perch's
+runners are not stable: `Test` alone ran 59-147s across the fourteen runs of
+that sample with no source change between them. Comparing the arms straight
+gives 164s against 141s, a 23s difference most of which is which half-hour a
+run landed in. The 60s above instead compares **the two shapes inside each
+run** — for a pre-split run, what the split would have given that same run;
+for a post-split one, what the single job would have cost it — which cancels
+runner speed almost entirely. On a pole this noisy that is the only comparison
+worth making, and `script/probes/README.md` carries the per-run table.
+
+⚠️ **The prize is capped by the runner-up, and once in seven it was zero.** One
+pre-split run had the iOS companion at 119s against a Debug half of 71s: the
+companion was already the pole, and the split would have bought that run
+nothing. One post-split run closed to a 1s gap between its two halves, which is
+the same fact from the other side. This is rule 5's own test biting on rule 5's
+worked example — there is no second cut to make inside perch's Debug half,
+because whatever comes off it lands on the iOS build.
 
 ⚠️ **Two carries these numbers will not take.** pounce was measured on
 `macos-15` and perch on `macos-26`, and the installer figure above belongs to a
