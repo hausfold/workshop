@@ -1090,7 +1090,10 @@ each by name.
   companion, so the runner-up after the cut is its own Release half — and at an
   11s median gap, rule 5's "worth the distance to the runner-up and not one
   second more" says there is **no second cut to make here**: whatever comes off
-  either half lands on the other;
+  either half lands on the other. It is not an artifact of the dispatch sample:
+  the `pull_request` run of trill#63 itself, the PR that made the cut, came in at
+  Debug **61s** and Release **105s** — a fast Debug half, and the Release half
+  the gate by 44s;
 - **the second concurrent macOS job did not queue behind the first.** 8s median
   from created to started in both arms — the figure that had to be taken for
   this repo's account rather than inherited from perch's, since this is 1 macOS
