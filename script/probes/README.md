@@ -576,8 +576,9 @@ all of them:
 - **the lever on snug's gate is not a cache.** `nix-quick-install-action` lands
   in about a second on haus and nebelung where
   `DeterminateSystems/nix-installer-action` takes 7-9s here — bigger than
-  anything a cache offers, and it is snug's workflow to change, not this
-  repo's;
+  anything a cache offers. ✅ Taken: snug#20 and scruff#130 swapped both on
+  2026-09-15, snug's job to ~34s and scruff's to ~16s on the first post-swap run
+  of each;
 - **the probe prints the split now**, so the next verdict starts from it:
   section 2 splits every nix step at the markers nix writes into the log, and
   says which rows a restore replaces. It is still one run, the newest, like the
@@ -710,9 +711,11 @@ below belongs to a runner image as much as to an action:
   **22.3s on "Configure Time Machine exclusions"** — 22.2-22.4s across all
   eight runs, so a fixed cost and not load — and ~20s for the daemon, the zsh
   hook, the launchctl plist and three shell self-tests. No input on the action
-  turns the Time Machine step off. pounce needs *that* installer specifically:
-  its workflow comment records that Determinate relaxes the macOS build sandbox
-  by default, which the impure `xcrun` build requires;
+  turns the Time Machine step off. ⚠️ pounce's workflow comment said pounce
+  needed *that* installer specifically, because Determinate relaxes the macOS
+  build sandbox by default and the impure `xcrun` build requires it. **Both
+  halves are wrong** — *quick-install on a Mac*, below, has the run that shows
+  it — and the repo has since moved to quick-install;
 - **perch compiles the same sources twice.** `Test` 99.5s mean = 70.4s building
   the Debug target graph + 21.1s of `xcodebuild` starting the test host
   (`IDETestOperationsObserverDebug: N elapsed`) + 6.1s of tests actually
@@ -738,9 +741,10 @@ ceiling: a locked flake input's source tree is a store path too, so an
 unmeasured part of the 28s of flake resolution in front of it is restorable as
 well, while nix's eval cache, which lives outside `/nix`, is not. And the 65s
 installer would itself have to move, since `cache-nix-action` sits behind
-`nix-quick-install-action` and nobody has measured that installer on a Mac. The
-answer for pounce is still no; what a restore *costs* on a macOS runner is
-still open, and so now is what quick-install costs there.
+`nix-quick-install-action` and nobody had measured that installer on a Mac —
+*quick-install on a Mac*, below, is that measurement, and the installer moved on
+its own rather than as a cache's passenger. The answer for pounce is still no;
+what a restore *costs* on a macOS runner is the one part still open.
 
 ⚠️ The run spreads here are wall clock as GitHub recorded it, same as section 1.
 The shares are stable — Time Machine is 22.3s ±0.1s across eight runs — but the
@@ -828,3 +832,102 @@ different sample and the two should not be pooled.
 
 Take it again the same way: alternate the refs, one run in flight at a time,
 and read jobs and steps with the snippet in *The two macOS poles* above.
+
+## quick-install on a Mac
+
+`docs/ci.md` put `nix-community/cache-nix-action` on haus and nebelung behind
+`nixbuild/nix-quick-install-action`, quoted that installer at about a second
+against Determinate's eight or nine, and said in two places that the figure was
+a Linux one and that nobody had measured quick-install on a Mac. pounce is where
+that mattered: 65s of its 215s pole was `DeterminateSystems/nix-installer-action`,
+22.3s of it configuring Time Machine exclusions on a runner with no Time
+Machine. This is that measurement.
+
+**It was blocked on a comment, and the comment was wrong.** `build.yml` said
+Determinate was there because it "relaxes the macOS build sandbox by default,
+which the impure xcrun build requires" — which, if true, would have made
+quick-install unusable here unless it could be made to relax the same thing.
+Neither half survives:
+
+- **nix does not sandbox on macOS at all.** `sandbox` defaults to `true` on
+  Linux and `false` on every other platform — the setting documents its own
+  default — and *neither* installer writes a `sandbox` line: Determinate's
+  `/etc/nix/nix.conf` has none, and quick-install's `~/.config/nix/nix.conf`
+  has none. Both jobs report `sandbox = false` from `nix config show`. Nothing
+  was ever relaxed, because nothing was ever tightened. ⚠️ Which is not the same
+  as "quick-install does not sandbox": the same action and the same nix 2.34.7
+  report `sandbox = true` on `ubuntu-latest`, single-user and with
+  `build-users-group` empty, because the runner allows unprivileged user
+  namespaces (snug run 34948548370). Two platforms, one default, and the
+  installer is the variable in neither;
+- **`relaxed` is the setting that would have broken it.** It exempts
+  fixed-output and `__noChroot` derivations from the sandbox and nothing else,
+  and `pkgs/pounce`'s derivation is neither. Passed through quick-install's
+  `nix_conf`, the build died on `pounce> ./build.sh: line 121: /usr/bin/xcrun:
+  Operation not permitted` — `builder failed with exit code 126`. `sandbox =
+  true` died identically, which is the control that makes the sandbox the axis
+  rather than a coincidence;
+- **so the installer was free to be the cheap one**, and quick-install builds
+  pounce unchanged — `/nix/store/3cflx1kvkbhkmk28fkz50d3frk5jgwfl-pounce-2026.09.13.drv`
+  under both arms, the same derivation hash, green.
+
+**Method.** One temporary workflow on a branch — the variants as sibling jobs of
+the *same* run, so each row below is paired by construction: the arms saw the
+same fleet at the same minute, with no need to serialise runs the way *perch's
+split* above did. Eight runs, 2026-09-15, `macos-15`. A is
+`DeterminateSystems/nix-installer-action@v23` with `determinate: true`, B is
+`nixbuild/nix-quick-install-action@v35` bare, E is B plus `nix_conf: max-jobs =
+auto`; C and D are the sandbox variants above and ran once. Every arm runs the
+identical `nix build .#pounce .#pounce-commands .#pounce-skill
+--print-build-logs`.
+
+| run | A inst | B inst | A total | B total | A swiftc | B swiftc |
+| --- | --- | --- | --- | --- | --- | --- |
+| 34948718808 | 66 | 4 | 230 | 175 | 117 | 122 |
+| 34949000900 | 71 | 5 | 240 | 163 | 113 | 116 |
+| 34949004083 | 69 | 3 | 216 | 138 | 102 | 98 |
+| 34949006329 | 61 | 13 | 185 | 206 | 84 | 139 |
+| 34949008859 | 75 | 6 | 330 | 214 | 186 | 151 |
+| 34949190990 | 68 | 3 | 238 | 198 | 122 | 138 |
+| 34949192968 | 65 | 3 | 219 | 189 | 101 | 131 |
+| 34949196558 | 71 | 4 | 216 | 183 | 101 | 135 |
+| **mean** | **68.2** | **5.1** | **234** | **183** | **116** | **129** |
+
+All seconds. `swiftc` is Nix's own `buildPhase completed in …`. Run 34948718808
+is the one that also carried C and D; 34949190990 onward also carried E.
+
+**What moved, and what only looks like it moved.**
+
+- **the installer row, by 63s.** 68.2s mean against 5.1s, 61-75s against 3-13s,
+  no overlap in eight paired runs. Where Determinate's 65s goes is itemised in
+  *The two macOS poles* above; quick-install does none of it — no encrypted
+  volume, no 32 build users, no daemon, no Time Machine step. It adds a plain
+  APFS volume, turns Spotlight off on it, unpacks a nix tarball and registers
+  the db, single-user and unprivileged;
+- **the job total, by 51s.** 234s against 183s over the same eight runs. That
+  is 13s less than the installer row gives back, and the missing 13s sit in the
+  `swiftc` row, which reads *higher* under quick-install here: 98-151s against
+  84-186s, ranges that overlap with Determinate holding the extreme.
+  ⚠️ **Unattributed, and probably not real.** There is no mechanism for an
+  installer to reach that row — the compiler is the runner image's Xcode CLT in
+  both arms, reached through `xcrun` and never built — and the Determinate
+  eight-run sample above put the same row at 78-127s, wider than either arm
+  here. Read the installer row absolutely, because it is paired; read this one
+  as the runner;
+- ⚠️ **`max-jobs` is the one place bare quick-install is off parity**, and it is
+  worth less than it looks. Upstream nix defaults `max-jobs` to 1 where
+  Determinate's `nix.conf` writes `auto`, so under B the two small derivations
+  queue behind the two-minute `swiftc` instead of beside it. That buys at most
+  what those two derivations cost, which the Determinate table puts at **5s**,
+  and this sample cannot see 5s: paired against B in the three runs carrying
+  both, E came in at 160/170/188s against 198/189/183s — two wide wins, one
+  reversal, a 17s mean gap that is three times what the mechanism can produce
+  and is therefore mostly the runner again. **Left unset**, so pounce's step
+  stays bare like haus's and nebelung's; it is one `nix_conf` line away if
+  anyone wants to chase the 5s with a bigger sample.
+
+**Take it again the same way.** Put the variants in one workflow as sibling jobs
+so they stay paired, push it to a branch — `workflow_dispatch` will not fire for
+a file that is not on the default branch — and read jobs, steps and phases with
+`ci-cache-value.sh`'s instrument. The probe branch and its workflow are
+deliberately not kept; the run ids in the table are the record.
