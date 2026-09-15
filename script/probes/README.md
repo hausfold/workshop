@@ -781,7 +781,11 @@ Runner speed multiplies both sides and cancels.
   halves (Debug 121s, Release 120s) — the same fact from the other side. A
   split is worth the distance to the runner-up and not one second more, so
   there is no second cut to make inside perch's Debug half: whatever comes off
-  it lands on the iOS build.
+  it lands on the iOS build. It is not a once-in-seven curiosity of the
+  dispatch sample either: the `pull_request` run of perch#151, the PR that
+  wrote this result into that workflow, came in at Debug 84s, Release 89s and
+  **iOS 94s** — a fast runner, both halves under the companion, and neither of
+  them the gate.
 
 Per run, seconds. *gate* is what that run actually took; *other shape* is the
 counterfactual described above; *dbg* and *rel* are the two halves, measured
