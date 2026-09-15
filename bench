@@ -77,16 +77,16 @@
 # ── the interpreter, before anything else ────────────────────────────────────
 # bench needs bash 4.3 or newer — `declare -g` is 4.2, `local -n` is 4.3 — and
 # macOS's own /bin/bash is still 3.2.57. The shebang takes whichever `bash` is
-# first on the caller's PATH, and two callers hand it the 3.2: a Claude Code
-# pane in a scruff lane, whose PATH is a few injected /nix/store bins and then
-# the stock /usr/local/bin:/usr/bin:/bin, and any launchd child on
-# PATH=/usr/bin:/bin:/usr/sbin:/sbin. On that bash the first `declare -gA`
-# below dies with two lines of `declare` usage that name no version and read as
-# if bench itself were broken (workshop#565) — at `bench overlap`, where
-# /earshot sends every agent before `gh pr create`. The wrapper haus puts on
-# PATH (`exec "$HOME/code/workshop/bench" "$@"` under its own bash 5) is no
-# rescue: exec re-enters the shebang lookup, so that bash is gone before this
-# file is read.
+# first on the caller's PATH, and two callers hand it the 3.2: the Claude Code
+# pane workshop#565 was filed from — a scruff lane whose PATH was a few injected
+# /nix/store bins and then the stock /usr/local/bin:/usr/bin:/bin, no nix dir
+# at all — and any launchd child on PATH=/usr/bin:/bin:/usr/sbin:/sbin. On
+# that bash the first `declare -gA` below dies with two lines of `declare`
+# usage that name no version and read as if bench itself were broken — at
+# `bench overlap`, where /earshot sends every agent before `gh pr create`. The
+# wrapper a host file puts on PATH through `haus.apps` (`exec
+# "$HOME/code/workshop/bench" "$@"` under its own bash 5) is no rescue: exec
+# re-enters the shebang lookup, so that bash is gone before this file is read.
 #
 # So a bash too old re-execs this same file under the first new-enough one it
 # finds: BENCH_BASH when set — authoritative, like BENCH_TRILL, so a wrong one
