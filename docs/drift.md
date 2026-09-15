@@ -260,3 +260,15 @@ failure mode of the fix above rather than an argument against it. **Caught by**
 grepping the target file for the § string out of the diff: a § is a quotation,
 so it matches byte for byte or it is not a name. Where no heading fits, point at
 the doc and stop.
+
+**A "not yet" in a comment, with nothing that would notice "now".** `bench`'s
+`ensure_nix_path` comment had the next failure exactly — a caller on the stock
+PATH gets macOS's bash 3.2 and dies at the first `declare -gA` — named the fix,
+and closed with "nothing needs it yet". That clause is a claim about callers,
+which change without anyone opening this file: two Claude Code lanes in five
+days hit it at `bench overlap`, the check /earshot sends every PR through, and
+what each got was two lines of `declare` usage naming no version, not the
+comment that had already diagnosed them, which sat past the line that dies.
+**Caught by** reading a deferral's "yet" as an assertion and asking what would
+fail when it stops holding — here nothing could, so the fix the comment
+described was cheaper than the comment.

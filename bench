@@ -73,6 +73,62 @@
 # never falls back to Apple's · TRILL_APP points at a Trill.app somewhere other
 # than ~/Applications or /Applications. Which ones reach you past that is
 # ~/.config/trill/rules.json, matching on source bench.release / bench.try-batch.
+
+# ── the interpreter, before anything else ────────────────────────────────────
+# bench needs bash 4.3 or newer — `declare -g` is 4.2, `local -n` is 4.3 — and
+# macOS's own /bin/bash is still 3.2.57. The shebang takes whichever `bash` is
+# first on the caller's PATH, and two callers hand it the 3.2: a Claude Code
+# pane in a scruff lane, whose PATH is a few injected /nix/store bins and then
+# the stock /usr/local/bin:/usr/bin:/bin, and any launchd child on
+# PATH=/usr/bin:/bin:/usr/sbin:/sbin. On that bash the first `declare -gA`
+# below dies with two lines of `declare` usage that name no version and read as
+# if bench itself were broken (workshop#565) — at `bench overlap`, where
+# /earshot sends every agent before `gh pr create`. The wrapper haus puts on
+# PATH (`exec "$HOME/code/workshop/bench" "$@"` under its own bash 5) is no
+# rescue: exec re-enters the shebang lookup, so that bash is gone before this
+# file is read.
+#
+# So a bash too old re-execs this same file under the first new-enough one it
+# finds: BENCH_BASH when set — authoritative, like BENCH_TRILL, so a wrong one
+# fails loudly instead of falling through — else haus's system profile, then
+# the two Homebrew prefixes. Every candidate is asked its own version before it
+# is trusted, so a stale symlink, or a `bash` that is really something else,
+# can neither loop us back here nor take the exec. With none found, the
+# failure names the version it has, the one it needs and where it looked —
+# plain printf, because snug's painter is bash 4 too.
+#
+# This block runs ON 3.2, so it is written for 3.2, and it sits above
+# `set -euo pipefail` because a bare "$@" with no arguments is an unbound
+# variable to `set -u` before 4.4 — the exec would die on `bench` alone.
+bash_new_enough() { # bash_new_enough <major> <minor> — 4.3 or newer
+  case "$1" in '' | *[!0-9]*) return 1 ;; esac
+  case "$2" in '' | *[!0-9]*) return 1 ;; esac
+  [ "$1" -gt 4 ] || { [ "$1" -eq 4 ] && [ "$2" -ge 3 ]; }
+}
+if ! bash_new_enough "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"; then
+  _bench_have="bash $BASH_VERSION at $BASH"
+  if [ "${BASH_SOURCE[0]}" != "$0" ]; then # sourced: nothing to exec into
+    printf 'bench: needs bash 4.3 or newer to be sourced, found %s\n' "$_bench_have" >&2
+    return 2
+  fi
+  if [ -n "${BENCH_BASH:-}" ]; then
+    _bench_candidates=("$BENCH_BASH")
+  else
+    _bench_candidates=(/run/current-system/sw/bin/bash /opt/homebrew/bin/bash /usr/local/bin/bash)
+  fi
+  for _bench_c in "${_bench_candidates[@]}"; do
+    [ -x "$_bench_c" ] || continue
+    # shellcheck disable=SC2016  # single quotes on purpose: the CANDIDATE expands it, not this bash
+    read -r _bench_maj _bench_min <<<"$("$_bench_c" -c 'echo "${BASH_VERSINFO[0]} ${BASH_VERSINFO[1]}"' 2>/dev/null)"
+    bash_new_enough "${_bench_maj:-}" "${_bench_min:-}" || continue
+    exec "$_bench_c" "$0" "$@"
+  done
+  printf 'bench: needs bash 4.3 or newer, found %s.\n' "$_bench_have" >&2
+  printf '  looked at: %s\n' "${_bench_candidates[*]}${BENCH_BASH:+ (BENCH_BASH)}" >&2
+  printf '  run it as: /path/to/bash %s …   or export BENCH_BASH=/path/to/bash\n' "$0" >&2
+  exit 1
+fi
+
 set -euo pipefail
 
 # ROOT is the workshop's MAIN checkout — the dir holding the family repos as
@@ -98,11 +154,10 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # other caller whose PATH still reaches /run/current-system/sw/bin — a bare
 # agent shell, say.
 #
-# It does NOT rescue a caller with launchd's stock
-# PATH=/usr/bin:/bin:/usr/sbin:/sbin: there `#!/usr/bin/env bash` resolves
-# macOS's bash 3.2 and the script dies at the first `declare -gA` (exit 2)
-# before this guard can run. Re-exec'ing under a newer bash is the fix for
-# that day; nothing needs it yet.
+# A caller on launchd's stock PATH=/usr/bin:/bin:/usr/sbin:/sbin gets here
+# too: its `#!/usr/bin/env bash` resolved macOS's bash 3.2, and the interpreter
+# guard at the top has already re-exec'd us under a newer one, PATH untouched —
+# so this is still the only thing that puts `nix` on it.
 #
 # The failure that exposed it was doubly confusing, which is why this guard
 # is here and not in the caller: `host_name`'s `nix eval` failed FIRST and

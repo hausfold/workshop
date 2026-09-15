@@ -1092,6 +1092,81 @@ fail_rows() { # fail_rows <why> <output>
   [ -z "${LANE_SRC[perch]:-}" ]
 }
 
+# ── the interpreter guard: bash 4.3 or newer, or re-exec into one ────────────
+# Regression (workshop#565): a Claude Code pane in a scruff lane has a PATH with
+# no nix dir on it, so `#!/usr/bin/env bash` resolved macOS's /bin/bash 3.2 and
+# `bench overlap` — the check /earshot sends every PR through — died at the
+# first `declare -gA` with two lines of `declare` usage. The guard at the top of
+# bench now re-execs into a newer bash, or says which version it needs.
+#
+# The first two tests run under whatever bash runs this suite and pass anywhere.
+# The rest need a REAL bash older than 4 to start bench under, which every Mac
+# has at /bin/bash and the Ubuntu runner does not (its /bin/bash is 5), so they
+# skip there and run on the machine the bug bites. A skip is printed, never
+# silent.
+
+@test "bash_new_enough draws the line at 4.3 and refuses anything that is not a version" {
+  bash_new_enough 5 3
+  bash_new_enough 4 3
+  run bash_new_enough 4 2;  [ "$status" -eq 1 ]
+  run bash_new_enough 3 2;  [ "$status" -eq 1 ]
+  run bash_new_enough "" ""; [ "$status" -eq 1 ]
+  run bash_new_enough 4 "";  [ "$status" -eq 1 ]   # a candidate that is not bash prints nothing
+  run bash_new_enough x y;  [ "$status" -eq 1 ]
+}
+
+@test "a new-enough bash never consults BENCH_BASH — the guard is for the old one" {
+  run env BENCH_BASH="$TMP/no-such-bash" "$BASH" "$HAUS" no-such-verb
+  [ "$status" -eq 1 ]                      # bench's own usage exit, past the guard
+  [[ "$output" == *"bench status"* ]]      # the usage header: bench ran
+  [[ "$output" != *"needs bash"* ]]
+}
+
+need_old_bash() { # skip unless /bin/bash is a bash older than 4
+  local v
+  v="$(/bin/bash -c 'echo "${BASH_VERSINFO[0]}"' 2>/dev/null || true)"
+  [ -n "$v" ] && [ "$v" -lt 4 ] \
+    || skip "/bin/bash here is not older than bash 4 (a Mac's is 3.2, and that is where #565 bites)"
+}
+
+@test "under bash 3.2, bench re-execs itself into BENCH_BASH and runs" {
+  need_old_bash
+  run env BENCH_BASH="$BASH" /bin/bash "$HAUS" no-such-verb
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"bench status"* ]]
+  [[ "$output" != *"declare: -g"* ]]       # the two lines #565 got
+  [[ "$output" != *"needs bash"* ]]
+}
+
+@test "under bash 3.2 with no newer bash to find, bench names the version and where it looked" {
+  need_old_bash
+  run env BENCH_BASH="$TMP/no-such-bash" /bin/bash "$HAUS" status
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"needs bash 4.3 or newer"* ]]
+  [[ "$output" == *"found bash 3."* ]]
+  [[ "$output" == *"$TMP/no-such-bash (BENCH_BASH)"* ]]
+  [[ "$output" != *"declare: -g"* ]]
+}
+
+@test "a BENCH_BASH that runs but is not a new-enough bash is refused, never exec'd into" {
+  need_old_bash
+  # Answers `-c` happily and has no BASH_VERSINFO at all. The probe has to read
+  # that as "not bash" — exec'ing into it would run bench through /bin/sh and
+  # fail somewhere far less legible than the guard's own message.
+  printf '#!/bin/sh\nexit 0\n' >"$TMP/notbash"; chmod +x "$TMP/notbash"
+  run env BENCH_BASH="$TMP/notbash" /bin/bash "$HAUS" status
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"needs bash 4.3 or newer"* ]]
+  [[ "$output" == *"$TMP/notbash (BENCH_BASH)"* ]]
+}
+
+@test "sourced under bash 3.2 — this harness's own form — bench returns 2 with the same message" {
+  need_old_bash
+  run /bin/bash -c 'HAUS_LIB=1 . "$1"' _ "$HAUS"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"needs bash 4.3 or newer to be sourced"* ]]
+}
+
 # ── ensure_nix_path: nix on PATH for a caller with no login shell ─────────────
 # Regression: the layer binds ⌘B straight to `bench try lane switch` via a
 # zellij `Run`, which execs bench from the zellij server's environment. That
