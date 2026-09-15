@@ -264,11 +264,14 @@ spread.
 [`nix-community/cache-nix-action`](https://github.com/nix-community/cache-nix-action),
 sitting behind `nixbuild/nix-quick-install-action` — one of the three
 installers that action documents itself as compatible with, and the fastest of
-them to land: about a second, against the eight or nine `scruff` and `snug`
-pay for `DeterminateSystems/nix-installer-action` — on Linux. Neither figure
-travels to a Mac, and Determinate's is ~65s on one; *No third-party runner
-fleet* below has the breakdown, and nobody has measured quick-install there at
-all.
+them to land: about a second on Linux, against the eight or nine
+`DeterminateSystems/nix-installer-action` took there. Neither figure travels to
+a Mac, where the gap is *wider* rather than narrower: **5.1s against 68.2s**,
+measured on pounce over eight paired runs. As of 2026-09-15 every `nix` job in
+the family installs this way — scruff and snug swapped the same day pounce did —
+and only pounce's swap came with a store cache attached to the question, which
+it still answers no. *No third-party runner fleet* below has the macOS
+breakdown.
 
 The key is `flake.lock` plus every `*.nix`, so a lock bump or a module edit
 pays full price and nothing else does. On haus that key sits behind a
@@ -465,24 +468,39 @@ expensive derivation is the one whose source just changed, so a restore buys
 the dependencies and nothing else, and a large `/nix` restore on a macOS runner
 can cost more than it saves. `pounce` is the measured case and settles the
 derivations half of it outright: what `cache.nixos.org` substitutes there is
-104 MiB in ~3s of a 215s job, and no restore is cheap enough to beat 3s.
+114 MiB in 1.2s, and no restore is cheap enough to beat that.
 
-⚠️ **3s is a floor on what a warm store would remove, not a ceiling.** A locked
-flake input's source tree is a store path like any other, so an unmeasured part
-of the ~28s of flake resolution in front of that substitution is restorable
-too — while nix's eval cache, which is not in `/nix`, is not. What is certainly
-outside a restore is the ~65s installer, and adding a cache here would have to
-move that number as well: `cache-nix-action` sits behind
-`nix-quick-install-action`, whose cost on a macOS runner nobody has measured.
-So the answer for pounce is still no and the question is now sharper rather
-than closed. *No third-party runner fleet*, below, has the breakdown.
+⚠️ **That is a floor on what a warm store would remove, not a ceiling.** A
+locked flake input's source tree is a store path like any other, so an
+unmeasured part of the ~31s of flake resolution in front of that substitution
+is restorable too — while nix's eval cache, which is not in `/nix`, is not.
+What is certainly outside a restore is the installer, and that was the sharper
+question this used to leave open: `cache-nix-action` sits behind
+`nix-quick-install-action`, so a cache here would have had to carry an installer
+swap with it, and nobody had measured that installer on a Mac.
+
+**Now somebody has, and it closes the question from the other end.**
+quick-install runs pounce's impure `xcrun` build unchanged — same derivation
+hash, `…-pounce-2026.09.13.drv`, under both — for 5.1s against Determinate's
+68.2s. So pounce took the 63s on its own, in `build.yml`, and the cache never
+had to carry it. What that leaves a restore to beat is *smaller* than what it
+faced before: 1.2s of substitution, in a job the swap alone took 63s out of.
+The answer for pounce is still no, and it is now a no with the installer
+question closed rather than open. *No third-party runner fleet*, below, has the
+breakdown.
 
 `scruff` and `snug` run Linux `nix` jobs and are the case that had to be
-measured rather than reasoned about. Neither has one. scruff's job is
-~28s beside a two-minute macOS test job in the same run, so even a free
-restore takes nothing off that gate. snug's ~41s *is* the longest job in its
-run, which is the whole argument for caching it — and the argument dies on the
-phase split, because almost none of those seconds are store.
+measured rather than reasoned about. Neither has one. scruff's job is ~16s
+beside a two-minute macOS test job in the same run, so even a free restore takes
+nothing off that gate. snug's ~34s *is* the longest job in its run, which is the
+whole argument for caching it — and the argument dies on the phase split,
+because almost none of those seconds are store.
+
+⚠️ Both figures are one post-swap run each on `main`, 2026-09-15. They were ~28s
+and ~41s with Determinate in front of them, and the swap took 7-9s out of each
+without touching a phase below; the phase split under them is the pre-swap
+sample and is unchanged by an installer. Re-read them before quoting either as a
+mean.
 
 **Split the step before you size the entry.** snug's `nix build` is 6.5-14.2s
 evaluating nixpkgs, **2.3-3.5s** substituting the 69 paths it needs (216 MiB
@@ -492,8 +510,9 @@ source change invalidates both on every run: snug's build row is worth nothing
 to a restore, and that is the whole difference from haus, whose twenty-nine
 checks mostly survive a PR untouched. What is left is the substitute row plus
 the 47 MiB nixpkgs `-source` the eval pulls — **262 MiB of download, 3-4s of a
-41s job**. That source arrives in under a second at the rate the substitute row
-runs at, so the rest of the eval row is evaluation, which no store holds.
+41s job**, and of a 34s one now that the installer in front of it is gone. That
+source arrives in under a second at the rate the substitute row runs at, so the
+rest of the eval row is evaluation, which no store holds.
 Against those 3-4s stands a restore: 32.4s flat on haus by the fit above, and
 17s at the family's cheapest, nebelung's — the nearest measured point to an
 entry of snug's size, and the one the fit says not to extrapolate past.
@@ -525,14 +544,16 @@ take it again.
 
 Rule 5's question about the *other* jobs is already answered in both repos.
 pounce's other three are a 40s Swift unit-test job on a Mac and two Linux jobs
-at ~12s and ~5s, against a 215s pole; perch's were a 74s iOS build and a ~5s
-Linux job against a 182s one. Neither pole loses the title in a single run of
+at ~12s and ~5s, against a 215s pole — which the installer swap below takes
+~63s out of without moving which job the pole is; perch's were a 74s iOS build
+and a ~5s Linux job against a 182s one. Neither pole loses the title in a single run of
 that sample, so no regrouping among them reaches either gate. Whether the poles
 themselves divide is the other half of rule 5's question, and these two repos
 answer it differently — *It is also not all Xcode*, below.
 
 `pounce` — `nix build (aarch64-darwin)`, 215s mean, and under half of it is a
-compiler:
+compiler. This is the shape **before** the installer swap, and the reason there
+was one:
 
 | | mean | share |
 | --- | --- | --- |
@@ -554,6 +575,57 @@ nothing in the action's inputs exposes it — and ~20s for the daemon, the
 shell hooks and three self-tests. The darwin stdenv under it arrives in ~3s,
 and the compiler itself is the runner image's Xcode CLT, reached through
 `xcrun` and never built.
+
+⚠️ **And none of those 65s bought anything this build needs.** The workflow
+comment credited Determinate with relaxing the macOS build sandbox, which the
+impure `xcrun` build was said to require. Nix does not sandbox on macOS at all:
+`sandbox` is `true` on Linux and `false` on every other platform, and *neither*
+installer writes a `sandbox` line — Determinate's `/etc/nix/nix.conf` has none
+and quick-install's `~/.config/nix/nix.conf` has none. The relaxation was never
+granted because it was never needed, and `relaxed` is in fact the setting that
+would have broken it: it exempts fixed-output and `__noChroot` derivations only,
+and pounce's is neither. Run both ways on a probe branch, `sandbox = relaxed`
+and `sandbox = true` each died on `/usr/bin/xcrun: Operation not permitted`,
+exit 126, while the default ran green.
+
+⚠️ **Do not read that as "quick-install does not sandbox".** The same action,
+the same nix 2.34.7, reports `sandbox = true` on `ubuntu-latest` — single-user,
+`build-users-group` empty, and sandboxed anyway, because the runner allows
+unprivileged user namespaces. The platform default is the whole mechanism, which
+is exactly why the installer was never the variable. **A comment that names a
+mechanism is a claim; this one had gone unread for as long as the build stayed
+green.**
+
+`pounce` — the same job on `nixbuild/nix-quick-install-action@v35`, eight runs
+on `macos-15`, 2026-09-15. Same derivation hash, same everything below the
+installer:
+
+| | mean | share |
+| --- | --- | --- |
+| set up + checkout | 4s | 2% |
+| `nixbuild/nix-quick-install-action` | 5.1s | 3% |
+| `nix build` — flake resolution and fetching the inputs | 31s | 17% |
+| `nix build` — substituting the darwin stdenv, 114 MiB | 1.2s | 1% |
+| **`nix build` — one `xcrun swiftc -O` over every source file** | **129s** | **70%** |
+| `nix build` — fixup and the small command derivations | 11s | 6% |
+| post and cleanup | ~2s | 1% |
+
+⚠️ **The installer row is the only one to read absolutely, and it is the only
+one that is paired.** Both arms ran as sibling jobs of the same run, on the same
+fleet, at the same minute, in every one of the eight — so the installer figures
+compare directly, and they never overlap: 3-13s against 61-75s. Nothing else
+here is that clean. The `swiftc` row is the widest-spread number in the family
+and it reads 13s *higher* under quick-install on this sample — 98-151s against
+84-186s, ranges that overlap with Determinate holding the extreme — and there is
+no mechanism for an installer to reach it: the compiler is the runner image's
+Xcode CLT in both arms, reached through `xcrun` and never built. Unattributed,
+and already inside the job totals: 234s against 183s over the same eight runs,
+**51s off the pole**.
+
+⚠️ This is a different sample from the eight-run `pull_request` one above, taken
+on a probe branch two days later, and the two should not be pooled — the 215s
+and the 234s are both means of the same job under the same installer, 19s
+apart. Read the shares across them, and the 51s from inside this one.
 
 The compile under that is one `/usr/bin/xcrun swiftc` over `*.swift` with `-O`
 (`pkgs/pounce/build.sh`): a single module, so nothing about it is incremental
