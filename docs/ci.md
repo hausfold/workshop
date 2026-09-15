@@ -711,8 +711,12 @@ because whatever comes off it lands on the iOS build.
 `macos-15` and perch on `macos-26`, and the installer figure above belongs to a
 runner image as much as to an action — re-read it rather than moving it. And
 `trill`'s gate is the same Xcode test + analyze + Release shape as perch's on
-the same kind of runner, so the double compile is very likely there too; it is
-**unmeasured**, and the boundary above is a claim about perch's jobs only.
+the same kind of runner, and the double compile is there too — 63 sources, once
+a file in Debug and once whole-module in Release, in
+`script/probes/README.md`'s *trill's gate, step by step*. What did not carry is
+the split: trill's `build` is one job, so a cut there has no third job to floor
+the result and none to cap it either — the runner-up becomes the Release half
+itself — and perch's 60s is not its number.
 
 **No hosted binary cache.** Cachix's open-source tier and FlakeHub Cache would
 both beat the GitHub cache on a cold store, and both mean an account, a token
