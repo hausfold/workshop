@@ -647,8 +647,20 @@ about. "W37 ran 67 saves" below is the week; the slope is the third lineage:
   reset buys back store SIZE, not seconds, and the projection that it would
   take `acquire`'s restore to ~10s has nothing behind it. 472 MiB is as low as
   the evidence reaches and the post-reset entries land below it, so haus's
-  first run of W38 is still the one to read — it decides whether `acquire`
-  should keep a cache at all.
+  first run of W38 is still the one to read for the slope;
+- **`acquire` keeps no cache, decided 2026-09-13 on a clean A/B.** Changing the
+  nixpkgs half of the lineage key built one PR run cold while a comment-only
+  run minutes earlier on the same base restored the live entries — two PR runs,
+  so neither paid a save. Cold against warm: `eval` 81s/71s (the cache buys
+  10s), `checks` 75s/42s (buys 33s), `acquire` 45s/71s — 50s of restore in
+  front of a 13s step, so it **cost 26s** every time it worked. The reset would
+  not have rescued it: at the flat ~32s restore, a post-reset ~199 MiB entry
+  still puts it near 48s against 45s cold. Its cache, lineage step and
+  `actions: write` are gone, and haus's nix gate is `eval` alone. The same
+  cold run turned the projections into measurements — `eval` 330.2 MiB against
+  ~320 projected, `checks` 340.4 against ~328, `acquire` 202.3 against ~199,
+  all within 4% — so "a cold job saves only what it built" holds, and the repo
+  went from 3.1 GB of entries to 1.5.
 
 ⚠️ Section 1 is wall clock as GitHub recorded it, so a queued runner and a slow
 mirror are in it — read the min, not the avg, for what the work costs. Section 2
