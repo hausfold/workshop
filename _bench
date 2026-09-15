@@ -62,7 +62,7 @@ _bench() {
     'rebuild:a plain, pinned rebuild of your machine (the normal day)'
     'pull:fast-forward every repo, or just the named ones'
     'clone:fetch any family repo missing from this directory'
-    'overlap:what the OTHER agent lanes on this repo have already changed'
+    'overlap:scruff overlap, from this checkout — what the OTHER lanes have already changed'
     'docs-since:commits in every repo since the docs were last reconciled, and what is read but not landed'
     'release:stamp the version and tag it, then WATCH the CI run to the end'
   )
@@ -122,11 +122,15 @@ _bench() {
           ;;
 
         overlap)
-          # Flags only — cmd_overlap takes no repo argument, because overlap is
+          # scruff's flags, hand-copied like everything else here: cmd_overlap
+          # only forwards, and overlap takes no repo argument because it is
           # only ever defined inside ONE repo (the one you are standing in).
           local -a oflags=(
             '--brief:one line per lane — the lane-start version'
             '--path:only that file; prints nothing at all when it is clear'
+            '--committed-only:read every lane from its branch alone'
+            '--pair:two named lanes against each other, from anywhere'
+            '--json:the same report as one document'
           )
           if [[ $words[CURRENT-1] == --path ]]; then
             _files && ret=0

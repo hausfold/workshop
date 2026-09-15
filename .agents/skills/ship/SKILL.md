@@ -2,7 +2,7 @@
 name: ship
 description: >-
   Finish a piece of work in the hausfold family and land it: commit stragglers, verify
-  with `bench try`, check the other lanes with `bench overlap` (Step 2.4), run the
+  with `bench try`, check the other lanes with `scruff overlap` (Step 2.4), run the
   pre-PR assurance pass (Step 2.5 — a clean-context subagent
   over `git diff main...HEAD`, which every PR in the family runs, not just /ship'd ones),
   open a PR and merge it, clean up every worktree the session spun up,
@@ -64,13 +64,13 @@ bench try            # build the machine against the LOCAL checkouts (worktree-a
 proves the branch before anyone merges. Read Nix errors bottom-up; don't proceed on a
 broken build.
 
-## Step 2.4 — check the other lanes (`bench overlap`)
+## Step 2.4 — check the other lanes (`scruff overlap`)
 
 The assurance pass in Step 2.5 reads YOUR diff. This reads everybody else's — the
 half no reviewer of your branch can see, because it isn't in your branch.
 
 ```bash
-bench overlap        # exit 0 clear · 3 same file, different regions · 4 same region
+scruff overlap        # exit 0 clear · 3 same file, different regions · 4 same region
 ```
 
 Parallel lanes are branches of one repo in one shared object store, so this is pure
@@ -325,7 +325,7 @@ is the reliable copy.
 ## The whole lifecycle (for context)
 
 **hack** (agents draft on `worktree-*` branches) → **test** (`bench try`, worktree-aware) →
-**earshot** (Step 2.4 — `bench overlap`, what the OTHER lanes changed) →
+**earshot** (Step 2.4 — `scruff overlap`, what the OTHER lanes changed) →
 **assure** (Step 2.5 — clean-context subagent over `git diff main...HEAD`, advisory) →
 **PR** (push + `gh pr create`) → **merge** (/ship merges the PR — `gh pr merge`) →
 **try switch** (activate — from the main checkout, which now holds the merged work) →
