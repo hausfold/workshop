@@ -3,6 +3,6 @@ description: What the other agent lanes on this repo have already changed — be
 ---
 
 Read `.agents/skills/earshot/SKILL.md` and follow it. It is the shared awareness flow
-every client in this repo runs; the measuring is `bench overlap`, not a judgement call.
+every client in this repo runs; the measuring is `scruff overlap`, not a judgement call.
 
 Extra context for this run (may be empty): $ARGUMENTS

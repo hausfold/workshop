@@ -130,7 +130,7 @@ paragraph of a note, and nobody finds out until a PR won't merge. `scruff overla
 finds it early, and does it **without any coordination at all** — no claims file, no
 lock, no registry to keep current. Lanes are branches of one repo in one shared
 object store, so every fact a claims ledger would ask an agent to *declare* is just
-measured instead, offline, in milliseconds. (`bench overlap` still answers; it only
+measured instead, offline, in milliseconds. (`bench overlap` answers too; it only
 forwards.)
 
 ```sh
@@ -141,10 +141,10 @@ scruff overlap                  # from the MAIN checkout: every pair of lanes th
 scruff overlap --pair a b       # two lanes by name, from anywhere
 ```
 
-How it measures — the hunk index over uncommitted work, `git merge-tree` over the
-committed tips, and the subtractions a squash merge forces — is scruff's, at
-[hausfold.co/docs/scruff/lanes](https://hausfold.co/docs/scruff/lanes#notice-the-other-lanes)
-and its `SPEC.md` §7.3; every shape there was first seen in this repo's lanes. What
+How it measures — the hunk index over each lane's whole tree since the merge base,
+uncommitted work included, `git merge-tree` over the committed tips, and the
+subtractions a squash merge forces — is scruff's: its `SPEC.md` §7.3, and the manual at
+[hausfold.co/docs/scruff/lanes](https://hausfold.co/docs/scruff/lanes#notice-the-other-lanes). What
 binds the workshop: `⚠` is the same region within git's own 3-line context and `·`
 the same file elsewhere — co-editing a long shared file is normal here, and a tool
 that shouted about it would be muted inside a day — and a lane with nothing left to

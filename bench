@@ -34,7 +34,7 @@
 #   bench pull [repo…]  fast-forward every repo, or just the named ones
 #   bench clone     fetch any family repo missing from this directory
 #   bench overlap [args…]   `scruff overlap`, from this checkout — the verb lives
-#                  in scruff now (`scruff overlap --help`); this spelling only
+#                  in scruff (`scruff overlap --help`); this spelling only
 #                  forwards to it.
 #   bench docs-since [--mark [--pending <repo>…] | --landed [<repo>…]]
 #                  commits in every repo since the docs were last reconciled —
@@ -3442,8 +3442,9 @@ cmd_clone() {
 }
 
 # ── bench overlap: forwards to scruff ────────────────────────────────────────
-# The measuring — the hunk index over uncommitted work, merge-tree over the
-# committed tips, the subtractions a squash merge forces — lives in scruff now
+# The measuring — the hunk index over each lane's whole tree since the merge
+# base, uncommitted work included, merge-tree over the committed tips, the
+# subtractions a squash merge forces — lives in scruff
 # (`internal/commands/overlap.go`, SPEC §7): the binary that owns the registry
 # it reads. This spelling stays so `bench overlap` keeps answering; it adds
 # nothing, and the exit code is scruff's (0 clear · 3 same file · 4 same region

@@ -16,7 +16,6 @@ Parallel lanes are branches of ONE repo in ONE shared object store, all on this
 machine. That makes coordination unnecessary. Every fact a claims-ledger would ask
 an agent to *declare* — which files, which regions, who is where — can just be
 **measured**, offline, in milliseconds:
-(`bench overlap` forwards to it.)
 
 ```bash
 scruff overlap                 # the full read: who is in your files, and where
@@ -24,6 +23,8 @@ scruff overlap --brief         # one line per lane — the lane-start version
 scruff overlap --path <file>   # just that file; silent when it's clear
 scruff overlap --pair <a> <b>  # two lanes by name, from anywhere
 ```
+
+`bench overlap` forwards to it, argument for argument.
 
 There is no lock, no claim, no registration and no state file. Nobody can forget to
 claim, nobody can lie, and a lane whose agent never runs this costs its siblings
@@ -95,7 +96,7 @@ know better; just say why in the PR body.
 
 | File | What to do when two lanes are in it |
 |---|---|
-| `flake.lock` | never hand-merge. Take main's wholesale (`git checkout --theirs flake.lock`), then re-run `nix flake update <input>` if your branch genuinely needed the newer pin. |
+| `flake.lock` | never hand-merge. Take main's wholesale (`git checkout origin/main -- flake.lock`; never `--theirs`, which in a rebase means your own branch), then re-run `nix flake update <input>` if your branch genuinely needed the newer pin. |
 | `AGENTS.md`, `CLAUDE.md`, `README.md` | keep **both** sides — these grow by section, and a conflict here is nearly always two additions, not two rewrites. |
 | `docs/*.md` | one topic per file. If two lanes are appending to the same page, split the page rather than resolving. |
 | generated pages (`reference/options.md` and friends) | regenerate, never resolve. Whoever lands second re-runs the generator. |
