@@ -16,7 +16,7 @@ by not paying twice for the same one.
 | `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, plus twenty-nine platform-independent flake checks. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
 | `perch` | `build` | macOS ×3, ubuntu | Xcode test + analyze on one Mac, Release plus the arm64 slice guard on another — cut at the `-derivedDataPath` the steps already divided on — and the iOS companion on a third; the skill guards are the one job off the Mac |
-| `trill` | `build` | macOS | Xcode test + analyze + Release, and the no-instrumentation guard on the built bundle |
+| `trill` | `build` | macOS ×2 | Xcode test + analyze on one Mac, Release plus the no-instrumentation guard on another — cut at the `-derivedDataPath` the steps already divided on, the same boundary as perch's |
 | `scruff` | `check` | ubuntu ×3, macOS ×2 | the acceptance suite on both OSes (occupancy and reflink diverge), five SDKs against one fixture, and `vendorHash` |
 | `snug` | `ci` | ubuntu ×3, macOS | the Go width sweeps on both OSes, the bash painter on Linux only (it needs bash 4), and `vendorHash` |
 | `nebelung` | `check` | ubuntu ×2 | that `dist/` and `preview/` still equal what the flake renders |
@@ -212,8 +212,8 @@ the job is cut; the same pole twenty-five seconds clear has twenty-five. haus's
 `script/probes/README.md` the stamped figures. A gap can also be wide enough
 that the question is worth asking and the answer comes out the other way:
 *What those Mac jobs are made of*, below, is the family's other worked example,
-and perch's split is the one place in the family where a gate was cut in two
-and both shapes then measured against each other.
+and perch's split, then trill's, are the two places in the family where a gate
+was cut in two and both shapes then measured against each other.
 
 Two things that measurement turned up, both of which generalise:
 
@@ -713,10 +713,23 @@ runner image as much as to an action — re-read it rather than moving it. And
 `trill`'s gate is the same Xcode test + analyze + Release shape as perch's on
 the same kind of runner, and the double compile is there too — 63 sources, once
 a file in Debug and once whole-module in Release, in
-`script/probes/README.md`'s *trill's gate, step by step*. What did not carry is
-the split: trill's `build` is one job, so a cut there has no third job to floor
-the result and none to cap it either — the runner-up becomes the Release half
-itself — and perch's 60s is not its number.
+`script/probes/README.md`'s *trill's gate, step by step*. The split carried as a
+decision and not as a number: run both ways over seven pairs it takes a median
+**61s** off a 151s gate, against perch's 60s off 182s, and it leaves the two
+halves level — the Debug half was the gate in 3 of 7 runs and the Release half
+in 4, by a median 11s, so there is no second cut there either.
+*trill's split, run both ways* has it.
+
+⚠️ **Subtract the cold start before doing arithmetic on a step list.** A macOS
+runner's first `xcodebuild` pays a front end its later ones do not, and a job
+boundary makes the second half pay it again: trill's `Release build` is 54s
+behind the Debug build and 77s cold on its own runner, ~22s once runner speed is
+divided out, and perch's pays ~30s of the same. Nothing in `DerivedData` crosses
+between the configurations — what crosses is the runner's page cache. So a split
+**moves** that cost rather than removing it, every estimate built on the
+one-job step list overstates the prize by about that much, and perch's own
+recorded median is 60s → ~52s once its post-split arm is corrected. Its verdict
+is unchanged, and so is trill's.
 
 **No hosted binary cache.** Cachix's open-source tier and FlakeHub Cache would
 both beat the GitHub cache on a cold store, and both mean an account, a token

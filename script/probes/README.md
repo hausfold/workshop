@@ -780,7 +780,14 @@ Runner speed multiplies both sides and cancels.
 
 - **the split takes a median 60s off the gate** — mean 58s, range 0-99s, n=14.
   Against a 182s pole that is a third of it, and it is the number the estimate
-  was reaching for;
+  was reaching for. ⚠️ **Read ~52s instead**, and the correction is in *trill's
+  split, run both ways* below: the seven POST rows' *other shape* is computed
+  off a Release job running **cold**, which overstates what one job would have
+  cost each of them by the ~30s of front end this repo's Release build pays only
+  when it is the first `xcodebuild` on its runner. The seven PRE rows are
+  untouched — `max(dbg, rel, iOS)` was never the Release half, even with 30s
+  added — so the verdict below stands exactly as written and only the median
+  moves;
 - **the gate is named at both ends, which is what rule 5 asks.** Before:
   `Native build and tests`, 7/7. After: `Debug tests and analyze`, 7/7 — it
   never once lost the title to the Release half or to the iOS build. The gap to
@@ -1036,3 +1043,105 @@ unmeasured here — perch's 7.4s → 6.4s queue figures are perch's sample. Sett
 it the way *perch's split, run both ways* did: alternate a pre-split ref with
 `main` under `workflow_dispatch`, one run in flight at a time, and compare the
 two shapes inside each run rather than the two arms.
+
+✅ Run, the section below. The Debug half came in at 97s against that ~101s;
+the Release half at 94s against that ~79s, because the ~9s above is the part of
+the cold start this job can see and not the whole of it.
+
+## trill's split, run both ways
+
+The estimate directly above, run. trill#63 made the cut and it was then measured
+against the shape it replaced — the second time in the family a gate has been
+split and both shapes then put on runners, and the first where the two halves
+came out level.
+
+**Method, unchanged from perch's on purpose.** Seven pairs, alternating `main`
+with the split branch, `workflow_dispatch`, **one run at a time** so no two
+samples contended for a macOS slot. Fourteen runs, 2026-09-15, `macos-26`. The
+pre-split arm is `main` itself, which needed no throwaway branch: the split
+lived on the PR branch, so both refs already existed and `gh workflow run` took
+each by name.
+
+- **the split takes a median 61s off the gate** — mean 55s, range 33-74s, n=14.
+  The gate goes 151s mean / 153s median to **103s / 107s**, and the eight
+  `pull_request` runs in the section above sat at 155s, which is the same job on
+  a different sample and is not pooled with it;
+- ⚠️ **the cold start is ~22s, not the ~9s the one-job read could see, and that
+  is the correction this section exists for.** `Release build` is 53.6s mean
+  sitting behind the Debug build and **77.1s** as the first `xcodebuild` on its
+  own runner. Measured at the markers: everything before the compile phase runs
+  11.2s warm and 39.6s cold (medians), 21.9s of that once each run's own compile
+  phase is used to divide the runner's speed out. The compile phase itself does
+  not move. The ~9s above is real and is the *lead-in* alone — what the first
+  invocation leaves in `DerivedData` for the second — and it misses the rest:
+  the early tasks between the build description and the first `SwiftDriver` run
+  2.7s warm against 20.0s cold, and the 69 PCMs 2.3s against 4.7s. **"It
+  inherits nothing" is true of build products and false of wall clock.** Nothing
+  in `DerivedData` crosses the configurations, which is what that paragraph
+  measured; what crosses is the runner's page cache, and a job boundary throws
+  it away;
+- **so the split MOVES that cost rather than removing it, and the arithmetic has
+  to subtract it.** Doing perch's sums on the old job's step list, which is what
+  the estimate above is, puts the saving at 67.5s. Subtracting the measured cold
+  start puts it at 61s. Both say split; only one of them is the number;
+- **the pole is shared, which is new.** `Debug tests and analyze` was the gate in
+  **3** of 7 post-split runs and `Release build and bundle guard` in **4**, by a
+  median 11s (1-53s). perch's Debug half held the title 7/7. trill has no iOS
+  companion, so the runner-up after the cut is its own Release half — and at an
+  11s median gap, rule 5's "worth the distance to the runner-up and not one
+  second more" says there is **no second cut to make here**: whatever comes off
+  either half lands on the other;
+- **the second concurrent macOS job did not queue behind the first.** 8s median
+  from created to started in both arms — the figure that had to be taken for
+  this repo's account rather than inherited from perch's, since this is 1 macOS
+  job going to 2 where perch's was 2 going to 3. One pair waited 287s and 337s,
+  one run per arm and adjacent in time, so that is fleet weather rather than the
+  split; the median is the number to read.
+
+⚠️ **perch's recorded figures need the same subtraction, and its verdict does
+not change.** perch's Release job pays the same thing — its front end is 15.7s
+median warm against 45.6s cold, five runs each way, ~30s. Its POST rows' *other
+shape* is `dbg + rel − fixed` off a **cold** Release job, so each overstates
+what one job would have cost by about that; corrected, its seven POST savings
+are 41/53/7/69/39/43/54 and the fourteen-run median goes **60s → ~52s**. Its
+PRE rows are untouched: `max(dbg, rel, iOS)` was never the Release half in any
+of the seven, even with 30s added to it. So the same measurement that corrects
+the number leaves the conclusion where it was — which is the reason to publish
+it rather than quietly restate the median.
+
+Per run, seconds. *gate* is what that run actually took; *other shape* is the
+counterfactual — for a PRE run, what the split would have given it; for a POST
+run, what one job would have cost it — both with the cold start above applied,
+which is the only difference from perch's table. *dbg* and *rel* are real job
+durations on the POST rows and synthesized from that run's own steps on the PRE
+rows, where *rel* carries the cold start it would newly pay:
+
+| arm | run | gate | other shape | dbg | rel |
+| --- | --- | --- | --- | --- | --- |
+| PRE | 34948631600 | 90 | 57 | 57 | 55 |
+| POST | 34948791632 | 94 | 142 | 77 | 94 |
+| PRE | 34949007084 | 182 | 112 | 112 | 112 |
+| POST | 34949738983 | 58 | 92 | 57 | 58 |
+| PRE | 34950378001 | 153 | 94 | 91 | 94 |
+| POST | 34950634369 | 124 | 189 | 110 | 124 |
+| PRE | 34950859345 | 112 | 76 | 62 | 76 |
+| POST | 34951077026 | 97 | 161 | 97 | 96 |
+| PRE | 34951259145 | 148 | 93 | 93 | 82 |
+| POST | 34951526822 | 119 | 184 | 108 | 119 |
+| PRE | 34951736034 | 174 | 110 | 105 | 110 |
+| POST | 34952043086 | 107 | 172 | 107 | 101 |
+| PRE | 34952235191 | 195 | 121 | 121 | 114 |
+| POST | 34952558547 | 120 | 158 | 120 | 67 |
+
+Step means after the cut, n=7 each: `Debug tests and analyze` is 12.4s of fixed
+cost + 75.6s `Test` + 6.0s `Analyze`; `Release build and bundle guard` is 11.6s
++ 0s skills + 77.1s `Release build` + 2.9s guard. `Test` itself ran 44-97s
+across the fourteen with no source change, which is why the figures above come
+from comparing the two shapes inside each run.
+
+⚠️ Both arms are `workflow_dispatch`, like perch's, which is what makes them
+serialisable one at a time; nothing in the workflow branches on the event. Take
+it again the same way, and **measure the cold start before doing arithmetic on
+any step list** — on this evidence it is a property of the macOS runner and
+Xcode rather than of either project, since trill and perch pay within a few
+seconds of the same ~30s.
