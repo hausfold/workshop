@@ -727,11 +727,13 @@ below belongs to a runner image as much as to an action:
   `Analyze` share one Debug `DerivedData`; `Release build` and the three bundle
   guards share the Release build. Splitting there computed to ~119s beside ~71s
   against today's 182s, with the 74s iOS job next in line — and that estimate
-  has since been run both ways, which is the section below. pounce's pole is
-  one installer and one `nix build`: nothing to cut. ⚠️ `trill`'s gate is the
-  same test + analyze + Release shape on the same kind of runner and is still
-  **unmeasured** — the boundary was a claim about perch's jobs, not about the
-  shape wherever it appears, and perch's answer does not carry to it.
+  has since been run both ways, which is *perch's split, run both ways* below.
+  pounce's pole is one installer and one `nix build`: nothing to cut. `trill`'s
+  gate is the same test + analyze + Release shape on the same kind of runner,
+  and *trill's gate, step by step* below is its own eight-run read — the
+  boundary was a claim about perch's jobs, not about the shape wherever it
+  appears, and what carried to trill was the double compile and not the
+  split.
 
 **This narrows the macOS half of the question the sections above left open.**
 No repo caches a store on a macOS runner, and pounce is the only one that
@@ -931,3 +933,106 @@ so they stay paired, push it to a branch — `workflow_dispatch` will not fire f
 a file that is not on the default branch — and read jobs, steps and phases with
 `ci-cache-value.sh`'s instrument. The probe branch and its workflow are
 deliberately not kept; the run ids in the table are the record.
+
+## trill's gate, step by step
+
+*The two macOS poles, step by step* above left `trill` as the one macOS gate
+nobody had read: the same `Test` → `Analyze` → `Release build` → bundle-guard
+shape as perch's, on the same kind of runner, all through one
+`-derivedDataPath DerivedData` (`.github/workflows/build.yml`). This is that
+read. Same snippet as that section with the repo swapped, and for what is
+inside a step, the job log:
+
+```sh
+gh api --allow-escape-sequences \
+  repos/hausfold/trill/actions/jobs/<id>/logs
+```
+
+The flag is not optional — without it `gh` refuses the body rather than
+printing it. Measured 2026-09-15, the last eight completed `pull_request` runs,
+2026-09-05 to 2026-09-12, all green, all `macos-26`:
+
+- **it is not a pole, it is the whole gate.** `build` has exactly one job.
+  pounce's and perch's figures above are a longest job read against a
+  runner-up; trill's `Native build and tests` has nothing to be longest
+  against, so rule 5's gap is the entire 155s mean (109-229s across the eight)
+  and there is no third job to floor what a split could return;
+- **yes, it compiles the same sources twice, and there are 63 of them.** Target
+  `Trill` is 63 `.swift` files — the directory is the membership, since the
+  project carries it as a synchronised root group. The Debug build inside
+  `Test` compiles them a task each, plus a 64th for the
+  `GeneratedAssetSymbols.swift` the asset catalog derives: 97 `SwiftCompile` in
+  all, those 64 plus `TrillTests`' 27 and the batch jobs around them, and four
+  binaries linked — `Trill`, `Trill.debug.dylib`, `__preview.dylib` and
+  `TrillTests.xctest`. `Release build` compiles the same 63 again as **one**
+  whole-module `SwiftCompile`, against its own configuration's copy of that
+  generated file, and links one, with its own `SwiftDriver`, `Ld` and
+  `GenerateDSYMFile`. It inherits nothing: `Build/Products` and
+  `Intermediates.noindex/Trill.build` are per configuration, and the 69
+  framework-module PCMs are precompiled all over again — Debug's 71
+  `SwiftExplicitDependencyGeneratePcm` are those 69
+  plus two of the test target's own, and **not one** of Release's 69 reuses a
+  Debug hash, because `DerivedData/ModuleCache.noindex` keys a PCM on the flags
+  that asked for it and `-O` is not `-Onone`;
+- **`Test` 79.0s mean = 11.8s before the first build task + 53.0s of Debug
+  build + 11.7s of test + 2.5s printing results.** The 11.7s is `Touch
+  …/Debug/Trill.app` to `** TEST SUCCEEDED **`, and xcodebuild's own
+  `IDETestOperationsObserverDebug: N elapsed` puts 10.8s of it inside the test
+  operation. **The tests themselves are 6.8s of that** — the sum of 452-491
+  cases' own durations, six and a bit seconds of testing inside a 155s job;
+- **`Analyze` is 6.4s because it runs no compiler at all.** No `SwiftCompile`,
+  no PCM, no `Ld`, in all eight runs — it reads the Debug `DerivedData` the
+  step before it left. That is a needs boundary in rule 5's sense: move
+  `Analyze` off `Test` and it has to pay for a second Debug build to read;
+- **`Release build` 52.8s mean = 2.6s lead-in + 4.1s re-precompiling 69 PCMs +
+  38.0s inside one `SwiftCompile` + ~1.4s of `Ld` and dSYM**, the rest asset
+  catalog, plist and validation. The whole-module compile alone ran 29.0-46.4s;
+- **the first `xcodebuild` of the job pays a cold start the other two do not**
+  — 11.8s before the first build task in `Test` against 2.6s in `Release
+  build`, the difference being project and package state the first invocation
+  leaves in `DerivedData`. It holds in every one of the eight runs, 5.5-10.7s.
+  It is the part of this job a split cannot inherit: a second job starts with
+  no `DerivedData`, so that ~9s is paid twice rather than once, and `Show
+  toolchain` (5.6s, Xcode's first launch in the job) and the checkout with it;
+- **the work is identical run to run and the clock is not.** 97 Debug
+  `SwiftCompile`, 71 Debug PCMs, 1 Release `SwiftCompile`, 69 Release PCMs —
+  the same counts in all eight runs, while `Test` ran 49s on one and 128s on
+  another. The spread is the runner, exactly as *The two macOS poles, step by
+  step*'s closing caveat says. Read the shares, not the seconds.
+
+Per run, seconds, newest first. *dbg* is step start to `Touch
+…/Debug/Trill.app`; *wmo* is the single Release `SwiftCompile`. Both come from
+the log's own markers rather than from a step total:
+
+| run | job | `Test` | dbg | `Analyze` | `Release build` | wmo |
+| --- | --- | --- | --- | --- | --- | --- |
+| 34685020390 | 173 | 82 | 67 | 6 | 67 | 45 |
+| 34581346774 | 140 | 68 | 57 | 7 | 48 | 37 |
+| 34470839275 | 131 | 67 | 55 | 6 | 45 | 32 |
+| 34329287695 | 109 | 49 | 43 | 4 | 39 | 29 |
+| 34118942332 | 143 | 76 | 63 | 6 | 47 | 35 |
+| 34107163197 | 150 | 76 | 61 | 6 | 51 | 39 |
+| 34106861216 | 168 | 86 | 72 | 6 | 55 | 42 |
+| 33962533286 | 229 | 128 | 101 | 10 | 70 | 46 |
+| **mean** | **155** | **79** | **65** | **6** | **53** | **38** |
+
+The steps outside those three are `Set up job` 0.8s, checkout 2.0s, `Show
+toolchain` 5.6s, the agent-skill check 0s every run, the no-instrumentation
+guard 2.0s, and post-checkout plus `Complete job` 4.0s. They sum with the three
+above to 152s against a 155s job mean, so ~3s of it is outside any step at all.
+
+**What a split computes to, which is not what it would measure.** The boundary
+is the one perch took: `Test` + `Analyze` on the Debug `DerivedData`, `Release
+build` + the instrumentation guard on the Release one. Off these means that is
+a ~101s job beside a ~79s one — the Release half now carrying the ~9s cold
+start it used to inherit, and both halves paying checkout and `Show toolchain`
+— against a 155s gate today. ⚠️ **That is arithmetic and nothing has been run
+either way**, which is a bar on using it to decide rather than a caveat to
+publish beside a decision. Two things also stop perch's measured 60s from
+standing in for it: trill has no third job, so after a split the runner-up is
+the Release half itself and the prize is capped by that rather than by an iOS
+build; and what a second concurrent macOS job costs this repo's account is
+unmeasured here — perch's 7.4s → 6.4s queue figures are perch's sample. Settle
+it the way *perch's split, run both ways* did: alternate a pre-split ref with
+`main` under `workflow_dispatch`, one run in flight at a time, and compare the
+two shapes inside each run rather than the two arms.
