@@ -3451,7 +3451,9 @@ cmd_clone() {
 # or a merge-tree conflict). A scruff that predates the verb would read
 # `overlap` as a lane name and refuse it as one, which is the wrong sentence.
 cmd_overlap() {
-  scruff overlap --help 2>&1 | grep -q '^  scruff overlap' \
+  # Not a pipe: under pipefail a grep -q that exits first hands scruff SIGPIPE,
+  # and a scruff that has the verb would read as one that does not.
+  grep -q '^  scruff overlap' <<<"$(scruff overlap --help 2>&1)" \
     || die "bench overlap is \`scruff overlap\` now, and the scruff on PATH has no such verb — \`haus update\` brings one that does."
   exec scruff overlap "$@"
 }
