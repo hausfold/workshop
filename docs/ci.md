@@ -23,7 +23,7 @@ by not paying twice for the same one.
 | `factory` | `Tests` | ubuntu | bats over the shift, the tier filter, the watchdog and the lease |
 | workshop | `Tests` | ubuntu | `bench` itself — bats plus shellcheck |
 | workshop | `issue templates` | ubuntu | that ten repos still match one generator; weekly, because the child half can only be caught by a sweep |
-| `homebrew-tap` | `check` | macOS | that `Formula/scruff.rb` still installs: `brew style`, `brew audit --online`, a source build and its test block. The tap's one entry that compiles rather than placing a notarized `.app`, and the one a bot rewrites unattended on every scruff release — so it runs on the `bump/**` branch that rewrite lands on, and a `promote` job fast-forwards `main` only on green. The one gate in the family whose green is a precondition rather than a report |
+| `homebrew-tap` | `check` | macOS, then ubuntu | that `Formula/scruff.rb` still installs: `brew style`, `brew audit --online`, a source build and its test block. The tap's one entry that compiles rather than placing a notarized `.app`, and the one a bot rewrites unattended on every scruff release — so it runs on the `bump/**` branch that rewrite lands on, and an ubuntu `promote` job moves `main` onto it only on green. The one gate in the family whose green is a precondition rather than a report |
 | `hausfold.co` | `Docs`, `Preview`, `Deploy`, `Worker`, `DNS`, `Palette`, the preview sweep and four drift jobs | ubuntu | the site builds, its tables still match the data the layer publishes, and its palette still matches nebelung's |
 
 `org-profile`, `producer-desktop` and `scruff-swift` have no gate: the first
@@ -32,12 +32,14 @@ generated mirror. The tap's gate reaches `Formula/scruff.rb` alone — pounce's
 and perch's entries place an artifact their own release gate already built,
 signed and notarized, so there is nothing left there for a runner to fail, and
 their bumps go straight to `main` without the branch hop scruff's takes. Which
-is why the tap's `main` carries no push trigger at all: rule 5 applied to a
-trigger, since a near-daily pounce bump would otherwise spend a macOS runner
-rebuilding a formula it did not touch. `pull_request` keeps a `paths:` filter;
-the `bump/**` push deliberately does not, because a push that creates a branch
-may have no diff for a filter to read, and a gate that silently does not run is
-the one failure the hop exists to prevent.
+is why the tap's `main` carries no push trigger at all, and why its
+`pull_request` carries a `paths:` filter: that is the filtering paragraph below,
+not rule 5 — a filter skips a run rather than shortening the longest job in one.
+A near-daily pounce bump would otherwise spend a macOS runner rebuilding a
+formula it did not touch. The `bump/**` push is deliberately NOT filtered: a
+push that creates a branch may leave GitHub no diff to read a filter against,
+and a gate that silently does not run is the one failure the hop exists to
+prevent.
 `ops` runs a scheduled `scoreboard` and nothing on a push.
 
 Release workflows are a different animal and are not on this list: they fire on
@@ -83,8 +85,12 @@ no run at all for work that isn't a PR. Dispatching a branch and then opening a
 PR on the same tree does produce two runs, which is the one hole in the rule's
 own headline — it takes a deliberate button press, so it stays.
 
-That block is the floor, not the whole `on:`. `scruff`'s `check.yml` also
-carries `workflow_call`, because its release workflow calls the gate at a tag.
+That block is the floor, not the whole `on:`, and two gates stand outside it.
+`scruff`'s `check.yml` also carries `workflow_call`, because its release
+workflow calls the gate at a tag. `homebrew-tap`'s carries **less**: no `push`
+on `main` at all, and a `push` on `bump/**` instead, because there the gate is a
+precondition for landing rather than a report on what landed — the branch is
+checked, and a green check is what moves `main`.
 
 The one line that may be dropped is `workflow_dispatch`, and only by a
 workflow triggered by `pull_request` alone: it narrowed no `push`, so it took
@@ -165,7 +171,12 @@ to key a gate this way.
 its workflows carry a `paths:` filter, so a PR that touches no content runs no
 content check. That is the rule the rest of the family has the least of — most
 of these gates are small enough that a filter would cost more reading than it
-saves, but it is the first thing to reach for when one is not. Its four drift
+saves, but it is the first thing to reach for when one is not. `homebrew-tap`'s
+`check` is the other one big enough to warrant it: a macOS runner and a Go
+build, on a repo whose commits are mostly pounce and perch bumps it never
+reads. An allowlist on a gate is the shape to be careful with — see the
+`paths-ignore` line further down — and it is defensible there for the narrow
+reason that the job reads exactly one file. Its four drift
 jobs are where a filter is paired with the thing that covers for it: each
 checks the site's copy against a checkout of `hausfold/haus`, and a `paths:`
 filter cannot see a change made in another repo. So each carries a weekly

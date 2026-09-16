@@ -3137,9 +3137,22 @@ cmd_release() {
   # we watched. Fast-forward before anything reads this HEAD.
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
-  say "$name $version is live — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
+  # scruff's formula is the one artifact this run does not land. `bump-tap`
+  # pushes it to a branch and the tap's own gate promotes it, minutes later and
+  # out of sight of this watch — so "live" would be a claim about something
+  # that has not happened yet, on the one screen someone reads at the moment
+  # they are deciding whether to go and check.
+  local tap_caveat=""
+  case "$name" in
+    scruff) tap_caveat=" (the Homebrew formula lands on the tap's own gate, in a few minutes)" ;;
+  esac
+
+  say "$name $version is live$tap_caveat — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
   BENCH_NOTIFY_SOURCE=release notify "done" "$name $version is live" \
-    "Published by CI. ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
+    "Published by CI.${tap_caveat:+ Formula pending on the tap gate.} ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
+  if [ -n "$tap_caveat" ]; then
+    hint "the formula: gh run list --repo hausfold/homebrew-tap --workflow check -L 3"
+  fi
   if [ -n "$ship" ]; then
     printf '\n'
     cmd_ship
