@@ -34,7 +34,9 @@
 #
 # Honest about oracles. Section 1 is wall clock as GitHub recorded it, so a
 # queued runner and a slow mirror are both in it — read the min, not the avg,
-# for what the work costs. Section 2 is one run — the newest, or `RUN=` —
+# for what the work costs, and mind that a skipped job (an A/B arm that did not
+# run) is recorded as finishing before it started and reads -1s on every
+# column, which is the API's number and not a measurement. Section 2 is one run — the newest, or `RUN=` —
 # because step names move, and its phase rows are that one run too; inside it
 # every job that runs nix gets a block, which is what an A/B probe needs since
 # its arms are sibling jobs of a single run. Section 3 is the only
@@ -78,7 +80,13 @@ for repo in "${repos[@]}"; do
       .jobs[] | select(.completed_at != null)
       | [.name, ((.completed_at|fromdateiso8601) - (.started_at|fromdateiso8601))] | @tsv'
   done | awk -F'\t' '
-    { n[$1]++; t[$1]+=$2; if ($2>hi[$1]) hi[$1]=$2; if (lo[$1]=="" || $2<lo[$1]) lo[$1]=$2 }
+    # Both bounds test for unset rather than leaning on the 0 awk gives an
+    # untouched cell: GitHub records a skipped job as finishing before it
+    # started, and a bare $2>hi[$1] never takes a negative, so an all-skipped
+    # job reported a max of 0 it never had.
+    { n[$1]++; t[$1]+=$2
+      if (hi[$1]=="" || $2>hi[$1]) hi[$1]=$2
+      if (lo[$1]=="" || $2<lo[$1]) lo[$1]=$2 }
     # The avg leads the line as its own tab-separated field, and `cut` takes it
     # off again after the sort. Sorting on the rendered `avg=` instead needs a
     # field number, and the field moves the moment a job name contains an `=` —
