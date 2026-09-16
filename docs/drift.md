@@ -243,3 +243,20 @@ rather than against the hunk, and by NAMING the target instead of placing it;
 `docs/ci.md` already had that form two paragraphs away (*The Nix store cache*
 below, *One key per JOB*). The tell is a pointer that identifies its target by
 distance, inside a PR that inserts anything at all between the two.
+
+**A cross-reference that NAMES its target, with a name composed from the subject
+rather than read off the heading.** The entry above prescribes naming a target
+instead of placing it. Two lanes did, the same afternoon, and both named a
+section that has never existed: `scruff`#131 and `snug`#21 each close with
+"workshop `docs/ci.md` § The Nix installer carries both platforms' numbers", and
+`git log -S'The Nix installer' -- docs/ci.md` comes back empty. The numbers are
+real, and the paragraph holding both of them is the first one under *The Nix
+store cache* — "the Nix installer" is what that paragraph is ABOUT, not what it
+is called. Every question a review asks comes back yes: the doc exists, it
+carries both figures, the sentence around the pointer is true. The one false
+assertion is the one nobody reads as an assertion, because a name composed from
+the subject is indistinguishable from one quoted off the heading. That is the
+failure mode of the fix above rather than an argument against it. **Caught by**
+grepping the target file for the § string out of the diff: a § is a quotation,
+so it matches byte for byte or it is not a name. Where no heading fits, point at
+the doc and stop.
