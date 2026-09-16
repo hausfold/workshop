@@ -45,7 +45,8 @@
 #                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
-#                  tap bump (scruff also publishes five SDKs).
+#                  tap bump (scruff also publishes five SDKs, and its tap bump
+#                  finishes on the tap's own gate, minutes after this run).
 #                  --ship ripples the new lock edge downstream afterwards.
 #                  The version is today's date (YYYY.MM.DD, -N on a same-day
 #                  repeat) and typed by nobody — EXCEPT for scruff, which is
@@ -2741,15 +2742,20 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # There is exactly ONE workflow to watch — each repo's `release` (haus: publish;
 # pounce: publish + bump-tap; perch: those plus bump-flake; scruff: a stamp
 # check, the reused PR gate, the GitHub release, one job per SDK, and bump-tap —
-# nine). The tap bump is
-# a plain push into homebrew-tap, so when this run goes green the release IS
-# live — nothing further to chase.
+# nine). For pounce and perch the tap bump is a plain push into homebrew-tap, so
+# when this run goes green the release IS live — nothing further to chase.
 #
-# The tap does have a gate of its own now (`brew install` over scruff's formula,
-# the one entry that compiles), and that push fires it. It is still nothing to
-# chase: Homebrew reads the formula off the tap's main branch the moment it
-# lands, so a red run there is a formula bug to fix and never a half-published
-# release.
+# **scruff is the exception, and it is the one thing a green run here does not
+# prove.** Its formula compiles, so the tap gates it: `bump-tap` pushes the
+# rewrite to a `bump/scruff-v<version>` branch and goes green, and the tap's own
+# `check` run builds and installs the formula there and fast-forwards its main
+# only on green. That run is not part of this one and is not watched. So a green
+# `bench release scruff` means published everywhere EXCEPT possibly the tap,
+# which lands a few minutes later or, if the formula stopped building, not at
+# all — deliberately, because users are then left on the previous release, which
+# still installs. `brew install hausfold/tap/scruff` still fetching the old tag
+# an hour on is a red run at hausfold/homebrew-tap, never a half-published
+# release here.
 
 WATCH_FRAME_S=0.1         # one spinner frame — 10 fps, so a 10-glyph cycle = 1s
 WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
@@ -3131,9 +3137,22 @@ cmd_release() {
   # we watched. Fast-forward before anything reads this HEAD.
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
-  say "$name $version is live — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
+  # scruff's formula is the one artifact this run does not land. `bump-tap`
+  # pushes it to a branch and the tap's own gate promotes it, minutes later and
+  # out of sight of this watch — so "live" would be a claim about something
+  # that has not happened yet, on the one screen someone reads at the moment
+  # they are deciding whether to go and check.
+  local tap_caveat=""
+  case "$name" in
+    scruff) tap_caveat=" (the Homebrew formula lands on the tap's own gate, in a few minutes)" ;;
+  esac
+
+  say "$name $version is live$tap_caveat — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
   BENCH_NOTIFY_SOURCE=release notify "done" "$name $version is live" \
-    "Published by CI. ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
+    "Published by CI.${tap_caveat:+ Formula pending on the tap gate.} ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
+  if [ -n "$tap_caveat" ]; then
+    hint "the formula: gh run list --repo hausfold/homebrew-tap --workflow check -L 3"
+  fi
   if [ -n "$ship" ]; then
     printf '\n'
     cmd_ship

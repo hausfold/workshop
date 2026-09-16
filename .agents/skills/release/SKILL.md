@@ -12,9 +12,18 @@ description: >-
 # Release (hausfold workshop): pick the number → `bench release` → ripple
 
 `bench release` already does everything mechanical: stamp the version into the repo's own
-version source, commit it, push, tag `v<version>`, then BLOCK on the CI run and report when
-it's live. You never push a `v*` tag by hand and you never touch `homebrew-tap` — CI owns
+version source, commit it, push, tag `v<version>`, then BLOCK on the CI run and report what
+published. You never push a `v*` tag by hand and you never touch `homebrew-tap` — CI owns
 the formula bump.
+
+**For scruff, one artifact finishes outside that run: the Homebrew formula.** It compiles,
+so the tap gates it: `bench release` goes green once the bump is pushed to a
+`bump/scruff-v<version>` branch, and the tap's own run puts it on main a few minutes later,
+or leaves users on the previous release if the formula stopped building. `bench` says so on
+screen and points at the run. Report it the same way, and send anyone whose `brew install`
+is still a release behind to
+[hausfold/homebrew-tap's actions](https://github.com/hausfold/homebrew-tap/actions). For
+pounce and perch the formula lands with the run, so green there is the whole story.
 
 So this skill is about the two things `bench` deliberately doesn't decide:
 
@@ -130,7 +139,9 @@ bench release scruff 1.1.1          # or: bench release haus
 
 It stamps, commits, pushes, tags, then paints a live job tree until CI finishes. For scruff
 that's the shared PR gate (both OSes, all six suites) followed by six publish jobs — the
-GitHub release, npm, PyPI, crates.io, the `sdk/go/vX.Y.Z` tag, and the SwiftPM mirror tag.
+GitHub release, npm, PyPI, crates.io, the `sdk/go/vX.Y.Z` tag, and the SwiftPM mirror tag —
+plus `bump-tap`, which is a seventh job but not a seventh publish: it pushes the formula to
+a branch for the tap to gate, and is green before anything installs it.
 Every publish job is independent and idempotent, so if one registry fails the others still
 land and `gh run rerun --failed` finishes the job rather than half-cutting a second release.
 
@@ -159,4 +170,4 @@ bench ship                        # or cut with: bench release scruff 1.1.1 --sh
 Releasing is the one step in this workshop that is **not** standing permission — it's
 user-facing and irreversible on three registries. Propose the number, the evidence, and the
 exact command, then wait. `/ship` explicitly stops short of it. Once I say go, run it all
-the way to "live" and ripple, without re-asking per repo.
+the way to published and ripple, without re-asking per repo.
