@@ -121,6 +121,7 @@ if ! bash_new_enough "${BASH_VERSINFO[0]}" "${BASH_VERSINFO[1]}"; then
     # shellcheck disable=SC2016  # single quotes on purpose: the CANDIDATE expands it, not this bash
     read -r _bench_maj _bench_min <<<"$("$_bench_c" -c 'echo "${BASH_VERSINFO[0]} ${BASH_VERSINFO[1]}"' 2>/dev/null)"
     bash_new_enough "${_bench_maj:-}" "${_bench_min:-}" || continue
+    # shellcheck disable=SC2093  # exec IS the point (0.9.0 on ubuntu-24.04 warns; 0.11.0 doesn't)
     exec "$_bench_c" "$0" "$@"
   done
   printf 'bench: needs bash 4.3 or newer, found %s.\n' "$_bench_have" >&2
