@@ -451,8 +451,9 @@ left the inputs alone; and the cache entries the repo is holding with their
 real sizes.
 
 A build row is not a derivation either, so it carries a `└ compile` sub-row
-naming the longest single `buildPhase` inside it — off stdenv's own markers,
-so parallel builds are still timed one at a time. "21 derivations" reads like
+naming the longest single `buildPhase` inside it — off stdenv's own markers and
+keyed by pname, so parallel builds are still timed one at a time unless two of
+them share that name. "21 derivations" reads like
 breadth a restore could chip at; on pounce twenty of them are shell scripts
 worth 7s together and the twenty-first is a two-minute `swiftc`, which is
 *pounce's nix build, phase by phase* below. The row is absent rather than wrong
@@ -772,7 +773,8 @@ no restore beats 3s. ⚠️ But 3s is a floor and not a ceiling, and the ceiling
 has since been measured: a locked flake input's source tree is a store path
 too, and *pounce's nix build, phase by phase* below puts the flake resolution
 in front of that substitution at **28.0s of fetch and 2.2s of evaluation**, so
-what a restore removes here is ~29s rather than 3s. The answer is still no —
+what a restore removes is the fetch as well as the substitution — **~31s
+against this section's 3s**, the substitution here being the 104 MiB one. The answer is still no —
 that section has the arithmetic and what is still missing from it — while nix's
 eval cache, which lives outside `/nix`, is restorable by nothing. And the 65s
 installer would itself have to move, since `cache-nix-action` sits behind
@@ -992,7 +994,7 @@ because reading one as "the fetch" is how snug's old verdict came to rest on
 **It is the Swift compile, and nothing else is close.** Three quarters of the
 step is one `swiftc`, inside one derivation, compiling the sources the change
 just touched. Everything a cache, a split or a parallelism flag could reach is
-the other quarter, and 17.9 of those 24.7 points are a single fetch.
+the other quarter, and 17.9 of those ~25 points are a single fetch.
 
 | phase | mean | range | share |
 | --- | --- | --- | --- |
@@ -1003,6 +1005,12 @@ the other quarter, and 17.9 of those 24.7 points are a single fetch.
 | └ `pkgs/pounce`'s own buildPhase | 118.0s | 86.7-151.5s | **75.3%** |
 | └ the twenty around it | 7.1s | 4.9-11.0s | 4.6% |
 | **the step** | **156.6s** | **119.2-202.4s** | 100% |
+
+⚠️ **The share column is the mean of each run's own share, not the ratio of the
+two columns beside it**, which is the point of the paragraph below and also why
+the column sums to 100.1 rather than 100. Dividing the means instead gives 1.4%
+for evaluate against the 1.5% printed, and that gap is the runner spread rather
+than a rounding error.
 
 n=23 quick-install jobs on `macos-15`, 2026-09-15 and 2026-09-16: the 8 `B` and
 3 `E` arms of the probe above, the 8 control arms of the split probe further

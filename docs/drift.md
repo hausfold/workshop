@@ -222,6 +222,18 @@ before comparing any part of it with anything, and by treating "that part is
 unmeasured" as a bar on using the figure at all, not a caveat to publish beside
 it.
 
+⚠️ **Twice now, and the second time the flag was the same sentence in two
+files.** `docs/ci.md` refused pounce a store cache on "114 MiB in 1.2s" while a
+⚠️ under it said a locked flake input's source tree is a store path too and
+that part was unmeasured; `script/probes/README.md` carried the same pair of
+sentences. Split, the window that ⚠️ pointed at is **28.0s of fetch** and 2.2s
+of evaluation, so what a restore would remove was twenty-four times the figure
+the refusal was written on. The verdict came out the same again — which is the
+tell, not the reassurance: a caveat that never changes an answer is one nobody
+has a reason to go and settle. **Caught by** reading the ⚠️ as a task rather
+than as a disclosure, and measuring the thing it names before quoting the
+number beside it a third time.
+
 **A cross-reference written by POSITION, in the same diff that moves what it
 points at.** A PR adding to the middle of `docs/ci.md`'s rule 5 also edited an
 earlier paragraph to point forward at the account it was adding: "the whole of
