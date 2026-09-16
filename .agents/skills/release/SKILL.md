@@ -16,6 +16,15 @@ version source, commit it, push, tag `v<version>`, then BLOCK on the CI run and 
 it's live. You never push a `v*` tag by hand and you never touch `homebrew-tap` — CI owns
 the formula bump.
 
+One caveat worth reporting when you release **scruff**: its formula compiles, so the tap
+gates it rather than taking the push. `bench release` goes green once the bump is pushed to
+a `bump/scruff-v<version>` branch; the tap's own run lands it on main a few minutes later,
+or leaves users on the previous release if the formula stopped building. Say "published;
+the tap bump lands on the tap's own gate" rather than "live everywhere", and check
+[hausfold/homebrew-tap's actions](https://github.com/hausfold/homebrew-tap/actions) if
+`brew install` is still a release behind. pounce and perch are unaffected — their bumps
+still land the moment CI pushes them.
+
 So this skill is about the two things `bench` deliberately doesn't decide:
 
 1. **Is the repo ready to release?**

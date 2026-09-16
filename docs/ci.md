@@ -23,14 +23,18 @@ by not paying twice for the same one.
 | `factory` | `Tests` | ubuntu | bats over the shift, the tier filter, the watchdog and the lease |
 | workshop | `Tests` | ubuntu | `bench` itself — bats plus shellcheck |
 | workshop | `issue templates` | ubuntu | that ten repos still match one generator; weekly, because the child half can only be caught by a sweep |
-| `homebrew-tap` | `check` | macOS | that `Formula/scruff.rb` still installs: `brew style`, `brew audit --online`, a source build and its test block. The tap's one entry that compiles rather than placing a notarized `.app`, and the one a bot rewrites unattended on every scruff release |
+| `homebrew-tap` | `check` | macOS | that `Formula/scruff.rb` still installs: `brew style`, `brew audit --online`, a source build and its test block. The tap's one entry that compiles rather than placing a notarized `.app`, and the one a bot rewrites unattended on every scruff release — so it runs on the `bump/**` branch that rewrite lands on, and a `promote` job fast-forwards `main` only on green |
 | `hausfold.co` | `Docs`, `Preview`, `Deploy`, `Worker`, `DNS`, `Palette`, the preview sweep and four drift jobs | ubuntu | the site builds, its tables still match the data the layer publishes, and its palette still matches nebelung's |
 
 `org-profile`, `producer-desktop` and `scruff-swift` have no gate: the first
 two carry no code of their own that a test could fail, and the third is a
 generated mirror. The tap's gate reaches `Formula/scruff.rb` alone — pounce's
 and perch's entries place an artifact their own release gate already built,
-signed and notarized, so there is nothing left there for a runner to fail.
+signed and notarized, so there is nothing left there for a runner to fail, and
+their bumps go straight to `main` without the branch hop scruff's takes. That
+scope is also a `paths:` filter, which is rule 5 applied to a trigger: a
+near-daily pounce bump otherwise spends a macOS runner rebuilding a formula it
+did not touch.
 `ops` runs a scheduled `scoreboard` and nothing on a push.
 
 Release workflows are a different animal and are not on this list: they fire on
