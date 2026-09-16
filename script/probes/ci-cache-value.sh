@@ -79,8 +79,12 @@ for repo in "${repos[@]}"; do
       | [.name, ((.completed_at|fromdateiso8601) - (.started_at|fromdateiso8601))] | @tsv'
   done | awk -F'\t' '
     { n[$1]++; t[$1]+=$2; if ($2>hi[$1]) hi[$1]=$2; if (lo[$1]=="" || $2<lo[$1]) lo[$1]=$2 }
-    END { for (k in n) printf "    %-38s n=%-3d avg=%4ds  min=%4ds  max=%4ds\n", k, n[k], t[k]/n[k], lo[k], hi[k] }
-  ' | sort -t= -k3 -rn
+    # The avg leads the line as its own tab-separated field, and `cut` takes it
+    # off again after the sort. Sorting on the rendered `avg=` instead needs a
+    # field number, and the field moves the moment a job name contains an `=` —
+    # which an A/B probe arm does: "D · nix-quick-install, sandbox = true".
+    END { for (k in n) printf "%d\t    %-38s n=%-3d avg=%4ds  min=%4ds  max=%4ds\n", t[k]/n[k], k, n[k], t[k]/n[k], lo[k], hi[k] }
+  ' | sort -rn | cut -f2-
 
   # 2. Where those seconds go in every job that runs nix — the only jobs a
   #    store cache can touch. Detected by step, not by job name: haus's is
