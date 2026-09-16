@@ -2,7 +2,7 @@
 name: earshot
 description: >-
   Find out what the OTHER agent lanes on this repo have already changed, before you
-  collide with them — `bench overlap`. Use at the start of a lane, before a big edit
+  collide with them — `scruff overlap`. Use at the start of a lane, before a big edit
   to a file the whole family touches (AGENTS.md, a README, flake.lock, docs/), and
   once more before opening a PR. Also use when I say /earshot, "who else is in here",
   "is anyone else touching this", "will this conflict", or when a rebase turns up a
@@ -18,10 +18,13 @@ an agent to *declare* — which files, which regions, who is where — can just 
 **measured**, offline, in milliseconds:
 
 ```bash
-bench overlap                 # the full read: who is in your files, and where
-bench overlap --brief         # one line per lane — the lane-start version
-bench overlap --path <file>   # just that file; silent when it's clear
+scruff overlap                 # the full read: who is in your files, and where
+scruff overlap --brief         # one line per lane — the lane-start version
+scruff overlap --path <file>   # just that file; silent when it's clear
+scruff overlap --pair <a> <b>  # two lanes by name, from anywhere
 ```
+
+`bench overlap` forwards to it, argument for argument.
 
 There is no lock, no claim, no registration and no state file. Nobody can forget to
 claim, nobody can lie, and a lane whose agent never runs this costs its siblings
@@ -32,9 +35,9 @@ finds bugs, this finds neighbours.
 
 | When | Run | What it saves you |
 |---|---|---|
-| **Lane start**, before you plan | `bench overlap --brief` | the expensive collision isn't textual — it's two lanes writing the same paragraph twice. Read the neighbours' commit subjects and pick different work. |
-| **Before a big edit** to a shared file — `AGENTS.md`, a README, `docs/*.md`, a docs page | `bench overlap --path <file>` | it prints nothing when the file is clear, so this is cheap enough to make a habit. |
-| **Before `gh pr create`** — every PR, not just `/ship`ed ones | `bench overlap` | catches the conflict while it's still one small rebase, instead of at merge time against a pile. This is Step 2.5's neighbour: assurance reads YOUR diff, earshot reads everyone else's. |
+| **Lane start**, before you plan | `scruff overlap --brief` | the expensive collision isn't textual — it's two lanes writing the same paragraph twice. Read the neighbours' commit subjects and pick different work. |
+| **Before a big edit** to a shared file — `AGENTS.md`, a README, `docs/*.md`, a docs page | `scruff overlap --path <file>` | it prints nothing when the file is clear, so this is cheap enough to make a habit. |
+| **Before `gh pr create`** — every PR, not just `/ship`ed ones | `scruff overlap` | catches the conflict while it's still one small rebase, instead of at merge time against a pile. This is Step 2.5's neighbour: assurance reads YOUR diff, earshot reads everyone else's. |
 
 Don't run it on a loop. Nothing here changes second to second, and a check you run
 forty times a turn is one you stop reading.
@@ -93,7 +96,7 @@ know better; just say why in the PR body.
 
 | File | What to do when two lanes are in it |
 |---|---|
-| `flake.lock` | never hand-merge. Take main's wholesale (`git checkout --theirs flake.lock`), then re-run `nix flake update <input>` if your branch genuinely needed the newer pin. |
+| `flake.lock` | never hand-merge. Take main's wholesale (`git checkout origin/main -- flake.lock`; never `--theirs`, which in a rebase means your own branch), then re-run `nix flake update <input>` if your branch genuinely needed the newer pin. |
 | `AGENTS.md`, `CLAUDE.md`, `README.md` | keep **both** sides — these grow by section, and a conflict here is nearly always two additions, not two rewrites. |
 | `docs/*.md` | one topic per file. If two lanes are appending to the same page, split the page rather than resolving. |
 | generated pages (`reference/options.md` and friends) | regenerate, never resolve. Whoever lands second re-runs the generator. |
@@ -120,7 +123,7 @@ know better; just say why in the PR body.
 
 ## From the main checkout
 
-`bench overlap` run outside a lane reports **lane against lane** instead — every pair
+`scruff overlap` run outside a lane reports **lane against lane** instead — every pair
 that shares a file. That's the verdict `bench try-batch` reaches by merging the whole
 open-PR queue, minus the PRs, the merges and the rebuild. Worth a glance before a batch
 merge: the `⚠` pairs are the ones try-batch would drop.
