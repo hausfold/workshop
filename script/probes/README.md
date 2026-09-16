@@ -677,8 +677,8 @@ about. "W37 ran 67 saves" below is the week; the slope is the third lineage:
 
 ⚠️ Section 1 is wall clock as GitHub recorded it, so a queued runner and a slow
 mirror are in it — read the min, not the avg, for what the work costs. A job
-GitHub records as finishing before it started (a skipped A/B arm does this)
-reads `-1s`, which is the API's number and not a measurement. Section 2
+GitHub records as finishing before it started — a skipped A/B arm does this —
+reads `-1s` across the row, which is the API's number and not a measurement. Section 2
 reads a single run, the newest or the one `RUN=<id>` names, because step names
 move; inside that run it reports every job that runs nix. The cache figures
 above are one measurement each, taken the morning the first entries were saved,
