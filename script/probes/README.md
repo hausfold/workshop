@@ -436,6 +436,7 @@ absent" died of the absence it was measuring, and walks the tree by hand instead
 ./script/probes/ci-cache-value.sh snug               # one repo
 RUNS=20 ./script/probes/ci-cache-value.sh haus       # a wider sample
 BRANCH=worktree-x ./script/probes/ci-cache-value.sh nebelung
+RUN=34948718808 ./script/probes/ci-cache-value.sh pounce   # one named run, one repo
 ```
 
 Evidence for [`docs/ci.md`](../../docs/ci.md)'s *The Nix store cache*, which put
@@ -443,10 +444,20 @@ Evidence for [`docs/ci.md`](../../docs/ci.md)'s *The Nix store cache*, which put
 whether scruff's and snug's `nix` jobs earn one too, and whether the store
 creeps toward GitHub's 10 GB per-repo ceiling. Three sections per repo, all out
 of the GitHub API and none of it guessed: job wall clock over the last N runs,
-the step breakdown of whichever job actually runs nix — each nix step split
-again into evaluate / substitute / build, because a restore replaces the
-substitute row outright and the build row only where the change left the inputs
-alone — and the cache entries the repo is holding with their real sizes.
+the step breakdown of one run's nix jobs — **every** one of them — with each
+nix step split again into evaluate / substitute / build, because a restore
+replaces the substitute row outright and the build row only where the change
+left the inputs alone; and the cache entries the repo is holding with their
+real sizes.
+
+Every matching job, not the busiest one: several nix jobs in a run is the normal
+case, not the exotic one. haus's gate has three, two of them holding a store
+entry, and an A/B probe's arms are sibling jobs of a single run, which is the
+whole reason they are paired. The uncached third is exactly the job a
+busiest-wins rule hides, and it is the one whose verdict gets re-opened.
+`RUN=<id>` points section 2 at a named run when the newest on the branch is not
+the one you mean — the branch still governs sections 1 and 3, and a run belongs
+to one repo, so `RUN=` takes exactly one repo and refuses a list.
 
 Measured 2026-09-12, the day the cache first saved:
 
@@ -581,10 +592,11 @@ all of them:
   of each;
 - **the probe prints the split now**, so the next verdict starts from it:
   section 2 splits every nix step at the markers nix writes into the log, and
-  says which rows a restore replaces. It is still one run, the newest, like the
-  step list it sits under — the eleven-run stability above was eleven logs by
-  hand, and `RUNS=` does not reach section 2. Checked against all four repos and
-  against fixtures for the shapes they do not cover: a warm store reads
+  says which rows a restore replaces. It is still one run — the newest, or
+  `RUN=<id>` — like the step list it sits under, and `RUNS=` does not reach
+  section 2: the eleven-run stability above was eleven logs by hand. Checked
+  against all four repos and against fixtures for the shapes they do not
+  cover: a warm store reads
   `nothing fetched`, a step that neither fetched nor built says it has nothing
   to split, `gh`'s two log shapes (a real step name in field 2, or `UNKNOWN
   STEP`) both close the last step at the post phase rather than swallowing it,
@@ -664,19 +676,22 @@ about. "W37 ran 67 saves" below is the week; the slope is the third lineage:
   went from 3.1 GB of entries to 1.5.
 
 ⚠️ Section 1 is wall clock as GitHub recorded it, so a queued runner and a slow
-mirror are in it — read the min, not the avg, for what the work costs. Section 2
-is one run, the newest, because step names move. The cache figures above are one
-measurement each, taken the morning the first entries were saved, so rerun
-before trusting the creep line — that is what the probe is for.
+mirror are in it — read the min, not the avg, for what the work costs. A job
+GitHub records as finishing before it started (a skipped A/B arm does this)
+reads `-1s`, which is the API's number and not a measurement. Section 2
+reads a single run, the newest or the one `RUN=<id>` names, because step names
+move; inside that run it reports every job that runs nix. The cache figures
+above are one measurement each, taken the morning the first entries were saved,
+so rerun before trusting the creep line — that is what the probe is for.
 
 ## The two macOS poles, step by step
 
 `docs/ci.md`'s *No third-party runner fleet* says most of the family's wall
 clock goes into the Mac jobs. That was read off run totals; this is what is
 under them. `pounce`'s pole runs nix, so the probe reaches it —
-`script/probes/ci-cache-value.sh pounce`, whose section 2 finds the right job on
-its own. `perch`'s runs no nix at all, so that section prints nothing for it and
-the jobs and steps come straight out of the API:
+`script/probes/ci-cache-value.sh pounce`, whose section 2 works out for itself
+which jobs run nix. `perch`'s runs no nix at all, so that section prints nothing
+for it and the jobs and steps come straight out of the API:
 
 ```sh
 runs=$(gh api 'repos/hausfold/perch/actions/runs?event=pull_request&status=completed&per_page=8' \
@@ -938,8 +953,12 @@ is the one that also carried C and D; 34949190990 onward also carried E.
 **Take it again the same way.** Put the variants in one workflow as sibling jobs
 so they stay paired, push it to a branch — `workflow_dispatch` will not fire for
 a file that is not on the default branch — and read jobs, steps and phases with
-`ci-cache-value.sh`'s instrument. The probe branch and its workflow are
-deliberately not kept; the run ids in the table are the record.
+`ci-cache-value.sh`'s instrument, which reports every nix job in a run and so
+reads all the arms of one at once. The probe branch and its workflow are
+deliberately not kept; the run ids in the table are the record, and section 2
+still reaches them — `RUN=34948718808 BRANCH=worktree-quick-install-sandbox
+./script/probes/ci-cache-value.sh pounce` replays the run that carried A, B, C
+and D.
 
 ## trill's gate, step by step
 

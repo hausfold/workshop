@@ -28,11 +28,16 @@
 #   RUNS=20 script/probes/ci-cache-value.sh snug    # a wider sample
 #   BRANCH=worktree-x script/probes/ci-cache-value.sh haus   # a lane, not main
 #   ORG=someone-else script/probes/ci-cache-value.sh their-repo
+#   RUN=34948718808 script/probes/ci-cache-value.sh pounce   # section 2 on a
+#                                                    # named run — one repo,
+#                                                    # since a run has an owner
 #
 # Honest about oracles. Section 1 is wall clock as GitHub recorded it, so a
 # queued runner and a slow mirror are both in it — read the min, not the avg,
-# for what the work costs. Section 2 is one run, the newest, because step
-# names move, and its phase rows are that one run too. Section 3 is the only
+# for what the work costs. Section 2 is one run — the newest, or `RUN=` —
+# because step names move, and its phase rows are that one run too; inside it
+# every job that runs nix gets a block, which is what an A/B probe needs since
+# its arms are sibling jobs of a single run. Section 3 is the only
 # section that measures the ceiling; until a push to main has actually saved
 # an entry it correctly prints nothing, and a cold run's job time is not the
 # counterfactual for a warm one.
@@ -46,6 +51,14 @@ RUNS=${RUNS:-10}
 BRANCH=${BRANCH:-main}
 repos=("$@")
 [ ${#repos[@]} -gt 0 ] || repos=(haus nebelung scruff snug)
+
+# A run belongs to one repo, so RUN= and a list of repos contradict each other:
+# every repo but the one that owns it asks GitHub for a run that is not there
+# and gets a bare 404 mid-report.
+if [ -n "${RUN:-}" ] && [ ${#repos[@]} -ne 1 ]; then
+  printf 'RUN=%s names one run, and a run has one repo — name exactly one\n' "$RUN" >&2
+  exit 2
+fi
 
 for repo in "${repos[@]}"; do
   printf '\n══ %s ══ last %s runs on %s\n' "$repo" "$RUNS" "$BRANCH"
@@ -66,42 +79,59 @@ for repo in "${repos[@]}"; do
       | [.name, ((.completed_at|fromdateiso8601) - (.started_at|fromdateiso8601))] | @tsv'
   done | awk -F'\t' '
     { n[$1]++; t[$1]+=$2; if ($2>hi[$1]) hi[$1]=$2; if (lo[$1]=="" || $2<lo[$1]) lo[$1]=$2 }
-    END { for (k in n) printf "    %-38s n=%-3d avg=%4ds  min=%4ds  max=%4ds\n", k, n[k], t[k]/n[k], lo[k], hi[k] }
-  ' | sort -t= -k3 -rn
+    # The avg leads the line as its own tab-separated field, and `cut` takes it
+    # off again after the sort. Sorting on the rendered `avg=` instead needs a
+    # field number, and the field moves the moment a job name contains an `=` —
+    # which an A/B probe arm does: "D · nix-quick-install, sandbox = true".
+    END { for (k in n) printf "%d\t    %-38s n=%-3d avg=%4ds  min=%4ds  max=%4ds\n", t[k]/n[k], k, n[k], t[k]/n[k], lo[k], hi[k] }
+  ' | sort -rn | cut -f2-
 
-  # 2. Where those seconds go in the job that runs nix — the only job a store
-  #    cache can touch. Detected by step, not by job name: haus's is called
-  #    "eval the example host".
-  newest=$(printf '%s\n' "$ids" | head -1)
+  # 2. Where those seconds go in every job that runs nix — the only jobs a
+  #    store cache can touch. Detected by step, not by job name: haus's is
+  #    called "eval the example host".
+  newest=${RUN:-$(printf '%s\n' "$ids" | head -1)}
   jobs_json=$(gh api "repos/$ORG/$repo/actions/runs/$newest/jobs?per_page=100")
   # A step GitHub named itself reads "Run <command or action>", so `Run nix
   # eval`, `Run nixbuild/nix-quick-install-action@v35` and `Run
   # DeterminateSystems/nix-installer-action@v23` all match and a hand-named
-  # step like haus's "nix-gc pins what macOS won't release" does not. Most
-  # matches wins, so a job that merely mentions nix once cannot outrank the
-  # one that runs it.
-  nix_job=$(printf '%s' "$jobs_json" | jq -r '
-    [ .jobs[]
-      | { id, name, hits: ([.steps[].name | select(test("^Run \\S*nix"; "i"))] | length) }
-      | select(.hits > 0) ]
-    | sort_by(-.hits) | .[0] // empty | "\(.id)\t\(.name)"')
-  if [ -n "$nix_job" ]; then
-    printf '\n  nix job steps, run %s (%s)\n' "$newest" "${nix_job#*$'\t'}"
-    printf '%s' "$jobs_json" | jq -r --arg id "${nix_job%%$'\t'*}" '
+  # step like haus's "nix-gc pins what macOS won't release" does not. EVERY
+  # matching job gets a block of its own: haus's gate is three nix jobs, two of
+  # them holding a cache entry, and an A/B probe runs its arms as sibling jobs
+  # of ONE run because the pairing is the whole method — report only the
+  # busiest and you name one arm and hide the rest, uncached jobs first. It is also why this section stays on a
+  # single run: the log below is a fetch per job, so a four-arm run is four of
+  # them, and RUNS=20 would multiply that by twenty.
+  nix_ids=$(printf '%s' "$jobs_json" | jq -r '
+    .jobs[]
+    | select([.steps[].name | select(test("^Run \\S*nix"; "i"))] | length > 0)
+    | .id')
+  if [ -n "$nix_ids" ]; then
+    printf '\n  nix jobs in run %s — %s of %s jobs run nix\n' "$newest" \
+      "$(printf '%s\n' "$nix_ids" | wc -l | tr -d ' ')" \
+      "$(printf '%s' "$jobs_json" | jq '.jobs | length')"
+    printf '  a restore replaces substitute outright, build only where the change\n'
+    printf '  left the inputs alone, and evaluate never (bar the input fetch in it)\n'
+  else
+    printf '\n  no job in run %s runs nix\n' "$newest"
+  fi
+  for job_id in $nix_ids; do
+    printf '\n  ── %s  (job %s)\n' "$(printf '%s' "$jobs_json" | jq -r --arg id "$job_id" '
+      .jobs[] | select(.id == ($id|tonumber)) | .name')" "$job_id"
+    printf '%s' "$jobs_json" | jq -r --arg id "$job_id" '
       .jobs[] | select(.id == ($id|tonumber)) | .steps[]
       | select(.completed_at != null)
       | "    \(((.completed_at|fromdateiso8601) - (.started_at|fromdateiso8601))|tostring|(" " * (5 - length)) + .)s  \(.name)"'
 
     # One fetch of the job's log serves the phase split and the save figures.
-    log=$(gh run view --repo "$ORG/$repo" --job "${nix_job%%$'\t'*}" --log 2>/dev/null || true)
-    [ -n "$log" ] || printf '\n  could not read the job log — no phases, no save figures\n'
+    log=$(gh run view --repo "$ORG/$repo" --job "$job_id" --log 2>/dev/null || true)
+    [ -n "$log" ] || printf '\n    could not read the job log — no phases, no save figures\n'
 
     # A step is NOT a phase. `nix build` is at least three — evaluate,
     # substitute, build — and a restore replaces the second outright and as
     # much of the third as the change left alone. Read the step total as "the
     # fetch" and you get snug's old verdict, which rested on 12s that were
     # `go build` and `go test`. Split it at the markers nix prints into the
-    # same log. One run, the newest, like the step list above it.
+    # same log. One run — the newest, or `RUN=` — like the step list above it.
     phases=$(printf '%s' "$log" | awk -F'\t' '
       function tsec(l,   s, p) {
         if (!match(l, /[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9]+Z/)) return -1
@@ -157,9 +187,7 @@ for repo in "${repos[@]}"; do
       open && t >= 0 && /building .\/nix\/store\// { if (build < 0) build = t; drvs++ }
       END { flush(prev) }')
     if [ -n "$phases" ]; then
-      printf '\n  phases inside those steps — a step is not a phase\n'
-      printf '  a restore replaces substitute outright, build only where the change\n'
-      printf '  left the inputs alone, and evaluate never (bar the input fetch in it)\n'
+      printf '\n    phases inside those steps — a step is not a phase\n'
       printf '%s\n' "$phases"
     fi
 
@@ -171,9 +199,7 @@ for repo in "${repos[@]}"; do
     sent=$(printf '%s' "$log" | grep -oE 'Sent [0-9]+ of [0-9]+ \(100\.0%\)' | tail -1 | awk '{print $4}' || true)
     [ -n "$nar" ]  && printf '    store as nar bytes: %s MiB\n' "$((nar / 1048576))"
     [ -n "$sent" ] && printf '    saved as an entry of: %s MiB (this is the one the ceiling counts)\n' "$((sent / 1048576))"
-  else
-    printf '\n  no job in run %s runs nix\n' "$newest"
-  fi
+  done
 
   # 3. What the repo is actually holding. GitHub's ceiling is 10 GB per repo
   #    across ALL entries, evicting the least recently used, and dropping any
