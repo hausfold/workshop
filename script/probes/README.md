@@ -450,6 +450,20 @@ replaces the substitute row outright and the build row only where the change
 left the inputs alone; and the cache entries the repo is holding with their
 real sizes.
 
+A build row is not a derivation either, so it carries a `└ compile` sub-row
+naming the longest single `buildPhase` inside it — off stdenv's own markers and
+keyed by pname, so parallel builds are still timed one at a time unless two of
+them share that name. "21 derivations" reads like
+breadth a restore could chip at; on pounce twenty of them are shell scripts
+worth 7s together and the twenty-first is a two-minute `swiftc`, which is
+*pounce's nix build, phase by phase* below. The row is absent rather than wrong
+where the markers are missing, and there are three ways to miss them: only
+stdenv prints them, only `--print-build-logs` gets them into the log, and
+stdenv prints the CLOSING one only for a phase of **30s or more** —
+`showPhaseFooter` returns early below that. snug's two derivations print the
+header and no footer for exactly that reason, and a phase too fast to print is
+a phase nobody needs named.
+
 Every matching job, not the busiest one: several nix jobs in a run is the normal
 case, not the exotic one. haus's gate has three, two of them holding a store
 entry, and an A/B probe's arms are sibling jobs of a single run, which is the
@@ -743,7 +757,9 @@ below belongs to a runner image as much as to an action:
   guards share the Release build. Splitting there computed to ~119s beside ~71s
   against today's 182s, with the 74s iOS job next in line — and that estimate
   has since been run both ways, which is *perch's split, run both ways* below.
-  pounce's pole is one installer and one `nix build`: nothing to cut. `trill`'s
+  pounce's pole is one installer and one `nix build`: nothing to cut, and
+  *pounce's nix build, phase by phase* below is the read that shows why — one
+  derivation holds three quarters of that step. `trill`'s
   gate is the same test + analyze + Release shape on the same kind of runner,
   and *trill's gate, step by step* below is its own eight-run read — the
   boundary was a claim about perch's jobs, not about the shape wherever it
@@ -753,15 +769,20 @@ below belongs to a runner image as much as to an action:
 **This narrows the macOS half of the question the sections above left open.**
 No repo caches a store on a macOS runner, and pounce is the only one that
 could. The substitution a warm entry would replace there is 104 MiB in ~3s, and
-no restore beats 3s — that half is settled. ⚠️ But 3s is a floor, not a
-ceiling: a locked flake input's source tree is a store path too, so an
-unmeasured part of the 28s of flake resolution in front of it is restorable as
-well, while nix's eval cache, which lives outside `/nix`, is not. And the 65s
+no restore beats 3s. ⚠️ But 3s is a floor and not a ceiling, and the ceiling
+has since been measured: a locked flake input's source tree is a store path
+too, and *pounce's nix build, phase by phase* below puts the flake resolution
+in front of that substitution at **28.0s of fetch and 2.2s of evaluation**, so
+what a restore removes is the fetch as well as the substitution — **~31s
+against this section's 3s**, the substitution here being the 104 MiB one. The answer is still no —
+that section has the arithmetic and what is still missing from it — while nix's
+eval cache, which lives outside `/nix`, is restorable by nothing. And the 65s
 installer would itself have to move, since `cache-nix-action` sits behind
 `nix-quick-install-action` and nobody had measured that installer on a Mac —
 *quick-install on a Mac*, below, is that measurement, and the installer moved on
 its own rather than as a cache's passenger. The answer for pounce is still no;
-what a restore *costs* on a macOS runner is the one part still open.
+what a restore *costs* on a macOS runner is the one part still open, and it is
+now the ONLY part — both sides of what it would buy are measured.
 
 ⚠️ The run spreads here are wall clock as GitHub recorded it, same as section 1.
 The shares are stable — Time Machine is 22.3s ±0.1s across eight runs — but the
@@ -959,6 +980,123 @@ deliberately not kept; the run ids in the table are the record, and section 2
 still reaches them — `RUN=34948718808 BRANCH=worktree-quick-install-sandbox
 ./script/probes/ci-cache-value.sh pounce` replays the run that carried A, B, C
 and D.
+
+## pounce's nix build, phase by phase
+
+*quick-install on a Mac* above took 63s of installer out of pounce's macOS job
+and left one step holding **87-94%** of what remains — four real runs since the
+swap — `nix build .#pounce .#pounce-commands .#pounce-skill
+--print-build-logs`, in the job that is pounce's whole gate. Nobody had read inside it. A step total answers nothing —
+`nix build` is at least three phases, and *what a CI job costs* above exists
+because reading one as "the fetch" is how snug's old verdict came to rest on
+12s of `go build`. This is that read.
+
+**It is the Swift compile, and nothing else is close.** Three quarters of the
+step is one `swiftc`, inside one derivation, compiling the sources the change
+just touched. Everything a cache, a split or a parallelism flag could reach is
+the other quarter, and 17.9 of those ~25 points are a single fetch.
+
+| phase | mean | range | share |
+| --- | --- | --- | --- |
+| fetch the flake inputs | 28.0s | 18.2-40.1s | **17.9%** |
+| evaluate | 2.2s | 1.4-4.3s | 1.5% |
+| substitute the plan, 114.5 MiB | 1.3s | 1.0-1.8s | 0.8% |
+| build, 21 derivations | 125.1s | 92.5-162.4s | 79.9% |
+| └ `pkgs/pounce`'s own buildPhase | 118.0s | 86.7-151.5s | **75.3%** |
+| └ the twenty around it | 7.1s | 4.9-11.0s | 4.6% |
+| **the step** | **156.6s** | **119.2-202.4s** | 100% |
+
+⚠️ **The share column is the mean of each run's own share, not the ratio of the
+two columns beside it**, which is the point of the paragraph below and also why
+the column sums to 100.1 rather than 100. Dividing the means instead gives 1.4%
+for evaluate against the 1.5% printed, and that gap is the runner spread rather
+than a rounding error.
+
+n=23 quick-install jobs on `macos-15`, 2026-09-15 and 2026-09-16: the 8 `B` and
+3 `E` arms of the probe above, the 8 control arms of the split probe further
+down this section, and the 4 real runs on `main` and PRs since the swap landed. The 8 `A` arms run the identical
+step behind Determinate and answer whether any of this is the installer's
+doing — 74.7% `swiftc` (69.4-77.8% per run), 18.0% fetch, 1.5% evaluate, on
+104.1 MiB rather than 114.5 because its own installer leaves more of the
+closure in the store. It is not, and across all 31 runs the compile holds
+**69.4-78.8%** of the step.
+
+⚠️ **Read the share, not the second, and this is the sample that shows why.**
+The step ran **119-202s** across those 23 runs on sources that never changed —
+the same runner spread *perch's split* warns about — while `swiftc`'s share of
+it stayed inside **70.4-78.8%**. One run cannot tell a phase from a slow
+runner. Twenty-three can, because the noise multiplies both and divides out.
+
+**A build row is not a derivation, which is the trap this section adds to the
+probe.** 21 derivations reads like breadth a restore could chip at. Twenty are
+the command scripts and the skill, worth **1.0s in front of the compile and
+6.1s behind it**; the twenty-first is the two minutes. `ci-cache-value.sh` now
+prints that as a `└ compile` row under `build`, timed off stdenv's own
+`Running phase: buildPhase` and `buildPhase completed in` markers rather than
+the human duration it prints, so a derivation building beside another is still
+measured alone. ⚠️ The prefix those markers carry is the pname and not the drv
+path, so two derivations sharing one — snug builds `snug-go-modules` and
+`snug`, both prefixed `snug>` — share a key; serial builds still come out
+right, two at once would not, and the log carries nothing finer.
+
+**Splitting the pre-plan window took a second probe, and two methods agree.**
+That window, from the step opening to `these 21 derivations will be built:`,
+holds exactly two fetches: `copying path '…-source' from cache.nixos.org`,
+which is nixpkgs' source tree, and `unpacking 'github:hausfold/nebelung/…'
+into the Git cache`. Measured from the later of the two to the plan, evaluation
+is **1.4-4.3s in all 31 runs**. The probe put the same work in three steps as a
+sibling job — `nix flake archive`, then `nix derivation show .#pounce
+.#pounce-commands .#pounce-skill`, then the build — and `nix derivation show`,
+with the inputs already local and the eval cache cold, ran **1-3s** across eight
+runs, with the `nix build` behind it opening in 0.5-1.6s. Two methods, one
+answer: evaluation is ~2s, and the rest of that window is fetch.
+
+⚠️ **`nix flake archive` is not the counterfactual for the fetch** — the one
+thing that probe got wrong, and worth knowing before copying it. It walks the
+whole lock, and ran **47-75s** against the 20-42s the control's own window
+shows. Itemised on the 73s one: nebelung 2.0s, catppuccin 0.8s, then 40.9s
+unpacking `nixexprs.tar.xz` into the Git cache and 28.9s copying the source
+path. `nix build` needs neither the tarball nor catppuccin. Quote the control
+window minus its evaluation, never the archive step.
+
+**What it does to the store-cache verdict, which is still no.** `docs/ci.md`'s
+*The Nix store cache* refused one here on 114 MiB substituted in 1.2s, and
+flagged its own figure as a floor rather than a ceiling: a locked input's source
+tree is a store path like any other. It is, and it is **28.0s** — so what a
+restore removes here is ~29s against the 1.2s the refusal was written on,
+twenty-four times it. Both inputs resolve out of `/nix` alone, so a restore
+removes the fetch and not merely the download: with `XDG_CACHE_HOME` pointed at
+an empty directory — no fetcher cache, no eval cache, no `gitv3` — `nix
+derivation show .#pounce` answers in **1.8s** off the store paths and fetches
+nothing. ⚠️ That last one is a local
+check on Determinate Nix 3.15.1 (2.33.0), not the runner's 2.34.7.
+
+So what a restore has to beat here is **~29s**, not 1.2s, and the refusal no
+longer rests on the phase split. It rests on what nobody has measured: haus's
+restore is 34-50s and roughly fixed, no one has ever timed one on a macOS
+runner, and 29s off a 157s step leaves the 118s `swiftc` exactly where it was —
+the derivation whose source just changed is the one thing no cache hands back.
+**Do not re-open this without that restore measured.** The number to beat is in
+this section; the arithmetic is the whole decision.
+
+**And there is nothing to split.** `docs/ci.md` rule 5 sizes a split by the
+distance to the runner-up, which here is a 40s Swift test job — but the step
+has no seam to cut at. One derivation holds three quarters of it, and the 30s
+in front of the plan is per-job work a second job would pay over again.
+
+⚠️ `max-jobs` stays where *quick-install on a Mac* left it, and the phase split
+says where its 5s would show: the row behind `swiftc`, not the step total.
+Under `E`'s `max-jobs = auto` the small derivations run beside the compile
+rather than after it, and that row reads **4.9-6.6s against 5.6-11.0s**. n=3
+against n=20 and overlapping, so it is pointed at rather than resolved.
+
+**Take it again** with `RUN=<id> ./script/probes/ci-cache-value.sh pounce` on
+any run above; everything but the two-method split comes straight out of
+section 2. The split probe is one temporary workflow with the arms as sibling
+jobs, branch `probe-phase-split`, runs 35082048478, 35082109478, 35082112000,
+35082114647, 35082116583, 35082658431, 35082660409 and 35082662952, 2026-09-16,
+`macos-15`. The branch and its workflow are deliberately not kept; the run ids
+are the record.
 
 ## trill's gate, step by step
 

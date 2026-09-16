@@ -470,24 +470,38 @@ can cost more than it saves. `pounce` is the measured case and settles the
 derivations half of it outright: what `cache.nixos.org` substitutes there is
 114 MiB in 1.2s, and no restore is cheap enough to beat that.
 
-⚠️ **That is a floor on what a warm store would remove, not a ceiling.** A
-locked flake input's source tree is a store path like any other, so an
-unmeasured part of the ~31s of flake resolution in front of that substitution
-is restorable too — while nix's eval cache, which is not in `/nix`, is not.
-What is certainly outside a restore is the installer, and that was the sharper
-question this used to leave open: `cache-nix-action` sits behind
-`nix-quick-install-action`, so a cache here would have had to carry an installer
-swap with it, and nobody had measured that installer on a Mac.
+⚠️ **That was a floor on what a warm store would remove, not a ceiling, and the
+ceiling is 24 times it.** A locked flake input's source tree is a store path
+like any other. `script/probes/README.md`'s
+*pounce's nix build, phase by phase*
+has since split the ~31s of flake resolution in front of that substitution into
+**28.0s of fetching those inputs and 2.2s of evaluation** — 23 quick-install
+runs for the seconds, eight Determinate arms agreeing on the shares, and
+28.0 + 2.2 is the same 31s that
+*What those Mac jobs are made of*
+below carries as one row of its quick-install table. So the figure a restore
+has to beat on that job is ~29s rather than 1.2s.
+
+The answer is still no, but it is no longer this paragraph that says so. It
+turns on a macOS restore cost nobody has measured, against a Linux one that is
+34-50s and roughly fixed; and on a `swiftc` that is three quarters of the step
+and that no cache can hand back — 118s on that 23-run read, 129s in that same
+table, two samples its own ⚠️ forbids pooling and which agree on the share
+rather than the second. What is certainly outside a restore is nix's eval
+cache, which is not in `/nix`, and the installer — and the installer was the
+sharper question this used to leave open: `cache-nix-action` sits behind
+`nix-quick-install-action`, so a cache here would have had to carry an
+installer swap with it, and nobody had measured that installer on a Mac.
 
 **Now somebody has, and it closes the question from the other end.**
 quick-install runs pounce's impure `xcrun` build unchanged — same derivation
 hash, `…-pounce-2026.09.13.drv`, under both — for 5.1s against Determinate's
 68.2s. So pounce took the 63s on its own, in `build.yml`, and the cache never
-had to carry it. What that leaves a restore to beat is *smaller* than what it
-faced before: 1.2s of substitution, in a job the swap alone took 63s out of.
-The answer for pounce is still no, and it is now a no with the installer
-question closed rather than open. *No third-party runner fleet*, below, has the
-breakdown.
+had to carry it. What that leaves a restore to beat is a job the swap alone
+took 63s out of, in which ~29s is fetching — the flake inputs, then the build
+plan — and three quarters of what is left is one `swiftc`. The answer for pounce is still no, with the
+installer question closed rather than open, and the phase split is what now
+carries it. *No third-party runner fleet*, below, has the breakdown.
 
 `scruff` and `snug` run Linux `nix` jobs and are the case that had to be
 measured rather than reasoned about. Neither has one. scruff's job is ~16s
