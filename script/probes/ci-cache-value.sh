@@ -16,7 +16,11 @@
 #      `go test`. haus's cache pays on the build row (29 checks, most PRs
 #      touching none of their inputs); snug's would pay on neither, because
 #      the source change invalidates both its derivations every run. scruff
-#      and snug both answer no; re-run before adding one anywhere new.
+#      and snug both answer no; re-run before adding one anywhere new. And a
+#      build row is not a derivation: it carries a sub-row naming the longest
+#      buildPhase in it, because "21 derivations" reads like breadth a restore
+#      could chip at right up until one of them is a two-minute compile of the
+#      sources that just changed.
 #   2. Is the store creeping toward GitHub's 10 GB per-repo ceiling? Not the
 #      store on disk — the ceiling counts the COMPRESSED entry, and `du -sh
 #      /nix/store` reads about six times high against it. Section 2 lifts the
@@ -171,9 +175,27 @@ for repo in "${repos[@]}"; do
           row(d(plan, se), "substitute", mib " MiB")
         else
           row(0, "substitute", "nothing fetched — the store already had it")
-        if (build >= 0)
+        if (build >= 0) {
           row(d(build, e), "build", drvs " derivation" (drvs == 1 ? "" : "s"))
-        else
+          # And a build row is not a derivation. 21 of them reads like breadth
+          # a restore could chip at; on pounce twenty are shell scripts worth
+          # 7s together and the twenty-first is a two-minute `swiftc`, which
+          # is the derivation the change just invalidated and the one thing
+          # no cache can hand back.
+          #
+          # Absent rather than wrong, and three ways to be absent. stdenv is
+          # the only thing that prints these; `--print-build-logs` is the only
+          # way they reach the log; and stdenv prints the CLOSING marker only
+          # for a phase of 30s or more (`showPhaseFooter` returns early below
+          # that), so a fast build shows the header and no row. Which suits
+          # the question: a phase too fast to print is a phase nobody needs
+          # named.
+          # Not row(): the box-drawing character is three bytes, and awk pads
+          # its %-11s by bytes, so the note would start two columns early.
+          if (bpmax > 0)
+            printf "    %5.1fs  └ compile  the buildPhase of %s alone%s\n", \
+                bpmax, bpname, (bpn > 1 ? ", the longest of " bpn : "")
+        } else
           row(0, "build", "nothing built") }
       { t = tsec($0) }
       # A step ends where the next one starts. `gh` names the step in field 2
@@ -184,6 +206,7 @@ for repo in "${repos[@]}"; do
         flush(prev)
         if ($0 ~ /##\[group\]Run ([^ ]* )*nix([ "]|$)/) {
           open = 1; start = t; plan = -1; build = -1; mib = "?"; drvs = 0; marks = 0
+          bpmax = 0; bpname = ""; bpn = 0; split("", bp0)
           sub(/^.*##\[group\]Run /, ""); sub(/\r$/, ""); cmd = $0 }
         prev = t; next }
       { if (t >= 0) prev = t }
@@ -193,6 +216,21 @@ for repo in "${repos[@]}"; do
           if (build >= 0 && build < plan) build = -1   # an earlier invocation built that
           if (match($0, /\([0-9.]+ MiB/)) mib = substr($0, RSTART + 1, RLENGTH - 5) } }
       open && t >= 0 && /building .\/nix\/store\// { if (build < 0) build = t; drvs++ }
+      # `<pname>> ` is the prefix nix puts in front of output coming from one
+      # build, and stdenv brackets every phase with a line of its own. Read
+      # off the two timestamps rather than the human duration stdenv prints,
+      # so a derivation building beside another is still measured alone.
+      # ⚠️ That prefix is the pname, not the drv path, so two derivations
+      # sharing one — snug builds `snug-go-modules` and `snug`, both prefixed
+      # `snug>` — share a key here. Serial builds still come out right
+      # (start, finish, start, finish); two of them at once would not, and the
+      # log carries nothing finer to key on.
+      open && t >= 0 && match($0, /[^ \t>]+> Running phase: buildPhase\r?$/) {
+        n = substr($0, RSTART, RLENGTH); sub(/>.*$/, "", n); bp0[n] = t }
+      open && t >= 0 && match($0, /[^ \t>]+> buildPhase completed in /) {
+        n = substr($0, RSTART, RLENGTH); sub(/>.*$/, "", n)
+        if (n in bp0) { bpn++
+          v = d(bp0[n], t); if (v > bpmax) { bpmax = v; bpname = n } } }
       END { flush(prev) }')
     if [ -n "$phases" ]; then
       printf '\n    phases inside those steps — a step is not a phase\n'
