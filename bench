@@ -45,7 +45,8 @@
 #                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
-#                  tap bump (scruff also publishes five SDKs).
+#                  tap bump (scruff also publishes five SDKs, and its tap bump
+#                  finishes on the tap's own gate, minutes after this run).
 #                  --ship ripples the new lock edge downstream afterwards.
 #                  The version is today's date (YYYY.MM.DD, -N on a same-day
 #                  repeat) and typed by nobody — EXCEPT for scruff, which is
