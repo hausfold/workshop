@@ -1311,3 +1311,138 @@ it again the same way, and **measure the cold start before doing arithmetic on
 any step list** — on this evidence it is a property of the macOS runner and
 Xcode rather than of either project, since trill and perch pay within a few
 seconds of the same ~30s.
+
+## scruff's pole, and the split that was not there
+
+The family's third macOS pole, and the first whose answer to rule 5 was **no
+split** and whose gate halved anyway. scruff#136 made the change; everything
+below is the measurement that chose it, taken 2026-09-16 on `macos-26-arm64`
+(**3 cores**, 7GB) and `ubuntu-latest` (**4 cores**, 16GB) — core counts nobody
+in the family had actually read off a runner before.
+
+**Method, and it is the part that differs from perch's and trill's.** Those two
+alternate two refs through `workflow_dispatch`, one run at a time, because the
+two shapes are two *workflows*. Here both shapes are a flag, so every arm could
+run as a **sibling job of one run** — 2 OSes x 4 modes, same fleet, same minute,
+in all five samples. That is the pounce-installer pairing rather than the perch
+one, and it is the stronger of the two when it is available: it needs no
+throwaway branch, no serialisation, and no trust in an arm mean. The probe was a
+throwaway `probe-jobs.yml` on the PR branch, firing on push, deleted before the
+PR. Five pushes, five samples.
+
+**Per-case timing came from the job logs**, `gh api
+repos/hausfold/scruff/actions/jobs/<id>/logs`, whose per-line timestamps bracket
+every `ok N` bats prints. The suite now runs with `-T` so it reports each case's
+own duration and the next read does not need the subtraction.
+
+### Where the 190s went
+
+- **every case, not a few.** 327 of 327 cases run slower on macOS than Linux.
+  Median case 0.415s against 0.164s; 181s against 68s over the same 327. Top 33
+  cases are 32% of the suite, and it takes 100 to reach 64% — a flat tail, no
+  hotspot;
+- **the floor says it too.** The cheapest case in the file prints a usage error
+  and nothing else: 0.11s macOS, 0.082s Linux. One process spawn is already 1.4x;
+- **so there was no boundary.** All 327 want git, bats, the built binary and the
+  `gh`/`lsof` shims `setup()` writes, and every fixture is already per-test under
+  `$BATS_TEST_TMPDIR` — so unlike perch there is not even a shared artifact to
+  cut at. The only available split was by case count, which rule 5 forbids and
+  which buys a macOS runner besides;
+- ⚠️ **three cases are a clock, not a cost** — one `watch` and two
+  `runtime up tart`, ~6.5s, at ratios of 1.12-1.18x against 2.4-4.3x for
+  everything else. They pad both arms about equally. Separate them out before
+  calling the rest a cost;
+- **`overlap` is 29% of the suite on 11% of the cases** (35 cases, 53s), and it
+  landed that same morning. ~15s of it is `mkoverlap`, which 34 of its 35 cases
+  run — a repo plus three lanes built before the assertion, including for the
+  case that only prints `--help`.
+
+### What `--jobs` does, suite seconds
+
+Each column is one sibling-paired run; serial ran in the same run as every
+figure beside it.
+
+| macOS (3 cores) | | | | | | mean |
+| --- | --- | --- | --- | --- | --- | --- |
+| serial | 181 | 190 | 168 | 217 | 195 | 190 |
+| `--jobs 2` | 233 | | | | | 233 |
+| `--jobs 3` | 173 | 162 | | | | 168 |
+| `--jobs 4` | 119 | 137 | | | | 128 |
+| `--jobs 6` | 104 | 90 | 91 | 113 | | 100 |
+| **`--jobs 8`** | **74** | **77** | **77** | | | **76** |
+| `--jobs 12` | 88 | 85 | 66 | | | 80 |
+
+| ubuntu (4 cores) | | | | | | mean |
+| --- | --- | --- | --- | --- | --- | --- |
+| serial | 72 | 73 | 60 | 73 | 59 | 67 |
+| `--jobs 2` | 182 | | | | | 182 |
+| `--jobs 3` | 126 | 120 | | | | 123 |
+| `--jobs 4` | 98 | 98 | | | | 98 |
+| `--jobs 6` | 64 | 69 | 66 | 69 | | 67 |
+| `--jobs 8` | 44 | 49 | 46 | | | 46 |
+| `--jobs 12` | 27 | 37 | 35 | | | 33 |
+
+Read within each run, the way perch's and trill's are: **`--jobs 8` takes a
+median 118s off the macOS suite** (mean 117, range 94-140, n=3).
+
+- **it is not about cores, and `--jobs 2` proves it twice.** 233s on macOS and
+  182s on Linux, both *slower* than serial: bats' parallel path carries a
+  per-test cost that only enough concurrency hides. Past that, a 3-core runner
+  keeps paying to `--jobs 8` and a 4-core one to `--jobs 12`. The suite is
+  latency-bound — serial spent 149s of CPU across 240s of wall clock on a
+  laptop, so ~90s of it was waiting — and waiting does not need a core;
+- **`--no-parallelize-across-files` is what makes it free.** bats spreads FILES
+  with GNU parallel, but spreads the TESTS WITHIN a file with a bash semaphore of
+  its own (`bats-exec-file`, `bats_run_tests_in_parallel`). This suite is one
+  file, so the flag skips the GNU-parallel requirement entirely — no `brew
+  install`, no `apt-get`, nothing added to a runner. Without it bats aborts:
+  "Cannot execute 8 jobs without GNU parallel". ⚠️ **This is a property of the
+  suite being one file, not a general trick** — a repo with several bats files
+  wants the across-files path and therefore wants GNU parallel;
+- **8 rather than 12, on the tail.** j12's median saving is nominally higher
+  (129s) but its totals scatter (66/85/88) where j8's do not (74/77/77), and at
+  j12 the heaviest case in the file stretched from 4.6s to **8.02s**. j8 is both
+  the knee and the steadier number;
+- **parallel is less variable than serial, which was not the point but is worth
+  having.** Serial ran 168-217s across the five samples, a 49s spread on
+  identical source; `--jobs 8` ran 74-77s. It absorbs the runner lottery that
+  made this pole hard to read in the first place.
+
+### The flake question, which is the one a gate change actually spends
+
+**13,080 case executions across 40 suite runs, 0 failures**, at every job count
+from 2 to 12 on both OSes.
+
+- **the deadline-bearing cases never came close.** The `watch` cases poll
+  against `WATCH_TIMEOUT=8` (sized at `test/scruff.bats:3410` for exactly this
+  reason). Worst observed at any job count: **4.26s, 53% of the budget**, at
+  macOS j6. `watch_wait_lines` polls at 0.05s and returns the moment the line
+  lands, so oversubscription barely stretches it;
+- **the general canary is the one that moves**, and it is the reason to stop at
+  8: the slowest case of any kind on macOS goes 4.65s serial → 5.19s (j6) →
+  5.76s (j8) → **8.02s (j12)**. Nothing there has a timeout of its own, but a
+  stretched tail is what eventually pushes a case that does have one over;
+- **concurrency exercises invariant 3 rather than weakening it.** Eight `scruff`
+  processes take registry locks at once where serial took them one at a time —
+  but each has its own `HOME`, `XDG_*` and `CLAUDE_WT_BASE` under
+  `$BATS_TEST_TMPDIR`, so they are eight separate registries. The new
+  concurrency is in the code paths, not in the fixture.
+
+### Adopted
+
+`make test` carries the flags, so the laptop and the runner run the same
+command; `BATS_JOBS=1` is the way back to serial for reading a failure.
+`flake.nix`'s `checkPhase` is deliberately left serial — inside a derivation
+`NIX_BUILD_CORES` is the contract and nix is already parallel across
+derivations.
+
+**scruff#136's own `check` run, the first under the change:** `test
+(macos-latest)` **91s**, `test (ubuntu-latest)` 62s, `swift-sdk` 50s, `sdks`
+39s, `nix` 18s. The gate was 203s and the pole is the same job it always was —
+which is rule 5's before-and-after question answered with one name twice. scruff
+goes from the family's slowest gate to its second-fastest.
+
+⚠️ **Do not pool these with the eight-run `pull_request` samples in the sections
+above.** Different sample, different day, and the macOS arm grew ~40s that same
+morning when `overlap` landed — the 151s figure this investigation started from
+predates it.
