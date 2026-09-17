@@ -231,7 +231,31 @@ the job is cut; the same pole twenty-five seconds clear has twenty-five. haus's
 that the question is worth asking and the answer comes out the other way:
 *What those Mac jobs are made of*, below, is the family's other worked example,
 and perch's split, then trill's, are the two places in the family where a gate
-was cut in two and both shapes then measured against each other.
+was cut in two and both shapes then measured against each other. scruff is the
+third answer and it is neither yes nor no: no boundary, no split, and the pole
+halved anyway — `script/probes/README.md`'s *scruff's pole, and the split that
+was not there* carries that one.
+
+**A pole with no boundary is not the same as a pole you have to keep.** Rule 5
+answers one question — does this job divide — and a no there reads too easily as
+"this is what the gate costs". scruff's was a no on the strongest evidence the
+family has taken: 327 cases in one bats file, every one of them wanting the same
+four things, every fixture already per-test, and the macOS penalty spread across
+**all 327** rather than sitting in any of them. There was nothing to cut. The
+gate came down 203s → 91s regardless, because the suite was never CPU-bound —
+327 cases of fork/exec and git's fsyncs is a job that spends most of its wall
+clock waiting, and waiting parallelises on the runner you already have.
+`bats --jobs 8`, no second job bought, no new dependency.
+
+**So measure whether a pole is waiting before calling it irreducible**, and it
+is one line: that step's own `user` + `sys` against its wall clock. scruff's
+serial suite spent 149s of CPU across 240s — ninety of those seconds were a
+runner doing nothing at all. A compile has no such gap, which is why pounce's
+pole really is irreducible and this one was not, and **the two are
+indistinguishable from a job total.** ⚠️ The number that follows is *not* the
+core count. This suite keeps paying well past the 3 cores under it, and
+`--jobs 2` came in SLOWER than serial on both arms — bats' parallel path has a
+per-test cost that only enough concurrency hides. Find the knee by running it.
 
 Two things that measurement turned up, both of which generalise:
 
@@ -574,14 +598,16 @@ here are the steps. The shares below are means over eight PR runs of each repo;
 `script/probes/README.md` carries the sample, stamped, and the commands that
 take it again.
 
-Rule 5's question about the *other* jobs is already answered in both repos.
+Rule 5's question about the *other* jobs is already answered in all three.
 pounce's other three are a 40s Swift unit-test job on a Mac and two Linux jobs
 at ~12s and ~5s, against a 215s pole — which the installer swap below takes
 ~63s out of without moving which job the pole is; perch's were a 74s iOS build
-and a ~5s Linux job against a 182s one. Neither pole loses the title in a single run of
-that sample, so no regrouping among them reaches either gate. Whether the poles
-themselves divide is the other half of rule 5's question, and these two repos
-answer it differently — *It is also not all Xcode*, below.
+and a ~5s Linux job against a 182s one; scruff's were a 90s Linux twin of the
+same suite, a 52s Swift SDK job and two smaller, against a 203s one. No pole
+loses the title in a single run of its sample, so no regrouping among them
+reaches any of these gates. Whether the poles themselves divide is the other
+half of rule 5's question, and the three answer it three different ways —
+*It is also not all Xcode*, below.
 
 `pounce` — `nix build (aarch64-darwin)`, 215s mean, and under half of it is a
 compiler. This is the shape **before** the installer swap, and the reason there
@@ -691,13 +717,53 @@ shares nothing with either — its own `SwiftDriver`, `SwiftCompile`, `Ld` and
 `GenerateDSYMFile` for all three targets. 121s of the 182s is compiling and
 linking, and 51s of that is the second configuration.
 
+`scruff` — `test (macos-latest)`, 203s mean, and not one second of it is a
+compiler. The third macOS pole in the family and the only one that is a test
+suite, which is why it behaves unlike the other two. This is the shape **before**
+`--jobs`:
+
+| | mean | share |
+| --- | --- | --- |
+| set up, checkout, `setup-go`, `npm install -g bats` | 10s | 5% |
+| the skills, `gofmt` and `vet` guards | ~1s | <1% |
+| `make test` — `go build` | 0.4-2.2s | 1% |
+| `make test` — `go test ./...` | ~1s | <1% |
+| **`make test` — `bats test/scruff.bats`, 327 cases** | **186s** | **92%** |
+| post | 1.6s | 1% |
+
+**Read per case, and the divergence is in every one of them.** Taken out of the
+job logs with the `gh api …/jobs/<id>/logs` method above, all **327 of 327**
+cases run slower on macOS than on Linux — median 0.415s against 0.164s, 181s
+against 68s in total. It is not a few heavy cases: the top 33 are 32% of the
+suite and it takes 100 of them to reach 64%. The floor says the same thing —
+the cheapest case in the file, which only prints a usage error, is 0.11s on
+macOS against 0.082s. The cost is one macOS process spawn and one git command
+against APFS, paid 327 times, and that is a shape no boundary divides.
+
+⚠️ **Three cases carry a clock rather than a cost**, which is the check the
+runner-up bullet above asks for and the reason it belongs in every one of these
+reads: one `watch` case at 3.78s/3.25s and two `runtime up tart` cases sit at
+ratios of 1.12-1.18x where everything else is 2.4-4.3x. ~6.5s, padding both arms
+about equally, so it argues the split neither way — but it had to be separated
+out before the other 175s could be called a cost.
+
+⚠️ **`overlap` is 35 of the 327 cases and 29% of the suite.** It landed the
+morning this was measured (scruff#133) and put ~40s on the macOS arm in one PR,
+which is worth knowing as a rate: the pole grows with the verb count, and this
+file's fixtures are not uniform. ~15s of that 53s is `mkoverlap` alone — 34 of
+its 35 cases build a repo plus three lanes before asserting anything, including
+the one that then only prints `--help`.
+
 **So the verdict stands, and its reason is measured rather than inferred.** An
 x86-64 fleet can take none of the above. Not the compiles, which are `swiftc`
 against the macOS SDK; and not the half of pounce's pole that is not a compile
 either, since installing Nix onto a Mac and substituting a darwin stdenv are
-macOS-runner work by definition. What a fleet could run is pounce's ~12s
-shellcheck and ~5s skill check and perch's ~5s one: call it a third off twenty
-seconds, spread over three jobs that are not the gate in any run. That is the
+macOS-runner work by definition. Nor scruff's, which is a bats suite
+rather than a compile but exists precisely to run the occupancy and reflink
+paths *on macOS* — moving it to Linux would not speed the check up, it would
+delete it. What a fleet could run is pounce's ~12s shellcheck and ~5s skill
+check and perch's ~5s one: call it a third off twenty seconds, spread over
+three jobs that are not the gate in any run. That is the
 "already the fast half" clause with numbers under it.
 
 ⚠️ **It is also not all Xcode, and "irreducible" is a claim about steps that
@@ -713,6 +779,16 @@ reports it: **a median 60s off the gate** (mean 58s, range 0-99s), and
 the iOS build that would inherit it next. Rule 5 asks which job was the gate
 before and which is after; for perch that is `Native build and tests` and then
 `Debug tests and analyze`, measured rather than reasoned.
+
+⚠️ **And scruff is the case where "no boundary" was the right answer and the
+wrong stopping point** — the clause above about levers the invocation itself may
+still have, collected. Its pole divides into nothing: one bats file, 327 cases,
+each already hermetic in its own `$BATS_TEST_TMPDIR`, so there is not even a
+shared artifact of perch's kind to cut at. Rule 5 correctly says do not split
+it. Then `bats --jobs 8` took a median 118s off the same job on the same runner.
+For scruff, rule 5's before-and-after question has the same answer both times —
+`test (macos-latest)`, 203s and then 91s — which is the shape to expect whenever
+a pole turns out to be waiting rather than computing.
 
 **The third macOS runner does not queue behind the other two**, which was the
 one thing that could have made the split a loss. Going from two concurrent
