@@ -16,9 +16,9 @@
 # Nothing rebuilds when you edit this file — the wrapper `exec`s the script,
 # and this is read by zsh, not Nix. `exec zsh` reloads it.
 #
-# ⚠️ Every `bench:NNN` below is a hand-kept pointer into a 3200-line script and
-# every edit to it moves them. They were last re-taken 2026-08-27. Treat a ref
-# that lands on unrelated code as stale, not as a claim about that code.
+# ⚠️ `bench:2-54` below is a hand-kept pointer into a script every edit moves,
+# and the last one left in this file. Treat a ref that lands on unrelated code
+# as stale, not as a claim about that code.
 #
 # The subcommand descriptions are one-line paraphrases of bench's OWN usage
 # header (bench:2-54) — the same text `bench <garbage>` prints. That header is

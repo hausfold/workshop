@@ -1410,20 +1410,22 @@ ensure_pounce_dev_app() {
   fi
 }
 
-# Release bookkeeping. Releases are what users actually consume — pounce and
-# scruff via the Homebrew tap, the desktop via hausfold.co/hacker.sh (which
-# serves the LATEST RELEASE's bootstrap, not main) — so a tag that falls behind
-# main is every bit as stale as a lock edge, just invisible without this.
+# Release bookkeeping. Releases are what users actually consume — pounce, perch
+# and scruff via the Homebrew tap, trill via the layer's flake pin, the desktop
+# via hausfold.co/hacker.sh (which serves the LATEST RELEASE's bootstrap, not
+# main) — so a tag that falls behind main is every bit as stale as a lock edge,
+# just invisible without this.
 latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if none
   git -C "$(repo_dir "$1")" tag --list 'v*' --sort=-v:refname 2>/dev/null | head -1
 }
 commits_since() { # commits_since <repo> <tag> — user-facing commits on HEAD the tag lacks
-  # Discount the release bot's own commits. perch and trill both wrap a notarized
-  # ZIP, so each one's release.yml `bump-flake` job rewrites nix/release.nix with
-  # that ZIP's sha256 in a commit pushed AFTER the tag — a pin can't predate the
-  # artifact it hashes, so it sits 1 commit past the latest tag forever without
-  # being new work. Left in, it flags every freshly-released one as "1 commit
-  # behind main" for good.
+  # Discount the release bot's own commits. perch, trill and pounce all pin a
+  # CI-built artifact by sha256 in nix/release.nix, so each one's release.yml
+  # rewrites that pin in a commit pushed AFTER the tag — `bump-flake` in perch
+  # and trill, `bump-pin` in pounce, all three committing as haus-release[bot].
+  # A pin can't predate the artifact it hashes, so it sits 1 commit past the
+  # latest tag forever without being new work. Left in, it flags every
+  # freshly-released one as "1 commit behind main" for good.
   local dir; dir="$(repo_dir "$1")"
   local total; total="$(git -C "$dir" rev-list --count "$2..HEAD" 2>/dev/null)" || { echo "?"; return; }
   local bot; bot="$(git -C "$dir" rev-list --count --author='haus-release' "$2..HEAD" 2>/dev/null || echo 0)"
@@ -2740,10 +2742,12 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # supersede. Blocking, then fast-forwarding, closes that window.
 #
 # There is exactly ONE workflow to watch — each repo's `release` (haus: publish;
-# pounce: publish + bump-tap; perch: those plus bump-flake; scruff: a stamp
-# check, the reused PR gate, the GitHub release, one job per SDK, and bump-tap —
-# nine). For pounce and perch the tap bump is a plain push into homebrew-tap, so
-# when this run goes green the release IS live — nothing further to chase.
+# trill: publish + bump-flake; pounce: publish + bump-pin + bump-tap; perch:
+# publish + bump-tap + bump-flake; scruff: a stamp check, the reused PR gate, the
+# GitHub release, one job per SDK, and bump-tap — nine). For pounce and perch the
+# tap bump is a plain push into homebrew-tap, and trill has no tap entry to bump
+# at all, so when one of those three runs goes green the release IS live —
+# nothing further to chase.
 #
 # **scruff is the exception, and it is the one thing a green run here does not
 # prove.** Its formula compiles, so the tap gates it: `bump-tap` pushes the
@@ -3133,8 +3137,8 @@ cmd_release() {
   fi
   printf '\n'
 
-  # perch has CI commit nix/release.nix back to the repo, so origin moved while
-  # we watched. Fast-forward before anything reads this HEAD.
+  # perch, pounce and trill each have CI commit nix/release.nix back to the repo,
+  # so origin moved while we watched. Fast-forward before anything reads this HEAD.
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
   # scruff's formula is the one artifact this run does not land. `bump-tap`
