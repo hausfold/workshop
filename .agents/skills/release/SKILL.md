@@ -17,13 +17,16 @@ published. You never push a `v*` tag by hand and you never touch `homebrew-tap` 
 the formula bump.
 
 **For scruff, one artifact finishes outside that run: the Homebrew formula.** It compiles,
-so the tap gates it: `bench release` goes green once the bump is pushed to a
-`bump/scruff-v<version>` branch, and the tap's own run puts it on main a few minutes later,
-or leaves users on the previous release if the formula stopped building. `bench` says so on
-screen and points at the run. Report it the same way, and send anyone whose `brew install`
-is still a release behind to
-[hausfold/homebrew-tap's actions](https://github.com/hausfold/homebrew-tap/actions). For
-pounce and perch the formula lands with the run, so green there is the whole story.
+so the tap gates it: scruff's run goes green once the bump is pushed to a
+`bump/scruff-v<version>` branch, and the tap's own `check` run builds, installs and promotes
+it to main — or leaves users on the previous release if the formula stopped building.
+`bench release scruff` watches that second run too, after the ripple, and ends on one of
+four lines: the formula is live, the gate went red, it never ran, or it is still running
+after 15 minutes. The last three warn and send a banner; the command still exits 0, because
+the release is on five registries by then. Report the line it ended on. A red gate is fixed
+in the tap — fix the formula, re-run the failed jobs on that check run, never push it to
+main. For pounce and perch the formula lands with the run, so green there is the whole
+story.
 
 So this skill is about the two things `bench` deliberately doesn't decide:
 
@@ -141,7 +144,8 @@ It stamps, commits, pushes, tags, then paints a live job tree until CI finishes.
 that's the shared PR gate (both OSes, all six suites) followed by six publish jobs — the
 GitHub release, npm, PyPI, crates.io, the `sdk/go/vX.Y.Z` tag, and the SwiftPM mirror tag —
 plus `bump-tap`, which is a seventh job but not a seventh publish: it pushes the formula to
-a branch for the tap to gate, and is green before anything installs it.
+a branch for the tap to gate, and is green before anything installs it. The tap's run is
+watched next, after the ripple.
 Every publish job is independent and idempotent, so if one registry fails the others still
 land and `gh run rerun --failed` finishes the job rather than half-cutting a second release.
 

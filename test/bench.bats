@@ -1608,6 +1608,138 @@ render_run() { printf '%s' "$1" | python3 -c "$WATCH_RENDER_PY"; }
   [[ "$output" == *"a fail"* ]]
 }
 
+# ── the tap's gate: what `bench release scruff` says once its own run is green ──
+# The gate is another repo's run, found by its bump branch and watched with the
+# same loop. What is owned here is the VERDICT — four lines, one per shape —
+# and that none of them fails the command. `gh` is a stub that logs its argv
+# and answers from fixture files, so the loop runs in the piped shape: no TTY,
+# no coprocess, one plain line per state change.
+
+mkgh() { # mkgh — a `gh` on PATH: `run list` prints $TMP/gh-list, `run view` cats $TMP/gh-view, `api` succeeds iff $TMP/gh-branch exists
+  mkdir -p "$TMP/fakebin"
+  cat >"$TMP/fakebin/gh" <<EOF
+#!/bin/sh
+printf '%s\n' "\$*" >>"$TMP/gh.log"
+case "\$1 \$2" in
+  "run list") cat "$TMP/gh-list" 2>/dev/null ;;
+  "run view") cat "$TMP/gh-view" ;;
+  "api ")     ;;
+esac
+[ "\$1" != api ] || [ -e "$TMP/gh-branch" ]
+EOF
+  chmod +x "$TMP/fakebin/gh"
+  PATH="$TMP/fakebin:$PATH"
+  UI_READY=""; UI_TTY=""; SNUG_FD=""; SNUG_TRIED=""
+  WATCH_SEEN=()
+  WATCH_POLL_S=0; WATCH_APPEAR_TRIES=2; WATCH_APPEAR_S=0
+}
+
+gate_run() { # gate_run <status> <conclusion|""> — a check run: the formula job done, promote in <status>
+  local concl=null; [ -n "$2" ] && concl="\"$2\""
+  cat >"$TMP/gh-view" <<EOF
+{"status":"$1","conclusion":$concl,"jobs":[
+  {"name":"scruff formula","status":"completed","conclusion":"success",
+   "startedAt":"2026-09-20T07:18:49Z","completedAt":"2026-09-20T07:20:23Z"},
+  {"name":"promote to main","status":"$1","conclusion":$concl,
+   "startedAt":"2026-09-20T07:20:26Z","completedAt":"2026-09-20T07:20:33Z"}]}
+EOF
+}
+
+@test "tap_gate_watch finds the tap's check run by its bump branch and says the formula is live on green" {
+  mkgh; mktrill 0
+  echo 4242 >"$TMP/gh-list"; gate_run completed success
+  run tap_gate_watch scruff v1.2.3 777
+  [ "$status" -eq 0 ]
+  # Keyed the way the real run is: the tap's `check`, on the branch bump-tap
+  # pushed — which promote has deleted by now, and gh still finds by head_branch.
+  grep -q -- 'run list --repo hausfold/homebrew-tap --workflow check --branch bump/scruff-v1.2.3' "$TMP/gh.log"
+  grep -q -- 'run view 4242 --repo hausfold/homebrew-tap' "$TMP/gh.log"
+  [[ "$output" == *"bump/scruff-v1.2.3"* ]]
+  [[ "$output" == *$'✓  promote to main'* ]]
+  [[ "$output" == *"brew install hausfold/tap/scruff serves it now"* ]]
+  # Green is the screen's to say — the "live" banner already went out, and a
+  # second one per release would be the noise trill exists to cut.
+  [ ! -f "$TMP/trill.log" ]
+}
+
+@test "tap_gate_watch warns and sends a fault banner when the gate goes red, and still exits 0" {
+  mkgh; mktrill 0
+  echo 4242 >"$TMP/gh-list"; gate_run completed failure
+  run tap_gate_watch scruff v1.2.3 777
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"went red"* ]]
+  [[ "$output" == *"still serves the previous release"* ]]
+  [[ "$output" == *"gh run view 4242 --repo hausfold/homebrew-tap --log-failed"* ]]
+  run cat "$TMP/trill.log"
+  [[ "$output" == *"--source bench.release"* ]]
+  [[ "$output" == *"--kind fault"* ]]
+  [[ "$output" == *"scruff v1.2.3's formula did not land"* ]]
+}
+
+@test "tap_gate_watch tells a gate that never ran from a bump that was never pushed" {
+  mkgh; mktrill 0
+  : >"$TMP/gh-list"            # no run, after every poll
+  touch "$TMP/gh-branch"       # …but the branch is on the tap: the gate is what failed
+  run tap_gate_watch scruff v1.2.3 777
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"its check never ran"* ]]
+  [[ "$output" == *"gh workflow run check --repo hausfold/homebrew-tap --ref bump/scruff-v1.2.3"* ]]
+  grep -q -- 'api repos/hausfold/homebrew-tap/branches/bump/scruff-v1.2.3' "$TMP/gh.log"
+
+  rm "$TMP/gh-branch" "$TMP/trill.log"   # no branch either: bump-tap pushed nothing
+  run tap_gate_watch scruff v1.2.3 777
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"pushed nothing to the tap"* ]]
+  [[ "$output" == *"gh run view 777 --repo hausfold/scruff --log"* ]]
+  run cat "$TMP/trill.log"
+  [[ "$output" == *"--kind fault"* ]]
+  [[ "$output" == *"never ran"* ]]
+}
+
+@test "tap_gate_watch stops at TAP_GATE_WAIT_S with a note, not a fault, when the gate is still running" {
+  mkgh; mktrill 0
+  echo 4242 >"$TMP/gh-list"; gate_run in_progress ""
+  TAP_GATE_WAIT_S=1; WATCH_POLL_S=1
+  run tap_gate_watch scruff v1.2.3 777
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"still running after"* ]]
+  [[ "$output" == *"gh run watch 4242 --repo hausfold/homebrew-tap"* ]]
+  # The run was polled more than once before the bound cut it off — a bound,
+  # not a single look.
+  [ "$(grep -c 'run view' "$TMP/gh.log")" -ge 2 ]
+  run cat "$TMP/trill.log"
+  [[ "$output" == *"--kind note"* ]]
+  [[ "$output" != *"--kind fault"* ]]
+}
+
+@test "watch_release_run with no bound runs to the end, as the release run always did" {
+  mkgh
+  gate_run completed success
+  run watch_release_run homebrew-tap 4242
+  [ "$status" -eq 0 ]
+  gate_run completed failure
+  run watch_release_run homebrew-tap 4242
+  [ "$status" -eq 1 ]
+}
+
+@test "release_run_id still keys the release run by its tag" {
+  mkgh
+  echo 99 >"$TMP/gh-list"
+  run release_run_id pounce v2026.09.20
+  [ "$status" -eq 0 ]
+  [ "$output" = 99 ]
+  grep -q -- 'run list --repo hausfold/pounce --workflow release --branch v2026.09.20' "$TMP/gh.log"
+}
+
+@test "run_id_on gives up after WATCH_APPEAR_TRIES polls, not on the first empty answer" {
+  mkgh
+  : >"$TMP/gh-list"
+  run run_id_on homebrew-tap check bump/scruff-v9.9.9
+  [ "$status" -eq 1 ]
+  [ -z "$output" ]
+  [ "$(grep -c 'run list' "$TMP/gh.log")" -eq 2 ]
+}
+
 # ── latest_tag / commits_since: the release-edge staleness check ───────────────
 
 make_repo() { # make_repo <name> — a fixture git repo with one commit
