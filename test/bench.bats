@@ -1622,7 +1622,7 @@ mkgh() { # mkgh — a `gh` on PATH: `run list` prints $TMP/gh-list, `run view` c
 printf '%s\n' "\$*" >>"$TMP/gh.log"
 case "\$1 \$2" in
   "run list") cat "$TMP/gh-list" 2>/dev/null ;;
-  "run view") cat "$TMP/gh-view" ;;
+  "run view") if [ "\$3" = 777 ]; then cat "$TMP/gh-view-release"; else cat "$TMP/gh-view"; fi ;;
   "api ")     ;;
 esac
 [ "\$1" != api ] || [ -e "$TMP/gh-branch" ]
@@ -1680,11 +1680,18 @@ EOF
   mkgh; mktrill 0
   : >"$TMP/gh-list"            # no run, after every poll
   touch "$TMP/gh-branch"       # …but the branch is on the tap: the gate is what failed
+  # scruff's own run, where the bump job lives — the hint names ITS id, because
+  # the tap's promote is gated on a push event and a dispatched check would
+  # build the formula, skip the landing and go green.
+  # The stub answers `gh run view 777 … --jq` with what jq would print: the id.
+  echo 8888 >"$TMP/gh-view-release"
   run tap_gate_watch scruff v1.2.3 777
   [ "$status" -eq 0 ]
   [[ "$output" == *"its check never ran"* ]]
-  [[ "$output" == *"gh workflow run check --repo hausfold/homebrew-tap --ref bump/scruff-v1.2.3"* ]]
+  [[ "$output" == *"gh run rerun --repo hausfold/scruff --job 8888"* ]]
+  [[ "$output" != *"gh workflow run"* ]]
   grep -q -- 'api repos/hausfold/homebrew-tap/branches/bump/scruff-v1.2.3' "$TMP/gh.log"
+  grep -q -- 'run view 777 --repo hausfold/scruff --json jobs' "$TMP/gh.log"
 
   rm "$TMP/gh-branch" "$TMP/trill.log"   # no branch either: bump-tap pushed nothing
   run tap_gate_watch scruff v1.2.3 777

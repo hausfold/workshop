@@ -45,9 +45,10 @@
 #                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
-#                  tap bump (scruff also publishes five SDKs, and its tap bump
-#                  finishes on the tap's own gate, minutes after this run).
-#                  --ship ripples the new lock edge downstream afterwards.
+#                  tap bump (scruff also publishes five SDKs, and its formula
+#                  lands on the tap's own gate, which is watched next and
+#                  ends on live or red). --ship ripples the new lock edge
+#                  downstream before that second watch.
 #                  The version is today's date (YYYY.MM.DD, -N on a same-day
 #                  repeat) and typed by nobody — EXCEPT for scruff, which is
 #                  semver because it publishes libraries to registries that
@@ -3057,8 +3058,19 @@ tap_gate_watch() { # tap_gate_watch <name> <tag> <release-run-id> — block on t
     # the tap yet. Either way brew serves the previous release; the difference
     # is which repo to open.
     if gh api "repos/$(gh_repo "$tap")/branches/$branch" >/dev/null 2>&1; then
+      # Not `gh workflow run check --ref …`: promote is gated on a PUSH event
+      # (check.yml), so a dispatched run builds the formula, skips the landing
+      # and goes green. The push that lands it is bump-tap's own, re-run — a
+      # fresh commit, so a new SHA and a real event on the branch.
+      local job
+      job="$(gh run view "$runid" --repo "$(gh_repo "$name")" --json jobs \
+               --jq '[.jobs[] | select(.name | startswith("bump ")) | .databaseId] | first' 2>/dev/null || true)"
       warn "$branch is on the tap but its check never ran — brew install still serves the previous release."
-      hint "run it by hand: gh workflow run check --repo $(gh_repo "$tap") --ref $branch"
+      if [ -n "$job" ] && [ "$job" != "null" ]; then
+        hint "push it again: gh run rerun --repo $(gh_repo "$name") --job $job   (bump-tap, a fresh commit on the branch)"
+      else
+        hint "push it again: re-run the bump job of gh run view $runid --repo $(gh_repo "$name")"
+      fi
     else
       warn "$name's bump-tap pushed nothing to the tap — brew install still serves the previous release."
       hint "its log says why: gh run view $runid --repo $(gh_repo "$name") --log | grep -F 'bump hausfold/homebrew-tap'"
@@ -3237,9 +3249,14 @@ cmd_release() {
   say "$name $version is live — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
   BENCH_NOTIFY_SOURCE=release notify "done" "$name $version is live" \
     "Published by CI.${tap:+ Formula on the tap gate — watching it next.} ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
+  # The ripple runs in a subshell so its `die` — a stale edge past its retries,
+  # a diverged checkout — is still the exit status but no longer the last word:
+  # the gate below is said either way, on the screen that would otherwise have
+  # ended on a ship error with the formula's fate unknown.
+  local ship_rc=0
   if [ -n "$ship" ]; then
     printf '\n' >&2
-    cmd_ship
+    ( cmd_ship ) || ship_rc=$?
   else
     warn "the version stamp moved $name's HEAD — its lock edge downstream is now stale."
     hint "ripple it: bench ship   (or cut the next one with: bench release $name${askver:+ <version>} --ship)"
@@ -3248,6 +3265,7 @@ cmd_release() {
     printf '\n' >&2
     tap_gate_watch "$name" "$tag" "$runid"
   fi
+  [ "$ship_rc" -eq 0 ] || exit "$ship_rc"
 }
 
 # ── docs-since ────────────────────────────────────────────────────────────────
@@ -3635,6 +3653,6 @@ case "${1:-status}" in
   docs-since) cmd_docs_since "${@:2}" ;;
   overlap) shift; cmd_overlap "$@" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,55p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi
