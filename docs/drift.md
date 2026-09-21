@@ -306,3 +306,34 @@ one overlay instead of six and diffs the two systems, which says both that the
 export evaluates and that the other five change nothing. The tell is a check
 whose subject is an EXPORT, something whose whole purpose is to be used from
 outside this repo, evaluated by scaffolding from inside it.
+
+**A MECHANISM inferred from a clean split, keyed on the wrong axis — every
+observation it was drawn from still fits, and the first case the two axes
+disagree on goes the other way.** A pass measured that
+`haus.appearance.largePrint = false` returns what `haus.ui.scale` and
+`haus.theme.contrast` render, and leaves three settings standing on the Mac:
+`increaseContrast`, the Dock's `tilesize` and the display's mode. It read the
+split as *what haus renders as a file comes back, what lands in macOS's own
+preference store survives*, and every one of those observations fits it. The
+axis is still wrong, and one cell says so: `NSTableViewDefaultSizeMode` is a
+plain `NSGlobalDomain` preference that the same `ui.scale` moves
+(`haus/modules/core/default.nix`), and it returns — because it is written at
+every scale, where `tilesize` in the same block is written under
+`mkIf (ui.scale != 1.0)` and the other two leaves are filtered out of their
+writes by `v != null`. What predicts is *does haus write this at BOTH settings*,
+not *where does the write land*; a rendered file is simply the case that is
+always rewritten. The unit shifts with the axis, which is part of what hides it:
+counted per OPTION the split is two back and two not, and `ui.scale` sits on
+both sides of it the moment you count writes instead. **Caught by** reading the
+golden table the rule implies — which already existed. `scale-reach` in
+`haus/flake.nix` prints `sys dock.tilesize unset 67 …` and
+`sys finder.sidebar 1 3 …` on adjacent rows, two macOS preferences behaving
+oppositely in one table, and `haus.ui.scale`'s own option text already says the
+sidebar is "set at every scale". So the move is to find the cell where the two
+candidate axes disagree and read it, before building a table to look for it.
+Row 5 is the near neighbour and not the same: row 5's claim is true about a
+different layer, where this one is true of every case observed and wrong only
+about why. Row 18 shares the skeleton but goes wrong later, when a fix narrows
+a limit; this was wrong when written. Row 26's catch is the closest — diff at a
+second dimension — except that there the instrument is narrower than the claim,
+and here the measurement is sound and the explanation is confounded.
