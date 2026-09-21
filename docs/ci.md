@@ -13,7 +13,7 @@ by not paying twice for the same one.
 
 | repo | workflow | where it runs | what it can only prove there |
 | --- | --- | --- | --- |
-| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, plus thirty-two platform-independent flake checks. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
+| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, and every flake check but one — raising a darwin machine needs no Mac, only building one does, so the single check that reads a BUILT `activate` script is the whole of what `nix flake check` on a Mac still has that CI does not. That is the family's one gate whose pole is evaluation rather than build or compile: 186s of `nix flake check`'s 193s, which no store cache reaches. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
 | `perch` | `build` | macOS ×3, ubuntu | Xcode test + analyze on one Mac, Release plus the arm64 slice guard on another — cut at the `-derivedDataPath` the steps already divided on — and the iOS companion on a third; the skill guards are the one job off the Mac |
 | `trill` | `build` | macOS ×2 | Xcode test + analyze on one Mac, Release plus the no-instrumentation guard on another — cut at the `-derivedDataPath` the steps already divided on, the same boundary as perch's |
@@ -458,6 +458,15 @@ the warm ones, so any re-measure starts by reading the "Restore the Nix store"
 step. 30s-plus means warm; under a second means the key missed and everything
 below it paid full price.
 
+⚠️ **Those figures no longer describe `nix flake check`.** Every check haus declares but one runs on the Linux runner now, and what the
+darwin ones brought is EVALUATION — dozens of nix-darwin systems raised in a
+single evaluator. Measured on run 35591587897: **193s, of which 186s is eval
+and 6s builds eighty derivations**, behind a 22s restore. A store entry holds
+outputs and has never held an evaluation, so the restore still answers for the
+6s and none of the 186s. 1s warm belonged to a step whose work a hit could
+hand back whole; this one's cannot be. The 55/6 pair on `nix eval` is
+untouched — that job did not change.
+
 ⚠️ A cold figure also belongs to the JOB it was measured in. `nix flake check`
 reads 37s cold behind a `nix eval` that has already paid for nixpkgs, and 57s
 as the first thing in a job of its own — the same step, and the split between
@@ -471,8 +480,10 @@ It is on those two repos because that is where the trade lands:
   palette under it changes every PR. A hit costs nothing; a miss no longer
   costs a rustc closure either, because that job reads catppuccin's own cachix
   — *Reading someone else's public cache*, below.
-- `haus` evaluates nixpkgs and then *builds* thirty-two check derivations, and
-  most PRs touch none of their inputs.
+- `haus` evaluates nixpkgs and then *builds* every check derivation in the
+  flake, and most PRs touch none of their inputs. ⚠️ That is the half the
+  restore can answer for. The other half of `nix flake check` is evaluation —
+  see the warning above — and it is paid in full on a hit.
 
 **The trade has to be re-tested after the cache is in, and it can go
 negative.** The test above is usually run once, to decide whether to add a
@@ -501,9 +512,14 @@ comes straight back. Only the second is an argument for changing anything.
 
 ⚠️ And before narrowing a store that *is* paying, re-check rule 5: the answer
 on haus's remaining two was to leave them alone, because past the reset that
-half drops under the same repo's shell jobs and every second still on the table
-belongs to a job the change would not touch. Shave the pole, then re-measure
-which job that is — the answer moves.
+half dropped under the same repo's shell jobs and every second still on the
+table belonged to a job the change would not touch. Shave the pole, then
+re-measure which job that is — the answer moves. ⚠️ **It has moved.**
+`eval` was that half's pole at 71s; `checks` is now, at 221s against
+`eval`'s 62s, because every darwin check evaluates there. Both the paragraph
+above and the `71s alone` figure two above it describe the shape before that,
+and the store question they settle is unaffected — a restore still cannot
+hold an eval either way.
 
 It is **not** on the repos that build their own Swift on a Mac. There the
 expensive derivation is the one whose source just changed, so a restore buys
@@ -563,8 +579,9 @@ evaluating nixpkgs, **2.3-3.5s** substituting the 69 paths it needs (216 MiB
 from `cache.nixos.org` at 60-95 MiB/s), and 12-15s building two derivations —
 ~6s of `go build`, ~7s of `go test`. Both take the source as an input, so the
 source change invalidates both on every run: snug's build row is worth nothing
-to a restore, and that is the whole difference from haus, whose thirty-two
-checks mostly survive a PR untouched. What is left is the substitute row plus
+to a restore, and that is the whole difference from haus, whose check
+derivations mostly survive a PR untouched. What is left is the substitute row
+plus
 the 47 MiB nixpkgs `-source` the eval pulls — **262 MiB of download, 3-4s of a
 41s job**, and of a 34s one now that the installer in front of it is gone. That
 source arrives in under a second at the rate the substitute row runs at, so the
