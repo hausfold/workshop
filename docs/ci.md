@@ -13,7 +13,7 @@ by not paying twice for the same one.
 
 | repo | workflow | where it runs | what it can only prove there |
 | --- | --- | --- | --- |
-| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, plus twenty-nine platform-independent flake checks. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
+| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, plus thirty-two platform-independent flake checks. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
 | `perch` | `build` | macOS ×3, ubuntu | Xcode test + analyze on one Mac, Release plus the arm64 slice guard on another — cut at the `-derivedDataPath` the steps already divided on — and the iOS companion on a third; the skill guards are the one job off the Mac |
 | `trill` | `build` | macOS ×2 | Xcode test + analyze on one Mac, Release plus the no-instrumentation guard on another — cut at the `-derivedDataPath` the steps already divided on, the same boundary as perch's |
@@ -471,7 +471,7 @@ It is on those two repos because that is where the trade lands:
   palette under it changes every PR. A hit costs nothing; a miss no longer
   costs a rustc closure either, because that job reads catppuccin's own cachix
   — *Reading someone else's public cache*, below.
-- `haus` evaluates nixpkgs and then *builds* twenty-nine check derivations, and
+- `haus` evaluates nixpkgs and then *builds* thirty-two check derivations, and
   most PRs touch none of their inputs.
 
 **The trade has to be re-tested after the cache is in, and it can go
@@ -563,7 +563,7 @@ evaluating nixpkgs, **2.3-3.5s** substituting the 69 paths it needs (216 MiB
 from `cache.nixos.org` at 60-95 MiB/s), and 12-15s building two derivations —
 ~6s of `go build`, ~7s of `go test`. Both take the source as an input, so the
 source change invalidates both on every run: snug's build row is worth nothing
-to a restore, and that is the whole difference from haus, whose twenty-nine
+to a restore, and that is the whole difference from haus, whose thirty-two
 checks mostly survive a PR untouched. What is left is the substitute row plus
 the 47 MiB nixpkgs `-source` the eval pulls — **262 MiB of download, 3-4s of a
 41s job**, and of a 34s one now that the installer in front of it is gone. That
