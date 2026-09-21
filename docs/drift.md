@@ -284,3 +284,25 @@ comment that had already diagnosed them, which sat past the line that dies.
 **Caught by** reading a deferral's "yet" as an assertion and asking what would
 fail when it stops holding — here nothing could, so the fix the comment
 described was cheaper than the comment.
+
+**A FIXTURE that hands the subject everything, standing in for a consumer who
+has to supply it themselves.** `haus`'s `standalone-modules` check builds every
+`darwinModules.<room>` export through `standaloneSystem`, a fixture in the same
+file as the builder it stands in for and applying the same six sibling overlays,
+because it was written from `mkHaus` and there was nowhere else to read the list
+off. An export is the bare foundation plus one room, and the foundation's AI
+room tested each tool derivation for null BEFORE the room switch that drops it,
+so a consumer importing `darwinModules.windows` into a flake of their own died
+at eval on `attribute 'scruff-skill' missing` while haus's CI was green on the
+same rev. Nothing here was stale: the check evaluated the right exports, the
+docs sentence ("the palette and app overlays") named the right kind of thing,
+and every claim about the export was true of the fixture. Row 20 is the near
+neighbour and the fix is the same shape — ask which COPIES the check compares —
+but the second copy that was missing here is not a snapshot, it is a second
+EVALUATION of the same subject under the conditions the docs describe.
+**Caught by** giving the fixture only what the docs promise a consumer types,
+and keeping the generous one beside it: haus now builds every export again with
+one overlay instead of six and diffs the two systems, which says both that the
+export evaluates and that the other five change nothing. The tell is a check
+whose subject is an EXPORT, something whose whole purpose is to be used from
+outside this repo, evaluated by scaffolding from inside it.
