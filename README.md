@@ -56,7 +56,7 @@ something works, and `main` never holds code nobody has felt.
 | `ship [repo…]` | push in dependency order, rippling each `flake.lock`; a repo narrows it to its downstream closure |
 | `rebuild` | the plain pinned rebuild — the normal day |
 | `pull [repo…]` · `clone` | fast-forward every repo · fetch the ones you're missing |
-| `release <repo> [version] [--ship]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump. The date *is* the version, except for scruff, which takes semver because five SDK registries share the number |
+| `release <repo> [version] [--ship]` | stamp the version, tag it, then **watch CI to the end** — release + tap bump, and for scruff the tap's own gate after it, so a formula that did not land is said here rather than found in a stale `brew install`. The date *is* the version, except for scruff, which takes semver because five SDK registries share the number |
 | `overlap [args…]` | `scruff overlap`, from this checkout — what the OTHER agent lanes have already changed, and where their edits and yours share a region. The verb lives in scruff; this spelling only forwards |
 | `docs-since [--mark [--pending <repo>…] \| --landed [<repo>…]]` | every commit since the docs were last reconciled, plus what a repo has read but not landed — the input to the scheduled docs sweep |
 

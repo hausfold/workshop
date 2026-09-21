@@ -266,7 +266,7 @@ argument for these three, to make that unarguable.
 ./bench release scruff 0.2.0  # SEMVER, and required: five SDKs (npm, PyPI,
                             # crates.io, SwiftPM, the Go proxy) share one number
                             # — and CI offers the homebrew formula to the tap's
-                            # gate, which lands it minutes after this goes green
+                            # gate, which bench watches next: live, or red
 ```
 
 scruff is forced into semver, not styled into it: three registries already hold
@@ -291,6 +291,17 @@ exits non-zero if the run goes red. That wait is load-bearing: perch's run
 commits `nix/release.nix` back to the repo, so returning early would leave your
 checkout behind origin and a `bench ship` that ripples a superseded rev. It
 fast-forwards for you when the run goes green.
+
+For scruff it then watches a second run: the tap's `check` on
+`bump/scruff-v<version>`, which builds, installs and promotes the formula. That
+watch comes after the `--ship` ripple, which never needed the formula, and is
+bounded at 15 minutes. It ends on one of four lines — the formula is live, the
+gate went red, it never ran, or it is still running — with a warning and a
+banner for the last three. None of them fails the command: the release is on
+five registries by then, and a red gate is the tap keeping users on the previous
+formula, which installs. A red one is fixed in the tap, as its `AGENTS.md` says:
+fix the formula, re-run the failed jobs on that check run, never push it to
+`main`.
 
 The haus one matters more than it looks: the install one-liner serves the
 **latest haus release**, so until you cut one, new users bootstrap from the
@@ -406,4 +417,5 @@ hack ──► test ──► assure ──► PR ──► batch-test ──►
    release + Homebrew formula; haus: the tag `hausfold.co/hacker.sh` serves to
    new installs; scruff: five SDK registries, plus a Homebrew formula the tap
    builds and installs on its own gate before putting it in front of anyone —
-   the one artifact a green release does not prove). Always the user's call.
+   the one artifact a green release does not prove, so `bench release scruff`
+   watches that gate too and ends on live or red). Always the user's call.

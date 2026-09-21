@@ -45,9 +45,10 @@
 #                  them prints as a ⚠ instead of looking like a quiet repo.
 #   bench release <repo> [version] [--ship]   stamp the version and tag it,
 #                  then WATCH the CI run to the end — GitHub release + Homebrew
-#                  tap bump (scruff also publishes five SDKs, and its tap bump
-#                  finishes on the tap's own gate, minutes after this run).
-#                  --ship ripples the new lock edge downstream afterwards.
+#                  tap bump (scruff also publishes five SDKs, and its formula
+#                  lands on the tap's own gate, which is watched next and
+#                  ends on live or red). --ship ripples the new lock edge
+#                  downstream before that second watch.
 #                  The version is today's date (YYYY.MM.DD, -N on a same-day
 #                  repeat) and typed by nobody — EXCEPT for scruff, which is
 #                  semver because it publishes libraries to registries that
@@ -2753,16 +2754,20 @@ next_version() { # next_version <repo> — today's date, with -N if today's alre
 # prove.** Its formula compiles, so the tap gates it: `bump-tap` pushes the
 # rewrite to a `bump/scruff-v<version>` branch and goes green, and the tap's own
 # `check` run builds and installs the formula there and fast-forwards its main
-# only on green. That run is not part of this one and is not watched. So a green
-# `bench release scruff` means published everywhere EXCEPT possibly the tap,
-# which lands a few minutes later or, if the formula stopped building, not at
-# all — deliberately, because users are then left on the previous release, which
-# still installs. `brew install hausfold/tap/scruff` still fetching the old tag
-# an hour on is a red run at hausfold/homebrew-tap, never a half-published
-# release here.
+# only on green — or, if the formula stopped building, leaves it on the previous
+# release, which still installs. That run is not part of this one, so
+# cmd_release watches it SECOND, through the same loop (tap_gate_watch, below),
+# after any ripple `--ship` asked for: the nix side never needed the formula,
+# and a slow or red gate must not hold a lock bump. It ends on the real answer —
+# live, red, never ran, or still running past TAP_GATE_WAIT_S — on the screen
+# the person is already reading, instead of in a `brew install` a release behind
+# an hour later.
 
 WATCH_FRAME_S=0.1         # one spinner frame — 10 fps, so a 10-glyph cycle = 1s
 WATCH_POLL_S=5            # seconds between `gh run view` calls (see below)
+WATCH_APPEAR_TRIES=20     # `gh run list` polls before giving up on a run that never appears…
+WATCH_APPEAR_S=2          # …and the seconds between them: 40s, for a push that shows in ~5
+TAP_GATE_WAIT_S=900       # tap_gate_watch's bound: ~2 min of brew on a macOS runner, plus its queue
 
 # Frame rate and poll rate are DELIBERATELY unrelated. The naive loop couples
 # them — fetch, paint, sleep — and that costs you twice: the spinner freezes for
@@ -2934,21 +2939,30 @@ watch_cleanup() {
   return 0                                  # never let the last test trip set -e
 }
 
-release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
-  # A tag push takes a few seconds to materialise as a run, and gh keys tag runs
-  # by --branch (head_branch is the tag name for a tag push).
-  local repo="$1" tag="$2" id _
-  for _ in $(seq 1 20); do
-    id="$(gh run list --repo "$(gh_repo "$repo")" --workflow release --branch "$tag" \
+run_id_on() { # run_id_on <repo> <workflow> <branch> — the newest run of <workflow> on <branch>, waiting for it to appear
+  # A push takes a few seconds to materialise as a run, and gh keys runs by
+  # --branch, which is the run's head_branch: the tag name for a tag push, the
+  # branch for a branch push. It stays on the run after the branch is gone —
+  # how the tap's bump branch, promoted and deleted a minute ago, is still found.
+  local repo="$1" workflow="$2" branch="$3" id _
+  for _ in $(seq 1 "$WATCH_APPEAR_TRIES"); do
+    id="$(gh run list --repo "$(gh_repo "$repo")" --workflow "$workflow" --branch "$branch" \
             --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
     [ -n "$id" ] && [ "$id" != "null" ] && { echo "$id"; return 0; }
-    sleep 2
+    sleep "$WATCH_APPEAR_S"
   done
   return 1
 }
 
-watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends; 0 iff green
-  local repo="$1" id="$2" now polled=0
+release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
+  run_id_on "$1" release "$2"
+}
+
+watch_release_run() { # watch_release_run <repo> <run-id> [max-s] — block till it ends; 0 iff green
+  # A bound (0 = none) stops the watch with WATCH_RUN_STATUS still short of
+  # "completed" — which is how a caller tells "still running" from "red".
+  local repo="$1" id="$2" deadline="${3:-0}" now polled=0 started
+  started="${EPOCHSECONDS:-$(date +%s)}"
   # Live redraw only when stderr is a terminal — piped, in CI, or under bats
   # watch_paint degrades to one plain line per state CHANGE, so a log stays
   # readable and no cursor escape ever reaches a file. (Motion, unlike colour,
@@ -2988,6 +3002,7 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
     watch_paint || true
 
     [ "$WATCH_RUN_STATUS" = "completed" ] && break
+    if [ "$deadline" -gt 0 ] && [ $((now - started)) -ge "$deadline" ]; then break; fi
 
     if [ -n "$live" ]; then
       sleep "$WATCH_FRAME_S"               # keep the spinner turning between polls
@@ -3013,6 +3028,87 @@ watch_release_run() { # watch_release_run <repo> <run-id> — block till it ends
   [ "$WATCH_RUN_CONCL" = "success" ]
 }
 
+# ── the tap's gate, after scruff's run ────────────────────────────────────────
+# Green above means published everywhere except possibly Homebrew: scruff's
+# `bump-tap` job pushed the formula to `bump/scruff-v<version>` and stopped,
+# and the tap's own `check` run is what builds it, installs it and promotes it
+# to main. That run was the one thing a person still had to go and find. This
+# watches it with the same loop, and turns "in a few minutes, probably" into
+# one of four lines: live, red, never ran, still running.
+#
+# It never fails the command. The release IS on five registries by now, and a
+# red gate is the tap doing its job — users stay on the previous formula, which
+# installs — so it is said (a warn, and a `fault` banner for whoever walked
+# away) rather than exited on, and it runs AFTER `--ship`'s ripple, which the
+# nix side never needed to wait for.
+#
+# pounce and perch never come here: their bumps push straight to the tap's
+# main and are live when their own run is (the tap's check.yml says why).
+
+tap_gate_watch() { # tap_gate_watch <name> <tag> <release-run-id> — block on the tap's check run for bump/<name>-<tag>; 0 always
+  local name="$1" tag="$2" runid="$3" branch="bump/$1-$2" tap="homebrew-tap" id=""
+  say "$name $tag's formula is on the tap's gate — waiting for it to build and install (about two minutes, plus the runner's queue)…"
+  id="$(run_id_on "$tap" check "$branch" || true)"
+  if [ -z "$id" ]; then
+    printf '\n' >&2
+    # No run in WATCH_APPEAR_TRIES × WATCH_APPEAR_S. Two different days: the
+    # branch is there and the gate never fired on it (a trigger that stopped
+    # matching check.yml's `bump/**`), or bump-tap pushed nothing at all, which
+    # its own log explains — formula already current, or not bootstrapped into
+    # the tap yet. Either way brew serves the previous release; the difference
+    # is which repo to open.
+    if gh api "repos/$(gh_repo "$tap")/branches/$branch" >/dev/null 2>&1; then
+      # Not `gh workflow run check --ref …`: promote is gated on a PUSH event
+      # (check.yml), so a dispatched run builds the formula, skips the landing
+      # and goes green. The push that lands it is bump-tap's own, re-run — a
+      # fresh commit, so a new SHA and a real event on the branch.
+      local job
+      job="$(gh run view "$runid" --repo "$(gh_repo "$name")" --json jobs \
+               --jq '[.jobs[] | select(.name | startswith("bump ")) | .databaseId] | first' 2>/dev/null || true)"
+      warn "$branch is on the tap but its check never ran — brew install still serves the previous release."
+      if [ -n "$job" ] && [ "$job" != "null" ]; then
+        hint "push it again: gh run rerun --repo $(gh_repo "$name") --job $job   (bump-tap, a fresh commit on the branch)"
+      else
+        hint "push it again: re-run the bump job of gh run view $runid --repo $(gh_repo "$name")"
+      fi
+    else
+      warn "$name's bump-tap pushed nothing to the tap — brew install still serves the previous release."
+      hint "its log says why: gh run view $runid --repo $(gh_repo "$name") --log | grep -F 'bump hausfold/homebrew-tap'"
+    fi
+    BENCH_NOTIFY_SOURCE=release notify "fault" "$name $tag's formula did not land" \
+      "The tap's gate never ran. brew install still serves the previous release."
+    return 0
+  fi
+
+  printf '\n%s   %s %s%s\n\n' "$C_MUT" "$tap" "$branch" "$C_OFF" >&2
+  # A second live region is a second coprocess: one fork per REGION. What
+  # snug_close's "stays dead" protects is a fork per FRAME, and the first
+  # region closed on purpose — `--ship`'s tables printed between the two, from
+  # bench's own process, in bench's own order.
+  SNUG_TRIED=""
+  if watch_release_run "$tap" "$id" "$TAP_GATE_WAIT_S"; then
+    printf '\n' >&2
+    say "$name ${tag#v}'s formula is on the tap — brew install hausfold/tap/$name serves it now."
+    return 0
+  fi
+  printf '\n' >&2
+  if [ "$WATCH_RUN_STATUS" != "completed" ]; then
+    warn "the tap's gate is still running after $((TAP_GATE_WAIT_S / 60)) min — not watching it further; green promotes the formula by itself."
+    hint "gh run watch $id --repo $(gh_repo "$tap")"
+    BENCH_NOTIFY_SOURCE=release notify "note" "$name $tag's formula is still on the tap's gate" \
+      "Its check is still running after $((TAP_GATE_WAIT_S / 60)) min. Green promotes it by itself."
+    return 0
+  fi
+  # `failure` is the ordinary red; `cancelled`, `timed_out` and the rest are
+  # rarer and worth their own word on screen.
+  local how; case "$WATCH_RUN_CONCL" in failure|"") how=red ;; *) how="$WATCH_RUN_CONCL" ;; esac
+  warn "the tap's gate went $how — brew install hausfold/tap/$name still serves the previous release."
+  hint "gh run view $id --repo $(gh_repo "$tap") --log-failed   (fix the formula, then re-run failed jobs on that run — never push it to main)"
+  BENCH_NOTIFY_SOURCE=release notify "fault" "$name $tag's formula did not land" \
+    "The tap's gate went $how. brew install still serves the previous release."
+  return 0
+}
+
 cmd_release() {
   # Cut a release: stamp today's date as the version, commit it into the repo's
   # own version source (so the tag can't drift from what the code says — CI
@@ -3025,7 +3121,9 @@ cmd_release() {
   # formula bumps are CI's.
   #
   # Then it BLOCKS on that CI run (see the watch section above) instead of
-  # leaving you with a URL and a checkout that's about to fall behind.
+  # leaving you with a URL and a checkout that's about to fall behind — and,
+  # for scruff, on the tap's gate after it (tap_gate_watch), so the formula's
+  # landing is said here rather than found in a stale `brew install` later.
   #
   # scruff is the one repo that takes a version ARGUMENT rather than a date — see
   # version_scheme() for why it has to. There the number is a judgement about
@@ -3125,9 +3223,9 @@ cmd_release() {
     return 0
   fi
 
-  printf '\n%s   %s %s%s\n\n' "$C_MUT" "$name" "$tag" "$C_OFF"
+  printf '\n%s   %s %s%s\n\n' "$C_MUT" "$name" "$tag" "$C_OFF" >&2
   if ! watch_release_run "$name" "$runid"; then
-    printf '\n'
+    printf '\n' >&2
     # Before `die`, not after: `set -e` and the exit inside `die` mean anything
     # below this line never runs, and a failed release is the single most
     # worth-interrupting thing this script produces.
@@ -3135,35 +3233,39 @@ cmd_release() {
       "The CI run went red. Nothing is live."
     die "release run failed — gh run view $runid --repo $(gh_repo "$name") --log-failed"
   fi
-  printf '\n'
+  printf '\n' >&2
 
   # perch, pounce and trill each have CI commit nix/release.nix back to the repo,
   # so origin moved while we watched. Fast-forward before anything reads this HEAD.
   git -C "$dir" pull -q --ff-only 2>/dev/null || true
 
-  # scruff's formula is the one artifact this run does not land. `bump-tap`
-  # pushes it to a branch and the tap's own gate promotes it, minutes later and
-  # out of sight of this watch — so "live" would be a claim about something
-  # that has not happened yet, on the one screen someone reads at the moment
-  # they are deciding whether to go and check.
-  local tap_caveat=""
-  case "$name" in
-    scruff) tap_caveat=" (the Homebrew formula lands on the tap's own gate, in a few minutes)" ;;
-  esac
+  # scruff's formula is the one artifact this run does not land: `bump-tap`
+  # pushed it to a branch, and the tap's own gate promotes it. That gate is
+  # watched below, AFTER the ripple — a slow or red one never holds a lock bump
+  # the nix side did not need to wait for — and "live" here is the registries.
+  local tap=""
+  case "$name" in scruff) tap=1 ;; esac
 
-  say "$name $version is live$tap_caveat — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
+  say "$name $version is live — https://github.com/$(gh_repo "$name")/releases/tag/$tag"
   BENCH_NOTIFY_SOURCE=release notify "done" "$name $version is live" \
-    "Published by CI.${tap_caveat:+ Formula pending on the tap gate.} ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
-  if [ -n "$tap_caveat" ]; then
-    hint "the formula: gh run list --repo hausfold/homebrew-tap --workflow check -L 3"
-  fi
+    "Published by CI.${tap:+ Formula on the tap gate — watching it next.} ${ship:+Rippling its lock downstream now.}${ship:-Its lock edge downstream is now stale.}"
+  # The ripple runs in a subshell so its `die` — a stale edge past its retries,
+  # a diverged checkout — is still the exit status but no longer the last word:
+  # the gate below is said either way, on the screen that would otherwise have
+  # ended on a ship error with the formula's fate unknown.
+  local ship_rc=0
   if [ -n "$ship" ]; then
-    printf '\n'
-    cmd_ship
+    printf '\n' >&2
+    ( cmd_ship ) || ship_rc=$?
   else
     warn "the version stamp moved $name's HEAD — its lock edge downstream is now stale."
     hint "ripple it: bench ship   (or cut the next one with: bench release $name${askver:+ <version>} --ship)"
   fi
+  if [ -n "$tap" ]; then
+    printf '\n' >&2
+    tap_gate_watch "$name" "$tag" "$runid"
+  fi
+  [ "$ship_rc" -eq 0 ] || exit "$ship_rc"
 }
 
 # ── docs-since ────────────────────────────────────────────────────────────────
@@ -3551,6 +3653,6 @@ case "${1:-status}" in
   docs-since) cmd_docs_since "${@:2}" ;;
   overlap) shift; cmd_overlap "$@" ;;
   release) shift; cmd_release "$@" ;;
-  *)       sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,55p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi
