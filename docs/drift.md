@@ -337,3 +337,25 @@ about why. Row 18 shares the skeleton but goes wrong later, when a fix narrows
 a limit; this was wrong when written. Row 26's catch is the closest — diff at a
 second dimension — except that there the instrument is narrower than the claim,
 and here the measurement is sound and the explanation is confounded.
+
+**A REMEDY that works in the direction anybody would TEST it and fails in the
+direction anybody would NEED it.** `haus capture` snapshots a preference domain
+and `haus revert-settings` restores it, and the README, the installer, the
+command's own closing line and five pages of the site all promise it puts your
+settings back. It restores through `defaults import`, which merges rather than
+replaces, so it can return a key the snapshot HAS and cannot remove one added
+since. Measured on a guest running haus `ef6e808d`: `com.apple.dock tilesize`
+captured at 48 and changed to 67 comes back to 48, and the same key absent at
+capture and written to 67 is still 67 after `✓ com.apple.dock restored` prints.
+Anyone checking the verb reaches for a setting they had already chosen, which is
+the working half; the half that fails is the settings a rebuild ADDS, and on a
+Mac that had no opinion about a domain that is most of them. Thirteen sentences
+across two repos carried the unqualified promise when this was measured, one of
+them the phrase the source comment used of itself, "byte for byte". **Caught
+by** asking of a restore not "does it put my value back" but "what does it do
+about a key that was NOT THERE when I captured" — the empty cell in the
+before-state, which a fixture written from the happy path never has. Row 27 is
+the near neighbour and not the same: row 27's remedy produces nothing at all and
+is falsified inside the same rev by the same repo, where this one half works,
+passes the obvious test, and nothing in the repo had ever contradicted it. The
+tell is a remedy whose verification and whose purpose do not take the same input.
