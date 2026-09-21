@@ -13,7 +13,7 @@ by not paying twice for the same one.
 
 | repo | workflow | where it runs | what it can only prove there |
 | --- | --- | --- | --- |
-| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, and every flake check but one — raising a darwin machine needs no Mac, only building one does, so the single check that reads a BUILT `activate` script is the whole of what `nix flake check` on a Mac still has that CI does not. That is the family's one gate whose pole is evaluation rather than build or compile: 186s of `nix flake check`'s 193s, which no store cache reaches. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, `haus add` alone), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
+| `haus` | `check` | ubuntu ×7 | evaluating a whole darwin system, and every flake check but one — raising a darwin machine needs no Mac, only building one does, so the single check that reads a BUILT `activate` script is the whole of what `nix flake check` on a Mac still has that CI does not. That is the family's one gate whose pole is evaluation rather than build or compile: 186s of `nix flake check`'s 193s, which no store cache reaches. Seven jobs, both halves grouped by what a step needs: the nix half is three (`nix eval` with the two bash suites that read what it builds, `nix flake check` alone, and the two suites that drive a real consumer flake through a real nix — `haus add` and `haus set`), the shell half four (the lint, the suites that read snug's painter, the agent surface, every other room) |
 | `pounce` | `build` | macOS ×2, ubuntu ×2 | the app is built by `xcrun swiftc` through Nix, so it wants a real Mac; the skill guards and the command lint do not |
 | `perch` | `build` | macOS ×3, ubuntu | Xcode test + analyze on one Mac, Release plus the arm64 slice guard on another — cut at the `-derivedDataPath` the steps already divided on — and the iOS companion on a third; the skill guards are the one job off the Mac |
 | `trill` | `build` | macOS ×2 | Xcode test + analyze on one Mac, Release plus the no-instrumentation guard on another — cut at the `-derivedDataPath` the steps already divided on, the same boundary as perch's |
@@ -235,6 +235,15 @@ was cut in two and both shapes then measured against each other. scruff is the
 third answer and it is neither yes nor no: no boundary, no split, and the pole
 halved anyway — `script/probes/README.md`'s *scruff's pole, and the split that
 was not there* carries that one.
+
+**And it cuts the other way for a STEP, where the fixed cost reads as a floor
+and is not one.** haus's nix half had its own version of the rule — a new step
+is measured against the ~35s cache restore standing in front of it, and above
+that it earns a job. `test/haus-settings.sh` came in at 66s, twice that bar,
+and joined an existing job anyway: the gate's pole there is `nix flake check`
+at 243s, so a fourth job could not have taken a second off it. A fixed cost
+says what a job is worth paying for, never what a step is worth moving. The
+gap to the pole says both.
 
 **A pole with no boundary is not the same as a pole you have to keep.** Rule 5
 answers one question — does this job divide — and a no there reads too easily as
