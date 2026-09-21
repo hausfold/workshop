@@ -1,54 +1,54 @@
 {
   "repos": {
     "workshop": {
-      "read": "de8d1791e868c4fc2c0ebbb44a3b73a1873c28eb",
-      "landed": "0a1d7378e1a272d57292f284b729aea79cff78c9",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read": "dab3b180c4f603799d400c7207c3442670e1aa4a",
+      "landed": "dab3b180c4f603799d400c7207c3442670e1aa4a",
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "nebelung": {
-      "read": "6e729169de1bdf621d3bd4ce075f9dc5cf48fe1e",
-      "landed": "6e729169de1bdf621d3bd4ce075f9dc5cf48fe1e",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read": "5846143f26fc7de6de31e490795af7fdf0259d74",
+      "landed": "5846143f26fc7de6de31e490795af7fdf0259d74",
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "pounce": {
-      "read": "ecfc6d807c64810ea383adf9917009b550a1c541",
-      "landed": "30b5a8abeff383434ca8a9d0bdd15cf878b52e32",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read": "074b2a3529acc272c488d7fc0ec0ce000de64e7c",
+      "landed": "074b2a3529acc272c488d7fc0ec0ce000de64e7c",
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "haus": {
-      "read": "84659d7e61e205bbfbbd724de7a0f716500d46bc",
+      "read": "893bb427c0e8fcb114a0816d392c10ffa831c856",
       "landed": "84659d7e61e205bbfbbd724de7a0f716500d46bc",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "org-profile": {
       "read": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
       "landed": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "homebrew-tap": {
-      "read": "d6a9eed1597f4ef82441beac6a05851b337b3f5c",
-      "landed": "de4aabfd20b974e34ddb936566be4268e19414e0",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read": "29fe018d03ea6753394ab528eb5b4b429dc95ad4",
+      "landed": "29fe018d03ea6753394ab528eb5b4b429dc95ad4",
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "perch": {
       "read": "caf45bf3394eba0fd2b9b3bc35958a86ec98fb4e",
       "landed": "caf45bf3394eba0fd2b9b3bc35958a86ec98fb4e",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "scruff": {
-      "read": "027c7a4294dfe475dbe27c7474bf28a0e06377d8",
-      "landed": "027c7a4294dfe475dbe27c7474bf28a0e06377d8",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read": "5b891d0278ae6314fa68ad6f0373ffdd7b551c99",
+      "landed": "5b891d0278ae6314fa68ad6f0373ffdd7b551c99",
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "trill": {
-      "read": "ca47db40e24bc2080341eae663fc8089da09bfc5",
-      "landed": "ca47db40e24bc2080341eae663fc8089da09bfc5",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read": "ba7b01378b8d26a2c85e838e14a708860b8bfea3",
+      "landed": "ba7b01378b8d26a2c85e838e14a708860b8bfea3",
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "hausfold.co": {
-      "read": "79cdff086edd6ec167396ef360687342d51902c7",
+      "read": "bf7302400b7ac25538cd2d9437ba98d4b884cafb",
       "landed": "4172ad20e8ce45f20a92df5a30febba11ff52025",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "ops": {
       "read": "d4f1f2c051490662a0956da9d5d3774619aca121",
@@ -58,15 +58,15 @@
     "snug": {
       "read": "1fb427d011028a68e92243d1752473fb65e75e1c",
       "landed": "",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read_at": "2026-09-21T21:16:19+00:00"
     },
     "factory": {
       "read": "84a822d9e3741c2aadba916c2d439ff4f4c79c8e",
       "landed": "84a822d9e3741c2aadba916c2d439ff4f4c79c8e",
-      "read_at": "2026-09-20T21:15:46+00:00"
+      "read_at": "2026-09-21T21:16:19+00:00"
     }
   },
-  "last_run": "2026-09-20T21:15:46+00:00",
+  "last_run": "2026-09-21T21:16:19+00:00",
   "comments": {
     "done": [
       "haus/flake.nix",
@@ -80,7 +80,8 @@
       "haus/modules/core/default.nix",
       "workshop/bench",
       "haus/modules/bar/sketchybar/barlib.sh",
-      "trill/Trill/Compositor/BannerQueue.swift"
+      "trill/Trill/Compositor/BannerQueue.swift",
+      "haus/modules/launcher/default.nix"
     ]
   }
 }
