@@ -16,6 +16,7 @@ swift script/probes/displays.swift                  # displays, persistent UUIDs
 ./script/probes/sound-sweep.sh                      # alert volume, beep sound, startup chime
 ./script/probes/locale-sweep.sh                     # region keys, input sources
 ./script/probes/power-sweep.sh                      # sleep/pmset (section C needs root)
+./script/probes/inert-keys.sh                       # com.apple.Accessibility, AppleInterfaceStyle (VM only)
 ```
 
 `accessibility-effective.swift` reports what macOS *actually* honours, not what
@@ -110,6 +111,31 @@ It separates keys with an `NSWorkspace` oracle (definitive: writes *and* takes
 effect) from keys with none (persistence only — it pauses ~10s so you can look).
 That split is deliberate: "the write succeeded" was never sufficient evidence
 here, since `com.apple.Accessibility` writes succeed and change nothing.
+
+## `inert-keys.sh`
+
+The two "writes and lies" rows that had no probe: `com.apple.Accessibility`
+(section A) and a `defaults` write of `AppleInterfaceStyle` (B). Section C
+flips dark mode through System Events as the control, because a "nothing moved"
+only counts once the oracle has been seen to move. C repaints the desktop, so
+run the whole thing in a tart VM, never on the Mac someone is using.
+
+## Last full re-run: macOS 27.0 (26A428), 2026-09-23
+
+Every sweep ran in two tart guests side by side, a 26.6.2 control and a 27.0
+guest, and the outputs matched line for line apart from the base image's own
+defaults (27's guest starts on `ABC` with a long language list). The read-only
+probes ran on a 27.0 host and agreed with the doc. Three rows a VM cannot
+answer, so they still stand on 26 evidence:
+
+- **The FDA refusal.** cirruslabs guests run with SIP off, so TCC doesn't gate
+  Full Disk Access: a launchd agent with no grant read `TCC.db` and wrote
+  `com.apple.universalaccess` without complaint.
+- **The by-eye rows.** The private `CGSGetCursorScale` read 1.0 after a
+  `mouseDriverCursorSize = 3.0` write and a `universalaccessd` restart on the
+  26 control too, so it is no oracle in a headless guest.
+- **Power's battery/AC split.** No battery in a guest; `pmset -c` didn't land
+  there on either version.
 
 ## `sound-sweep.sh` · `locale-sweep.sh` · `power-sweep.sh` — §5.6's last three groups
 
