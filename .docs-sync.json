@@ -1,54 +1,54 @@
 {
   "repos": {
     "workshop": {
-      "read": "81de7e1c41fb54d090947e0521465c0890aab48f",
-      "landed": "81de7e1c41fb54d090947e0521465c0890aab48f",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read": "add72fd05e4c861ee9e646908517270c9d67e52c",
+      "landed": "add72fd05e4c861ee9e646908517270c9d67e52c",
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "nebelung": {
       "read": "5846143f26fc7de6de31e490795af7fdf0259d74",
       "landed": "5846143f26fc7de6de31e490795af7fdf0259d74",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "pounce": {
-      "read": "074b2a3529acc272c488d7fc0ec0ce000de64e7c",
-      "landed": "074b2a3529acc272c488d7fc0ec0ce000de64e7c",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read": "ee93fbd3b45023822440c5050e2a4cec1c3441c3",
+      "landed": "ee93fbd3b45023822440c5050e2a4cec1c3441c3",
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "haus": {
-      "read": "5ea6de5bb9663710d6ed9ff745381852bb5cbce9",
+      "read": "840fa9bc948ca296420b7ecb0fdc26a1935e8789",
       "landed": "5ea6de5bb9663710d6ed9ff745381852bb5cbce9",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "org-profile": {
       "read": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
       "landed": "aa9d3fc13b242f63dfe120c70c1e3499464b72b0",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "homebrew-tap": {
-      "read": "29fe018d03ea6753394ab528eb5b4b429dc95ad4",
-      "landed": "29fe018d03ea6753394ab528eb5b4b429dc95ad4",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read": "8a349a19554416fbeea4a5ad334650476deb1844",
+      "landed": "8a349a19554416fbeea4a5ad334650476deb1844",
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "perch": {
       "read": "caf45bf3394eba0fd2b9b3bc35958a86ec98fb4e",
       "landed": "caf45bf3394eba0fd2b9b3bc35958a86ec98fb4e",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "scruff": {
       "read": "5b891d0278ae6314fa68ad6f0373ffdd7b551c99",
       "landed": "5b891d0278ae6314fa68ad6f0373ffdd7b551c99",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "trill": {
-      "read": "ba7b01378b8d26a2c85e838e14a708860b8bfea3",
+      "read": "1acac32f3be97982089f2f18031c1cd6cd21b68a",
       "landed": "ba7b01378b8d26a2c85e838e14a708860b8bfea3",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "hausfold.co": {
-      "read": "287aa8bf9a104a33e1f0d3ba8c64bf0e16935abf",
-      "landed": "287aa8bf9a104a33e1f0d3ba8c64bf0e16935abf",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read": "c995a2f9817979f553bc462d5671c0ca44f8340c",
+      "landed": "c995a2f9817979f553bc462d5671c0ca44f8340c",
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "ops": {
       "read": "d4f1f2c051490662a0956da9d5d3774619aca121",
@@ -58,15 +58,15 @@
     "snug": {
       "read": "1fb427d011028a68e92243d1752473fb65e75e1c",
       "landed": "",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     },
     "factory": {
       "read": "84a822d9e3741c2aadba916c2d439ff4f4c79c8e",
       "landed": "84a822d9e3741c2aadba916c2d439ff4f4c79c8e",
-      "read_at": "2026-09-22T21:18:50+00:00"
+      "read_at": "2026-09-23T21:22:11+00:00"
     }
   },
-  "last_run": "2026-09-22T21:18:50+00:00",
+  "last_run": "2026-09-23T21:22:11+00:00",
   "comments": {
     "done": [
       "haus/flake.nix",
@@ -82,7 +82,8 @@
       "haus/modules/bar/sketchybar/barlib.sh",
       "trill/Trill/Compositor/BannerQueue.swift",
       "haus/modules/launcher/default.nix",
-      "trill/Trill/UI/OnboardingAssistantPanel.swift"
+      "trill/Trill/UI/OnboardingAssistantPanel.swift",
+      "haus/modules/terminal/lanes/lane-open.sh"
     ]
   }
 }
