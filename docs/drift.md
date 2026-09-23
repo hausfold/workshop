@@ -360,3 +360,31 @@ the near neighbour and not the same: row 27's remedy produces nothing at all and
 is falsified inside the same rev by the same repo, where this one half works,
 passes the obvious test, and nothing in the repo had ever contradicted it. The
 tell is a remedy whose verification and whose purpose do not take the same input.
+
+**A DRIFT REMEDY that lands in the suite and not in the document, so the copy a
+reader reaches first is the one nothing holds.** haus's hand census of which
+checks CI covers was deleted for the right reason — its own comment says it had
+been found wrong at least seven separate times — and replaced by a check that
+derives the answer, subtracting one platform's `attrNames` from the other's and
+diffing that against a fixture beside itself. The check is sound and cannot go
+stale. But on haus `893bb427` the same exemption was still stated in words in
+five other places, four of them in the workflow file a person opens to find out
+what CI runs, and the suite had been told about none of them; a comment beside
+an unrelated check in the same flake then rotted pointing at "the census", which
+by then named neither the list nor the check. Green said nothing about any of
+it, correctly — nothing had asked it to. **Caught by** asking, of every written
+copy of a fact a new check now derives, which copy a READER reaches first, and
+whether the check was pointed at that one or only at the fixture it shipped
+beside — then by counting the copies before calling any one of them the record,
+because the count is the finding: a remedy that holds one prose copy leaves the
+rest exactly as unheld as they were, and reads in its own commit like the whole
+job. Row 20 is the nearest and not the same, and the difference is worth
+stating: row 20's check compares a snapshot of the very data the prose
+describes, so re-blessing it puts green back over a live falsehood, where this
+check derives its fact from the population and is right every time it runs —
+what fails here is jurisdiction, not freshness. Row 33 is the other neighbour:
+there the census IS a hand list and the remedy is the check that walks the
+population; here that remedy had already landed, and what drifted is the prose
+it was supposed to have retired. The tell is a remedy commit that deletes a
+record and adds an assertion without either one passing through the file the
+record used to be for.
