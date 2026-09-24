@@ -125,12 +125,17 @@ run the whole thing in a tart VM, never on the Mac someone is using.
 Every sweep ran in two tart guests side by side, a 26.6.2 control and a 27.0
 guest, and the outputs matched line for line apart from the base image's own
 defaults (27's guest starts on `ABC` with a long language list). The read-only
-probes ran on a 27.0 host and agreed with the doc. Three rows a VM cannot
-answer, so they still stand on 26 evidence:
+probes ran on a 27.0 host and agreed with the doc.
 
-- **The FDA refusal.** cirruslabs guests run with SIP off, so TCC doesn't gate
-  Full Disk Access: a launchd agent with no grant read `TCC.db` and wrote
-  `com.apple.universalaccess` without complaint.
+The FDA refusal needs the host too: cirruslabs guests run with SIP off, so TCC
+doesn't gate Full Disk Access there (a launchd agent with no grant read
+`TCC.db` and wrote `com.apple.universalaccess` without complaint). On the 27.0
+host, a throwaway launchd agent with no grant wrote an unprotected domain fine
+and got `Could not write domain com.apple.universalaccess; exiting`, exit 1,
+for a junk key. Unchanged.
+
+Two rows a VM cannot answer, so they still stand on 26 evidence:
+
 - **The by-eye rows.** The private `CGSGetCursorScale` read 1.0 after a
   `mouseDriverCursorSize = 3.0` write and a `universalaccessd` restart on the
   26 control too, so it is no oracle in a headless guest.
