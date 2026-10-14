@@ -1744,6 +1744,7 @@ EOF
   run release_run_id perch v2026.10.14-1
   [ "$status" -eq 0 ]
   [ "$output" = 101 ]
+  grep -q -- '--limit 20 ' "$TMP/gh.log"
 }
 
 @test "run_id_on still watches the newest run by default" {

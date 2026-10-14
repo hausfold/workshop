@@ -2957,9 +2957,10 @@ run_id_on() { # run_id_on <repo> <workflow> <branch> [oldest] — the newest (or
 
 release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
   # The OLDEST, not the newest: GitHub can deliver one tag push as two `push`
-  # events, and the twin is the run that finds the release already there. The
-  # release workflows queue the twin and skip it green, so the first run is
-  # the one doing the work and the one whose verdict means anything.
+  # events, and the twin is the run that finds the release already there.
+  # perch, pounce, trill and haus queue the twin and skip it green; scruff
+  # queues it and its idempotent jobs no-op. Either way the first run is the
+  # one doing the work and the one whose verdict means anything.
   run_id_on "$1" release "$2" oldest
 }
 
