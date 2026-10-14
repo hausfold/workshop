@@ -2939,15 +2939,16 @@ watch_cleanup() {
   return 0                                  # never let the last test trip set -e
 }
 
-run_id_on() { # run_id_on <repo> <workflow> <branch> — the newest run of <workflow> on <branch>, waiting for it to appear
+run_id_on() { # run_id_on <repo> <workflow> <branch> [oldest] — the newest (or oldest) run of <workflow> on <branch>, waiting for it to appear
   # A push takes a few seconds to materialise as a run, and gh keys runs by
   # --branch, which is the run's head_branch: the tag name for a tag push, the
   # branch for a branch push. It stays on the run after the branch is gone —
   # how the tap's bump branch, promoted and deleted a minute ago, is still found.
-  local repo="$1" workflow="$2" branch="$3" id _
+  local repo="$1" workflow="$2" branch="$3" limit=1 pick=1p id _
+  [ "${4:-}" = oldest ] && { limit=20; pick=\$p; }
   for _ in $(seq 1 "$WATCH_APPEAR_TRIES"); do
     id="$(gh run list --repo "$(gh_repo "$repo")" --workflow "$workflow" --branch "$branch" \
-            --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
+            --limit "$limit" --json databaseId --jq '.[].databaseId' 2>/dev/null | sed -n "$pick" || true)"
     [ -n "$id" ] && [ "$id" != "null" ] && { echo "$id"; return 0; }
     sleep "$WATCH_APPEAR_S"
   done
@@ -2955,7 +2956,12 @@ run_id_on() { # run_id_on <repo> <workflow> <branch> — the newest run of <work
 }
 
 release_run_id() { # release_run_id <repo> <tag> — the run for that tag, waiting for it to appear
-  run_id_on "$1" release "$2"
+  # The OLDEST, not the newest: GitHub can deliver one tag push as two `push`
+  # events, and the twin is the run that finds the release already there.
+  # perch, pounce, trill and haus queue the twin and skip it green; scruff
+  # queues it and its idempotent jobs no-op. Either way the first run is the
+  # one doing the work and the one whose verdict means anything.
+  run_id_on "$1" release "$2" oldest
 }
 
 watch_release_run() { # watch_release_run <repo> <run-id> [max-s] — block till it ends; 0 iff green

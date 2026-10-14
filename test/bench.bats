@@ -1738,6 +1738,24 @@ EOF
   grep -q -- 'run list --repo hausfold/pounce --workflow release --branch v2026.09.20' "$TMP/gh.log"
 }
 
+@test "release_run_id watches the first run when one tag push started two" {
+  mkgh
+  printf '%s\n' 202 101 >"$TMP/gh-list"   # gh lists newest first
+  run release_run_id perch v2026.10.14-1
+  [ "$status" -eq 0 ]
+  [ "$output" = 101 ]
+  grep -q -- '--limit 20 ' "$TMP/gh.log"
+}
+
+@test "run_id_on still watches the newest run by default" {
+  mkgh
+  printf '%s\n' 202 >"$TMP/gh-list"
+  run run_id_on homebrew-tap check bump/scruff-v1.2.3
+  [ "$status" -eq 0 ]
+  [ "$output" = 202 ]
+  grep -q -- '--limit 1 ' "$TMP/gh.log"
+}
+
 @test "run_id_on gives up after WATCH_APPEAR_TRIES polls, not on the first empty answer" {
   mkgh
   : >"$TMP/gh-list"
